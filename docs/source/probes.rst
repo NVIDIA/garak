@@ -10,6 +10,7 @@ For a detailed oversight into how a probe operates, see :ref:`garak.probes.base.
    :maxdepth: 2
 
    garak.probes
+   garak.probes.artprompt
    garak.probes.atkgen
    garak.probes.av_spam_scanning
    garak.probes.base
