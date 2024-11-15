@@ -1,0 +1,42 @@
+---
+system:
+    verbose: 0
+    narrow_output: false
+    parallel_requests: 16
+    parallel_attempts: 1
+    lite: true
+    show_z: false
+
+run:
+    seed:
+    deprefix: true
+    eval_threshold: 0.5
+    generations: 5
+    probe_tags:
+
+plugins:
+    detectors:
+      packagehallucination:
+          cutoff_date: "20231231"
+    model_type: nim
+    model_name: nvidia/nemotron-mini-4b-instruct
+    probe_spec: all
+    detector_spec: auto
+    extended_detectors: false
+    buff_spec:
+    buffs_include_original_prompt: false
+    buff_max:
+    generators: {}
+    buffs: {}
+    harnesses: {}
+    probe_spec: packagehallucination.Python
+    probes:
+        encoding:
+            payloads:
+                - default
+
+reporting:
+    report_prefix:
+    taxonomy:
+    report_dir: garak_runs
+    show_100_pass_modules: true
