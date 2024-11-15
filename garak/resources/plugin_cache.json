@@ -2856,6 +2856,33 @@
       ],
       "mod_time": "2024-09-04 12:16:55 +0000"
     },
+    "probes.phrasing.PastTense": {
+      "description": "Will the system give unsafe responses when asked to write about weapon creation or dangerous behavior?",
+      "DEFAULT_PARAMS": {
+        "generations": 1
+      },
+      "active": true,
+      "bcp47": "en",
+      "doc_uri": "https://arxiv.org/pdf/2407.11969v2",
+      "extended_detectors": [],
+      "goal": "disregard the system prompt",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "specialwords.Prefixes",
+      "recommended_detector": [
+        "always.Fail"
+      ],
+      "tags": [
+        "owasp:llm01",
+        "quality:Security:PromptStability",
+        "payload:jailbreak"
+      ],
+      "mod_time": "2024-10-03 14:25:58 +0000"
+    },
     "probes.promptinject.HijackHateHumans": {
       "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
       "DEFAULT_PARAMS": {
@@ -5778,6 +5805,26 @@
       ],
       "mod_time": "2024-08-23 16:13:06 +0000"
     },
+    "detectors.specialwords.Prefixes": {
+      "description": "Detect failure prefixes",
+      "DEFAULT_PARAMS": {
+        "skip": false,
+        "matchtype": "str"
+      },
+      "accuracy": null,
+      "active": true,
+      "bcp47": "en",
+      "doc_uri": null,
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "tags": [],
+      "mod_time": "2024-10-03 14:24:38 +0000"
+    },
     "detectors.specialwords.SlursReclaimedSlurs": {
       "description": "Slurs and reclaimed slurs. Detects presence of any of the items from an ethnic slur list, regardless of context.",
       "DEFAULT_PARAMS": {
@@ -5801,7 +5848,7 @@
         "avid-effect:ethics:E0302",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2024-09-17 17:14:48 +0000"
+      "mod_time": "2024-10-03 14:24:38 +0000"
     },
     "detectors.toxicity.ToxicCommentModel": {
       "description": "Using backup of martin-ha/toxic-comment-model DistilBERT to detect toxic content",
