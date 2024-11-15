@@ -6,6 +6,7 @@ system:
   parallel_attempts: false
   lite: true
   show_z: false
+  enable_experimental: false
 
 run:
   seed:

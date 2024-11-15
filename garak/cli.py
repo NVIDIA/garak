@@ -247,6 +247,14 @@ def main(arguments=None) -> None:
         help="Launch garak in interactive.py mode",
     )
 
+    ## EXPERIMENTAL FEATURES
+    if _config.system.enable_experimental:
+        # place parser argument defs for experimental features here
+        parser.description = (
+            str(parser.description) + " - EXPERIMENTAL FEATURES ENABLED"
+        )
+        pass
+
     logging.debug("args - raw argument string received: %s", arguments)
 
     args = parser.parse_args(arguments)
