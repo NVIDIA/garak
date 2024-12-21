@@ -3,7 +3,7 @@ CLI reference for garak
 
 ::
 
-  garak LLM vulnerability scanner v0.10.0 ( https://github.com/NVIDIA/garak ) at 2024-10-31T09:41:09.763226
+  garak LLM vulnerability scanner v0.10.1 ( https://github.com/NVIDIA/garak ) at 2024-12-19T11:28:00.501208
   usage: python -m garak [-h] [--verbose] [--report_prefix REPORT_PREFIX]
                          [--narrow_output]
                          [--parallel_requests PARALLEL_REQUESTS]
@@ -12,15 +12,19 @@ CLI reference for garak
                          [--eval_threshold EVAL_THRESHOLD]
                          [--generations GENERATIONS] [--config CONFIG]
                          [--model_type MODEL_TYPE] [--model_name MODEL_NAME]
-                         [--generator_option_file GENERATOR_OPTION_FILE | --generator_options GENERATOR_OPTIONS]
                          [--probes PROBES] [--probe_tags PROBE_TAGS]
-                         [--probe_option_file PROBE_OPTION_FILE | --probe_options PROBE_OPTIONS]
                          [--detectors DETECTORS] [--extended_detectors]
-                         [--buffs BUFFS] [--taxonomy TAXONOMY]
-                         [--plugin_info PLUGIN_INFO] [--list_probes]
-                         [--list_detectors] [--list_generators] [--list_buffs]
-                         [--list_config] [--version] [--report REPORT]
-                         [--interactive] [--generate_autodan] [--interactive.py]
+                         [--buffs BUFFS]
+                         [--buff_option_file BUFF_OPTION_FILE | --buff_options BUFF_OPTIONS]
+                         [--detector_option_file DETECTOR_OPTION_FILE | --detector_options DETECTOR_OPTIONS]
+                         [--generator_option_file GENERATOR_OPTION_FILE | --generator_options GENERATOR_OPTIONS]
+                         [--harness_option_file HARNESS_OPTION_FILE | --harness_options HARNESS_OPTIONS]
+                         [--probe_option_file PROBE_OPTION_FILE | --probe_options PROBE_OPTIONS]
+                         [--taxonomy TAXONOMY] [--plugin_info PLUGIN_INFO]
+                         [--list_probes] [--list_detectors] [--list_generators]
+                         [--list_buffs] [--list_config] [--version]
+                         [--report REPORT] [--interactive] [--generate_autodan]
+                         [--interactive.py] [--fix]
   
   LLM safety & security scanning tool
   
@@ -51,21 +55,12 @@ CLI reference for garak
     --model_name MODEL_NAME, -n MODEL_NAME
                           name of the model, e.g.
                           'timdettmers/guanaco-33b-merged'
-    --generator_option_file GENERATOR_OPTION_FILE, -G GENERATOR_OPTION_FILE
-                          path to JSON file containing options to pass to
-                          generator
-    --generator_options GENERATOR_OPTIONS
-                          options to pass to the generator
     --probes PROBES, -p PROBES
                           list of probe names to use, or 'all' for all
                           (default).
     --probe_tags PROBE_TAGS
                           only include probes with a tag that starts with this
                           value (e.g. owasp:llm01)
-    --probe_option_file PROBE_OPTION_FILE, -P PROBE_OPTION_FILE
-                          path to JSON file containing options to pass to probes
-    --probe_options PROBE_OPTIONS
-                          options to pass to probes, formatted as a JSON dict
     --detectors DETECTORS, -d DETECTORS
                           list of detectors to use, or 'all' for all. Default is
                           to use the probe's suggestion.
@@ -74,6 +69,29 @@ CLI reference for garak
                           primary detector, if given, else everything)
     --buffs BUFFS, -b BUFFS
                           list of buffs to use. Default is none
+    --buff_option_file BUFF_OPTION_FILE, -B BUFF_OPTION_FILE
+                          path to JSON file containing options to pass to buff
+    --buff_options BUFF_OPTIONS
+                          options to pass to buff, formatted as a JSON dict
+    --detector_option_file DETECTOR_OPTION_FILE, -D DETECTOR_OPTION_FILE
+                          path to JSON file containing options to pass to
+                          detector
+    --detector_options DETECTOR_OPTIONS
+                          options to pass to detector, formatted as a JSON dict
+    --generator_option_file GENERATOR_OPTION_FILE, -G GENERATOR_OPTION_FILE
+                          path to JSON file containing options to pass to
+                          generator
+    --generator_options GENERATOR_OPTIONS
+                          options to pass to generator, formatted as a JSON dict
+    --harness_option_file HARNESS_OPTION_FILE, -H HARNESS_OPTION_FILE
+                          path to JSON file containing options to pass to
+                          harness
+    --harness_options HARNESS_OPTIONS
+                          options to pass to harness, formatted as a JSON dict
+    --probe_option_file PROBE_OPTION_FILE, -P PROBE_OPTION_FILE
+                          path to JSON file containing options to pass to probe
+    --probe_options PROBE_OPTIONS
+                          options to pass to probe, formatted as a JSON dict
     --taxonomy TAXONOMY   specify a MISP top-level taxonomy to be used for
                           grouping probes in reporting. e.g. 'avid-effect',
                           'owasp'
@@ -92,5 +110,8 @@ CLI reference for garak
     --generate_autodan    generate AutoDAN prompts; requires --prompt_options
                           with JSON containing a prompt and target
     --interactive.py      Launch garak in interactive.py mode
+    --fix                 Update provided configuration with fixer migrations;
+                          requires one of --config / --*_option_file, /
+                          --*_options
   
   See https://github.com/NVIDIA/garak

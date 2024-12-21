@@ -49,10 +49,6 @@ class GroqChat(OpenAICompatible):
             )
         self.generator = self.client.chat.completions
 
-    def _clear_client(self):
-        self.generator = None
-        self.client = None
-
     def _call_model(
         self, prompt: str | List[dict], generations_this_call: int = 1
     ) -> List[Union[str, None]]:

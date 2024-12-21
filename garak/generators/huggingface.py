@@ -79,6 +79,9 @@ class Pipeline(Generator, HFCompatible):
             set_seed(_config.run.seed)
 
         pipeline_kwargs = self._gather_hf_params(hf_constructor=pipeline)
+        pipeline_kwargs["truncation"] = (
+            True  # this is forced to maintain existing pipeline expectations
+        )
         self.generator = pipeline("text-generation", **pipeline_kwargs)
         if self.generator.tokenizer is None:
             # account for possible model without a stored tokenizer
@@ -86,6 +89,11 @@ class Pipeline(Generator, HFCompatible):
 
             self.generator.tokenizer = AutoTokenizer.from_pretrained(
                 pipeline_kwargs["model"]
+            )
+        if not hasattr(self, "use_chat"):
+            self.use_chat = (
+                hasattr(self.generator.tokenizer, "chat_template")
+                and self.generator.tokenizer.chat_template is not None
             )
         if not hasattr(self, "deprefix_prompt"):
             self.deprefix_prompt = self.name in models_to_deprefix
@@ -98,6 +106,9 @@ class Pipeline(Generator, HFCompatible):
     def _clear_client(self):
         self.generator = None
 
+    def _format_chat_prompt(self, prompt: str) -> List[dict]:
+        return [{"role": "user", "content": prompt}]
+
     def _call_model(
         self, prompt: str, generations_this_call: int = 1
     ) -> List[Union[str, None]]:
@@ -106,13 +117,16 @@ class Pipeline(Generator, HFCompatible):
             warnings.simplefilter("ignore", category=UserWarning)
             try:
                 with torch.no_grad():
-                    # workaround for pipeline to truncate the input
-                    encoded_prompt = self.generator.tokenizer(prompt, truncation=True)
-                    truncated_prompt = self.generator.tokenizer.decode(
-                        encoded_prompt["input_ids"], skip_special_tokens=True
-                    )
+                    # according to docs https://huggingface.co/docs/transformers/main/en/chat_templating
+                    # chat template should be automatically utilized if the pipeline tokenizer has support
+                    # and a properly formatted list[dict] is supplied
+                    if self.use_chat:
+                        formatted_prompt = self._format_chat_prompt(prompt)
+                    else:
+                        formatted_prompt = prompt
+
                     raw_output = self.generator(
-                        truncated_prompt,
+                        formatted_prompt,
                         pad_token_id=self.generator.tokenizer.eos_token_id,
                         max_new_tokens=self.max_tokens,
                         num_return_sequences=generations_this_call,
@@ -127,10 +141,15 @@ class Pipeline(Generator, HFCompatible):
                 i["generated_text"] for i in raw_output
             ]  # generator returns 10 outputs by default in __init__
 
-        if not self.deprefix_prompt:
-            return outputs
+        if self.use_chat:
+            text_outputs = [_o[-1]["content"].strip() for _o in outputs]
         else:
-            return [re.sub("^" + re.escape(prompt), "", _o) for _o in outputs]
+            text_outputs = outputs
+
+        if not self.deprefix_prompt:
+            return text_outputs
+        else:
+            return [re.sub("^" + re.escape(prompt), "", _o) for _o in text_outputs]
 
 
 class OptimumPipeline(Pipeline, HFCompatible):
@@ -468,6 +487,13 @@ class Model(Pipeline, HFCompatible):
                 self.name, padding_side="left"
             )
 
+        if not hasattr(self, "use_chat"):
+            # test tokenizer for `apply_chat_template` support
+            self.use_chat = (
+                hasattr(self.tokenizer, "chat_template")
+                and self.tokenizer.chat_template is not None
+            )
+
         self.generation_config = transformers.GenerationConfig.from_pretrained(
             self.name
         )
@@ -492,13 +518,26 @@ class Model(Pipeline, HFCompatible):
         if self.top_k is not None:
             self.generation_config.top_k = self.top_k
 
-        text_output = []
+        raw_text_output = []
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=UserWarning)
             with torch.no_grad():
+                if self.use_chat:
+                    formatted_prompt = self.tokenizer.apply_chat_template(
+                        self._format_chat_prompt(prompt),
+                        tokenize=False,
+                        add_generation_prompt=True,
+                    )
+                else:
+                    formatted_prompt = prompt
+
                 inputs = self.tokenizer(
-                    prompt, truncation=True, return_tensors="pt"
+                    formatted_prompt, truncation=True, return_tensors="pt"
                 ).to(self.device)
+
+                prefix_prompt = self.tokenizer.decode(
+                    inputs["input_ids"][0], skip_special_tokens=True
+                )
 
                 try:
                     outputs = self.model.generate(
@@ -512,14 +551,22 @@ class Model(Pipeline, HFCompatible):
                         return returnval
                     else:
                         raise e
-                text_output = self.tokenizer.batch_decode(
+                raw_text_output = self.tokenizer.batch_decode(
                     outputs, skip_special_tokens=True, device=self.device
                 )
+
+        if self.use_chat:
+            text_output = [
+                re.sub("^" + re.escape(prefix_prompt), "", i).strip()
+                for i in raw_text_output
+            ]
+        else:
+            text_output = raw_text_output
 
         if not self.deprefix_prompt:
             return text_output
         else:
-            return [re.sub("^" + re.escape(prompt), "", i) for i in text_output]
+            return [re.sub("^" + re.escape(prefix_prompt), "", i) for i in text_output]
 
 
 class LLaVA(Generator, HFCompatible):

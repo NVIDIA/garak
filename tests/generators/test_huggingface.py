@@ -50,6 +50,21 @@ def test_pipeline(hf_generator_config):
         assert isinstance(item, str)
 
 
+def test_pipeline_chat(mocker, hf_generator_config):
+    # uses a ~350M model with chat support
+    g = garak.generators.huggingface.Pipeline(
+        "microsoft/DialoGPT-small", config_root=hf_generator_config
+    )
+    mock_format = mocker.patch.object(
+        g, "_format_chat_prompt", wraps=g._format_chat_prompt
+    )
+    output = g.generate("Hello world!")
+    mock_format.assert_called_once()
+    assert len(output) == 1
+    for item in output:
+        assert isinstance(item, str)
+
+
 def test_inference(mocker, hf_mock_response, hf_generator_config):
     model_name = "gpt2"
     mock_request = mocker.patch.object(
@@ -119,6 +134,21 @@ def test_model(hf_generator_config):
     assert len(output) == 1  # expect 1 generation by default
     for item in output:
         assert item is None  # gpt2 is known raise exception returning `None`
+
+
+def test_model_chat(mocker, hf_generator_config):
+    # uses a ~350M model with chat support
+    g = garak.generators.huggingface.Model(
+        "microsoft/DialoGPT-small", config_root=hf_generator_config
+    )
+    mock_format = mocker.patch.object(
+        g, "_format_chat_prompt", wraps=g._format_chat_prompt
+    )
+    output = g.generate("Hello world!")
+    mock_format.assert_called_once()
+    assert len(output) == 1
+    for item in output:
+        assert isinstance(item, str)
 
 
 def test_select_hf_device():

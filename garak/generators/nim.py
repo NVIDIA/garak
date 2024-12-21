@@ -63,10 +63,6 @@ class NVOpenAIChat(OpenAICompatible):
             )
         self.generator = self.client.chat.completions
 
-    def _clear_client(self):
-        self.generator = None
-        self.client = None
-
     def _prepare_prompt(self, prompt):
         return prompt
 

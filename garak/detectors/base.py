@@ -120,7 +120,9 @@ class HFDetector(Detector, HFCompatible):
             self.detector_model_path
         )
         self.detector = TextClassificationPipeline(
-            model=self.detector_model, tokenizer=self.detector_tokenizer
+            model=self.detector_model,
+            tokenizer=self.detector_tokenizer,
+            device=self.device,
         )
 
         transformers_logging.set_verbosity(orig_loglevel)
