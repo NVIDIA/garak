@@ -2,7 +2,7 @@
 
 *Generative AI Red-teaming & Assessment Kit*
 
-`garak` checks if an LLM can be made to fail in a way we don't want. `garak` probes for hallucination, data leakage, prompt injection, misinformation, toxicity generation, jailbreaks, and many other weaknesses. If you know `nmap`, it's `nmap` for LLMs. 
+`garak` checks if an LLM can be made to fail in a way we don't want. `garak` probes for hallucination, data leakage, prompt injection, misinformation, toxicity generation, jailbreaks, and many other weaknesses. If you know `nmap` or `msf` / Metasploit Framework, garak does somewhat similar things to them, but for LLMs. 
 
 `garak` focuses on ways of making an LLM or dialog system fail. It combines static, dynamic, and adaptive probes to explore this.
 
@@ -18,8 +18,8 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/garak)](https://pypi.org/project/garak)
 [![PyPI](https://badge.fury.io/py/garak.svg)](https://badge.fury.io/py/garak)
-[![Downloads](https://pepy.tech/badge/garak)](https://pepy.tech/project/garak)
-[![Downloads](https://pepy.tech/badge/garak/month)](https://pepy.tech/project/garak)
+[![Downloads](https://static.pepy.tech/badge/garak)](https://pepy.tech/project/garak)
+[![Downloads](https://static.pepy.tech/badge/garak/month)](https://pepy.tech/project/garak)
 
 
 ## Get started
