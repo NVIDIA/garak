@@ -102,36 +102,56 @@ class OpenRouterGenerator(OpenAICompatible):
             logging.debug(f"Completion Tokens: {response.usage.completion_tokens}")
             logging.debug(f"Total Tokens: {response.usage.total_tokens}")
 
-        logging.debug("Generated Text:")
-        if isinstance(response, list):
-            for item in response:
-                if hasattr(item, 'message'):
-                    logging.debug(f"- {item.message.content}")
-                elif hasattr(item, 'text'):
-                    logging.debug(f"- {item.text}")
-                else:
-                    logging.debug(f"- {item}")
-        else:
-            for choice in response.choices:
-                if hasattr(choice, 'message'):
-                    logging.debug(f"- {choice.message.content}")
-                else:
-                    logging.debug(f"- {choice.text}")
+        logging.debug("\nGenerated Text:")
+        # OpenAI response object always has choices
+        for choice in response.choices:
+            if hasattr(choice, 'message'):
+                logging.debug(f"- Message Content: {choice.message.content}")
+                if hasattr(choice.message, 'role'):
+                    logging.debug(f"  Role: {choice.message.role}")
+                if hasattr(choice.message, 'function_call'):
+                    logging.debug(f"  Function Call: {choice.message.function_call}")
+            elif hasattr(choice, 'text'):
+                logging.debug(f"- Text: {choice.text}")
+            
+            # Log additional choice attributes if present
+            if hasattr(choice, 'finish_reason'):
+                logging.debug(f"  Finish Reason: {choice.finish_reason}")
+            if hasattr(choice, 'index'):
+                logging.debug(f"  Choice Index: {choice.index}")
+
+        # Log model info if present
+        if hasattr(response, 'model'):
+            logging.debug(f"\nModel: {response.model}")
+        if hasattr(response, 'system_fingerprint'):
+            logging.debug(f"System Fingerprint: {response.system_fingerprint}")
+            
         logging.debug("==================")
 
     def _call_model(self, prompt: Union[str, List[dict]], generations_this_call: int = 1):
-        """Override _call_model to add logging"""
+        """Call model and handle both logging and response"""
         try:
-            response = super()._call_model(prompt, generations_this_call)
-            # Get the raw response before it's processed
+            # Ensure client is initialized
+            if self.client is None or self.generator is None:
+                self._load_client()
+
+            # Create messages format for the API call
+            messages = [{"role": "user", "content": prompt}] if isinstance(prompt, str) else prompt
+            
+            # Make a single API call to get the response
             raw_response = self.generator.create(
                 model=self.name,
-                messages=[{"role": "user", "content": prompt}] if isinstance(prompt, str) else prompt,
+                messages=messages,
                 n=generations_this_call if "n" not in self.suppressed_params else None,
                 max_tokens=self.max_tokens if hasattr(self, 'max_tokens') else None
             )
+            
+            # Log the completion details
             self._log_completion_details(prompt, raw_response)
-            return response
+            
+            # Return the full response content
+            return [choice.message.content for choice in raw_response.choices]
+            
         except Exception as e:
             logging.error(f"Error in model call: {str(e)}")
             return [None]
