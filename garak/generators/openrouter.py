@@ -42,7 +42,8 @@ class OpenRouterGenerator(OpenAICompatible):
     active = True
     generator_family_name = "OpenRouter"
     DEFAULT_PARAMS = {
-        k: val for k, val in OpenAICompatible.DEFAULT_PARAMS.items() if k != "uri"
+        **{k: val for k, val in OpenAICompatible.DEFAULT_PARAMS.items() if k != "uri"},
+        "max_tokens": 2000
     }
 
     def __init__(self, name="", config_root=_config):
@@ -76,7 +77,7 @@ class OpenRouterGenerator(OpenAICompatible):
         """Validate the configuration"""
         if not self.name:
             raise ValueError("Model name must be specified")
-        
+
         # Set a default context length if not specified
         if self.name not in context_lengths:
             logging.info(
@@ -84,5 +85,55 @@ class OpenRouterGenerator(OpenAICompatible):
             )
             self.context_len = 4096
 
+    def _log_completion_details(self, prompt, response):
+        """Log completion details at DEBUG level"""
+        logging.debug("=== Model Input ===")
+        if isinstance(prompt, str):
+            logging.debug(f"Prompt: {prompt}")
+        else:
+            logging.debug("Messages:")
+            for msg in prompt:
+                logging.debug(f"- Role: {msg.get('role', 'unknown')}")
+                logging.debug(f"  Content: {msg.get('content', '')}")
+
+        logging.debug("\n=== Model Output ===")
+        if hasattr(response, 'usage'):
+            logging.debug(f"Prompt Tokens: {response.usage.prompt_tokens}")
+            logging.debug(f"Completion Tokens: {response.usage.completion_tokens}")
+            logging.debug(f"Total Tokens: {response.usage.total_tokens}")
+
+        logging.debug("Generated Text:")
+        if isinstance(response, list):
+            for item in response:
+                if hasattr(item, 'message'):
+                    logging.debug(f"- {item.message.content}")
+                elif hasattr(item, 'text'):
+                    logging.debug(f"- {item.text}")
+                else:
+                    logging.debug(f"- {item}")
+        else:
+            for choice in response.choices:
+                if hasattr(choice, 'message'):
+                    logging.debug(f"- {choice.message.content}")
+                else:
+                    logging.debug(f"- {choice.text}")
+        logging.debug("==================")
+
+    def _call_model(self, prompt: Union[str, List[dict]], generations_this_call: int = 1):
+        """Override _call_model to add logging"""
+        try:
+            response = super()._call_model(prompt, generations_this_call)
+            # Get the raw response before it's processed
+            raw_response = self.generator.create(
+                model=self.name,
+                messages=[{"role": "user", "content": prompt}] if isinstance(prompt, str) else prompt,
+                n=generations_this_call if "n" not in self.suppressed_params else None,
+                max_tokens=self.max_tokens if hasattr(self, 'max_tokens') else None
+            )
+            self._log_completion_details(prompt, raw_response)
+            return response
+        except Exception as e:
+            logging.error(f"Error in model call: {str(e)}")
+            return [None]
 
 DEFAULT_CLASS = "OpenRouterGenerator"
