@@ -85,6 +85,9 @@ class HFCompatible:
         ):
             args["trust_remote_code"] = False
 
+        if "use_safetensors" not in params:
+            args["use_safetensors"] = True
+
         return args
 
     def _select_hf_device(self):
