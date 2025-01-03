@@ -12,6 +12,7 @@ from dataclasses import dataclass
 import importlib
 import logging
 import os
+import stat
 import pathlib
 from typing import List
 import yaml
@@ -20,6 +21,7 @@ from xdg_base_dirs import (
     xdg_config_home,
     xdg_data_home,
 )
+from garak.command import hint
 
 DICT_CONFIG_AFTER_LOAD = False
 
@@ -116,13 +118,23 @@ run.seed = None
 # generator, probe, detector, buff = {}, {}, {}, {}
 
 
+def _key_exists(d: dict, key: str) -> bool:
+    # Check for the presence of a key in a nested dict.
+    if not isinstance(d, dict):
+        return False
+    if key in d.keys():
+        return True
+    else:
+        return any([_key_exists(val, key) for val in d.values()])
+
+
 def _set_settings(config_obj, settings_obj: dict):
     for k, v in settings_obj.items():
         setattr(config_obj, k, v)
     return config_obj
 
 
-def _combine_into(d: dict, combined: dict) -> None:
+def _combine_into(d: dict, combined: dict) -> dict:
     if d is None:
         return combined
     for k, v in d.items():
@@ -141,6 +153,15 @@ def _load_yaml_config(settings_filenames) -> dict:
         with open(settings_filename, encoding="utf-8") as settings_file:
             settings = yaml.safe_load(settings_file)
             if settings is not None:
+                if _key_exists(settings, "api_key"):
+                    logging.info(f"API key found in {settings_filename}. Checking readability...")
+                    res = os.stat(settings_filename)
+                    if res.st_mode & stat.S_IROTH or res.st_mode & stat.S_IRGRP:
+                        msg = (f"A possibly secret value (`api_key`) was detected in {settings_filename}, "
+                               f"which is readable by users other than yourself. "
+                               f"Consider changing permissions on this file to only be readable by you.")
+                        logging.warning(msg)
+                        hint(msg)
                 config = _combine_into(settings, config)
     return config
 
