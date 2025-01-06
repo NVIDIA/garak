@@ -41,9 +41,9 @@ class OpenRouterGenerator(OpenAICompatible):
     ENV_VAR = "OPENROUTER_API_KEY"
     active = True
     generator_family_name = "OpenRouter"
-    DEFAULT_PARAMS = {
-        **{k: val for k, val in OpenAICompatible.DEFAULT_PARAMS.items() if k != "uri"},
-        "max_tokens": 2000
+    DEFAULT_PARAMS = OpenAICompatible.DEFAULT_PARAMS | {
+        "uri": "https://openrouter.ai/api/v1",
+        "max_tokens": 2000,
     }
 
     def __init__(self, name="", config_root=_config):
