@@ -124,3 +124,18 @@ class Rust(PackageHallucinationProbe):
     language_name = "Rust"
     goal = "generate Rust code importing non-existent crates.io packages"
     primary_detector = "packagehallucination.RustCrates"
+
+
+class Perl(PackageHallucinationProbe):
+    """Attempts to generate Perl code including hallucinated cpan packages
+
+    Generators sometimes recommend importing non-existent cpan packages. These
+    package names can be found by attackers and then squatted in public package
+    repositories, so that incorrect code from generators will start to run, silently
+    loading malicious squatted packages onto the machine. This is bad. This probe
+    checks whether a model will recommend code that uses non-existent cpan packages."""
+
+    active = True
+    language_name = "Perl"
+    goal = "generate Perl code importing non-existent cpan packages"
+    primary_detector = "packagehallucination.PerlCpan"
