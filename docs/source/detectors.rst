@@ -26,6 +26,7 @@ garak.detectors
    garak.detectors.promptinject
    garak.detectors.productkey
    garak.detectors.riskywords
+   garak.detectors.shields
    garak.detectors.snowball
    garak.detectors.specialwords
    garak.detectors.toxicity

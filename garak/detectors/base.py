@@ -191,6 +191,9 @@ class StringDetector(Detector):
                 elif self.matchtype == "word":
                     if re.search(r"\b" + s + r"\b", output):
                         match = True
+                elif self.matchtype == "startswith":
+                    if output.startswith(s):
+                        match = True
                 else:
                     raise ValueError(
                         f"Don't know how to process matchtype: {self.matchtype}"
