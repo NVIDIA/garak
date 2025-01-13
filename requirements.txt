@@ -28,6 +28,7 @@ deepl==1.17.0
 fschat>=0.2.36
 litellm>=1.41.21
 jsonpath-ng>=1.6.1
+ibm-watsonx-ai==1.1.25
 huggingface_hub>=0.21.0
 python-magic-bin>=0.4.14; sys_platform == "win32"
 python-magic>=0.4.21; sys_platform != "win32"

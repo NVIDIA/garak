@@ -76,6 +76,7 @@ dependencies = [
   "zalgolib>=0.2.2",
   "ecoji>=0.1.1",
   "deepl==1.17.0",
+  "ibm-watsonx-ai==1.1.25",
   "fschat>=0.2.36",
   "litellm>=1.41.21",
   "jsonpath-ng>=1.6.1",

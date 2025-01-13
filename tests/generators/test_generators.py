@@ -211,6 +211,7 @@ def test_instantiate_generators(classname):
                 "org_id": "fake",  # required for NeMo
                 "uri": "https://example.com",  # required for rest
                 "provider": "fake",  # required for LiteLLM
+                "project_id": "fake", # required for watsonx
             }
         }
     }
