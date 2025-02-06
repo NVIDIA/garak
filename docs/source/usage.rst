@@ -75,6 +75,12 @@ Some generators might need an API key to be set as an environment variable, and 
 ``--probes promptinject`` will use only the `PromptInject <https://github.com/agencyenterprise/promptinject>`_ framework's methods, for example. 
 You can also specify one specific plugin instead of a plugin family by adding the plugin name after a ``.``; for example, ``--probes lmrc.SlurUsage`` will use an implementation of checking for models generating slurs based on the `Language Model Risk Cards <https://arxiv.org/abs/2303.18190>`_ framework.
 
+To specify a delay between each request, use the ``--request_delay`` option followed by the number of seconds. For example, to set a delay of 2 seconds between each request:
+
+.. code-block:: console
+
+    garak --model_type huggingface --model_name gpt2 --probes dan.Dan_11_0 --request_delay 2
+
 
 Examples
 ^^^^^^^^
@@ -92,4 +98,3 @@ See if the Hugging Face version of GPT2 is vulnerable to DAN 11.0:
 .. code-block:: console
 
     garak --model_type huggingface --model_name gpt2 --probes dan.Dan_11_0
-

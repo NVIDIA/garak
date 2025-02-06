@@ -10,11 +10,11 @@ This module ncludes the class Harness, which all `garak` harnesses must
 inherit from.
 """
 
-
 import json
 import logging
 import types
 from typing import List
+import time
 
 import tqdm
 
@@ -136,6 +136,8 @@ class Harness(Configurable):
                     attempt.detector_results[detector_probe_name] = list(
                         d.detect(attempt)
                     )
+                    if _config.run.request_delay > 0:
+                        time.sleep(_config.run.request_delay)
 
             for attempt in attempt_results:
                 attempt.status = garak.attempt.ATTEMPT_COMPLETE

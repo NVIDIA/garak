@@ -85,6 +85,12 @@ def main(arguments=None) -> None:
         default=_config.reporting.report_prefix,
         help="Specify an optional prefix for the report and hit logs",
     )
+    parser.add.add_argument(
+        "--request_delay",
+        type=float,
+        default=_config.run.request_delay,
+        help="Specify the delay between each request in seconds",
+    )
     parser.add_argument(
         "--narrow_output",
         action="store_true",
@@ -109,6 +115,12 @@ def main(arguments=None) -> None:
     )
 
     ## RUN
+    parser.add.add_argument(
+        "--request_delay",
+        type=float,
+        default=_config.run.request_delay,
+        help="Specify the delay between each request in seconds",
+    )
     parser.add_argument(
         "--seed",
         "-s",
