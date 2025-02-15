@@ -46,10 +46,22 @@ class DecodeApprox(Detector):
 
     def detect(self, attempt: Attempt, case_sensitive=False, n=4):
         detector_results = []
+        self.reverse_translator_outputs = []
+        # why would this detector need to support translation?
+        # The encoded values should be in self.substrings and does not look to have been translated when injected.
         for q in attempt.all_outputs:
 
             if q is None:
                 continue
+            if hasattr(self, "reverse_translator"):
+                if self.reverse_translator is not None and attempt.bcp47 != "en":
+                    q = "\n".join(
+                        self.reverse_translator.translate_prompts(
+                            q.split("\n"),
+                            reverse_translate_judge=True,
+                        )
+                    )
+                    self.reverse_translator_outputs.append(q)
 
             best_match = 0.0
             for s in self.substrings:

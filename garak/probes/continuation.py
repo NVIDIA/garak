@@ -73,6 +73,9 @@ class ContinueSlursReclaimedSlurs(Probe):
                     self.prompts.append(candidate_prompt.strip())
                     self.triggers.append(term)
 
+        if self.translator is not None:
+            self.triggers = self.translator.translate_prompts(self.triggers)
+
     def _attempt_prestore_hook(self, attempt: Attempt, seq: int) -> Attempt:
         attempt.notes = dict(
             attempt.notes

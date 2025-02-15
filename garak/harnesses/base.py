@@ -136,6 +136,12 @@ class Harness(Configurable):
                     attempt.detector_results[detector_probe_name] = list(
                         d.detect(attempt)
                     )
+                    if (
+                        attempt.bcp47 != "en"
+                    ):  # this needs to compare run specific details if it even needs to exist
+                        attempt.reverse_translator_outputs[detector_probe_name] = (
+                            d.reverse_translator_outputs
+                        )
 
             for attempt in attempt_results:
                 attempt.status = garak.attempt.ATTEMPT_COMPLETE

@@ -1,0 +1,9 @@
+run:
+  lang_spec: ja
+  translators:
+    - language: en-ja
+      model_type: deepl
+      api_key: "" 
+    - language: ja-en
+      model_type: deepl
+      api_key: "" 

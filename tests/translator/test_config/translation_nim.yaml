@@ -1,0 +1,9 @@
+run:
+  lang_spec: ja
+  translator:
+    - language: en-ja
+      model_type: nim
+      api_key: ""
+    - language: ja-en
+      model_type: nim
+      api_key: ""
