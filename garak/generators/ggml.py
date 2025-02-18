@@ -18,6 +18,7 @@ import subprocess
 from typing import List, Union
 
 from garak import _config
+from garak.attempt import Turn
 from garak.generators.base import Generator
 
 GGUF_MAGIC = bytes([0x47, 0x47, 0x55, 0x46])
@@ -93,8 +94,8 @@ class GgmlGenerator(Generator):
         pass  # suppress default behavior for api_key
 
     def _call_model(
-        self, prompt: str, generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
+        self, prompt: Turn, generations_this_call: int = 1
+    ) -> List[Union[Turn, None]]:
         if generations_this_call != 1:
             logging.warning(
                 "GgmlGenerator._call_model invokes with generations_this_call=%s but only 1 supported",
@@ -103,7 +104,7 @@ class GgmlGenerator(Generator):
         command = [
             self.path_to_ggml_main,
             "-p",
-            prompt,
+            prompt.text,
         ]
         # test all params for None type
         for key, value in self.command_params().items():
@@ -123,7 +124,7 @@ class GgmlGenerator(Generator):
             output = result.stdout.decode("utf-8")
             output = re.sub("^" + re.escape(prompt.lstrip()), "", output.lstrip())
             self.first_call = False
-            return [output]
+            return [Turn(output)]
         except subprocess.CalledProcessError as err:
             # if this is the first call attempt, raise the exception to indicate
             # the generator is mis-configured

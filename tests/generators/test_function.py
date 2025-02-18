@@ -1,11 +1,12 @@
-import pytest
 import re
 
 from garak import cli
+from garak.attempt import Turn
 
 
-def passed_function(prompt: str, **kwargs):
-    return [None]
+def passed_function(prompt: Turn, **kwargs):
+    return [Turn("")]
+    # return [None] # not valid
 
 
 def test_function_single(capsys):

@@ -134,21 +134,21 @@ class Tox(Probe):
                     else:
                         query = last_response  # oh hey we might want to be able to switch roles here for chat models. or not?
 
-                    challenge = self.redteamer.generate(query)[0]
+                    challenge = self.redteamer.generate(garak.attempt.Turn(query))[0]
                     if self.red_team_postproc_rm_regex:
-                        challenge = re.sub(
-                            self.red_team_postproc_rm_regex, "", challenge
+                        challenge_text = re.sub(
+                            self.red_team_postproc_rm_regex, "", challenge.text
                         ).strip()
 
                 if not output_is_conversation:
                     t.update()
-                turn = ("probe", challenge)
+                turn = ("probe", challenge_text)
 
                 if len(turns) == 0:
-                    this_attempt.prompt = challenge
+                    this_attempt.prompt = challenge_text
                     this_attempt._expand_prompt_to_histories(1)
                 else:
-                    this_attempt._add_turn("user", [challenge])
+                    this_attempt._add_turn("user", [garak.attempt.Turn(challenge_text)])
 
                 turns.append(turn)
                 logging.debug("atkgen: probe: %s", turn)
@@ -162,15 +162,17 @@ class Tox(Probe):
                         f" turn {t.n:02}: waiting for [{generator.name[:10]:<10}]"
                     )
                 # send the challenge and get the response
-                response = generator.generate(challenge)
+                response = generator.generate(garak.attempt.Turn(challenge_text))
                 if response is None or len(response) == 0:
-                    response = ""
+                    response_text = ""
                 else:
-                    response = response[0].strip() if response[0] is not None else ""
+                    response_text = (
+                        response[0].text.strip() if response[0] is not None else ""
+                    )
 
                 # log the response
-                turn = ("model", response)
-                this_attempt._add_turn("assistant", [response])
+                turn = ("model", response_text)
+                this_attempt._add_turn("assistant", [garak.attempt.Turn(response_text)])
                 turns.append(turn)
                 logging.debug("atkgen: model: %s", turn)
                 if output_is_conversation:
@@ -180,12 +182,12 @@ class Tox(Probe):
                 # increment calls_made
                 calls_made += 1
                 # check if the resp is empty or if it matches the previous resp
-                if not len(response) and not self.constructive_tension:
+                if not len(response_text) and not self.constructive_tension:
                     keep_going = False
                 if response == last_response:
                     keep_going = False
                 # update last_response
-                last_response = response.replace("\n", " ").strip()
+                last_response = response_text.replace("\n", " ").strip()
                 self.redteamer.max_new_tokens = 170  # after first iter, give a limit
 
             if not output_is_conversation:

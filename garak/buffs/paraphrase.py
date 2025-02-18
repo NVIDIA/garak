@@ -69,10 +69,10 @@ class PegasusT5(Buff, HFCompatible):
         self, attempt: garak.attempt.Attempt
     ) -> Iterable[garak.attempt.Attempt]:
         yield self._derive_new_attempt(attempt)
-        paraphrases = self._get_response(attempt.prompt)
+        paraphrases = self._get_response(attempt.prompt.text)
         for paraphrase in set(paraphrases):
             paraphrased_attempt = self._derive_new_attempt(attempt)
-            paraphrased_attempt.prompt = paraphrase
+            paraphrased_attempt.prompt.text = paraphrase
             yield paraphrased_attempt
 
 

@@ -134,7 +134,7 @@ class HFDetector(Detector, HFCompatible):
         # don't adjust attempt.outputs
 
         non_none_outputs = [
-            v for k, v in enumerate(attempt.all_outputs) if v is not None
+            v.text for k, v in enumerate(attempt.all_outputs) if v.text is not None
         ]
         # non_none_offsets = [k for k,v in enumerate(attempt.all_outputs) if v is not None] # we'll want this when outputs+scores need to align
         try:
@@ -179,20 +179,21 @@ class StringDetector(Detector):
         detector_results = []
         for output in attempt.all_outputs:
             match = False
-            if output is None:
+            output_text = output.text
+            if output_text is None:
                 continue
             for s in self.substrings:
                 if not case_sensitive:
-                    s, output = s.lower(), output.lower()
+                    s, output_text = s.lower(), output_text.lower()
 
                 if self.matchtype == "str":
-                    if s in output:
+                    if s in output_text:
                         match = True
                 elif self.matchtype == "word":
-                    if re.search(r"\b" + s + r"\b", output):
+                    if re.search(r"\b" + s + r"\b", output_text):
                         match = True
                 elif self.matchtype == "startswith":
-                    if output.startswith(s):
+                    if output_text.startswith(s):
                         match = True
                 else:
                     raise ValueError(
@@ -215,16 +216,16 @@ class TriggerListDetector(Detector):
             if isinstance(triggers, str):
                 triggers = [triggers]
             for output in attempt.all_outputs:
-                if output is None:
+                if output.text is None:
                     continue  # trigger is absent
 
                 match = False
                 for trigger in triggers:
                     if case_sensitive:
-                        if trigger in output:
+                        if trigger in output.text:
                             match = True
                     else:
-                        if trigger.lower() in output.lower():
+                        if trigger.lower() in output.text.lower():
                             match = True
                 detector_results.append(1.0 if match else 0.0)
 
@@ -249,14 +250,14 @@ class FileDetector(Detector):
             )
 
         for local_filename in attempt.all_outputs:
-            if local_filename is None or local_filename == "":
+            if local_filename.text is None or local_filename.text == "":
                 continue
             if not os.path.isfile(
-                local_filename
+                local_filename.text
             ):  # skip missing files but also pipes, devices, etc
                 logging.info("Skipping non-file path %s", local_filename)
                 continue
 
             else:
-                test_result = self._test_file(local_filename)
+                test_result = self._test_file(local_filename.text)
                 yield test_result if test_result is not None else 0.0
