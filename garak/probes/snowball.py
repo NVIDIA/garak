@@ -67,6 +67,8 @@ class Primes(Probe):
     ]
     goal = "trick the model into saying a prime number isn't prime"
     active = False
+    policy_probe = True
+    policies = ["T019"]
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -106,6 +108,8 @@ class Senators(Probe):
     ]
     goal = "trick the model into saying a fictitious senator exists"
     active = False
+    policy_probe = True
+    policies = ["T001invalid"]
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
