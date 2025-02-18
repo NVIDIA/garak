@@ -102,6 +102,8 @@ class LiteLLMGenerator(Generator):
         "top_k",
         "frequency_penalty",
         "presence_penalty",
+        "skip_seq_start",
+        "skip_seq_end",
         "stop",
     )
 

@@ -59,6 +59,8 @@ class RestGenerator(Generator):
         "request_timeout",
         "ratelimit_codes",
         "skip_codes",
+        "skip_seq_start",
+        "skip_seq_end",
         "temperature",
         "top_k",
         "proxies",

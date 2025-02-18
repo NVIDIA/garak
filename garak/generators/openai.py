@@ -140,8 +140,9 @@ class OpenAICompatible(Generator):
         "presence_penalty": 0.0,
         "seed": None,
         "stop": ["#", ";"],
-        "suppressed_params": set(),
+        "suppressed_params": {"timeout"},
         "retry_json": True,
+        "extra_params": {},
     }
 
     # avoid attempt to pickle the client attribute
@@ -220,8 +221,15 @@ class OpenAICompatible(Generator):
             if arg == "model":
                 create_args[arg] = self.name
                 continue
+            if arg == "extra_params":
+                continue
             if hasattr(self, arg) and arg not in self.suppressed_params:
-                create_args[arg] = getattr(self, arg)
+                if getattr(self, arg) is not None:
+                    create_args[arg] = getattr(self, arg)
+
+        if hasattr(self, "extra_params"):
+            for k, v in self.extra_params.items():
+                create_args[k] = v
 
         if self.generator == self.client.completions:
             if not isinstance(prompt, str):
@@ -262,6 +270,17 @@ class OpenAICompatible(Generator):
                 raise garak.exception.GarakBackoffTrigger from e
             else:
                 raise e
+
+        if not hasattr(response, "choices"):
+            logging.debug(
+                "Did not get a well-formed response, retrying. Expected object with .choices member, got: '%s'"
+                % repr(response)
+            )
+            msg = "no .choices member in generator response"
+            if self.retry_json:
+                raise garak.exception.GarakBackoffTrigger(msg)
+            else:
+                return [None]
 
         if self.generator == self.client.completions:
             return [c.text for c in response.choices]
