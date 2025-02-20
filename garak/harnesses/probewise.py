@@ -16,6 +16,7 @@ from garak import _config, _plugins
 
 
 class ProbewiseHarness(Harness):
+
     def _load_detector(self, detector_name: str) -> Detector:
         detector = _plugins.load_plugin(
             "detectors." + detector_name, break_on_fail=False
@@ -26,6 +27,9 @@ class ProbewiseHarness(Harness):
             print(f" detector load failed: {detector_name}, skipping >>")
             logging.error(f" detector load failed: {detector_name}, skipping >>")
         return False
+
+    def _probe_check(self, probe):
+        return probe
 
     def run(self, model, probenames, evaluator, buff_names=None):
         """Execute a probe-by-probe scan
@@ -54,15 +58,15 @@ class ProbewiseHarness(Harness):
         :type buff_names: List[str]
         """
 
-        if buff_names is None:
-            buff_names = []
-
         if not probenames:
             msg = "No probes, nothing to do"
             logging.warning(msg)
             if hasattr(_config.system, "verbose") and _config.system.verbose >= 2:
                 print(msg)
             raise ValueError(msg)
+
+        if buff_names is None:
+            buff_names = []
 
         self._load_buffs(buff_names)
 
@@ -71,7 +75,7 @@ class ProbewiseHarness(Harness):
             f"🕵️  queue of {Style.BRIGHT}{Fore.LIGHTYELLOW_EX}probes:{Style.RESET_ALL} "
             + ", ".join([name.replace("probes.", "") for name in probenames])
         )
-        logging.info("probe queue: %s", " ".join(probenames))
+        logging.info("harness probewise: probe queue: %s", " ".join(probenames))
         for probename in probenames:
             try:
                 probe = _plugins.load_plugin(probename)
@@ -82,6 +86,8 @@ class ProbewiseHarness(Harness):
             if not probe:
                 continue
             detectors = []
+
+            probe = self._probe_check(probe)
 
             if probe.primary_detector:
                 d = self._load_detector(probe.primary_detector)
@@ -104,5 +110,17 @@ class ProbewiseHarness(Harness):
                         detectors.append(d)
 
             h = Harness()
-            h.run(model, [probe], detectors, evaluator, announce_probe=False)
-            # del probe, h, detectors
+            logging.debug("harness probewise: invoke base")
+            result = h._execute(model, [probe], detectors, evaluator)
+            yield list(result)  # ensure the generator is executed
+        logging.debug("harness probewise: complete")
+
+
+class PolicyHarness(ProbewiseHarness):
+
+    def _probe_check(self, probe):
+        assert (
+            probe.policy_probe == True
+        ), "only policy probes should be used in policy runs"
+        setattr(probe, "generations", _config.policy.generations)
+        return probe
