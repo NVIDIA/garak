@@ -10,6 +10,7 @@ import backoff
 import octoai.errors
 
 from garak import _config
+from garak.attempt import Turn
 from garak.generators.base import Generator
 
 
@@ -47,8 +48,8 @@ class OctoGenerator(Generator):
 
     @backoff.on_exception(backoff.fibo, octoai.errors.OctoAIServerError, max_value=70)
     def _call_model(
-        self, prompt: str, generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
+        self, prompt: Turn, generations_this_call: int = 1
+    ) -> List[Union[Turn, None]]:
         outputs = self.client.chat.completions.create(
             messages=[
                 {
@@ -64,7 +65,7 @@ class OctoGenerator(Generator):
             top_p=self.top_p,
         )
 
-        return [outputs.choices[0].message.content]
+        return [Turn(outputs.choices[0].message.content)]
 
 
 class InferenceEndpoint(OctoGenerator):
@@ -85,8 +86,8 @@ class InferenceEndpoint(OctoGenerator):
 
     @backoff.on_exception(backoff.fibo, octoai.errors.OctoAIServerError, max_value=70)
     def _call_model(
-        self, prompt: str, generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
+        self, prompt: Turn, generations_this_call: int = 1
+    ) -> List[Union[Turn, None]]:
         outputs = self.client.infer(
             endpoint_url=self.name,
             inputs={
@@ -94,14 +95,14 @@ class InferenceEndpoint(OctoGenerator):
                 "messages": [
                     {
                         "role": "user",
-                        "content": prompt,
+                        "content": prompt.text,
                     }
                 ],
                 "max_tokens": self.max_tokens,
                 "stream": False,
             },
         )
-        return [outputs.get("choices")[0].get("message").get("content")]
+        return [Turn(outputs.get("choices")[0].get("message").get("content"))]
 
 
 DEFAULT_CLASS = "OctoGenerator"

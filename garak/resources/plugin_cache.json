@@ -6534,35 +6534,6 @@
       "supports_multiple_generations": false,
       "mod_time": "2024-08-29 13:35:37 +0000"
     },
-    "generators.huggingface.ConversationalPipeline": {
-      "description": "Conversational text generation using HuggingFace pipelines",
-      "DEFAULT_PARAMS": {
-        "max_tokens": 150,
-        "temperature": null,
-        "top_k": null,
-        "context_len": null,
-        "skip_seq_start": null,
-        "skip_seq_end": null,
-        "hf_args": {
-          "torch_dtype": "float16",
-          "do_sample": true,
-          "device": null
-        }
-      },
-      "active": true,
-      "generator_family_name": "Hugging Face \ud83e\udd17 pipeline for conversations",
-      "modality": {
-        "in": [
-          "text"
-        ],
-        "out": [
-          "text"
-        ]
-      },
-      "parallel_capable": false,
-      "supports_multiple_generations": true,
-      "mod_time": "2024-12-19 16:33:14 +0000"
-    },
     "generators.huggingface.InferenceAPI": {
       "description": "Get text generations from Hugging Face Inference API",
       "DEFAULT_PARAMS": {

@@ -35,5 +35,5 @@ def test_leakreplay_output_count():
 def test_leakreplay_handle_incomplete_attempt():
     p = garak.probes.leakreplay.LiteratureCloze80()
     a = garak.attempt.Attempt(prompt="IS THIS BROKEN")
-    a.outputs = ["", None]
+    a.outputs = [garak.attempt.Turn(s) for s in ["", None]]
     p._postprocess_hook(a)
