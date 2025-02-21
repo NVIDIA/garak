@@ -50,6 +50,15 @@ def test_config_root_only(generator_sub_config):
         assert getattr(m, k) == v
 
 
+# when a parameter is provided in config_root by `module.classname` set on the resulting object
+def test_config_root_module_classname(generator_sub_config):
+    module_config = generator_sub_config.generators.pop("mock")
+    generator_sub_config.generators["mock.mockConfigurable"] = module_config
+    m = mockConfigurable(config_root=generator_sub_config)
+    for k, v in generator_sub_config.generators["mock.mockConfigurable"].items():
+        assert getattr(m, k) == v
+
+
 # when a parameter is provided in config_root as a dict set on the resulting object
 def test_config_root_as_dict(generator_sub_config):
     config = {"generators": generator_sub_config.generators}
