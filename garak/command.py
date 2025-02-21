@@ -74,15 +74,21 @@ def start_run():
                 f"Can't create reporting directory {report_path}, quitting"
             ) from e
 
-    filename = f"garak.{_config.transient.run_id}.report.jsonl"
-    if not _config.reporting.report_prefix:
-        filename = f"garak.{_config.transient.run_id}.report.jsonl"
+    if _config.system.resume:
+        _config.transient.report_filename = _config.system.resume
+        _config.transient.reportfile = open(
+            _config.transient.report_filename, "a", buffering=1, encoding="utf-8"
+        )
     else:
-        filename = _config.reporting.report_prefix + ".report.jsonl"
-    _config.transient.report_filename = str(report_path / filename)
-    _config.transient.reportfile = open(
-        _config.transient.report_filename, "w", buffering=1, encoding="utf-8"
-    )
+        filename = f"garak.{_config.transient.run_id}.report.jsonl"
+        if not _config.reporting.report_prefix:
+            filename = f"garak.{_config.transient.run_id}.report.jsonl"
+        else:
+            filename = _config.reporting.report_prefix + ".report.jsonl"
+        _config.transient.report_filename = str(report_path / filename)
+        _config.transient.reportfile = open(
+            _config.transient.report_filename, "w", buffering=1, encoding="utf-8"
+        )
     setup_dict = {"entry_type": "start_run setup"}
     for k, v in _config.__dict__.items():
         if k[:2] != "__" and type(v) in (

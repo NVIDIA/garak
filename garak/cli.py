@@ -107,6 +107,13 @@ def main(arguments=None) -> None:
         action="store_true",
         help="allow skip of unknown probes, detectors, or buffs",
     )
+    parser.add_argument(
+        "--resume",
+        "-R",
+        type=str,
+        default=None,
+        help="resume previous unfinnished scan",
+    )
 
     ## RUN
     parser.add_argument(
@@ -366,6 +373,16 @@ def main(arguments=None) -> None:
         _config.plugins.detector_spec = args.detectors
     if "buffs" in args:
         _config.plugins.buff_spec = args.buffs
+
+    # Parse existing attempts
+    if _config.system.resume:
+        import json
+        _config.system.previous_attempts = []
+        with open(_config.system.resume, 'r') as fin:
+            for line in fin:
+                attempt_json = json.loads(line.strip())
+                if attempt_json['entry_type'] == 'attempt':
+                    _config.system.previous_attempts.append((attempt_json['seq'], attempt_json['prompt']))
 
     # base config complete
 

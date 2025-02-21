@@ -28,7 +28,7 @@ DICT_CONFIG_AFTER_LOAD = False
 from garak import __version__ as version
 
 system_params = (
-    "verbose narrow_output parallel_requests parallel_attempts skip_unknown".split()
+    "verbose narrow_output parallel_requests parallel_attempts skip_unknown resume".split()
 )
 run_params = "seed deprefix eval_threshold generations probe_tags interactive".split()
 plugins_params = "model_type model_name extended_detectors".split()

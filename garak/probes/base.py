@@ -209,7 +209,10 @@ class Probe(Configurable):
         attempts_todo: Iterable[garak.attempt.Attempt] = []
         prompts = list(self.prompts)
         for seq, prompt in enumerate(prompts):
-            attempts_todo.append(self._mint_attempt(prompt, seq))
+            if hasattr(_config.system, 'previous_attempts') and (seq, prompt) in _config.system.previous_attempts:
+                continue
+            else:
+                attempts_todo.append(self._mint_attempt(prompt, seq))
 
         # buff hook
         if len(_config.buffmanager.buffs) > 0:
