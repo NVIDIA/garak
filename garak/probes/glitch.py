@@ -211,6 +211,9 @@ class Glitch(Probe):
             random.shuffle(zipped)
             zipped = zipped[-self.max_prompts :]
             self.prompts, self.triggers = zip(*zipped)
+        if hasattr(self, 'translator'):
+            if self.translator is not None:
+                self.triggers = self.translator.translate_prompts(self.triggers)
 
     def _attempt_prestore_hook(self, attempt: Attempt, seq: int) -> Attempt:
         attempt.notes["triggers"] = [self.triggers[seq]]
