@@ -11,6 +11,7 @@ from colorama import Fore, Style
 import tqdm
 
 from garak import _config
+from garak.attempt import Turn
 from garak.configurable import Configurable
 import garak.resources.theme
 
@@ -61,8 +62,8 @@ class Generator(Configurable):
         logging.info("generator init: %s", self)
 
     def _call_model(
-        self, prompt: str, generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
+        self, prompt: Turn, generations_this_call: int = 1
+    ) -> List[Union[Turn, None]]:
         """Takes a prompt and returns an API output
 
         _call_api() is fully responsible for the request, and should either
@@ -76,50 +77,44 @@ class Generator(Configurable):
         pass
 
     @staticmethod
-    def _verify_model_result(result: List[Union[str, None]]):
+    def _verify_model_result(result: List[Union[Turn, None]]):
         assert isinstance(result, list), "_call_model must return a list"
         assert (
             len(result) == 1
         ), f"_call_model must return a list of one item when invoked as _call_model(prompt, 1), got {result}"
         assert (
-            isinstance(result[0], str) or result[0] is None
-        ), "_call_model's item must be a string or None"
+            isinstance(result[0], Turn) or result[0] is None
+        ), "_call_model's item must be a Turn or None"
 
     def clear_history(self):
         pass
 
-    def _post_generate_hook(self, outputs: List[str | None]) -> List[str | None]:
+    def _post_generate_hook(self, outputs: List[Turn | None]) -> List[Turn | None]:
         return outputs
 
-    def _prune_skip_sequences(self, outputs: List[str | None]) -> List[str | None]:
+    def _prune_skip_sequences(self, outputs: List[Turn | None]) -> List[Turn | None]:
         rx_complete = (
             re.escape(self.skip_seq_start) + ".*?" + re.escape(self.skip_seq_end)
         )
         rx_missing_final = re.escape(self.skip_seq_start) + ".*?$"
 
-        complete_seqs_removed = [
-            (
-                re.sub(rx_complete, "", o, flags=re.DOTALL | re.MULTILINE)
-                if o is not None
-                else None
-            )
-            for o in outputs
-        ]
+        for o in outputs:
+            if o is None or o.text is None:
+                continue
+            o.text = re.sub(rx_complete, "", o.text, flags=re.DOTALL | re.MULTILINE)
 
-        partial_seqs_removed = [
-            (
-                re.sub(rx_missing_final, "", o, flags=re.DOTALL | re.MULTILINE)
-                if o is not None
-                else None
+        for o in outputs:
+            if o is None or o.text is None:
+                continue
+            o.text = re.sub(
+                rx_missing_final, "", o.text, flags=re.DOTALL | re.MULTILINE
             )
-            for o in complete_seqs_removed
-        ]
 
-        return partial_seqs_removed
+        return outputs
 
     def generate(
-        self, prompt: str, generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
+        self, prompt: Turn, generations_this_call: int = 1, typecheck=True
+    ) -> List[Union[Turn, None]]:
         """Manages the process of getting generations out from a prompt
 
         This will involve iterating through prompts, getting the generations
@@ -127,6 +122,9 @@ class Generator(Configurable):
 
         Avoid overriding this - try to override _call_model or _call_api
         """
+
+        if typecheck:
+            assert isinstance(prompt, Turn), "generate() must take a Turn object"
 
         self._pre_generate_hook()
 

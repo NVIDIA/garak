@@ -8,7 +8,7 @@ import re
 import types
 
 from garak import _plugins
-from garak.attempt import Attempt
+from garak.attempt import Attempt, Turn
 from garak.configurable import Configurable
 from garak.detectors.base import Detector
 from garak.exception import APIKeyMissingError
@@ -36,11 +36,13 @@ def test_detector_structure(classname):
     m = importlib.import_module("garak." + ".".join(classname.split(".")[:-1]))
     d = getattr(m, classname.split(".")[-1])
 
+    detect_signature = inspect.signature(d.detect)
+
     # has method detect
     assert "detect" in dir(d), f"detector {classname} must have a method detect"
     # _call_model has a generations_this_call param
     assert (
-        "attempt" in inspect.signature(d.detect).parameters
+        "attempt" in detect_signature.parameters
     ), f"{classname}.detect() must accept parameter attempt"
     # any parameter that has a default must be supported
     unsupported_defaults = []
@@ -71,10 +73,11 @@ def test_detector_detect(classname):
     a.notes["trigger"] = "x"
     a.notes["triggers"] = ["x", "x", "x", "x"]
     a.notes["repeat_word"] = "x"
+    a.probe_classname = "test.Blank"
 
-    a.prompt = ""
+    a.prompt = Turn("")
     a.notes["format"] = "local filename"
-    a.outputs = ["", None]
+    a.outputs = [Turn(s) for s in ["", None]]
     a.detector_results = {"x": [0.0]}
     try:
         results = di.detect(a)

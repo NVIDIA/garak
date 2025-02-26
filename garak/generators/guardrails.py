@@ -8,6 +8,7 @@ import io
 from typing import List, Union
 
 from garak import _config
+from garak.attempt import Turn
 from garak.generators.base import Generator
 
 
@@ -21,7 +22,6 @@ class NeMoGuardrails(Generator):
         # another class that may need to skip testing due to non required dependency
         try:
             from nemoguardrails import RailsConfig, LLMRails
-            from nemoguardrails.logging.verbose import set_verbose
         except ImportError as e:
             raise NameError(
                 "You must first install NeMo Guardrails using `pip install nemoguardrails`."
@@ -39,12 +39,12 @@ class NeMoGuardrails(Generator):
         super().__init__(self.name, config_root=config_root)
 
     def _call_model(
-        self, prompt: str, generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
+        self, prompt: Turn, generations_this_call: int = 1
+    ) -> List[Union[Turn, None]]:
         with redirect_stderr(io.StringIO()) as f:  # quieten the tqdm
             result = self.rails.generate(prompt)
 
-        return [result]
+        return [Turn(result)]
 
 
 DEFAULT_CLASS = "NeMoGuardrails"

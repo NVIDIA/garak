@@ -52,13 +52,16 @@ plugins:
     nonupper_prompts = set([])
     other_prompts = set([])
     for prompt in prompts:
-        if prompt == prompt.lower() and prompt not in nonupper_prompts:
-            nonupper_prompts.add(prompt)
+        if (
+            prompt["text"] == prompt["text"].lower()
+            and prompt["text"] not in nonupper_prompts
+        ):
+            nonupper_prompts.add(prompt["text"])
         else:
-            other_prompts.add(prompt)
+            other_prompts.add(prompt["text"])
     assert len(nonupper_prompts) >= len(other_prompts)
     assert len(nonupper_prompts) + len(other_prompts) == len(prompts)
-    assert set(map(str.lower, prompts)) == nonupper_prompts
+    assert set(map(str.lower, [p["text"] for p in prompts])) == nonupper_prompts
 
 
 def test_exclude_original_prompt():
@@ -86,7 +89,7 @@ plugins:
             if r["entry_type"] == "attempt" and r["status"] == 1:
                 prompts.append(r["prompt"])
     for prompt in prompts:
-        assert prompt == prompt.lower()
+        assert prompt["text"] == prompt["text"].lower()
 
 
 @pytest.fixture(scope="session", autouse=True)

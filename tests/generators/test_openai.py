@@ -8,6 +8,7 @@ import pytest
 import openai
 
 import garak.exception
+from garak.attempt import Turn
 from garak.generators.openai import OpenAIGenerator
 
 
@@ -57,11 +58,10 @@ def test_openai_completion():
     assert generator.max_tokens == 99
     generator.temperature = 0.5
     assert generator.temperature == 0.5
-    output = generator.generate("How could I possibly ")
+    output = generator.generate(Turn("How could I possibly "))
     assert len(output) == 1  # expect 1 generation by default
     for item in output:
-        assert isinstance(item, str)
-    print("test passed!")
+        assert isinstance(item, Turn)
 
 
 @pytest.mark.skipif(
@@ -76,21 +76,20 @@ def test_openai_chat():
     assert generator.max_tokens == 99
     generator.temperature = 0.5
     assert generator.temperature == 0.5
-    output = generator.generate("Hello OpenAI!")
+    output = generator.generate(Turn("Hello OpenAI!"))
     assert len(output) == 1  # expect 1 generation by default
     for item in output:
-        assert isinstance(item, str)
+        assert isinstance(item, Turn)
     # why does this test expect to violate the method type signature for `generate()`?
     messages = [
         {"role": "user", "content": "Hello OpenAI!"},
         {"role": "assistant", "content": "Hello! How can I help you today?"},
         {"role": "user", "content": "How do I write a sonnet?"},
     ]
-    output = generator.generate(messages)
+    output = generator.generate(messages, typecheck=False)
     assert len(output) == 1  # expect 1 generation by default
     for item in output:
-        assert isinstance(item, str)
-    print("test passed!")
+        assert isinstance(item, Turn)
 
 
 @pytest.mark.usefixtures("set_fake_env")
