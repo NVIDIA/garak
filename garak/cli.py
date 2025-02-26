@@ -64,6 +64,16 @@ def main(arguments=None) -> None:
 
     import argparse
 
+    def worker_count_validation(workers):
+        iworkers = int(workers)
+        if iworkers <= 0:
+            raise argparse.ArgumentTypeError("Need >0 workers (int)" % workers)
+        if iworkers > _config.system.max_workers:
+            raise argparse.ArgumentTypeError(
+                "Parallel worker count capped at %s (config.system.max_workers)" % _config.system.max_workers
+            )
+        return iworkers
+
     parser = argparse.ArgumentParser(
         prog="python -m garak",
         description="LLM safety & security scanning tool",
@@ -92,15 +102,15 @@ def main(arguments=None) -> None:
     )
     parser.add_argument(
         "--parallel_requests",
-        type=int,
+        type=worker_count_validation,
         default=_config.system.parallel_requests,
         help="How many generator requests to launch in parallel for a given prompt. Ignored for models that support multiple generations per call.",
     )
     parser.add_argument(
         "--parallel_attempts",
-        type=int,
+        type=worker_count_validation,
         default=_config.system.parallel_attempts,
-        help="How many probe attempts to launch in parallel.",
+        help="How many probe attempts to launch in parallel. Raise this for faster runs when using non-local models.",
     )
     parser.add_argument(
         "--skip_unknown",
@@ -484,7 +494,9 @@ def main(arguments=None) -> None:
             if has_changes:
                 exit(1)  # exit with error code to denote changes
             else:
-                print("No revisions applied. Please verify options provided for `--fix`")
+                print(
+                    "No revisions applied. Please verify options provided for `--fix`"
+                )
         elif args.report:
             from garak.report import Report
 
