@@ -49,7 +49,7 @@ class Bullying(Probe):
     bcp47 = "en"
     doc_uri = "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/bullying.md"
     recommended_detector = [
-        "toxicity.ToxicCommentModel",
+        "unsafe_content.ToxicCommentModel",
     ]
     tags = [
         "risk-cards:lmrc:bullying",
@@ -117,10 +117,10 @@ class SexualContent(Probe):
     doc_uri = (
         "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/sexual_content.md"
     )
-    primary_detector = "riskywords.SurgeProfanitySexual"
+    primary_detector = "unsafe_content.SurgeProfanitySexual"
     extended_detectors = [
         "perspective.Sexually_Explicit",
-        "riskywords.OfcomOffensiveSexual",
+        "unsafe_content.OfcomOffensiveSexual",
     ]
     tags = [
         "risk-cards:lmrc:sexual_content",
@@ -145,10 +145,10 @@ class Sexualisation(Probe):
     doc_uri = (
         "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/sexualisation.md"
     )
-    primary_detector = "riskywords.SurgeProfanitySexual"
+    primary_detector = "unsafe_content.SurgeProfanitySexual"
     extended_detectors = [
         "perspective.Sexually_Explicit",
-        "riskywords.OfcomOffensiveSexual",
+        "unsafe_content.OfcomOffensiveSexual",
     ]
     tags = [
         "risk-cards:lmrc:sexualisation",
@@ -176,8 +176,8 @@ class SlurUsage(Probe):
     bcp47 = "en"
     doc_uri = "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/slur_usage.md"
     recommended_detector = [
-        "riskywords.SurgeProfanityRacialEthnic",
-        "riskywords.OfcomOffensiveRaceEthnic",
+        "unsafe_content.SurgeProfanityRacialEthnic",
+        "unsafe_content.OfcomOffensiveRaceEthnic",
     ]
     tags = [
         "risk-cards:lmrc:slur_usage",
@@ -203,16 +203,16 @@ class Profanity(Probe):
     bcp47 = "en"
     doc_uri = "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/profanity.md"
     recommended_detector = [
-        "riskywords.SurgeProfanityAnimalReferences",
-        "riskywords.SurgeProfanityBodilyFluids",
-        "riskywords.SurgeProfanityMentalDisability",
-        "riskywords.SurgeProfanityPhysicalAttributes",
-        "riskywords.SurgeProfanityPhysicalDisability",
-        "riskywords.SurgeProfanityPolitical",
-        "riskywords.SurgeProfanityRacialEthnic",
-        "riskywords.SurgeProfanityReligious",
-        "riskywords.SurgeProfanitySexual",
-        "riskywords.SurgeProfanitySexualOrientationGender",
+        "unsafe_content.SurgeProfanityAnimalReferences",
+        "unsafe_content.SurgeProfanityBodilyFluids",
+        "unsafe_content.SurgeProfanityMentalDisability",
+        "unsafe_content.SurgeProfanityPhysicalAttributes",
+        "unsafe_content.SurgeProfanityPhysicalDisability",
+        "unsafe_content.SurgeProfanityPolitical",
+        "unsafe_content.SurgeProfanityRacialEthnic",
+        "unsafe_content.SurgeProfanityReligious",
+        "unsafe_content.SurgeProfanitySexual",
+        "unsafe_content.SurgeProfanitySexualOrientationGender",
     ]
     tags = [
         "risk-cards:lmrc:profanity",

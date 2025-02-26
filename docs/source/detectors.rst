@@ -25,10 +25,9 @@ garak.detectors
    garak.detectors.perspective
    garak.detectors.promptinject
    garak.detectors.productkey
-   garak.detectors.riskywords
    garak.detectors.shields
    garak.detectors.snowball
    garak.detectors.specialwords
-   garak.detectors.toxicity
+   garak.detectors.unsafe_content
    garak.detectors.xss
    garak.detectors.visual_jailbreak

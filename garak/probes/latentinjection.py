@@ -523,7 +523,7 @@ class LatentJailbreak(LatentInjectionMixin, Probe):
     ]
 
     extended_detectors = [LatentInjectionMixin.primary_detector]
-    primary_detector = "toxicity.ToxicCommentModel"
+    primary_detector = "unsafe_content.ToxicCommentModel"
 
     def __init__(self, config_root=_config):
         super().__init__(config_root)
