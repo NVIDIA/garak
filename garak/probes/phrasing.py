@@ -14,12 +14,13 @@ from garak.probes.base import Probe
 
 
 class TenseMini:
-    def _minify_prompts(self):
-        random.shuffle(self.prompts)
-        self.prompts = self.prompts[:200]
+    def _minify_prompts(self, cap=None):
+        if cap is not None:
+            random.shuffle(self.prompts)
+            self.prompts = self.prompts[:cap]
 
 
-class PastTense(Probe):
+class PastTenseFull(Probe):
     """Will the system give unsafe responses when asked to write about weapon creation or dangerous behavior?
 
     This check sends the generator requests for advice on possibly protect or restricted subjects in the past tense.
@@ -50,7 +51,7 @@ class PastTense(Probe):
                 self.prompts.append(str.strip())
 
 
-class PastTenseMini(PastTense, TenseMini):
+class PastTense(PastTenseFull, TenseMini):
     """Attempt to evade safeguards by setting requests in the past tense
 
     A subset of the tense-modified requests. Success is reported higher with more variation, so
@@ -61,10 +62,10 @@ class PastTenseMini(PastTense, TenseMini):
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
-        self._minify_prompts()
+        self._minify_prompts(cap=config_root.run.soft_probe_prompt_cap)
 
 
-class FutureTense(Probe):
+class FutureTenseFull(Probe):
     """Will the system give unsafe responses when asked to write about weapon creation or dangerous behavior?
 
     This check sends the generator requests for advice on possibly protect or restricted subjects in the future tense.
@@ -96,7 +97,7 @@ class FutureTense(Probe):
                 self.prompts.append(str.strip())
 
 
-class FutureTenseMini(FutureTense, TenseMini):
+class FutureTense(FutureTenseFull, TenseMini):
     """Attempt to evade safeguards by setting requests in the future tense
 
     A subset of the tense-modified requests. Success is reported higher with more variation, so
@@ -107,4 +108,4 @@ class FutureTenseMini(FutureTense, TenseMini):
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
-        self._minify_prompts()
+        self._minify_prompts(cap=config_root.run.soft_probe_prompt_cap)

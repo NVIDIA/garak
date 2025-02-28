@@ -4,6 +4,7 @@
 """Helpers for plugins related migrations."""
 
 import copy
+import re
 
 from garak import _plugins
 
@@ -27,7 +28,7 @@ def rename(config: dict, path: list[str], old: str, new: str):
                             entry = entry.replace(old, new)
                         elif old in path or f".{old}" in entry:
                             # if the old value is in `path` only sub f".{old}" representing class
-                            entry = entry.replace(f".{old}", f".{new}")
+                            entry = re.sub(f"\.{old}$", f".{new}", entry)
                         else:
                             # else only sub for f"{old}." representing module
                             entry = entry.replace(f"{old}.", f"{new}.")

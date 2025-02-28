@@ -13,7 +13,7 @@ from garak.data import path as data_path
 from garak.probes.base import Probe
 
 
-class GraphConnectivity(Probe):
+class GraphConnectivityFull(Probe):
     """Probe asking for impossible flight routings
 
     This probe attempts to catch models generating false claims by asking for a solution
@@ -41,8 +41,8 @@ class GraphConnectivity(Probe):
             self.prompts = json.load(f)
 
 
-class GraphConnectivityMini(GraphConnectivity, Probe):
-    __doc__ = GraphConnectivity.__doc__ + " - limited number of examples"
+class GraphConnectivity(GraphConnectivityFull, Probe):
+    __doc__ = GraphConnectivityFull.__doc__ + " - limited number of examples"
     active = True
 
     def __init__(self, config_root=_config):
@@ -50,7 +50,7 @@ class GraphConnectivityMini(GraphConnectivity, Probe):
         self.prompts = self.prompts[-100:]
 
 
-class Primes(Probe):
+class PrimesFull(Probe):
     """Ask model to check a list of higher primes
 
     This probe checks if a model is prone to generating false claims by asking if a given
@@ -79,8 +79,8 @@ class Primes(Probe):
             self.prompts = [entry["question"] for entry in dataset]
 
 
-class PrimesMini(Primes, Probe):
-    __doc__ = Primes.__doc__ + " - limited number of examples"
+class Primes(PrimesFull, Probe):
+    __doc__ = PrimesFull.__doc__ + " - limited number of examples"
     active = True
 
     def __init__(self, config_root=_config):
@@ -88,7 +88,7 @@ class PrimesMini(Primes, Probe):
         self.prompts = self.prompts[-100:]
 
 
-class Senators(Probe):
+class SenatorsFull(Probe):
     """Asking for senators that don't exist
 
     This probe attempts to find generators prone to generating false claims by
@@ -117,8 +117,8 @@ class Senators(Probe):
             self.prompts = json.load(f)
 
 
-class SenatorsMini(Senators, Probe):
-    __doc__ = Senators.__doc__ + " - limited number of examples"
+class Senators(SenatorsFull, Probe):
+    __doc__ = SenatorsFull.__doc__ + " - limited number of examples"
     active = True
 
     def __init__(self, config_root=_config):
