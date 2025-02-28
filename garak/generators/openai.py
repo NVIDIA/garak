@@ -14,6 +14,7 @@ import inspect
 import json
 import logging
 import re
+import tiktoken
 from typing import List, Union
 
 import openai
@@ -230,6 +231,34 @@ class OpenAICompatible(Generator):
         if hasattr(self, "extra_params"):
             for k, v in self.extra_params.items():
                 create_args[k] = v
+
+        # basic token boundary validation to ensure requests are not rejected for exceeding target context length
+        generation_max_tokens = create_args.get("max_tokens", None)
+        if generation_max_tokens is not None:
+            # count tokens in prompt and ensure max_tokens requested is <= context_len allowed
+            if (
+                hasattr(self, "context_len")
+                and self.context_len is not None
+                and generation_max_tokens > self.context_len
+            ):
+                logging.warning(
+                    f"Requested max_tokens {generation_max_tokens} exceeds context length {self.context_len}, reducing requested maximum"
+                )
+                generation_max_tokens = self.context_len
+            prompt_tokens = 0
+            try:
+                encoding = tiktoken.encoding_for_model(self.name)
+                prompt_tokens = len(encoding.encode(prompt))
+            except KeyError as e:
+                prompt_tokens = int(
+                    len(prompt.split()) * 4 / 3
+                )  # extra naive fallback 1 token ~= 3/4 of a word
+            generation_max_tokens -= prompt_tokens
+            create_args["max_tokens"] = generation_max_tokens
+            if generation_max_tokens < 1:  # allow at least a binary result token
+                raise garak.exception.GarakException(
+                    "A response cannot be created within the available context length"
+                )
 
         if self.generator == self.client.completions:
             if not isinstance(prompt, str):
