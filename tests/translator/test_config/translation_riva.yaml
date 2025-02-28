@@ -1,0 +1,7 @@
+run:
+  lang_spec: ja
+  translator:
+    - language: en-ja
+      model_type: remote
+    - language: ja-en
+      model_type: remote.RivaTranslator

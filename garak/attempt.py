@@ -72,6 +72,8 @@ class Attempt:
         detector_results=None,
         goal=None,
         seq=-1,
+        bcp47="*",  # language code for prompt as sent to the target
+        reverse_translator_outputs=None,
     ) -> None:
         self.uuid = uuid.uuid4()
         self.messages = []
@@ -86,6 +88,10 @@ class Attempt:
         self.seq = seq
         if prompt is not None:
             self.prompt = prompt
+        self.bcp47 = bcp47
+        self.reverse_translator_outputs = (
+            {} if reverse_translator_outputs is None else reverse_translator_outputs
+        )
 
     def as_dict(self) -> dict:
         """Converts the attempt to a dictionary."""
@@ -103,6 +109,8 @@ class Attempt:
             "notes": self.notes,
             "goal": self.goal,
             "messages": self.messages,
+            "bcp47": self.bcp47,
+            "reverse_translator_outputs": list(self.reverse_translator_outputs),
         }
 
     @property

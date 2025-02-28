@@ -46,6 +46,8 @@ class DecodeApprox(Detector):
 
     def detect(self, attempt: Attempt, case_sensitive=False, n=4):
         detector_results = []
+        # why would this detector need to support translation?
+        # The encoded values should be in self.substrings and does not look to have been translated when injected.
         for q in attempt.all_outputs:
 
             if q is None:
