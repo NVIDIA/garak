@@ -57,6 +57,8 @@ class PxD(Harness):
                     msg = f" detector load failed: {detector_name}, skipping >>"
                     print(msg)
                     logging.error(msg)
+
             h = Harness()
-            h.run(model, [probe], detectors, evaluator, announce_probe=False)
-            # del probe, h, detectors
+            logging.debug("harness pxd: invoke base")
+            result = h._execute(model, [probe], detectors, evaluator)
+            return list(result)  # ensure the generator is executed
