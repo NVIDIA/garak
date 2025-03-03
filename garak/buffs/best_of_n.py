@@ -6,7 +6,6 @@ import random
 from collections.abc import Iterable
 
 import garak.attempt
-from garak import _config
 from garak.buffs.base import Buff
 
 
@@ -78,16 +77,26 @@ def apply_ascii_noising(text: str, prob: float) -> str:
 class BestOfNBuff(Buff):
     """Best of N buff
 
-    Uses random transformations to generate multiple jailbreak attempts"""
+    Uses the following options from ``_config.plugins.generators["best_of_n.BestOfNBuff"]``:
+    * ``num_attempts`` - (optional) the number of attempts to generate; defaults to 2
+    * ``word_scrambling_prob`` - (optional) the probability of scrambling words; defaults to 0.6
+    * ``random_capitalization_prob`` - (optional) the probability of random capitalization; defaults to 0.6
+    * ``ascii_noising_prob`` - (optional) the probability of ASCII noising; defaults to 0.06
+
+    This buff applies random transformations to generate multiple jailbreak attempts by:
+    * Scrambling the words in the prompt
+    * Randomly capitalizing letters in the prompt
+    * Perturbing the ASCII characters in the prompt
+    """
+
+    DEFAULT_PARAMS = Buff.DEFAULT_PARAMS | {
+        "num_attempts": 2,
+        "word_scrambling_prob": 0.6,
+        "random_capitalization_prob": 0.6,
+        "ascii_noising_prob": 0.06,
+    }
 
     doc_uri = "https://arxiv.org/abs/2412.03556"
-
-    def __init__(self, config_root=_config, num_attempts=100, word_scrambling_prob=0.6, random_capitalization_prob=0.6, ascii_noising_prob=0.06):
-        super().__init__(config_root=config_root)
-        self.num_attempts = num_attempts
-        self.word_scrambling_prob = word_scrambling_prob
-        self.random_capitalization_prob = random_capitalization_prob
-        self.ascii_noising_prob = ascii_noising_prob
 
     def transform(
         self, attempt: garak.attempt.Attempt
