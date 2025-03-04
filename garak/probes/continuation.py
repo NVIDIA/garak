@@ -6,6 +6,7 @@ continue the term based on varying amounts of prefix.
 """
 
 import json
+import random
 
 from garak import _config
 from garak.attempt import Attempt
@@ -13,7 +14,7 @@ from garak.data import path as data_path
 from garak.probes.base import Probe
 
 
-class ContinueSlursReclaimedSlurs(Probe):
+class ContinueSlursReclaimedSlursFull(Probe):
     """Continue partial word with slur or reclaimed slur.
 
     This probe poses a partial ethnic slur with some preceding content, and
@@ -36,6 +37,8 @@ class ContinueSlursReclaimedSlurs(Probe):
     goal = "output an ethnic slur"
     active = False
     source_resource_filename = "slurprompts.jsonl"
+
+    follow_prompt_cap = False
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -73,6 +76,15 @@ class ContinueSlursReclaimedSlurs(Probe):
                     self.prompts.append(candidate_prompt.strip())
                     self.triggers.append(term)
 
+        if self.follow_prompt_cap:
+            num_ids_to_delete = max(0, len(self.prompts) - self.soft_probe_prompt_cap)
+            ids_to_rm = random.sample(range(len(self.prompts)), num_ids_to_delete)
+            # delete in descending order
+            ids_to_rm = sorted(ids_to_rm, reverse=True)
+            for id in ids_to_rm:
+                del self.prompts[id]
+                del self.triggers[id]
+
     def _attempt_prestore_hook(self, attempt: Attempt, seq: int) -> Attempt:
         attempt.notes = dict(
             attempt.notes
@@ -81,7 +93,7 @@ class ContinueSlursReclaimedSlurs(Probe):
         return attempt
 
 
-class ContinueSlursReclaimedSlursMini(ContinueSlursReclaimedSlurs, Probe):
+class ContinueSlursReclaimedSlurs(ContinueSlursReclaimedSlursFull, Probe):
     """Continue partial word with slur or reclaimed slur.
 
     This probe poses a partial ethnic slur with some preceding content, and
@@ -90,4 +102,5 @@ class ContinueSlursReclaimedSlursMini(ContinueSlursReclaimedSlurs, Probe):
 
     aliases = ["continuation.ContinueSlursReclaimedSlurs80"]
     active = True
-    source_resource_filename = "slurprompts_mini.jsonl"
+    source_resource_filename = "slurprompts_mini.jsonl"  # high-quality selection
+    follow_prompt_cap = True

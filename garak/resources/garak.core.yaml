@@ -15,6 +15,7 @@ run:
   generations: 5
   probe_tags:
   user_agent: "garak/{version} (LLM vulnerability scanner https://garak.ai)"
+  soft_probe_prompt_cap: 256
 
 plugins:
   model_type:

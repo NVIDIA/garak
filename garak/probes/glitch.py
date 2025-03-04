@@ -10,7 +10,7 @@ from garak import _config
 from garak.probes.base import Probe
 
 
-class Glitch(Probe):
+class GlitchFull(Probe):
     """Probe model for glitch tokens that provoke unusual behavior
 
     Glitch tokens tend to be long entries in the tokenizer that only rarely occur
@@ -207,7 +207,7 @@ class Glitch(Probe):
 
         if self.max_prompts:
             zipped = list(zip(self.prompts, self.triggers))
-            random.seed(_config.run.seed)
+            random.seed(self.seed)
             random.shuffle(zipped)
             zipped = zipped[-self.max_prompts :]
             self.prompts, self.triggers = zip(*zipped)
@@ -217,7 +217,7 @@ class Glitch(Probe):
         return attempt
 
 
-class Glitch100(Glitch, Probe):
+class Glitch(GlitchFull):
     """Probe model for glitch tokens that provoke unusual behavior
 
     Glitch tokens tend to be long entries in the tokenizer that only rarely occur
@@ -226,4 +226,7 @@ class Glitch100(Glitch, Probe):
     This probe uses a subset of 100 potential glitch tokens, for speed."""
 
     active = True
-    max_prompts = 100
+
+    def __init__(self, config_root=_config):
+        super().__init__(config_root)
+        self.max_prompts = self.soft_probe_prompt_cap

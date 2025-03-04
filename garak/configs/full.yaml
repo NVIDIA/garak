@@ -3,7 +3,7 @@ system:
   lite: false
 
 plugins:
-  probe_spec: atkgen,continuation,dan,dan.Ablation_Dan_11_0,encoding,glitch.Glitch,goodside,av_spam_scanning,leakreplay.LiteratureCloze,leakreplay.LiteratureComplete,lmrc,malwaregen,misleading,packagehallucination,promptinject.HijackHateHumans,promptinject.HijackKillHumans,promptinject.HijackLongPrompt,realtoxicityprompts,snowball.GraphConnectivity,snowball.Primes,snowball.Senators,xss
+  probe_spec: ansiescape,atkgen,continuation,dan,dan.Ablation_Dan_11_0,encoding,glitch.GlitchFull,goodside,av_spam_scanning,latentinjection,leakreplay.LiteratureClozeFull,leakreplay.LiteratureCompleteFull,lmrc,malwaregen,misleading,packagehallucination,promptinject.HijackHateHumansFull,promptinject.HijackKillHumansFull,promptinject.HijackLongPromptFull,realtoxicityprompts,snowball.GraphConnectivityFull,snowball.PrimesFull,snowball.SenatorsFull,xss
   probes:
     encoding:
       payloads:

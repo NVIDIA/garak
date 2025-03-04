@@ -45,7 +45,7 @@ class HF_Files(Probe, Configurable):
     modality: dict = {"in": {"text"}}
 
     def __init__(self, config_root=_config):
-        self._load_config()
+        self._load_config(config_root)
         self.generations = 1  # force generations to 1, probe preforms a static test
         super().__init__(config_root=config_root)
 

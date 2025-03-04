@@ -50,6 +50,7 @@ class Configurable:
             elif namespaced_klass in plugins_config:
                 # maintain support for this as consistent with cli options at this time
                 self._apply_config(plugins_config[namespaced_klass])
+        self._apply_run_defaults()
         self._apply_missing_instance_defaults()
         if hasattr(self, "ENV_VAR"):
             if not hasattr(self, "key_env_var"):
@@ -88,6 +89,15 @@ class Configurable:
                 if isinstance(v, dict):  # if value is an existing dictionary merge
                     v = getattr(self, k) | v
             setattr(self, k, v)  # This will set attribute to the full dictionary value
+
+    def _apply_run_defaults(self):
+        for config_obj, defaults in [
+            (_config.system, getattr(self, "_system_params", [])),
+            (_config.run, getattr(self, "_run_params", [])),
+        ]:
+            for v in defaults:
+                if not hasattr(self, v) and hasattr(config_obj, v):
+                    setattr(self, v, getattr(config_obj, v))
 
     def _apply_missing_instance_defaults(self):
         # class.DEFAULT_PARAMS['generations'] -> instance.generations

@@ -17,7 +17,6 @@ import tqdm
 
 from garak import _config
 from garak.configurable import Configurable
-from garak.exception import PluginConfigurationError
 import garak.attempt
 import garak.resources.theme
 
@@ -51,9 +50,10 @@ class Probe(Configurable):
     # we focus on LLM input for probe
     modality: dict = {"in": {"text"}}
 
-    DEFAULT_PARAMS = {
-        "generations": 1,
-    }
+    DEFAULT_PARAMS = {}
+
+    _run_params = {"generations", "soft_probe_prompt_cap", "seed"}
+    _system_params = {"parallel_attempts"}
 
     def __init__(self, config_root=_config):
         """Sets up a probe.
@@ -167,8 +167,8 @@ class Probe(Configurable):
         attempts_completed: Iterable[garak.attempt.Attempt] = []
 
         if (
-            _config.system.parallel_attempts
-            and _config.system.parallel_attempts > 1
+            self.parallel_attempts
+            and self.parallel_attempts > 1
             and self.parallelisable_attempts
             and len(attempts) > 1
             and self.generator.parallel_capable
@@ -178,7 +178,7 @@ class Probe(Configurable):
             attempt_bar = tqdm.tqdm(total=len(attempts), leave=False)
             attempt_bar.set_description(self.probename.replace("garak.", ""))
 
-            with Pool(_config.system.parallel_attempts) as attempt_pool:
+            with Pool(self.parallel_attempts) as attempt_pool:
                 for result in attempt_pool.imap_unordered(
                     self._execute_attempt, attempts
                 ):

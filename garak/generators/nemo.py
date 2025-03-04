@@ -43,7 +43,6 @@ class NeMoGenerator(Generator):
         self.org_id = None
         self._load_config(config_root)
         self.fullname = f"NeMo {self.name}"
-        self.seed = _config.run.seed
 
         super().__init__(self.name, config_root=config_root)
 

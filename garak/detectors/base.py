@@ -38,6 +38,8 @@ class Detector(Configurable):
         "skip": False,
     }
 
+    _run_params = {"seed"}
+
     def _set_description(self):
         if "description" not in dir(self):
             try:
@@ -88,11 +90,11 @@ class HFDetector(Detector, HFCompatible):
             logging as transformers_logging,
         )
 
-        if _config.run.seed is not None:
-            set_seed(_config.run.seed)
-
         super().__init__(config_root=config_root)
         self.name = f"{self.__class__.__name__}: {self.detector_model_path}"
+
+        if self.seed is not None:
+            set_seed(self.seed)
 
         import torch.multiprocessing as mp
 

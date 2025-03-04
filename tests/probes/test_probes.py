@@ -7,6 +7,8 @@ import re
 
 from garak import _config, _plugins
 
+_config.load_base_config()
+
 PROBES = [classname for (classname, active) in _plugins.enumerate_plugins("probes")]
 
 DETECTORS = [

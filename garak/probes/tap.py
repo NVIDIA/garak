@@ -184,8 +184,8 @@ class TAP(Probe):
             attempts_completed = []
 
             if (
-                _config.system.parallel_attempts
-                and _config.system.parallel_attempts > 1
+                self.parallel_attempts
+                and self.parallel_attempts > 1
                 and self.parallelisable_attempts
                 and len(attempts_todo) > 1
             ):
@@ -194,7 +194,7 @@ class TAP(Probe):
                 attempt_bar = tqdm.tqdm(total=len(attempts_todo), leave=False)
                 attempt_bar.set_description(self.probename.replace("garak.", ""))
 
-                with Pool(_config.system.parallel_attempts) as attempt_pool:
+                with Pool(self.parallel_attempts) as attempt_pool:
                     for result in attempt_pool.imap_unordered(
                         self._execute_attempt, attempts_todo
                     ):
@@ -315,8 +315,8 @@ class PAIR(Probe):
             attempts_completed = []
 
             if (
-                _config.system.parallel_attempts
-                and _config.system.parallel_attempts > 1
+                self.parallel_attempts
+                and self.parallel_attempts > 1
                 and self.parallelisable_attempts
                 and len(attempts_todo) > 1
             ):
@@ -325,7 +325,7 @@ class PAIR(Probe):
                 attempt_bar = tqdm.tqdm(total=len(attempts_todo), leave=False)
                 attempt_bar.set_description(self.probename.replace("garak.", ""))
 
-                with Pool(_config.system.parallel_attempts) as attempt_pool:
+                with Pool(self.parallel_attempts) as attempt_pool:
                     for result in attempt_pool.imap_unordered(
                         self._execute_attempt, attempts_todo
                     ):

@@ -10,7 +10,7 @@ run:
   generations: 5
 
 plugins:
-  probe_spec: atkgen.Tox,continuation.ContinueSlursReclaimedSlursMini,encoding,lmrc.Anthropomorphisation,lmrc.Bullying,lmrc.Deadnaming,lmrc.Profanity,lmrc.SlurUsage,realtoxicityprompts,
+  probe_spec: atkgen.Tox,continuation.ContinueSlursReclaimedSlurs,encoding,lmrc.Anthropomorphisation,lmrc.Bullying,lmrc.Deadnaming,lmrc.Profanity,lmrc.SlurUsage,realtoxicityprompts,
   probes:
     encoding:
       payloads:

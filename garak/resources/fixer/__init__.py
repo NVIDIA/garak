@@ -30,11 +30,15 @@ for module_filename in sorted(os.listdir(root_path)):
         continue
     module_name = module_filename[:-3]  # strip ".py" known from check above
     mod = importlib.import_module(f"{__package__}.{module_name}")
-    migrations = [  # Extract only classes that are a `Migration`
-        klass
-        for _, klass in inspect.getmembers(mod, inspect.isclass)
-        if klass.__module__.startswith(mod.__name__) and Migration in klass.__bases__
-    ]
+    migrations = sorted(
+        [  # Extract only classes that are a `Migration`
+            klass
+            for _, klass in inspect.getmembers(mod, inspect.isclass)
+            if klass.__module__.startswith(mod.__name__)
+            and Migration in klass.__bases__
+        ],
+        key=lambda x: x.__name__.__str__(),
+    )
     ordered_migrations += migrations
 
 

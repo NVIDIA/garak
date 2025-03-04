@@ -28,6 +28,9 @@ class Generator(Configurable):
         "skip_seq_end": None,
     }
 
+    _run_params = {"deprefix", "seed"}
+    _system_params = {"parallel_requests"}
+
     active = True
     generator_family_name = None
     parallel_capable = True
@@ -148,10 +151,10 @@ class Generator(Configurable):
             outputs = []
 
             if (
-                hasattr(_config.system, "parallel_requests")
-                and _config.system.parallel_requests
-                and isinstance(_config.system.parallel_requests, int)
-                and _config.system.parallel_requests > 1
+                hasattr(self, "parallel_requests")
+                and self.parallel_requests
+                and isinstance(self.parallel_requests, int)
+                and self.parallel_requests > 1
             ):
                 from multiprocessing import Pool
 

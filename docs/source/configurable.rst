@@ -93,6 +93,7 @@ such as ``show_100_pass_modules``.
 * ``narrow_output`` - Support output on narrower CLIs
 * ``show_z`` - Display Z-scores and visual indicators on CLI. It's good, but may be too much info until one has seen garak run a couple of times
 * ``enable_experimental`` - Enable experimental function CLI flags. Disabled by default. Experimental functions may disrupt your installation and provide unusual/unstable results. Can only be set by editing core config, so a git checkout of garak is recommended for this.
+* ``soft_probe_prompt_cap`` - For probes that auto-scale their prompt count, the preferred limit of prompts per probe
 
 ``run`` config items
 """"""""""""""""""""

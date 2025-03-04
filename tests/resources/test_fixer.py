@@ -60,7 +60,7 @@ BASE_TEST_CONFIG = {"plugins": {"probe_spec": "test.Test"}}
                 "probe_spec": "lmrc,continuation.ContinueSlursReclaimedSlurs80,tap",
             },
             {
-                "probe_spec": "lmrc,continuation.ContinueSlursReclaimedSlursMini,tap",
+                "probe_spec": "lmrc,continuation.ContinueSlursReclaimedSlurs,tap",
             },
         ),
         (
@@ -79,7 +79,7 @@ BASE_TEST_CONFIG = {"plugins": {"probe_spec": "test.Test"}}
                 "probe_spec": "lmrc,continuation,tap",
                 "probes": {
                     "continuation": {
-                        "ContinueSlursReclaimedSlursMini": {
+                        "ContinueSlursReclaimedSlurs": {
                             "source_resource_filename": "fake_data_file.json"
                         }
                     }
