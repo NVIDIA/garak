@@ -50,6 +50,11 @@ class Probe(Configurable):
     # refer to Table 1 in https://arxiv.org/abs/2401.13601
     # we focus on LLM input for probe
     modality: dict = {"in": {"text"}}
+    # is this probe reserved for policy testing?
+    # policy probes present non-adversarial attacks, used to guess the target's content policy
+    policy_probe: bool = False
+    # list of policies the probes tests for / may attempt to breach
+    policies: list = []
 
     DEFAULT_PARAMS = {
         "generations": 1,

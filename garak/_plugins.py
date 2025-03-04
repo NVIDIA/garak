@@ -326,7 +326,7 @@ def plugin_info(plugin: Union[Callable, str]) -> dict:
 
 
 def enumerate_plugins(
-    category: str = "probes", skip_base_classes=True
+    category: str = "probes", skip_base_classes=True, filter: Union[None, dict] = None
 ) -> List[tuple[str, bool]]:
     """A function for listing all modules & plugins of the specified kind.
 
@@ -352,6 +352,13 @@ def enumerate_plugins(
     for k, v in PluginCache.instance()[category].items():
         if skip_base_classes and ".base." in k:
             continue
+        if filter is not None:
+            try:
+                for attrib, value in filter.items():
+                    if attrib in v and v[attrib] != value:
+                        raise StopIteration
+            except StopIteration:
+                continue
         enum_entry = (k, v["active"])
         plugin_class_names.add(enum_entry)
 
