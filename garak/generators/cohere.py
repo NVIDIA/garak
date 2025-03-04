@@ -14,6 +14,7 @@ import cohere
 import tqdm
 
 from garak import _config
+from garak.attempt import Turn
 from garak.generators.base import Generator
 
 
@@ -54,18 +55,20 @@ class CohereGenerator(Generator):
         self.generator = cohere.Client(self.api_key)
 
     @backoff.on_exception(backoff.fibo, cohere.error.CohereAPIError, max_value=70)
-    def _call_cohere_api(self, prompt, request_size=COHERE_GENERATION_LIMIT):
+    def _call_cohere_api(
+        self, prompt_text: str, request_size=COHERE_GENERATION_LIMIT
+    ) -> List[Union[Turn, None]]:
         """as of jun 2 2023, empty prompts raise:
         cohere.error.CohereAPIError: invalid request: prompt must be at least 1 token long
         filtering exceptions based on message instead of type, in backoff, isn't immediately obvious
         - on the other hand blank prompt / RTP shouldn't hang forever
         """
         if prompt == "":
-            return [""] * request_size
+            return [Turn("")] * request_size
         else:
             response = self.generator.generate(
                 model=self.name,
-                prompt=prompt,
+                prompt=prompt_text,
                 temperature=self.temperature,
                 num_generations=request_size,
                 max_tokens=self.max_tokens,
@@ -76,11 +79,11 @@ class CohereGenerator(Generator):
                 presence_penalty=self.presence_penalty,
                 end_sequences=self.stop,
             )
-            return [g.text for g in response]
+            return [Turn(g.text) for g in response]
 
     def _call_model(
-        self, prompt: str, generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
+        self, prompt: Turn, generations_this_call: int = 1
+    ) -> List[Union[Turn, None]]:
         """Cohere's _call_model does sub-batching before calling,
         and so manages chunking internally"""
         quotient, remainder = divmod(generations_this_call, COHERE_GENERATION_LIMIT)
@@ -91,7 +94,7 @@ class CohereGenerator(Generator):
         generation_iterator = tqdm.tqdm(request_sizes, leave=False)
         generation_iterator.set_description(self.fullname)
         for request_size in generation_iterator:
-            outputs += self._call_cohere_api(prompt, request_size=request_size)
+            outputs += self._call_cohere_api(prompt.text, request_size=request_size)
         return outputs
 
 

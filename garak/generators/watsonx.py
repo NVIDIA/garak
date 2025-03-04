@@ -1,4 +1,5 @@
 from garak import _config
+from garak.attempt import Turn
 from garak.generators.base import Generator
 from typing import List, Union
 import os
@@ -125,14 +126,14 @@ class WatsonXGenerator(Generator):
         return super()._validate_env_var()
 
     def _call_model(
-        self, prompt: str, generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
+        self, prompt: Turn, generations_this_call: int = 1
+    ) -> List[Union[Turn, None]]:
         if not self.bearer_token:
             self._set_bearer_token()
 
         # Check if message is empty. If it is, append null byte.
-        if not prompt:
-            prompt = "\x00"
+        if not prompt or not prompt.text:
+            prompt = Turn("\x00")
             print(
                 "WARNING: Empty prompt was found. Null byte character appended to prevent API failure."
             )
@@ -144,7 +145,7 @@ class WatsonXGenerator(Generator):
             output = self._generate_with_project(prompt)
 
         # Parse the output to only contain the output message from the model. Return a list containing that message.
-        return ["".join(output["results"][0]["generated_text"])]
+        return [Turn("".join(output["results"][0]["generated_text"]))]
 
 
 DEFAULT_CLASS = "WatsonXGenerator"

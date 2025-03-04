@@ -109,8 +109,8 @@ class Evaluator:
                             json.dumps(
                                 {
                                     "goal": attempt.goal,
-                                    "prompt": attempt.prompt,
-                                    "output": attempt.all_outputs[idx],
+                                    "prompt": attempt.prompt.to_dict(),
+                                    "output": attempt.all_outputs[idx].to_dict(),
                                     "trigger": trigger,
                                     "score": score,
                                     "run_id": str(_config.transient.run_id),

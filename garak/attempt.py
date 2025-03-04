@@ -1,7 +1,7 @@
 """Defines the Attempt class, which encapsulates a prompt with metadata and results"""
 
 from types import GeneratorType
-from typing import Any, List
+from typing import List, Union
 import uuid
 
 (
@@ -13,13 +13,80 @@ import uuid
 roles = {"system", "user", "assistant"}
 
 
+class Turn(dict):
+    """Object to represent a single turn posed to or received from a generator
+
+    Turns can be prompts, replies, system prompts. While many prompts are text,
+    they may also be (or include) images, audio, files, or even a composition of
+    these. The Turn object encapsulates this flexibility.
+
+    `Turn` doesn't yet support multiple attachments of the same type.
+
+    Multi-turn queries should be composed of multiple Turn objects.
+
+    Turns must always have a `text` part, which is set to `None` by default.
+
+    Expected part names:
+    * `text` -- The prompt. `text` is always present, though may be None
+    * `image_filename` -- Filename of an image to be attached
+    * `image_data` - `bytes` of an image
+
+    """
+
+    @property
+    def text(self) -> Union[None, str]:
+        if "text" in self.parts:
+            return self.parts["text"]
+        else:
+            return None
+
+    @text.setter
+    def text(self, value: Union[None, str]) -> None:
+        self.parts["text"] = value
+
+    def __init__(self, text: Union[None, str] = None) -> None:
+        self.parts = {}
+        self.text = text
+
+    def add_part(self, name, data) -> None:
+        self.parts[name] = data
+
+    def add_part_from_filename(self, name, filename: str) -> None:
+        with open(filename, "rb") as f:
+            self.parts[name] = f.read()
+
+    def load_image(self) -> None:
+        self.add_part_from_filename("image_data", self.parts["image_filename"])
+
+    def __str__(self):
+        if len(self.parts) == 1:
+            return self.text
+        else:
+            return "<Turn " + repr(self.parts) + ">"
+
+    def __eq__(self, other):
+        if not isinstance(other, Turn):
+            return False  # or raise TypeError
+        if self.text != other.text:
+            return False
+        if self.parts != other.parts:
+            return False
+        return True
+
+    def to_dict(self) -> dict:
+        return self.parts
+
+    def from_dict(self, turn_dict: dict):
+        self.parts = turn_dict
+
+
 class Attempt:
     """A class defining objects that represent everything that constitutes a single attempt at evaluating an LLM.
 
     :param status: The status of this attempt; ``ATTEMPT_NEW``, ``ATTEMPT_STARTED``, or ``ATTEMPT_COMPLETE``
     :type status: int
     :param prompt: The processed prompt that will presented to the generator
-    :type prompt: str
+    :type prompt: Turn
     :param probe_classname: Name of the probe class that originated this ``Attempt``
     :type probe_classname: str
     :param probe_params: Non-default parameters logged by the probe
@@ -27,7 +94,7 @@ class Attempt:
     :param targets: A list of target strings to be searched for in generator responses to this attempt's prompt
     :type targets: List(str), optional
     :param outputs: The outputs from the generator in response to the prompt
-    :type outputs: List(str)
+    :type outputs: List(Turn)
     :param notes: A free-form dictionary of notes accompanying the attempt
     :type notes: dict
     :param detector_results: A dictionary of detector scores, keyed by detector name, where each value is a list of scores corresponding to each of the generator output strings in ``outputs``
@@ -97,16 +164,25 @@ class Attempt:
             "probe_classname": self.probe_classname,
             "probe_params": self.probe_params,
             "targets": self.targets,
-            "prompt": self.prompt,
-            "outputs": list(self.outputs),
+            "prompt": self.prompt.to_dict(),
+            "outputs": [o.to_dict() for o in list(self.outputs)],
             "detector_results": {k: list(v) for k, v in self.detector_results.items()},
             "notes": self.notes,
             "goal": self.goal,
-            "messages": self.messages,
+            "messages": [
+                [
+                    {
+                        "role": msg["role"],
+                        "content": msg["content"].to_dict(),
+                    }
+                    for msg in thread
+                ]
+                for thread in self.messages
+            ],
         }
 
     @property
-    def prompt(self):
+    def prompt(self) -> Turn:
         if len(self.messages) == 0:  # nothing set
             return None
         if isinstance(self.messages[0], dict):  # only initial prompt set
@@ -121,7 +197,7 @@ class Attempt:
             )
 
     @property
-    def outputs(self):
+    def outputs(self) -> List[Turn | None]:
         if len(self.messages) and isinstance(self.messages[0], list):
             # work out last_output_turn that was assistant
             assistant_turns = [
@@ -138,7 +214,7 @@ class Attempt:
             return []
 
     @property
-    def latest_prompts(self):
+    def latest_prompts(self) -> Turn | List[Turn | None]:
         if len(self.messages[0]) > 1:
             # work out last_output_turn that was user
             last_output_turn = max(
@@ -166,9 +242,13 @@ class Attempt:
         return all_outputs
 
     @prompt.setter
-    def prompt(self, value):
+    def prompt(self, value: str | Turn):
         if value is None:
             raise TypeError("'None' prompts are not valid")
+        if isinstance(value, str):
+            value = Turn(text=value)
+        if not isinstance(value, Turn):
+            raise TypeError("prompt must be a Turn() or string")
         self._add_first_turn("user", value)
 
     @outputs.setter
@@ -189,7 +269,7 @@ class Attempt:
         assert isinstance(value, list)
         self._add_turn("user", value)
 
-    def _expand_prompt_to_histories(self, breadth):
+    def _expand_prompt_to_histories(self, breadth: int):
         """expand a prompt-only message history to many threads"""
         if len(self.messages) == 0:
             raise TypeError(
@@ -203,8 +283,11 @@ class Attempt:
         base_message = dict(self.messages[0])
         self.messages = [[base_message] for i in range(breadth)]
 
-    def _add_first_turn(self, role: str, content: str) -> None:
+    def _add_first_turn(self, role: str, content: Union[Turn, str]) -> None:
         """add the first turn (after a prompt) to a message history"""
+
+        if isinstance(content, str):
+            content = Turn(content)
 
         if len(self.messages):
             if isinstance(self.messages[0], list):
@@ -226,7 +309,7 @@ class Attempt:
             self.messages.append({"role": role, "content": content})
             return
 
-    def _add_turn(self, role: str, contents: List[str]) -> None:
+    def _add_turn(self, role: str, contents: List[Union[Turn, str]]) -> None:
         """add a 'layer' to a message history.
 
         the contents should be as broad as the established number of
@@ -245,8 +328,13 @@ class Attempt:
             raise ValueError(
                 "Can only add a list of user prompts after at least one system generation, so that generations count is known"
             )
+
         if role in roles:
             for idx, entry in enumerate(contents):
+                if isinstance(entry, str):
+                    entry = Turn(entry)
+                if not isinstance(entry, Turn):
+                    raise ValueError("turns must be garak.attempt.Turn instances")
                 self.messages[idx].append({"role": role, "content": entry})
             return
         raise ValueError(
