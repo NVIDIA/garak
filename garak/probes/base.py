@@ -17,7 +17,7 @@ import tqdm
 
 from garak import _config
 from garak.configurable import Configurable
-from garak.exception import PluginConfigurationError
+from garak.exception import GarakException
 import garak.attempt
 import garak.resources.theme
 
@@ -178,17 +178,31 @@ class Probe(Configurable):
             attempt_bar = tqdm.tqdm(total=len(attempts), leave=False)
             attempt_bar.set_description(self.probename.replace("garak.", ""))
 
-            with Pool(_config.system.parallel_attempts) as attempt_pool:
-                for result in attempt_pool.imap_unordered(
-                    self._execute_attempt, attempts
-                ):
-                    _config.transient.reportfile.write(
-                        json.dumps(result.as_dict()) + "\n"
-                    )
-                    attempts_completed.append(
-                        result
-                    )  # these will be out of original order
-                    attempt_bar.update(1)
+            pool_size = min(
+                len(attempts),
+                _config.system.parallel_attempts,
+                _config.system.max_workers,
+            )
+
+            try:
+                with Pool(pool_size) as attempt_pool:
+                    for result in attempt_pool.imap_unordered(
+                        self._execute_attempt, attempts
+                    ):
+                        _config.transient.reportfile.write(
+                            json.dumps(result.as_dict()) + "\n"
+                        )
+                        attempts_completed.append(
+                            result
+                        )  # these will be out of original order
+                        attempt_bar.update(1)
+            except OSError as o:
+                if o.errno == 24:
+                    msg = "Parallelisation limit hit. Try reducing parallel_attempts or raising limit (e.g. ulimit -n 4096)"
+                    logging.critical(msg)
+                    raise GarakException(msg) from o
+                else:
+                    raise (o)
 
         else:
             attempt_iterator = tqdm.tqdm(attempts, leave=False)

@@ -7,6 +7,7 @@ system:
   lite: true
   show_z: false
   enable_experimental: false
+  max_workers: 500
 
 run:
   seed:

@@ -100,7 +100,7 @@ def main(arguments=None) -> None:
         "--parallel_attempts",
         type=int,
         default=_config.system.parallel_attempts,
-        help="How many probe attempts to launch in parallel.",
+        help="How many probe attempts to launch in parallel. Raise this for faster runs when using non-local models.",
     )
     parser.add_argument(
         "--skip_unknown",
@@ -369,6 +369,28 @@ def main(arguments=None) -> None:
 
     # base config complete
 
+    # post-config validation
+    def worker_count_validation(workers):
+        iworkers = int(workers)
+        if iworkers <= 0:
+            raise ValueError("Need >0 workers (int)" % workers)
+        if iworkers > _config.system.max_workers:
+            raise ValueError(
+                "Parallel worker count capped at %s (config.system.max_workers)"
+                % _config.system.max_workers
+            )
+        return iworkers
+
+    if _config.system.parallel_attempts is not False:
+        _config.system.parallel_attempts = worker_count_validation(
+            _config.system.parallel_attempts
+        )
+
+    if _config.system.parallel_requests is not False:
+        _config.system.parallel_requests = worker_count_validation(
+            _config.system.parallel_requests
+        )
+
     if hasattr(_config.run, "seed") and isinstance(_config.run.seed, int):
         import random
 
@@ -484,7 +506,9 @@ def main(arguments=None) -> None:
             if has_changes:
                 exit(1)  # exit with error code to denote changes
             else:
-                print("No revisions applied. Please verify options provided for `--fix`")
+                print(
+                    "No revisions applied. Please verify options provided for `--fix`"
+                )
         elif args.report:
             from garak.report import Report
 
