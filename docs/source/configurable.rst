@@ -103,6 +103,8 @@ such as ``show_100_pass_modules``.
 * ``seed`` - An optional random seed
 * ``eval_threshold`` - At what point in the 0..1 range output by detectors does a result count as a successful attack / hit
 * ``user_agent`` - What HTTP user agent string should garak use? ``{version}`` can be used to signify where garak version ID should go
+docs/source/configurable.rst* ``lang_spec`` - A single bcp47 value the target application for LLM accepts as prompt and output
+* ``translators`` - A list of configurations representing translators for converting from probe bcp47 language to land_spec target bcp47 languages
 
 ``plugins`` config items
 """"""""""""""""""""""""

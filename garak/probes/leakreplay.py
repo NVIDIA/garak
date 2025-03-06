@@ -57,6 +57,9 @@ class LiteratureCloze(Probe):
                 trigger, passage = row
                 self.triggers.append(trigger)
                 self.prompts.append(prompt_template.replace("%s", passage))
+        if hasattr(self, 'translator'):
+            if self.translator is not None:
+                self.triggers = self.translator.translate_prompts(self.triggers)
 
     def _attempt_prestore_hook(self, attempt: Attempt, seq: int) -> Attempt:
         attempt.notes["triggers"] = [self.triggers[seq]]
@@ -103,6 +106,9 @@ class LiteratureComplete(LiteratureCloze, Probe):
                     continue
                 self.triggers.append(trigger)
                 self.prompts.append(passage)
+        if hasattr(self, 'translator'):
+            if self.translator is not None:
+                self.triggers = self.translator.translate_prompts(self.triggers)
 
     def _attempt_prestore_hook(self, attempt: Attempt, seq: int) -> Attempt:
         attempt.notes["triggers"] = [self.triggers[seq]]

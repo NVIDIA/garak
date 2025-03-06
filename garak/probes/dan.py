@@ -595,6 +595,9 @@ class AutoDAN(Probe):
 
         if autodan_outputs:
             self.prompts = autodan_outputs
+            if hasattr(self, 'translator'):
+                if self.translator is not None:
+                    self.prompts = self.translator.translate_prompts(self.prompts)
 
             # build list of attempts
             attempts_todo = []

@@ -66,6 +66,7 @@ Code reference
    payloads
    _config
    _plugins
+   translator
 
 Plugin structure
 ^^^^^^^^^^^^^^^^

@@ -1,0 +1,7 @@
+run:
+  lang_spec: ja
+  translators:
+    - language: en-ja
+      model_type: remote.DeeplTranslator
+    - language: ja-en
+      model_type: remote.DeeplTranslator
