@@ -70,7 +70,6 @@ class RestGenerator(Generator):
     def __init__(self, uri=None, config_root=_config):
         self.uri = uri
         self.name = uri
-        self.seed = _config.run.seed
         self.supports_multiple_generations = False  # not implemented yet
         self.escape_function = self._json_escape
         self.retry_5xx = True

@@ -75,8 +75,8 @@ class Pipeline(Generator, HFCompatible):
 
         from transformers import pipeline, set_seed
 
-        if _config.run.seed is not None:
-            set_seed(_config.run.seed)
+        if self.seed is not None:
+            set_seed(self.seed)
 
         pipeline_kwargs = self._gather_hf_params(hf_constructor=pipeline)
         pipeline_kwargs["truncation"] = (
@@ -172,8 +172,8 @@ class OptimumPipeline(Pipeline, HFCompatible):
                 f"Missing required dependencies for {self.__class__.__name__}"
             )
 
-        if _config.run.seed is not None:
-            set_seed(_config.run.seed)
+        if self.seed is not None:
+            set_seed(self.seed)
 
         import torch.cuda
 
@@ -210,8 +210,8 @@ class ConversationalPipeline(Pipeline, HFCompatible):
 
         from transformers import pipeline, set_seed, Conversation
 
-        if _config.run.seed is not None:
-            set_seed(_config.run.seed)
+        if self.seed is not None:
+            set_seed(self.seed)
 
         # Note that with pipeline, in order to access the tokenizer, model, or device, you must get the attribute
         # directly from self.generator instead of from the ConversationalPipeline object itself.
@@ -459,8 +459,8 @@ class Model(Pipeline, HFCompatible):
 
         import transformers
 
-        if _config.run.seed is not None:
-            transformers.set_seed(_config.run.seed)
+        if self.seed is not None:
+            transformers.set_seed(self.seed)
 
         model_kwargs = self._gather_hf_params(
             hf_constructor=transformers.AutoConfig.from_pretrained

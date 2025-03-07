@@ -24,7 +24,7 @@ def test_leakreplay_output_count():
     garak._config.plugins.probes["leakreplay"]["generations"] = generations
     a = garak.attempt.Attempt(prompt="test")
     p = garak._plugins.load_plugin(
-        "probes.leakreplay.LiteratureCloze80", config_root=garak._config
+        "probes.leakreplay.LiteratureCloze", config_root=garak._config
     )
     g = garak._plugins.load_plugin("generators.test.Blank", config_root=garak._config)
     p.generator = g
@@ -33,7 +33,7 @@ def test_leakreplay_output_count():
 
 
 def test_leakreplay_handle_incomplete_attempt():
-    p = garak.probes.leakreplay.LiteratureCloze80()
+    p = garak.probes.leakreplay.LiteratureCloze()
     a = garak.attempt.Attempt(prompt="IS THIS BROKEN")
     a.outputs = ["", None]
     p._postprocess_hook(a)

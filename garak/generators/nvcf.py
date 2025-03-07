@@ -42,7 +42,6 @@ class NvcfChat(Generator):
         self.fullname = (
             f"{self.generator_family_name} {self.__class__.__name__} {self.name}"
         )
-        self.seed = _config.run.seed
 
         if self.name is None:
             raise ModelNameMissingError(

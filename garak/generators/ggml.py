@@ -74,7 +74,8 @@ class GgmlGenerator(Generator):
             )
 
         # this value cannot be `None`, 0 is consistent and `-1` would produce random seeds
-        self.seed = _config.run.seed if _config.run.seed is not None else 0
+        if self.seed is None:
+            self.seed = 0
 
         # model is a file, validate exists and sanity check file header for supported format
         if not os.path.isfile(self.name):

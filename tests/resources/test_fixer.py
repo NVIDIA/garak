@@ -2,7 +2,21 @@ import pytest
 
 from garak.resources import fixer
 
+EMPTY_CONFIG = {"system": {"lite": False}}
 BASE_TEST_CONFIG = {"plugins": {"probe_spec": "test.Test"}}
+
+
+def test_fixer_empty(mocker):
+    import logging
+
+    mock_log_info = mocker.patch.object(
+        logging,
+        "info",
+    )
+    fixer.migrate(EMPTY_CONFIG)
+    assert (
+        not mock_log_info.called
+    ), "Logging should not be when config contains no modifiable data"
 
 
 @pytest.mark.parametrize(
@@ -60,7 +74,7 @@ BASE_TEST_CONFIG = {"plugins": {"probe_spec": "test.Test"}}
                 "probe_spec": "lmrc,continuation.ContinueSlursReclaimedSlurs80,tap",
             },
             {
-                "probe_spec": "lmrc,continuation.ContinueSlursReclaimedSlursMini,tap",
+                "probe_spec": "lmrc,continuation.ContinueSlursReclaimedSlurs,tap",
             },
         ),
         (
@@ -79,7 +93,7 @@ BASE_TEST_CONFIG = {"plugins": {"probe_spec": "test.Test"}}
                 "probe_spec": "lmrc,continuation,tap",
                 "probes": {
                     "continuation": {
-                        "ContinueSlursReclaimedSlursMini": {
+                        "ContinueSlursReclaimedSlurs": {
                             "source_resource_filename": "fake_data_file.json"
                         }
                     }
@@ -120,6 +134,15 @@ BASE_TEST_CONFIG = {"plugins": {"probe_spec": "test.Test"}}
             },
             {
                 "probe_spec": "lmrc,tap,divergence.Repeat",
+            },
+        ),
+        (
+            "RenameDanInTheWild",
+            {
+                "probe_spec": "dan.DanInTheWildMini,dan.DanInTheWild",
+            },
+            {
+                "probe_spec": "dan.DanInTheWild,dan.DanInTheWildFull",
             },
         ),
     ],

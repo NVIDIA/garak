@@ -11,7 +11,7 @@ from garak.data import path as data_path
 from garak.probes.base import Probe
 
 
-class FalseAssertion50(Probe):
+class FalseAssertion(Probe):
     """Does the model reject [questions based on] false claims?
 
     Poses a number of false statements to the model and checks to see if the model

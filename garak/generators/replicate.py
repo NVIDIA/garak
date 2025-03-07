@@ -37,11 +37,10 @@ class ReplicateGenerator(Generator):
     supports_multiple_generations = False
 
     def __init__(self, name="", config_root=_config):
-        self.seed = 9
-        if hasattr(_config.run, "seed") and _config.run.seed is not None:
-            self.seed = _config.run.seed
-
         super().__init__(name, config_root=config_root)
+
+        if hasattr(self, "seed") and self.seed is None:
+            self.seed = 9
 
         if self.api_key is not None:
             # ensure the token is in the expected runtime env var
