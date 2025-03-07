@@ -14,6 +14,7 @@ import inspect
 import json
 import logging
 import re
+import tiktoken
 from typing import List, Union
 
 import openai
@@ -113,12 +114,24 @@ context_lengths = {
     "gpt-4o": 128000,
     "gpt-4o-2024-05-13": 128000,
     "gpt-4o-2024-08-06": 128000,
-    "gpt-4o-mini": 16384,
+    "gpt-4o-mini": 128000,
     "gpt-4o-mini-2024-07-18": 16384,
-    "o1-mini": 65536,
+    "o1": 200000,
+    "o1-mini": 128000,
     "o1-mini-2024-09-12": 65536,
     "o1-preview": 32768,
     "o1-preview-2024-09-12": 32768,
+    "o3-mini": 200000,
+}
+
+output_max = {
+    "gpt-3.5-turbo": 4096,
+    "gpt-4": 8192,
+    "gpt-4o": 16384,
+    "o3-mini": 100000,
+    "o1": 100000,
+    "o1-mini": 65536,
+    "gpt-4o-mini": 16384,
 }
 
 
@@ -140,7 +153,7 @@ class OpenAICompatible(Generator):
         "presence_penalty": 0.0,
         "seed": None,
         "stop": ["#", ";"],
-        "suppressed_params": set(),
+        "suppressed_params": {"max_tokens"},  # deprecated
         "retry_json": True,
         "extra_params": {},
     }
@@ -230,6 +243,63 @@ class OpenAICompatible(Generator):
         if hasattr(self, "extra_params"):
             for k, v in self.extra_params.items():
                 create_args[k] = v
+
+        if self.max_tokens is not None and not hasattr(self, "max_completion_tokens"):
+            create_args["max_completion_tokens"] = self.max_tokens
+
+        # basic token boundary validation to ensure requests are not rejected for exceeding target context length
+        max_completion_tokens = create_args.get("max_completion_tokens", None)
+        if max_completion_tokens is not None:
+
+            # count tokens in prompt and ensure max_tokens requested is <= context_len allowed
+            if (
+                hasattr(self, "context_len")
+                and self.context_len is not None
+                and max_completion_tokens > self.context_len
+            ):
+                logging.warning(
+                    f"Requested garak max_tokens {max_completion_tokens} exceeds context length {self.context_len}, reducing requested maximum"
+                )
+                max_completion_tokens = self.context_len
+                create_args["max_completion_tokens"] = max_completion_tokens
+
+            if (
+                self.name in output_max
+                and max_completion_tokens > output_max[self.name]
+            ):
+                logging.warning(
+                    f"Requested max_completion_tokens {max_completion_tokens} exceeds max output {output_max[self.name]}, reducing requested maximum"
+                )
+                max_completion_tokens = output_max[self.name]
+                create_args["max_completion_tokens"] = max_completion_tokens
+
+            prompt_tokens = 0  # this should apply to messages object
+            try:
+                encoding = tiktoken.encoding_for_model(self.name)
+                prompt_tokens = len(encoding.encode(prompt))
+            except KeyError as e:
+                prompt_tokens = int(
+                    len(prompt.split()) * 4 / 3
+                )  # extra naive fallback 1 token ~= 3/4 of a word
+
+            fixed_cost = 0
+            if self.generator == self.client.chat.completions:
+                # every reply is primed with <|start|>assistant<|message|> (3 toks) plus 1 for name change
+                # see https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
+                # section 6 "Counting tokens for chat completions API calls"
+                fixed_cost += 7
+
+            if self.context_len is not None and (
+                prompt_tokens + fixed_cost + max_completion_tokens > self.context_len
+            ):
+                raise garak.exception.GarakException(
+                    "A response of %s toks plus prompt %s toks cannot be generated; API capped at context length %s toks"
+                    % (
+                        self.max_tokens,
+                        prompt_tokens + fixed_cost,
+                        self.context_len,
+                    )  # max_completion_tokens will already be adjusted down
+                )
 
         if self.generator == self.client.completions:
             if not isinstance(prompt, str):
