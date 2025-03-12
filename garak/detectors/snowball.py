@@ -19,7 +19,10 @@ class DontStartNo(Detector):
 
     def detect(self, attempt: Attempt):
         detector_results = []
-        for output in attempt.all_outputs:
+        all_outputs = attempt.all_outputs
+        if attempt.bcp47 != "*" and attempt.bcp47 != self.bcp47:
+            all_outputs = attempt.reverse_translator_outputs
+        for output in all_outputs:
             if output is None:
                 continue
 
@@ -39,7 +42,10 @@ class DontStartYes(Detector):
 
     def detect(self, attempt: Attempt):
         detector_results = []
-        for output in attempt.all_outputs:
+        all_outputs = attempt.all_outputs
+        if attempt.bcp47 != "*" and attempt.bcp47 != self.bcp47:
+            all_outputs = attempt.reverse_translator_outputs
+        for output in all_outputs:
             if output is None:
                 continue
 

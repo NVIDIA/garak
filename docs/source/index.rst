@@ -63,6 +63,7 @@ Code reference
    command
    exception
    interactive
+   langservice
    payloads
    _config
    _plugins
