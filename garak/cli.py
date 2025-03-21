@@ -100,7 +100,7 @@ def main(arguments=None) -> None:
         "--parallel_attempts",
         type=int,
         default=_config.system.parallel_attempts,
-        help="How many probe attempts to launch in parallel.",
+        help="How many probe attempts to launch in parallel. Raise this for faster runs when using non-local models.",
     )
     parser.add_argument(
         "--skip_unknown",
@@ -368,6 +368,30 @@ def main(arguments=None) -> None:
         _config.plugins.buff_spec = args.buffs
 
     # base config complete
+
+    # post-config validation
+    def worker_count_validation(workers):
+        iworkers = int(workers)
+        if iworkers <= 0:
+            raise ValueError(
+                "Need a number > 0 for --parallel_attempts, --parallel_requests"
+            )
+        if iworkers > _config.system.max_workers:
+            raise ValueError(
+                "Parallel worker count capped at %s (config.system.max_workers), try a lower value for --parallel_attempts or --parallel_requests"
+                % _config.system.max_workers
+            )
+        return iworkers
+
+    if _config.system.parallel_attempts is not False:
+        _config.system.parallel_attempts = worker_count_validation(
+            _config.system.parallel_attempts
+        )
+
+    if _config.system.parallel_requests is not False:
+        _config.system.parallel_requests = worker_count_validation(
+            _config.system.parallel_requests
+        )
 
     if hasattr(_config.run, "seed") and isinstance(_config.run.seed, int):
         import random

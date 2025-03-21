@@ -4,7 +4,7 @@
 """Base classes for probes.
 
 Probe plugins must inherit one of these. `Probe` serves as a template showing
-what expectations there are for inheriting classes. """
+what expectations there are for inheriting classes."""
 
 import copy
 import json
@@ -18,6 +18,7 @@ import tqdm
 
 from garak import _config
 from garak.configurable import Configurable
+from garak.exception import GarakException
 import garak.attempt
 import garak.resources.theme
 
@@ -54,7 +55,7 @@ class Probe(Configurable):
     DEFAULT_PARAMS = {}
 
     _run_params = {"generations", "soft_probe_prompt_cap", "seed"}
-    _system_params = {"parallel_attempts"}
+    _system_params = {"parallel_attempts", "max_workers"}
 
     def __init__(self, config_root=_config):
         """Sets up a probe.
@@ -179,17 +180,31 @@ class Probe(Configurable):
             attempt_bar = tqdm.tqdm(total=len(attempts), leave=False)
             attempt_bar.set_description(self.probename.replace("garak.", ""))
 
-            with Pool(self.parallel_attempts) as attempt_pool:
-                for result in attempt_pool.imap_unordered(
-                    self._execute_attempt, attempts
-                ):
-                    _config.transient.reportfile.write(
-                        json.dumps(result.as_dict()) + "\n"
-                    )
-                    attempts_completed.append(
-                        result
-                    )  # these will be out of original order
-                    attempt_bar.update(1)
+            pool_size = min(
+                len(attempts),
+                self.parallel_attempts,
+                self.max_workers,
+            )
+
+            try:
+                with Pool(pool_size) as attempt_pool:
+                    for result in attempt_pool.imap_unordered(
+                        self._execute_attempt, attempts
+                    ):
+                        _config.transient.reportfile.write(
+                            json.dumps(result.as_dict()) + "\n"
+                        )
+                        attempts_completed.append(
+                            result
+                        )  # these will be out of original order
+                        attempt_bar.update(1)
+            except OSError as o:
+                if o.errno == 24:
+                    msg = "Parallelisation limit hit. Try reducing parallel_attempts or raising limit (e.g. ulimit -n 4096)"
+                    logging.critical(msg)
+                    raise GarakException(msg) from o
+                else:
+                    raise (o)
 
         else:
             attempt_iterator = tqdm.tqdm(attempts, leave=False)
