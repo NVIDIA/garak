@@ -1,6 +1,6 @@
 """Encoding detectors
 
-Detectors for assessing how well a given payload from probes.encoding is 
+Detectors for assessing how well a given payload from probes.encoding is
 output by the model
 """
 
