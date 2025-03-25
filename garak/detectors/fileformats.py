@@ -94,7 +94,7 @@ class FileIsExecutable(FileDetector):
         except (ImportError, ModuleNotFoundError) as e:
             logging.info(
                 "detectors.fileformats: failed importing python-magic, try installing libmagic, e.g. `brew install libmagic`",
-                e,
+                exc_info=e,
             )
             self.magic = None
 

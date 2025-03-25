@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Definitions of commands and actions that can be run in the garak toolkit"""
+"""Definitions of commands and actions that can be run in the garak toolkit"""
 
 import logging
 import json
@@ -24,23 +24,8 @@ def hint(msg, logging=None):
 def start_logging():
     from garak import _config
 
-    log_filename = _config.transient.data_dir / "garak.log"
+    log_filename = _config.transient.log_filename
 
-    logging.basicConfig(
-        filename=log_filename,
-        level=logging.DEBUG,
-        format="%(asctime)s  %(levelname)s  %(message)s",
-    )
-    # garaklogger = logging.FileHandler("garak.log", encoding="utf-8")
-    # garakformatter = logging.Formatter("%(asctime)s  %(levelname)s  %(message)s")
-    # garaklogger.setFormatter(garakformatter)
-    # garaklogger.setLevel(logging.DEBUG)
-
-    # rootlogger = logging.getLogger()
-    # for h in rootlogger.handlers[:]:
-    #    rootlogger.removeHandler(h)
-    # rootlogger.addHandler(garaklogger)
-    # logging.root = rootlogger
     logging.info("invoked")
 
     return log_filename
