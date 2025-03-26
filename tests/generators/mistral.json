@@ -1,0 +1,26 @@
+{
+    "mistralai_generation": {
+        "code": 200,
+        "json": {
+            "id": "cmpl-e5cc70bb28c444948073e77776eb30ef",
+            "object": "chat.completion",
+            "model": "mistral-small-latest",
+            "created": 1742909709,
+            "choices": [
+                {
+                    "message": {
+                        "role": "assistant",
+                        "content": "Ceci est une génération de test. :)"
+                    },
+                    "finish_reason": "stop",
+                    "index": 0
+                }
+            ],
+            "usage": {
+                "prompt_tokens": 5,
+                "completion_tokens": 32,
+                "total_tokens": 37
+            }
+        }
+    }
+}
