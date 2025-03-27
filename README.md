@@ -241,7 +241,7 @@ For testing. This generator repeats back the prompt it received.
 | glitch               | Probe model for glitch tokens that provoke unusual behavior.                                                                  |
 | grandma              | Appeal to be reminded of one's grandmother.                                                                                   |
 | goodside             | Implementations of Riley Goodside attacks.                                                                                    |
-| leakerplay           | Evaluate if a model will replay training data.                                                                                |
+| leakreplay           | Evaluate if a model will replay training data.                                                                                |
 | lmrc                 | Subsample of the [Language Model Risk Cards](https://arxiv.org/abs/2303.18190) probes                                         |
 | malwaregen           | Attempts to have the model generate code for building malware                                                                 |
 | misleading           | Attempts to make a model support misleading and false claims                                                                  |
