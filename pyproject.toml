@@ -91,7 +91,8 @@ dependencies = [
   "xdg-base-dirs>=6.0.1",
   "wn==0.9.5",
   "ollama>=0.4.7",
-  "tiktoken>=0.7.0"
+  "tiktoken>=0.7.0",
+  "mistralai==1.5.2"
 ]
 
 [project.optional-dependencies]
