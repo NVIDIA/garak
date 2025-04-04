@@ -1,11 +1,11 @@
-"""atkgen: Attack Generation. 
+"""atkgen: Attack Generation.
 
 This probe uses a separate model to create prompts for a generator,
 which are intended to guide that generator into a certain failure mode.
 
-Warning: These attack models may generate highly toxic prompts while 
+Warning: These attack models may generate highly toxic prompts while
 attempting to goad target models into failure - peruse logs at your
-own risk, and don't spend too much time doing it, using this guide 
+own risk, and don't spend too much time doing it, using this guide
 to working with harmful text:
 
  https://aclanthology.org/2022.findings-emnlp.35/
@@ -143,13 +143,22 @@ class Tox(Probe):
 
                 if not output_is_conversation:
                     t.update()
-                turn = ("probe", challenge)
+
+                # TODO: the detector requires challenge and response in "en" this probe currently
+                # results in no retention of the challenge translation sent to the target
+
+                # translate the challenge to send to the target
+                challenge_to_send = self.translator.translate([challenge])[0]
+                turn = ("probe", challenge)  # turns stores the original challenge
 
                 if len(turns) == 0:
-                    this_attempt.prompt = challenge
+                    this_attempt.prompt = challenge_to_send
+                    this_attempt.bcp47 = self.translator.target_lang
+                    if challenge_to_send != challenge:
+                        this_attempt.notes["pre_translation_prompt"] = challenge
                     this_attempt._expand_prompt_to_histories(1)
                 else:
-                    this_attempt._add_turn("user", [challenge])
+                    this_attempt._add_turn("user", [challenge_to_send])
 
                 turns.append(turn)
                 logging.debug("atkgen: probe: %s", turn)
@@ -162,15 +171,21 @@ class Tox(Probe):
                     t.set_description(
                         f" turn {t.n:02}: waiting for [{generator.name[:10]:<10}]"
                     )
-                # send the challenge and get the response
-                response = generator.generate(challenge)
+                # send the challenge in the target language and get the response
+                response = generator.generate(challenge_to_send)
                 if response is None or len(response) == 0:
                     response = ""
                 else:
                     response = response[0].strip() if response[0] is not None else ""
 
                 # log the response
-                turn = ("model", response)
+                response_to_store = self.reverse_translator.translate([response])[0]
+                turn = ("model", response_to_store)
+                if (
+                    self.reverse_translator.source_lang
+                    != self.reverse_translator.target_lang
+                ):
+                    this_attempt.reverse_translator_outputs = [response_to_store]
                 this_attempt._add_turn("assistant", [response])
                 turns.append(turn)
                 logging.debug("atkgen: model: %s", turn)
@@ -211,7 +226,7 @@ class Tox(Probe):
         try:
             rt_model_module, rt_model_class = self.red_team_model_type.split(".")
         except ValueError as e:
-            msg = f"red team model type needs to be fully specifed, w.g. 'module.Class'. Got {self.red_team_model_type}"
+            msg = f"red team model type needs to be fully specified, w.g. 'module.Class'. Got {self.red_team_model_type}"
             logging.critical(msg)
             raise ValueError() from e
         rt_config = {

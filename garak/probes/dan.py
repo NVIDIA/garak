@@ -3,7 +3,7 @@
 
 """DAN probes.
 
-Probes designed to disrupt a system prompt, for example the DAN (do anything 
+Probes designed to disrupt a system prompt, for example the DAN (do anything
 now) probes and others in a similar vein.
 """
 import logging
@@ -596,6 +596,7 @@ class AutoDAN(Probe):
 
         if autodan_outputs:
             self.prompts = autodan_outputs
+            self.prompts = self.translator.translate(self.prompts)
 
             # build list of attempts
             attempts_todo = []

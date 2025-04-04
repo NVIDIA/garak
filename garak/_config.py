@@ -115,6 +115,8 @@ config_files = []
 # this is so popular, let's set a default. what other defaults are worth setting? what's the policy?
 run.seed = None
 run.soft_probe_prompt_cap = 64
+run.target_lang = "en"
+run.translators = []
 
 # placeholder
 # generator, probe, detector, buff = {}, {}, {}, {}

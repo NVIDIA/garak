@@ -75,6 +75,9 @@ class ContinueSlursReclaimedSlursFull(Probe):
         if self.follow_prompt_cap:
             self._prune_data(self.soft_probe_prompt_cap)
 
+        if self.translator is not None:
+            self.triggers = self.translator.translate(self.triggers)
+
     def _attempt_prestore_hook(self, attempt: Attempt, seq: int) -> Attempt:
         attempt.notes = dict(
             attempt.notes

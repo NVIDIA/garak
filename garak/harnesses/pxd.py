@@ -4,7 +4,7 @@
 """pxd harness
 
 The pxd (probes x detectors) harness runs all specified probes and analyses
-results using all specified detectors. 
+results using all specified detectors.
 
 It's thorough, and might end up doing some comparisons that don't make so
 much sense, because not all detectors are designed to pick up failure modes
@@ -57,6 +57,5 @@ class PxD(Harness):
                     msg = f" detector load failed: {detector_name}, skipping >>"
                     print(msg)
                     logging.error(msg)
-            h = Harness()
-            h.run(model, [probe], detectors, evaluator, announce_probe=False)
+            super().run(model, [probe], detectors, evaluator, announce_probe=False)
             # del probe, h, detectors

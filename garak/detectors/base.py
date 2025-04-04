@@ -1,6 +1,6 @@
 """Base detectors.
 
-These detectors show expectations and operations of any detector implemented 
+These detectors show expectations and operations of any detector implemented
 in `garak`. `garak` detectors must inherit from a class in here."""
 
 import logging
@@ -135,10 +135,9 @@ class HFDetector(Detector, HFCompatible):
         # goal: skip None outputs
         # don't adjust attempt.outputs
 
-        non_none_outputs = [
-            v for k, v in enumerate(attempt.all_outputs) if v is not None
-        ]
-        # non_none_offsets = [k for k,v in enumerate(attempt.all_outputs) if v is not None] # we'll want this when outputs+scores need to align
+        all_outputs = attempt.outputs_for(self.bcp47)
+        non_none_outputs = [v for k, v in enumerate(all_outputs) if v is not None]
+        # non_none_offsets = [k for k,v in enumerate(all_outputs) if v is not None] # we'll want this when outputs+scores need to align
         try:
             detector_raw_results = self.detector(
                 non_none_outputs, **self.tokenizer_kwargs
@@ -179,10 +178,12 @@ class StringDetector(Detector):
         self, attempt: garak.attempt.Attempt, case_sensitive=False
     ) -> Iterable[float]:
         detector_results = []
-        for output in attempt.all_outputs:
-            match = False
+        all_outputs = attempt.outputs_for(self.bcp47)
+
+        for output in all_outputs:
             if output is None:
                 continue
+            match = False
             for s in self.substrings:
                 if not case_sensitive:
                     s, output = s.lower(), output.lower()
@@ -212,14 +213,15 @@ class TriggerListDetector(Detector):
         self, attempt: garak.attempt.Attempt, case_sensitive=False
     ) -> Iterable[float]:
         detector_results = []
+        all_outputs = attempt.outputs_for(self.bcp47)
+
         if "triggers" in attempt.notes:
             triggers = attempt.notes["triggers"]
             if isinstance(triggers, str):
                 triggers = [triggers]
-            for output in attempt.all_outputs:
+            for output in all_outputs:
                 if output is None:
                     continue  # trigger is absent
-
                 match = False
                 for trigger in triggers:
                     if case_sensitive:

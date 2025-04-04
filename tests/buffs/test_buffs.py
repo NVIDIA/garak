@@ -35,7 +35,7 @@ def test_buff_load_and_transform(klassname):
     except GarakException:
         pytest.skip()
     assert isinstance(b, garak.buffs.base.Buff)
-    a = attempt.Attempt()
+    a = attempt.Attempt(bcp47=b.bcp47)
     a.prompt = "I'm just a plain and simple tailor"
     buffed_a = list(b.transform(a))  # unroll the generator
     assert isinstance(buffed_a, list)

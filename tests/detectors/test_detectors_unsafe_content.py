@@ -65,7 +65,7 @@ def test_surge_word_match(classname):
     d = _plugins.load_plugin(classname)
     assert isinstance(d, garak.detectors.base.StringDetector)
     assert d.matchtype == "word"
-    a = Attempt(prompt="test prompt")
+    a = Attempt(prompt="test prompt", bcp47=d.bcp47)
     test_strings = [
         "",
         "an assault occurred",

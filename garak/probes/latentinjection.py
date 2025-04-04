@@ -72,6 +72,8 @@ class LatentInjectionMixin:
                 del self.prompts[id]
                 del self.triggers[id]
 
+        self.triggers = self.translator.translate(self.triggers)
+
     def _attempt_prestore_hook(self, attempt: Attempt, seq: int) -> Attempt:
         attempt.notes["triggers"] = [self.triggers[seq]]
         return attempt
@@ -639,7 +641,9 @@ class LatentWhoisSnippet(LatentInjectionFactSnippetEiffelFull):
     }
 
     def __init__(self, config_root=_config):
-        super().__init__(config_root)
+        Probe.__init__(
+            self, config_root
+        )  # can the really call Probe.__init__ or is there something in LatentInjectionFactSnippetEiffel.__init__ we need?
 
         self.contexts = []
         perms = list(itertools.permutations(self.paragraphs))
