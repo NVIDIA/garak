@@ -28,7 +28,14 @@ class ProbewiseHarness(Harness):
             logging.error(f" detector load failed: {detector_name}, skipping >>")
         return False
 
-    def _probe_check(self, probe):
+    def _load_probe(probename):
+        try:
+            probe = _plugins.load_plugin(probename)
+        except Exception as e:
+            print(f"failed to load probe {probename}")
+            logging.warning("failed to load probe %s:", repr(e))
+            return False
+
         return probe
 
     def run(self, model, probenames, evaluator, buff_names=None):
@@ -77,14 +84,11 @@ class ProbewiseHarness(Harness):
         )
         logging.info("harness probewise: probe queue: %s", " ".join(probenames))
         for probename in probenames:
-            try:
-                probe = _plugins.load_plugin(probename)
-            except Exception as e:
-                print(f"failed to load probe {probename}")
-                logging.warning("failed to load probe %s:", repr(e))
-                continue
+            probe = self._load_probe(probename)
+
             if not probe:
                 continue
+
             detectors = []
 
             probe = self._probe_check(probe)
@@ -118,9 +122,24 @@ class ProbewiseHarness(Harness):
 
 class PolicyHarness(ProbewiseHarness):
 
-    def _probe_check(self, probe):
+    def _load_probe(self, probename):
         assert (
-            probe.policy_probe == True
+            _plugins.plugin_info["policy_probe"] == True
         ), "only policy probes should be used in policy runs"
-        setattr(probe, "generations", _config.policy.generations)
+
+        import copy
+
+        probe = None
+
+        config_root = copy.deepcopy(_config.plugins.probes)
+        probe_config = config_root
+        for path in probename.split(".")[2:]:
+            probe_config = probe_config[path]
+        probe_config["generations"] = _config.policy.generations
+
+        try:
+            probe = _plugins.load_plugin(probename, config_root=config_root)
+        except Exception as e:
+            print(f"failed to load probe {probename}")
+            logging.warning("failed to load probe %s:", repr(e))
         return probe
