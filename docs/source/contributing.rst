@@ -15,7 +15,7 @@ Checking your contribution is within scope
 
 ``garak`` is a security toolkit rather than a content safety or bias toolkit.
 The project scope relates primarily to LLM & dialog system security.
-This is a huge area, and you can get an idea of the kind of contributions that are in scope from our `FAQ <https://github.com/NVIDIA/garak/blob/main/FAQ.md>_` and our `Github issues <https://github.com/NVIDIA/garak/issues>`_ page.
+This is a huge area, and you can get an idea of the kind of contributions that are in scope from our `FAQ <https://github.com/NVIDIA/garak/blob/main/FAQ.md>`_ and our `Github issues <https://github.com/NVIDIA/garak/issues>`_ page.
 
 
 Connecting with the ``garak`` team & community
@@ -34,17 +34,17 @@ We'd love to help, and we're always interested to hear how you're using garak.
 Checklist for contributing
 --------------------------
 
-1. Set up a `Github <https://github.com/>`_ account, if you don't have one already. We develop in the open and the public repository is the authoritative one.
-1. Fork the ``garak`` repository - `<https://github.com/NVIDIA/garak/fork>`_
-1. Work out what you're doing. If it's from a good first issue (`see the list <https://github.com/NVIDIA/garak/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22>`_), drop a note on that issue so that we know you're working on it, and so that nobody else also starts working on it.
-1. Before you code anything: create a new branch for your work, e.g. ``git checkout -b feature/spicy_probe``
-1. Check out the rest of this page which includes links to detailed step-by-step guides to developing garak plugins
-1. Code!
-1. Run ``black`` on your code, so that it's well-formatted. Our github commit hook can refuse to accept ``black``-passing code.
-1. Write your own tests - these are a requirement for merging!
-1. When you're done, send a pull request. Github has big buttons for this and there's a template for you to fill in.
-1. We'll discuss the code together with you, tune it up, and hopefully merge it in, maybe with some edits!
-1. Now you're an official ``garak`` contributor, and will be permanently recognized in the project credits from the next official  release. Thank you!
+#. Set up a `Github <https://github.com/>`_ account, if you don't have one already. We develop in the open and the public repository is the authoritative one.
+#. Fork the ``garak`` repository - `<https://github.com/NVIDIA/garak/fork>`_
+#. Work out what you're doing. If it's from a good first issue (`see the list <https://github.com/NVIDIA/garak/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22>`_), drop a note on that issue so that we know you're working on it, and so that nobody else also starts working on it.
+#. Before you code anything: create a new branch for your work, e.g. ``git checkout -b feature/spicy_probe``
+#. Check out the rest of this page which includes links to detailed step-by-step guides to developing garak plugins
+#. Code!
+#. Run ``black`` on your code, so that it's well-formatted. Our github commit hook can refuse to accept ``black``-passing code.
+#. Write your own tests - these are a requirement for merging!
+#. When you're done, send a pull request. Github has big buttons for this and there's a template for you to fill in.
+#. We'll discuss the code together with you, tune it up, and hopefully merge it in, maybe with some edits!
+#. Now you're an official ``garak`` contributor, and will be permanently recognized in the project credits from the next official  release. Thank you!
 
 
 

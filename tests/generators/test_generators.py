@@ -4,12 +4,11 @@
 import importlib
 import inspect
 import pytest
-import random
 
 from garak import _plugins
 from garak import _config
-from garak.generators.test import Blank, Repeat, Single
 from garak.generators.base import Generator
+
 
 DEFAULT_GENERATOR_NAME = "garak test"
 DEFAULT_PROMPT_TEXT = "especially the lies"
@@ -18,112 +17,6 @@ DEFAULT_PROMPT_TEXT = "especially the lies"
 GENERATORS = [
     classname for (classname, active) in _plugins.enumerate_plugins("generators")
 ]
-
-
-def test_generators_test_blank():
-    g = Blank(DEFAULT_GENERATOR_NAME)
-    output = g.generate(prompt="test", generations_this_call=5)
-    assert output == [
-        "",
-        "",
-        "",
-        "",
-        "",
-    ], "generators.test.Blank with generations_this_call=5 should return five empty strings"
-
-
-def test_generators_test_repeat():
-    g = Repeat(DEFAULT_GENERATOR_NAME)
-    output = g.generate(prompt=DEFAULT_PROMPT_TEXT)
-    assert output == [
-        DEFAULT_PROMPT_TEXT
-    ], "generators.test.Repeat should send back a list of the posed prompt string"
-
-
-def test_generators_test_single_one():
-    g = Single(DEFAULT_GENERATOR_NAME)
-    output = g.generate(prompt="test")
-    assert isinstance(
-        output, list
-    ), "Single generator .generate() should send back a list"
-    assert (
-        len(output) == 1
-    ), "Single.generate() without generations_this_call should send a list of one string"
-    assert isinstance(
-        output[0], str
-    ), "Single generator output list should contain strings"
-
-    output = g._call_model(prompt="test")
-    assert isinstance(output, list), "Single generator _call_model should return a list"
-    assert (
-        len(output) == 1
-    ), "_call_model w/ generations_this_call 1 should return a list of length 1"
-    assert isinstance(
-        output[0], str
-    ), "Single generator output list should contain strings"
-
-
-def test_generators_test_single_many():
-    random_generations = random.randint(2, 12)
-    g = Single(DEFAULT_GENERATOR_NAME)
-    output = g.generate(prompt="test", generations_this_call=random_generations)
-    assert isinstance(
-        output, list
-    ), "Single generator .generate() should send back a list"
-    assert (
-        len(output) == random_generations
-    ), "Single.generate() with generations_this_call should return equal generations"
-    for i in range(0, random_generations):
-        assert isinstance(
-            output[i], str
-        ), "Single generator output list should contain strings (all positions)"
-
-
-def test_generators_test_single_too_many():
-    g = Single(DEFAULT_GENERATOR_NAME)
-    with pytest.raises(ValueError):
-        output = g._call_model(prompt="test", generations_this_call=2)
-    assert "Single._call_model should refuse to process generations_this_call > 1"
-
-
-def test_generators_test_blank_one():
-    g = Blank(DEFAULT_GENERATOR_NAME)
-    output = g.generate(prompt="test")
-    assert isinstance(
-        output, list
-    ), "Blank generator .generate() should send back a list"
-    assert (
-        len(output) == 1
-    ), "Blank generator .generate() without generations_this_call should return a list of length 1"
-    assert isinstance(
-        output[0], str
-    ), "Blank generator output list should contain strings"
-    assert (
-        output[0] == ""
-    ), "Blank generator .generate() output list should contain strings"
-
-
-def test_generators_test_blank_many():
-    g = Blank(DEFAULT_GENERATOR_NAME)
-    output = g.generate(prompt="test", generations_this_call=2)
-    assert isinstance(
-        output, list
-    ), "Blank generator .generate() should send back a list"
-    assert (
-        len(output) == 2
-    ), "Blank generator .generate() w/ generations_this_call=2 should return a list of length 2"
-    assert isinstance(
-        output[0], str
-    ), "Blank generator output list should contain strings (first position)"
-    assert isinstance(
-        output[1], str
-    ), "Blank generator output list should contain strings (second position)"
-    assert (
-        output[0] == ""
-    ), "Blank generator .generate() output list should contain strings (first position)"
-    assert (
-        output[1] == ""
-    ), "Blank generator .generate() output list should contain strings (second position)"
 
 
 def test_parallel_requests():
@@ -221,3 +114,41 @@ def test_instantiate_generators(classname):
     m = importlib.import_module("garak." + ".".join(classname.split(".")[:-1]))
     g = getattr(m, classname.split(".")[-1])(config_root=config_root)
     assert isinstance(g, Generator)
+
+
+def test_skip_seq():
+    target_string = "TEST TEST 1234"
+    test_string_with_thinking = "TEST TEST <think>not thius tho</think>1234"
+    test_string_with_thinking_complex = '<think></think>TEST TEST <think>not thius tho</think>1234<think>!"(^-&$(!$%*))</think>'
+    test_string_with_newlines = "<think>\n\n</think>" + target_string
+    g = _plugins.load_plugin("generators.test.Repeat")
+    r = g.generate(test_string_with_thinking)
+    g.skip_seq_start = None
+    g.skip_seq_end = None
+    assert (
+        r[0] == test_string_with_thinking
+    ), "test.Repeat should give same output as input when no think tokens specified"
+    g.skip_seq_start = "<think>"
+    g.skip_seq_end = "</think>"
+    r = g.generate(test_string_with_thinking)
+    assert (
+        r[0] == target_string
+    ), "content between single skip sequence should be removed"
+    r = g.generate(test_string_with_thinking_complex)
+    assert (
+        r[0] == target_string
+    ), "content between multiple skip sequences should be removed"
+    r = g.generate(test_string_with_newlines)
+    assert r[0] == target_string, "skip seqs full of newlines should be removed"
+
+    test_no_answer = "<think>not sure the output to provide</think>"
+    r = g.generate(test_no_answer)
+    assert r[0] == "", "Output of all skip strings should be empty"
+
+    test_truncated_think = f"<think>thinking a bit</think>{target_string}<think>this process required a lot of details that is processed by"
+    r = g.generate(test_truncated_think)
+    assert r[0] == target_string, "truncated skip strings should be omitted"
+
+    test_truncated_think_no_answer = "<think>thinking a bit</think><think>this process required a lot of details that is processed by"
+    r = g.generate(test_truncated_think_no_answer)
+    assert r[0] == "", "truncated skip strings should be omitted"

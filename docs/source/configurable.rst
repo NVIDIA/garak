@@ -46,6 +46,8 @@ Let's take a look at the core config.
         parallel_attempts: false
         lite: true
         show_z: false
+        enable_experimental: false
+        max_workers: 500
 
     run:
         seed:
@@ -96,6 +98,7 @@ such as ``show_100_pass_modules``.
 * ``narrow_output`` - Support output on narrower CLIs
 * ``show_z`` - Display Z-scores and visual indicators on CLI. It's good, but may be too much info until one has seen garak run a couple of times
 * ``enable_experimental`` - Enable experimental function CLI flags. Disabled by default. Experimental functions may disrupt your installation and provide unusual/unstable results. Can only be set by editing core config, so a git checkout of garak is recommended for this.
+* ``max_workers`` - Cap on how many parallel workers can be requested. When raising this in order to use higher parallelisation, keep an eye on system resources (e.g. `ulimit -n 4026` on Linux)
 
 ``run`` config items
 """"""""""""""""""""
@@ -107,6 +110,7 @@ such as ``show_100_pass_modules``.
 * ``eval_threshold`` - At what point in the 0..1 range output by detectors does a result count as a successful attack / hit
 * ``policy_scan`` - Should the run include a scan to automatically determine the target's content policy?
 * ``user_agent`` - What HTTP user agent string should garak use? ``{version}`` can be used to signify where garak version ID should go
+* ``soft_probe_prompt_cap`` - For probes that auto-scale their prompt count, the preferred limit of prompts per probe
 
 ``plugins`` config items
 """"""""""""""""""""""""

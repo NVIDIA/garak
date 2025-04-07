@@ -1,5 +1,10 @@
 import pytest
 import os
+
+# suppress all logging unless location defined in ENV
+if os.getenv("GARAK_LOG_FILE", None) is None:
+    os.environ["GARAK_LOG_FILE"] = str(os.devnull)
+
 from garak import _config, _plugins
 
 # force a local cache file to exist when this top level import is loaded

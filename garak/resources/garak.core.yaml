@@ -7,6 +7,7 @@ system:
   lite: true
   show_z: false
   enable_experimental: false
+  max_workers: 500
 
 run:
   seed:
@@ -16,6 +17,7 @@ run:
   probe_tags:
   policy_scan: false
   user_agent: "garak/{version} (LLM vulnerability scanner https://garak.ai)"
+  soft_probe_prompt_cap: 256
 
 plugins:
   model_type:

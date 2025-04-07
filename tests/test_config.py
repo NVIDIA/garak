@@ -833,3 +833,32 @@ def test_api_key_in_config():
 
     _config.plugins.generators["a"]["b"]["c"]["api_key"] = "something"
     assert _config._key_exists(_config.plugins.generators, "api_key")
+
+
+# test max_workers applies when used in site config
+@pytest.mark.usefixtures("allow_site_config")
+def test_site_yaml_overrides_max_workers(capsys):
+    importlib.reload(_config)
+
+    with open(
+        _config.transient.config_dir / "garak.site.yaml", "w", encoding="utf-8"
+    ) as f:
+        f.write("---\nsystem:\n  max_workers: 2\n")
+        f.flush()
+        garak.cli.main(["--list_config"])
+
+    assert (
+        _config.system.max_workers == 2
+    ), "Site config worker count should override core config if loaded correctly"
+
+    importlib.reload(_config)
+
+    with pytest.raises(SystemExit) as exc_info:
+        garak.cli.main("--parallel_attempts 3 -m test -p test.Test".split())
+        result = capsys.readouterr()
+        assert (
+            result.split("\n")[-1]
+            == "ValueError: Parallel worker count capped at 2 (config.system.max_workers)"
+        )
+        assert exc_info.type == SystemExit
+        assert exc_info.value.code == 1

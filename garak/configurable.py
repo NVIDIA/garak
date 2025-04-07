@@ -33,6 +33,7 @@ class Configurable:
             spec_type = namespace_parts[-2]
             namespace = namespace_parts[-1]
             classname = self.__class__.__name__
+            namespaced_klass = f"{namespace}.{classname}"
             plugins_config = {}
             if isinstance(local_root, dict) and spec_type in local_root:
                 plugins_config = local_root[spec_type]
@@ -43,16 +44,13 @@ class Configurable:
                 # generators: `nim`/`openai`/`huggingface`
                 # probes: `dan`/`gcg`/`xss`/`tap`/`promptinject`
                 attributes = plugins_config[namespace]
-                namespaced_klass = f"{namespace}.{classname}"
                 self._apply_config(attributes)
                 if classname in attributes:
                     self._apply_config(attributes[classname])
-                elif namespaced_klass in plugins_config:
-                    # for compatibility remove after
-                    logging.warning(
-                        f"Deprecated configuration key found: {namespaced_klass}"
-                    )
-                    self._apply_config(plugins_config[namespaced_klass])
+            elif namespaced_klass in plugins_config:
+                # maintain support for this as consistent with cli options at this time
+                self._apply_config(plugins_config[namespaced_klass])
+        self._apply_run_defaults()
         self._apply_missing_instance_defaults()
         if hasattr(self, "ENV_VAR"):
             if not hasattr(self, "key_env_var"):
@@ -91,6 +89,15 @@ class Configurable:
                 if isinstance(v, dict):  # if value is an existing dictionary merge
                     v = getattr(self, k) | v
             setattr(self, k, v)  # This will set attribute to the full dictionary value
+
+    def _apply_run_defaults(self):
+        for config_obj, defaults in [
+            (_config.system, getattr(self, "_system_params", [])),
+            (_config.run, getattr(self, "_run_params", [])),
+        ]:
+            for v in defaults:
+                if not hasattr(self, v) and hasattr(config_obj, v):
+                    setattr(self, v, getattr(config_obj, v))
 
     def _apply_missing_instance_defaults(self):
         # class.DEFAULT_PARAMS['generations'] -> instance.generations

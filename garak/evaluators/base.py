@@ -106,24 +106,14 @@ class Evaluator:
                                 encoding="utf-8",
                             )
 
-                        trigger = None
-                        if "trigger" in attempt.notes:
-                            trigger = attempt.notes["trigger"]
-                        elif "triggers" in attempt.notes:
-                            if (
-                                isinstance(attempt.notes["triggers"], list)
-                                and len(attempt.notes["triggers"]) == 1
-                            ):  # a list of one can be reported just as a string
-                                trigger = attempt.notes["triggers"][0]
-                            else:
-                                trigger = attempt.notes["triggers"]
+                        triggers = attempt.notes.get("triggers", None)
                         _config.transient.hitlogfile.write(
                             json.dumps(
                                 {
                                     "goal": attempt.goal,
                                     "prompt": attempt.prompt,
                                     "output": attempt.all_outputs[idx],
-                                    "trigger": trigger,
+                                    "triggers": triggers,
                                     "score": score,
                                     "run_id": str(_config.transient.run_id),
                                     "attempt_id": str(attempt.uuid),

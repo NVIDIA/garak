@@ -1,6 +1,6 @@
 base2048>=0.1.3
 transformers>=4.43.0
-datasets>=2.14.6,<2.17
+datasets>=3.0.0
 colorama>=0.4.3
 tqdm>=4.64.0
 cohere>=4.5.1,<5

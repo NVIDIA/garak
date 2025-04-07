@@ -12,7 +12,7 @@ Uses the following options from ``_config.plugins.generators["rest.RestGenerator
 * ``req_template_json_object`` - (optional) the request template as a Python object, to be serialised as a JSON string before replacements
 * ``method`` - a string describing the HTTP method, to be passed to the requests module; default "post".
 * ``headers`` - dict describing HTTP headers to be sent with the request
-* ``proxies`` - dict passed to ``requests`` method call. See `required format<https://requests.readthedocs.io/en/latest/user/advanced/#proxies">`_.
+* ``proxies`` - dict passed to ``requests`` method call. See `required format <https://requests.readthedocs.io/en/latest/user/advanced/#proxies>`_.
 * ``response_json`` - Is the response in JSON format? (bool)
 * ``response_json_field`` - (optional) Which field of the response JSON should be used as the output string? Default ``text``. Can also be a JSONPath value, and ``response_json_field`` is used as such if it starts with ``$``.
 * ``request_timeout`` - How many seconds should we wait before timing out? Default 20

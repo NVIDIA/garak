@@ -129,3 +129,11 @@ def test_tag_format(classname):
             assert re.match(r"^[A-Za-z0-9_\-]+$", part)
         if tag.split(":")[0] != "payload":
             assert tag in MISP_TAGS
+
+
+def test_probe_prune_alignment():
+    p = _plugins.load_plugin("probes.glitch.Glitch")
+    assert len(p.prompts) == _config.run.soft_probe_prompt_cap
+    assert len(p.triggers) == _config.run.soft_probe_prompt_cap
+    assert p.triggers[0] in p.prompts[0]
+    assert p.triggers[-1] in p.prompts[-1]
