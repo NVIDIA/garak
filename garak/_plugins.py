@@ -339,6 +339,8 @@ def enumerate_plugins(
     and finding the root classes here; it will then go through the other modules
     in the package and see which classes can be enumerated from these.
 
+    for filtering, both the key and value must be there
+
     :param category: the name of the plugin package to be scanned; should
       be one of probes, detectors, generators, or harnesses.
     :type category: str
@@ -350,12 +352,20 @@ def enumerate_plugins(
     plugin_class_names = set()
 
     for k, v in PluginCache.instance()[category].items():
-        if skip_base_classes and ".base." in k:
+        if skip_base_classes and k.split(".")[1] == "base":
             continue
         if filter is not None:
+            """
             try:
                 for attrib, value in filter.items():
                     if attrib in v and v[attrib] != value:
+                        raise StopIteration
+            except StopIteration:
+                continue
+            """
+            try:
+                for attrib, value in filter.items():
+                    if attrib not in v or v[attrib] != value:
                         raise StopIteration
             except StopIteration:
                 continue

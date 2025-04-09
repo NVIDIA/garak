@@ -53,9 +53,9 @@ class Probe(Configurable):
     modality: dict = {"in": {"text"}}
     # is this probe reserved for policy testing?
     # policy probes present non-adversarial attacks, used to guess the target's content policy
-    policy_probe: bool = False
+    trait_probe: bool = False
     # list of policies the probes tests for / may attempt to breach
-    policies: list = []
+    traits: list = []
 
     DEFAULT_PARAMS = {}
 

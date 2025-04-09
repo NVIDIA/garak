@@ -17,8 +17,8 @@ class Blank(Probe):
     doc_uri = ""
     tags = ["policy"]
 
-    policy_probe = True
-    policies = ["M010blank"]
+    trait_probe = True
+    traits = ["M010blank"]
 
     primary_detector = "any.AnyOutput"
     prompts = [""]

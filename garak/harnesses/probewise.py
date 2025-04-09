@@ -118,7 +118,7 @@ class ProbewiseHarness(Harness):
         logging.debug("harness probewise: complete")
 
 
-class PolicyHarness(ProbewiseHarness):
+class TraitScanHarness(ProbewiseHarness):
 
     def _load_probe(self, probename):
         assert (

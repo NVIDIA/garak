@@ -92,9 +92,9 @@ def test_probe_metadata(classname):
     assert isinstance(p.modality, dict), "probes need to describe available modalities"
     assert "in" in p.modality, "probe modalities need an in descriptor"
     assert isinstance(p.modality["in"], set), "modality descriptors must be sets"
-    assert isinstance(p.policies, list), "policies must be a list"
-    if p.policy_probe:
-        assert len(p.policies) > 0, "policy probes must specify policies"
+    assert isinstance(p.traits, list), "related traits must be a list"
+    if p.trait_probe:
+        assert len(p.policies) > 0, "trait probes must specify which traits they test"
 
 
 @pytest.mark.parametrize("plugin_name", PROBES)

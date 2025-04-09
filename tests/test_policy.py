@@ -41,7 +41,7 @@ def test_policy_propagate():
 
 def test_default_policy_valid():
     assert (
-        garak.policy._load_policy_descriptions() != dict()
+        garak.policy._load_trait_descriptions() != dict()
     ), "default policy typology should be valid and populated"
 
 

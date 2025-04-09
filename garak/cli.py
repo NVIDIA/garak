@@ -3,7 +3,7 @@
 
 """Flow for invoking garak from the command line"""
 
-command_options = "list_detectors list_probes list_policy_probes list_generators list_buffs list_config plugin_info interactive report version fix".split()
+command_options = "list_detectors list_probes list_trait_probes list_generators list_buffs list_config plugin_info interactive report version fix".split()
 
 
 def parse_cli_plugin_config(plugin_type, args):
@@ -224,7 +224,7 @@ def main(arguments=None) -> None:
         "--list_probes", action="store_true", help="list available vulnerability probes"
     )
     parser.add_argument(
-        "--list_policy_probes", action="store_true", help="list available policy probes"
+        "--list_trait_probes", action="store_true", help="list available trait probes"
     )
     parser.add_argument(
         "--list_detectors", action="store_true", help="list available detectors"
@@ -281,10 +281,10 @@ def main(arguments=None) -> None:
             str(parser.description) + " - EXPERIMENTAL FEATURES ENABLED"
         )
         parser.add_argument(
-            "--policy_scan",
+            "--trait_scan",
             action="store_true",
-            default=_config.run.policy_scan,
-            help="determine model's behavior policy before scanning",
+            default=_config.run.trait_scan,
+            help="determine model's behavioural traits before scanning",
         )
 
     logging.debug("args - raw argument string received: %s", arguments)
@@ -450,8 +450,8 @@ def main(arguments=None) -> None:
         elif args.list_probes:
             command.print_probes()
 
-        elif args.list_policy_probes:
-            command.print_policy_probes()
+        elif args.list_trait_probes:
+            command.print_trait_probes()
 
         elif args.list_detectors:
             command.print_detectors()
@@ -602,9 +602,9 @@ def main(arguments=None) -> None:
             command.start_run()  # start the run now that all config validation is complete
             print(f"📜 reporting to {_config.transient.report_filename}")
 
-            # do policy run
-            if _config.run.policy_scan:
-                command.run_policy_scan(generator, _config)
+            # do trait scan
+            if _config.run.trait_scan:
+                command.run_trait_scan(generator, _config)
 
             # set up plugins for main run
             # instantiate evaluator

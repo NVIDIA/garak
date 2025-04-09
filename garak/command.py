@@ -42,7 +42,7 @@ def start_run():
 
     logging.info("run started at %s", _config.transient.starttime_iso)
     # print("ASSIGN UUID", args)
-    if _config.system.lite and "probes" not in _config.transient.cli_args and not _config.transient.cli_args.list_probes and not _config.transient.cli_args.list_policy_probes and not _config.transient.cli_args.list_detectors and not _config.transient.cli_args.list_generators and not _config.transient.cli_args.list_buffs and not _config.transient.cli_args.list_config and not _config.transient.cli_args.plugin_info and not _config.run.interactive:  # type: ignore
+    if _config.system.lite and "probes" not in _config.transient.cli_args and not _config.transient.cli_args.list_probes and not _config.transient.cli_args.list_trait_probes and not _config.transient.cli_args.list_detectors and not _config.transient.cli_args.list_generators and not _config.transient.cli_args.list_buffs and not _config.transient.cli_args.list_config and not _config.transient.cli_args.plugin_info and not _config.run.interactive:  # type: ignore
         hint(
             "The current/default config is optimised for speed rather than thoroughness. Try e.g. --config full for a stronger test, or specify some probes.",
             logging=logging,
@@ -170,13 +170,13 @@ def print_plugins(prefix: str, color, filter=None):
 def print_probes():
     from colorama import Fore
 
-    print_plugins("probes", Fore.LIGHTYELLOW_EX, filter={"policy_probe": False})
+    print_plugins("probes", Fore.LIGHTYELLOW_EX, filter={"trait_probe": False})
 
 
-def print_policy_probes():
+def print_trait_probes():
     from colorama import Fore
 
-    print_plugins("probes", Fore.LIGHTYELLOW_EX, filter={"policy_probe": True})
+    print_plugins("probes", Fore.LIGHTYELLOW_EX, filter={"trait_probe": True})
 
 
 def print_detectors():
@@ -269,15 +269,15 @@ def write_report_digest(report_filename, digest_filename):
         f.write(digest)
 
 
-POLICY_MSG_PREFIX = "run_policy_scan"
+POLICY_MSG_PREFIX = "run_trait_scan"
 
 
-def _policy_scan_msg(text):
+def _trait_scan_msg(text):
     print(f"🏛️  {text}")
     logging.info(f"{POLICY_MSG_PREFIX}: {text}")
 
 
-def run_policy_scan(generator, _config):
+def run_trait_scan(generator, _config):
 
     from garak._plugins import enumerate_plugins
     import garak.evaluators
@@ -285,30 +285,30 @@ def run_policy_scan(generator, _config):
 
     main_reportfile = _config.transient.reportfile
     policy_report_filename = re.sub(
-        r"\.jsonl$", ".policy.jsonl", _config.transient.report_filename
+        r"\.jsonl$", ".traits.jsonl", _config.transient.report_filename
     )
-    _policy_scan_msg(f"policy report in {policy_report_filename}")
+    _trait_scan_msg(f"observed policy report in {policy_report_filename}")
     _config.transient.reportfile = open(
         policy_report_filename, "w", buffering=1, encoding="utf-8"
     )
 
-    logging.info(f"{POLICY_MSG_PREFIX}: start policy scan")
+    logging.info(f"{POLICY_MSG_PREFIX}: start trait scan")
     # this is a probewise run of all policy probes
-    policy_probe_names = [
+    trait_probe_names = [
         name
         for name, status in enumerate_plugins(
-            "probes", filter={"active": True, "policy_probe": True}
+            "probes", filter={"active": True, "trait_probe": True}
         )
     ]
-    _policy_scan_msg("using policy probes " + ", ".join(policy_probe_names))
+    _trait_scan_msg("using trait probes " + ", ".join(trait_probe_names))
 
     evaluator = garak.evaluators.ThresholdEvaluator(_config.run.eval_threshold)
     buffs = []
 
     import garak.harnesses.probewise
 
-    policy_h = garak.harnesses.probewise.PolicyHarness()
-    result = list(policy_h.run(generator, policy_probe_names, evaluator, buffs))
+    trait_scan_h = garak.harnesses.probewise.TraitScanHarness()
+    result = list(trait_scan_h.run(generator, trait_probe_names, evaluator, buffs))
 
     policy = garak.policy.Policy()
     policy.parse_eval_result(result, threshold=_config.policy.threshold)
@@ -323,6 +323,6 @@ def run_policy_scan(generator, _config):
     # write policy record to both main report log and policy report log
     _config.transient.reportfile.write(json.dumps(policy_entry) + "\n")
 
-    _policy_scan_msg("end policy scan")
+    _trait_scan_msg("end trait scan")
 
     return policy

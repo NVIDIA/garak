@@ -10,8 +10,8 @@ If we can get the target behaviour out-of-the-box, then we say that the model's 
 is to offer that behaviour.
 
 We implement policy with two, separate concepts:
-1. A set of functions/behaviours that models could potentially exhibit
-2. Data on whether the target model exhibits each of these behaviours
+1. A set of functions/behaviours that models could potentially exhibit (traits)
+2. Data on whether the target model exhibits each of these traits
 
 The first comes from a typology, which is externally defined. There's some JSON that tracks
 this. It's the categories of model behaviour we're interested in. This is not exhaustive and
@@ -19,50 +19,67 @@ not intended to be exhaustive - rather, it's constrained to model behaviours tha
 either helpful in aiding attacks, or the targets of attacks, in the literature, as well as
 items that aligners have discussed.
 
-The second is derived by testing each policy point. We don't have complete tests for all the
+The second is derived by testing each trait. We don't have complete tests for all the
 points at launch; that's a lot of detectors, and a lot to validate.
 
 
 Policy metadata
 ---------------
-The total set of points in the behaviour typology can be represented as a dictionary. Definitions of policy names, descriptions, and behaviours are stored in a JSON data file
+The total set of traits in the behaviour typology can be represented as a dictionary. 
+Definitions of names, descriptions, and behaviours are stored in a JSON data file
 
-* Key: behaviour identifier - format is TDDDs*
+* Key: trait identifier - format is TDDDs*
 	* T: a top-level hierarchy code letter, in CTMS for chat/tasks/meta/safety
 	* D: a three-digit code for this behaviour
-	* s*: (optional) one or more letters identifying a sub-policy
+	* s*: (optional) one or more letters identifying a trait
 
-* Value: a dict describing a behaviour
+* Value: a dict describing a trait
     * “name”: A short name of what is permitted when this behaviour is allowed
     * “description”: (optional) a deeper description of this behaviour
 
 The structure of the identifiers describes the hierarchical structure.
+
+Nomenclature
+------------
+* ``trait`` - a behavioural trait of a model
+* ``policy`` - a hierarchy of traits including descriptions of whether each trait should be enabled
+* ``observed policy`` - a policy describing how the target was observed to behave
+* ``policy point`` - any point in a policy. This subsumes traits and groups of traits
+* ``trait typology`` - a structured set of traits, including and descriptions
+
+
+
 Prompts & probes
-Example prompts or probes to be used to test a behaviour. Not every entry in the policy needs to have prompts or probes defined, and if a policy does have them define, it doesn't need to have both described. If a prompt is given, it's assumed that the mitigation.mitigationBypass detector should be used for this. That detector should always point to our best-effort mitigation message detection.
+----------------
+
+Example prompts or probes to be used to test a trait. Not every entry in a policy (i.e. 
+trait) needs to have prompts or probes defined, and if a trait does have them defined, 
+it doesn't need to have both described. If a prompt is given, it's assumed that the
+mitigation.mitigationBypass detector should be used for this. That detector should
+always point to our best-effort mitigation message detection.
 
 * Key: behaviour identifier
 * Value: a dict describing how to test
 	* “prompts”: a list of strings to try to test the behaviour
-	* “probes”: garak probes compatible with load_plugin() that can test the behaviour
+	* “probes”: garak probes compatible with load_plugin() that can test the trait
 
 Implementing policy probes
 --------------------------
 
-Probes that are non-adversarial and only test a policy should have a class attr like “policy_probe”
+Probes that are non-adversarial and only test a trait should have a class attr "trait_probe"
 
-Policy probes, i.e. those where this is set to true, should also list the policies that they test for, in a class var. E.g. if “policies_tested = [“C006”]” then hits in this probe indicate the model's policy is to permit policy point C006.
+Trait probes, i.e. those where this is set to true, should also list the traits that they 
+test for, in a class var. E.g. if ``policies_tested = ["C006"]`` then hits in this probe 
+indicate the model's policy is to permit trait C006.
 
 Following from this, 
 
--- list_probes should NOT show policy probes
--- list_policy_probes should list policy probes, and be added to garak.command 
-probe_spec expansions need to be able to select between policy and non-policy probes
-Propose an optional filter value in plugin enumeration, a dict where values have to be matched for them to be returned
+* -- list_probes should NOT show trait probes
+* -- list_policy_probes should list trait probes, and be added to garak.command 
 
-Questions:
-
-* Where do the policy scan results go? Harnesses don't return much -> evaluators return information used to develop results; policy is serialised and written to report jonsl and policy jsonl
-* How do we differentiate policy results in the results log? Distinct type tag
+``probe_spec`` expansions need to be able to select between trait and non-trait probes
+Propose an optional filter value in plugin enumeration, a dict where values have to be 
+matched for them to be returned
 
 Policy expectations / examples
 ------------------------------
@@ -81,8 +98,8 @@ Object: `Policy`
 
 Methods: 
 ```
-policy.permitted(behaviour) -> True/False/None
-policy.compare(policy) -> list of policy points where there's a difference
+policy.permitted(trait) -> True/False/None
+policy.compare(another_policy) -> list of policy points where there's a difference
 policy.set(prefix, value) -> set prefix to value
 policy.settree(prefix, value) -> set this and all sub-points in the policy to value
 ```
@@ -93,7 +110,7 @@ Run flow
 1. Start-up
 2. If policy scan is enabled..
 3. Run a policy test (garak.command)
-    a. Select policy probes (add filtering to _plugins.enumerate() ?)
+    a. Select trait probes (add filtering to _plugins.enumerate() ?)
     b. Invoke a policy harness (garak.harnesses.policy)
     6. Process results using a policy evaluator (garak.evaluators.policy ?)
     d. Convert eval result into a policy (garak.policy)
@@ -115,14 +132,14 @@ from garak.data import path as data_path
 from garak.evaluators.base import EvalTuple
 
 
-""" Policy points have a key describing where they fit in the policy typology.
+""" Traits have a key describing where they fit in the behaviour typology.
 * Key: behaviour identifier - format is TDDDs*
 	* T: a top-level hierarchy code letter, in CTMS for chat/tasks/meta/safety
 	* D: a three-digit code for this behaviour
-	* s*: (optional) one or more letters identifying a sub-policy
+	* s*: (optional) one or more letters identifying a sub-trait
 """
 
-POLICY_CODE_RX = r"^[A-Z]([0-9]{3}([a-z]+)?)?$"
+POLICY_POINT_CODE_RX = r"^[A-Z]([0-9]{3}([a-z]+)?)?$"
 
 
 class Policy:
@@ -140,42 +157,44 @@ class Policy:
 
     # serialise & deserialise
     none_inherits_parent = True  # take parent policy if point value is None?
-    default_point_policy = None
+    default_trait_allowed_value = None
     permissive_root_policy = True
 
     def __init__(self, autoload=True) -> None:
         self.points = {}
         if autoload:
-            self._load_policy_typology()
+            self._load_trait_typology()
 
-    def _load_policy_typology(self, policy_data_path=None) -> None:
-        """Populate the list of potential policy points given a policy structure description"""
+    def _load_trait_typology(self, typology_data_path=None) -> None:
+        """Populate the list of potential traits given a policy structure description"""
 
         self.points = {}  # zero out the existing policy points
-        policy_descrs = _load_policy_descriptions(policy_data_path=policy_data_path)
-        if policy_descrs == {}:
-            logging.warning("no policy descriptions loaded from %s" % policy_data_path)
-        for k in policy_descrs:
-            self.points[k] = self.default_point_policy
+        trait_descrs = _load_trait_descriptions(typology_data_path=typology_data_path)
+        if trait_descrs == {}:
+            logging.warning(
+                "no policy descriptions loaded from %s" % typology_data_path
+            )
+        for k in trait_descrs:
+            self.points[k] = self.default_trait_allowed_value
 
-    def is_permitted(self, point):
-        """using the policy hierarchy, returns whether a policy point is permitted"""
-        if point not in self.points:
-            raise ValueError("No policy point found for %s", point)
+    def is_permitted(self, trait):
+        """using the policy hierarchy, returns whether a trait is permitted"""
+        if trait not in self.points:
+            raise ValueError("No policy point found for %s", trait)
 
-        if point == "":
+        if trait == "":
             return self.permissive_root_policy is True
 
-        point_policy = self.points[point]
-        if point_policy is None and self.none_inherits_parent:
-            return self.is_permitted(get_parent_name(point))
+        trait_policy = self.points[trait]
+        if trait_policy is None and self.none_inherits_parent:
+            return self.is_permitted(get_parent_name(trait))
 
-        return point_policy
+        return trait_policy
 
-    def settree(self, point, policy_value):
-        points_to_set = [p for p in self.points if re.match(f"^{point}", p)]
-        for point_to_set in points_to_set:
-            p.points[point_to_set] = policy_value
+    def settree(self, trait, permitted_value):
+        traits_to_set = [t for t in self.traits if re.match(f"^{trait}", p)]
+        for trait_to_set in traits_to_set:
+            p.points[trait_to_set] = permitted_value
 
     def parse_eval_result(self, eval_result, threshold: Union[bool, float] = False):
         """get the result of a garak evaluation, and populate the policy based on this"""
@@ -188,20 +207,20 @@ class Policy:
 
         # flatten eval_result to a set/list of dicts
         # go through each one
-        for result in _flatten_nested_policy_list(eval_result):
+        for result in _flatten_nested_trait_list(eval_result):
             # look in the probe for which policies are affected
             # we're going to make a decision on the policy
 
             module_name, probe_name = result.probe.split(".")
             m = importlib.import_module(f"garak.probes.{module_name}")
             p_class = getattr(m, probe_name)
-            if not hasattr(p_class, "policies"):
+            if not hasattr(p_class, "traits"):
                 logging.warning(
-                    "policy: got policy result from probe {module_name}.{probe_name}, but probe class doesn't have 'policies' attrib"
+                    "policy: got policy result from probe {module_name}.{probe_name}, but probe class doesn't have 'traits' attrib"
                 )
                 continue
 
-            points_affected = getattr(p_class, "policies")
+            traits_affected = getattr(p_class, "traits")
             if threshold is False:
                 behaviour_permitted = any(
                     [1 - n for n in result.passes]
@@ -211,9 +230,9 @@ class Policy:
                     sum(result.passes) / len(result.passes)
                 ) < threshold
 
-            for point_affected in points_affected:
-                if point_affected in self.points:
-                    self.points[point_affected] = (
+            for trait_affected in traits_affected:
+                if trait_affected in self.points:
+                    self.points[trait_affected] = (
                         behaviour_permitted  # NB this clobbers points if >1 probe tests a point
                     )
                 else:
@@ -226,71 +245,67 @@ class Policy:
         # skip for parents - they don't propagate up
         # iterate in order :)
 
-        point_order = []
+        trait_order = []
         for bottom_node in filter(lambda x: len(x) > 4, self.points.keys()):
-            point_order.append(bottom_node)
+            trait_order.append(bottom_node)
         for mid_node in filter(lambda x: len(x) == 4, self.points.keys()):
-            point_order.append(mid_node)
+            trait_order.append(mid_node)
 
-        for point in point_order:
-            if self.points[point] == True:
-                parent = get_parent_name(point)
+        for trait in trait_order:
+            if self.points[trait] == True:
+                parent = get_parent_name(trait)
                 if self.points[parent] == None:
                     self.points[parent] = True
 
 
-def _load_policy_descriptions(policy_data_path=None) -> dict:
-    if policy_data_path is None:
-        policy_filepath = data_path / "policy" / "policy_typology.json"
+def _load_trait_descriptions(typology_data_path=None) -> dict:
+    if typology_data_path is None:
+        typology_filepath = data_path / "policy" / "trait_typology.json"
     else:
-        policy_filepath = data_path / policy_data_path
-    with open(policy_filepath, "r", encoding="utf-8") as policy_file:
-        policy_object = json.load(policy_file)
-    if not _validate_policy_descriptions(policy_object):
+        typology_filepath = data_path / typology_data_path
+    with open(typology_filepath, "r", encoding="utf-8") as typology_file:
+        typology_object = json.load(typology_file)
+    if not _validate_trait_descriptions(typology_object):
         logging.error(
-            "policy typology at %s didn't validate, returning blank policy def",
-            policy_filepath,
+            "trait typology at %s didn't validate, returning blank policy def",
+            typology_filepath,
         )
         return dict()
     else:
-        logging.debug("policy typology loaded and validated from %s", policy_filepath)
-        return policy_object
+        logging.debug("trait typology loaded and validated from %s", typology_filepath)
+        return typology_object
 
 
-def _validate_policy_descriptions(policy_object) -> bool:
-    policy_codes = list(policy_object.keys())
+def _validate_trait_descriptions(typology_object) -> bool:
+    trait_codes = list(typology_object.keys())
 
     valid = True
 
-    if len(policy_codes) != len(set(policy_codes)):
-        logging.error("policy typology has duplicate keys")
+    if len(trait_codes) != len(set(trait_codes)):
+        logging.error("trait typology has duplicate keys")
         valid = False
 
-    for code, data in policy_object.items():
-        if not re.match(POLICY_CODE_RX, code):
-            logging.error("policy typology has invalid point name %s", code)
+    for code, data in typology_object.items():
+        if not re.match(POLICY_POINT_CODE_RX, code):
+            logging.error("trait typology has invalid point name %s", code)
             valid = False
         parent_name = get_parent_name(code)
-        if parent_name != "" and parent_name not in policy_codes:
-            logging.error(
-                "policy typology point %s is missing parent %s", code, parent_name
-            )
+        if parent_name != "" and parent_name not in trait_codes:
+            logging.error("trait %s is missing parent %s", code, parent_name)
             valid = False
         if "name" not in data:
-            logging.error("policy typology point %s has no name field", code)
+            logging.error("trait %s has no name field", code)
             valid = False
         if "descr" not in data:
-            logging.error("policy typology point %s has no descr field", code)
+            logging.error("trait %s has no descr field", code)
             valid = False
         if len(data["name"]) == 0:
-            logging.error(
-                "policy typology point %s must have nonempty name field", code
-            )
+            logging.error("trait %s must have nonempty name field", code)
             valid = False
     return valid
 
 
-def _flatten_nested_policy_list(structure):
+def _flatten_nested_trait_list(structure):
     for mid in structure:
         for inner in mid:
             for item in inner:
@@ -303,9 +318,9 @@ def get_parent_name(code):
     # A is single-character toplevel entry
     # 000 is optional three-digit subcategory
     # a+ is text name of a subsubcategory
-    if not re.match(POLICY_CODE_RX, code):
+    if not re.match(POLICY_POINT_CODE_RX, code):
         raise ValueError(
-            "Invalid policy name %s. Should be a letter, plus optionally 3 digits, plus optionally some letters",
+            "Invalid trait name %s. Should be a letter, plus optionally 3 digits, plus optionally some letters",
             code,
         )
     if len(code) > 4:
