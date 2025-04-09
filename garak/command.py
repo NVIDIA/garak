@@ -158,13 +158,16 @@ def print_plugins(prefix: str, color, filter=None):
     module_names = set([(m.split(".")[0], True) for m, a in plugin_names])
     plugin_names += module_names
     for plugin_name, active in sorted(plugin_names):
-        print(f"{Style.BRIGHT}{color}{prefix}: {Style.RESET_ALL}", end="")
-        print(plugin_name, end="")
-        if "." not in plugin_name:
-            print(" 🌟", end="")
+        module_line = "." not in plugin_name
+        output = f"{Style.BRIGHT}{color}"
+        output += prefix if not module_line else f"= module"
+        output += f": {Style.RESET_ALL}"
+        output += plugin_name
+        if module_line:
+            output += " 🌟"
         if not active:
-            print(" 💤", end="")
-        print()
+            output += " 💤"
+        print(output)
 
 
 def print_probes():
