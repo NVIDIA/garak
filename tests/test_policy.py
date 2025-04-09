@@ -3,7 +3,7 @@
 
 import pytest
 
-from garak.data import path as data_path
+import garak._plugins
 import garak.policy
 
 
@@ -52,3 +52,23 @@ def test_is_permitted():
     assert (
         p.is_permitted("A000") == True
     ), "parent perms should override unset child ones"
+
+
+def test_trait_probe_separation():
+    trait_probes_set = set(
+        garak._plugins.enumerate_plugins(
+            category="probes", filter={"trait_probe": True}
+        )
+    )
+    non_trait_probes_set = set(
+        garak._plugins.enumerate_plugins(
+            category="probes", filter={"trait_probe": False}
+        )
+    )
+
+    overlap = trait_probes_set.intersection(non_trait_probes_set)
+    assert len(trait_probes_set) > 1, "There should be at least one trait probe"
+    assert len(non_trait_probes_set) > 1, "There should be at least one non-trait probe"
+    assert (
+        overlap == set()
+    ), f"No probes should come up as both trait and non-trait; got {overlap}"
