@@ -28,7 +28,7 @@ class ProbewiseHarness(Harness):
             logging.error(f" detector load failed: {detector_name}, skipping >>")
         return False
 
-    def _load_probe(probename):
+    def _load_probe(self, probename):
         try:
             probe = _plugins.load_plugin(probename)
         except Exception as e:
@@ -90,8 +90,6 @@ class ProbewiseHarness(Harness):
                 continue
 
             detectors = []
-
-            probe = self._probe_check(probe)
 
             if probe.primary_detector:
                 d = self._load_detector(probe.primary_detector)
