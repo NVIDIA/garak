@@ -8,7 +8,7 @@ import json
 code = None
 
 policy_points = {}
-for line in open("policy_typology.txt"):
+for line in open("trait_typology.txt"):
     line = line.strip()
     if not line:
         continue
