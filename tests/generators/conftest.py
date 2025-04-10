@@ -24,3 +24,9 @@ def watsonx_compat_mocks():
     """Mock responses for watsonx.ai based endpoints"""
     with open(pathlib.Path(__file__).parents[0] / "watsonx.json") as mock_watsonx:
         return json.load(mock_watsonx)
+
+@pytest.fixture
+def mistral_compat_mocks():
+    """Mock responses for OpenAI compatible endpoints"""
+    with open(pathlib.Path(__file__).parents[0] / "mistral.json") as mock_mistral:
+        return json.load(mock_mistral)
