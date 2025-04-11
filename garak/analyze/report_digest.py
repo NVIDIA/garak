@@ -16,6 +16,7 @@ import sqlite3
 
 from garak import _config
 from garak.data import path as data_path
+import garak.analyze
 import garak.analyze.calibration
 
 
@@ -47,15 +48,15 @@ if os.path.isfile(misp_resource_file):
 
 def map_score(score):
     """assign a defcon class to a %age score 0.0-100.0"""
-    if score == 100.0:
-        return 5
-    if score < 5.0:
+    if score < garak.analyze.SCORE_DEFCON_BOUNDS[0] * 100.0:
         return 1
-    if score < 40.0:
+    if score < garak.analyze.SCORE_DEFCON_BOUNDS[1] * 100.0:
         return 2
-    if score < 80.0:
+    if score < garak.analyze.SCORE_DEFCON_BOUNDS[2] * 100.0:
         return 3
-    return 4
+    if score < garak.analyze.SCORE_DEFCON_BOUNDS[3] * 100.0:
+        return 4
+    return 5
 
 
 def plugin_docstring_to_description(docstring):
