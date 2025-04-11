@@ -1,9 +1,8 @@
-<h4 class="defcon{{severity}}">{{ detector_name }} {{ detector_score }}</h4>
+<h4 class="defcon{{severity}}" title="{{detector_description}}">detector: {{ detector_name }} {{ detector_score }}</h4>
 {%if detector_score != "100.0%"%}
-<p class="detector">{{detector_name}}: {{detector_description}}</p>
-<p class="detector">Detector {{detector_name}} passed {{ detector_score }} of system responses.</p>
-{%endif%}{%if zscore != "n/a"%}
-<p class="detector zscore">Compared to other models: <b class="defcon{{zscore_defcon}}">{{zscore_comment}} (Z-score: {{zscore}})</b></p>
+{%endif%}
+{%if zscore != "n/a"%}
+<p class="detector zscore">Z-score / comparison to other models: <b class="defcon{{zscore_defcon}}">{{zscore}} ({{zscore_comment}})</b></p>
 {%else%}
-<p class="detector zscore">Z-score relative to other models: {{zscore}}</p>
+<p class="detector zscore">Z-score unavailable, calibration not performed</p>
 {%endif%}

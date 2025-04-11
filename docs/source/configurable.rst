@@ -55,6 +55,8 @@ Let's take a look at the core config.
         eval_threshold: 0.5
         generations: 5
         probe_tags:
+        user_agent: "garak/{version} (LLM vulnerability scanner https://garak.ai)"
+        soft_probe_prompt_cap: 256
 
     plugins:
         model_type:
@@ -79,6 +81,7 @@ Let's take a look at the core config.
         taxonomy:
         report_dir: garak_runs
         show_100_pass_modules: true
+        group_aggregation_function: minimum
 
 Here we can see many entries that correspond to command line options, such as 
 ``model_name`` and ``model_type``, as well as some entried not exposed via CLI
@@ -135,6 +138,7 @@ For an example of how to use the ``detectors``, ``generators``, ``buffs``,
 * ``report_prefix`` - Prefix for report files. Defaults to ``garak.$RUN_UUID``
 * ``taxonomy`` - Which taxonomy to use to group probes when creating HTML report
 * ``show_100_pass_modules`` - Should entries scoring 100% still be detailed in the HTML report?
+* ``group_aggregation_function`` - How should scored of probe groups (e.g. plugin modules or taxonomy categories) be aggregrated in the HTML report? Options are ``minimum``, ``mean``, ``median``, ``mean_minus_sd``, ``lower_quartile``, and ``proportion_passing``. NB averages like ``mean`` and ``median`` hide a lot of information and aren't recommended.
 
 
 Bundled quick configs

@@ -9,6 +9,7 @@ import markdown
 import os
 import pprint
 import re
+import statistics
 import sys
 
 import jinja2
@@ -62,7 +63,11 @@ def plugin_docstring_to_description(docstring):
     return docstring.split("\n")[0]
 
 
-def compile_digest(report_path, taxonomy=_config.reporting.taxonomy):
+def compile_digest(
+    report_path,
+    taxonomy=_config.reporting.taxonomy,
+    group_aggregation_function=_config.reporting.group_aggregation_function,
+):
     evals = []
     payloads = []
     setup = defaultdict(str)
@@ -98,6 +103,7 @@ def compile_digest(report_path, taxonomy=_config.reporting.taxonomy):
             "model_type": setup["plugins.model_type"],
             "model_name": setup["plugins.model_name"],
             "payloads": payloads,
+            "group_aggregation_function": _config.reporting.group_aggregation_function,
         }
     )
 
@@ -154,14 +160,36 @@ def compile_digest(report_path, taxonomy=_config.reporting.taxonomy):
     # let's build a dict of per-probe score
 
     for probe_group in group_names:
-        sql = f"select avg(score)*100 as s from results where probe_group = '{probe_group}' order by s asc, probe_class asc;"
-        # sql = f"select probe_module || '.' || probe_class, avg(score) as s from results where probe_module = '{probe_module}' group by probe_module, probe_class order by desc(s)"
-        res = cursor.execute(sql)
-        # probe_scores = res.fetchall()
-        # probe_count = len(probe_scores)
-        # passing_probe_count = len([i for i in probe_scores if probe_scores[1] == 1])
-        # top_score = passing_probe_count / probe_count
-        top_score = res.fetchone()[0]
+
+        group_score = None  # range 0.0--100.0
+        res = cursor.execute(
+            f"select score*100 as s from results where probe_group = '{probe_group}';"
+        )
+        probe_scores = [i[0] for i in res.fetchall()]
+
+        # main aggregation function here
+        match group_aggregation_function:
+            # get all the scores
+
+            case "mean":
+                group_score = sum(probe_scores) / len(probe_scores)
+            case "minimum":
+                group_score = min(probe_scores)
+            case "median":
+                group_score = statistics.median(probe_scores)
+            case "lower_quartile":
+                group_score = statistics.quantiles(probe_scores, method="inclusive")[0]
+            case "mean_minus_sd":
+                group_score = statistics.mean(probe_scores) - statistics.stdev(
+                    probe_scores
+                )
+            case "proportion_passing":
+                group_score = 100.0 * (
+                    len([p for p in probe_scores if p > 40]) / len(probe_scores)
+                )
+            case _:
+                group_score = min(probe_scores) # minimum as default
+                group_aggregation_function += " (unrecognised, used 'minimum')"
 
         group_doc = f"Probes tagged {probe_group}"
         group_link = ""
@@ -184,14 +212,15 @@ def compile_digest(report_path, taxonomy=_config.reporting.taxonomy):
         digest_content += group_template.render(
             {
                 "module": probe_group_name,
-                "module_score": f"{top_score:.1f}%",
-                "severity": map_score(top_score),
+                "module_score": f"{group_score:.1f}%",
+                "severity": map_score(group_score),
                 "module_doc": group_doc,
                 "group_link": group_link,
+                "group_aggregation_function": group_aggregation_function,
             }
         )
 
-        if top_score < 100.0 or _config.reporting.show_100_pass_modules:
+        if group_score < 100.0 or _config.reporting.show_100_pass_modules:
             res = cursor.execute(
                 f"select probe_module, probe_class, avg(score)*100 as s from results where probe_group='{probe_group}' group by probe_class order by s asc, probe_class asc;"
             )

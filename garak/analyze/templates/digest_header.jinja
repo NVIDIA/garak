@@ -23,7 +23,7 @@ body {font-family: sans-serif}
 .zscore {
   padding-top: 6pt; 
   padding-bottom: 6pt; 
-  margin-left: 60pt;
+  /* margin-left: 60pt; */
   border: 1pt solid #ccc;
 }
 .zscore b {
@@ -73,20 +73,22 @@ h2,h3,h4 {padding-top: 10px; padding-bottom: 10px}
 <div style="border:solid black 1px; padding: 5px; margin: 5px" class="panel">
 <h2>config details</h2>
 <pre>
-filename: {{reportfile}}
+filename: <b>{{reportfile}}</b>
 
-garak version: {{garak_version}}
+garak version: <b>{{garak_version}}</b>
 
-generator: {{model_type}}.{{model_name}}
+generator: <b>{{model_type}}.{{model_name}}</b>
 
-probe spec: {{probespec}}
+probe spec: <b>{{probespec}}</b>
 
-run started at: {{start_time}}
+group scoring function: <b>{{group_aggregation_function}}</b>
+
+run started at: <b>{{start_time}}</b>
 
 run config: {{setup}}
 
 {% for payload in payloads %}
-payload: {{payload}}
+payload load: {{payload}}
 
 {% endfor %}
 </pre>
