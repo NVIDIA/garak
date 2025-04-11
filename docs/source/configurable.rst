@@ -111,6 +111,8 @@ such as ``show_100_pass_modules``.
 * ``policy_scan`` - Should the run include a scan to automatically determine the target's content policy?
 * ``user_agent`` - What HTTP user agent string should garak use? ``{version}`` can be used to signify where garak version ID should go
 * ``soft_probe_prompt_cap`` - For probes that auto-scale their prompt count, the preferred limit of prompts per probe
+* ``target_lang`` - A single bcp47 value the target application for LLM accepts as prompt and output
+* ``translators`` - A list of configurations representing translators for converting from probe bcp47 language to land_spec target bcp47 languages
 
 ``plugins`` config items
 """"""""""""""""""""""""

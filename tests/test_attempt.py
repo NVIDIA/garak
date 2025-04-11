@@ -45,7 +45,7 @@ def cleanup(request):
 
 
 def test_turn_taking():
-    a = garak.attempt.Attempt()
+    a = garak.attempt.Attempt(bcp47="*")
     assert a.messages == [], "Newly constructed attempt should have no message history"
     assert a.outputs == [], "Newly constructed attempt should have empty outputs"
     assert a.prompt is None, "Newly constructed attempt should have no prompt"
@@ -73,7 +73,7 @@ def test_turn_taking():
 
 
 def test_history_lengths():
-    a = garak.attempt.Attempt()
+    a = garak.attempt.Attempt(bcp47="*")
     a.prompt = "sup"
     assert len(a.messages) == 1, "Attempt with one prompt should have one history"
     generations = 4
@@ -96,26 +96,26 @@ def test_history_lengths():
 
 
 def test_illegal_ops():
-    a = garak.attempt.Attempt()
+    a = garak.attempt.Attempt(bcp47="*")
     with pytest.raises(ValueError):
         a.latest_prompts = [
             "a"
         ]  # shouldn't be able to set latest_prompts until the generations count is known, from outputs()
 
-    a = garak.attempt.Attempt()
+    a = garak.attempt.Attempt(bcp47="*")
     a.prompt = "prompts"
     with pytest.raises(ValueError):
         a.latest_prompts = [
             "a"
         ]  # shouldn't be able to set latest_prompts until the generations count is known, from outputs()
 
-    a = garak.attempt.Attempt()
+    a = garak.attempt.Attempt(bcp47="*")
     a.prompt = "prompt"
     a.outputs = ["output"]
     with pytest.raises(TypeError):
         a.prompt = "shouldn't be able to set initial prompt after output turned up"
 
-    a = garak.attempt.Attempt()
+    a = garak.attempt.Attempt(bcp47="*")
     a.prompt = "prompt"
     a.outputs = ["output"]
     with pytest.raises(ValueError):
@@ -124,19 +124,19 @@ def test_illegal_ops():
             "reply2",
         ]  # latest_prompts size must match outputs size
 
-    a = garak.attempt.Attempt()
+    a = garak.attempt.Attempt(bcp47="*")
     with pytest.raises(TypeError):
         a.outputs = [
             "oh no"
         ]  # "shouldn't be able to set outputs until prompt is there"
 
-    a = garak.attempt.Attempt()
+    a = garak.attempt.Attempt(bcp47="*")
     with pytest.raises(TypeError):
         a._expand_prompt_to_histories(
             5
         )  # "shouldn't be able to expand histories with no prompt"
 
-    a = garak.attempt.Attempt()
+    a = garak.attempt.Attempt(bcp47="*")
     with pytest.raises(TypeError):
         a.prompt = "obsidian"
         a.outputs = ["order"]
@@ -144,7 +144,7 @@ def test_illegal_ops():
             1
         )  # "shouldn't be able to expand histories twice"
 
-    a = garak.attempt.Attempt()
+    a = garak.attempt.Attempt(bcp47="*")
     with pytest.raises(TypeError):
         a.prompt = "obsidian"
         a._expand_prompt_to_histories(3)
@@ -152,13 +152,13 @@ def test_illegal_ops():
             3
         )  # "shouldn't be able to expand histories twice"
 
-    a = garak.attempt.Attempt()
+    a = garak.attempt.Attempt(bcp47="*")
     with pytest.raises(TypeError):
         a.prompt = None  # "can't have 'None' as a prompting dialogue turn"
 
 
 def test_no_prompt_output_access():
-    a = garak.attempt.Attempt()
+    a = garak.attempt.Attempt(bcp47="*")
     with pytest.raises(TypeError):
         a.outputs = [
             "text"
@@ -168,12 +168,12 @@ def test_no_prompt_output_access():
 def test_reset_prompt():
     test2 = "obsidian"
 
-    a = garak.attempt.Attempt()
+    a = garak.attempt.Attempt(bcp47="*")
     a.prompt = "prompt"
     a.prompt = test2
     assert a.prompt == test2
 
-    a = garak.attempt.Attempt()
+    a = garak.attempt.Attempt(bcp47="*")
     a._add_first_turn("user", "whatever")
     a._add_first_turn("user", test2)
     assert a.prompt == test2
@@ -181,7 +181,7 @@ def test_reset_prompt():
 
 def test_set_prompt_var():
     test_text = "Plain Simple Garak"
-    direct_attempt = garak.attempt.Attempt()
+    direct_attempt = garak.attempt.Attempt(bcp47="*")
     direct_attempt.prompt = test_text
     assert (
         direct_attempt.prompt == test_text
@@ -190,7 +190,7 @@ def test_set_prompt_var():
 
 def test_constructor_prompt():
     test_text = "Plain Simple Garak"
-    constructor_attempt = garak.attempt.Attempt(prompt=test_text)
+    constructor_attempt = garak.attempt.Attempt(prompt=test_text, bcp47="*")
     assert (
         constructor_attempt.prompt == test_text
     ), "instantiating an Attempt with prompt in the constructor should put the prompt text in attempt.prompt"
@@ -202,7 +202,7 @@ def test_demo_dialogue_accessor_usage():
     test_user_reply = "user kjahsdg09"
     test_sys2 = "sys m0sd0fg"
 
-    demo_a = garak.attempt.Attempt()
+    demo_a = garak.attempt.Attempt(bcp47="*")
 
     demo_a.prompt = test_prompt
     assert demo_a.messages == [{"role": "user", "content": test_prompt}]
@@ -245,7 +245,7 @@ def test_demo_dialogue_method_usage():
     test_user_reply = "user kjahsdg09"
     test_sys2 = "sys m0sd0fg"
 
-    demo_a = garak.attempt.Attempt()
+    demo_a = garak.attempt.Attempt(bcp47="*")
     demo_a._add_first_turn("user", test_prompt)
     assert demo_a.messages == [{"role": "user", "content": test_prompt}]
     assert demo_a.prompt == test_prompt
@@ -290,7 +290,7 @@ def test_outputs():
     test_sys1 = "sys aa987h0f"
     expansion = 2
 
-    output_a = garak.attempt.Attempt()
+    output_a = garak.attempt.Attempt(bcp47="*")
     assert output_a.outputs == []
 
     output_a.prompt = test_prompt
@@ -299,18 +299,18 @@ def test_outputs():
     output_a.outputs = [test_sys1]
     assert output_a.outputs == [test_sys1]
 
-    output_a_4 = garak.attempt.Attempt()
+    output_a_4 = garak.attempt.Attempt(bcp47="*")
     output_a_4.prompt = test_prompt
     output_a_4.outputs = [test_sys1] * 4
     assert output_a_4.outputs == [test_sys1, test_sys1, test_sys1, test_sys1]
 
-    output_a_expand = garak.attempt.Attempt()
+    output_a_expand = garak.attempt.Attempt(bcp47="*")
     output_a_expand.prompt = test_prompt
     output_a_expand._expand_prompt_to_histories(2)
     output_a_expand.outputs = [test_sys1] * expansion
     assert output_a_expand.outputs == [test_sys1] * expansion
 
-    output_empty = garak.attempt.Attempt()
+    output_empty = garak.attempt.Attempt(bcp47="*")
     assert output_empty.outputs == []
     output_empty._add_first_turn("user", "cardassia prime")
     assert output_empty.outputs == []
@@ -324,9 +324,66 @@ def test_all_outputs():
     test_sys2 = "sys implant"
     expansion = 3
 
-    all_output_a = garak.attempt.Attempt()
+    all_output_a = garak.attempt.Attempt(bcp47="*")
     all_output_a.prompt = test_prompt
     all_output_a.outputs = [test_sys1] * expansion
     all_output_a.outputs = [test_sys2] * expansion
 
     assert all_output_a.all_outputs == [test_sys1, test_sys2] * expansion
+
+
+def test_prompt_for():
+    og_prompt = "Enabran Tain"
+    tlh_prompt = "eNa'bRaN tayn"
+
+    all_output_a = garak.attempt.Attempt(bcp47="tlh")
+    all_output_a.prompt = tlh_prompt
+    all_output_a.notes = {
+        "pre_translation_prompt": og_prompt,
+    }
+
+    all_output_b = garak.attempt.Attempt(bcp47="*")
+    all_output_b.prompt = tlh_prompt
+
+    assert all_output_a.prompt == tlh_prompt
+    assert all_output_a.prompt_for("tlh") == tlh_prompt
+    assert all_output_a.prompt_for(None) == tlh_prompt
+    assert all_output_a.prompt_for("*") == tlh_prompt
+    assert all_output_a.prompt_for("en") == og_prompt
+
+    assert all_output_b.prompt_for("tlh") == tlh_prompt
+    assert all_output_b.prompt_for(None) == tlh_prompt
+    assert all_output_b.prompt_for("*") == tlh_prompt
+    assert all_output_b.prompt_for("en") == tlh_prompt
+
+
+def test_outputs_for():
+    og_prompt = "Enabran Tain"
+    tlh_prompt = "eNa'bRaN tayn"
+    tlh_outputs = ["DajlI' QInvam"]
+    reverse_outputs = ["This is a test"]
+
+    all_output_a = garak.attempt.Attempt(bcp47="tlh")
+    all_output_a.prompt = tlh_prompt
+    all_output_a.notes = {
+        "pre_translation_prompt": og_prompt,
+    }
+    all_output_a.outputs = tlh_outputs
+    all_output_a.reverse_translator_outputs = reverse_outputs
+
+    all_output_b = garak.attempt.Attempt(bcp47="*")
+    all_output_b.prompt = tlh_prompt
+    all_output_b.outputs = tlh_outputs
+    all_output_b.reverse_translator_outputs = reverse_outputs
+
+    assert all_output_a.all_outputs == tlh_outputs
+    assert all_output_a.outputs_for("tlh") == tlh_outputs
+    assert all_output_a.outputs_for(None) == tlh_outputs
+    assert all_output_a.outputs_for("*") == tlh_outputs
+    assert all_output_a.outputs_for("en") == reverse_outputs
+
+    assert all_output_b.all_outputs == tlh_outputs
+    assert all_output_b.outputs_for("tlh") == tlh_outputs
+    assert all_output_b.outputs_for(None) == tlh_outputs
+    assert all_output_b.outputs_for("*") == tlh_outputs
+    assert all_output_b.outputs_for("en") == tlh_outputs

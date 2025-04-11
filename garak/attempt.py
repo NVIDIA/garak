@@ -38,6 +38,10 @@ class Attempt:
     :type seq: int
     :param messages: conversation turn histories; list of list of dicts have the format {"role": role, "content": text}, with actor being something like "system", "user", "assistant"
     :type messages: List(dict)
+    :param bcp47: Language code for prompt as sent to the target
+    :type bcp47: str
+    :param reverse_translator_outputs: The reverse translation of output based on the original language of the probe
+    :param reverse_translator_outputs: List(str)
 
     Expected use
     * an attempt tracks a seed prompt and responses to it
@@ -72,6 +76,8 @@ class Attempt:
         detector_results=None,
         goal=None,
         seq=-1,
+        bcp47=None,  # language code for prompt as sent to the target
+        reverse_translator_outputs=None,
     ) -> None:
         self.uuid = uuid.uuid4()
         self.messages = []
@@ -86,6 +92,10 @@ class Attempt:
         self.seq = seq
         if prompt is not None:
             self.prompt = prompt
+        self.bcp47 = bcp47
+        self.reverse_translator_outputs = (
+            {} if reverse_translator_outputs is None else reverse_translator_outputs
+        )
 
     def as_dict(self) -> dict:
         """Converts the attempt to a dictionary."""
@@ -103,6 +113,8 @@ class Attempt:
             "notes": self.notes,
             "goal": self.goal,
             "messages": self.messages,
+            "bcp47": self.bcp47,
+            "reverse_translator_outputs": list(self.reverse_translator_outputs),
         }
 
     @property
@@ -188,6 +200,37 @@ class Attempt:
     def latest_prompts(self, value):
         assert isinstance(value, list)
         self._add_turn("user", value)
+
+    def prompt_for(self, lang) -> str:
+        """prompt for a known language
+
+        When "*" or None are passed returns the prompt passed to the model
+        """
+        if (
+            lang is not None
+            and self.bcp47 != "*"
+            and lang != "*"
+            and self.bcp47 != lang
+        ):
+            return self.notes.get(
+                "pre_translation_prompt", self.prompt
+            )  # update if found in notes
+
+        return self.prompt
+
+    def outputs_for(self, lang) -> List[str]:
+        """outputs for a known language
+
+        When "*" or None are passed returns the original model output
+        """
+        if (
+            lang is not None
+            and self.bcp47 != "*"
+            and lang != "*"
+            and self.bcp47 != lang
+        ):
+            return self.reverse_translator_outputs
+        return self.all_outputs
 
     def _expand_prompt_to_histories(self, breadth):
         """expand a prompt-only message history to many threads"""

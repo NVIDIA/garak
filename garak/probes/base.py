@@ -82,6 +82,34 @@ class Probe(Configurable):
                 self.description = self.__doc__.split("\n", maxsplit=1)[0]
             else:
                 self.description = ""
+        self.translator = self._get_translator()
+        if self.translator is not None and hasattr(self, "triggers"):
+            # check for triggers that are not type str|list or just call translate_triggers
+            if len(self.triggers) > 0:
+                if isinstance(self.triggers[0], str):
+                    self.triggers = self.translator.translate(self.triggers)
+                elif isinstance(self.triggers[0], list):
+                    self.triggers = [
+                        self.translator.translate(trigger_list)
+                        for trigger_list in self.triggers
+                    ]
+                else:
+                    raise PluginConfigurationError(
+                        f"trigger type: {type(self.triggers[0])} is not supported."
+                    )
+        self.reverse_translator = self._get_reverse_translator()
+
+    def _get_translator(self):
+        from garak.langservice import get_translator
+
+        translator_instance = get_translator(self.bcp47)
+        return translator_instance
+
+    def _get_reverse_translator(self):
+        from garak.langservice import get_translator
+
+        translator_instance = get_translator(self.bcp47, reverse=True)
+        return translator_instance
 
     def _attempt_prestore_hook(
         self, attempt: garak.attempt.Attempt, seq: int
@@ -140,7 +168,9 @@ class Probe(Configurable):
         """hook called to process completed attempts; always called"""
         return attempt
 
-    def _mint_attempt(self, prompt=None, seq=None) -> garak.attempt.Attempt:
+    def _mint_attempt(
+        self, prompt=None, seq=None, notes=None, bcp47="*"
+    ) -> garak.attempt.Attempt:
         """function for creating a new attempt given a prompt"""
         new_attempt = garak.attempt.Attempt(
             probe_classname=(
@@ -152,6 +182,8 @@ class Probe(Configurable):
             status=garak.attempt.ATTEMPT_STARTED,
             seq=seq,
             prompt=prompt,
+            notes=notes,
+            bcp47=bcp47,
         )
 
         new_attempt = self._attempt_prestore_hook(new_attempt, seq)
@@ -196,6 +228,12 @@ class Probe(Configurable):
                     for result in attempt_pool.imap_unordered(
                         self._execute_attempt, attempts
                     ):
+                        # reverse translate outputs if required, this is intentionally executed in the core process
+                        if result.bcp47 != self.bcp47:
+                            result.reverse_translator_outputs = (
+                                self.reverse_translator.translate(result.all_outputs)
+                            )
+
                         _config.transient.reportfile.write(
                             json.dumps(result.as_dict()) + "\n"
                         )
@@ -216,6 +254,12 @@ class Probe(Configurable):
             attempt_iterator.set_description(self.probename.replace("garak.", ""))
             for this_attempt in attempt_iterator:
                 result = self._execute_attempt(this_attempt)
+                # reverse translate outputs if required
+                if result.bcp47 != self.bcp47:
+                    result.reverse_translator_outputs = (
+                        self.reverse_translator.translate(result.all_outputs)
+                    )
+
                 _config.transient.reportfile.write(json.dumps(result.as_dict()) + "\n")
                 attempts_completed.append(result)
         return attempts_completed
@@ -229,8 +273,16 @@ class Probe(Configurable):
         # build list of attempts
         attempts_todo: Iterable[garak.attempt.Attempt] = []
         prompts = list(self.prompts)
+        lang = self.bcp47
+        prompts = self.translator.translate(prompts)
+        lang = self.translator.target_lang
         for seq, prompt in enumerate(prompts):
-            attempts_todo.append(self._mint_attempt(prompt, seq))
+            notes = (
+                {"pre_translation_prompt": self.prompts[seq]}
+                if lang != self.bcp47
+                else None
+            )
+            attempts_todo.append(self._mint_attempt(prompt, seq, notes, lang))
 
         # buff hook
         if len(_config.buffmanager.buffs) > 0:
@@ -358,8 +410,8 @@ class TreeSearchProbe(Probe):
                     continue
 
                 for prompt in self._gen_prompts(surface_form):
-                    a = self._mint_attempt(prompt)
-                    a.notes["surface_form"] = surface_form
+                    notes = {"surface_form": surface_form}
+                    a = self._mint_attempt(prompt, notes=notes, bcp47=self.bcp47)
                     attempts_todo.append(a)
 
                 surface_forms_probed.add(surface_form)

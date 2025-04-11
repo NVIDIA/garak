@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "garak"
-version = "0.10.3.post1"
+version = "0.11.0.pre1"
 authors = [
   { name = "Leon Derczynski", email="lderczynski@nvidia.com" },
   { name = "Subho Majumdar", email="subho@vijil.ai" },
@@ -40,6 +40,7 @@ authors = [
   { name = "iamnotcj" },
   { name = "Dwight Temple" },
   { name = "Shane Rosse" },
+  { name = "Masaya Ogushi" },
 ]
 license = { file = "LICENSE" }
 description = "LLM vulnerability scanner"
@@ -91,6 +92,8 @@ dependencies = [
   "xdg-base-dirs>=6.0.1",
   "wn==0.9.5",
   "ollama>=0.4.7",
+  "nvidia-riva-client==2.16.0",
+  "langdetect==1.0.9",
   "tiktoken>=0.7.0"
 ]
 

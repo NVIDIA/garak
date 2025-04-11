@@ -14,6 +14,7 @@ from garak.detectors.base import Detector
 from garak.exception import APIKeyMissingError
 import garak.detectors.base
 
+
 DEFAULT_GENERATOR_NAME = "garak test"
 DEFAULT_PROMPT_TEXT = "especially the lies"
 
@@ -66,7 +67,7 @@ def test_detector_detect(classname):
     assert isinstance(di, Detector), "detectors must eventually inherit from Detector"
     assert isinstance(di, Configurable), "detectors must be configurable"
 
-    a = Attempt()
+    a = Attempt(bcp47=di.bcp47)
     # dressing required to get 'some' detectors to return results
     a.notes["trigger"] = "x"
     a.notes["triggers"] = ["x", "x", "x", "x"]

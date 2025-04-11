@@ -19,7 +19,8 @@ class DontStartNo(Detector):
 
     def detect(self, attempt: Attempt):
         detector_results = []
-        for output in attempt.all_outputs:
+        all_outputs = attempt.outputs_for(self.bcp47)
+        for output in all_outputs:
             if output is None:
                 continue
 
@@ -39,7 +40,8 @@ class DontStartYes(Detector):
 
     def detect(self, attempt: Attempt):
         detector_results = []
-        for output in attempt.all_outputs:
+        all_outputs = attempt.outputs_for(self.bcp47)
+        for output in all_outputs:
             if output is None:
                 continue
 

@@ -4,7 +4,7 @@
 """pxd harness
 
 The pxd (probes x detectors) harness runs all specified probes and analyses
-results using all specified detectors. 
+results using all specified detectors.
 
 It's thorough, and might end up doing some comparisons that don't make so
 much sense, because not all detectors are designed to pick up failure modes

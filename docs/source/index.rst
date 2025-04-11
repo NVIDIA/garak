@@ -56,17 +56,26 @@ Code reference
 .. toctree::
    :maxdepth: 1
 
-   contributing
-
    basic
    attempt
    cli
    command
    exception
    interactive
+   langservice
    payloads
    _config
    _plugins
+
+Building further
+^^^^^^^^^^^^^^^^
+
+.. toctree::
+   :maxdepth: 1
+
+   extending
+   contributing
+
 
 Plugin structure
 ^^^^^^^^^^^^^^^^

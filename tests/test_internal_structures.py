@@ -35,7 +35,7 @@ def _config_loaded():
 
 def test_generator_consume_attempt_generator():
     count = 5
-    attempts = (garak.attempt.Attempt(prompt=str(i)) for i in range(count))
+    attempts = (garak.attempt.Attempt(prompt=str(i), bcp47="*") for i in range(count))
     p = garak._plugins.load_plugin("probes.test.Blank")
     g = garak._plugins.load_plugin("generators.test.Blank")
     p.generator = g
@@ -54,7 +54,7 @@ def test_generator_consume_attempt_generator():
 
 
 def test_attempt_outputs_can_consume_generator():
-    a = garak.attempt.Attempt(prompt="fish")
+    a = garak.attempt.Attempt(prompt="fish", bcp47="*")
     count = 5
     str_iter = ("abc" for _ in range(count))
     a.outputs = str_iter

@@ -1,5 +1,5 @@
-Contributing
-============
+Contributing to ``garak``
+=========================
 
 Getting ready
 -------------
@@ -15,7 +15,8 @@ Checking your contribution is within scope
 
 ``garak`` is a security toolkit rather than a content safety or bias toolkit.
 The project scope relates primarily to LLM & dialog system security.
-This is a huge area, and you can get an idea of the kind of contributions that are in scope from our `FAQ <https://github.com/NVIDIA/garak/blob/main/FAQ.md>`_ and our `Github issues <https://github.com/NVIDIA/garak/issues>`_ page.
+``garak`` is also focused on discovery rather than benchmarking, and so is comfortable with providing moving targets.
+LLM security is a huge area, and you can get an idea of the kind of contributions that are in scope from our `FAQ <https://github.com/NVIDIA/garak/blob/main/FAQ.md>`_ and our `Github issues <https://github.com/NVIDIA/garak/issues>`_ page.
 
 
 Connecting with the ``garak`` team & community
@@ -29,6 +30,11 @@ There are a number of ways you can reach out to us:
 * Discord: `<https://discord.gg/uVch4puUCs>`_
 
 We'd love to help, and we're always interested to hear how you're using garak.
+
+Coding your contribution
+------------------------
+
+This reference documentation includes a section on :doc:`extending garak <extending>`, including walkthroughs of how a custom :doc:`probe <extending.probe>` and custom :doc:`generator <extending.generator>` can be built.
 
 
 Checklist for contributing
@@ -48,38 +54,6 @@ Checklist for contributing
 
 
 
-Code structure
---------------
-
-We have a page describing the :doc:`top-level concepts in garak <basic>`. 
-Rather than repeat that, take a look, so you have an idea about the code base!
-
-Developing your own plugins
----------------------------
-
-Plugins are generators, probes, detectors, buffs, harnesses, and evaluators. Each category of plugin gets its own directory in the source tree. The first four categories are where most of the new functionality is.
-
-The recipe for writing a new plugin or plugin class isn't outlandish:
-
-* Only start a new module if none of the current modules could fit
-* Take a look at how other plugins do it
-   * For an example Generator, check out :class:`garak.probes.replicate`
-   * For an example Probe, check out :class:`garak.probes.malwaregen`
-   * For an example Detector, check out :class:`garak.detectors.toxicity` or :class:`garak.detectors.specialwords`
-   * For an example Buff, check out :class:`garak.buffs.lowercase`
-* Start a new module inheriting from one of the base classes, e.g. :class:`garak.probes.base.Probe`
-* Override as little as possible.
-
-
-Guides to writing plugins
--------------------------
-
-Here are our tutorials on plugin writing:
-
-* :doc:`Building a garak generator <contributing.generator>` -- step-by-step guide to building an interface for a real API-based model service
-* :doc:`Building a garak probe <contributing.probe>` -- A guide to writing your own custom probes
-
-
 Describing your code changes
 ----------------------------
 
@@ -87,6 +61,16 @@ Commit messages
 ~~~~~~~~~~~~~~~
 
 Commit messages should describe what is changed in the commit. Try to keep one "theme" per commit. We read commit messages to work out what the intent of the commit is. We're all trying to save time here, and clear commit messages that include context can be a great time saver. Check out this guide to writing `commit messages <https://www.freecodecamp.org/news/how-to-write-better-git-commit-messages/>`_.
+
+Testing
+~~~~~~~
+
+Only code that passes the ``garak`` tests can be merged. Contributions must pass all tests.
+
+Please write running tests to validate any new components or functions that you add.
+They're pretty straightforward - you can look at the existing code in `tests` to get an idea of how to write these.
+We've tried to keep test failure messages helpful, let us know if they're too cryptic!
+
 
 Pull requests
 ~~~~~~~~~~~~~
@@ -96,32 +80,3 @@ Review
 ~~~~~~
 We review almost all pull requests, and we'll almost certainly chat with you about the code here. Please take this as a positive sign - we want to understand what's happening in the code. If you can, please also be reasonably responsive during code review; it's hard for us to merge code if we don't understand it or it does unusual things, and we can't contact the people who wrote it.
 
-
-Testing
--------
-
-Testing during development
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can test your code in a few ways:
-
-* Start an interactive Python session
-   * Instantiate the plugin, e.g. ``import garak._plugins`` then ``probe = garak._plugins.load_plugin("garak.probes.mymodule.MyProbe")``
-   * Check out that the values and methods work as you'd expect
-* Get ``garak`` to list all the plugins of the type you're writing, with ``--list_probes``, ``--list_detectors``, or ``--list_generators``: ```python3 -m garak --list_probes``
-* Run a scan with test plugins
-   * For probes, try a blank generator and always.Pass detector: ``python3 -m garak -m test.Blank -p mymodule -d always.Pass``
-   * For detectors, try a blank generator and a blank probe: ``python3 -m garak -m test.Blank -p test.Blank -d mymodule``
-   * For generators, try a blank probe and always.Pass detector: ``python3 -m garak -m mymodule -p test.Blank -d always.Pass``
-
-
-garak supports pytest tests in garak/tests. You can run these with ``python -m pytest tests/`` from the root directory.
-All the tests should pass for any code there's a pull request for, and all tests must pass in any PR before it can be merged.
-
-Testing before sending a pull request
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Only code that passes the ``garak`` tests can be merged. Contributions must pass all tests.
-
-Please write running tests to validate any new components or functions that you add.
-They're pretty straightforward - you can look at the existing code in `tests` to get an idea of how to write these.

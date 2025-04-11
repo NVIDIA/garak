@@ -95,7 +95,7 @@
         "quality:Behavioral:ContentSafety:Profanity",
         "payload:unwanted"
       ],
-      "mod_time": "2025-04-03 09:18:49 +0000"
+      "mod_time": "2025-04-03 16:38:13 +0000"
     },
     "probes.av_spam_scanning.EICAR": {
       "description": "Does the model check its output for viruses? Try to send the EICAR code through",
@@ -197,7 +197,7 @@
         "always.Fail"
       ],
       "tags": [],
-      "mod_time": "2025-03-18 17:31:58 +0000"
+      "mod_time": "2025-04-07 20:25:29 +0000"
     },
     "probes.base.TreeSearchProbe": {
       "DEFAULT_PARAMS": {
@@ -223,7 +223,7 @@
         "always.Fail"
       ],
       "tags": [],
-      "mod_time": "2025-03-18 17:31:58 +0000"
+      "mod_time": "2025-04-07 20:25:29 +0000"
     },
     "probes.continuation.ContinueSlursReclaimedSlurs": {
       "description": "Continue partial word with slur or reclaimed slur.",
@@ -252,7 +252,7 @@
         "quality:Behavioral:ContentSafety:HateHarassment",
         "payload:unwanted:hatespeech"
       ],
-      "mod_time": "2025-04-02 08:22:02 +0000"
+      "mod_time": "2025-04-03 16:38:13 +0000"
     },
     "probes.continuation.ContinueSlursReclaimedSlursFull": {
       "description": "Continue partial word with slur or reclaimed slur.",
@@ -281,7 +281,7 @@
         "quality:Behavioral:ContentSafety:HateHarassment",
         "payload:unwanted:hatespeech"
       ],
-      "mod_time": "2025-04-02 08:22:02 +0000"
+      "mod_time": "2025-04-03 16:38:13 +0000"
     },
     "probes.dan.Ablation_Dan_11_0": {
       "description": "Ablation experiements over the DAN 11.0 prompt",
@@ -308,7 +308,7 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.dan.AntiDAN": {
       "description": "Anti-DAN",
@@ -335,7 +335,7 @@
         "avid-effect:performance:P0204",
         "owasp:llm01"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.dan.AutoDAN": {
       "description": "Probe leveraging AutoDAN attack generation",
@@ -362,7 +362,7 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.dan.AutoDANCached": {
       "description": "Probe leveraging generated AutoDAN prompts",
@@ -389,7 +389,7 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.dan.ChatGPT_Developer_Mode_RANTI": {
       "description": "ChatGPT DevMode + Ranti",
@@ -416,7 +416,7 @@
         "avid-effect:performance:P0204",
         "owasp:llm01"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.dan.ChatGPT_Developer_Mode_v2": {
       "description": "ChatGPT Developer Mode v2",
@@ -443,7 +443,7 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.dan.ChatGPT_Image_Markdown": {
       "description": "ChatGPT Markdown Image Unlocker / markdown injection",
@@ -470,7 +470,7 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.dan.DAN_Jailbreak": {
       "description": "DAN Jailbreak",
@@ -497,7 +497,7 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.dan.DUDE": {
       "description": "DUDE",
@@ -524,7 +524,7 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.dan.DanInTheWild": {
       "description": "A subset of jailbreaks from the DanInTheWild jailbreak library.",
@@ -550,7 +550,7 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.dan.DanInTheWildFull": {
       "description": "A library of jailbreaks.",
@@ -576,7 +576,7 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.dan.Dan_10_0": {
       "description": "DAN 10.0",
@@ -603,7 +603,7 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.dan.Dan_11_0": {
       "description": "DAN 11.0",
@@ -631,7 +631,7 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.dan.Dan_6_0": {
       "description": "DAN 6.0",
@@ -658,7 +658,7 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.dan.Dan_6_2": {
       "description": "DAN 6.2",
@@ -685,7 +685,7 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.dan.Dan_7_0": {
       "description": "DAN 7.0",
@@ -712,7 +712,7 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.dan.Dan_8_0": {
       "description": "DAN 8.0",
@@ -739,7 +739,7 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.dan.Dan_9_0": {
       "description": "DAN 9.0",
@@ -766,7 +766,7 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.dan.STAN": {
       "description": "STAN",
@@ -793,7 +793,7 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.divergence.Repeat": {
       "description": "See if a model starts giving other data when asked to repeat a string indefinitely",
@@ -1450,7 +1450,7 @@
         "quality:Security:PromptStability",
         "payload:generic"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.glitch.GlitchFull": {
       "description": "Probe model for glitch tokens that provoke unusual behavior",
@@ -1477,7 +1477,7 @@
         "quality:Security:PromptStability",
         "payload:generic"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.goodside.Davidjl": {
       "description": "Exploit the ' davidjl' magic token",
@@ -1504,7 +1504,7 @@
         "quality:Security:PromptStability",
         "payload:generic"
       ],
-      "mod_time": "2024-06-12 10:04:47 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.goodside.Tag": {
       "description": "Exploit UTF tag page encoding for user-invisible prompt injection",
@@ -1530,7 +1530,7 @@
         "quality:Security:Adversarial",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2024-06-12 10:04:47 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.goodside.ThreatenJSON": {
       "description": "Will model strip preamble and give JSON?",
@@ -1556,7 +1556,7 @@
         "avid-effect:performance:P0204",
         "payload:generic"
       ],
-      "mod_time": "2024-06-12 10:04:47 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.goodside.WhoIsRiley": {
       "description": "Probe for misinfo about Riley Goodside",
@@ -1583,7 +1583,7 @@
         "quality:Robustness:GenerativeMisinformation",
         "payload:hallucination"
       ],
-      "mod_time": "2024-06-12 10:04:47 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.grandma.Slurs": {
       "description": "Use the grandma attack to get ethnic slurs.",
@@ -1728,7 +1728,7 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-05 07:39:25 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetEiffelFull": {
       "description": "String-based latent prompt injections in fact snippets",
@@ -1753,7 +1753,7 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-05 07:39:25 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetLegal": {
       "description": "String-based latent prompt injections in legal snippets",
@@ -1778,7 +1778,7 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-05 07:39:25 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetLegalFull": {
       "description": "String-based latent prompt injections in legal snippets",
@@ -1803,7 +1803,7 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-05 07:39:25 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.latentinjection.LatentInjectionReport": {
       "description": "String-based latent prompt injections via a report",
@@ -1830,7 +1830,7 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-05 07:39:25 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.latentinjection.LatentInjectionReportFull": {
       "description": "String-based latent prompt injections via a report",
@@ -1857,7 +1857,7 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-05 07:39:25 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.latentinjection.LatentInjectionResume": {
       "description": "String-based latent prompt injections via a resume",
@@ -1882,7 +1882,7 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-05 07:39:25 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.latentinjection.LatentInjectionResumeFull": {
       "description": "String-based latent prompt injections via a resume",
@@ -1907,7 +1907,7 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-05 07:39:25 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnFr": {
       "description": "String-based latent prompt injections via translation",
@@ -1934,7 +1934,7 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-05 07:39:25 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnFrFull": {
       "description": "String-based latent prompt injections via translation",
@@ -1961,7 +1961,7 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-05 07:39:25 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnZh": {
       "description": "Latent prompt injection in Chinese context (\u7b80\u4f53\u5b57)",
@@ -1988,7 +1988,7 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-05 07:39:25 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnZhFull": {
       "description": "Latent prompt injection in Chinese context (\u7b80\u4f53\u5b57)",
@@ -2015,7 +2015,7 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-05 07:39:25 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.latentinjection.LatentJailbreak": {
       "description": "Implementation of Latent Jailbreak, using latent prompt injection-",
@@ -2042,7 +2042,7 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-05 07:39:25 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.latentinjection.LatentJailbreakFull": {
       "description": "Implementation of Latent Jailbreak, using latent prompt injection-",
@@ -2069,7 +2069,7 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-05 07:39:25 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.latentinjection.LatentWhois": {
       "description": "Latent prompt injections in whois probe reports",
@@ -2094,7 +2094,7 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-05 07:39:25 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.latentinjection.LatentWhoisSnippet": {
       "description": "String-based latent prompt injections in whois reports",
@@ -2122,7 +2122,7 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-05 07:39:25 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.leakreplay.GuardianCloze": {
       "description": "Cloze data replay for literature. Uses passages that either GPT-4 or ChatGPT have been known to replay.",
@@ -2149,7 +2149,7 @@
         "quality:Security:ExtractionInversion",
         "payload:leak:training"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.leakreplay.GuardianComplete": {
       "description": "Data replay probe for literature, using document completion. Uses passages that either GPT-4 or ChatGPT have been known to replay.",
@@ -2176,7 +2176,7 @@
         "quality:Security:ExtractionInversion",
         "payload:leak:training"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.leakreplay.LiteratureCloze": {
       "description": "Cloze data replay for literature. Uses passages that either GPT-4 or ChatGPT have been known to replay.",
@@ -2203,7 +2203,7 @@
         "quality:Security:ExtractionInversion",
         "payload:leak:training"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.leakreplay.LiteratureClozeFull": {
       "description": "Cloze data replay for literature. Uses passages that either GPT-4 or ChatGPT have been known to replay.",
@@ -2230,7 +2230,7 @@
         "quality:Security:ExtractionInversion",
         "payload:leak:training"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.leakreplay.LiteratureComplete": {
       "description": "Data replay probe for literature, using document completion. Uses passages that either GPT-4 or ChatGPT have been known to replay.",
@@ -2257,7 +2257,7 @@
         "quality:Security:ExtractionInversion",
         "payload:leak:training"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.leakreplay.LiteratureCompleteFull": {
       "description": "Data replay probe for literature, using document completion. Uses passages that either GPT-4 or ChatGPT have been known to replay.",
@@ -2284,7 +2284,7 @@
         "quality:Security:ExtractionInversion",
         "payload:leak:training"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.leakreplay.NYTCloze": {
       "description": "Cloze data replay for literature. Uses passages that either GPT-4 or ChatGPT have been known to replay.",
@@ -2311,7 +2311,7 @@
         "quality:Security:ExtractionInversion",
         "payload:leak:training"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.leakreplay.NYTComplete": {
       "description": "Data replay probe for literature, using document completion. Uses passages that either GPT-4 or ChatGPT have been known to replay.",
@@ -2338,7 +2338,7 @@
         "quality:Security:ExtractionInversion",
         "payload:leak:training"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.leakreplay.PotterCloze": {
       "description": "Cloze data replay for literature. Uses passages that either GPT-4 or ChatGPT have been known to replay.",
@@ -2365,7 +2365,7 @@
         "quality:Security:ExtractionInversion",
         "payload:leak:training"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.leakreplay.PotterComplete": {
       "description": "Data replay probe for literature, using document completion. Uses passages that either GPT-4 or ChatGPT have been known to replay.",
@@ -2392,7 +2392,7 @@
         "quality:Security:ExtractionInversion",
         "payload:leak:training"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "mod_time": "2025-03-31 18:04:23 +0000"
     },
     "probes.lmrc.Anthropomorphisation": {
       "description": "Providing output that encourages anthropomorphisation of AI systems",
@@ -4177,7 +4177,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-02-28 21:51:23 +0000"
+      "mod_time": "2025-03-31 21:30:38 +0000"
     },
     "detectors.base.FileDetector": {
       "description": "Detector subclass for processing attempts whose outputs are filenames for checking",
@@ -4197,7 +4197,7 @@
       "recall": 0.0,
       "tags": [],
       "valid_format": "local filename",
-      "mod_time": "2025-02-28 21:51:23 +0000"
+      "mod_time": "2025-03-31 21:30:38 +0000"
     },
     "detectors.base.HFDetector": {
       "description": "Detector using a Hugging Face model",
@@ -4223,7 +4223,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-02-28 21:51:23 +0000"
+      "mod_time": "2025-03-31 21:30:38 +0000"
     },
     "detectors.base.StringDetector": {
       "description": "Subclass of Detector using list of substrings as detection triggers",
@@ -4243,7 +4243,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-02-28 21:51:23 +0000"
+      "mod_time": "2025-03-31 21:30:38 +0000"
     },
     "detectors.base.TriggerListDetector": {
       "description": "Subclass of Detector using attempt's notes[triggers] as list of strings to match",
@@ -4262,7 +4262,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-02-28 21:51:23 +0000"
+      "mod_time": "2025-03-31 21:30:38 +0000"
     },
     "detectors.continuation.Continuation": {
       "description": "Detect if model intiates / continues a trigger word",
@@ -4474,7 +4474,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-03-21 16:37:35 +0000"
+      "mod_time": "2025-03-24 16:38:39 +0000"
     },
     "detectors.encoding.DecodeMatch": {
       "description": "Is there a direct decoding of anything in attempt[\"notes\"][\"triggers\"]?",
@@ -4494,7 +4494,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-03-21 16:37:35 +0000"
+      "mod_time": "2025-03-24 16:38:39 +0000"
     },
     "detectors.fileformats.FileIsExecutable": {
       "description": "",
@@ -4835,7 +4835,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2024-09-03 09:02:26 +0000"
+      "mod_time": "2025-03-31 21:30:38 +0000"
     },
     "detectors.misleading.MustRefuteClaimKW": {
       "description": "Looking for strings indicating a refutation",
@@ -4855,7 +4855,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2024-09-03 09:02:26 +0000"
+      "mod_time": "2025-03-31 21:30:38 +0000"
     },
     "detectors.misleading.MustRefuteClaimModel": {
       "description": "Using garak-llm/refutation_detector_distilbert to detect model refutations",
@@ -4883,7 +4883,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2024-09-03 09:02:26 +0000"
+      "mod_time": "2025-03-31 21:30:38 +0000"
     },
     "detectors.mitigation.MitigationBypass": {
       "description": "Detect if a string response does not contain a mitigation message.",
@@ -5611,7 +5611,7 @@
       "tags": [
         "avid:performance:P0204"
       ],
-      "mod_time": "2024-08-23 16:13:06 +0000"
+      "mod_time": "2025-03-31 21:30:38 +0000"
     },
     "detectors.snowball.DontStartYes": {
       "description": "Response should start yes, or contain an affirmation, to pass",
@@ -5632,7 +5632,7 @@
       "tags": [
         "avid:performance:P0204"
       ],
-      "mod_time": "2024-08-23 16:13:06 +0000"
+      "mod_time": "2025-03-31 21:30:38 +0000"
     },
     "detectors.specialwords.Prefixes": {
       "description": "Detect failure prefixes",
@@ -7474,21 +7474,21 @@
         "strict_modality_match": false
       },
       "active": true,
-      "mod_time": "2024-11-14 13:22:08 +0000"
+      "mod_time": "2025-03-24 16:38:39 +0000"
     },
     "harnesses.probewise.ProbewiseHarness": {
       "DEFAULT_PARAMS": {
         "strict_modality_match": false
       },
       "active": true,
-      "mod_time": "2024-06-12 10:04:47 +0000"
+      "mod_time": "2025-03-10 22:23:53 +0000"
     },
     "harnesses.pxd.PxD": {
       "DEFAULT_PARAMS": {
         "strict_modality_match": false
       },
       "active": true,
-      "mod_time": "2024-10-17 21:05:25 +0000"
+      "mod_time": "2025-03-10 22:23:53 +0000"
     }
   },
   "buffs": {

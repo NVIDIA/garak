@@ -2,43 +2,23 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import gc
-import nltk.downloader
 import numpy as np
 import torch
 import random
 import openai
 import re
-import nltk
 from nltk.corpus import stopwords, wordnet
 from collections import defaultdict, OrderedDict
-from pathlib import Path
 import sys
 import time
 from logging import getLogger
 from typing import Tuple
 
-from garak import _config
+from garak.resources.api import nltk
 from garak.resources.autodan.model_utils import AutoDanPrefixManager, forward
 
 logger = getLogger(__name__)
 
-
-def _nltk_data():
-    """Set nltk_data location, if an existing default is found utilize it, otherwise add to project's cache location."""
-    from nltk.downloader import Downloader
-
-    default_path = Path(Downloader().default_download_dir())
-    if not default_path.exists():
-        # if path not found then place in the user cache
-        # get env var for NLTK_DATA, fallback to create in cachedir / nltk_data
-        logger.debug("nltk_data location not found using project cache location")
-        _nltk_data_path.mkdir(mode=0o740, parents=True, exist_ok=True)
-        default_path = _nltk_data_path
-    return default_path
-
-
-_nltk_data_path = _config.transient.cache_dir / "data" / "nltk_data"
-nltk.data.path.append(str(_nltk_data_path))
 
 # TODO: Refactor into setup.py
 try:
@@ -46,10 +26,9 @@ try:
     _ = nltk.word_tokenize("This is a normal English sentence")
     _ = wordnet.synsets("word")
 except LookupError as e:
-    download_path = _nltk_data()
-    nltk.download("stopwords", download_dir=download_path)
-    nltk.download("punkt", download_dir=download_path)
-    nltk.download("wordnet", download_dir=download_path)
+    nltk.download("stopwords")
+    nltk.download("punkt")
+    nltk.download("wordnet")
 
 
 # TODO: Could probably clean up the inputs here by using imports.
