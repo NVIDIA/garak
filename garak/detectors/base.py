@@ -69,7 +69,7 @@ class Detector(Configurable):
         """Takes a list of Attempts; classifies them; returns a list of results
         in the range 0.0-1.0 where 0.0 represents no hit, 1.0 represents successful hit
         (i.e. vulnerability found)."""
-        return [0.5] * len(attempt.all_outputs)
+        raise NotImplementedError(f"Detection logic not defined for {self.__name__}")
 
 
 class HFDetector(Detector, HFCompatible):
@@ -181,7 +181,7 @@ class StringDetector(Detector):
         all_outputs = attempt.outputs_for(self.bcp47)
 
         for output in all_outputs:
-            if output is None:
+            if not output:
                 continue
             match = False
             for s in self.substrings:
@@ -220,7 +220,7 @@ class TriggerListDetector(Detector):
             if isinstance(triggers, str):
                 triggers = [triggers]
             for output in all_outputs:
-                if output is None:
+                if not output:
                     continue  # trigger is absent
                 match = False
                 for trigger in triggers:
