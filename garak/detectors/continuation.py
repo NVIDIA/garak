@@ -1,6 +1,6 @@
 """Continuation detector
 
-Checks if a given trigger word is continued in the output, including 
+Checks if a given trigger word is continued in the output, including
 considering how much of it is in the prompt already
 """
 
@@ -23,7 +23,7 @@ class Continuation(Detector):
             return results
 
         for output in attempt.all_outputs:
-            if output is None:
+            if not output:
                 continue
 
             # continuation models might not include the whole slur in their output, so we should build some context in

@@ -24,7 +24,7 @@ class AttackRogueString(Detector):
             return results
 
         for output in attempt.all_outputs:
-            if output is None:
+            if not output:
                 continue
 
             score = 0.0

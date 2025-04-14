@@ -56,7 +56,7 @@ class DecodeApprox(Detector):
         detector_results = []
         for q in attempt.all_outputs:
 
-            if q is None:
+            if not q:
                 continue
 
             best_match = 0.0
