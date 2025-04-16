@@ -10,8 +10,9 @@ from typing import List, Union
 import openai
 
 from garak import _config
-from garak.exception import GarakException
+from garak.exception import GarakException, APIKeyMissingError
 from garak.generators.openai import OpenAICompatible
+from garak.generators.rest import RestGenerator
 
 
 class NVOpenAIChat(OpenAICompatible):
@@ -172,6 +173,96 @@ class Vision(NVOpenAIChat):
                 text + f' <img src="data:image/{image_extension};base64,{image_b64}" />'
             )
         return text
+
+
+class NVMultimodal(RestGenerator):
+    """Wrapper for text + image / audio to text NIMs. Expects NIM_API_KEY environment variable.
+
+    Expects keys to be a dict with keys 'text' (required), and 'image' or 'audio' (optional).
+    Message is sent with 'role' and 'content' where content is structured as text
+    followed by <img> and/or <audio> tags ala https://build.nvidia.com/microsoft/phi-4-multimodal-instruct
+    """
+
+    DEFAULT_PARAMS = RestGenerator.DEFAULT_PARAMS | {
+        "headers": {
+            "Authorization": "Bearer $KEY",
+            "Accept": "application/json",
+        },
+        "req_template_json_object": """{
+        "model": "$NAME",
+        "messages": [
+            {
+                "role": "user",
+                "content": "$INPUT",
+            }
+        ],
+        "max_tokens": 512,
+        "temperature": 0.10,
+        "top_p": 0.70,
+        "stream": False,
+    }""",
+    }
+
+    ENV_VAR = "NIM_API_KEY"
+    generator_family_name = "NVMultimodal"
+    modality = {"in": {"text", "image", "audio"}, "out": {"text"}}
+    uri = "https://integrate.api.nvidia.com/v1/chat/completions"
+
+    def __init__(self, name, config_root=_config):
+        super.__init__(self.uri, config_root=config_root)
+        self.name = name
+
+    def _populate_template(
+        self, template: str, text: str, json_escape_key: bool = False
+    ) -> str:
+        output = template
+
+        if "$KEY" in template:
+            if self.api_key is None:
+                raise APIKeyMissingError(
+                    f"Template requires an API key but {self.key_env_var} env var isn't set"
+                )
+            if json_escape_key:
+                output = output.replace("$KEY", self.escape_function(self.api_key))
+            else:
+                output = output.replace("$KEY", self.api_key)
+
+        if "$NAME" in template:
+            output = output.replace("$NAME", self.name)
+
+        if isinstance(text, str):
+            output = output.replace("$INPUT", text)
+        elif isinstance(text, dict):
+            import base64
+            from pathlib import Path
+
+            if "text" not in text.keys():
+                raise ValueError(
+                    "NVMultiModal Generator input did not have key 'text'."
+                )
+            prompt_string = text["text"]
+            if "image" in text.keys():
+                img_extension = Path(text["image"]).suffix
+                with open(text["image"], "rb") as f:
+                    image_b64 = base64.b64encode(f.read()).decode()
+                prompt_string += (
+                    f'<img src="data:image/{img_extension};base64,{image_b64}" />'
+                )
+            if "audio" in text.keys():
+                audio_extension = Path(text["audio"]).suffix
+                with open(text["audio"], "rb") as f:
+                    audio_b64 = base64.b64encode(f.read()).decode()
+                prompt_string += (
+                    f'<audio src="data:audio/{audio_extension};base64,{audio_b64}" />'
+                )
+            output.replace("$INPUT", prompt_string)
+
+        else:
+            raise TypeError(
+                f"Expected `str` or `dict` type but got {type(text)} instead"
+            )
+
+        return output
 
 
 DEFAULT_CLASS = "NVOpenAIChat"
