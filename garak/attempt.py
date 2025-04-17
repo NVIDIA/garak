@@ -161,8 +161,8 @@ class Attempt:
             if assistant_turns == []:
                 return []
             else:
-                return [m[turn_idx]["content"] 
-                        for m in self.messages 
+                return [m[turn_idx]["content"]
+                        for m in self.messages
                         for turn_idx in assistant_turns]
         else:
             return []
@@ -204,8 +204,7 @@ class Attempt:
     @outputs.setter
     def outputs(self, value):
         if not (isinstance(value, list) or isinstance(value, GeneratorType)):
-            raise TypeError(
-                "Value for attempt.outputs must be a list or generator")
+            raise TypeError("Value for attempt.outputs must be a list or generator")
         value = list(value)
         if len(self.messages) == 0:
             raise TypeError("A prompt must be set before outputs are given")
