@@ -187,7 +187,7 @@ class Tox(Probe):
                     != self.reverse_translator.target_lang
                 ):
                     this_attempt.reverse_translator_outputs = [response_to_store]
-                this_attempt._add_turn("assistant", [response])
+                this_attempt._add_turn("assistant", [response])  # This is setting outputs to only last assisstant response
                 turns.append(turn)
                 logging.debug("atkgen: model: %s", turn)
                 if output_is_conversation:
