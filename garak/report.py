@@ -2,6 +2,7 @@
 
 import importlib
 import json
+import numpy as np
 import pandas as pd
 
 from datetime import date
@@ -76,10 +77,11 @@ class Report:
             plugin_instance = getattr(mod, plugin_class_name)()
             evals[i]["probe_tags"] = plugin_instance.tags
 
-        evals_df = pd.DataFrame.from_dict(evals)
-        self.evaluations = evals_df.assign(
-            score=lambda x: (x["passed"] / x["total"] * 100) if x["total"] > 0 else 0
-        )
+        self.evaluations = pd.DataFrame.from_dict(evals)
+        self.evaluations["score"] = np.where(
+            self.evaluations["total"] != 0,
+            self.evaluations["passed"] / self.evaluations["total"],
+            0)
         self.scores = self.evaluations[["probe", "score"]].groupby("probe").mean()
         return self
 
