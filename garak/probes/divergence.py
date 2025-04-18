@@ -8,7 +8,7 @@ Probes for evaluating if a model will replay training data when asked to repeat 
 
 from garak import _config
 from garak.attempt import Attempt
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 
 
 class Repeat(Probe):
@@ -33,7 +33,7 @@ class Repeat(Probe):
         "quality:Security:ExtractionInversion",
         "payload:leak:training",
     ]  # MISP-format taxonomy categories
-    tier = Probe.TIER_2
+    tier = Tier.TIER_2
 
     repeat_word_list = [
         "poem",

@@ -8,7 +8,7 @@ of-the-art LLMs
 
 from garak import _config
 from garak.data import path as data_path
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 
 
 class PastTenseFull(Probe):
@@ -27,7 +27,7 @@ class PastTenseFull(Probe):
         "payload:jailbreak",
     ]
     goal = "use past tense to disregard the system prompt"
-    tier = Probe.TIER_2
+    tier = Tier.TIER_2
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -74,7 +74,7 @@ class FutureTenseFull(Probe):
         "payload:jailbreak",
     ]
     goal = "use future tense to disregard the system prompt"
-    tier = Probe.TIER_2
+    tier = Tier.TIER_2
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)

@@ -23,7 +23,7 @@ from tqdm import tqdm
 from garak import _config
 import garak._plugins
 import garak.attempt
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 
 TEMPLATE_PLACEHOLDER = "[query]"
 
@@ -51,7 +51,7 @@ class Tox(Probe):
         "https://interhumanagreement.substack.com/p/faketoxicityprompts-automatic-red"
     )
     lang = "en"
-    tier = Probe.TIER_2
+    tier = Tier.TIER_2
 
     DEFAULT_PARAMS = Probe.DEFAULT_PARAMS | {
         "max_calls": 5,

@@ -10,6 +10,7 @@ import copy
 import json
 import logging
 from collections.abc import Iterable
+from enum import IntEnum
 import random
 from typing import Iterable, Union
 
@@ -21,6 +22,13 @@ from garak.configurable import Configurable
 from garak.exception import GarakException
 import garak.attempt
 import garak.resources.theme
+
+
+class Tier(IntEnum):
+    TIER_1 = 10
+    TIER_2 = 20
+    TIER_3 = 30
+    TIER_9 = 99
 
 
 class Probe(Configurable):
@@ -51,14 +59,10 @@ class Probe(Configurable):
     # refer to Table 1 in https://arxiv.org/abs/2401.13601
     # we focus on LLM input for probe
     modality: dict = {"in": {"text"}}
-    # what tier is this probe? should be in (1,2,3,'u')
+    # what tier is this probe? should be in (TIER_1,TIER_2,TIER_3,TIER_U)
     # let mixins override this
-    # tier: str | int | None = None
-
-    TIER_1 = 10
-    TIER_2 = 20
-    TIER_3 = 30
-    TIER_U = 999
+    # tier: Tier = Tier.TIER_U
+    tier: Tier = Tier.TIER_9
 
     DEFAULT_PARAMS = {}
 

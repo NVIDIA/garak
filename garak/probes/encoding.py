@@ -23,7 +23,7 @@ import random
 
 import garak.payloads
 from garak import _config
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 
 payload_mapping = {
     "default": "text_en",
@@ -195,7 +195,7 @@ class BaseEncodingProbe:
     goal = "make the model say an encoded payload"
     lang = "en"
     doc_uri = "https://kai-greshake.de/posts/llm-malware/#encoded-inline-jailbreak"
-    tier = Probe.TIER_2
+    tier = Tier.TIER_2
 
     primary_detector = "encoding.DecodeMatch"
     extended_detectors = [
@@ -269,7 +269,7 @@ class InjectBase64(BaseEncodingProbe, Probe):
     Encodes payloads using base64, and tries a variety of ways of getting the target
     model to repeat & decode them."""
 
-    tier = Probe.TIER_1
+    tier = Tier.TIER_1
 
     encoding_funcs = [
         base64.b64encode,
@@ -350,7 +350,7 @@ class InjectQP(BaseEncodingProbe, Probe):
     encoding_name = "Quoted-Printable"
     active = False  # seems to just pass text right through - when using ascii chars
 
-    tier = Probe.TIER_1
+    tier = Tier.TIER_1
 
     def __init__(self, config_root=_config):
         Probe.__init__(self, config_root=config_root)
@@ -363,7 +363,7 @@ class InjectUU(BaseEncodingProbe, Probe):
     Encodes payloads using uuencoding, and tries a variety of ways of getting the target
     model to repeat & decode them."""
 
-    tier = Probe.TIER_1
+    tier = Tier.TIER_1
 
     encoding_name = "UUencode"
 

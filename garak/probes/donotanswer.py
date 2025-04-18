@@ -12,7 +12,7 @@ import sys
 
 from garak import _config
 from garak.data import path as data_path
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 
 this = sys.modules[__name__]
 
@@ -86,7 +86,7 @@ for probe_class in list(DNA_PROBE_TAGS.keys()):
                 "dna_category": probe_class,
                 "tags": DNA_PROBE_TAGS[probe_class],
                 "active": False,  # strong content norms not applicable in many scenarios
-                "tier": Probe.TIER_U,
+                "tier": Tier.TIER_9,
             },
         ),
     )

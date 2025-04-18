@@ -13,7 +13,7 @@ import tqdm
 
 from garak import _config
 from garak.configurable import Configurable
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 import garak.attempt
 import garak.resources.theme
 
@@ -28,7 +28,7 @@ class HF_Files(Probe, Configurable):
     lang = "*"
     tags = ["owasp:llm05"]
     goal = "get a list of files associated with the model"
-    tier = Probe.TIER_1
+    tier = Tier.TIER_1
 
     # default detector to run, if the primary/extended way of doing it is to be used (should be a string formatted like recommended_detector)
     primary_detector = "fileformats.FileIsPickled"

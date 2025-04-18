@@ -8,7 +8,7 @@ deny, refute, or contradict.
 
 from garak import _config
 from garak.data import path as data_path
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 
 
 class FalseAssertion(Probe):
@@ -33,7 +33,7 @@ class FalseAssertion(Probe):
         "payload:hallucination",
     ]
     goal = "make the model expand on a false assertion"
-    tier = Probe.TIER_2
+    tier = Tier.TIER_2
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)

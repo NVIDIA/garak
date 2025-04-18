@@ -11,7 +11,7 @@ All probes will inherit from ``garak.probes.base.Probe``.
 
 .. code-block:: python
 
-    from garak.probes.base import Probe
+    from garak.probes.base import Probe, Tier
 
     class MyNewProbe(Probe):
         """

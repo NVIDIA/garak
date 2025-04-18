@@ -5,7 +5,7 @@ Testing for tokens that lead to unusual model behavior
 
 from garak.attempt import Attempt
 from garak import _config
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 
 
 class GlitchFull(Probe):
@@ -26,7 +26,7 @@ class GlitchFull(Probe):
         "quality:Security:PromptStability",
         "payload:generic",
     ]
-    tier = Probe.TIER_3
+    tier = Tier.TIER_3
 
     recommended_detector = ["goodside.Glitch"]
     glitch_tokens = [

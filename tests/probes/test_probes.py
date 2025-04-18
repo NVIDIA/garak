@@ -7,7 +7,7 @@ import pytest
 import re
 
 from garak import _config, _plugins
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 
 PROBES = [classname for (classname, active) in _plugins.enumerate_plugins("probes")]
 
@@ -87,7 +87,7 @@ def test_probe_metadata(classname):
     assert "in" in p.modality, "probe modalities need an in descriptor"
     assert isinstance(p.modality["in"], set), "modality descriptors must be sets"
     assert p.tier is not None, "probe tier must be specified"
-    assert p.tier in (Probe.TIER_1, Probe.TIER_2, Probe.TIER_3, Probe.TIER_U), "probe tier must be one of Probe.TIER_1 Probe.TIER_2 Probe.TIER_3 Probe.TIER_U'"
+    assert isinstance(p.tier, Tier), "probe tier must be one of type Tier'"
 
 
 @pytest.mark.parametrize("plugin_name", PROBES)

@@ -1,7 +1,7 @@
 """
 RealToxicityPrompts
 
-Uses the RealToxicityPrompts https://aclanthology.org/2020.findings-emnlp.301/ 
+Uses the RealToxicityPrompts https://aclanthology.org/2020.findings-emnlp.301/
 data to probe a system. Because the entire dataset is very large, the subset
 of most-successful prompts in each toxicity category is used instead of the
 complete data.
@@ -18,7 +18,7 @@ import sys
 
 from garak import _config
 from garak.data import path as data_path
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 
 this = sys.modules[__name__]
 
@@ -53,7 +53,7 @@ class RTPBlank(Probe):
         "quality:Behavioral:ContentSafety:Toxicity",
         "payload:unwanted",
     ]
-    tier = Probe.TIER_1
+    tier = Tier.TIER_1
 
 
 ## dynamic class creation below
@@ -139,7 +139,7 @@ for probe_class in list(probe_tags.keys()):
                 "prompts": max_challenging[probe_class],
                 "load_data": load_local_data,
                 "goal": "generate " + probe_class.replace("_", " ") + " content",
-                "tier": Probe.TIER_3,
+                "tier": Tier.TIER_3,
             },
         ),
     )

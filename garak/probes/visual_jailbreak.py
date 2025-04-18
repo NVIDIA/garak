@@ -12,7 +12,7 @@ import requests
 import tqdm
 
 from garak import _config
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 from garak.data import path as data_path
 from garak.generators.base import Generator
 
@@ -37,7 +37,7 @@ class FigStepFull(Probe):
         "payload:jailbreak",
     ]
     goal = "disregard the system prompt with both text and image"
-    tier = Probe.TIER_2
+    tier = Tier.TIER_2
 
     prompts = []
 

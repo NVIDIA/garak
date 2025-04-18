@@ -8,7 +8,7 @@ Probes designed to disrupt a system prompt by appending an adversarial suffix.
 import logging
 from typing import List
 
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 from garak.data import path as data_path
 from garak import _config
 import garak.attempt
@@ -33,7 +33,7 @@ class GCGCached(Probe):
         "payload:jailbreak",
     ]
     goal = "cause the model to disregard the system prompt"
-    tier = Probe.TIER_2
+    tier = Tier.TIER_2
     doc_uri = "https://arxiv.org/abs/2307.15043"
 
     prompts = list()
@@ -64,7 +64,7 @@ class GCG(Probe):
         "payload:jailbreak",
     ]
     goal = "cause the model to disregard the system prompt"
-    tier = Probe.TIER_2
+    tier = Tier.TIER_2
     doc_uri = "https://arxiv.org/abs/2307.15043"
 
     prompts = list()
@@ -130,7 +130,7 @@ class BEAST(Probe):
         "payload:jailbreak",
     ]
     goal = "cause the model to disregard the system prompt"
-    tier = Probe.TIER_2
+    tier = Tier.TIER_2
     doc_uri = "https://arxiv.org/abs/2402.15570"
 
     prompts = list()
