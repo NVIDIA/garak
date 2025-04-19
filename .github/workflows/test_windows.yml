@@ -23,6 +23,9 @@ permissions:
   security-events: none
   statuses: none
 
+env:
+  XDG_CACHE_HOME: ${{ github.workspace }}/.cache
+
 jobs:
   build_windows:
     runs-on: windows-latest
@@ -38,6 +41,16 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name: Restore test cache artifacts
+        id: cache-artifacts-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            .cache/garak/data
+            .cache/huggingface
+          enableCrossOsArchive: true
+          key: hf-cache-shared
 
       - name: Install dependencies
         run: |

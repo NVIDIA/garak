@@ -7,6 +7,12 @@ on:
   pull_request:
   workflow_dispatch:
   workflow_call:
+    inputs:
+      store-cache:
+        description: "Store resource cache"
+        required: false
+        type: boolean
+
 
 permissions:
   actions: none
@@ -22,6 +28,9 @@ permissions:
   repository-projects: none
   security-events: none
   statuses: none
+
+env:
+  XDG_CACHE_HOME: ${{ github.workspace }}/.cache
 
 jobs:
   build_macos:
@@ -39,6 +48,15 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Restore test cache artifacts
+        id: cache-artifacts-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            .cache/garak/data
+            .cache/huggingface
+          key: hf-cache-shared
+
       - name: Install dependencies
         run: |
           brew install libmagic
@@ -51,3 +69,18 @@ jobs:
         run: |
           cd garak
           python -m pytest tests/
+
+      - name: Prepare resources for cache
+        run: |
+          rm -rf .cache/huggingface/hub/*facebook*
+          rm -rf .cache/huggingface/hub/*Helsinki*
+
+      - name: Save test cache
+        if: inputs.store-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .cache/garak/data
+            .cache/huggingface
+          enableCrossOsArchive: true
+          key: hf-cache-shared
