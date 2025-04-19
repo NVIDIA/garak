@@ -215,6 +215,7 @@ def test_demo_dialogue_accessor_usage():
             {"role": "assistant", "content": test_sys1},
         ]
     ]
+    assert demo_a.last_output == [test_sys1]
     assert demo_a.outputs == [test_sys1]
 
     demo_a.latest_prompts = [test_user_reply]
@@ -236,7 +237,8 @@ def test_demo_dialogue_accessor_usage():
             {"role": "assistant", "content": test_sys2},
         ]
     ]
-    assert demo_a.outputs == [test_sys2]
+    assert demo_a.last_output == [test_sys2]
+    assert demo_a.outputs == [test_sys1, test_sys2]    
 
 
 def test_demo_dialogue_method_usage():
@@ -261,6 +263,7 @@ def test_demo_dialogue_method_usage():
             {"role": "assistant", "content": test_sys1},
         ]
     ]
+    assert demo_a.last_output == [test_sys1]
     assert demo_a.outputs == [test_sys1]
 
     demo_a._add_turn("user", [test_user_reply])
@@ -282,7 +285,8 @@ def test_demo_dialogue_method_usage():
             {"role": "assistant", "content": test_sys2},
         ]
     ]
-    assert demo_a.outputs == [test_sys2]
+    assert demo_a.last_output == [test_sys2]
+    assert demo_a.outputs == [test_sys1, test_sys2]
 
 
 def test_outputs():

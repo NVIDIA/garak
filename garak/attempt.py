@@ -133,7 +133,7 @@ class Attempt:
             )
 
     @property
-    def outputs(self):
+    def last_output(self):
         if len(self.messages) and isinstance(self.messages[0], list):
             # work out last_output_turn that was assistant
             assistant_turns = [
@@ -146,6 +146,24 @@ class Attempt:
             last_output_turn = max(assistant_turns)
             # return these (via list compr)
             return [m[last_output_turn]["content"] for m in self.messages]
+        else:
+            return []
+
+    @property
+    def outputs(self):
+        if len(self.messages) and isinstance(self.messages[0], list):
+            # work out last_output_turn that was assistant
+            assistant_turns = [
+                idx
+                for idx, val in enumerate(self.messages[0])
+                if val["role"] == "assistant"
+            ]
+            if assistant_turns == []:
+                return []
+            else:
+                return [m[turn_idx]["content"]
+                        for m in self.messages
+                        for turn_idx in assistant_turns]
         else:
             return []
 
