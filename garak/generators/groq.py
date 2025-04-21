@@ -5,6 +5,7 @@ from typing import List, Union
 
 import openai
 
+from garak.attempt import Turn
 from garak.generators.openai import OpenAICompatible
 
 
@@ -50,8 +51,8 @@ class GroqChat(OpenAICompatible):
         self.generator = self.client.chat.completions
 
     def _call_model(
-        self, prompt: str | List[dict], generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
+        self, prompt: Turn | List[dict], generations_this_call: int = 1
+    ) -> List[Union[Turn, None]]:
         assert (
             generations_this_call == 1
         ), "generations_per_call / n > 1 is not supported"

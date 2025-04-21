@@ -5,8 +5,12 @@ import importlib
 import inspect
 import pytest
 
+from typing import List, Union
+
 from garak import _plugins
 from garak import _config
+
+from garak.attempt import Turn
 from garak.generators.base import Generator
 
 
@@ -23,15 +27,15 @@ def test_parallel_requests():
     _config.system.parallel_requests = 2
 
     g = _plugins.load_plugin("generators.test.Lipsum")
-    result = g.generate(prompt="this is a test", generations_this_call=3)
+    result = g.generate(prompt=Turn("this is a test"), generations_this_call=3)
     assert isinstance(result, list), "Generator generate() should return a list"
     assert len(result) == 3, "Generator should return 3 results as requested"
     assert all(
-        isinstance(item, str) for item in result
-    ), "All items in the generate result should be strings"
+        isinstance(item, Turn) for item in result
+    ), "All items in the generate result should be Turns"
     assert all(
-        len(item) > 0 for item in result
-    ), "All generated strings should be non-empty"
+        len(item.text) > 0 for item in result
+    ), "All generated Turn texts should be non-empty"
 
 
 @pytest.mark.parametrize("classname", GENERATORS)
@@ -116,39 +120,67 @@ def test_instantiate_generators(classname):
     assert isinstance(g, Generator)
 
 
+NON_CONVERSATION_GENERATORS = [
+    classname
+    for classname in GENERATORS
+    if not ("openai" in classname or "groq" in classname or "azure" in classname)
+]
+
+
+@pytest.mark.parametrize("classname", NON_CONVERSATION_GENERATORS)
+def test_generator_signature(classname):
+    _, namespace, klass = classname.split(".")
+    m = importlib.import_module(f"garak.generators.{namespace}")
+    g = getattr(m, klass)
+    generate_signature = inspect.signature(g.generate)
+    assert (
+        generate_signature.parameters.get("prompt").annotation == Turn
+    ), "generate should take a Turn and return list of Turns or Nones"
+    assert (
+        generate_signature.return_annotation == List[Union[None, Turn]]
+    ), "generate should take a Turn and return list of Turns or Nones"
+    _call_model_signature = inspect.signature(g._call_model)
+    assert (
+        _call_model_signature.parameters.get("prompt").annotation == Turn
+    ), "_call_model should take a Turn and return list of Turns or Nones"
+    assert (
+        _call_model_signature.return_annotation == List[Union[None, Turn]]
+    ), "_call_model should take a Turn and return list of Turns or Nones"
+
+
 def test_skip_seq():
     target_string = "TEST TEST 1234"
     test_string_with_thinking = "TEST TEST <think>not thius tho</think>1234"
     test_string_with_thinking_complex = '<think></think>TEST TEST <think>not thius tho</think>1234<think>!"(^-&$(!$%*))</think>'
     test_string_with_newlines = "<think>\n\n</think>" + target_string
     g = _plugins.load_plugin("generators.test.Repeat")
-    r = g.generate(test_string_with_thinking)
+    r = g.generate(Turn(test_string_with_thinking))
     g.skip_seq_start = None
     g.skip_seq_end = None
-    assert (
-        r[0] == test_string_with_thinking
+    assert r[0] == Turn(
+        test_string_with_thinking
     ), "test.Repeat should give same output as input when no think tokens specified"
     g.skip_seq_start = "<think>"
     g.skip_seq_end = "</think>"
-    r = g.generate(test_string_with_thinking)
-    assert (
-        r[0] == target_string
+    r = g.generate(Turn(test_string_with_thinking))
+    assert r[0] == Turn(
+        target_string
     ), "content between single skip sequence should be removed"
-    r = g.generate(test_string_with_thinking_complex)
-    assert (
-        r[0] == target_string
+    r = g.generate(Turn(test_string_with_thinking_complex))
+    assert r[0] == Turn(
+        target_string
     ), "content between multiple skip sequences should be removed"
-    r = g.generate(test_string_with_newlines)
-    assert r[0] == target_string, "skip seqs full of newlines should be removed"
+    r = g.generate(Turn(test_string_with_newlines))
+    assert r[0] == Turn(target_string), "skip seqs full of newlines should be removed"
 
     test_no_answer = "<think>not sure the output to provide</think>"
-    r = g.generate(test_no_answer)
-    assert r[0] == "", "Output of all skip strings should be empty"
+    r = g.generate(Turn(test_no_answer))
+    assert r[0] == Turn(""), "Output of all skip strings should be empty"
 
     test_truncated_think = f"<think>thinking a bit</think>{target_string}<think>this process required a lot of details that is processed by"
-    r = g.generate(test_truncated_think)
-    assert r[0] == target_string, "truncated skip strings should be omitted"
+    r = g.generate(Turn(test_truncated_think))
+    assert r[0] == Turn(target_string), "truncated skip strings should be omitted"
 
     test_truncated_think_no_answer = "<think>thinking a bit</think><think>this process required a lot of details that is processed by"
-    r = g.generate(test_truncated_think_no_answer)
-    assert r[0] == "", "truncated skip strings should be omitted"
+    r = g.generate(Turn(test_truncated_think_no_answer))
+    assert r[0] == Turn(""), "truncated skip strings should be omitted"

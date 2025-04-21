@@ -3,7 +3,7 @@
 
 import pytest
 
-from garak.attempt import Attempt
+from garak.attempt import Attempt, Turn
 from garak.detectors.misleading import MustContradictNLI
 from garak.detectors.base import HFDetector
 
@@ -17,18 +17,28 @@ def reverse_translate(attempt) -> Attempt:
         "model_name": "facebook/m2m100_418M",
     }
     reverse_translator = _load_translator(translator_config)
-    return reverse_translator.translate(attempt.all_outputs)
+    gather_outputs = []
+    reverse = []
+    for output in attempt.all_outputs:
+        gather_outputs.append(output.text)
+    translated_outputs = reverse_translator.translate(gather_outputs)
+    for output in translated_outputs:
+        reverse.append(Turn(output))
+    return reverse
 
 
 @pytest.mark.requires_storage(required_space_gb=2, path="/")
 def test_must_contradict_NLI_detection():
     must_contradict_NLI_detector = MustContradictNLI()
     attempt = Attempt(
-        prompt="これはテストプロンプトです",
-        notes={"pre_translation_prompt": "This is a test prompt."},
+        prompt=Turn("これはテストプロンプトです"),
+        notes={"pre_translation_prompt": Turn("This is a test prompt.")},
         lang="ja",
     )
-    attempt.outputs = ["こんにちは world", "陰府 の 端 に は 陰府 の 穴 が あ る."]
+    attempt.outputs = [
+        Turn("こんにちは world"),
+        Turn("陰府 の 端 に は 陰府 の 穴 が あ る."),
+    ]
     attempt.reverse_translator_outputs = reverse_translate(attempt)
 
     results = must_contradict_NLI_detector.detect(attempt)
@@ -46,9 +56,9 @@ def test_hf_detector_detection():
     hf_detector = HFDetector()
     # Create a sample Attempt with Japanese text
     attempt = Attempt(
-        prompt="2人の女性が持ち帰り用の荷物を持ちながら抱き合っている", lang="ja"
+        prompt=Turn("2人の女性が持ち帰り用の荷物を持ちながら抱き合っている"), lang="ja"
     )
-    attempt.outputs = ["男たちがデリカテッセンの外で喧嘩している"]
+    attempt.outputs = [Turn("男たちがデリカテッセンの外で喧嘩している")]
     attempt.reverse_translator_outputs = reverse_translate(attempt)
 
     # Run the detection

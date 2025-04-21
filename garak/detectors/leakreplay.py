@@ -9,6 +9,7 @@ from garak.detectors.base import Detector
 from garak.attempt import Attempt
 
 
+# consider refactor to base.StringDetector
 class StartsWith(Detector):
     """Subclass of Detector using attempt's notes[triggers] as list of strings to match"""
 
@@ -19,17 +20,17 @@ class StartsWith(Detector):
         if "triggers" in attempt.notes:
             triggers = attempt.notes["triggers"]
             for output in attempt.all_outputs:
-                if output is None:
+                if output.text is None:
                     continue
 
                 match = False
-                output = output.strip()
+                output_text = output.text.strip()
                 for trigger in triggers:
                     if case_sensitive:
-                        if output.startswith(trigger):
+                        if output_text.startswith(trigger):
                             match = True
                     else:
-                        if output.lower().startswith(trigger.lower()):
+                        if output_text.lower().startswith(trigger.lower()):
                             match = True
                 detector_results.append(1.0 if match else 0.0)
 

@@ -136,10 +136,10 @@ class Tox(Probe):
                     else:
                         query = last_response  # oh hey we might want to be able to switch roles here for chat models. or not?
 
-                    challenge = self.redteamer.generate(query)[0]
+                    challenge = self.redteamer.generate(garak.attempt.Turn(query))[0]
                     if self.red_team_postproc_rm_regex:
-                        challenge = re.sub(
-                            self.red_team_postproc_rm_regex, "", challenge
+                        challenge_text = re.sub(
+                            self.red_team_postproc_rm_regex, "", challenge.text
                         ).strip()
 
                 if not output_is_conversation:
@@ -149,17 +149,17 @@ class Tox(Probe):
                 # results in no retention of the challenge translation sent to the target
 
                 # translate the challenge to send to the target
-                challenge_to_send = self.translator.translate([challenge])[0]
-                turn = ("probe", challenge)  # turns stores the original challenge
+                challenge_to_send = self.translator.translate([challenge_text])[0]
+                turn = ("probe", challenge_text)  # turns stores the original challenge
 
                 if len(turns) == 0:
                     this_attempt.prompt = challenge_to_send
                     this_attempt.lang = self.translator.target_lang
-                    if challenge_to_send != challenge:
-                        this_attempt.notes["pre_translation_prompt"] = challenge
+                    if challenge_to_send != challenge_text:
+                        this_attempt.notes["pre_translation_prompt"] = challenge_text
                     this_attempt._expand_prompt_to_histories(1)
                 else:
-                    this_attempt._add_turn("user", [challenge_to_send])
+                    this_attempt._add_turn("user", [garak.attempt.Turn(challenge_to_send)])
 
                 turns.append(turn)
                 logging.debug("atkgen: probe: %s", turn)
@@ -173,21 +173,23 @@ class Tox(Probe):
                         f" turn {t.n:02}: waiting for [{generator.name[:10]:<10}]"
                     )
                 # send the challenge in the target language and get the response
-                response = generator.generate(challenge_to_send)
+                response = generator.generate(garak.attempt.Turn(challenge_to_send))
                 if response is None or len(response) == 0:
-                    response = ""
+                    response_text = ""
                 else:
-                    response = response[0].strip() if response[0] is not None else ""
+                    response_text = (
+                        response[0].text.strip() if response[0] is not None else ""
+                    )
 
                 # log the response
-                response_to_store = self.reverse_translator.translate([response])[0]
+                response_to_store = self.reverse_translator.translate([response_text])[0]
                 turn = ("model", response_to_store)
                 if (
                     self.reverse_translator.source_lang
                     != self.reverse_translator.target_lang
                 ):
                     this_attempt.reverse_translator_outputs = [response_to_store]
-                this_attempt._add_turn("assistant", [response])
+                this_attempt._add_turn("assistant", [garak.attempt.Turn(response_text)])
                 turns.append(turn)
                 logging.debug("atkgen: model: %s", turn)
                 if output_is_conversation:
@@ -197,12 +199,12 @@ class Tox(Probe):
                 # increment calls_made
                 calls_made += 1
                 # check if the resp is empty or if it matches the previous resp
-                if not len(response) and not self.constructive_tension:
+                if not len(response_text) and not self.constructive_tension:
                     keep_going = False
                 if response == last_response:
                     keep_going = False
                 # update last_response
-                last_response = response.replace("\n", " ").strip()
+                last_response = response_text.replace("\n", " ").strip()
                 self.redteamer.max_new_tokens = 170  # after first iter, give a limit
 
             if not output_is_conversation:

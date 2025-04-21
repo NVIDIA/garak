@@ -33,6 +33,7 @@ import importlib
 from typing import List, Union
 
 from garak import _config
+from garak.attempt import Turn
 from garak.generators.base import Generator
 
 
@@ -87,8 +88,8 @@ class Single(Generator):
         super().__init__(self.name, config_root=config_root)
 
     def _call_model(
-        self, prompt: str, generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
+        self, prompt: Turn, generations_this_call: int = 1
+    ) -> List[Union[Turn, None]]:
         return self.generator(prompt, **self.kwargs)
 
 
@@ -98,8 +99,8 @@ class Multiple(Single):
     supports_multiple_generations = True
 
     def _call_model(
-        self, prompt: str, generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
+        self, prompt: Turn, generations_this_call: int = 1
+    ) -> List[Union[Turn, None]]:
         return self.generator(prompt, **self.kwargs)
 
 

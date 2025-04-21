@@ -10,6 +10,7 @@ from typing import List, Union
 import openai
 
 from garak import _config
+from garak.attempt import Turn
 from garak.exception import GarakException
 from garak.generators.openai import OpenAICompatible
 
@@ -63,12 +64,12 @@ class NVOpenAIChat(OpenAICompatible):
             )
         self.generator = self.client.chat.completions
 
-    def _prepare_prompt(self, prompt):
+    def _prepare_prompt(self, prompt: Turn) -> Turn:
         return prompt
 
     def _call_model(
-        self, prompt: str | List[dict], generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
+        self, prompt: Turn, generations_this_call: int = 1
+    ) -> List[Union[Turn, None]]:
         assert (
             generations_this_call == 1
         ), "generations_per_call / n > 1 is not supported"
@@ -90,11 +91,14 @@ class NVOpenAIChat(OpenAICompatible):
             msg = "Model call didn't match endpoint expectations, see log"
             logging.critical(msg, exc_info=uee)
             raise GarakException(f"🛑 {msg}") from uee
-        #        except openai.NotFoundError as oe:
-        except Exception as oe:  # too broad
+        except openai.NotFoundError as nfe:
+            msg = "NIM endpoint not found. Is the model name spelled correctly and the endpoint URI correct?"
+            logging.critical(msg, exc_info=nfe)
+            raise GarakException(f"🛑 {msg}") from nfe
+        except Exception as oe:
             msg = "NIM generation failed. Is the model name spelled correctly?"
             logging.critical(msg, exc_info=oe)
-            raise GarakException(f"🛑 {msg}") from oe
+            raise GarakException(f"🛑 {msg}") from nfe
 
         return result
 
@@ -146,32 +150,38 @@ class Vision(NVOpenAIChat):
 
     modality = {"in": {"text", "image"}, "out": {"text"}}
 
-    def _prepare_prompt(self, prompt):
-        import base64
+    def _prepare_prompt(self, turn: Turn) -> Turn:
 
-        if isinstance(prompt, str):
-            prompt = {"text": prompt, "image": None}
+        text = turn.text
 
-        text = prompt["text"]
-        image_filename = prompt["image"]
-        if image_filename is not None:
-            with open(image_filename, "rb") as f:
-                image_b64 = base64.b64encode(f.read()).decode()
+        image_extension = "jpeg"  # guessing a default in the case of direct data
+
+        if "image_filename" in turn.parts and "image_data" not in turn.parts:
+            turn.load_image()
+            image_extension = turn.parts["image_filename"].split(".")[-1].lower()
+            if image_extension == "jpg":  # image/jpg is not a valid mimetype
+                image_extension = "jpeg"
+
+        if "image_data" in turn.parts:
+            import base64
+
+            image_b64 = base64.b64encode(turn.parts["image_data"]).decode()
 
             if len(image_b64) > self.max_image_len:
+                big_img_filename = "<direct data>"
+                if "image_filename" in turn.parts:
+                    big_img_filename = turn.parts["image_filename"]
                 logging.error(
                     "Image %s exceeds length limit. To upload larger images, use the assets API (not yet supported)",
-                    image_filename,
+                    big_img_filename,
                 )
                 return None
 
-            image_extension = prompt["image"].split(".")[-1].lower()
-            if image_extension == "jpg":  # image/jpg is not a valid mimetype
-                image_extension = "jpeg"
             text = (
                 text + f' <img src="data:image/{image_extension};base64,{image_b64}" />'
             )
-        return text
+            turn.text = text
+        return turn
 
 
 DEFAULT_CLASS = "NVOpenAIChat"
