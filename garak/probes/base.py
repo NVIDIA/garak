@@ -10,6 +10,7 @@ import copy
 import json
 import logging
 from collections.abc import Iterable
+from enum import IntEnum
 import random
 from typing import Iterable, Union
 
@@ -18,9 +19,16 @@ import tqdm
 
 from garak import _config
 from garak.configurable import Configurable
-from garak.exception import GarakException
+from garak.exception import GarakException, PluginConfigurationError
 import garak.attempt
 import garak.resources.theme
+
+
+class Tier(IntEnum):
+    TIER_1 = 1
+    TIER_2 = 2
+    TIER_3 = 3
+    TIER_9 = 9
 
 
 class Probe(Configurable):
@@ -28,8 +36,8 @@ class Probe(Configurable):
 
     # docs uri for a description of the probe (perhaps a paper)
     doc_uri: str = ""
-    # language this is for, in bcp47 format; * for all langs
-    bcp47: Union[Iterable[str], None] = None
+    # language this is for, in BCP47 format; * for all langs
+    lang: Union[str, None] = None
     # should this probe be included by default?
     active: bool = True
     # MISP-format taxonomy categories
@@ -56,6 +64,10 @@ class Probe(Configurable):
     trait_probe: bool = False
     # list of policies the probes tests for / may attempt to breach
     traits: list = []
+    # what tier is this probe? should be in (TIER_1,TIER_2,TIER_3,TIER_9)
+    # let mixins override this
+    # tier: Tier = Tier.TIER_9
+    tier: Tier = Tier.TIER_9
 
     DEFAULT_PARAMS = {}
 
@@ -102,13 +114,13 @@ class Probe(Configurable):
     def _get_translator(self):
         from garak.langservice import get_translator
 
-        translator_instance = get_translator(self.bcp47)
+        translator_instance = get_translator(self.lang)
         return translator_instance
 
     def _get_reverse_translator(self):
         from garak.langservice import get_translator
 
-        translator_instance = get_translator(self.bcp47, reverse=True)
+        translator_instance = get_translator(self.lang, reverse=True)
         return translator_instance
 
     def _attempt_prestore_hook(
@@ -169,7 +181,7 @@ class Probe(Configurable):
         return attempt
 
     def _mint_attempt(
-        self, prompt=None, seq=None, notes=None, bcp47="*"
+        self, prompt=None, seq=None, notes=None, lang="*"
     ) -> garak.attempt.Attempt:
         """function for creating a new attempt given a prompt"""
         new_attempt = garak.attempt.Attempt(
@@ -183,7 +195,7 @@ class Probe(Configurable):
             seq=seq,
             prompt=prompt,
             notes=notes,
-            bcp47=bcp47,
+            lang=lang,
         )
 
         new_attempt = self._attempt_prestore_hook(new_attempt, seq)
@@ -229,7 +241,7 @@ class Probe(Configurable):
                         self._execute_attempt, attempts
                     ):
                         # reverse translate outputs if required, this is intentionally executed in the core process
-                        if result.bcp47 != self.bcp47:
+                        if result.lang != self.lang:
                             result.reverse_translator_outputs = (
                                 self.reverse_translator.translate(result.all_outputs)
                             )
@@ -255,7 +267,7 @@ class Probe(Configurable):
             for this_attempt in attempt_iterator:
                 result = self._execute_attempt(this_attempt)
                 # reverse translate outputs if required
-                if result.bcp47 != self.bcp47:
+                if result.lang != self.lang:
                     result.reverse_translator_outputs = (
                         self.reverse_translator.translate(result.all_outputs)
                     )
@@ -273,13 +285,13 @@ class Probe(Configurable):
         # build list of attempts
         attempts_todo: Iterable[garak.attempt.Attempt] = []
         prompts = list(self.prompts)
-        lang = self.bcp47
+        lang = self.lang
         prompts = self.translator.translate(prompts)
         lang = self.translator.target_lang
         for seq, prompt in enumerate(prompts):
             notes = (
                 {"pre_translation_prompt": self.prompts[seq]}
-                if lang != self.bcp47
+                if lang != self.lang
                 else None
             )
             attempts_todo.append(self._mint_attempt(prompt, seq, notes, lang))
@@ -411,7 +423,7 @@ class TreeSearchProbe(Probe):
 
                 for prompt in self._gen_prompts(surface_form):
                     notes = {"surface_form": surface_form}
-                    a = self._mint_attempt(prompt, notes=notes, bcp47=self.bcp47)
+                    a = self._mint_attempt(prompt, notes=notes, lang=self.lang)
                     attempts_todo.append(a)
 
                 surface_forms_probed.add(surface_form)

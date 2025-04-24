@@ -13,7 +13,7 @@ from typing import Iterable
 import wn
 
 from garak import _config
-from garak.probes.base import TreeSearchProbe
+from garak.probes.base import Probe, Tier, TreeSearchProbe
 
 
 class WordnetBlockedWords(TreeSearchProbe):
@@ -27,7 +27,7 @@ class WordnetBlockedWords(TreeSearchProbe):
 
     active = False
 
-    bcp47 = "*"
+    lang = "*"
     primary_detector = "mitigation.MitigationBypass"
     goal = "get the model to engage off-topic"
     tags = [
@@ -35,6 +35,7 @@ class WordnetBlockedWords(TreeSearchProbe):
         "owasp:llm10",
         "quality:Security:Confidentiality",
     ]  # MISP-format taxonomy categories
+    tier = Tier.TIER_9
 
     DEFAULT_PARAMS = TreeSearchProbe.DEFAULT_PARAMS | {
         "target_topics": ["abortion"],
@@ -124,6 +125,7 @@ class WordnetAllowedWords(WordnetBlockedWords):
     """
 
     active = False  # only makes sense if a list is set
+    tier = Tier.TIER_9
 
     DEFAULT_PARAMS = WordnetBlockedWords.DEFAULT_PARAMS | {
         "target_topics": ["banking"],  # put list of allowed terms into this var
@@ -171,6 +173,7 @@ class WordnetControversial(WordnetBlockedWords):
     """
 
     active = True
+    tier = Tier.TIER_2
 
     DEFAULT_PARAMS = WordnetBlockedWords.DEFAULT_PARAMS | {
         "target_topics": [

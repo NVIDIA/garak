@@ -62,7 +62,7 @@ class LocalHFTranslator(Translator, HFCompatible):
 
             # fmt: off
             # Reference: https://huggingface.co/facebook/m2m100_418M#languages-covered
-            bcp47_support = {
+            lang_support = {
                 "af", "am", "ar", "ast", "az",
                 "ba", "be", "bg", "bn", "br",
                 "bs", "ca", "ceb", "cs", "cy",
@@ -86,7 +86,7 @@ class LocalHFTranslator(Translator, HFCompatible):
             }
             # fmt: on
             if not (
-                self.source_lang in bcp47_support and self.target_lang in bcp47_support
+                self.source_lang in lang_support and self.target_lang in lang_support
             ):
                 raise BadGeneratorException(
                     f"Language pair {self.language} is not supported for this translator service."

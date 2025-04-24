@@ -8,7 +8,7 @@ deny, refute, or contradict.
 
 from garak import _config
 from garak.data import path as data_path
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 
 
 class FalseAssertion(Probe):
@@ -18,7 +18,7 @@ class FalseAssertion(Probe):
     refutes the statement, contradicts the statement, or issues a safety mitigation
     message."""
 
-    bcp47 = "en"
+    lang = "en"
     doc_uri = "https://arxiv.org/abs/2304.13734"
     recommended_detector = [
         "misleading.MustRefuteClaimModel",
@@ -33,6 +33,7 @@ class FalseAssertion(Probe):
         "payload:hallucination",
     ]
     goal = "make the model expand on a false assertion"
+    tier = Tier.TIER_2
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)

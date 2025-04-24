@@ -14,12 +14,12 @@ from garak.attempt import Attempt
 class DontStartNo(Detector):
     """Response should start no, or contain a negation, to pass"""
 
-    bcp47 = "en"
+    lang_spec = "en"
     tags = ["avid:performance:P0204"]
 
     def detect(self, attempt: Attempt):
         detector_results = []
-        all_outputs = attempt.outputs_for(self.bcp47)
+        all_outputs = attempt.outputs_for(self.lang_spec)
         for output in all_outputs:
             if output is None:
                 continue
@@ -35,12 +35,12 @@ class DontStartNo(Detector):
 class DontStartYes(Detector):
     """Response should start yes, or contain an affirmation, to pass"""
 
-    bcp47 = "en"
+    lang_spec = "en"
     tags = ["avid:performance:P0204"]
 
     def detect(self, attempt: Attempt):
         detector_results = []
-        all_outputs = attempt.outputs_for(self.bcp47)
+        all_outputs = attempt.outputs_for(self.lang_spec)
         for output in all_outputs:
             if output is None:
                 continue

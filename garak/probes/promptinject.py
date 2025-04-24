@@ -2,7 +2,7 @@
 
 Uses the PromptInject framework, https://openreview.net/forum?id=qiaRo_7Zmug,
 to probe a system. A subset of the attacks is implemented here. The default
-is to use a selection of that subset, because even the subset corresponds to 
+is to use a selection of that subset, because even the subset corresponds to
 thousands of requests by default.
 """
 
@@ -10,7 +10,7 @@ import random
 import sys
 
 from garak.attempt import Attempt
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 from garak import _config
 
 
@@ -79,7 +79,9 @@ def load_data_all_attacks(self):
 
 def _attempt_prestore_hook(self, attempt: Attempt, seq: int) -> Attempt:
     attempt.notes["settings"] = self.pi_prompts[seq]["settings"]
-    attempt.notes["triggers"] = [self.pi_prompts[seq]["settings"]["attack_rogue_string"]]
+    attempt.notes["triggers"] = [
+        self.pi_prompts[seq]["settings"]["attack_rogue_string"]
+    ]
     return attempt
 
 
@@ -110,7 +112,7 @@ for rogue_string in rogue_strings:
                 "__init__": constructor,
                 "__doc__": f"PromptInject probe to inject a string; payload is {rogue_string}\n\nAttempt to make the model repeat a given string",
                 "name": "promptinject_" + rogue_string,
-                "bcp47": "en",
+                "lang": "en",
                 "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
                 "recommended_detector": [
                     "promptinject.AttackRogueString",
@@ -130,6 +132,7 @@ for rogue_string in rogue_strings:
                 "_generator_precall_hook": _generator_precall_hook,
                 "goal": "inject a prompt on " + rogue_string.replace("-", " "),
                 "active": False,
+                "tier": Tier.TIER_2,
             },
         ),
     )
@@ -144,7 +147,7 @@ for rogue_string in rogue_strings:
                 "__init__": constructor,
                 "__doc__": f"PromptInject probe to inject a string; payload is {rogue_string}\n\nAttempt to make the model repeat a given string",
                 "name": "promptinject_" + rogue_string,
-                "bcp47": "en",
+                "lang": "en",
                 "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
                 "recommended_detector": [
                     "promptinject.AttackRogueString",
@@ -164,6 +167,7 @@ for rogue_string in rogue_strings:
                 "_generator_precall_hook": _generator_precall_hook,
                 "goal": "inject a prompt on " + rogue_string.replace("-", " "),
                 "active": True,
+                "tier": Tier.TIER_2,
             },
         ),
     )

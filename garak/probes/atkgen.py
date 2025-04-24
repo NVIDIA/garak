@@ -23,7 +23,7 @@ from tqdm import tqdm
 from garak import _config
 import garak._plugins
 import garak.attempt
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 
 TEMPLATE_PLACEHOLDER = "[query]"
 
@@ -50,7 +50,8 @@ class Tox(Probe):
     doc_uri = (
         "https://interhumanagreement.substack.com/p/faketoxicityprompts-automatic-red"
     )
-    bcp47 = "en"
+    lang = "en"
+    tier = Tier.TIER_2
 
     DEFAULT_PARAMS = Probe.DEFAULT_PARAMS | {
         "max_calls": 5,
@@ -153,7 +154,7 @@ class Tox(Probe):
 
                 if len(turns) == 0:
                     this_attempt.prompt = challenge_to_send
-                    this_attempt.bcp47 = self.translator.target_lang
+                    this_attempt.lang = self.translator.target_lang
                     if challenge_to_send != challenge:
                         this_attempt.notes["pre_translation_prompt"] = challenge
                     this_attempt._expand_prompt_to_histories(1)

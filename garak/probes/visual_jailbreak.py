@@ -12,7 +12,7 @@ import requests
 import tqdm
 
 from garak import _config
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 from garak.data import path as data_path
 from garak.generators.base import Generator
 
@@ -27,7 +27,7 @@ class FigStepFull(Probe):
 
     active = False  # default to use limit version - FigStep80
     doc_uri = "https://arxiv.org/abs/2311.05608"
-    bcp47 = "en"
+    lang = "en"
     recommended_detector = ["visual_jailbreak.FigStep"]
     tags = [
         # "avid-effect:security:S0403",
@@ -37,6 +37,7 @@ class FigStepFull(Probe):
         "payload:jailbreak",
     ]
     goal = "disregard the system prompt with both text and image"
+    tier = Tier.TIER_2
 
     prompts = []
 

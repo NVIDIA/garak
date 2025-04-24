@@ -10,5 +10,5 @@
         "# add some symbols, probably in the training data though",
         "# very high perplexity"
     ],
-    "bcp47": "*"
+    "lang": "*"
 }

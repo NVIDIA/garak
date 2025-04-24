@@ -26,7 +26,7 @@ def test_must_contradict_NLI_detection():
     attempt = Attempt(
         prompt="これはテストプロンプトです",
         notes={"pre_translation_prompt": "This is a test prompt."},
-        bcp47="ja",
+        lang="ja",
     )
     attempt.outputs = ["こんにちは world", "陰府 の 端 に は 陰府 の 穴 が あ る."]
     attempt.reverse_translator_outputs = reverse_translate(attempt)
@@ -46,7 +46,7 @@ def test_hf_detector_detection():
     hf_detector = HFDetector()
     # Create a sample Attempt with Japanese text
     attempt = Attempt(
-        prompt="2人の女性が持ち帰り用の荷物を持ちながら抱き合っている", bcp47="ja"
+        prompt="2人の女性が持ち帰り用の荷物を持ちながら抱き合っている", lang="ja"
     )
     attempt.outputs = ["男たちがデリカテッセンの外で喧嘩している"]
     attempt.reverse_translator_outputs = reverse_translate(attempt)

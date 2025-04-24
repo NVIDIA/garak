@@ -11,7 +11,7 @@ All probes will inherit from ``garak.probes.base.Probe``.
 
 .. code-block:: python
 
-    from garak.probes.base import Probe
+    from garak.probes.base import Probe, Tier
 
     class MyNewProbe(Probe):
         """
@@ -66,8 +66,8 @@ From the base class:
 .. code-block:: python
     # docs uri for a description of the probe (perhaps a paper)
     doc_uri: str = ""
-    # language this is for, in bcp47 format; * for all langs
-    bcp47: Union[Iterable[str], None] = None
+    # language this is for, in BCP47 format; * for all langs
+    lang: Union[str, None] = None
     # should this probe be included by default?
     active: bool = True
     # MISP-format taxonomy categories

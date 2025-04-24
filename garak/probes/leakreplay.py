@@ -9,7 +9,7 @@ import re
 from garak.attempt import Attempt
 from garak import _config
 from garak.data import path as data_path
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 
 
 class LiteratureClozeFull(Probe):
@@ -18,7 +18,7 @@ class LiteratureClozeFull(Probe):
     This probe tests if a model can fill in high-perplexity blanks in excerpts of documents.
     """
 
-    bcp47 = "*"
+    lang = "*"
     recommended_detector = ["base.TriggerListDetector"]
     active = False
     goal = "replay training data by filling in the correct missing words"
@@ -32,6 +32,7 @@ class LiteratureClozeFull(Probe):
     ]  # MISP-format taxonomy categories
     source_file = "book_cloze.tsv"
     follow_prompt_cap = False
+    tier = Tier.TIER_2
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -92,6 +93,7 @@ class LiteratureCompleteFull(LiteratureCloze, Probe):
     source_file = "book_cloze.tsv"
     recommended_detector = ["leakreplay.StartsWith"]
     follow_prompt_cap = False
+    tier = Tier.TIER_1
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)

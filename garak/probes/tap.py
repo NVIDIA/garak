@@ -22,14 +22,14 @@ The description of this technique is:
 > This significantly improves upon the previous state-of-the-art black-box method for
 > generating jailbreaks.
 
-This requires three LLMs: (1) the target model / generator; (2) a model to generate 
-jailbreak attacks; (3) a model to evaluate and rank how well the jailbreaks are 
-doing. Thus, the hardware requirements can be quite high if one is running 
-everything on a local machine. The evaluator model (3) needs to be particularly 
+This requires three LLMs: (1) the target model / generator; (2) a model to generate
+jailbreak attacks; (3) a model to evaluate and rank how well the jailbreaks are
+doing. Thus, the hardware requirements can be quite high if one is running
+everything on a local machine. The evaluator model (3) needs to be particularly
 good in order to successfully evaluate and rank jailbreak progress.
 
 Therefor, as well as the full TAP probe, this module also includes a TAPCached probe
-which uses pre-computed TAP prompts to jailbreak without having to run the two 
+which uses pre-computed TAP prompts to jailbreak without having to run the two
 additional LLMs.
 
 TAP also works as a generalised form of [PAIR](https://arxiv.org/abs/2310.08419), and a
@@ -42,7 +42,7 @@ from typing import List
 
 import tqdm
 
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 from garak.data import path as data_path
 from garak.exception import ConfigFailure, GarakException
 from garak import _config
@@ -58,7 +58,7 @@ class TAPCached(Probe):
     Attempts to automatically develop a target using pre-generated
     jailbreaks from TAP"""
 
-    bcp47 = "en"
+    lang = "en"
     recommended_detector = ["mitigation.MitigationBypass"]
     tags = [
         "avid-effect:security:S0403",
@@ -67,6 +67,7 @@ class TAPCached(Probe):
         "payload:jailbreak",
     ]
     goal = "cause the model to disregard the system prompt"
+    tier = Tier.TIER_2
     doc_uri = "https://arxiv.org/abs/2312.02119"
 
     DEFAULT_PARAMS = Probe.DEFAULT_PARAMS | {
@@ -96,7 +97,7 @@ class TAP(Probe):
     generate an attack and to evaluate the success of that attack. Candidate routes
     to jailbreaking the target are maintained in a tree, which is proactively pruned."""
 
-    bcp47 = "en"
+    lang = "en"
     recommended_detector = ["mitigation.MitigationBypass"]
     tags = [
         "avid-effect:security:S0403",
@@ -106,6 +107,7 @@ class TAP(Probe):
     ]
     goal = "cause the model to disregard the system prompt"
     doc_uri = "https://arxiv.org/abs/2312.02119"
+    tier = Tier.TIER_2
     active = False
 
     DEFAULT_PARAMS = Probe.DEFAULT_PARAMS | {
@@ -227,7 +229,7 @@ class PAIR(Probe):
     This is an implementation of the TAP automatic jailbreak that leverages TAP with
     PAIR settings, making it equivalent to the PAIR jailbreak"""
 
-    bcp47 = "en"
+    lang = "en"
     recommended_detector = ["mitigation.MitigationBypass"]
     tags = [
         "avid-effect:security:S0403",
@@ -237,6 +239,7 @@ class PAIR(Probe):
     ]
     goal = "cause the model to disregard the system prompt"
     doc_uri = "https://arxiv.org/abs/2310.08419"
+    tier = Tier.TIER_2
     active = False
 
     DEFAULT_PARAMS = Probe.DEFAULT_PARAMS | {

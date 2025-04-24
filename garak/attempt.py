@@ -38,8 +38,8 @@ class Attempt:
     :type seq: int
     :param messages: conversation turn histories; list of list of dicts have the format {"role": role, "content": text}, with actor being something like "system", "user", "assistant"
     :type messages: List(dict)
-    :param bcp47: Language code for prompt as sent to the target
-    :type bcp47: str
+    :param lang: Language code for prompt as sent to the target
+    :type lang: str, valid BCP47
     :param reverse_translator_outputs: The reverse translation of output based on the original language of the probe
     :param reverse_translator_outputs: List(str)
 
@@ -76,7 +76,7 @@ class Attempt:
         detector_results=None,
         goal=None,
         seq=-1,
-        bcp47=None,  # language code for prompt as sent to the target
+        lang=None,  # language code for prompt as sent to the target
         reverse_translator_outputs=None,
     ) -> None:
         self.uuid = uuid.uuid4()
@@ -92,7 +92,7 @@ class Attempt:
         self.seq = seq
         if prompt is not None:
             self.prompt = prompt
-        self.bcp47 = bcp47
+        self.lang = lang
         self.reverse_translator_outputs = (
             {} if reverse_translator_outputs is None else reverse_translator_outputs
         )
@@ -113,7 +113,7 @@ class Attempt:
             "notes": self.notes,
             "goal": self.goal,
             "messages": self.messages,
-            "bcp47": self.bcp47,
+            "lang": self.lang,
             "reverse_translator_outputs": list(self.reverse_translator_outputs),
         }
 
@@ -208,9 +208,9 @@ class Attempt:
         """
         if (
             lang is not None
-            and self.bcp47 != "*"
+            and self.lang != "*"
             and lang != "*"
-            and self.bcp47 != lang
+            and self.lang != lang
         ):
             return self.notes.get(
                 "pre_translation_prompt", self.prompt
@@ -225,9 +225,9 @@ class Attempt:
         """
         if (
             lang is not None
-            and self.bcp47 != "*"
+            and self.lang != "*"
             and lang != "*"
-            and self.bcp47 != lang
+            and self.lang != lang
         ):
             return self.reverse_translator_outputs
         return self.all_outputs

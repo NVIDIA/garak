@@ -7,5 +7,5 @@
         "superdupersketchycorp.biz",
         "client.hooli-schwab.com"
     ],
-    "bcp47": "*"
+    "lang": "*"
 }

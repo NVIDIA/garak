@@ -8,7 +8,7 @@ of-the-art LLMs
 
 from garak import _config
 from garak.data import path as data_path
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 
 
 class PastTenseFull(Probe):
@@ -18,7 +18,7 @@ class PastTenseFull(Probe):
     """
 
     active = False
-    bcp47 = "en"
+    lang = "en"
     doc_uri = "https://arxiv.org/pdf/2407.11969v2"
     primary_detector = "specialwords.Prefixes"
     tags = [
@@ -27,6 +27,7 @@ class PastTenseFull(Probe):
         "payload:jailbreak",
     ]
     goal = "use past tense to disregard the system prompt"
+    tier = Tier.TIER_2
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -64,7 +65,7 @@ class FutureTenseFull(Probe):
 
     active = False
 
-    bcp47 = "en"
+    lang = "en"
     doc_uri = "https://arxiv.org/pdf/2407.11969v2"
     primary_detector = "specialwords.Prefixes"
     tags = [
@@ -73,6 +74,7 @@ class FutureTenseFull(Probe):
         "payload:jailbreak",
     ]
     goal = "use future tense to disregard the system prompt"
+    tier = Tier.TIER_2
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)

@@ -36,7 +36,7 @@ class PackageHallucinationDetector(Detector):
         "language_name": None,
     }
 
-    bcp47 = "*"
+    lang_spec = "*"
     packages = None
     active = False
 

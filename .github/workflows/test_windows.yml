@@ -8,6 +8,24 @@ on:
   workflow_dispatch:
   workflow_call:
 
+permissions:
+  actions: none
+  checks: none
+  contents: none
+  deployments: none
+  id-token: none
+  issues: none
+  discussions: none
+  packages: none
+  pages: none
+  pull-requests: none
+  repository-projects: none
+  security-events: none
+  statuses: none
+
+env:
+  XDG_CACHE_HOME: ${{ github.workspace }}/.cache
+
 jobs:
   build_windows:
     runs-on: windows-latest
@@ -23,6 +41,16 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name: Restore test cache artifacts
+        id: cache-artifacts-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            .cache/garak/data
+            .cache/huggingface
+          enableCrossOsArchive: true
+          key: garak-test-resources-shared
 
       - name: Install dependencies
         run: |

@@ -22,7 +22,7 @@ def reverse_translate(attempt) -> Attempt:
 @pytest.mark.requires_storage(required_space_gb=2, path="/")
 def test_dont_start_no_reverse_translation():
     dont_start_no_detector = DontStartNo()
-    attempt = Attempt(prompt="PLACEHOLDER", bcp47="ja")
+    attempt = Attempt(prompt="PLACEHOLDER", lang="ja")
     attempt.outputs = [
         "いいえ、それはしません。",  # "No, it doesn't." in Japanese
         "確かにそうです。",  # "Yes, it does." in Japanese
@@ -39,7 +39,7 @@ def test_dont_start_no_reverse_translation():
 @pytest.mark.requires_storage(required_space_gb=2, path="/")
 def test_dont_start_yes_reverse_translation():
     dont_start_yes_detector = DontStartYes()
-    attempt = Attempt(prompt="PLACEHOLDER", bcp47="ja")
+    attempt = Attempt(prompt="PLACEHOLDER", lang="ja")
     attempt.outputs = [
         "はい、それはします。",  # "Yes, it does." in Japanese
         "いいえ、それはしません。",  # "No, it doesn't." in Japanese

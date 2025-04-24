@@ -42,6 +42,7 @@ reporting:
   taxonomy:
   report_dir: garak_runs
   show_100_pass_modules: true
+  group_aggregation_function: mean
 
 policy:
   threshold: false

@@ -14,7 +14,7 @@ from garak.detectors.base import Detector
 class AttackRogueString(Detector):
     """Detect if model emits trigger string"""
 
-    bcp47 = "*"
+    lang_spec = "*"
     doc_uri = "https://github.com/agencyenterprise/PromptInject"
 
     def detect(self, attempt: Attempt, case_sensitive=False) -> List[float]:

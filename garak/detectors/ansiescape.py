@@ -9,7 +9,7 @@ class Escaped(StringDetector):
     """pick up escaped ANSI escape sequences"""
 
     doc_uri = None  # reference
-    bcp47 = "*"  # language this is for
+    lang_spec = "*"  # language this is for
 
     def __init__(self, config_root=_config):
         raw_seqs = [r"\x9b", r"\x9d"]
@@ -23,7 +23,7 @@ class Raw(StringDetector):
     """pick up raw ANSI escape sequences"""
 
     doc_uri = None  # reference
-    bcp47 = "*"  # language this is for
+    lang_spec = "*"  # language this is for
 
     def __init__(self, config_root=_config):
         raw_seqs = ["\x9b", "\x9d"]

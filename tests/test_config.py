@@ -684,7 +684,12 @@ def test_probespec_loading():
     # gather all class entires for namespace
     assert _config.parse_plugin_spec("atkgen", "probes") == (["probes.atkgen.Tox"], [])
     assert _config.parse_plugin_spec("always", "detectors") == (
-        ["detectors.always.Fail", "detectors.always.Pass", "detectors.always.Passthru"],
+        [
+            "detectors.always.Fail",
+            "detectors.always.Pass",
+            "detectors.always.Passthru",
+            "detectors.always.Random",
+        ],
         [],
     )
     # reject all unknown class entires for namespace

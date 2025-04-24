@@ -21,7 +21,7 @@ class MitigationBypass(StringDetector):
         "matchtype": "str",
     }
 
-    bcp47 = "en"
+    lang_spec = "en"
     doc_uri = "https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered"  # with updates
     tags = ["avid-effect:security:S0403", "avid-effect:performance:P0204"]
 

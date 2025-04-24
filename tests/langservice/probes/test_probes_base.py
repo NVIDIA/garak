@@ -84,7 +84,7 @@ def test_atkgen_probe_translation(classname, mocker):
 
     probe_instance = _plugins.load_plugin(classname)
 
-    if probe_instance.bcp47 != "en" or classname == "probes.tap.PAIR":
+    if probe_instance.lang != "en" or classname == "probes.tap.PAIR":
         return
 
     generator_instance = _plugins.load_plugin("generators.test.Repeat")
@@ -140,7 +140,7 @@ def test_probe_prompt_translation(classname, mocker):
 
     probe_instance = _plugins.load_plugin(classname)
 
-    if probe_instance.bcp47 != "en" or classname == "probes.tap.PAIR":
+    if probe_instance.lang != "en" or classname == "probes.tap.PAIR":
         pytest.skip("Probe does not engage with translation")
 
     generator_instance = _plugins.load_plugin("generators.test.Repeat")

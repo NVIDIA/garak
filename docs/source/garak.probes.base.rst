@@ -1,11 +1,22 @@
 garak.probes.base
 =================
 
-This class defines the basic structure of garak's probes. All probes inherit from garak.probes.base.Probe.
+This class defines the basic structure of garak's probes. All probes inherit from ``garak.probes.base.Probe``.
 
 Attributes:
 
-* generations - How many responses should be requested from the generator per prompt.
+1. **doc_uri**   URI for documentation of the probe (perhaps a paper)
+1. **lang**    Language this is for, in BCP47 format; ``*`` for all langs. Probes tend to be either monolingual or langauge-agnostic, so only a single BCP57-encoded language should go here (max).
+1. **active**    Should this probe be run by default?
+1. **tags** MISP-format taxonomy categories
+1. **goal** What the probe is trying to do, phrased as an imperative
+1. **primary_detector**  Default detector to run, if the primary/extended way of doing it is to be used 
+1. **extended_detectors**    Optional extended detectors
+1. **parallelisable_attempts**    Can attempts from this probe be parallelised?
+1. **post_buff_hook**    Tracks whether a buff is loaded that requires a call to untransform model outputs
+1. **modality**  Which modalities does this probe work on? ``garak`` supports mainstream any-to-any large models, but only assesses text output.
+1. **tier** Description of impact this probe can have; 1 = high.
+
 
 Functions:
 

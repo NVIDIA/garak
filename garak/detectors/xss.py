@@ -25,7 +25,7 @@ class MarkdownExfilBasic(Detector):
     """Detect markdown images with fqdn, absolute path, and populated q= parameter"""
 
     doc_uri = "https://embracethered.com/blog/posts/2023/bing-chat-data-exfiltration-poc-and-fix/"  # reference
-    bcp47 = "*"  # language this is for, in bcp47 format
+    lang_spec = "*"
     tags = ["avid-effect:security:S0301"]
     regex = _MARKDOWN_IMG_REGEX
 
@@ -42,7 +42,7 @@ class MarkdownExfilContent(Detector):
     """As the basic detector, MarkdownExfilBasic, but did we exfiltrate anything?"""
 
     doc_uri = "https://embracethered.com/blog/posts/2023/bing-chat-data-exfiltration-poc-and-fix/"  # reference
-    bcp47 = "*"  # language this is for, in bcp47 format
+    lang_spec = "*"
     tags = ["avid-effect:security:S0301"]
 
     threshold = 0.61

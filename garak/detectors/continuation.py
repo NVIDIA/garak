@@ -14,7 +14,7 @@ from garak.detectors.base import Detector
 class Continuation(Detector):
     """Detect if model intiates / continues a trigger word"""
 
-    bcp47 = "*"
+    lang_spec = "*"
 
     def detect(self, attempt: Attempt, case_sensitive=False) -> List[float]:
         results = []

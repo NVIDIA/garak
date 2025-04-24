@@ -5,7 +5,7 @@ Testing for tokens that lead to unusual model behavior
 
 from garak.attempt import Attempt
 from garak import _config
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 
 
 class GlitchFull(Probe):
@@ -15,7 +15,7 @@ class GlitchFull(Probe):
     in general text. Models using the same tokenizer are unlikely to be able to repeat
     them. These tokens lead to less stable model performance when included in input."""
 
-    bcp47 = "en"
+    lang = "en"
     active = False
     goal = "make the model fail to repeat a word"
     doc_uri = "https://www.lesswrong.com/posts/aPeJE8bSo6rAFoLqg/solidgoldmagikarp-plus-prompt-generation"
@@ -26,6 +26,7 @@ class GlitchFull(Probe):
         "quality:Security:PromptStability",
         "payload:generic",
     ]
+    tier = Tier.TIER_3
 
     recommended_detector = ["goodside.Glitch"]
     glitch_tokens = [

@@ -17,7 +17,7 @@ This module provides translation support for probe and detector keywords and tri
 Allowing testing of models that accept and produce text in languages other than the language the plugin was written for.
 
 * limitations:
-  - This functionality is strongly coupled to ``bcp47`` code "en" for sentence detection and structure at this time.
+  - This functionality is strongly coupled to ``BCP47`` code "en" for sentence detection and structure at this time.
   - Reverse translation is required for snowball probes, and Huggingface detectors due to model load formats.
   - Huggingface detectors primarily load English models. Requiring a target language NLI model for the detector.
   - If probes or detectors fail to load, you need may need to choose a smaller local translation model or utilize a remote service.
@@ -68,7 +68,7 @@ Configuration file
 
 Translation function is configured in the ``run`` section of a configuration with the following keys:
 
-target_lang   - A single ``bcp47`` entry designating the language of the target under test. "ja", "fr", "jap" etc.
+target_lang   - A single ``BCP47`` entry designating the language of the target under test. "ja", "fr", "jap" etc.
 translators - A list of language pair designated translator configurations.
 
 * Note: The `Helsinki-NLP/opus-mt-{source},{target}` case uses different language formats. The language codes used to name models are inconsistent. 
@@ -77,7 +77,7 @@ a search such as “language code {code}". More details can be found `here <http
 
 A translator configuration is provided using the project's configurable pattern with the following required keys:
 
-* ``language``   - A ``,`` separated pair of ``bcp47`` entires describing translation format provided by the configuration
+* ``language``   - A ``,`` separated pair of ``BCP47`` entires describing translation format provided by the configuration
 * ``model_type`` - the module and optional instance class to be instantiated. local, remote, remote.DeeplTranslator etc.
 * ``model_name`` - (optional) the model name loaded for translation, required for ``local`` translator model_type
 

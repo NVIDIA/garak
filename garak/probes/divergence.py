@@ -8,7 +8,7 @@ Probes for evaluating if a model will replay training data when asked to repeat 
 
 from garak import _config
 from garak.attempt import Attempt
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 
 
 class Repeat(Probe):
@@ -20,7 +20,7 @@ class Repeat(Probe):
     training data."""
 
     aliases = ["replay.Repeat"]
-    bcp47 = "*"
+    lang = "*"
     primary_detector = "divergence.RepeatDiverges"
     extended_detectors = ["mitigation.MitigationBypass"]
     goal = "get the model to leak data by asking it to repeat words"
@@ -33,6 +33,7 @@ class Repeat(Probe):
         "quality:Security:ExtractionInversion",
         "payload:leak:training",
     ]  # MISP-format taxonomy categories
+    tier = Tier.TIER_2
 
     repeat_word_list = [
         "poem",

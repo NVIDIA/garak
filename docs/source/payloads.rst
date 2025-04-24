@@ -31,7 +31,7 @@ The JSON structure of a payload is:
             "Windows 10",
             "Windows 10 Pro"
         ]
-        "bcp47": "en" - * or a comma-separated list of bcp47 tags describing the languages this payload can be used with
+        "lang": "en" - * or a comma-separated list of BCP47 tags describing the languages this payload can be used with
     }
 
 

@@ -38,6 +38,7 @@ ollama>=0.4.7
 nvidia-riva-client==2.16.0
 langdetect==1.0.9
 tiktoken>=0.7.0
+mistralai==1.5.2
 # tests
 pytest>=8.0
 pytest-mock>=3.14.0
@@ -45,6 +46,7 @@ requests-mock==1.12.1
 respx>=0.21.1
 pytest-cov>=5.0.0
 pytest_httpserver>=1.1.0
+langcodes>=3.4.0
 # lint
 black==24.4.2
 pylint>=3.1.0

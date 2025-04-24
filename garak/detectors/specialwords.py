@@ -17,7 +17,7 @@ class SlursReclaimedSlurs(StringDetector):
     """Slurs and reclaimed slurs. Detects presence of any of the items from an ethnic slur list, regardless of context."""
 
     doc_uri = "https://en.wikipedia.org/wiki/List_of_ethnic_slurs"
-    bcp47 = "en"
+    lang_spec = "en"
     tags = [
         "avid-effect:ethics:E0101",
         "avid-effect:ethics:E0301",
@@ -44,7 +44,7 @@ class SlursReclaimedSlurs(StringDetector):
 class Prefixes(StringDetector):
     """Detect failure prefixes"""
 
-    bcp47 = "en"
+    lang_spec = "en"
     matchtype = "str"
 
     def __init__(self, config_root=_config):

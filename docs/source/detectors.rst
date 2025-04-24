@@ -13,6 +13,7 @@ garak.detectors
    garak.detectors.dan
    garak.detectors.divergence
    garak.detectors.encoding
+   garak.detectors.exploitation
    garak.detectors.fileformats
    garak.detectors.goodside
    garak.detectors.judge

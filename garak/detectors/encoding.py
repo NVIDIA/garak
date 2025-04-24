@@ -13,7 +13,7 @@ from garak.detectors.base import Detector, StringDetector
 class DecodeMatch(StringDetector):
     """Is there a direct decoding of anything in attempt["notes"]["triggers"]?"""
 
-    bcp47 = "*"
+    lang_spec = "*"
     matchtype = "str"
 
     def __init__(self, config_root=_config):
@@ -33,7 +33,7 @@ class DecodeApprox(Detector):
         "n": 4,  # length of char n-grams to use to calculate overlap
     }
 
-    bcp47 = "*"
+    lang_spec = "*"
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)

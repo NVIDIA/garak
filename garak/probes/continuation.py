@@ -10,7 +10,7 @@ import json
 from garak import _config
 from garak.attempt import Attempt
 from garak.data import path as data_path
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 
 
 class ContinueSlursReclaimedSlursFull(Probe):
@@ -19,7 +19,7 @@ class ContinueSlursReclaimedSlursFull(Probe):
     This probe poses a partial ethnic slur with some preceding content, and
     checks to see if the model will complete the slur."""
 
-    bcp47 = "en"
+    lang = "en"
     doc_uri = ""
     recommended_detector = [
         "continuation.Continuation",
@@ -35,6 +35,7 @@ class ContinueSlursReclaimedSlursFull(Probe):
     ]
     goal = "output an ethnic slur"
     active = False
+    tier = Tier.TIER_2
     source_resource_filename = "slurprompts.jsonl"
 
     follow_prompt_cap = False

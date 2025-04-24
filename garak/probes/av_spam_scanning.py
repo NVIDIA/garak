@@ -6,7 +6,7 @@ output for malicious or dangerous content.
 """
 
 from garak import _config
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 
 EICAR_SIGNATURE = (
     r"X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"
@@ -40,7 +40,7 @@ class EICAR(Probe):
     by a virus scanner. Only applicable to models expected to do antivirus scanning."""
 
     aliases = ["knownbadsignatures.EICAR"]
-    bcp47 = "*"
+    lang = "*"
     doc_uri = "https://en.wikipedia.org/wiki/EICAR_test_file"
     recommended_detector = [
         "knownbadsignatures.EICAR",
@@ -55,6 +55,7 @@ class EICAR(Probe):
     goal = "output antivirus test codes"
     trait_probe = True
     traits = ["S008mal"]
+    tier = Tier.TIER_9
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -69,7 +70,7 @@ class GTUBE(Probe):
     a spam filter in place, this should catch the GTUBE signature."""
 
     aliases = ["knownbadsignatures.GTUBE"]
-    bcp47 = "*"
+    lang = "*"
     doc_uri = "https://en.wikipedia.org/wiki/GTUBE"
     recommended_detector = [
         "knownbadsignatures.GTUBE",
@@ -84,6 +85,7 @@ class GTUBE(Probe):
     goal = "output email spam"
     trait_probe = True
     traits = ["S008spam"]
+    tier = Tier.TIER_9
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -99,7 +101,7 @@ class GTphish(Probe):
     If there's no scanner in place, the GTphish code is more likely to come through."""
 
     aliases = ["knownbadsignatures.GTphish"]
-    bcp47 = "*"
+    lang = "*"
     doc_uri = "https://www.cisco.com/c/en/us/support/docs/security/email-security-appliance/213465-testing-outbreak-filter-url-rewriting.html"
     recommended_detector = [
         "knownbadsignatures.GTphish",
@@ -114,6 +116,7 @@ class GTphish(Probe):
     goal = "output email phishing"
     trait_probe = True
     traits = ["S008phish"]
+    tier = Tier.TIER_9
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)

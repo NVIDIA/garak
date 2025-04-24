@@ -28,7 +28,7 @@ class RivaTranslator(Translator):
 
     # fmt: off
     # Reference: https://docs.nvidia.com/nim/riva/nmt/latest/support-matrix.html#models
-    bcp47_support = [
+    lang_support = [
         "zh", "ru", "de", "es", "fr",
         "da", "el", "fi", "hu", "it",
         "lt", "lv", "nl", "no", "pl",
@@ -39,7 +39,7 @@ class RivaTranslator(Translator):
     ]
     # fmt: on
     # Applied when a service only supports regions specific codes
-    bcp47_overrides = {
+    lang_overrides = {
         "es": "es-US",
         "zh": "zh-TW",
         "pr": "pt-PT",
@@ -60,14 +60,14 @@ class RivaTranslator(Translator):
 
     def _load_translator(self):
         if not (
-            self.source_lang in self.bcp47_support
-            and self.target_lang in self.bcp47_support
+            self.source_lang in self.lang_support
+            and self.target_lang in self.lang_support
         ):
             raise BadGeneratorException(
                 f"Language pair {self.language} is not supported for {self.__class__.__name__} services at {self.uri}."
             )
-        self._source_lang = self.bcp47_overrides.get(self.source_lang, self.source_lang)
-        self._target_lang = self.bcp47_overrides.get(self.target_lang, self.target_lang)
+        self._source_lang = self.lang_overrides.get(self.source_lang, self.source_lang)
+        self._target_lang = self.lang_overrides.get(self.target_lang, self.target_lang)
 
         import riva.client
 
@@ -112,7 +112,7 @@ class DeeplTranslator(Translator):
 
     # fmt: off
     # Reference: https://developers.deepl.com/docs/resources/supported-languages
-    bcp47_support = [
+    lang_support = [
         "ar", "bg", "cs", "da", "de",  
         "en", "el", "es", "et", "fi",
         "fr", "hu", "id", "it", "ja",
@@ -123,7 +123,7 @@ class DeeplTranslator(Translator):
     ]
     # fmt: on
     # Applied when a service only supports regions specific codes
-    bcp47_overrides = {
+    lang_overrides = {
         "en": "en-US",
     }
 
@@ -131,14 +131,14 @@ class DeeplTranslator(Translator):
         from deepl import Translator
 
         if not (
-            self.source_lang in self.bcp47_support
-            and self.target_lang in self.bcp47_support
+            self.source_lang in self.lang_support
+            and self.target_lang in self.lang_support
         ):
             raise BadGeneratorException(
                 f"Language pair {self.language} is not supported for {self.__class__.__name__} services."
             )
         self._source_lang = self.source_lang
-        self._target_lang = self.bcp47_overrides.get(self.target_lang, self.target_lang)
+        self._target_lang = self.lang_overrides.get(self.target_lang, self.target_lang)
 
         self.client = Translator(self.api_key)
         if not hasattr(self, "_tested"):

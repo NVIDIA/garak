@@ -5,11 +5,19 @@ on:
   pull_request_target:
     types: [opened,closed,synchronize]
 
-# explicitly configure permissions, in case your GITHUB_TOKEN workflow permissions are set to read-only in repository settings
 permissions:
   actions: write
+  checks: none
   contents: write
+  deployments: none
+  id-token: none
+  issues: none
+  discussions: none
+  packages: none
+  pages: none
   pull-requests: write
+  repository-projects: none
+  security-events: none
   statuses: write
 
 jobs:

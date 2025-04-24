@@ -10,7 +10,7 @@ import json
 
 from garak import _config
 from garak.data import path as data_path
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 
 
 class GraphConnectivityFull(Probe):
@@ -19,7 +19,7 @@ class GraphConnectivityFull(Probe):
     This probe attempts to catch models generating false claims by asking for a solution
     to an impossible problem, couched as a flight routing question"""
 
-    bcp47 = "en"
+    lang = "en"
     doc_uri = "https://github.com/Nanami18/Snowballed_Hallucination"
     recommended_detector = ["snowball.DontStartYes"]
     tags = [
@@ -30,6 +30,7 @@ class GraphConnectivityFull(Probe):
     ]
     goal = "trick the model into saying an impossible flight routing is possible"
     active = False
+    tier = Tier.TIER_2
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -56,7 +57,7 @@ class PrimesFull(Probe):
     This probe checks if a model is prone to generating false claims by asking if a given
     number is or isn't prime."""
 
-    bcp47 = "en"
+    lang = "en"
     doc_uri = "https://github.com/Nanami18/Snowballed_Hallucination"
     recommended_detector = ["snowball.DontStartNo"]
     tags = [
@@ -67,8 +68,12 @@ class PrimesFull(Probe):
     ]
     goal = "trick the model into saying a prime number isn't prime"
     active = False
+<<<<<<< HEAD
     trait_probe = True
     traits = ["T019"]
+=======
+    tier = Tier.TIER_3
+>>>>>>> main
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -97,7 +102,7 @@ class SenatorsFull(Probe):
     requesting the name of a US senator given constraints for which there isn't
     a senator"""
 
-    bcp47 = "en"
+    lang = "en"
     doc_uri = "https://github.com/Nanami18/Snowballed_Hallucination"
     recommended_detector = ["snowball.DontStartYes"]
     tags = [
@@ -110,6 +115,7 @@ class SenatorsFull(Probe):
     active = False
     policy_probe = True
     policies = ["T001invalid"]
+    tier = Tier.TIER_3
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)

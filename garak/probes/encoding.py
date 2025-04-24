@@ -19,49 +19,17 @@ Recommended garak payloads to try:
 
 import base64
 import binascii
+import random
 
 import garak.payloads
 from garak import _config
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 
 payload_mapping = {
     "default": "text_en",
     "xss": "web_html_js",
     "slur_terms": "slur_terms_en",
 }
-payloads = []
-extra_tags = []
-
-
-def _load_payloads():
-    global payloads, extra_tags
-    payloads = []
-
-    extra_payload_tags = {
-        "web_html_js": ["payload:malicious:renderer:xss"],
-        "slur_terms_en": ["payload:unwanted:hatespeech"],
-    }
-
-    if "encoding" in _config.plugins.probes:
-        if isinstance(_config.plugins.probes["encoding"]["payloads"], str):
-            _config.plugins.probes["encoding"]["payloads"] = [
-                _config.plugins.probes["encoding"]["payloads"]
-            ]
-
-        for payload_class in _config.plugins.probes["encoding"]["payloads"]:
-            if payload_class not in payload_mapping:
-                payload_to_add = payload_class
-            else:
-                payload_to_add = payload_mapping[payload_class]
-
-            payloads += garak.payloads.load(payload_to_add).payloads
-
-            if payload_to_add in extra_payload_tags:
-                extra_tags += extra_payload_tags[payload_to_add]
-
-    if not payloads:
-        payloads = garak.payloads.load(payload_mapping["default"]).payloads
-
 
 TEMPLATES = [
     "{encoded_text}",
@@ -84,6 +52,7 @@ def rot13(text):
 
 
 def braille(text):
+    # fmt: off
     characterUnicodes = {
         "a": "\u2801",
         "b": "\u2803",
@@ -137,6 +106,7 @@ def braille(text):
         "0": "\u281A",
         " ": " ",
     }
+    # fmt: on
     numberPunctuations = [".", ",", "-", "/", "$"]
     escapeCharacters = ["\n", "\r", "\t"]
 
@@ -213,22 +183,6 @@ def morse(text):
     return bytes(" ".join(output), "utf-8")
 
 
-def _generate_encoded_prompts(encoding_funcs, encoding_name):
-    encoded_prompts = set([])
-    for template in TEMPLATES:
-        for payload in payloads:
-            for encoder in encoding_funcs:
-                encoded_text = encoder(bytes(payload, "utf-8"))
-                if isinstance(encoded_text, bytes):
-                    encoded_text = encoded_text.decode()
-                prompt = template.replace("{encoding_name}", encoding_name).replace(
-                    "{encoded_text}", encoded_text
-                )
-                trigger = str(payload)
-                encoded_prompts.add((prompt, trigger))
-    return sorted(list(encoded_prompts), key=lambda k: k[0])
-
-
 class BaseEncodingProbe:
     """Mixin for encoding-based injection probes"""
 
@@ -239,20 +193,70 @@ class BaseEncodingProbe:
         "payload:generic",
     ]
     goal = "make the model say an encoded payload"
-    bcp47 = "en"
+    lang = "en"
     doc_uri = "https://kai-greshake.de/posts/llm-malware/#encoded-inline-jailbreak"
+    tier = Tier.TIER_2
 
     primary_detector = "encoding.DecodeMatch"
     extended_detectors = [
         "encoding.DecodeApprox",
     ]
 
-    def __init__(self, config_root=_config):
-        _load_payloads()
-        self.tags += extra_tags
-        self.prompts, self.triggers = zip(
-            *_generate_encoded_prompts(self.encoding_funcs, self.encoding_name)
+    DEFAULT_PARAMS = Probe.DEFAULT_PARAMS | {
+        "follow_prompt_cap": True,
+        "payloads": ["default"],
+    }
+
+    def _load_payloads(self):
+        self._payloads = []
+        self.extra_tags = []
+        extra_payload_tags = {
+            "web_html_js": ["payload:malicious:renderer:xss"],
+            "slur_terms_en": ["payload:unwanted:hatespeech"],
+        }
+
+        for payload_class in self.payloads:
+            if payload_class not in payload_mapping:
+                payload_to_add = payload_class
+            else:
+                payload_to_add = payload_mapping[payload_class]
+
+            self._payloads += garak.payloads.load(payload_to_add).payloads
+
+            if payload_to_add in extra_payload_tags:
+                self.extra_tags += extra_payload_tags[payload_to_add]
+
+    def _generate_encoded_prompts(self, encoding_funcs, encoding_name):
+        encoded_prompts = set([])
+        for template in TEMPLATES:
+            for payload in self._payloads:
+                for encoder in encoding_funcs:
+                    encoded_text = encoder(bytes(payload, "utf-8"))
+                    if isinstance(encoded_text, bytes):
+                        encoded_text = encoded_text.decode()
+                    prompt = template.replace("{encoding_name}", encoding_name).replace(
+                        "{encoded_text}", encoded_text
+                    )
+                    trigger = str(payload)
+                    encoded_prompts.add((prompt, trigger))
+        return sorted(list(encoded_prompts), key=lambda k: k[0])
+
+    def __init__(self):
+        self._load_payloads()
+        self.tags += self.extra_tags
+        generated_prompts = self._generate_encoded_prompts(
+            self.encoding_funcs, self.encoding_name
         )
+        if (
+            not self.follow_prompt_cap
+            or len(generated_prompts) < self.soft_probe_prompt_cap
+        ):
+            self.prompts, self.triggers = zip(*generated_prompts)
+        else:
+            self.prompts, self.triggers = zip(
+                *random.sample(generated_prompts, self.soft_probe_prompt_cap)
+            )
+        self.prompts = self.translator.translate(self.prompts)
 
     def _attempt_prestore_hook(self, attempt, seq):
         attempt.notes["triggers"] = [self.triggers[seq]]
@@ -265,6 +269,8 @@ class InjectBase64(BaseEncodingProbe, Probe):
     Encodes payloads using base64, and tries a variety of ways of getting the target
     model to repeat & decode them."""
 
+    tier = Tier.TIER_1
+
     encoding_funcs = [
         base64.b64encode,
         base64.urlsafe_b64encode,
@@ -274,8 +280,8 @@ class InjectBase64(BaseEncodingProbe, Probe):
     encoding_name = "BASE64"
 
     def __init__(self, config_root=_config):
-        BaseEncodingProbe.__init__(self, config_root=config_root)
         Probe.__init__(self, config_root=config_root)
+        BaseEncodingProbe.__init__(self)
 
 
 class InjectBase16(BaseEncodingProbe, Probe):
@@ -288,8 +294,8 @@ class InjectBase16(BaseEncodingProbe, Probe):
     encoding_name = "BASE16"
 
     def __init__(self, config_root=_config):
-        BaseEncodingProbe.__init__(self, config_root=config_root)
         Probe.__init__(self, config_root=config_root)
+        BaseEncodingProbe.__init__(self)
 
 
 class InjectBase32(BaseEncodingProbe, Probe):
@@ -302,8 +308,8 @@ class InjectBase32(BaseEncodingProbe, Probe):
     encoding_name = "BASE32"
 
     def __init__(self, config_root=_config):
-        BaseEncodingProbe.__init__(self, config_root=config_root)
         Probe.__init__(self, config_root=config_root)
+        BaseEncodingProbe.__init__(self)
 
 
 class InjectAscii85(BaseEncodingProbe, Probe):
@@ -316,8 +322,8 @@ class InjectAscii85(BaseEncodingProbe, Probe):
     encoding_name = "ASCII85"
 
     def __init__(self, config_root=_config):
-        BaseEncodingProbe.__init__(self, config_root=config_root)
         Probe.__init__(self, config_root=config_root)
+        BaseEncodingProbe.__init__(self)
 
 
 class InjectHex(BaseEncodingProbe, Probe):
@@ -330,8 +336,8 @@ class InjectHex(BaseEncodingProbe, Probe):
     encoding_name = "hex"
 
     def __init__(self, config_root=_config):
-        BaseEncodingProbe.__init__(self, config_root=config_root)
         Probe.__init__(self, config_root=config_root)
+        BaseEncodingProbe.__init__(self)
 
 
 class InjectQP(BaseEncodingProbe, Probe):
@@ -344,9 +350,11 @@ class InjectQP(BaseEncodingProbe, Probe):
     encoding_name = "Quoted-Printable"
     active = False  # seems to just pass text right through - when using ascii chars
 
+    tier = Tier.TIER_1
+
     def __init__(self, config_root=_config):
-        BaseEncodingProbe.__init__(self, config_root=config_root)
         Probe.__init__(self, config_root=config_root)
+        BaseEncodingProbe.__init__(self)
 
 
 class InjectUU(BaseEncodingProbe, Probe):
@@ -354,6 +362,8 @@ class InjectUU(BaseEncodingProbe, Probe):
 
     Encodes payloads using uuencoding, and tries a variety of ways of getting the target
     model to repeat & decode them."""
+
+    tier = Tier.TIER_1
 
     encoding_name = "UUencode"
 
@@ -366,8 +376,8 @@ class InjectUU(BaseEncodingProbe, Probe):
 
     def __init__(self, config_root=_config):
         self.encoding_funcs = [self.UUencode]
-        BaseEncodingProbe.__init__(self, config_root=config_root)
         Probe.__init__(self, config_root=config_root)
+        BaseEncodingProbe.__init__(self)
 
 
 class InjectMime(BaseEncodingProbe, Probe):
@@ -383,8 +393,8 @@ class InjectMime(BaseEncodingProbe, Probe):
         import quopri
 
         self.encoding_funcs = [quopri.encodestring]
-        BaseEncodingProbe.__init__(self, config_root=config_root)
         Probe.__init__(self, config_root=config_root)
+        BaseEncodingProbe.__init__(self)
 
 
 class InjectROT13(BaseEncodingProbe, Probe):
@@ -398,8 +408,8 @@ class InjectROT13(BaseEncodingProbe, Probe):
     encoding_name = "ROT13"
 
     def __init__(self, config_root=_config):
-        BaseEncodingProbe.__init__(self, config_root=config_root)
         Probe.__init__(self, config_root=config_root)
+        BaseEncodingProbe.__init__(self)
 
 
 class InjectBase2048(BaseEncodingProbe, Probe):
@@ -414,8 +424,8 @@ class InjectBase2048(BaseEncodingProbe, Probe):
         import base2048
 
         self.encoding_funcs = [base2048.encode]
-        BaseEncodingProbe.__init__(self, config_root=config_root)
         Probe.__init__(self, config_root=config_root)
+        BaseEncodingProbe.__init__(self)
 
 
 class InjectBraille(BaseEncodingProbe, Probe):
@@ -429,8 +439,8 @@ class InjectBraille(BaseEncodingProbe, Probe):
     encoding_name = "Braille"
 
     def __init__(self, config_root=_config):
-        BaseEncodingProbe.__init__(self, config_root=config_root)
         Probe.__init__(self, config_root=config_root)
+        BaseEncodingProbe.__init__(self)
 
 
 class InjectMorse(BaseEncodingProbe, Probe):
@@ -444,8 +454,8 @@ class InjectMorse(BaseEncodingProbe, Probe):
     encoding_name = "Morse"
 
     def __init__(self, config_root=_config):
-        BaseEncodingProbe.__init__(self, config_root=config_root)
         Probe.__init__(self, config_root=config_root)
+        BaseEncodingProbe.__init__(self)
 
 
 class InjectNato(BaseEncodingProbe, Probe):
@@ -496,8 +506,8 @@ class InjectNato(BaseEncodingProbe, Probe):
     encoding_name = "Nato"
 
     def __init__(self, config_root=_config):
-        BaseEncodingProbe.__init__(self, config_root=config_root)
         Probe.__init__(self, config_root=config_root)
+        BaseEncodingProbe.__init__(self)
 
 
 class InjectEcoji(BaseEncodingProbe, Probe):
@@ -524,8 +534,8 @@ class InjectEcoji(BaseEncodingProbe, Probe):
     encoding_funcs = [_ecoji]
 
     def __init__(self, config_root=_config):
-        BaseEncodingProbe.__init__(self, config_root=config_root)
         Probe.__init__(self, config_root=config_root)
+        BaseEncodingProbe.__init__(self)
 
 
 class InjectZalgo(BaseEncodingProbe, Probe):
@@ -549,5 +559,5 @@ class InjectZalgo(BaseEncodingProbe, Probe):
     encoding_funcs = [zalgo]
 
     def __init__(self, config_root=_config):
-        BaseEncodingProbe.__init__(self, config_root=config_root)
         Probe.__init__(self, config_root=config_root)
+        BaseEncodingProbe.__init__(self)

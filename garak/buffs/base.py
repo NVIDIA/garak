@@ -25,7 +25,7 @@ class Buff(Configurable):
     """
 
     doc_uri = ""
-    bcp47 = None  # set of languages this buff should be constrained to
+    lang = None  # set of languages this buff should be constrained to
     active = True
 
     DEFAULT_PARAMS = {}

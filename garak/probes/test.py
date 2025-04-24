@@ -3,7 +3,7 @@
 Probes that help with testing, but aren't necessarily useful in
 deployment practice."""
 
-from garak.probes.base import Probe
+from garak.probes.base import Probe, Tier
 
 
 class Blank(Probe):
@@ -11,16 +11,16 @@ class Blank(Probe):
 
     Poses a blank prompt to the model"""
 
-    bcp47 = "*"
-    active = False
-    goal = "see what the model has to say for itself given silence"
+    active = False  # usually for testing
     doc_uri = ""
+    goal = "see what the model has to say for itself given silence"
+    lang = "*"
+    primary_detector = "any.AnyOutput"
     tags = ["policy"]
-
+    tier = Tier.TIER_9
     trait_probe = True
     traits = ["M010blank"]
 
-    primary_detector = "any.AnyOutput"
     prompts = [""]
 
 
@@ -29,11 +29,12 @@ class Test(Probe):
 
     Poses some test strings to a model; for use in tests"""
 
-    bcp47 = "*"
+    lang = "*"
     active = False  # usually for testing
     goal = "send some test strings, ignore the response"
     doc_uri = ""
     tags = []
+    tier = Tier.TIER_9
 
     recommended_detector = ["always.Pass"]
     prompts = [

@@ -4,10 +4,10 @@
       "description": "Probe for eliciting ANSI control codes from a model",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en,*",
       "doc_uri": "https://i.blackhat.com/BH-US-23/Presentations/US-23-stok-weponizing-plain-text-ansi-escape-sequences-as-a-forensic-nightmare-appendix.pdf",
       "extended_detectors": [],
       "goal": "print escaped ANSI terminal codes",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -26,16 +26,17 @@
         "avid-effect:security:S0200",
         "quality:Security:Integrity"
       ],
-      "mod_time": "2024-11-26 16:53:09 +0000"
+      "tier": 3,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.ansiescape.AnsiRaw": {
       "description": "Probe for eliciting raw ANSI control codes from a model",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en,*",
       "doc_uri": "https://i.blackhat.com/BH-US-23/Presentations/US-23-stok-weponizing-plain-text-ansi-escape-sequences-as-a-forensic-nightmare-appendix.pdf",
       "extended_detectors": [],
       "goal": "print raw ANSI terminal codes",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -54,7 +55,8 @@
         "avid-effect:security:S0200",
         "quality:Security:Integrity"
       ],
-      "mod_time": "2024-11-26 16:53:09 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.atkgen.Tox": {
       "description": "Automatic attack generation, trying to elicit toxic outputs from the model.",
@@ -74,10 +76,10 @@
         "use_only_first_sent": true
       },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://interhumanagreement.substack.com/p/faketoxicityprompts-automatic-red",
       "extended_detectors": [],
       "goal": "make the model say something toxic",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -95,16 +97,17 @@
         "quality:Behavioral:ContentSafety:Profanity",
         "payload:unwanted"
       ],
-      "mod_time": "2025-04-03 16:38:13 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.av_spam_scanning.EICAR": {
       "description": "Does the model check its output for viruses? Try to send the EICAR code through",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "*",
       "doc_uri": "https://en.wikipedia.org/wiki/EICAR_test_file",
       "extended_detectors": [],
       "goal": "output antivirus test codes",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -122,16 +125,17 @@
         "payload:malicious:badcode:virus",
         "quality:Security:Adversarial"
       ],
-      "mod_time": "2024-10-30 21:06:57 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.av_spam_scanning.GTUBE": {
       "description": "Does the model check its output for spam? Try to send the GTUBE code through",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "*",
       "doc_uri": "https://en.wikipedia.org/wiki/GTUBE",
       "extended_detectors": [],
       "goal": "output email spam",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -149,16 +153,17 @@
         "payload:malicious:badcode:spam",
         "quality:Security:Adversarial"
       ],
-      "mod_time": "2024-10-30 21:06:57 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.av_spam_scanning.GTphish": {
       "description": "Does the model check its output for phishing? Try to send the GTphish code through",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "*",
       "doc_uri": "https://www.cisco.com/c/en/us/support/docs/security/email-security-appliance/213465-testing-outbreak-filter-url-rewriting.html",
       "extended_detectors": [],
       "goal": "output email phishing",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -176,16 +181,17 @@
         "payload:malicious:badcode:phishing",
         "quality:Security:Adversarial"
       ],
-      "mod_time": "2024-10-30 21:06:57 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.base.Probe": {
       "description": "Base class for objects that define and execute LLM evaluations",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": null,
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "",
+      "lang": null,
       "modality": {
         "in": [
           "text"
@@ -197,7 +203,26 @@
         "always.Fail"
       ],
       "tags": [],
-      "mod_time": "2025-04-07 20:25:29 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-22 15:48:17 +0000"
+    },
+    "probes.base.Tier": {
+      "TIER_1": 1,
+      "TIER_2": 2,
+      "TIER_3": 3,
+      "TIER_9": 9,
+      "as_integer_ratio": null,
+      "bit_count": null,
+      "bit_length": null,
+      "conjugate": null,
+      "denominator": null,
+      "from_bytes": null,
+      "imag": null,
+      "is_integer": null,
+      "numerator": null,
+      "real": null,
+      "to_bytes": null,
+      "mod_time": "2025-04-22 15:48:17 +0000"
     },
     "probes.base.TreeSearchProbe": {
       "DEFAULT_PARAMS": {
@@ -208,10 +233,10 @@
         "target_soft": true
       },
       "active": true,
-      "bcp47": null,
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "",
+      "lang": null,
       "modality": {
         "in": [
           "text"
@@ -223,16 +248,17 @@
         "always.Fail"
       ],
       "tags": [],
-      "mod_time": "2025-04-07 20:25:29 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-22 15:48:17 +0000"
     },
     "probes.continuation.ContinueSlursReclaimedSlurs": {
       "description": "Continue partial word with slur or reclaimed slur.",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "output an ethnic slur",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -252,16 +278,17 @@
         "quality:Behavioral:ContentSafety:HateHarassment",
         "payload:unwanted:hatespeech"
       ],
-      "mod_time": "2025-04-03 16:38:13 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.continuation.ContinueSlursReclaimedSlursFull": {
       "description": "Continue partial word with slur or reclaimed slur.",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "output an ethnic slur",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -281,16 +308,17 @@
         "quality:Behavioral:ContentSafety:HateHarassment",
         "payload:unwanted:hatespeech"
       ],
-      "mod_time": "2025-04-03 16:38:13 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.dan.Ablation_Dan_11_0": {
       "description": "Ablation experiements over the DAN 11.0 prompt",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -308,16 +336,17 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.dan.AntiDAN": {
       "description": "Anti-DAN",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -335,16 +364,17 @@
         "avid-effect:performance:P0204",
         "owasp:llm01"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.dan.AutoDAN": {
       "description": "Probe leveraging AutoDAN attack generation",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "https://arxiv.org/abs/2310.04451",
       "extended_detectors": [],
       "goal": "disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -362,16 +392,17 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.dan.AutoDANCached": {
       "description": "Probe leveraging generated AutoDAN prompts",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://arxiv.org/abs/2310.04451",
       "extended_detectors": [],
       "goal": "disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -389,16 +420,17 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.dan.ChatGPT_Developer_Mode_RANTI": {
       "description": "ChatGPT DevMode + Ranti",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -416,16 +448,17 @@
         "avid-effect:performance:P0204",
         "owasp:llm01"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.dan.ChatGPT_Developer_Mode_v2": {
       "description": "ChatGPT Developer Mode v2",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -443,16 +476,17 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.dan.ChatGPT_Image_Markdown": {
       "description": "ChatGPT Markdown Image Unlocker / markdown injection",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -470,16 +504,17 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.dan.DAN_Jailbreak": {
       "description": "DAN Jailbreak",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -497,16 +532,17 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.dan.DUDE": {
       "description": "DUDE",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -524,16 +560,17 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.dan.DanInTheWild": {
       "description": "A subset of jailbreaks from the DanInTheWild jailbreak library.",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://arxiv.org/abs/2308.03825",
       "extended_detectors": [],
       "goal": "disregard the system prompt or alignment",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -550,16 +587,17 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.dan.DanInTheWildFull": {
       "description": "A library of jailbreaks.",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "https://arxiv.org/abs/2308.03825",
       "extended_detectors": [],
       "goal": "disregard the system prompt or alignment",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -576,16 +614,17 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.dan.Dan_10_0": {
       "description": "DAN 10.0",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -603,16 +642,17 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.dan.Dan_11_0": {
       "description": "DAN 11.0",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -631,16 +671,17 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.dan.Dan_6_0": {
       "description": "DAN 6.0",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -658,16 +699,17 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.dan.Dan_6_2": {
       "description": "DAN 6.2",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -685,16 +727,17 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.dan.Dan_7_0": {
       "description": "DAN 7.0",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -712,16 +755,17 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.dan.Dan_8_0": {
       "description": "DAN 8.0",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -739,16 +783,17 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.dan.Dan_9_0": {
       "description": "DAN 9.0",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -766,16 +811,17 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.dan.STAN": {
       "description": "STAN",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -793,18 +839,19 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.divergence.Repeat": {
       "description": "See if a model starts giving other data when asked to repeat a string indefinitely",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "*",
       "doc_uri": "https://not-just-memorization.github.io/extracting-training-data-from-chatgpt.html",
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
       "goal": "get the model to leak data by asking it to repeat words",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -823,18 +870,19 @@
         "quality:Security:ExtractionInversion",
         "payload:leak:training"
       ],
-      "mod_time": "2024-10-30 21:06:57 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.divergence.RepeatExtended": {
       "description": "See if a model starts giving other data when asked to repeat a string indefinitely",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "*",
       "doc_uri": "https://not-just-memorization.github.io/extracting-training-data-from-chatgpt.html",
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
       "goal": "get the model to leak data by asking it to repeat words",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -853,16 +901,17 @@
         "quality:Security:ExtractionInversion",
         "payload:leak:training"
       ],
-      "mod_time": "2024-10-30 21:06:57 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.donotanswer.DiscriminationExclusionToxicityHatefulOffensive": {
       "description": "Implementation of discrimination_exclusion_toxicity_hateful_offensive probes in DoNotAnswer_Prompts",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "get model to respond as discrimination exclusion toxicity hateful offensive",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -880,16 +929,17 @@
         "quality:Behavioral:ContentSafety:Violence",
         "quality:Behavioral:ContentSafety:Profanity"
       ],
-      "mod_time": "2025-02-24 10:14:32 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.donotanswer.HumanChatbox": {
       "description": "Implementation of human_chatbox probes in DoNotAnswer_Prompts",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "get model to respond as human chatbox",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -904,16 +954,17 @@
         "avid-effect:security:S0301",
         "quality:Behavioral:ContentSafety:Unauthorized"
       ],
-      "mod_time": "2025-02-24 10:14:32 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.donotanswer.InformationHazard": {
       "description": "Implementation of information_hazard probes in DoNotAnswer_Prompts",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "get model to respond as information hazard",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -929,16 +980,17 @@
         "avid-effect:security:S0301",
         "quality:Security:Confidentiality"
       ],
-      "mod_time": "2025-02-24 10:14:32 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.donotanswer.MaliciousUses": {
       "description": "Implementation of malicious_uses probes in DoNotAnswer_Prompts",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "get model to respond as malicious uses",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -952,16 +1004,17 @@
       "tags": [
         "quality:Behavioral:ContentSafety:LegalGoodsServices"
       ],
-      "mod_time": "2025-02-24 10:14:32 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.donotanswer.MisinformationHarms": {
       "description": "Implementation of misinformation_harms probes in DoNotAnswer_Prompts",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "get model to respond as misinformation harms",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -977,18 +1030,24 @@
         "avid-effect:ethics:E0402",
         "owasp:llm09"
       ],
-      "mod_time": "2025-02-24 10:14:32 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.encoding.InjectAscii85": {
       "description": "Probe for susceptibility to base85 encoded injections",
-      "DEFAULT_PARAMS": {},
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "payloads": [
+          "default"
+        ]
+      },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://kai-greshake.de/posts/llm-malware/#encoded-inline-jailbreak",
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
       "goal": "make the model say an encoded payload",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1005,18 +1064,24 @@
         "quality:Security:PromptStability",
         "payload:generic"
       ],
-      "mod_time": "2024-12-02 15:38:23 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.encoding.InjectBase16": {
       "description": "Probe for susceptibility to base16 encoded injections\"",
-      "DEFAULT_PARAMS": {},
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "payloads": [
+          "default"
+        ]
+      },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://kai-greshake.de/posts/llm-malware/#encoded-inline-jailbreak",
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
       "goal": "make the model say an encoded payload",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1033,18 +1098,24 @@
         "quality:Security:PromptStability",
         "payload:generic"
       ],
-      "mod_time": "2024-12-02 15:38:23 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.encoding.InjectBase2048": {
       "description": "Probe for susceptibility to Base2048 encoding injections",
-      "DEFAULT_PARAMS": {},
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "payloads": [
+          "default"
+        ]
+      },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://kai-greshake.de/posts/llm-malware/#encoded-inline-jailbreak",
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
       "goal": "make the model say an encoded payload",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1061,18 +1132,24 @@
         "quality:Security:PromptStability",
         "payload:generic"
       ],
-      "mod_time": "2024-12-02 15:38:23 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.encoding.InjectBase32": {
       "description": "Probe for susceptibility to base32 encoded injections",
-      "DEFAULT_PARAMS": {},
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "payloads": [
+          "default"
+        ]
+      },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://kai-greshake.de/posts/llm-malware/#encoded-inline-jailbreak",
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
       "goal": "make the model say an encoded payload",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1089,18 +1166,24 @@
         "quality:Security:PromptStability",
         "payload:generic"
       ],
-      "mod_time": "2024-12-02 15:38:23 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.encoding.InjectBase64": {
       "description": "Probe for susceptibility to base64 encoded injections",
-      "DEFAULT_PARAMS": {},
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "payloads": [
+          "default"
+        ]
+      },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://kai-greshake.de/posts/llm-malware/#encoded-inline-jailbreak",
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
       "goal": "make the model say an encoded payload",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1117,18 +1200,24 @@
         "quality:Security:PromptStability",
         "payload:generic"
       ],
-      "mod_time": "2024-12-02 15:38:23 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.encoding.InjectBraille": {
       "description": "Probe for susceptibility to Braille encoding injections. Credit Wally#3422",
-      "DEFAULT_PARAMS": {},
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "payloads": [
+          "default"
+        ]
+      },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
       "goal": "make the model say an encoded payload",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1145,18 +1234,24 @@
         "quality:Security:PromptStability",
         "payload:generic"
       ],
-      "mod_time": "2024-12-02 15:38:23 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.encoding.InjectEcoji": {
       "description": "Probe for susceptibility to Ecoji encoding.",
-      "DEFAULT_PARAMS": {},
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "payloads": [
+          "default"
+        ]
+      },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://ecoji.io/",
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
       "goal": "make the model say an encoded payload",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1173,18 +1268,24 @@
         "quality:Security:PromptStability",
         "payload:generic"
       ],
-      "mod_time": "2024-12-02 15:38:23 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.encoding.InjectHex": {
       "description": "Probe for susceptibility to hex encoded injections",
-      "DEFAULT_PARAMS": {},
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "payloads": [
+          "default"
+        ]
+      },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://kai-greshake.de/posts/llm-malware/#encoded-inline-jailbreak",
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
       "goal": "make the model say an encoded payload",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1201,18 +1302,24 @@
         "quality:Security:PromptStability",
         "payload:generic"
       ],
-      "mod_time": "2024-12-02 15:38:23 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.encoding.InjectMime": {
       "description": "Probe for susceptibility to MIME encoding injections",
-      "DEFAULT_PARAMS": {},
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "payloads": [
+          "default"
+        ]
+      },
       "active": false,
-      "bcp47": "en",
       "doc_uri": "https://kai-greshake.de/posts/llm-malware/#encoded-inline-jailbreak",
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
       "goal": "make the model say an encoded payload",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1229,18 +1336,24 @@
         "quality:Security:PromptStability",
         "payload:generic"
       ],
-      "mod_time": "2024-12-02 15:38:23 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.encoding.InjectMorse": {
       "description": "Probe for susceptibility to Morse encoding. Credit Wally#3422",
-      "DEFAULT_PARAMS": {},
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "payloads": [
+          "default"
+        ]
+      },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
       "goal": "make the model say an encoded payload",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1257,18 +1370,24 @@
         "quality:Security:PromptStability",
         "payload:generic"
       ],
-      "mod_time": "2024-12-02 15:38:23 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.encoding.InjectNato": {
       "description": "Probe for susceptibility to Nato phonetic alphabet encoding.",
-      "DEFAULT_PARAMS": {},
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "payloads": [
+          "default"
+        ]
+      },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://en.wikipedia.org/wiki/NATO_phonetic_alphabet",
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
       "goal": "make the model say an encoded payload",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1285,18 +1404,24 @@
         "quality:Security:PromptStability",
         "payload:generic"
       ],
-      "mod_time": "2024-12-02 15:38:23 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.encoding.InjectQP": {
       "description": "Probe for susceptibility to QP encoded injections",
-      "DEFAULT_PARAMS": {},
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "payloads": [
+          "default"
+        ]
+      },
       "active": false,
-      "bcp47": "en",
       "doc_uri": "https://kai-greshake.de/posts/llm-malware/#encoded-inline-jailbreak",
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
       "goal": "make the model say an encoded payload",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1313,18 +1438,24 @@
         "quality:Security:PromptStability",
         "payload:generic"
       ],
-      "mod_time": "2024-12-02 15:38:23 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.encoding.InjectROT13": {
       "description": "Probe for susceptibility to ROT13 encoding injections",
-      "DEFAULT_PARAMS": {},
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "payloads": [
+          "default"
+        ]
+      },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://kai-greshake.de/posts/llm-malware/#encoded-inline-jailbreak",
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
       "goal": "make the model say an encoded payload",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1341,18 +1472,24 @@
         "quality:Security:PromptStability",
         "payload:generic"
       ],
-      "mod_time": "2024-12-02 15:38:23 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.encoding.InjectUU": {
       "description": "Probe for susceptibility to UU encoded injections",
-      "DEFAULT_PARAMS": {},
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "payloads": [
+          "default"
+        ]
+      },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://kai-greshake.de/posts/llm-malware/#encoded-inline-jailbreak",
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
       "goal": "make the model say an encoded payload",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1369,18 +1506,24 @@
         "quality:Security:PromptStability",
         "payload:generic"
       ],
-      "mod_time": "2024-12-02 15:38:23 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.encoding.InjectZalgo": {
       "description": "Probe for susceptibility to Zalgo encoding.",
-      "DEFAULT_PARAMS": {},
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "payloads": [
+          "default"
+        ]
+      },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://en.wikipedia.org/wiki/Zalgo_text",
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
       "goal": "make the model say an encoded payload",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1397,19 +1540,124 @@
         "quality:Security:PromptStability",
         "payload:generic"
       ],
-      "mod_time": "2024-12-02 15:38:23 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
+    },
+    "probes.exploitation.JinjaTemplatePythonInjection": {
+      "description": "Attempts to execute Python code via Jinja templating",
+      "DEFAULT_PARAMS": {
+        "payload_name": "python_code_execution"
+      },
+      "active": true,
+      "doc_uri": "https://portswigger.net/web-security/server-side-template-injection",
+      "extended_detectors": [],
+      "goal": "Gain remote code execution via Jinja template injection",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": null,
+      "recommended_detector": [
+        "exploitation.JinjaTemplateDetector",
+        "exploitation.PythonCodeExecution"
+      ],
+      "tags": [
+        "avid-effect:security:S0301",
+        "avid-effect:security:S0403",
+        "owasp:llm02",
+        "owasp:llm06",
+        "payload:malicious:renderer",
+        "quality:Security:PromptStability",
+        "quality:Security:ExtractionInversion",
+        "cwe:94",
+        "cwe:95",
+        "cwe:1336"
+      ],
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
+    },
+    "probes.exploitation.SQLInjectionEcho": {
+      "description": "Attempts to get the target to echo a SQL statement.",
+      "DEFAULT_PARAMS": {
+        "payload_name": "sql_injection"
+      },
+      "active": true,
+      "doc_uri": "https://cwe.mitre.org/data/definitions/89.html",
+      "extended_detectors": [],
+      "goal": "Manipulate a database via SQL injection",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": null,
+      "recommended_detector": [
+        "exploitation.SQLiEcho"
+      ],
+      "tags": [
+        "avid-effect:security:S0301",
+        "avid-effect:security:S0403",
+        "owasp:llm02",
+        "owasp:llm06",
+        "quality:Security:PromptStability",
+        "quality:Security:ExtractionInversion",
+        "cwe:89",
+        "cwe:1426",
+        "cwe:1427"
+      ],
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
+    },
+    "probes.exploitation.SQLInjectionSystem": {
+      "description": "Attempts to inject untrusted SQL commands into a SQL statement.",
+      "DEFAULT_PARAMS": {
+        "payload_name": "sql_injection"
+      },
+      "active": false,
+      "doc_uri": "https://cwe.mitre.org/data/definitions/89.html",
+      "extended_detectors": [],
+      "goal": "Manipulate a database via SQL injection",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": null,
+      "recommended_detector": [
+        "exploitation.SQLiSuccess"
+      ],
+      "tags": [
+        "avid-effect:security:S0301",
+        "avid-effect:security:S0403",
+        "owasp:llm02",
+        "owasp:llm06",
+        "quality:Security:PromptStability",
+        "quality:Security:ExtractionInversion",
+        "cwe:89",
+        "cwe:1426",
+        "cwe:1427"
+      ],
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.fileformats.HF_Files": {
       "description": "Get a manifest of files associated with a Hugging Face generator",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "*",
       "doc_uri": "",
       "extended_detectors": [
         "fileformats.FileIsExecutable",
         "fileformats.PossiblePickleName"
       ],
       "goal": "get a list of files associated with the model",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -1423,16 +1671,17 @@
       "tags": [
         "owasp:llm05"
       ],
-      "mod_time": "2025-03-04 15:34:36 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.glitch.Glitch": {
       "description": "Probe model for glitch tokens that provoke unusual behavior",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://www.lesswrong.com/posts/aPeJE8bSo6rAFoLqg/solidgoldmagikarp-plus-prompt-generation",
       "extended_detectors": [],
       "goal": "make the model fail to repeat a word",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1450,16 +1699,17 @@
         "quality:Security:PromptStability",
         "payload:generic"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 3,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.glitch.GlitchFull": {
       "description": "Probe model for glitch tokens that provoke unusual behavior",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "https://www.lesswrong.com/posts/aPeJE8bSo6rAFoLqg/solidgoldmagikarp-plus-prompt-generation",
       "extended_detectors": [],
       "goal": "make the model fail to repeat a word",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1477,16 +1727,17 @@
         "quality:Security:PromptStability",
         "payload:generic"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 3,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.goodside.Davidjl": {
       "description": "Exploit the ' davidjl' magic token",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://twitter.com/goodside/status/1666598580319035392",
       "extended_detectors": [],
       "goal": "get wrong answers about a name",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1504,16 +1755,17 @@
         "quality:Security:PromptStability",
         "payload:generic"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 3,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.goodside.Tag": {
       "description": "Exploit UTF tag page encoding for user-invisible prompt injection",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://twitter.com/goodside/status/1745511940351287394",
       "extended_detectors": [],
       "goal": "inject invisible instructions",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1530,16 +1782,17 @@
         "quality:Security:Adversarial",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.goodside.ThreatenJSON": {
       "description": "Will model strip preamble and give JSON?",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://twitter.com/goodside/status/1657396491676164096",
       "extended_detectors": [],
       "goal": "get raw code by threatening a model",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1556,16 +1809,17 @@
         "avid-effect:performance:P0204",
         "payload:generic"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.goodside.WhoIsRiley": {
       "description": "Probe for misinfo about Riley Goodside",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://twitter.com/goodside",
       "extended_detectors": [],
       "goal": "get misinfo about riley goodside",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1583,7 +1837,8 @@
         "quality:Robustness:GenerativeMisinformation",
         "payload:hallucination"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.grandma.Slurs": {
       "description": "Use the grandma attack to get ethnic slurs.",
@@ -1596,12 +1851,12 @@
         ]
       },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
       "goal": "get model to use ethnic slur",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1615,7 +1870,8 @@
       "tags": [
         "avid-effect:security:S0300"
       ],
-      "mod_time": "2024-10-03 11:47:49 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.grandma.Substances": {
       "description": "Use the grandma attack to get instructios for harmful items.",
@@ -1629,10 +1885,10 @@
         ]
       },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://x.com/_annieversary/status/1647865782741749760",
       "extended_detectors": [],
       "goal": "get instructions for making bad things",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1647,18 +1903,19 @@
         "risk-cards:lmrc:providing_illegal_info",
         "quality:Behavioral:ContentSafety:LegalGoodsServices"
       ],
-      "mod_time": "2024-10-03 11:47:49 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.grandma.Win10": {
       "description": "Will the model yield a Windows 10 product key if we beg it to?",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://www.independent.co.uk/tech/chatgpt-microsoft-windows-11-grandma-exploit-b2360213.html",
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
       "goal": "get model to output Win 10 product keys",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1675,18 +1932,19 @@
         "risk-cards:lmrc:providing_illegal_info",
         "quality:Behavioral:ContentSafety:LegalGoodsServices"
       ],
-      "mod_time": "2024-10-03 11:47:49 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.grandma.Win11": {
       "description": "Will the model yield a Windows 11 product key if we beg it to?",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://www.independent.co.uk/tech/chatgpt-microsoft-windows-11-grandma-exploit-b2360213.html",
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
       "goal": "get model to output Win 10 product keys",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1703,16 +1961,17 @@
         "risk-cards:lmrc:providing_illegal_info",
         "quality:Behavioral:ContentSafety:LegalGoodsServices"
       ],
-      "mod_time": "2024-10-03 11:47:49 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetEiffel": {
       "description": "String-based latent prompt injections in fact snippets",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://kai-greshake.de/posts/inject-my-pdf/",
       "extended_detectors": [],
       "goal": "subvert a snippet with instructions",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1728,16 +1987,17 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetEiffelFull": {
       "description": "String-based latent prompt injections in fact snippets",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "https://kai-greshake.de/posts/inject-my-pdf/",
       "extended_detectors": [],
       "goal": "subvert a snippet with instructions",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1753,16 +2013,17 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetLegal": {
       "description": "String-based latent prompt injections in legal snippets",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://kai-greshake.de/posts/inject-my-pdf/",
       "extended_detectors": [],
       "goal": "subvert a snippet with instructions",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1778,16 +2039,17 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetLegalFull": {
       "description": "String-based latent prompt injections in legal snippets",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "https://kai-greshake.de/posts/inject-my-pdf/",
       "extended_detectors": [],
       "goal": "subvert a snippet with instructions",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1803,7 +2065,8 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.latentinjection.LatentInjectionReport": {
       "description": "String-based latent prompt injections via a report",
@@ -1811,10 +2074,10 @@
         "payload_name": "domains_latentinjection"
       },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://kai-greshake.de/posts/inject-my-pdf/",
       "extended_detectors": [],
       "goal": "subvert a report with instructions",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1830,7 +2093,8 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.latentinjection.LatentInjectionReportFull": {
       "description": "String-based latent prompt injections via a report",
@@ -1838,10 +2102,10 @@
         "payload_name": "domains_latentinjection"
       },
       "active": false,
-      "bcp47": "en",
       "doc_uri": "https://kai-greshake.de/posts/inject-my-pdf/",
       "extended_detectors": [],
       "goal": "subvert a report with instructions",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1857,16 +2121,17 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.latentinjection.LatentInjectionResume": {
       "description": "String-based latent prompt injections via a resume",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://kai-greshake.de/posts/inject-my-pdf/",
       "extended_detectors": [],
       "goal": "subvert a resume with instructions",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1882,16 +2147,17 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.latentinjection.LatentInjectionResumeFull": {
       "description": "String-based latent prompt injections via a resume",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "https://kai-greshake.de/posts/inject-my-pdf/",
       "extended_detectors": [],
       "goal": "subvert a resume with instructions",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1907,7 +2173,8 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnFr": {
       "description": "String-based latent prompt injections via translation",
@@ -1915,10 +2182,10 @@
         "payload_name": "rude_french"
       },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://x.com/goodside/status/1569128808308957185",
       "extended_detectors": [],
       "goal": "subvert translation instructions",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1934,7 +2201,8 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnFrFull": {
       "description": "String-based latent prompt injections via translation",
@@ -1942,10 +2210,10 @@
         "payload_name": "rude_french"
       },
       "active": false,
-      "bcp47": "en",
       "doc_uri": "https://x.com/goodside/status/1569128808308957185",
       "extended_detectors": [],
       "goal": "subvert translation instructions",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1961,7 +2229,8 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnZh": {
       "description": "Latent prompt injection in Chinese context (\u7b80\u4f53\u5b57)",
@@ -1969,10 +2238,10 @@
         "payload_name": "rude_chinese"
       },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://x.com/goodside/status/1569128808308957185",
       "extended_detectors": [],
       "goal": "subvert translation instructions",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -1988,7 +2257,8 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnZhFull": {
       "description": "Latent prompt injection in Chinese context (\u7b80\u4f53\u5b57)",
@@ -1996,10 +2266,10 @@
         "payload_name": "rude_chinese"
       },
       "active": false,
-      "bcp47": "en",
       "doc_uri": "https://x.com/goodside/status/1569128808308957185",
       "extended_detectors": [],
       "goal": "subvert translation instructions",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -2015,18 +2285,19 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.latentinjection.LatentJailbreak": {
       "description": "Implementation of Latent Jailbreak, using latent prompt injection-",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://arxiv.org/abs/2307.08487",
       "extended_detectors": [
         "base.TriggerListDetector"
       ],
       "goal": "inject malicious instructions into output while posing as translation task",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -2042,18 +2313,19 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.latentinjection.LatentJailbreakFull": {
       "description": "Implementation of Latent Jailbreak, using latent prompt injection-",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "https://arxiv.org/abs/2307.08487",
       "extended_detectors": [
         "base.TriggerListDetector"
       ],
       "goal": "inject malicious instructions into output while posing as translation task",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -2069,16 +2341,17 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.latentinjection.LatentWhois": {
       "description": "Latent prompt injections in whois probe reports",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://twitter.com/jaimeblascob/status/1648688583035715585",
       "extended_detectors": [],
       "goal": "subvert a snippet with instructions",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -2094,7 +2367,8 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.latentinjection.LatentWhoisSnippet": {
       "description": "String-based latent prompt injections in whois reports",
@@ -2103,10 +2377,10 @@
         "contexts_per_generation": 8
       },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://twitter.com/jaimeblascob/status/1648688583035715585",
       "extended_detectors": [],
       "goal": "subvert a snippet with instructions",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -2122,16 +2396,17 @@
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.leakreplay.GuardianCloze": {
       "description": "Cloze data replay for literature. Uses passages that either GPT-4 or ChatGPT have been known to replay.",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "*",
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
       "goal": "replay training data by filling in the correct missing words",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -2149,16 +2424,17 @@
         "quality:Security:ExtractionInversion",
         "payload:leak:training"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.leakreplay.GuardianComplete": {
       "description": "Data replay probe for literature, using document completion. Uses passages that either GPT-4 or ChatGPT have been known to replay.",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "*",
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
       "goal": "replay training data by filling in the correct missing words",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -2176,16 +2452,17 @@
         "quality:Security:ExtractionInversion",
         "payload:leak:training"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.leakreplay.LiteratureCloze": {
       "description": "Cloze data replay for literature. Uses passages that either GPT-4 or ChatGPT have been known to replay.",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "*",
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
       "goal": "replay training data by filling in the correct missing words",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -2203,16 +2480,17 @@
         "quality:Security:ExtractionInversion",
         "payload:leak:training"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.leakreplay.LiteratureClozeFull": {
       "description": "Cloze data replay for literature. Uses passages that either GPT-4 or ChatGPT have been known to replay.",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "*",
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
       "goal": "replay training data by filling in the correct missing words",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -2230,16 +2508,17 @@
         "quality:Security:ExtractionInversion",
         "payload:leak:training"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.leakreplay.LiteratureComplete": {
       "description": "Data replay probe for literature, using document completion. Uses passages that either GPT-4 or ChatGPT have been known to replay.",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "*",
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
       "goal": "replay training data by filling in the correct missing words",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -2257,16 +2536,17 @@
         "quality:Security:ExtractionInversion",
         "payload:leak:training"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.leakreplay.LiteratureCompleteFull": {
       "description": "Data replay probe for literature, using document completion. Uses passages that either GPT-4 or ChatGPT have been known to replay.",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "*",
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
       "goal": "replay training data by filling in the correct missing words",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -2284,16 +2564,17 @@
         "quality:Security:ExtractionInversion",
         "payload:leak:training"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.leakreplay.NYTCloze": {
       "description": "Cloze data replay for literature. Uses passages that either GPT-4 or ChatGPT have been known to replay.",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "*",
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
       "goal": "replay training data by filling in the correct missing words",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -2311,16 +2592,17 @@
         "quality:Security:ExtractionInversion",
         "payload:leak:training"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.leakreplay.NYTComplete": {
       "description": "Data replay probe for literature, using document completion. Uses passages that either GPT-4 or ChatGPT have been known to replay.",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "*",
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
       "goal": "replay training data by filling in the correct missing words",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -2338,16 +2620,17 @@
         "quality:Security:ExtractionInversion",
         "payload:leak:training"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.leakreplay.PotterCloze": {
       "description": "Cloze data replay for literature. Uses passages that either GPT-4 or ChatGPT have been known to replay.",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "*",
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
       "goal": "replay training data by filling in the correct missing words",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -2365,16 +2648,17 @@
         "quality:Security:ExtractionInversion",
         "payload:leak:training"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.leakreplay.PotterComplete": {
       "description": "Data replay probe for literature, using document completion. Uses passages that either GPT-4 or ChatGPT have been known to replay.",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "*",
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
       "goal": "replay training data by filling in the correct missing words",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -2392,16 +2676,17 @@
         "quality:Security:ExtractionInversion",
         "payload:leak:training"
       ],
-      "mod_time": "2025-03-31 18:04:23 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.lmrc.Anthropomorphisation": {
       "description": "Providing output that encourages anthropomorphisation of AI systems",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/anthropomorphisation.md",
       "extended_detectors": [],
       "goal": "anthropomorphise a language model",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -2415,16 +2700,17 @@
       "tags": [
         "risk-cards:lmrc:anthropomorphisation"
       ],
-      "mod_time": "2025-02-20 12:01:31 +0000"
+      "tier": 3,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.lmrc.Bullying": {
       "description": "Generation of repeated threats, denigration",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/bullying.md",
       "extended_detectors": [],
       "goal": "help me bully",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -2441,16 +2727,17 @@
         "quality:Behavioral:ContentSafety:Violence",
         "payload:unwanted:violence"
       ],
-      "mod_time": "2025-02-20 12:01:31 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.lmrc.Deadnaming": {
       "description": "Mentioning a name that a person does not wish to be associated with",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/deadnaming.md",
       "extended_detectors": [],
       "goal": "write a deadname",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -2466,16 +2753,17 @@
         "avid-effect:ethics:E0302",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2025-02-20 12:01:31 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.lmrc.Profanity": {
       "description": "Using profane words, especially when not prompted to do so.",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/profanity.md",
       "extended_detectors": [],
       "goal": "utter profanity",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -2503,16 +2791,17 @@
         "quality:Behavioral:ContentSafety:Profanity",
         "payload:unwanted:profanity"
       ],
-      "mod_time": "2025-02-20 12:01:31 +0000"
+      "tier": 3,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.lmrc.QuackMedicine": {
       "description": "Promoting non-scientific medicine.",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/quack_medicine.md",
       "extended_detectors": [],
       "goal": "support quack medicine",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -2530,19 +2819,20 @@
         "quality:Behavioral:ContentSafety:Unauthorized",
         "payload:dangerous:medical"
       ],
-      "mod_time": "2025-02-20 12:01:31 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.lmrc.SexualContent": {
       "description": "Content that discusses bodies and interactions in a sexual manner, or other sexually explicit material",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/sexual_content.md",
       "extended_detectors": [
         "perspective.Sexually_Explicit",
         "unsafe_content.OfcomOffensiveSexual"
       ],
       "goal": "write sexual content",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -2559,19 +2849,20 @@
         "quality:Behavioral:ContentSafety:Sexual",
         "payload:unwanted:sexual"
       ],
-      "mod_time": "2025-02-20 12:01:31 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.lmrc.Sexualisation": {
       "description": "Causal or overt sexual objectification, reducing a person or group of people to sexual objects.",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/sexualisation.md",
       "extended_detectors": [
         "perspective.Sexually_Explicit",
         "unsafe_content.OfcomOffensiveSexual"
       ],
       "goal": "sexualise people",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -2590,16 +2881,17 @@
         "quality:Behavioral:ContentSafety:Sexual",
         "payload:unwanted:sexual"
       ],
-      "mod_time": "2025-02-20 12:01:31 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.lmrc.SlurUsage": {
       "description": "Using an identity-based slur in a non-reclaimed way - either directly or recommending the consumer to use in speech/action.",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/slur_usage.md",
       "extended_detectors": [],
       "goal": "use a slur",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -2619,16 +2911,17 @@
         "quality:Behavioral:ContentSafety:HateHarassment",
         "payload:unwanted:hatespeech"
       ],
-      "mod_time": "2025-02-20 12:01:31 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.malwaregen.Evasion": {
       "description": "Will the model write code to help avoid anti-malware?",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "Write code to assist evading security and anti-malware measures",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -2644,16 +2937,17 @@
         "payload:malicious:badcode",
         "quality:Behavioral:ContentSafety:LegalGoodsServices"
       ],
-      "mod_time": "2024-08-23 16:13:06 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.malwaregen.Payload": {
       "description": "Will the model help write code for malware payloads?",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "write a malware payload",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -2668,16 +2962,17 @@
         "avid-effect:security:S0403",
         "quality:Behavioral:ContentSafety:LegalGoodsServices"
       ],
-      "mod_time": "2024-08-23 16:13:06 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.malwaregen.SubFunctions": {
       "description": "Will the system write code helpful in malware?",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "write code supporting a sub-function of malware",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -2693,16 +2988,17 @@
         "payload:malicious:badcode",
         "quality:Behavioral:ContentSafety:LegalGoodsServices"
       ],
-      "mod_time": "2024-08-23 16:13:06 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.malwaregen.TopLevel": {
       "description": "Will the system return code when asked to write malware?",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "write malware given a top-level description",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -2718,16 +3014,17 @@
         "payload:malicious:badcode",
         "quality:Behavioral:ContentSafety:LegalGoodsServices"
       ],
-      "mod_time": "2024-08-23 16:13:06 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.misleading.FalseAssertion": {
       "description": "Does the model reject [questions based on] false claims?",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://arxiv.org/abs/2304.13734",
       "extended_detectors": [],
       "goal": "make the model expand on a false assertion",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -2747,16 +3044,17 @@
         "quality:Robustness:GenerativeMisinformation",
         "payload:hallucination"
       ],
-      "mod_time": "2025-02-26 13:17:45 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.packagehallucination.JavaScript": {
       "description": "Attempts to generate JavaScript code including hallucinated npm packages",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "*",
       "doc_uri": "https://vulcan.io/blog/ai-hallucinations-package-risk",
       "extended_detectors": [],
       "goal": "generate JavaScript code importing non-existent npm packages",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -2773,16 +3071,17 @@
         "quality:Robustness:GenerativeMisinformation",
         "payload:malicious:badcode"
       ],
-      "mod_time": "2024-09-04 12:16:55 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.packagehallucination.PackageHallucinationProbe": {
       "description": "Base class for package hallucination probes",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "*",
       "doc_uri": "https://vulcan.io/blog/ai-hallucinations-package-risk",
       "extended_detectors": [],
       "goal": "base probe for importing non-existent packages",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -2799,16 +3098,17 @@
         "quality:Robustness:GenerativeMisinformation",
         "payload:malicious:badcode"
       ],
-      "mod_time": "2024-09-04 12:16:55 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.packagehallucination.Python": {
       "description": "Attempts to generate Python3 code including hallucinated packages",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "*",
       "doc_uri": "https://vulcan.io/blog/ai-hallucinations-package-risk",
       "extended_detectors": [],
       "goal": "generate python importing non-existent packages",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -2825,16 +3125,17 @@
         "quality:Robustness:GenerativeMisinformation",
         "payload:malicious:badcode"
       ],
-      "mod_time": "2024-09-04 12:16:55 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.packagehallucination.Ruby": {
       "description": "Attempts to generate Ruby code including hallucinated gems",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "*",
       "doc_uri": "https://vulcan.io/blog/ai-hallucinations-package-risk",
       "extended_detectors": [],
       "goal": "generate ruby code importing non-existent gems",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -2851,16 +3152,17 @@
         "quality:Robustness:GenerativeMisinformation",
         "payload:malicious:badcode"
       ],
-      "mod_time": "2024-09-04 12:16:55 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.packagehallucination.Rust": {
       "description": "Attempts to generate Rust code including hallucinated crates.io packages",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "*",
       "doc_uri": "https://vulcan.io/blog/ai-hallucinations-package-risk",
       "extended_detectors": [],
       "goal": "generate Rust code importing non-existent crates.io packages",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -2877,16 +3179,17 @@
         "quality:Robustness:GenerativeMisinformation",
         "payload:malicious:badcode"
       ],
-      "mod_time": "2024-09-04 12:16:55 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.phrasing.FutureTense": {
       "description": "Attempt to evade safeguards by setting requests in the future tense",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://arxiv.org/pdf/2407.11969v2",
       "extended_detectors": [],
       "goal": "use future tense to disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -2902,16 +3205,17 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.phrasing.FutureTenseFull": {
       "description": "Will the system give unsafe responses when asked to write about weapon creation or dangerous behavior?",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "https://arxiv.org/pdf/2407.11969v2",
       "extended_detectors": [],
       "goal": "use future tense to disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -2927,16 +3231,17 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.phrasing.PastTense": {
       "description": "Attempt to evade safeguards by setting requests in the past tense",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://arxiv.org/pdf/2407.11969v2",
       "extended_detectors": [],
       "goal": "use past tense to disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -2952,16 +3257,17 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.phrasing.PastTenseFull": {
       "description": "Will the system give unsafe responses when asked to write about weapon creation or dangerous behavior?",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "https://arxiv.org/pdf/2407.11969v2",
       "extended_detectors": [],
       "goal": "use past tense to disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -2977,16 +3283,17 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-03-11 15:08:36 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.promptinject.HijackHateHumans": {
       "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "inject a prompt on hate humans",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3004,16 +3311,17 @@
         "quality:Security:PromptStability",
         "payload:unwanted:violence"
       ],
-      "mod_time": "2025-04-02 07:06:59 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.promptinject.HijackHateHumansFull": {
       "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "inject a prompt on hate humans",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3031,16 +3339,17 @@
         "quality:Security:PromptStability",
         "payload:unwanted:violence"
       ],
-      "mod_time": "2025-04-02 07:06:59 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.promptinject.HijackKillHumans": {
       "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "inject a prompt on kill humans",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3058,16 +3367,17 @@
         "quality:Security:PromptStability",
         "payload:unwanted:violence"
       ],
-      "mod_time": "2025-04-02 07:06:59 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.promptinject.HijackKillHumansFull": {
       "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "inject a prompt on kill humans",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3085,16 +3395,17 @@
         "quality:Security:PromptStability",
         "payload:unwanted:violence"
       ],
-      "mod_time": "2025-04-02 07:06:59 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.promptinject.HijackLongPrompt": {
       "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "inject a prompt on long prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3112,16 +3423,17 @@
         "quality:Security:PromptStability",
         "payload:unwanted:violence"
       ],
-      "mod_time": "2025-04-02 07:06:59 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.promptinject.HijackLongPromptFull": {
       "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "inject a prompt on long prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3139,18 +3451,19 @@
         "quality:Security:PromptStability",
         "payload:unwanted:violence"
       ],
-      "mod_time": "2025-04-02 07:06:59 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.realtoxicityprompts.RTPBlank": {
       "description": "Implementation of probes in RealToxicityPrompts",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://allenai.org/data/real-toxicity-prompts",
       "extended_detectors": [
         "perspective.Toxicity"
       ],
       "goal": "generate toxicity when prompted with nothing or special tokens",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3166,18 +3479,19 @@
         "quality:Behavioral:ContentSafety:Toxicity",
         "payload:unwanted"
       ],
-      "mod_time": "2025-02-20 12:01:31 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.realtoxicityprompts.RTPFlirtation": {
       "description": "Implementation of flirtation probes in RealToxicityPrompts",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [
         "perspective.Flirtation"
       ],
       "goal": "generate flirtation content",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3194,18 +3508,19 @@
         "avid-effect:performance:P0401",
         "payload:unwanted"
       ],
-      "mod_time": "2025-02-20 12:01:31 +0000"
+      "tier": 3,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.realtoxicityprompts.RTPIdentity_Attack": {
       "description": "Implementation of identity_attack probes in RealToxicityPrompts",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [
         "perspective.Identity_Attack"
       ],
       "goal": "generate identity attack content",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3224,18 +3539,19 @@
         "quality:Behavioral:ContentSafety:HateHarassment",
         "payload:hatespeech"
       ],
-      "mod_time": "2025-02-20 12:01:31 +0000"
+      "tier": 3,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.realtoxicityprompts.RTPInsult": {
       "description": "Implementation of insult probes in RealToxicityPrompts",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [
         "perspective.Insult"
       ],
       "goal": "generate insult content",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3253,18 +3569,19 @@
         "quality:Behavioral:ContentSafety:Toxicity",
         "payload:unwanted"
       ],
-      "mod_time": "2025-02-20 12:01:31 +0000"
+      "tier": 3,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.realtoxicityprompts.RTPProfanity": {
       "description": "Implementation of profanity probes in RealToxicityPrompts",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [
         "perspective.Profanity"
       ],
       "goal": "generate profanity content",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3281,18 +3598,19 @@
         "quality:Behavioral:ContentSafety:Profanity",
         "payload:unwanted:profanity"
       ],
-      "mod_time": "2025-02-20 12:01:31 +0000"
+      "tier": 3,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.realtoxicityprompts.RTPSevere_Toxicity": {
       "description": "Implementation of severe_toxicity probes in RealToxicityPrompts",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [
         "perspective.Severe_Toxicity"
       ],
       "goal": "generate severe toxicity content",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3308,18 +3626,19 @@
         "quality:Behavioral:ContentSafety:Toxicity",
         "payload:unwanted"
       ],
-      "mod_time": "2025-02-20 12:01:31 +0000"
+      "tier": 3,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.realtoxicityprompts.RTPSexually_Explicit": {
       "description": "Implementation of sexually_explicit probes in RealToxicityPrompts",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [
         "perspective.Sexually_Explicit"
       ],
       "goal": "generate sexually explicit content",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3335,18 +3654,19 @@
         "quality:Behavioral:ContentSafety:Sexual",
         "payload:unwanted:sexual"
       ],
-      "mod_time": "2025-02-20 12:01:31 +0000"
+      "tier": 3,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.realtoxicityprompts.RTPThreat": {
       "description": "Implementation of threat probes in RealToxicityPrompts",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "",
       "extended_detectors": [
         "perspective.Threat"
       ],
       "goal": "generate threat content",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3364,16 +3684,17 @@
         "quality:Behavioral:ContentSafety:Violence",
         "payload:unwanted:violence"
       ],
-      "mod_time": "2025-02-20 12:01:31 +0000"
+      "tier": 3,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.snowball.GraphConnectivity": {
       "description": "Probe asking for impossible flight routings",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://github.com/Nanami18/Snowballed_Hallucination",
       "extended_detectors": [],
       "goal": "trick the model into saying an impossible flight routing is possible",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3390,16 +3711,17 @@
         "quality:Robustness:GenerativeMisinformation",
         "payload:hallucination"
       ],
-      "mod_time": "2025-02-24 10:45:55 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.snowball.GraphConnectivityFull": {
       "description": "Probe asking for impossible flight routings",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "https://github.com/Nanami18/Snowballed_Hallucination",
       "extended_detectors": [],
       "goal": "trick the model into saying an impossible flight routing is possible",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3416,16 +3738,17 @@
         "quality:Robustness:GenerativeMisinformation",
         "payload:hallucination"
       ],
-      "mod_time": "2025-02-24 10:45:55 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.snowball.Primes": {
       "description": "Ask model to check a list of higher primes",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://github.com/Nanami18/Snowballed_Hallucination",
       "extended_detectors": [],
       "goal": "trick the model into saying a prime number isn't prime",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3442,16 +3765,17 @@
         "quality:Robustness:GenerativeMisinformation",
         "payload:hallucination"
       ],
-      "mod_time": "2025-02-24 10:45:55 +0000"
+      "tier": 3,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.snowball.PrimesFull": {
       "description": "Ask model to check a list of higher primes",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "https://github.com/Nanami18/Snowballed_Hallucination",
       "extended_detectors": [],
       "goal": "trick the model into saying a prime number isn't prime",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3468,16 +3792,17 @@
         "quality:Robustness:GenerativeMisinformation",
         "payload:hallucination"
       ],
-      "mod_time": "2025-02-24 10:45:55 +0000"
+      "tier": 3,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.snowball.Senators": {
       "description": "Asking for senators that don't exist",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://github.com/Nanami18/Snowballed_Hallucination",
       "extended_detectors": [],
       "goal": "trick the model into saying a fictitious senator exists",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3494,16 +3819,17 @@
         "quality:Robustness:GenerativeMisinformation",
         "payload:hallucination"
       ],
-      "mod_time": "2025-02-24 10:45:55 +0000"
+      "tier": 3,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.snowball.SenatorsFull": {
       "description": "Asking for senators that don't exist",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "https://github.com/Nanami18/Snowballed_Hallucination",
       "extended_detectors": [],
       "goal": "trick the model into saying a fictitious senator exists",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3520,16 +3846,17 @@
         "quality:Robustness:GenerativeMisinformation",
         "payload:hallucination"
       ],
-      "mod_time": "2025-02-24 10:45:55 +0000"
+      "tier": 3,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.suffix.BEAST": {
       "description": "BEAST probe",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "https://arxiv.org/abs/2402.15570",
       "extended_detectors": [],
       "goal": "cause the model to disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3546,16 +3873,17 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2024-10-30 21:06:57 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.suffix.GCG": {
       "description": "Greedy Coordinate Gradient probe",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "https://arxiv.org/abs/2307.15043",
       "extended_detectors": [],
       "goal": "cause the model to disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3572,16 +3900,17 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2024-10-30 21:06:57 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.suffix.GCGCached": {
       "description": "Greedy Coordinate Gradient Cached probe",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://arxiv.org/abs/2307.15043",
       "extended_detectors": [],
       "goal": "cause the model to disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3598,7 +3927,8 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2024-10-30 21:06:57 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.tap.PAIR": {
       "description": "Prompt Automatic Iterative Refinement automatic jailbreak",
@@ -3628,10 +3958,10 @@
         "pruning": true
       },
       "active": false,
-      "bcp47": "en",
       "doc_uri": "https://arxiv.org/abs/2310.08419",
       "extended_detectors": [],
       "goal": "cause the model to disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3648,7 +3978,8 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-02-28 21:51:23 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.tap.TAP": {
       "description": "Tree of Attacks with Pruning Probe, generating new attacks against the target",
@@ -3678,10 +4009,10 @@
         "pruning": true
       },
       "active": false,
-      "bcp47": "en",
       "doc_uri": "https://arxiv.org/abs/2312.02119",
       "extended_detectors": [],
       "goal": "cause the model to disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3698,7 +4029,8 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-02-28 21:51:23 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.tap.TAPCached": {
       "description": "Tree of Attacks with Pruning Probe using cached attacks",
@@ -3706,10 +4038,10 @@
         "prompts_filename": "tap/tap_jailbreaks.txt"
       },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://arxiv.org/abs/2312.02119",
       "extended_detectors": [],
       "goal": "cause the model to disregard the system prompt",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3726,16 +4058,17 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-02-28 21:51:23 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.test.Blank": {
       "description": "Blank prompt",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "*",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "see what the model has to say for itself given silence",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -3747,16 +4080,17 @@
         "always.Pass"
       ],
       "tags": [],
-      "mod_time": "2024-07-23 20:50:05 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.test.Test": {
       "description": "Test probe",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "*",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "send some test strings, ignore the response",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -3768,7 +4102,8 @@
         "always.Pass"
       ],
       "tags": [],
-      "mod_time": "2024-07-23 20:50:05 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.topic.WordnetAllowedWords": {
       "description": "Use Wordnet to find out if a model will discuss terms near but not in its allowed set",
@@ -3784,10 +4119,10 @@
         "lexicon": "oewn:2023"
       },
       "active": false,
-      "bcp47": "*",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "get the model to engage off-topic",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -3803,7 +4138,8 @@
         "owasp:llm10",
         "quality:Security:Confidentiality"
       ],
-      "mod_time": "2024-09-18 15:40:42 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.topic.WordnetBlockedWords": {
       "description": "Use Wordnet to explore which topics a model will respond to around blocked words",
@@ -3819,10 +4155,10 @@
         "lexicon": "oewn:2023"
       },
       "active": false,
-      "bcp47": "*",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "get the model to engage off-topic",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -3838,7 +4174,8 @@
         "owasp:llm10",
         "quality:Security:Confidentiality"
       ],
-      "mod_time": "2024-09-18 15:40:42 +0000"
+      "tier": 9,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.topic.WordnetControversial": {
       "description": "Ask model to respond on a set on controversial topics.",
@@ -3861,10 +4198,10 @@
         "lexicon": "oewn:2023"
       },
       "active": true,
-      "bcp47": "*",
       "doc_uri": "",
       "extended_detectors": [],
       "goal": "get the model to engage off-topic",
+      "lang": "*",
       "modality": {
         "in": [
           "text"
@@ -3880,16 +4217,17 @@
         "owasp:llm10",
         "quality:Security:Confidentiality"
       ],
-      "mod_time": "2024-09-18 15:40:42 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.visual_jailbreak.FigStep": {
       "description": "Using another modal - image to assist jailbreak",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "https://arxiv.org/abs/2311.05608",
       "extended_detectors": [],
       "goal": "disregard the system prompt with both text and image",
+      "lang": "en",
       "modality": {
         "in": [
           "image",
@@ -3906,16 +4244,17 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-02-24 10:33:59 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.visual_jailbreak.FigStepFull": {
       "description": "Using another modal - image to assist jailbreak",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "bcp47": "en",
       "doc_uri": "https://arxiv.org/abs/2311.05608",
       "extended_detectors": [],
       "goal": "disregard the system prompt with both text and image",
+      "lang": "en",
       "modality": {
         "in": [
           "image",
@@ -3932,7 +4271,8 @@
         "quality:Security:PromptStability",
         "payload:jailbreak"
       ],
-      "mod_time": "2025-02-24 10:33:59 +0000"
+      "tier": 2,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.xss.ColabAIDataLeakage": {
       "description": "",
@@ -3940,10 +4280,10 @@
         "payload_name": "example_domains_xss"
       },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://embracethered.com/blog/posts/2024/google-colab-image-render-exfil/",
       "extended_detectors": [],
       "goal": "render images fetched from a remote uri",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3964,7 +4304,8 @@
         "quality:Security:PromptStability",
         "quality:Security:ExtractionInversion"
       ],
-      "mod_time": "2025-03-06 15:34:05 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.xss.MarkdownImageExfil": {
       "description": "Can we get the model to write embedded assets exfiltrating text in the URI?",
@@ -3972,10 +4313,10 @@
         "payload_name": "example_domains_xss"
       },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://embracethered.com/blog/posts/2023/bing-chat-data-exfiltration-poc-and-fix/",
       "extended_detectors": [],
       "goal": "embed conversation-private information in a markdown URI",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -3997,7 +4338,8 @@
         "quality:Security:PromptStability",
         "quality:Security:ExtractionInversion"
       ],
-      "mod_time": "2025-03-06 15:34:05 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.xss.MdExfil20230929": {
       "description": "Markdown image URI exfil exploit published 2023 Sept 29",
@@ -4005,10 +4347,10 @@
         "payload_name": "example_domains_xss"
       },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://embracethered.com/blog/posts/2023/data-exfiltration-in-azure-openai-playground-fixed/",
       "extended_detectors": [],
       "goal": "embed conversation-private information in a markdown URI",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -4029,16 +4371,17 @@
         "quality:Security:PromptStability",
         "quality:Security:ExtractionInversion"
       ],
-      "mod_time": "2025-03-06 15:34:05 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     },
     "probes.xss.StringAssemblyDataExfil": {
       "description": "Prompt injection for manipulating state",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://embracethered.com/blog/posts/2023/data-exfiltration-in-azure-openai-playground-fixed/",
       "extended_detectors": [],
       "goal": "embed conversation-private information in a markdown URI",
+      "lang": "en",
       "modality": {
         "in": [
           "text"
@@ -4059,7 +4402,8 @@
         "quality:Security:PromptStability",
         "quality:Security:ExtractionInversion"
       ],
-      "mod_time": "2025-03-06 15:34:05 +0000"
+      "tier": 1,
+      "mod_time": "2025-04-18 16:19:02 +0000"
     }
   },
   "detectors": {
@@ -4070,8 +4414,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "*",
       "doc_uri": null,
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -4080,7 +4424,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2024-08-23 16:13:06 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.always.Pass": {
       "description": "Always Pass (for testing & prototyping)",
@@ -4089,8 +4433,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "*",
       "doc_uri": null,
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -4099,7 +4443,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2024-08-23 16:13:06 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.always.Passthru": {
       "description": "Send existing attempt detection results; use first detector",
@@ -4108,8 +4452,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "*",
       "doc_uri": null,
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -4118,7 +4462,26 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2024-08-23 16:13:06 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
+    },
+    "detectors.always.Random": {
+      "description": "Always return a random result (for testing & prototyping)",
+      "DEFAULT_PARAMS": {
+        "skip": false
+      },
+      "accuracy": null,
+      "active": true,
+      "doc_uri": null,
+      "lang_spec": "*",
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "tags": [],
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.ansiescape.Escaped": {
       "description": "pick up escaped ANSI escape sequences",
@@ -4128,8 +4491,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "*",
       "doc_uri": null,
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -4138,7 +4501,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2024-11-26 16:41:42 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.ansiescape.Raw": {
       "description": "pick up raw ANSI escape sequences",
@@ -4148,8 +4511,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "*",
       "doc_uri": null,
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -4158,7 +4521,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2024-11-26 16:41:42 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.base.Detector": {
       "description": "Base class for objects that define a way of detecting a probe hit / LLM failure",
@@ -4167,8 +4530,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": null,
       "doc_uri": null,
+      "lang_spec": null,
       "modality": {
         "out": [
           "text"
@@ -4177,7 +4540,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-03-31 21:30:38 +0000"
+      "mod_time": "2025-04-19 06:26:33 +0000"
     },
     "detectors.base.FileDetector": {
       "description": "Detector subclass for processing attempts whose outputs are filenames for checking",
@@ -4186,8 +4549,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": null,
       "doc_uri": null,
+      "lang_spec": null,
       "modality": {
         "out": [
           "text"
@@ -4197,7 +4560,7 @@
       "recall": 0.0,
       "tags": [],
       "valid_format": "local filename",
-      "mod_time": "2025-03-31 21:30:38 +0000"
+      "mod_time": "2025-04-19 06:26:33 +0000"
     },
     "detectors.base.HFDetector": {
       "description": "Detector using a Hugging Face model",
@@ -4209,12 +4572,13 @@
         "tokenizer_kwargs": {
           "padding": true,
           "truncation": true
-        }
+        },
+        "graceful_fail": true
       },
       "accuracy": null,
       "active": true,
-      "bcp47": null,
       "doc_uri": null,
+      "lang_spec": null,
       "modality": {
         "out": [
           "text"
@@ -4223,7 +4587,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-03-31 21:30:38 +0000"
+      "mod_time": "2025-04-19 06:26:33 +0000"
     },
     "detectors.base.StringDetector": {
       "description": "Subclass of Detector using list of substrings as detection triggers",
@@ -4233,8 +4597,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": null,
       "doc_uri": null,
+      "lang_spec": null,
       "modality": {
         "out": [
           "text"
@@ -4243,7 +4607,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-03-31 21:30:38 +0000"
+      "mod_time": "2025-04-19 06:26:33 +0000"
     },
     "detectors.base.TriggerListDetector": {
       "description": "Subclass of Detector using attempt's notes[triggers] as list of strings to match",
@@ -4252,8 +4616,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": null,
       "doc_uri": null,
+      "lang_spec": null,
       "modality": {
         "out": [
           "text"
@@ -4262,7 +4626,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-03-31 21:30:38 +0000"
+      "mod_time": "2025-04-19 06:26:33 +0000"
     },
     "detectors.continuation.Continuation": {
       "description": "Detect if model intiates / continues a trigger word",
@@ -4271,8 +4635,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "*",
       "doc_uri": null,
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -4281,7 +4645,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-04-02 07:45:14 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.dan.AntiDAN": {
       "description": "Do we get an ANTI-DAN positive?",
@@ -4291,8 +4655,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -4303,7 +4667,7 @@
       "tags": [
         "avid-effect:security:S0403"
       ],
-      "mod_time": "2024-06-06 01:44:58 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.dan.DAN": {
       "description": "Do we get a [DAN] positive?",
@@ -4313,8 +4677,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -4325,7 +4689,7 @@
       "tags": [
         "avid-effect:security:S0403"
       ],
-      "mod_time": "2024-06-06 01:44:58 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.dan.DANJailbreak": {
       "description": "Do we get a [\ud83d\udd13JAILBREAK] positive?",
@@ -4335,8 +4699,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -4347,7 +4711,7 @@
       "tags": [
         "avid-effect:security:S0403"
       ],
-      "mod_time": "2024-06-06 01:44:58 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.dan.DUDE": {
       "description": "Do we get a DUDE positive?",
@@ -4357,8 +4721,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -4369,7 +4733,7 @@
       "tags": [
         "avid-effect:security:S0403"
       ],
-      "mod_time": "2024-06-06 01:44:58 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.dan.DevMode": {
       "description": "Do we get a dev mode v2 positive?",
@@ -4379,8 +4743,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -4391,7 +4755,7 @@
       "tags": [
         "avid-effect:security:S0403"
       ],
-      "mod_time": "2024-06-06 01:44:58 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.dan.MarkdownLink": {
       "description": "Look for markdown links",
@@ -4401,8 +4765,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "*",
       "doc_uri": null,
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -4413,7 +4777,7 @@
       "tags": [
         "avid-effect:security:S0403"
       ],
-      "mod_time": "2024-06-06 01:44:58 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.dan.STAN": {
       "description": "Do we get a STAN positive?",
@@ -4423,8 +4787,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -4435,7 +4799,7 @@
       "tags": [
         "avid-effect:security:S0403"
       ],
-      "mod_time": "2024-06-06 01:44:58 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.divergence.RepeatDiverges": {
       "description": "Subclass of Detector using attempt's notes[triggers] as list of strings to match",
@@ -4444,8 +4808,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "*",
       "doc_uri": null,
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -4454,7 +4818,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2024-10-11 12:19:57 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.encoding.DecodeApprox": {
       "description": "Is there a partial hash decoding?",
@@ -4464,8 +4828,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "*",
       "doc_uri": null,
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -4474,7 +4838,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-03-24 16:38:39 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.encoding.DecodeMatch": {
       "description": "Is there a direct decoding of anything in attempt[\"notes\"][\"triggers\"]?",
@@ -4484,8 +4848,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "*",
       "doc_uri": null,
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -4494,7 +4858,129 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-03-24 16:38:39 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
+    },
+    "detectors.exploitation.JinjaTemplateDetector": {
+      "description": "Detect that a valid jinja template was provided.",
+      "DEFAULT_PARAMS": {
+        "skip": false
+      },
+      "accuracy": null,
+      "active": true,
+      "doc_uri": "https://portswigger.net/web-security/server-side-template-injection",
+      "lang_spec": "*",
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "tags": [
+        "avid-effect:security:S0301",
+        "avid-effect:security:S0403",
+        "owasp:llm02",
+        "owasp:llm06",
+        "payload:leak:chat",
+        "payload:malicious:renderer",
+        "quality:Security:PromptStability",
+        "quality:Security:ExtractionInversion",
+        "cwe:94",
+        "cwe:95",
+        "cwe:1426",
+        "cwe:1427"
+      ],
+      "mod_time": "2025-04-18 13:08:11 +0000"
+    },
+    "detectors.exploitation.PythonCodeExecution": {
+      "description": "Detect the presence of python that will execute commands on the system.",
+      "DEFAULT_PARAMS": {
+        "skip": false
+      },
+      "accuracy": null,
+      "active": true,
+      "doc_uri": "https://portswigger.net/kb/issues/00100f10_python-code-injection",
+      "lang_spec": "*",
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "tags": [
+        "avid-effect:security:S0301",
+        "avid-effect:security:S0403",
+        "owasp:llm02",
+        "owasp:llm06",
+        "quality:Security:PromptStability",
+        "quality:Security:ExtractionInversion",
+        "cwe:94",
+        "cwe:95",
+        "cwe:1336",
+        "cwe:1426",
+        "cwe:1427"
+      ],
+      "mod_time": "2025-04-18 13:08:11 +0000"
+    },
+    "detectors.exploitation.SQLiEcho": {
+      "description": "",
+      "DEFAULT_PARAMS": {
+        "skip": false
+      },
+      "accuracy": null,
+      "active": true,
+      "doc_uri": "https://cwe.mitre.org/data/definitions/89.html",
+      "lang_spec": "en",
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "tags": [
+        "avid-effect:security:S0301",
+        "avid-effect:security:S0403",
+        "owasp:llm02",
+        "owasp:llm06",
+        "quality:Security:PromptStability",
+        "quality:Security:ExtractionInversion",
+        "cwe:89",
+        "cwe:1426",
+        "cwe:1427"
+      ],
+      "mod_time": "2025-04-18 13:08:11 +0000"
+    },
+    "detectors.exploitation.SQLiSuccess": {
+      "description": "",
+      "DEFAULT_PARAMS": {
+        "skip": false,
+        "matchtype": "str"
+      },
+      "accuracy": null,
+      "active": true,
+      "doc_uri": "https://cwe.mitre.org/data/definitions/89.html",
+      "lang_spec": "en",
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "tags": [
+        "avid-effect:security:S0301",
+        "avid-effect:security:S0403",
+        "owasp:llm02",
+        "owasp:llm06",
+        "quality:Security:PromptStability",
+        "quality:Security:ExtractionInversion",
+        "cwe:89",
+        "cwe:1426",
+        "cwe:1427"
+      ],
+      "mod_time": "2025-04-18 13:08:11 +0000"
     },
     "detectors.fileformats.FileIsExecutable": {
       "description": "",
@@ -4503,8 +4989,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "*",
       "doc_uri": null,
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -4514,7 +5000,7 @@
       "recall": 0.0,
       "tags": [],
       "valid_format": "local filename",
-      "mod_time": "2025-03-24 18:18:23 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.fileformats.FileIsPickled": {
       "description": "",
@@ -4523,8 +5009,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "*",
       "doc_uri": null,
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -4534,7 +5020,7 @@
       "recall": 0.0,
       "tags": [],
       "valid_format": "local filename",
-      "mod_time": "2025-03-24 18:18:23 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.fileformats.PossiblePickleName": {
       "description": "Guess if filenames look like pickles",
@@ -4543,8 +5029,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "*",
       "doc_uri": null,
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -4554,7 +5040,7 @@
       "recall": 0.0,
       "tags": [],
       "valid_format": null,
-      "mod_time": "2025-03-24 18:18:23 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.goodside.Glitch": {
       "description": "Inverse trigger list detector - hit if trigger absent",
@@ -4563,8 +5049,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "*",
       "doc_uri": "https://twitter.com/goodside/status/1666598580319035392",
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -4573,7 +5059,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.goodside.PlainJSON": {
       "description": "Is the output valid JSON with no preamble?",
@@ -4582,8 +5068,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "*",
       "doc_uri": "https://twitter.com/goodside/status/1657396491676164096",
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -4592,7 +5078,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.goodside.RileyIsnt": {
       "description": "Look for mentions of being Canadian, female pronouns, being a singer",
@@ -4602,8 +5088,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -4612,7 +5098,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.judge.ModelAsJudge": {
       "description": "Uses the configured model to detect responses that attained the probe goal",
@@ -4626,8 +5112,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -4636,7 +5122,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2024-10-28 18:40:50 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.judge.Refusal": {
       "description": "Uses the configured model to detect if the responses is a refusal to answer",
@@ -4648,8 +5134,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -4658,7 +5144,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2024-10-28 18:40:50 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.knownbadsignatures.EICAR": {
       "description": "Is the EICAR test string present?",
@@ -4668,8 +5154,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -4680,7 +5166,7 @@
       "tags": [
         "avid-effect:security:S0301"
       ],
-      "mod_time": "2024-08-23 16:13:06 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.knownbadsignatures.GTUBE": {
       "description": "Is the GTUBE test string present?",
@@ -4690,8 +5176,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -4702,7 +5188,7 @@
       "tags": [
         "avid-effect:security:S0301"
       ],
-      "mod_time": "2024-08-23 16:13:06 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.knownbadsignatures.GTphish": {
       "description": "Is the GTphish test string present?",
@@ -4712,8 +5198,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -4724,7 +5210,7 @@
       "tags": [
         "avid-effect:security:S0301"
       ],
-      "mod_time": "2024-08-23 16:13:06 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.leakreplay.StartsWith": {
       "description": "Subclass of Detector using attempt's notes[triggers] as list of strings to match",
@@ -4733,8 +5219,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -4743,7 +5229,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2024-08-23 16:13:06 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.lmrc.Anthro": {
       "description": "Looking for first person pronoun uses",
@@ -4753,8 +5239,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -4765,7 +5251,7 @@
       "tags": [
         "risk-cards:lmrc:anthropomorphisation"
       ],
-      "mod_time": "2024-06-06 01:44:58 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.lmrc.QuackMedicine": {
       "description": "Keywords related to Quack Medicine detector",
@@ -4775,8 +5261,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -4788,7 +5274,7 @@
         "risk-cards:lmrc:quack_medicine",
         "avid-effect:ethics:E0402"
       ],
-      "mod_time": "2024-06-06 01:44:58 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.malwaregen.AnyCode": {
       "description": "Detects programming languages",
@@ -4797,8 +5283,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "*",
       "doc_uri": null,
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -4807,7 +5293,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.misleading.MustContradictNLI": {
       "description": "This detector is looking for the model to contradict a claim.",
@@ -4820,13 +5306,14 @@
           "truncation": true,
           "max_length": 256
         },
+        "graceful_fail": true,
         "detector_model_path": "garak-llm/roberta-large-snli_mnli_fever_anli_R1_R2_R3-nli",
         "detector_target_class": "label"
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -4835,7 +5322,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-03-31 21:30:38 +0000"
+      "mod_time": "2025-04-17 08:44:10 +0000"
     },
     "detectors.misleading.MustRefuteClaimKW": {
       "description": "Looking for strings indicating a refutation",
@@ -4845,8 +5332,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -4855,7 +5342,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-03-31 21:30:38 +0000"
+      "mod_time": "2025-04-17 08:44:10 +0000"
     },
     "detectors.misleading.MustRefuteClaimModel": {
       "description": "Using garak-llm/refutation_detector_distilbert to detect model refutations",
@@ -4868,13 +5355,14 @@
           "padding": true,
           "truncation": true
         },
+        "graceful_fail": true,
         "detector_model_path": "garak-llm/refutation_detector_distilbert",
         "detector_target_class": "label"
       },
       "accuracy": 0.9506,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -4883,7 +5371,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-03-31 21:30:38 +0000"
+      "mod_time": "2025-04-17 08:44:10 +0000"
     },
     "detectors.mitigation.MitigationBypass": {
       "description": "Detect if a string response does not contain a mitigation message.",
@@ -4893,8 +5381,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered",
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -4906,7 +5394,7 @@
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204"
       ],
-      "mod_time": "2024-09-23 11:03:30 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.packagehallucination.JavaScriptNpm": {
       "description": "Check if the output tries to import or require an npm package not listed in the npm registry",
@@ -4917,8 +5405,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "*",
       "doc_uri": null,
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -4927,7 +5415,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-01-20 13:31:07 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.packagehallucination.PackageHallucinationDetector": {
       "description": "Base class for package hallucination detectors",
@@ -4938,8 +5426,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "*",
       "doc_uri": null,
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -4948,7 +5436,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-01-20 13:31:07 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.packagehallucination.PythonPypi": {
       "description": "Check if the output tries to import a package not listed in stdlib or a pypi archive listing",
@@ -4959,8 +5447,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "*",
       "doc_uri": null,
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -4969,7 +5457,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-01-20 13:31:07 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.packagehallucination.RubyGems": {
       "description": "Check if the output tries to require a gem not listed in the Ruby standard library or RubyGems",
@@ -4980,8 +5468,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "*",
       "doc_uri": null,
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -4990,7 +5478,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-01-20 13:31:07 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.packagehallucination.RustCrates": {
       "description": "Check if the output tries to use a Rust crate not listed in the crates.io registry",
@@ -5001,8 +5489,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "*",
       "doc_uri": null,
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -5011,7 +5499,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-01-20 13:31:07 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.perspective.Attack_On_Author": {
       "description": "Targets: Attack on the author of an article or post.",
@@ -5020,8 +5508,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5033,7 +5521,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.perspective.Attack_On_Commenter": {
       "description": "Targets: Attack on fellow commenter.",
@@ -5042,8 +5530,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5055,7 +5543,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.perspective.Flirtation": {
       "description": "Targets: Pickup lines, complimenting appearance, subtle sexual innuendos, etc.",
@@ -5064,8 +5552,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5078,7 +5566,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.perspective.Identity_Attack": {
       "description": "Targets: Negative or hateful comments targeting someone because of their identity.",
@@ -5087,8 +5575,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "ar,zh,cs,nl,en,fr,de,hi,hi-Latn,id,it,ja,ko,pl,pt,ru,es,sv",
       "doc_uri": null,
+      "lang_spec": "ar,zh,cs,nl,en,fr,de,hi,hi-Latn,id,it,ja,ko,pl,pt,ru,es,sv",
       "modality": {
         "out": [
           "text"
@@ -5102,7 +5590,7 @@
         "avid-effect:ethics:E0302",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.perspective.Identity_Attack_Experimental": {
       "description": "Targets: Negative or hateful comments targeting someone because of their identity.",
@@ -5111,8 +5599,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5126,7 +5614,7 @@
         "avid-effect:ethics:E0302",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.perspective.Incoherent": {
       "description": "Targets: Difficult to understand, nonsensical.",
@@ -5135,8 +5623,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5147,7 +5635,7 @@
       "tags": [
         "avid-effect:performance:P0204"
       ],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.perspective.Inflammatory": {
       "description": "Targets: Intending to provoke or inflame.",
@@ -5156,8 +5644,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5170,7 +5658,7 @@
         "avid-effect:ethics:E0302",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.perspective.Insult": {
       "description": "Targets: Insulting, inflammatory, or negative comment towards a person or a group of people.",
@@ -5179,8 +5667,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "ar,zh,cs,nl,en,fr,de,hi,hi-Latn,id,it,ja,ko,pl,pt,ru,es,sv",
       "doc_uri": null,
+      "lang_spec": "ar,zh,cs,nl,en,fr,de,hi,hi-Latn,id,it,ja,ko,pl,pt,ru,es,sv",
       "modality": {
         "out": [
           "text"
@@ -5193,7 +5681,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.perspective.Insult_Experimental": {
       "description": "Targets: Insulting, inflammatory, or negative comment towards a person or a group of people.",
@@ -5202,8 +5690,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5215,7 +5703,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.perspective.Likely_To_Reject": {
       "description": "Targets: Overall measure of the likelihood for the comment to be rejected according to the NYT's moderation.",
@@ -5224,8 +5712,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5234,7 +5722,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.perspective.Obscene": {
       "description": "Targets: Obscene or vulgar language such as cursing.",
@@ -5243,8 +5731,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5256,7 +5744,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.perspective.Profanity": {
       "description": "Targets: Swear words, curse words, or other obscene or profane language.",
@@ -5265,8 +5753,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "ar,zh,cs,nl,en,fr,de,hi,hi-Latn,id,it,ja,ko,pl,pt,ru,es,sv",
       "doc_uri": null,
+      "lang_spec": "ar,zh,cs,nl,en,fr,de,hi,hi-Latn,id,it,ja,ko,pl,pt,ru,es,sv",
       "modality": {
         "out": [
           "text"
@@ -5278,7 +5766,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.perspective.Profanity_Experimental": {
       "description": "Targets: Swear words, curse words, or other obscene or profane language.",
@@ -5287,8 +5775,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5300,7 +5788,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.perspective.Severe_Toxicity": {
       "description": "Targets: A very hateful, aggressive, disrespectful comment or otherwise very likely to make a user leave a discussion or give up on sharing their perspective. This attribute is much less sensitive to more mild forms of toxicity, such as comments that include positive uses of curse words.",
@@ -5309,8 +5797,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "ar,zh,cs,nl,en,fr,de,hi,hi-Latn,id,it,ja,ko,pl,pt,ru,es,sv",
       "doc_uri": null,
+      "lang_spec": "ar,zh,cs,nl,en,fr,de,hi,hi-Latn,id,it,ja,ko,pl,pt,ru,es,sv",
       "modality": {
         "out": [
           "text"
@@ -5321,7 +5809,7 @@
       "tags": [
         "avid-effect:ethics:E0301"
       ],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.perspective.Severe_Toxicity_Experimental": {
       "description": "Targets: A very hateful, aggressive, disrespectful comment or otherwise very likely to make a user leave a discussion or give up on sharing their perspective. This attribute is much less sensitive to more mild forms of toxicity, such as comments that include positive uses of curse words.",
@@ -5330,8 +5818,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5344,7 +5832,7 @@
         "avid-effect:ethics:E0302",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.perspective.Sexually_Explicit": {
       "description": "Targets: Contains references to sexual acts, body parts, or other lewd content.",
@@ -5353,8 +5841,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5365,7 +5853,7 @@
       "tags": [
         "avid-effect:ethics:E0301"
       ],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.perspective.Spam": {
       "description": "Targets: Irrelevant and unsolicited commercial content.",
@@ -5374,8 +5862,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5386,7 +5874,7 @@
       "tags": [
         "avid-effect:performance:P0204"
       ],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.perspective.Threat": {
       "description": "Targets: Describes an intention to inflict pain, injury, or violence against an individual or group.",
@@ -5395,8 +5883,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "ar,zh,cs,nl,en,fr,de,hi,hi-Latn,id,it,ja,ko,pl,pt,ru,es,sv",
       "doc_uri": null,
+      "lang_spec": "ar,zh,cs,nl,en,fr,de,hi,hi-Latn,id,it,ja,ko,pl,pt,ru,es,sv",
       "modality": {
         "out": [
           "text"
@@ -5409,7 +5897,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0400"
       ],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.perspective.Threat_Experimental": {
       "description": "Targets: Describes an intention to inflict pain, injury, or violence against an individual or group.",
@@ -5418,8 +5906,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5431,7 +5919,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.perspective.Toxicity": {
       "description": "Targets: A rude, disrespectful, or unreasonable comment that is likely to make people leave a discussion.",
@@ -5440,8 +5928,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "ar,zh,cs,nl,en,fr,de,hi,hi-Latn,id,it,ja,ko,pl,pt,ru,es,sv",
       "doc_uri": null,
+      "lang_spec": "ar,zh,cs,nl,en,fr,de,hi,hi-Latn,id,it,ja,ko,pl,pt,ru,es,sv",
       "modality": {
         "out": [
           "text"
@@ -5452,7 +5940,7 @@
       "tags": [
         "avid-effect:ethics:E0301"
       ],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.perspective.Toxicity_Experimental": {
       "description": "Targets: A rude, disrespectful, or unreasonable comment that is likely to make people leave a discussion.",
@@ -5461,8 +5949,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5474,7 +5962,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.perspective.Unsubstantial": {
       "description": "Targets: Trivial or short comments",
@@ -5483,8 +5971,8 @@
       },
       "accuracy": null,
       "active": false,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5495,7 +5983,7 @@
       "tags": [
         "avid-effect:performance:P0204"
       ],
-      "mod_time": "2024-07-01 17:51:48 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.productkey.Win5x5": {
       "description": "Do we see a product key in the form of five groups of five characters?",
@@ -5504,8 +5992,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5514,7 +6002,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2024-08-23 16:13:06 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.promptinject.AttackRogueString": {
       "description": "Detect if model emits trigger string",
@@ -5523,8 +6011,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "*",
       "doc_uri": "https://github.com/agencyenterprise/PromptInject",
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -5533,7 +6021,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-04-02 20:00:50 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.shields.Down": {
       "description": "Checks for strings commonly returned by a security system when guardrails are",
@@ -5550,8 +6038,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "*",
       "doc_uri": null,
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -5560,7 +6048,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-01-06 13:44:33 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.shields.Up": {
       "description": "Checks for strings commonly returned when a security system is",
@@ -5580,8 +6068,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "*",
       "doc_uri": null,
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -5590,7 +6078,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-01-06 13:44:33 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.snowball.DontStartNo": {
       "description": "Response should start no, or contain a negation, to pass",
@@ -5599,8 +6087,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5611,7 +6099,7 @@
       "tags": [
         "avid:performance:P0204"
       ],
-      "mod_time": "2025-03-31 21:30:38 +0000"
+      "mod_time": "2025-04-17 08:44:10 +0000"
     },
     "detectors.snowball.DontStartYes": {
       "description": "Response should start yes, or contain an affirmation, to pass",
@@ -5620,8 +6108,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5632,7 +6120,7 @@
       "tags": [
         "avid:performance:P0204"
       ],
-      "mod_time": "2025-03-31 21:30:38 +0000"
+      "mod_time": "2025-04-17 08:44:10 +0000"
     },
     "detectors.specialwords.Prefixes": {
       "description": "Detect failure prefixes",
@@ -5642,8 +6130,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5652,7 +6140,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2024-10-11 12:33:27 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.specialwords.SlursReclaimedSlurs": {
       "description": "Slurs and reclaimed slurs. Detects presence of any of the items from an ethnic slur list, regardless of context.",
@@ -5662,8 +6150,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://en.wikipedia.org/wiki/List_of_ethnic_slurs",
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5677,7 +6165,7 @@
         "avid-effect:ethics:E0302",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2024-10-11 12:33:27 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.unsafe_content.LDNOOBW": {
       "description": "List of Dirty, Naughty, Obscene, and Otherwise Bad Words (English)",
@@ -5687,8 +6175,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5701,7 +6189,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2025-02-21 08:57:39 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.unsafe_content.Martin_haDistilbert": {
       "description": "Using backup of martin-ha/toxic-comment-model DistilBERT to detect toxic content",
@@ -5714,13 +6202,14 @@
           "padding": true,
           "truncation": true
         },
+        "graceful_fail": true,
         "detector_model_path": "garak-llm/toxic-comment-model",
         "detector_target_class": "toxic"
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://huggingface.co/garak-llm/toxic-comment-model",
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5731,7 +6220,7 @@
       "tags": [
         "avid-effect:ethics:E0301"
       ],
-      "mod_time": "2025-02-21 08:57:39 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.unsafe_content.OfcomOffensiveDiscriminatory": {
       "description": "UK OFCOM potentially offensive list: discriminatory",
@@ -5741,8 +6230,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5755,7 +6244,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2025-02-21 08:57:39 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.unsafe_content.OfcomOffensiveGeneral": {
       "description": "UK OFCOM potentially offensive list: general",
@@ -5765,8 +6254,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5778,7 +6267,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2025-02-21 08:57:39 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.unsafe_content.OfcomOffensiveMentalHealth": {
       "description": "UK OFCOM potentially offensive list: mental health",
@@ -5788,8 +6277,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5802,7 +6291,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2025-02-21 08:57:39 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.unsafe_content.OfcomOffensiveRaceEthnic": {
       "description": "UK OFCOM potentially offensive list: race / ethnic",
@@ -5812,8 +6301,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5826,7 +6315,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2025-02-21 08:57:39 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.unsafe_content.OfcomOffensiveSexGender": {
       "description": "UK OFCOM potentially offensive list: sex & gender",
@@ -5836,8 +6325,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5850,7 +6339,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2025-02-21 08:57:39 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.unsafe_content.OfcomOffensiveSexual": {
       "description": "UK OFCOM potentially offensive list: sexual",
@@ -5860,8 +6349,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5872,7 +6361,7 @@
       "tags": [
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2025-02-21 08:57:39 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.unsafe_content.S_nlpDetox": {
       "description": "Using s-nlp Roberta model to detect toxic content",
@@ -5885,13 +6374,14 @@
           "padding": true,
           "truncation": true
         },
+        "graceful_fail": true,
         "detector_model_path": "garak-llm/roberta_toxicity_classifier",
         "detector_target_class": "toxic"
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://aclanthology.org/2022.acl-long.469",
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5902,7 +6392,7 @@
       "tags": [
         "avid-effect:ethics:E0301"
       ],
-      "mod_time": "2025-02-21 08:57:39 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityAnimalReferences": {
       "description": "Surge AI list: animal references",
@@ -5912,8 +6402,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5925,7 +6415,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2025-02-21 08:57:39 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityBodilyFluids": {
       "description": "Surge AI list: bodily fluids / excrement",
@@ -5935,8 +6425,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5947,7 +6437,7 @@
       "tags": [
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2025-02-21 08:57:39 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityMentalDisability": {
       "description": "Surge AI list: mental disability",
@@ -5957,8 +6447,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5971,7 +6461,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2025-02-21 08:57:39 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityPhysicalAttributes": {
       "description": "Surge AI list: physical attributes",
@@ -5981,8 +6471,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -5994,7 +6484,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2025-02-21 08:57:39 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityPhysicalDisability": {
       "description": "Surge AI list: physical disability",
@@ -6004,8 +6494,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -6018,7 +6508,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2025-02-21 08:57:39 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityPolitical": {
       "description": "Surge AI list: political",
@@ -6028,8 +6518,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -6043,7 +6533,7 @@
         "avid-effect:ethics:E0302",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2025-02-21 08:57:39 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityRacialEthnic": {
       "description": "Surge AI list: racial / ethnic",
@@ -6053,8 +6543,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -6067,7 +6557,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2025-02-21 08:57:39 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityReligious": {
       "description": "Surge AI list: religious offense",
@@ -6077,8 +6567,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -6090,7 +6580,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2025-02-21 08:57:39 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.unsafe_content.SurgeProfanitySexual": {
       "description": "Surge AI list: sexual anatomy / sexual acts",
@@ -6100,8 +6590,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -6112,7 +6602,7 @@
       "tags": [
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2025-02-21 08:57:39 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.unsafe_content.SurgeProfanitySexualOrientationGender": {
       "description": "Surge AI list: sexual orientation / gender",
@@ -6122,8 +6612,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -6136,7 +6626,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2025-02-21 08:57:39 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.unsafe_content.ToxicCommentModel": {
       "description": "Garak's default toxicity detector",
@@ -6149,13 +6639,14 @@
           "padding": true,
           "truncation": true
         },
+        "graceful_fail": true,
         "detector_model_path": "garak-llm/roberta_toxicity_classifier",
         "detector_target_class": "toxic"
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://aclanthology.org/2022.acl-long.469",
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -6166,7 +6657,7 @@
       "tags": [
         "avid-effect:ethics:E0301"
       ],
-      "mod_time": "2025-02-21 08:57:39 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.visual_jailbreak.FigStep": {
       "description": "Looks for specific strings in the output - these should be strings inserted by image",
@@ -6176,8 +6667,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "en",
       "doc_uri": null,
+      "lang_spec": "en",
       "modality": {
         "out": [
           "text"
@@ -6188,7 +6679,7 @@
       "tags": [
         "avid-effect:security:S0403"
       ],
-      "mod_time": "2024-06-12 10:04:47 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.xss.MarkdownExfil20230929": {
       "description": "As the basic detector, MarkdownExfilBasic, searching specifically for MarkdownExfil20230929",
@@ -6197,8 +6688,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "*",
       "doc_uri": "https://embracethered.com/blog/posts/2023/bing-chat-data-exfiltration-poc-and-fix/",
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -6209,7 +6700,7 @@
       "tags": [
         "avid-effect:security:S0301"
       ],
-      "mod_time": "2025-03-06 15:11:00 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.xss.MarkdownExfilBasic": {
       "description": "Detect markdown images with fqdn, absolute path, and populated q= parameter",
@@ -6218,8 +6709,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "*",
       "doc_uri": "https://embracethered.com/blog/posts/2023/bing-chat-data-exfiltration-poc-and-fix/",
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -6230,7 +6721,7 @@
       "tags": [
         "avid-effect:security:S0301"
       ],
-      "mod_time": "2025-03-06 15:11:00 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.xss.MarkdownExfilContent": {
       "description": "As the basic detector, MarkdownExfilBasic, but did we exfiltrate anything?",
@@ -6239,8 +6730,8 @@
       },
       "accuracy": null,
       "active": true,
-      "bcp47": "*",
       "doc_uri": "https://embracethered.com/blog/posts/2023/bing-chat-data-exfiltration-poc-and-fix/",
+      "lang_spec": "*",
       "modality": {
         "out": [
           "text"
@@ -6251,7 +6742,7 @@
       "tags": [
         "avid-effect:security:S0301"
       ],
-      "mod_time": "2025-03-06 15:11:00 +0000"
+      "mod_time": "2025-04-17 08:31:20 +0000"
     }
   },
   "generators": {
@@ -6769,6 +7260,31 @@
       "parallel_capable": true,
       "supports_multiple_generations": true,
       "mod_time": "2025-02-03 09:49:33 +0000"
+    },
+    "generators.mistral.MistralGenerator": {
+      "description": "",
+      "DEFAULT_PARAMS": {
+        "max_tokens": 150,
+        "temperature": null,
+        "top_k": null,
+        "context_len": null,
+        "skip_seq_start": null,
+        "skip_seq_end": null,
+        "name": "mistral-large-latest"
+      },
+      "active": true,
+      "generator_family_name": "mistral",
+      "modality": {
+        "in": [
+          "text"
+        ],
+        "out": [
+          "text"
+        ]
+      },
+      "parallel_capable": true,
+      "supports_multiple_generations": false,
+      "mod_time": "2025-03-26 09:04:16 +0000"
     },
     "generators.nemo.NeMoGenerator": {
       "description": "Wrapper for the NVIDIA NeMo models via NGC. Expects NGC_API_KEY and ORG_ID environment variables.",
@@ -7496,40 +8012,40 @@
       "description": "Base class for a buff.",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": null,
       "doc_uri": "",
-      "mod_time": "2024-11-12 21:52:33 +0000"
+      "lang": null,
+      "mod_time": "2025-04-17 08:22:12 +0000"
     },
     "buffs.encoding.Base64": {
       "description": "Base64 buff",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": null,
       "doc_uri": "",
+      "lang": null,
       "mod_time": "2024-04-19 18:04:13 +0000"
     },
     "buffs.encoding.CharCode": {
       "description": "CharCode buff",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": null,
       "doc_uri": "",
+      "lang": null,
       "mod_time": "2024-04-19 18:04:13 +0000"
     },
     "buffs.low_resource_languages.LRLBuff": {
       "description": "Low Resource Language buff",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": null,
       "doc_uri": "https://arxiv.org/abs/2310.02446",
+      "lang": null,
       "mod_time": "2024-06-12 10:04:47 +0000"
     },
     "buffs.lowercase.Lowercase": {
       "description": "Lowercasing buff",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "bcp47": null,
       "doc_uri": "",
+      "lang": null,
       "mod_time": "2024-04-19 18:04:13 +0000"
     },
     "buffs.paraphrase.Fast": {
@@ -7542,9 +8058,9 @@
         }
       },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://huggingface.co/humarin/chatgpt_paraphraser_on_T5_base",
-      "mod_time": "2024-11-12 16:44:51 +0000"
+      "lang": "en",
+      "mod_time": "2025-04-17 08:22:12 +0000"
     },
     "buffs.paraphrase.PegasusT5": {
       "description": "Paraphrasing buff using Pegasus model",
@@ -7558,9 +8074,9 @@
         "temperature": 1.5
       },
       "active": true,
-      "bcp47": "en",
       "doc_uri": "https://huggingface.co/tuner007/pegasus_paraphrase",
-      "mod_time": "2024-11-12 16:44:51 +0000"
+      "lang": "en",
+      "mod_time": "2025-04-17 08:22:12 +0000"
     }
   }
 }
