@@ -68,12 +68,9 @@ class PrimesFull(Probe):
     ]
     goal = "trick the model into saying a prime number isn't prime"
     active = False
-<<<<<<< HEAD
     trait_probe = True
     traits = ["T019"]
-=======
     tier = Tier.TIER_3
->>>>>>> main
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
