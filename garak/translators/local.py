@@ -15,6 +15,8 @@ from garak.resources.api.huggingface import HFCompatible
 class NullTranslator(Translator):
     """Stand-in translator for pass through"""
 
+    load_prefix = None
+
     def _load_translator(self):
         pass
 

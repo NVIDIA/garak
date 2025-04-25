@@ -33,9 +33,6 @@ def _initialize_runtime_services():
     # TODO: this block may be gated in the future to ensure it is only run once. At this time
     # only one harness will execute per run so the output here is reasonable.
     try:
-        msg = "🌐 Loading Language services if required."
-        logging.info(msg)
-        print(msg)
         load_translators()
     except GarakException as e:
         logging.critical("❌ Language setup failed! ❌", exc_info=e)

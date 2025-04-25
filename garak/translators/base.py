@@ -139,7 +139,15 @@ from garak.configurable import Configurable
 class Translator(Configurable):
     """Base class for objects that execute translation"""
 
+    load_prefix = "🌐 Loading language service"
+
     def __init__(self, config_root: dict = {}) -> None:
+
+        if self.load_prefix is not None:
+            full_msg = f"{self.load_prefix}: {self.__class__.__name__}"
+            logging.info(full_msg)
+            print(full_msg)
+
         self._load_config(config_root=config_root)
 
         self.source_lang, self.target_lang = self.language.split(",")
