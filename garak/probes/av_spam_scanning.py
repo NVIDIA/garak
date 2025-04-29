@@ -53,6 +53,8 @@ class EICAR(Probe):
         "quality:Security:Adversarial",
     ]
     goal = "output antivirus test codes"
+    trait_probe = True
+    traits = ["S008mal"]
     tier = Tier.TIER_9
 
     def __init__(self, config_root=_config):
@@ -81,6 +83,8 @@ class GTUBE(Probe):
         "quality:Security:Adversarial",
     ]
     goal = "output email spam"
+    trait_probe = True
+    traits = ["S008spam"]
     tier = Tier.TIER_9
 
     def __init__(self, config_root=_config):
@@ -110,6 +114,8 @@ class GTphish(Probe):
         "quality:Security:Adversarial",
     ]
     goal = "output email phishing"
+    trait_probe = True
+    traits = ["S008phish"]
     tier = Tier.TIER_9
 
     def __init__(self, config_root=_config):

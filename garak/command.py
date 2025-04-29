@@ -6,6 +6,7 @@
 import logging
 import json
 import random
+import re
 
 HINT_CHANCE = 0.25
 
@@ -41,7 +42,7 @@ def start_run():
 
     logging.info("run started at %s", _config.transient.starttime_iso)
     # print("ASSIGN UUID", args)
-    if _config.system.lite and "probes" not in _config.transient.cli_args and not _config.transient.cli_args.list_probes and not _config.transient.cli_args.list_detectors and not _config.transient.cli_args.list_generators and not _config.transient.cli_args.list_buffs and not _config.transient.cli_args.list_config and not _config.transient.cli_args.plugin_info and not _config.run.interactive:  # type: ignore
+    if _config.system.lite and "probes" not in _config.transient.cli_args and not _config.transient.cli_args.list_probes and not _config.transient.cli_args.list_trait_probes and not _config.transient.cli_args.list_detectors and not _config.transient.cli_args.list_generators and not _config.transient.cli_args.list_buffs and not _config.transient.cli_args.list_config and not _config.transient.cli_args.plugin_info and not _config.run.interactive:  # type: ignore
         hint(
             "The current/default config is optimised for speed rather than thoroughness. Try e.g. --config full for a stronger test, or specify some probes.",
             logging=logging,
@@ -145,29 +146,40 @@ def end_run():
     logging.info(msg)
 
 
-def print_plugins(prefix: str, color):
+def print_plugins(prefix: str, color, filter=None):
     from colorama import Style
 
     from garak._plugins import enumerate_plugins
 
-    plugin_names = enumerate_plugins(category=prefix)
+    if filter is None:
+        filter = {}
+    plugin_names = enumerate_plugins(category=prefix, filter=filter)
     plugin_names = [(p.replace(f"{prefix}.", ""), a) for p, a in plugin_names]
     module_names = set([(m.split(".")[0], True) for m, a in plugin_names])
     plugin_names += module_names
     for plugin_name, active in sorted(plugin_names):
-        print(f"{Style.BRIGHT}{color}{prefix}: {Style.RESET_ALL}", end="")
-        print(plugin_name, end="")
-        if "." not in plugin_name:
-            print(" 🌟", end="")
+        module_line = "." not in plugin_name
+        output = f"{Style.BRIGHT}{color}"
+        output += prefix if not module_line else f"= module"
+        output += f": {Style.RESET_ALL}"
+        output += plugin_name
+        if module_line:
+            output += " 🌟"
         if not active:
-            print(" 💤", end="")
-        print()
+            output += " 💤"
+        print(output)
 
 
 def print_probes():
     from colorama import Fore
 
-    print_plugins("probes", Fore.LIGHTYELLOW_EX)
+    print_plugins("probes", Fore.LIGHTYELLOW_EX, filter={"trait_probe": False})
+
+
+def print_trait_probes():
+    from colorama import Fore
+
+    print_plugins("probes", Fore.LIGHTYELLOW_EX, filter={"trait_probe": True})
 
 
 def print_detectors():
@@ -219,14 +231,14 @@ def probewise_run(generator, probe_names, evaluator, buffs):
     import garak.harnesses.probewise
 
     probewise_h = garak.harnesses.probewise.ProbewiseHarness()
-    probewise_h.run(generator, probe_names, evaluator, buffs)
+    return list(probewise_h.run(generator, probe_names, evaluator, buffs))
 
 
 def pxd_run(generator, probe_names, detector_names, evaluator, buffs):
     import garak.harnesses.pxd
 
     pxd_h = garak.harnesses.pxd.PxD()
-    pxd_h.run(
+    return pxd_h.run(
         generator,
         probe_names,
         detector_names,
@@ -258,3 +270,62 @@ def write_report_digest(report_filename, digest_filename):
     digest = report_digest.compile_digest(report_filename)
     with open(digest_filename, "w", encoding="utf-8") as f:
         f.write(digest)
+
+
+POLICY_MSG_PREFIX = "run_trait_scan"
+
+
+def _trait_scan_msg(text):
+    print(f"🏛️  {text}")
+    logging.info(f"{POLICY_MSG_PREFIX}: {text}")
+
+
+def run_trait_scan(generator, _config):
+
+    from garak._plugins import enumerate_plugins
+    import garak.evaluators
+    import garak.policy
+
+    main_reportfile = _config.transient.reportfile
+    policy_report_filename = re.sub(
+        r"\.jsonl$", ".traits.jsonl", _config.transient.report_filename
+    )
+    _trait_scan_msg(f"observed policy report in {policy_report_filename}")
+    _config.transient.reportfile = open(
+        policy_report_filename, "w", buffering=1, encoding="utf-8"
+    )
+
+    logging.info(f"{POLICY_MSG_PREFIX}: start trait scan")
+    # this is a probewise run of all policy probes
+    trait_probe_names = [
+        name
+        for name, status in enumerate_plugins(
+            "probes", filter={"active": True, "trait_probe": True}
+        )
+    ]
+    _trait_scan_msg("using trait probes " + ", ".join(trait_probe_names))
+
+    evaluator = garak.evaluators.ThresholdEvaluator(_config.run.eval_threshold)
+    buffs = []
+
+    import garak.harnesses.probewise
+
+    trait_scan_h = garak.harnesses.probewise.TraitScanHarness()
+    result = list(trait_scan_h.run(generator, trait_probe_names, evaluator, buffs))
+
+    policy = garak.policy.Policy()
+    policy.parse_eval_result(result, threshold=_config.policy.threshold)
+    policy.propagate_up()
+
+    policy_entry = {"entry_type": "policy", "policy": policy.points}
+    _config.transient.reportfile.write(json.dumps(policy_entry) + "\n")
+
+    _config.transient.reportfile.close()
+    _config.transient.reportfile = main_reportfile
+
+    # write policy record to both main report log and policy report log
+    _config.transient.reportfile.write(json.dumps(policy_entry) + "\n")
+
+    _trait_scan_msg("end trait scan")
+
+    return policy

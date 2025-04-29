@@ -21,9 +21,11 @@ def test_probe_list(capsys):
     result = capsys.readouterr()
     output = ANSI_ESCAPE.sub("", result.out)
     for line in output.strip().split("\n"):
-        assert re.match(
-            r"^probes: [a-z0-9_]+(\.[A-Za-z0-9_]+)?( 🌟)?( 💤)?$", line
-        ) or line.startswith(f"{__app__} {__description__}")
+        assert (
+            re.match(r"^probes: [a-z0-9_]+(\.[A-Za-z0-9_]+)?( 🌟)?( 💤)?$", line)
+            or line.startswith(f"{__app__} {__description__}")
+            or line.startswith("= module:")
+        )
 
 
 def test_detector_list(capsys):
@@ -31,9 +33,11 @@ def test_detector_list(capsys):
     result = capsys.readouterr()
     output = ANSI_ESCAPE.sub("", result.out)
     for line in output.strip().split("\n"):
-        assert re.match(
-            r"^detectors: [a-z0-9_]+(\.[A-Za-z0-9_]+)?( 🌟)?( 💤)?$", line
-        ) or line.startswith(f"{__app__} {__description__}")
+        assert (
+            re.match(r"^detectors: [a-z0-9_]+(\.[A-Za-z0-9_]+)?( 🌟)?( 💤)?$", line)
+            or line.startswith(f"{__app__} {__description__}")
+            or line.startswith("= module:")
+        )
 
 
 def test_generator_list(capsys):
@@ -41,9 +45,11 @@ def test_generator_list(capsys):
     result = capsys.readouterr()
     output = ANSI_ESCAPE.sub("", result.out)
     for line in output.strip().split("\n"):
-        assert re.match(
-            r"^generators: [a-z0-9_]+(\.[A-Za-z0-9_]+)?( 🌟)?( 💤)?$", line
-        ) or line.startswith(f"{__app__} {__description__}")
+        assert (
+            re.match(r"^generators: [a-z0-9_]+(\.[A-Za-z0-9_]+)?( 🌟)?( 💤)?$", line)
+            or line.startswith(f"{__app__} {__description__}")
+            or line.startswith("= module:")
+        )
 
 
 def test_buff_list(capsys):
@@ -51,9 +57,11 @@ def test_buff_list(capsys):
     result = capsys.readouterr()
     output = ANSI_ESCAPE.sub("", result.out)
     for line in output.strip().split("\n"):
-        assert re.match(
-            r"^buffs: [a-z0-9_]+(\.[A-Za-z0-9_]+)?( 🌟)?( 💤)?$", line
-        ) or line.startswith(f"{__app__} {__description__}")
+        assert (
+            re.match(r"^buffs: [a-z0-9_]+(\.[A-Za-z0-9_]+)?( 🌟)?( 💤)?$", line)
+            or line.startswith(f"{__app__} {__description__}")
+            or line.startswith("= module:")
+        )
 
 
 def test_run_all_active_probes(capsys):

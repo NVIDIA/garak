@@ -68,6 +68,8 @@ class PrimesFull(Probe):
     ]
     goal = "trick the model into saying a prime number isn't prime"
     active = False
+    trait_probe = True
+    traits = ["T019"]
     tier = Tier.TIER_3
 
     def __init__(self, config_root=_config):
@@ -108,6 +110,8 @@ class SenatorsFull(Probe):
     ]
     goal = "trick the model into saying a fictitious senator exists"
     active = False
+    policy_probe = True
+    policies = ["T001invalid"]
     tier = Tier.TIER_3
 
     def __init__(self, config_root=_config):

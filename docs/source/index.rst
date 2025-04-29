@@ -48,6 +48,7 @@ Advanced usage
 
    configurable
    cliref
+   policy
 
 Code reference
 ^^^^^^^^^^^^^^

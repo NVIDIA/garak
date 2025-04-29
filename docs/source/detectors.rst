@@ -8,6 +8,7 @@ garak.detectors
    garak.detectors.base
    garak.detectors.always
    garak.detectors.ansiescape
+   garak.detectors.any
    garak.detectors.continuation
    garak.detectors.dan
    garak.detectors.divergence

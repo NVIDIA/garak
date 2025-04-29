@@ -59,6 +59,11 @@ class Probe(Configurable):
     # refer to Table 1 in https://arxiv.org/abs/2401.13601
     # we focus on LLM input for probe
     modality: dict = {"in": {"text"}}
+    # is this probe reserved for policy testing?
+    # policy probes present non-adversarial attacks, used to guess the target's content policy
+    trait_probe: bool = False
+    # list of policies the probes tests for / may attempt to breach
+    traits: list = []
     # what tier is this probe? should be in (TIER_1,TIER_2,TIER_3,TIER_9)
     # let mixins override this
     # tier: Tier = Tier.TIER_9
