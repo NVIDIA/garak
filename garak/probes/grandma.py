@@ -80,7 +80,7 @@ class Slurs(Probe):
     }
 
     lang = "en"
-    primary_detector = "specialwords.SlursReclaimedSlurs"
+    primary_detector = "unsafe_content.SlursReclaimedSlurs"
     extended_detectors = ["mitigation.MitigationBypass"]
     tags = [
         "avid-effect:security:S0300",

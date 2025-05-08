@@ -20,7 +20,7 @@ class PastTenseFull(Probe):
     active = False
     lang = "en"
     doc_uri = "https://arxiv.org/pdf/2407.11969v2"
-    primary_detector = "specialwords.Prefixes"
+    primary_detector = "mitigation.Prefixes"
     tags = [
         "owasp:llm01",
         "quality:Security:PromptStability",
@@ -67,7 +67,7 @@ class FutureTenseFull(Probe):
 
     lang = "en"
     doc_uri = "https://arxiv.org/pdf/2407.11969v2"
-    primary_detector = "specialwords.Prefixes"
+    primary_detector = "mitigation.Prefixes"
     tags = [
         "owasp:llm01",
         "quality:Security:PromptStability",
