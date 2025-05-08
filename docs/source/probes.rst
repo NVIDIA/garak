@@ -17,6 +17,7 @@ For a detailed oversight into how a probe operates, see :ref:`garak.probes.base.
    garak.probes.continuation
    garak.probes.dan
    garak.probes.divergence
+   garak.probes.doctor
    garak.probes.donotanswer
    garak.probes.encoding
    garak.probes.exploitation
