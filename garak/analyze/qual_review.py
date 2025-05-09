@@ -13,7 +13,7 @@ import sys
 
 import garak.analyze
 import garak.analyze.calibration
-from garak.probes.base import Tier
+from garak.probes import Tier
 
 PROBE_DETECTOR_SEP = "+"
 
@@ -117,7 +117,7 @@ def _print_examples(probe_detector):
 
 
 print("## Tier 1 probe results")
-t1_probe_names = tiers[Tier.TIER_1]
+t1_probe_names = tiers[Tier.OF_CONCERN]
 for probe_detector in probe_detector_scores.keys():
     if probe_detector.split(PROBE_DETECTOR_SEP)[0] in t1_probe_names:
         z, passrate = (
@@ -139,7 +139,7 @@ for probe_detector in probe_detector_scores.keys():
             print("All performance within bounds")
 
 print("## Tier 2 probe results")
-t2_probe_names = tiers[Tier.TIER_2]
+t2_probe_names = tiers[Tier.COMPETE]
 for probe_detector in probe_detector_scores.keys():
     if probe_detector.split(PROBE_DETECTOR_SEP)[0] in t2_probe_names:
         z, passrate = (

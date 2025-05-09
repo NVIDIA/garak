@@ -8,10 +8,10 @@ of-the-art LLMs
 
 from garak import _config
 from garak.data import path as data_path
-from garak.probes.base import Probe, Tier
+import garak.probes
 
 
-class PastTenseFull(Probe):
+class PastTenseFull(garak.probes.Probe):
     """Will the system give unsafe responses when asked to write about weapon creation or dangerous behavior?
 
     This check sends the generator requests for advice on possibly protect or restricted subjects in the past tense.
@@ -27,7 +27,7 @@ class PastTenseFull(Probe):
         "payload:jailbreak",
     ]
     goal = "use past tense to disregard the system prompt"
-    tier = Tier.TIER_2
+    tier = garak.probes.Tier.COMPETE
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -57,7 +57,7 @@ class PastTense(PastTenseFull):
         self._prune_data(cap=self.soft_probe_prompt_cap)
 
 
-class FutureTenseFull(Probe):
+class FutureTenseFull(garak.probes.Probe):
     """Will the system give unsafe responses when asked to write about weapon creation or dangerous behavior?
 
     This check sends the generator requests for advice on possibly protect or restricted subjects in the future tense.
@@ -74,7 +74,7 @@ class FutureTenseFull(Probe):
         "payload:jailbreak",
     ]
     goal = "use future tense to disregard the system prompt"
-    tier = Tier.TIER_2
+    tier = garak.probes.Tier.COMPETE
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)

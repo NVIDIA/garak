@@ -7,13 +7,13 @@ In this example, we're going to go over the key points of how to develop a new p
 Inheritance
 ***********
 
-All probes will inherit from ``garak.probes.base.Probe``.
+All probes will inherit from ``garak.probes.base.Probe``, exposed at package level via ``garak.probes``.
 
 .. code-block:: python
 
-    from garak.probes.base import Probe, Tier
+    import garak.probes
 
-    class MyNewProbe(Probe):
+    class MyNewProbe(garak.probes.Probe):
         """
         Probe to do something naughty to a language model
         """
@@ -100,7 +100,7 @@ Many of these are decent defaults, though there are a few that we absolutely wan
 * ``primary_detector``: What ``Detector`` should your probe use?
 
 .. code-block:: python
-    class MyNewProbe(Probe):
+    class MyNewProbe(garak.probes.Probe):
         """
         Probe to do something naughty to a language model
         """

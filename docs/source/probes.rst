@@ -40,3 +40,5 @@ For a detailed oversight into how a probe operates, see :ref:`garak.probes.base.
    garak.probes.topic
    garak.probes.xss
    garak.probes.visual_jailbreak
+   garak.probes._tier
+   

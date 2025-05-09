@@ -9,10 +9,10 @@ import re
 from garak.attempt import Attempt
 from garak import _config
 from garak.data import path as data_path
-from garak.probes.base import Probe, Tier
+import garak.probes
 
 
-class LiteratureClozeFull(Probe):
+class LiteratureClozeFull(garak.probes.Probe):
     """Cloze data replay for literature. Uses passages that either GPT-4 or ChatGPT have been known to replay.
 
     This probe tests if a model can fill in high-perplexity blanks in excerpts of documents.
@@ -32,7 +32,7 @@ class LiteratureClozeFull(Probe):
     ]  # MISP-format taxonomy categories
     source_file = "book_cloze.tsv"
     follow_prompt_cap = False
-    tier = Tier.TIER_2
+    tier = garak.probes.Tier.COMPETE
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -77,13 +77,13 @@ class LiteratureClozeFull(Probe):
         return attempt
 
 
-class LiteratureCloze(LiteratureClozeFull, Probe):
+class LiteratureCloze(LiteratureClozeFull, garak.probes.Probe):
     active = True
     follow_prompt_cap = True
     __doc__ = LiteratureClozeFull.__doc__ + " - limited number of examples"
 
 
-class LiteratureCompleteFull(LiteratureCloze, Probe):
+class LiteratureCompleteFull(LiteratureCloze, garak.probes.Probe):
     """Data replay probe for literature, using document completion. Uses passages that either GPT-4 or ChatGPT have been known to replay.
 
     This probe tests if a model can do high-perplexity completions in excerpts of documents.
@@ -93,7 +93,7 @@ class LiteratureCompleteFull(LiteratureCloze, Probe):
     source_file = "book_cloze.tsv"
     recommended_detector = ["leakreplay.StartsWith"]
     follow_prompt_cap = False
-    tier = Tier.TIER_1
+    tier = garak.probes.Tier.OF_CONCERN
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -121,14 +121,14 @@ class LiteratureCompleteFull(LiteratureCloze, Probe):
         return attempt
 
 
-class LiteratureComplete(LiteratureCompleteFull, Probe):
+class LiteratureComplete(LiteratureCompleteFull, garak.probes.Probe):
     __doc__ = LiteratureCompleteFull.__doc__ + " - limited number of examples"
     active = True
     follow_prompt_cap = True
     # source_file = "book_cloze_80.tsv"
 
 
-class NYTCloze(LiteratureClozeFull, Probe):
+class NYTCloze(LiteratureClozeFull, garak.probes.Probe):
     active = True
     source_file = "nyt_cloze.tsv"
     __doc__ = (
@@ -137,7 +137,7 @@ class NYTCloze(LiteratureClozeFull, Probe):
     )
 
 
-class NYTComplete(LiteratureCompleteFull, Probe):
+class NYTComplete(LiteratureCompleteFull, garak.probes.Probe):
     active = True
     source_file = "nyt_cloze.tsv"
     __doc__ = (
@@ -146,25 +146,25 @@ class NYTComplete(LiteratureCompleteFull, Probe):
     )
 
 
-class GuardianCloze(LiteratureClozeFull, Probe):
+class GuardianCloze(LiteratureClozeFull, garak.probes.Probe):
     active = True
     source_file = "guardian_cloze.tsv"
     __doc__ = LiteratureClozeFull.__doc__ + " - based on articles from The Guardian"
 
 
-class GuardianComplete(LiteratureCompleteFull, Probe):
+class GuardianComplete(LiteratureCompleteFull, garak.probes.Probe):
     active = True
     source_file = "guardian_cloze.tsv"
     __doc__ = LiteratureCompleteFull.__doc__ + " - based on articles from The Guardian"
 
 
-class PotterCloze(LiteratureClozeFull, Probe):
+class PotterCloze(LiteratureClozeFull, garak.probes.Probe):
     active = True
     source_file = "potter_cloze.tsv"
     __doc__ = LiteratureClozeFull.__doc__ + " - based on Harry Potter novels"
 
 
-class PotterComplete(LiteratureCompleteFull, Probe):
+class PotterComplete(LiteratureCompleteFull, garak.probes.Probe):
     active = True
     source_file = "potter_cloze.tsv"
     __doc__ = LiteratureCompleteFull.__doc__ + " - based on Harry Potter novels"

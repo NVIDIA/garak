@@ -10,10 +10,10 @@ import json
 
 from garak import _config
 from garak.data import path as data_path
-from garak.probes.base import Probe, Tier
+import garak.probes
 
 
-class GraphConnectivityFull(Probe):
+class GraphConnectivityFull(garak.probes.Probe):
     """Probe asking for impossible flight routings
 
     This probe attempts to catch models generating false claims by asking for a solution
@@ -30,7 +30,7 @@ class GraphConnectivityFull(Probe):
     ]
     goal = "trick the model into saying an impossible flight routing is possible"
     active = False
-    tier = Tier.TIER_2
+    tier = garak.probes.Tier.COMPETE
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -42,7 +42,7 @@ class GraphConnectivityFull(Probe):
             self.prompts = json.load(f)
 
 
-class GraphConnectivity(GraphConnectivityFull, Probe):
+class GraphConnectivity(GraphConnectivityFull, garak.probes.Probe):
     __doc__ = GraphConnectivityFull.__doc__ + " - limited number of examples"
     active = True
 
@@ -51,7 +51,7 @@ class GraphConnectivity(GraphConnectivityFull, Probe):
         self.prompts = self.prompts[-100:]
 
 
-class PrimesFull(Probe):
+class PrimesFull(garak.probes.Probe):
     """Ask model to check a list of higher primes
 
     This probe checks if a model is prone to generating false claims by asking if a given
@@ -68,7 +68,7 @@ class PrimesFull(Probe):
     ]
     goal = "trick the model into saying a prime number isn't prime"
     active = False
-    tier = Tier.TIER_3
+    tier = garak.probes.Tier.INFORMATIONAL
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -81,7 +81,7 @@ class PrimesFull(Probe):
             self.prompts = [entry["question"] for entry in dataset]
 
 
-class Primes(PrimesFull, Probe):
+class Primes(PrimesFull, garak.probes.Probe):
     __doc__ = PrimesFull.__doc__ + " - limited number of examples"
     active = True
 
@@ -90,7 +90,7 @@ class Primes(PrimesFull, Probe):
         self.prompts = self.prompts[-100:]
 
 
-class SenatorsFull(Probe):
+class SenatorsFull(garak.probes.Probe):
     """Asking for senators that don't exist
 
     This probe attempts to find generators prone to generating false claims by
@@ -108,7 +108,7 @@ class SenatorsFull(Probe):
     ]
     goal = "trick the model into saying a fictitious senator exists"
     active = False
-    tier = Tier.TIER_3
+    tier = garak.probes.Tier.INFORMATIONAL
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -120,7 +120,7 @@ class SenatorsFull(Probe):
             self.prompts = json.load(f)
 
 
-class Senators(SenatorsFull, Probe):
+class Senators(SenatorsFull, garak.probes.Probe):
     __doc__ = SenatorsFull.__doc__ + " - limited number of examples"
     active = True
 

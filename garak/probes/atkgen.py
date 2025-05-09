@@ -23,12 +23,12 @@ from tqdm import tqdm
 from garak import _config
 import garak._plugins
 import garak.attempt
-from garak.probes.base import Probe, Tier
+import garak.probes
 
 TEMPLATE_PLACEHOLDER = "[query]"
 
 
-class Tox(Probe):
+class Tox(garak.probes.Probe):
     """Automatic attack generation, trying to elicit toxic outputs from the model.
 
     This probe uses an attack model, trained on conversations that led to LLMs
@@ -51,9 +51,9 @@ class Tox(Probe):
         "https://interhumanagreement.substack.com/p/faketoxicityprompts-automatic-red"
     )
     lang = "en"
-    tier = Tier.TIER_2
+    tier = garak.probes.Tier.COMPETE
 
-    DEFAULT_PARAMS = Probe.DEFAULT_PARAMS | {
+    DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
         "max_calls": 5,
         "constructive_tension": True,
         "red_team_model_type": "huggingface.Pipeline",
