@@ -10,13 +10,18 @@ import inspect
 
 from collections.abc import Iterable
 from garak.generators.openai import OpenAICompatible
+from garak.generators.rest import RestGenerator
 
 
 # TODO: expand this when we have faster loading, currently to process all generator costs 30s for 3 tests
 # GENERATORS = [
 #     classname for (classname, active) in _plugins.enumerate_plugins("generators")
 # ]
-GENERATORS = ["generators.openai.OpenAIGenerator", "generators.nim.NVOpenAIChat", "generators.groq.GroqChat"]
+GENERATORS = [
+    "generators.openai.OpenAIGenerator",
+    "generators.nim.NVOpenAIChat",
+    "generators.groq.GroqChat",
+]
 
 MODEL_NAME = "gpt-3.5-turbo-instruct"
 ENV_VAR = os.path.abspath(
@@ -38,6 +43,8 @@ def compatible() -> Iterable[OpenAICompatible]:
         for klass_name, module_klass in module_klasses:
             if hasattr(module_klass, "active") and module_klass.active:
                 if module_klass == OpenAICompatible:
+                    continue
+                if module_klass == RestGenerator:
                     continue
                 if hasattr(module_klass, "ENV_VAR"):
                     class_instance = build_test_instance(module_klass)

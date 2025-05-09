@@ -52,3 +52,6 @@ black==24.4.2
 pylint>=3.1.0
 # calibration
 scipy>=1.14.0
+# audio
+soundfile>=0.13.1
+librosa>=0.10.2
