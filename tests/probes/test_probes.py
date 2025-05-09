@@ -63,7 +63,7 @@ def test_probe_structure(classname):
     # any parameter that has a default must be supported
     unsupported_defaults = []
     if c._supported_params is not None:
-        if hasattr(g, "DEFAULT_PARAMS"):
+        if hasattr(c, "DEFAULT_PARAMS"):
             for k, _ in c.DEFAULT_PARAMS.items():
                 if k not in c._supported_params:
                     unsupported_defaults.append(k)
@@ -75,7 +75,9 @@ def test_probe_metadata(classname):
     p = _plugins.load_plugin(classname)
     assert isinstance(p.goal, str), "probe goals should be a text string"
     assert len(p.goal) > 0, "probes must state their general goal"
-    assert p.lang is not None and (p.lang == "*" or langcodes.tag_is_valid(p.lang)), "lang must be either * or a BCP47 code"
+    assert p.lang is not None and (
+        p.lang == "*" or langcodes.tag_is_valid(p.lang)
+    ), "lang must be either * or a BCP47 code"
     assert isinstance(
         p.doc_uri, str
     ), "probes should give a doc uri describing/citing the attack"
@@ -88,6 +90,13 @@ def test_probe_metadata(classname):
     assert isinstance(p.modality["in"], set), "modality descriptors must be sets"
     assert p.tier is not None, "probe tier must be specified"
     assert isinstance(p.tier, Tier), "probe tier must be one of type Tier'"
+    assert hasattr(p, "extra_dependency_names") and isinstance(
+        p.extra_dependency_names, list
+    ), "extra_dependency_names must be a list"
+    if p.active:
+        assert (
+            p.extra_dependency_names == []
+        ), "active must be False for Probes requiring external modules, so that they're not run by default"
 
 
 @pytest.mark.parametrize("plugin_name", PROBES)

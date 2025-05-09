@@ -1,3 +1,4 @@
+import importlib
 import os
 import pytest
 import requests_mock
@@ -17,6 +18,15 @@ def test_validate_uri():
     assert LangChainServeLLMGenerator._validate_uri("bad_uri") == False
 
 
+@pytest.mark.skipif(
+    not all(
+        [
+            importlib.util.find_spec(m)
+            for m in LangChainServeLLMGenerator.extra_dependency_names
+        ]
+    ),
+    reason="missing optional dependency",
+)
 @pytest.mark.usefixtures("set_env_vars")
 def test_langchain_serve_generator_initialization():
     generator = LangChainServeLLMGenerator()
@@ -24,6 +34,15 @@ def test_langchain_serve_generator_initialization():
     assert generator.api_endpoint == "http://127.0.0.1:8000/invoke"
 
 
+@pytest.mark.skipif(
+    not all(
+        [
+            importlib.util.find_spec(m)
+            for m in LangChainServeLLMGenerator.extra_dependency_names
+        ]
+    ),
+    reason="missing optional dependency",
+)
 @pytest.mark.usefixtures("set_env_vars")
 def test_langchain_serve_generation(requests_mock):
     requests_mock.post(
@@ -36,6 +55,15 @@ def test_langchain_serve_generation(requests_mock):
     assert output[0] == "Generated text"
 
 
+@pytest.mark.skipif(
+    not all(
+        [
+            importlib.util.find_spec(m)
+            for m in LangChainServeLLMGenerator.extra_dependency_names
+        ]
+    ),
+    reason="missing optional dependency",
+)
 @pytest.mark.usefixtures("set_env_vars")
 def test_error_handling(requests_mock):
     requests_mock.post(
@@ -46,6 +74,15 @@ def test_error_handling(requests_mock):
         generator._call_model("This should raise an error")
 
 
+@pytest.mark.skipif(
+    not all(
+        [
+            importlib.util.find_spec(m)
+            for m in LangChainServeLLMGenerator.extra_dependency_names
+        ]
+    ),
+    reason="missing optional dependency",
+)
 @pytest.mark.usefixtures("set_env_vars")
 def test_bad_response_handling(requests_mock):
     requests_mock.post(

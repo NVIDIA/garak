@@ -127,3 +127,6 @@ def test_detector_metadata(classname):
         assert d.doc_uri.lower().startswith(
             "http"
         ), "doc uris should be fully-specified absolute HTTP addresses"
+    assert hasattr(d, "extra_dependency_names") and isinstance(
+        d.extra_dependency_names, list
+    ), "extra_dependency_names must be a list"
