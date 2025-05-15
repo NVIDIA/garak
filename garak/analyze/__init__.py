@@ -25,3 +25,18 @@ ZSCORE_COMMENTS = {
     4: "above average",
     5: "excellent",
 }
+
+# smallest probe: atkgen
+# default gen: 5 turns: 5 outputs: 25
+# clean with one wrong: 0.96
+# max pass rate mean: 1.0
+# this should not give a failure
+# i.e. (passrate-1.0)/mu > -1.0
+# -0.04/x > -1.0
+# 1/x > -25
+# x > -0.04
+
+
+# stddev=0 gives unusable z-scores
+# give arbitrary floor that tolerates 1 failure on lowest prompt count probe
+MINIMUM_STD_DEV = 0.041
