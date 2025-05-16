@@ -260,6 +260,7 @@ these will be applied to the instance and can be overridden by the class level. 
 is an example that is equivalent to the configuration above:
 
 .. code-block:: yaml
+    
     plugins:
         generators:
             openai:

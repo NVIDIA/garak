@@ -48,6 +48,7 @@ Advanced usage
 
    configurable
    cliref
+   translation
 
 Code reference
 ^^^^^^^^^^^^^^
@@ -66,14 +67,6 @@ Code reference
    _config
    _plugins
 
-Building further
-^^^^^^^^^^^^^^^^
-
-.. toctree::
-   :maxdepth: 1
-
-   extending
-   contributing
 
 
 Plugin structure
@@ -89,3 +82,13 @@ Plugin structure
    harnesses
    probes
    report
+
+
+Building further
+^^^^^^^^^^^^^^^^
+
+.. toctree::
+   :maxdepth: 1
+
+   extending
+   contributing
