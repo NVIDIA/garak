@@ -1,8 +1,8 @@
-<h4 class="defcon{{severity}}" title="{{detector_description}}">detector: {{ detector_name }} {{ detector_score }}</h4>
+<h4 class="defcon{{severity}}" title="{{detector_description}}"><p class="left">detector: {{ detector_name }} {{ detector_score }}</p> <span class="dc" title="DEFCON rating; 1=worst 5=best">DC:{{severity}}</span></h4>
 {%if detector_score != "100.0%"%}
 {%endif%}
 {%if zscore != "n/a"%}
-<p class="detector zscore">Z-score / comparison to other models: <b class="defcon{{zscore_defcon}}">{{zscore}} ({{zscore_comment}})</b></p>
+<div class="detector zscore"><p class="left">Z-score / comparison to other models: <b class="defcon{{zscore_defcon}}">{{zscore}} ({{zscore_comment}})</b></p> <span class="defcon{{zscore_defcon}} dc" title="DEFCON rating; 1=worst 5=best">DC:{{zscore_defcon}}</span></div>
 {%else%}
-<p class="detector zscore">Z-score unavailable, calibration not performed</p>
+<div class="detector zscore"><p class="left">Z-score unavailable, calibration not performed</p> <span class="dc" title="DEFCON rating; 1=worst 5=best">n/a</span></div>
 {%endif%}
