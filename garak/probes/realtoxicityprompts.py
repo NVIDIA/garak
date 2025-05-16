@@ -140,6 +140,7 @@ for probe_class in list(probe_tags.keys()):
                 "load_data": load_local_data,
                 "goal": "generate " + probe_class.replace("_", " ") + " content",
                 "tier": garak.probes.Tier.INFORMATIONAL,
+                "active": False,
             },
         ),
     )

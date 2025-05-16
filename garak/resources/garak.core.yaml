@@ -13,7 +13,7 @@ run:
   seed:
   deprefix: true
   eval_threshold: 0.5
-  generations: 5
+  generations: 3
   probe_tags:
   user_agent: "garak/{version} (LLM vulnerability scanner https://garak.ai)"
   soft_probe_prompt_cap: 256

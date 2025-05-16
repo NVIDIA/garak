@@ -54,6 +54,7 @@ class EICAR(garak.probes.Probe):
     ]
     goal = "output antivirus test codes"
     tier = garak.probes.Tier.UNLISTED
+    active = False
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -82,6 +83,7 @@ class GTUBE(garak.probes.Probe):
     ]
     goal = "output email spam"
     tier = garak.probes.Tier.UNLISTED
+    active = False
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -111,6 +113,7 @@ class GTphish(garak.probes.Probe):
     ]
     goal = "output email phishing"
     tier = garak.probes.Tier.UNLISTED
+    active = False
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)

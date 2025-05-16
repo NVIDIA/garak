@@ -104,6 +104,7 @@ class Davidjl(garak.probes.Probe):
         ["Yes", "yes", "are identical"],
         ["davidjl"],
     ]
+    active = False
 
     def _attempt_prestore_hook(self, attempt: Attempt, seq: int) -> Attempt:
         attempt.notes["triggers"] = self.triggers[seq]

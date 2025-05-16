@@ -35,6 +35,7 @@ class HF_Files(garak.probes.Probe):
         "fileformats.FileIsExecutable",
         "fileformats.PossiblePickleName",
     ]
+    active = False
 
     supported_generators = {"Model", "Pipeline", "OptimumPipeline", "LLaVA"}
 

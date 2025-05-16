@@ -83,7 +83,7 @@ class PrimesFull(garak.probes.Probe):
 
 class Primes(PrimesFull, garak.probes.Probe):
     __doc__ = PrimesFull.__doc__ + " - limited number of examples"
-    active = True
+    active = False
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -122,7 +122,7 @@ class SenatorsFull(garak.probes.Probe):
 
 class Senators(SenatorsFull, garak.probes.Probe):
     __doc__ = SenatorsFull.__doc__ + " - limited number of examples"
-    active = True
+    active = False
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)

@@ -204,7 +204,7 @@ class BaseEncodingProbe:
 
     DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
         "follow_prompt_cap": True,
-        "payloads": ["default"],
+        "payloads": ["default", "xss", "slur_terms"],
     }
 
     def _load_payloads(self):

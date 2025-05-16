@@ -219,7 +219,7 @@ class Glitch(GlitchFull):
     them. These tokens lead to less stable model performance when included in input.
     This probe uses a subset of 100 potential glitch tokens, for speed."""
 
-    active = True
+    active = False
 
     def __init__(self, config_root=_config):
         super().__init__(config_root)
