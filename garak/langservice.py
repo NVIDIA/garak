@@ -6,14 +6,35 @@
 
 
 import logging
-from garak import _config, _plugins
+from typing import List
 
+from garak import _config, _plugins
 from garak.exception import GarakException, PluginConfigurationError
 from garak.langproviders.base import LangProvider
 from garak.langproviders.local import Passthru
 
 langproviders = {}
 native_langprovider = None
+
+
+def tasks() -> List[str]:
+    """number of translators to deal with, minus the no-op one"""
+    models_to_init = [
+        f"{t['model_name']}:{t['language']}" for t in _config.run.translators
+    ]
+    return models_to_init
+
+
+def enabled() -> bool:
+    """are all requirements met for language service to be enabled"""
+    if hasattr(_config.run, "translators"):
+        return len(_config.run.translators) > 1
+    return False
+
+
+def start_msg() -> str:
+    """return a start message, assumes enabled"""
+    return "🌐", "loading language services:" + " ".join(tasks())
 
 
 def _load_langprovider(language_service: dict = {}) -> LangProvider:

@@ -140,6 +140,7 @@ class LangProvider(Configurable):
     """Base class for objects that provision language"""
 
     def __init__(self, config_root: dict = {}) -> None:
+
         self._load_config(config_root=config_root)
 
         self.source_lang, self.target_lang = self.language.split(",")
@@ -149,7 +150,7 @@ class LangProvider(Configurable):
         self._load_langprovider()
 
     def _load_langprovider(self):
-        raise NotImplementedError
+        pass
 
     def _translate(self, text: str) -> str:
         raise NotImplementedError
