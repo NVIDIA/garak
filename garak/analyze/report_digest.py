@@ -212,10 +212,11 @@ def compile_digest(
 
         digest_content += group_template.render(
             {
-                "module": probe_group_name,
-                "module_score": f"{group_score:.1f}%",
+                "group": probe_group_name,
+                "show_top_group_score": _config.reporting.show_top_group_score,
+                "group_score": f"{group_score:.1f}%",
                 "severity": map_score(group_score),
-                "module_doc": group_doc,
+                "doc": group_doc,
                 "group_link": group_link,
                 "group_aggregation_function": group_aggregation_function,
             }
