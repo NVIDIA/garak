@@ -411,6 +411,19 @@ def main(arguments=None) -> None:
 
     import garak.evaluators
 
+    # Initialize W&B if enabled
+    wandb_enabled = False
+    if hasattr(_config.system, "wandb_enabled"):
+        if _config.system.wandb_enabled:
+            from garak.resources.wandb_manager import wandb_manager
+
+            wandb_manager.init_wandb(
+                _config.plugins.model_name,
+                [p.strip() for p in _config.plugins.probe_spec.split(",")],
+                [d.strip() for d in _config.plugins.detector_spec.split(",")],
+            )
+            wandb_enabled = True
+
     try:
         has_config_file_or_json = False
         # do a special thing for CLI probe options, generator options
@@ -636,5 +649,9 @@ def main(arguments=None) -> None:
     except (ValueError, GarakException) as e:
         logging.exception(e)
         print(e)
+    finally:
+        # Close W&B at the end
+        if wandb_enabled:
+            wandb_manager.finish_wandb()
 
     _config.set_http_lib_agents(prior_user_agents)
