@@ -95,7 +95,7 @@ def start_run():
             ):
                 setup_dict[f"{subset}.{k}"] = v
 
-    _config.transient.reportfile.write(json.dumps(setup_dict) + "\n")
+    _config.transient.reportfile.write(json.dumps(setup_dict, ensure_ascii=False) + "\n")
     _config.transient.reportfile.write(
         json.dumps(
             {
@@ -103,7 +103,7 @@ def start_run():
                 "garak_version": _config.version,
                 "start_time": _config.transient.starttime_iso,
                 "run": _config.transient.run_id,
-            }
+            }, ensure_ascii=False
         )
         + "\n"
     )
@@ -122,7 +122,7 @@ def end_run():
         "end_time": datetime.datetime.now().isoformat(),
         "run": _config.transient.run_id,
     }
-    _config.transient.reportfile.write(json.dumps(end_object))
+    _config.transient.reportfile.write(json.dumps(end_object, ensure_ascii=False))
     _config.transient.reportfile.close()
     print(f"📜 report closed :) {_config.transient.report_filename}")
     if _config.transient.hitlogfile:

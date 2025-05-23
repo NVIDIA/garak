@@ -165,7 +165,7 @@ class Harness(Configurable):
 
             for attempt in attempt_results:
                 attempt.status = garak.attempt.ATTEMPT_COMPLETE
-                _config.transient.reportfile.write(json.dumps(attempt.as_dict()) + "\n")
+                _config.transient.reportfile.write(json.dumps(attempt.as_dict(), ensure_ascii=False) + "\n")
 
             if len(attempt_results) == 0:
                 logging.warning(
