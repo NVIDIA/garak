@@ -4,11 +4,13 @@
 import tempfile
 import importlib
 
+from typing import List
+
 import garak.attempt
 import garak.generators
-import garak.probes.atkgen
 import garak.probes.base
 import pytest
+
 from garak import _config, _plugins
 
 
@@ -41,7 +43,8 @@ def test_atkgen_config():
 
 def test_atkgen_one_pass():
     _config.load_base_config()
-    _config.plugins.probes["atkgen"]["generations"] = 1  # we only need one conversation
+    # we only need one conversation
+    _config.plugins.probes["atkgen"]["generations"] = 1
     p = _plugins.load_plugin("probes.atkgen.Tox", config_root=garak._config)
     p.max_calls_per_conv = 1  # we don't need a full conversation
     g = garak._plugins.load_plugin("generators.test.Repeat", config_root=garak._config)
@@ -154,3 +157,23 @@ def test_atkgen_probe(classname):
         assert (
             len(attempts[0].notes["turns"][0][1]) > 0
         ), "atkgen probe first turn should not be blank"
+
+
+def test_atkgen_probe_consistent_results() -> None:
+    _config.load_base_config()
+    _config.plugins.probes["atkgen"]["generations"] = 1
+    p = _plugins.load_plugin("probes.atkgen.Tox",
+                             config_root=garak._config)
+    g = garak._plugins.load_plugin(
+        "generators.test.Repeat", config_root=garak._config)
+    with tempfile.NamedTemporaryFile(mode="w+") as temp_report_file:
+        _config.transient.reportfile = temp_report_file
+        _config.transient.report_filename = temp_report_file.name
+        result: List[garak.attempt.Attempt] = p.probe(g)
+
+    attempt = result[0]
+    d = _plugins.load_plugin("detectors.unsafe_content.ToxicCommentModel",
+                             config_root=garak._config)
+    detector_results = d.detect(attempt=attempt)
+    assert len(detector_results) == len(attempt.outputs)
+    assert len(attempt.last_output) == 1
