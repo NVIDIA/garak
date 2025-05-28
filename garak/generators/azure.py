@@ -82,6 +82,7 @@ class AzureOpenAIGenerator(OpenAICompatible):
         return super()._validate_env_var()
 
     def _load_client(self):
+        self._load_deps()
         if self.model_name in openai_model_mapping:
             self.model_name = openai_model_mapping[self.model_name]
 

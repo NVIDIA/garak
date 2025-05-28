@@ -69,6 +69,10 @@ def test_generator_structure(classname):
                 if k not in g._supported_params:
                     unsupported_defaults.append(k)
     assert unsupported_defaults == []
+    # extra dependency modules is a list
+    assert hasattr(g, "extra_dependency_names") and isinstance(
+        g.extra_dependency_names, list
+    ), "extra_dependency_names must be a list"
 
 
 TESTABLE_GENERATORS = [
@@ -112,7 +116,13 @@ def test_instantiate_generators(classname):
     setattr(config_root, category, gen_config)
 
     m = importlib.import_module("garak." + ".".join(classname.split(".")[:-1]))
-    g = getattr(m, classname.split(".")[-1])(config_root=config_root)
+    klass = getattr(m, classname.split(".")[-1])
+    try:
+        g = klass(config_root=config_root)
+    except ModuleNotFoundError:
+        pytest.skip(
+            "dependencies not present; requires " + repr(klass.extra_dependency_names)
+        )
     assert isinstance(g, Generator)
 
 
@@ -155,19 +165,29 @@ def test_skip_seq():
 
     test_has_only_end_think = "some thinking</think>" + target_string
     r = g.generate(test_has_only_end_think)
-    assert r[0] == test_has_only_end_think, "for non empty skip_seq_start, if skip_seq_start is not found and skip_seq_end is found, no stripping should be done"
+    assert (
+        r[0] == test_has_only_end_think
+    ), "for non empty skip_seq_start, if skip_seq_start is not found and skip_seq_end is found, no stripping should be done"
 
     g.skip_seq_start = ""
     g.skip_seq_end = "</think>"
     r = g.generate(test_has_only_end_think)
-    assert r[0] == target_string, "for empty skip_seq_start, if skip_seq_start is not found and skip_seq_end is found, strip from start of output till skip_seq_end"
-    
-    test_multiple_end_thinks = "some thinking</think><think>some more thinking</think>" + target_string
+    assert (
+        r[0] == target_string
+    ), "for empty skip_seq_start, if skip_seq_start is not found and skip_seq_end is found, strip from start of output till skip_seq_end"
+
+    test_multiple_end_thinks = (
+        "some thinking</think><think>some more thinking</think>" + target_string
+    )
     r = g.generate(test_multiple_end_thinks)
-    assert r[0] == target_string, "for empty skip_seq_start, if skip_seq_start is not found and multiple skip_seq_end is found, strip from start of output till last skip_seq_end"
+    assert (
+        r[0] == target_string
+    ), "for empty skip_seq_start, if skip_seq_start is not found and multiple skip_seq_end is found, strip from start of output till last skip_seq_end"
 
-    test_multiple_end_thinks_discontinuous = "some thinking</think>" + target_string +"<think>some more thinking</think>"
+    test_multiple_end_thinks_discontinuous = (
+        "some thinking</think>" + target_string + "<think>some more thinking</think>"
+    )
     r = g.generate(test_multiple_end_thinks_discontinuous)
-    assert r[0] == "", "for empty skip_seq_start, if skip_seq_start is not found and multiple skip_seq_end is found, strip from start of output till last skip_seq_end"
-
-
+    assert (
+        r[0] == ""
+    ), "for empty skip_seq_start, if skip_seq_start is not found and multiple skip_seq_end is found, strip from start of output till last skip_seq_end"
