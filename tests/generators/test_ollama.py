@@ -24,7 +24,10 @@ def ollama_is_running():
 
 
 def no_models():
-    return len(ollama.list()) == 0 or len(ollama.list()["models"]) == 0
+    models_response = ollama.list()
+    models = getattr(models_response, "models", [])  # safely extract
+    return not models
+
 
 
 @pytest.mark.skipif(
