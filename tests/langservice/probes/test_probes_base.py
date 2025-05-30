@@ -20,12 +20,16 @@ VISUAL_PROBES = [
     "probes.visual_jailbreak.FigStep",
     "probes.visual_jailbreak.FigStepFull",
 ]
+AUDIO_PROBES = [
+    "probes.audio.AudioAchillesHeel",
+]
 PROBES = [
     classname
     for (classname, _) in _plugins.enumerate_plugins("probes")
     if classname not in NON_PROMPT_PROBES
     and classname not in VISUAL_PROBES
     and classname not in ATKGEN_PROMPT_PROBES
+    and classname not in AUDIO_PROBES
 ]
 openai_api_key_missing = not os.getenv("OPENAI_API_KEY")
 
