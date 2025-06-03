@@ -7018,36 +7018,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-03-12 18:40:18 +0000"
-    },
-    "generators.huggingface.ConversationalPipeline": {
-      "description": "Conversational text generation using HuggingFace pipelines",
-      "DEFAULT_PARAMS": {
-        "max_tokens": 150,
-        "temperature": null,
-        "top_k": null,
-        "context_len": null,
-        "skip_seq_start": null,
-        "skip_seq_end": null,
-        "hf_args": {
-          "torch_dtype": "float16",
-          "do_sample": true,
-          "device": null
-        }
-      },
-      "active": true,
-      "generator_family_name": "Hugging Face \ud83e\udd17 pipeline for conversations",
-      "modality": {
-        "in": [
-          "text"
-        ],
-        "out": [
-          "text"
-        ]
-      },
-      "parallel_capable": false,
-      "supports_multiple_generations": true,
-      "mod_time": "2025-02-28 21:51:23 +0000"
+      "mod_time": "2025-04-18 21:47:16 +0000"
     },
     "generators.huggingface.InferenceAPI": {
       "description": "Get text generations from Hugging Face Inference API",
@@ -7923,7 +7894,32 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2024-07-18 06:04:25 +0000"
+      "mod_time": "2025-04-18 21:20:51 +0000"
+    },
+    "generators.test.BlankVision": {
+      "description": "This generator always returns the empty string.",
+      "DEFAULT_PARAMS": {
+        "max_tokens": 150,
+        "temperature": null,
+        "top_k": null,
+        "context_len": null,
+        "skip_seq_start": null,
+        "skip_seq_end": null
+      },
+      "active": true,
+      "generator_family_name": "Test",
+      "modality": {
+        "in": [
+          "image",
+          "text"
+        ],
+        "out": [
+          "text"
+        ]
+      },
+      "parallel_capable": true,
+      "supports_multiple_generations": true,
+      "mod_time": "2025-04-18 21:20:51 +0000"
     },
     "generators.test.Lipsum": {
       "description": "Lorem Ipsum generator, so we can get non-zero outputs that vary",

@@ -12,6 +12,7 @@ import backoff
 import requests
 
 from garak import _config
+from garak.attempt import Turn
 from garak.exception import ModelNameMissingError, BadGeneratorException
 from garak.generators.base import Generator
 
@@ -60,10 +61,10 @@ class NvcfChat(Generator):
             "Accept": "application/json",
         }
 
-    def _build_payload(self, prompt) -> dict:
+    def _build_payload(self, prompt_text: str) -> dict:
 
         payload = {
-            "messages": [{"content": prompt, "role": "user"}],
+            "messages": [{"content": prompt_text, "role": "user"}],
             "temperature": self.temperature,
             "top_p": self.top_p,
             "max_tokens": self.max_tokens,
@@ -89,12 +90,12 @@ class NvcfChat(Generator):
         max_value=70,
     )
     def _call_model(
-        self, prompt: str, generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
+        self, prompt: Turn, generations_this_call: int = 1
+    ) -> List[Union[Turn, None]]:
 
         session = requests.Session()
 
-        payload = self._build_payload(prompt)
+        payload = self._build_payload(prompt.text)
 
         ## NB config indexing scheme to be deprecated
         config_class = f"nvcf.{self.__class__.__name__}"
@@ -148,16 +149,16 @@ class NvcfChat(Generator):
         else:
             response_body = response.json()
 
-            return self._extract_text_output(response_body)
+            return [Turn(r) for r in self._extract_text_output(response_body)]
 
 
 class NvcfCompletion(NvcfChat):
     """Wrapper for NVIDIA Cloud Functions Completion models via NGC. Expects NVCF_API_KEY environment variables."""
 
-    def _build_payload(self, prompt) -> dict:
+    def _build_payload(self, prompt_text: str) -> dict:
 
         payload = {
-            "prompt": prompt,
+            "prompt": prompt_text,
             "temperature": self.temperature,
             "top_p": self.top_p,
             "max_tokens": self.max_tokens,

@@ -1,10 +1,10 @@
-DEFAULT_CLASS = "MistralGenerator"
-import os
 import backoff
-from garak.generators.base import Generator
-import garak._config as _config
+from typing import List
 from mistralai import Mistral, models
-from garak import exception
+
+from garak import _config
+from garak.generators.base import Generator
+from garak.attempt import Turn
 
 
 class MistralGenerator(Generator):
@@ -42,15 +42,18 @@ class MistralGenerator(Generator):
         self._load_client()
 
     @backoff.on_exception(backoff.fibo, models.SDKError, max_value=70)
-    def _call_model(self, prompt, generations_this_call=1):
+    def _call_model(self, prompt: Turn, generations_this_call=1) -> List[Turn | None]:
         print(self.name)
         chat_response = self.client.chat.complete(
             model=self.name,
             messages=[
                 {
                     "role": "user",
-                    "content": prompt,
+                    "content": prompt.text,
                 },
             ],
         )
-        return [chat_response.choices[0].message.content]
+        return [Turn(chat_response.choices[0].message.content)]
+
+
+DEFAULT_CLASS = "MistralGenerator"

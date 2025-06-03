@@ -15,5 +15,5 @@ class Lowercase(Buff):
     def transform(
         self, attempt: garak.attempt.Attempt
     ) -> Iterable[garak.attempt.Attempt]:
-        attempt.prompt = attempt.prompt.lower()
+        attempt.prompt.text = attempt.prompt.text.lower()
         yield attempt

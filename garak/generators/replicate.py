@@ -17,6 +17,7 @@ import backoff
 import replicate.exceptions
 
 from garak import _config
+from garak.attempt import Turn
 from garak.generators.base import Generator
 
 
@@ -67,14 +68,14 @@ class ReplicateGenerator(Generator):
         backoff.fibo, replicate.exceptions.ReplicateError, max_value=70
     )
     def _call_model(
-        self, prompt: str, generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
+        self, prompt: Turn, generations_this_call: int = 1
+    ) -> List[Union[Turn, None]]:
         if self.client is None:
             self.client = importlib.import_module("replicate")
         response_iterator = self.client.run(
             self.name,
             input={
-                "prompt": prompt,
+                "prompt": prompt.text,
                 "max_length": self.max_tokens,
                 "temperature": self.temperature,
                 "top_p": self.top_p,
@@ -82,7 +83,7 @@ class ReplicateGenerator(Generator):
                 "seed": self.seed,
             },
         )
-        return ["".join(response_iterator)]
+        return [Turn("".join(response_iterator))]
 
 
 class InferenceEndpoint(ReplicateGenerator):
@@ -95,14 +96,14 @@ class InferenceEndpoint(ReplicateGenerator):
         backoff.fibo, replicate.exceptions.ReplicateError, max_value=70
     )
     def _call_model(
-        self, prompt, generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
+        self, prompt: Turn, generations_this_call: int = 1
+    ) -> List[Union[Turn, None]]:
         if self.client is None:
             self.client = importlib.import_module("replicate")
         deployment = self.client.deployments.get(self.name)
         prediction = deployment.predictions.create(
             input={
-                "prompt": prompt,
+                "prompt": prompt.text,
                 "max_length": self.max_tokens,
                 "temperature": self.temperature,
                 "top_p": self.top_p,
@@ -116,7 +117,7 @@ class InferenceEndpoint(ReplicateGenerator):
             raise IOError(
                 "Replicate endpoint didn't generate a response. Make sure the endpoint is active."
             ) from exc
-        return [response]
+        return [Turn(r) for r in response]
 
 
 DEFAULT_CLASS = "ReplicateGenerator"
