@@ -14,7 +14,7 @@ class ModelNameMissingError(GarakException):
     """A generator requires model_name to be set, but it wasn't"""
 
 
-class GarakBackoffTrigger(GarakException):
+class GeneratorBackoffTrigger(GarakException):
     """Thrown when backoff should be triggered"""
 
 
@@ -36,3 +36,4 @@ class ConfigFailure(GarakException):
 
 class PayloadFailure(GarakException):
     """Problem instantiating/using payloads"""
+

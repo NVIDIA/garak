@@ -9,14 +9,13 @@ page, https://replicate.com/account.
 Text-output models are supported.
 """
 
-import importlib
 import os
 from typing import List, Union
 
 import backoff
-import replicate.exceptions
 
 from garak import _config
+from garak.exception import GeneratorBackoffTrigger
 from garak.generators.base import Generator
 
 
@@ -35,6 +34,7 @@ class ReplicateGenerator(Generator):
 
     generator_family_name = "Replicate"
     supports_multiple_generations = False
+    extra_dependency_names = ["replicate"]
 
     def __init__(self, name="", config_root=_config):
         super().__init__(name, config_root=config_root)
@@ -45,7 +45,7 @@ class ReplicateGenerator(Generator):
         if self.api_key is not None:
             # ensure the token is in the expected runtime env var
             os.environ[self.ENV_VAR] = self.api_key
-        self.client = importlib.import_module("replicate")
+        self.client = self.replicate
 
     # avoid attempt to pickle the client attribute
     def __getstate__(self) -> object:
@@ -55,34 +55,41 @@ class ReplicateGenerator(Generator):
     # restore the client attribute
     def __setstate__(self, d) -> object:
         self.__dict__.update(d)
-        self._load_client()
+        self._load_deps()
 
     def _load_client(self):
-        self.client = importlib.import_module("replicate")
+        self._load_deps()
+        self.client = self.replicate
 
     def _clear_client(self):
+        self._clear_deps()
         self.client = None
 
-    @backoff.on_exception(
-        backoff.fibo, replicate.exceptions.ReplicateError, max_value=70
-    )
+    @backoff.on_exception(backoff.fibo, GeneratorBackoffTrigger, max_value=70)
     def _call_model(
         self, prompt: str, generations_this_call: int = 1
     ) -> List[Union[str, None]]:
         if self.client is None:
-            self.client = importlib.import_module("replicate")
-        response_iterator = self.client.run(
-            self.name,
-            input={
-                "prompt": prompt,
-                "max_length": self.max_tokens,
-                "temperature": self.temperature,
-                "top_p": self.top_p,
-                "repetition_penalty": self.repetition_penalty,
-                "seed": self.seed,
-            },
-        )
-        return ["".join(response_iterator)]
+            self._load_client()
+        try:
+            response_iterator = self.client.run(
+                self.name,
+                input={
+                    "prompt": prompt,
+                    "max_length": self.max_tokens,
+                    "temperature": self.temperature,
+                    "top_p": self.top_p,
+                    "repetition_penalty": self.repetition_penalty,
+                    "seed": self.seed,
+                },
+            )
+            return ["".join(response_iterator)]
+        except Exception as e:
+            backoff_exception_types = [self.replicate.exceptions.ReplicateError]
+            for backoff_exception in backoff_exception_types:
+                if isinstance(e, backoff_exception):
+                    raise GeneratorBackoffTrigger from e
+            raise e
 
 
 class InferenceEndpoint(ReplicateGenerator):
@@ -91,30 +98,36 @@ class InferenceEndpoint(ReplicateGenerator):
     Expects `name` in the format of `username/deployed-model-name`.
     """
 
-    @backoff.on_exception(
-        backoff.fibo, replicate.exceptions.ReplicateError, max_value=70
-    )
+    @backoff.on_exception(backoff.fibo, GeneratorBackoffTrigger, max_value=70)
     def _call_model(
         self, prompt, generations_this_call: int = 1
     ) -> List[Union[str, None]]:
         if self.client is None:
-            self.client = importlib.import_module("replicate")
+            self._load_client()
         deployment = self.client.deployments.get(self.name)
-        prediction = deployment.predictions.create(
-            input={
-                "prompt": prompt,
-                "max_length": self.max_tokens,
-                "temperature": self.temperature,
-                "top_p": self.top_p,
-                "repetition_penalty": self.repetition_penalty,
-            },
-        )
+        try:
+            prediction = deployment.predictions.create(
+                input={
+                    "prompt": prompt,
+                    "max_length": self.max_tokens,
+                    "temperature": self.temperature,
+                    "top_p": self.top_p,
+                    "repetition_penalty": self.repetition_penalty,
+                },
+            )
+        except Exception as e:
+            backoff_exception_types = [self.replicate.exceptions.ReplicateError]
+            for backoff_exception in backoff_exception_types:
+                if isinstance(e, backoff_exception):
+                    raise GeneratorBackoffTrigger from e
+            raise e
+
         prediction.wait()
         try:
             response = "".join(prediction.output)
         except TypeError as exc:
             raise IOError(
-                "Replicate endpoint didn't generate a response. Make sure the endpoint is active."
+                "Replicate endpoint didn't generate an Iterable[str]-type response. Make sure the endpoint is active."
             ) from exc
         return [response]
 

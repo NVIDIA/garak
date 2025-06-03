@@ -54,8 +54,10 @@ class Probe(Configurable):
     modality: dict = {"in": {"text"}}
     # what tier is this probe? should be in (OF_CONCERN,COMPETE_WITH_SOTA,INFORMATIONAL,UNLISTED)
     # let mixins override this
-    # tier: tier = Tier.UNLISTED
+    # tier: Tier = Tier.UNLISTED
     tier: Tier = Tier.UNLISTED
+    # list of strings naming modules required but not explicitly in garak by default
+    extra_dependency_names = []
 
     DEFAULT_PARAMS = {}
 
