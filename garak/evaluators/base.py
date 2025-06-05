@@ -111,7 +111,7 @@ class Evaluator:
                                     "probe": self.probename,
                                     "detector": detector,
                                     "generations_per_prompt": _config.run.generations,
-                                }
+                                }, ensure_ascii=False
                             )
                             + "\n"  # generator,probe,prompt,trigger,result,detector,score,run id,attemptid,
                         )
@@ -130,7 +130,7 @@ class Evaluator:
                         "detector": detector,
                         "passed": sum(all_passes),
                         "total": len(all_passes),
-                    }
+                    }, ensure_ascii=False
                 )
                 + "\n"
             )

@@ -235,7 +235,7 @@ class Probe(Configurable):
                             )
 
                         _config.transient.reportfile.write(
-                            json.dumps(result.as_dict()) + "\n"
+                            json.dumps(result.as_dict(), ensure_ascii=False) + "\n"
                         )
                         attempts_completed.append(
                             result
@@ -260,7 +260,7 @@ class Probe(Configurable):
                         self.reverse_langprovider.get_text(result.all_outputs)
                     )
 
-                _config.transient.reportfile.write(json.dumps(result.as_dict()) + "\n")
+                _config.transient.reportfile.write(json.dumps(result.as_dict(), ensure_ascii=False) + "\n")
                 attempts_completed.append(result)
         return attempts_completed
 
@@ -441,7 +441,7 @@ class TreeSearchProbe(Probe):
                 )
                 node_results += attempt.detector_results[self.primary_detector]
                 attempt.status = garak.attempt.ATTEMPT_COMPLETE
-                _config.transient.reportfile.write(json.dumps(attempt.as_dict()) + "\n")
+                _config.transient.reportfile.write(json.dumps(attempt.as_dict(), ensure_ascii=False) + "\n")
 
             tree_bar.update()
             tree_bar.refresh()
@@ -467,7 +467,7 @@ class TreeSearchProbe(Probe):
                 "node_score": mean_score,
                 "surface_forms": new_surface_forms,
             }
-            _config.transient.reportfile.write(json.dumps(node_info) + "\n")
+            _config.transient.reportfile.write(json.dumps(node_info, ensure_ascii=False) + "\n")
             logging.debug("%s  node score %s" % (self.__class__.__name__, mean_score))
 
             if (mean_score > self.per_node_threshold and self.target_soft) or (

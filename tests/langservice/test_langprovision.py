@@ -115,12 +115,18 @@ def langprovider_remote(target_lang, langprovider_class):
         ("en,ja", "remote.DeeplTranslator", "Hello, how are you?"),
         ("en,fr", "remote.DeeplTranslator", "Hello, how are you?"),
         ("en,ar", "remote.DeeplTranslator", "Hello, how are you?"),
+        ("en,ja", "remote.GoogleTranslator", "Hello, how are you?"),
+        ("en,fr", "remote.GoogleTranslator", "Hello, how are you?"),
+        ("en,ar", "remote.GoogleTranslator", "Hello, how are you?"),
         ("ja,en", "remote.RivaTranslator", "こんにちは。調子はどうですか?"),
         ("ja,fr", "remote.RivaTranslator", "こんにちは。調子はどうですか?"),
         ("ja,ar", "remote.RivaTranslator", "こんにちは。調子はどうですか?"),
         ("ja,en", "remote.DeeplTranslator", "こんにちは。調子はどうですか?"),
         ("ja,fr", "remote.DeeplTranslator", "こんにちは。調子はどうですか?"),
         ("ja,ar", "remote.DeeplTranslator", "こんにちは。調子はどうですか?"),
+        ("ja,en", "remote.GoogleTranslator", "こんにちは。調子はどうですか?"),
+        ("ja,fr", "remote.GoogleTranslator", "こんにちは。調子はどうですか?"),
+        ("ja,ar", "remote.GoogleTranslator", "こんにちは。調子はどうですか?"),
     ],
 )
 def test_remote_translate_single_language(
