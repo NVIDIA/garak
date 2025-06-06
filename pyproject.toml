@@ -79,7 +79,6 @@ dependencies = [
   "stdlibs>=2022.10.9",
   "langchain>=0.3.25",
   "nemollm>=0.3.0",
-  "octoai-sdk>=0.8.0",
   "cmd2==2.4.3",
   "torch>=2.6.0",
   "sentencepiece>=0.1.99",
@@ -102,6 +101,7 @@ dependencies = [
   "langdetect==1.0.9",
   "tiktoken>=0.7.0",
   "mistralai==1.5.2",
+  "pillow>=10.4.0",
 ]
 
 [project.optional-dependencies]

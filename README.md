@@ -205,18 +205,6 @@ For completion models:
 * `--model_name` - the NIM `model` name, e.g. `bigcode/starcoder2-15b`
 
 
-### OctoAI
-
-* set the `OCTO_API_TOKEN` environment variable to your Replicate API token, e.g. "r8-123XXXXXXXXXXXX"; see https://replicate.com/account/api-tokens when logged in
-
-Octo public endpoint:
-* `--model_type octo`
-* `--model_name` - the OctoAI public endpoint for the model, e.g. `mistral-7b-instruct-fp16`
-
-Octo private endpoint:
-* `--model_type octo.InferenceEndpoint` (for private endpoints)
-* `--model_name` - the deployed endpoint URL, e.g. `https://llama-2-70b-chat-xxx.octoai.run/v1/chat/completions`
-
 ### Test
 
 * `--model_type test`
