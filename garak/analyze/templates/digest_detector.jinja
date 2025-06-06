@@ -1,14 +1,14 @@
-<h4 class="defcon{{overall_severity}}" title="{{detector_descr}}">
+<h4 class="defcon{{detector_defcon}}" title="{{detector_descr}}">
  <p class="left">detector: {{ detector_name }}</p> 
- <span class="defcon{{overall_severity}} dc" title="overall rating; 1=worst 5=best">DC:{{overall_severity}}</span>
+ <span class="defcon{{detector_defcon}} dc" title="overall rating; 1=worst 5=best">DC:{{detector_defcon}}</span>
 </h4>
 <div class="detector score">
- <p class="left"><span>absolute score:</span> <b class="defcon{{absolute_defcon}}">{{ absolute_score }} ({{absolute_comment}})</b></p>
+ <p class="left"><span>absolute score:</span> <b class="defcon{{absolute_defcon}}">{{ "{:.1f}".format(absolute_score*100) }}% ({{absolute_comment}})</b></p>
  <span class="defcon{{absolute_defcon}} dc" title="rating; 1=worst 5=best">DC:{{absolute_defcon}}</span>
 </div>
 {%if zscore != "n/a"%}
 <div class="detector score">
- <p class="left"><span>relative score (Z):</span> <b class="defcon{{zscore_defcon}}">{{zscore}} ({{zscore_comment}})</b></p>
+ <p class="left"><span>relative score (Z):</span> <b class="defcon{{zscore_defcon}}">{{"{:.1f}".format(zscore)}} ({{zscore_comment}})</b></p>
  <span class="defcon{{zscore_defcon}} dc" title="rating; 1=worst 5=best">DC:{{zscore_defcon}}</span>
 </div>
 {%else%}

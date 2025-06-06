@@ -101,15 +101,19 @@ filename: <b>{{reportfile}}</b>
 
 garak version: <b>{{garak_version}}</b>
 
-generator: <b>{{model_type}}.{{model_name}}</b>
-
-probe spec: <b>{{probespec}}</b>
-
-group scoring function: <b>{{group_aggregation_function}}</b>
+target generator: <b>{{model_type}}.{{model_name}}</b>
 
 run started at: <b>{{start_time}}</b>
 
+run data digest generated at: <b>{{report_digest_time}}</b>
+
+html report generated at: <b>{{now}}</b>
+
+probe spec: <b>{{probespec}}</b>
+
 run config: {{setup}}
+
+group scoring function: <b>{{group_aggregation_function}}</b>
 
 {% for payload in payloads %}
 payload load: {{payload}}

@@ -6,6 +6,7 @@
 import logging
 import json
 import random
+import typing
 
 HINT_CHANCE = 0.25
 
@@ -122,8 +123,9 @@ def end_run():
         "end_time": datetime.datetime.now().isoformat(),
         "run": _config.transient.run_id,
     }
-    _config.transient.reportfile.write(json.dumps(end_object))
+    _config.transient.reportfile.write(json.dumps(end_object) + "\n")
     _config.transient.reportfile.close()
+
     print(f"📜 report closed :) {_config.transient.report_filename}")
     if _config.transient.hitlogfile:
         _config.transient.hitlogfile.close()
@@ -252,9 +254,12 @@ def list_config():
         _enumerate_obj_values(getattr(_config, section))
 
 
-def write_report_digest(report_filename, digest_filename):
+def write_report_digest(report_filename, html_report_filename):
     from garak.analyze import report_digest
 
-    digest = report_digest.compile_digest(report_filename)
-    with open(digest_filename, "w", encoding="utf-8") as f:
-        f.write(digest)
+    digest = report_digest.build_digest(report_filename)
+    with open(report_filename, "a+", encoding="utf-8") as report_file:
+        report_digest.append_report_object(report_file, digest)
+    html_report = report_digest.build_html(digest)
+    with open(html_report_filename, "w", encoding="utf-8") as htmlfile:
+        htmlfile.write(html_report)
