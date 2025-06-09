@@ -14,6 +14,7 @@ from garak import _config
 import garak.attempt
 import garak.analyze.calibration
 import garak.resources.theme
+from garak.resources.wandb_manager import wandb_manager
 
 
 class Evaluator:
@@ -32,6 +33,11 @@ class Evaluator:
         self.probename = ""
         if _config.system.show_z:
             self.calibration = garak.analyze.calibration.Calibration()
+        if hasattr(_config.system, "wandb_enabled"):
+            if _config.system.wandb_enabled:
+                self.wandb_enabled = True
+        else:
+            self.wandb_enabled = False
 
     def test(self, test_value: float) -> bool:
         """Function for converting the detector result to a boolean, True=pass
@@ -115,12 +121,31 @@ class Evaluator:
                             )
                             + "\n"  # generator,probe,prompt,trigger,result,detector,score,run id,attemptid,
                         )
+                if self.wandb_enabled:
+                    wandb_manager.log_attempt(attempt)
 
             if _config.system.narrow_output:
                 print_func = self.print_results_narrow
             else:
                 print_func = self.print_results_wide
             print_func(detector, all_passes, all_outputs)
+
+            try:
+                if self.wandb_enabled:
+                    wandb_manager.flush_attempts()
+                    generator_name = (
+                        f"{_config.plugins.model_type} {_config.plugins.model_name}"
+                    )
+                    wandb_manager.generator_name = generator_name
+                    wandb_manager.log_evaluation(
+                        self.__class__.__name__,
+                        self.probename,
+                        detector,
+                        sum(all_passes),
+                        len(all_passes),
+                    )
+            except Exception as e:
+                logging.debug(f"W&B evaluation logging failed: {e}")
 
             _config.transient.reportfile.write(
                 json.dumps(
