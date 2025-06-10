@@ -3,7 +3,7 @@ CLI reference for garak
 
 ::
 
-  garak LLM vulnerability scanner v0.10.3 ( https://github.com/NVIDIA/garak ) at 2025-03-03T13:10:08.326398
+  garak LLM vulnerability scanner v0.11.1.pre1 ( https://github.com/NVIDIA/garak ) at 2025-05-27T19:55:52.735863
   usage: python -m garak [-h] [--verbose] [--report_prefix REPORT_PREFIX]
                          [--narrow_output]
                          [--parallel_requests PARALLEL_REQUESTS]
@@ -40,7 +40,8 @@ CLI reference for garak
                           a given prompt. Ignored for models that support
                           multiple generations per call.
     --parallel_attempts PARALLEL_ATTEMPTS
-                          How many probe attempts to launch in parallel.
+                          How many probe attempts to launch in parallel. Raise
+                          this for faster runs when using non-local models.
     --skip_unknown        allow skip of unknown probes, detectors, or buffs
     --seed SEED, -s SEED  random seed
     --deprefix            remove the prompt from the front of generator output

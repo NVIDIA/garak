@@ -16,12 +16,11 @@ avidtools==0.1.2
 stdlibs>=2022.10.9
 langchain>=0.3.25
 nemollm>=0.3.0
-octoai-sdk>=0.8.0
 cmd2==2.4.3
-torch>=2.1.3
+torch>=2.6.0
 sentencepiece>=0.1.99
 markdown>=3.4.3
-numpy>=1.26.1
+numpy>=1.26.4,<2.0
 zalgolib>=0.2.2
 ecoji>=0.1.1
 deepl==1.17.0
@@ -39,6 +38,7 @@ nvidia-riva-client==2.16.0
 langdetect==1.0.9
 tiktoken>=0.7.0
 mistralai==1.5.2
+pillow>=10.4.0
 # tests
 pytest>=8.0
 pytest-mock>=3.14.0

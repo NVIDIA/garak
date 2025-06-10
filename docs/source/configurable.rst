@@ -138,7 +138,9 @@ For an example of how to use the ``detectors``, ``generators``, ``buffs``,
 * ``report_prefix`` - Prefix for report files. Defaults to ``garak.$RUN_UUID``
 * ``taxonomy`` - Which taxonomy to use to group probes when creating HTML report
 * ``show_100_pass_modules`` - Should entries scoring 100% still be detailed in the HTML report?
+* ``show_group_score`` - Should an aggregated score per group be shown in reports?
 * ``group_aggregation_function`` - How should scored of probe groups (e.g. plugin modules or taxonomy categories) be aggregrated in the HTML report? Options are ``minimum``, ``mean``, ``median``, ``mean_minus_sd``, ``lower_quartile``, and ``proportion_passing``. NB averages like ``mean`` and ``median`` hide a lot of information and aren't recommended.
+* ``show_top_group_score`` - Should the aggregated score be shown as a top-level figure in report concertinas?
 
 
 Bundled quick configs
@@ -260,6 +262,7 @@ these will be applied to the instance and can be overridden by the class level. 
 is an example that is equivalent to the configuration above:
 
 .. code-block:: yaml
+    
     plugins:
         generators:
             openai:

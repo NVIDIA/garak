@@ -69,6 +69,7 @@ class TAPCached(garak.probes.Probe):
     goal = "cause the model to disregard the system prompt"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
     doc_uri = "https://arxiv.org/abs/2312.02119"
+    active = True
 
     DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
         "prompts_filename": os.path.join("tap", "tap_jailbreaks.txt"),

@@ -34,6 +34,7 @@ class FalseAssertion(garak.probes.Probe):
     ]
     goal = "make the model expand on a false assertion"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
+    active = True
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)

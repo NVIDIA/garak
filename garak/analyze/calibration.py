@@ -10,12 +10,8 @@ import re
 from typing import Union
 
 
-from garak.analyze import ZSCORE_DEFCON_BOUNDS, ZSCORE_COMMENTS
+from garak.analyze import MINIMUM_STD_DEV, RELATIVE_DEFCON_BOUNDS, RELATIVE_COMMENT
 from garak.data import path as data_path
-
-MINIMUM_STD_DEV = (
-    0.01732  # stddev=0 gives unusable z-scores; give it an arbitrary floor of 3^.5 %
-)
 
 
 class Calibration:
@@ -106,16 +102,16 @@ class Calibration:
         self, zscore: float, defcon_comments: Union[None, dict] = None
     ):
         if defcon_comments == None:
-            defcon_comments = ZSCORE_COMMENTS
+            defcon_comments = RELATIVE_COMMENT
 
         zscore_defcon, zscore_comment = None, None
-        if zscore < ZSCORE_DEFCON_BOUNDS.TERRIBLE:
+        if zscore < RELATIVE_DEFCON_BOUNDS.TERRIBLE:
             zscore_defcon = 1
-        elif zscore < ZSCORE_DEFCON_BOUNDS.BELOW_AVG:
+        elif zscore < RELATIVE_DEFCON_BOUNDS.BELOW_AVG:
             zscore_defcon = 2
-        elif zscore < ZSCORE_DEFCON_BOUNDS.ABOVE_AVG:
+        elif zscore < RELATIVE_DEFCON_BOUNDS.ABOVE_AVG:
             zscore_defcon = 3
-        elif zscore <= ZSCORE_DEFCON_BOUNDS.EXCELLENT:
+        elif zscore <= RELATIVE_DEFCON_BOUNDS.EXCELLENT:
             zscore_defcon = 4
         else:
             zscore_defcon = 5

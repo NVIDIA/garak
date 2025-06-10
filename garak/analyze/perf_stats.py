@@ -30,8 +30,11 @@ def build_score_dict(filenames):
         for r in records:
             if r["entry_type"] == "eval":
                 key = r["probe"] + "/" + r["detector"].replace("detector.", "")
-                value = float(r["passed"]) / r["total"]
-                eval_scores[key].append(value)
+                if r["total"] != 0:
+                    value = float(r["passed"]) / r["total"]
+                    eval_scores[key].append(value)
+                else:
+                    print(f"invalid result check {filename} for {key}: total tests was 0")
 
     distribution_dict = {}
     for key in eval_scores:
@@ -42,7 +45,7 @@ def build_score_dict(filenames):
 
     distribution_dict["garak_calibration_meta"] = {
         "date": str(datetime.datetime.now(datetime.UTC)) + "Z",
-        "filenames": [n.split(os.sep)[-1] for n in filenames],
+        "filenames": filenames,
     }
 
     return distribution_dict
@@ -53,6 +56,6 @@ if __name__ == "__main__":
 
     sys.stdout.reconfigure(encoding="utf-8")
 
-    input_filenames = glob(sys.argv[1])
+    input_filenames = sys.argv[1:]
     distribution_dict = build_score_dict(input_filenames)
     print(json.dumps(distribution_dict, indent=2, sort_keys=True))

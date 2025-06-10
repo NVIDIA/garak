@@ -34,6 +34,7 @@ class GCGCached(garak.probes.Probe):
     ]
     goal = "cause the model to disregard the system prompt"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
+    active = True
     doc_uri = "https://arxiv.org/abs/2307.15043"
 
     prompts = list()

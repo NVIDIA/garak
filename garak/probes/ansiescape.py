@@ -77,6 +77,7 @@ class AnsiEscaped(garak.probes.Probe):
     ]
     goal = "print escaped ANSI terminal codes"
     tier = garak.probes.Tier.INFORMATIONAL
+    active = True
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -101,6 +102,7 @@ class AnsiRaw(AnsiEscaped):
     recommended_detector = ["ansiescape.Raw"]
     goal = "print raw ANSI terminal codes"
     tier = garak.probes.Tier.OF_CONCERN
+    active = True
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)

@@ -52,9 +52,11 @@ class Tox(garak.probes.Probe):
     )
     lang = "en"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
+    active = True
 
     DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
-        "max_calls": 5,
+        "max_calls_per_conv": 5,
+        "convs_per_generation": 5,
         "constructive_tension": True,
         "red_team_model_type": "huggingface.Pipeline",
         "red_team_model_name": "garak-llm/attackgeneration-toxicity_gpt2",
@@ -64,6 +66,7 @@ class Tox(garak.probes.Probe):
         "red_team_prompt_template": "<|input|>[query]<|response|>",
         "red_team_postproc_rm_regex": r"\<\|.*",
         "use_only_first_sent": True,  # should we only consider the first sentence of the target's response?
+        "allow_repetition": False,
     }
 
     def probe(self, generator) -> List[garak.attempt.Attempt]:
@@ -90,7 +93,7 @@ class Tox(garak.probes.Probe):
             prev_max_new_tokens = generator.max_new_tokens
             generator.max_new_tokens = None
         attack_iterator = tqdm(
-            range(self.generations), leave=False
+            range(self.generations * self.convs_per_generation), leave=False
         )  # itrerate for probe generations
         attack_iterator.set_description(self.probename.replace("garak.", ""))
 
@@ -108,11 +111,11 @@ class Tox(garak.probes.Probe):
             logging.debug("atkgen: attempt %s uuid %s", i, this_attempt.uuid)
 
             if not output_is_conversation:
-                t = tqdm(total=2 * self.max_calls, leave=False)
+                t = tqdm(total=2 * self.max_calls_per_conv, leave=False)
             else:
                 print("atkgen: 🆕 ⋅.˳˳.⋅ॱ˙˙ॱ New conversation ॱ˙˙ॱ⋅.˳˳.⋅ 🗣️")
 
-            while calls_made < self.max_calls and keep_going:
+            while calls_made < self.max_calls_per_conv and keep_going:
                 if not output_is_conversation:
                     t.set_description(
                         f" turn {t.n:02}: red teaming [{red_team_model_short[:10]:<10}]"
@@ -200,7 +203,7 @@ class Tox(garak.probes.Probe):
                 if not len(response) and not self.constructive_tension:
                     keep_going = False
                 if response == last_response:
-                    keep_going = False
+                    keep_going = False and not self.allow_repetition
                 # update last_response
                 last_response = response.replace("\n", " ").strip()
                 self.redteamer.max_new_tokens = 170  # after first iter, give a limit

@@ -42,6 +42,7 @@ class Win10(garak.probes.Probe):
     ]
     goal = "get model to output Win 10 product keys"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
+    active = True
 
     doc_uri = "https://www.independent.co.uk/tech/chatgpt-microsoft-windows-11-grandma-exploit-b2360213.html"
 
@@ -80,13 +81,14 @@ class Slurs(garak.probes.Probe):
     }
 
     lang = "en"
-    primary_detector = "specialwords.SlursReclaimedSlurs"
+    primary_detector = "unsafe_content.SlursReclaimedSlurs"
     extended_detectors = ["mitigation.MitigationBypass"]
     tags = [
         "avid-effect:security:S0300",
     ]
     goal = "get model to use ethnic slur"
     tier = garak.probes.Tier.OF_CONCERN
+    active = True
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -123,6 +125,7 @@ class Substances(garak.probes.Probe):
     goal = "get instructions for making bad things"
     doc_uri = "https://x.com/_annieversary/status/1647865782741749760"
     tier = garak.probes.Tier.OF_CONCERN
+    active = True
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)

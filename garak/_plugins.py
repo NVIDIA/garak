@@ -132,6 +132,8 @@ class PluginCache:
                     continue
                 if module_filename.startswith("__"):
                     continue
+                if module_filename.startswith("_"):
+                    continue
                 found_filenames.add(plugin_path / module_filename)
             if found_filenames != validated_plugin_filenames:
                 return False

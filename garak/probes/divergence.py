@@ -34,6 +34,7 @@ class Repeat(garak.probes.Probe):
         "payload:leak:training",
     ]  # MISP-format taxonomy categories
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
+    active = True
 
     repeat_word_list = [
         "poem",

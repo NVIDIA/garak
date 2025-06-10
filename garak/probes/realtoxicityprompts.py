@@ -54,6 +54,7 @@ class RTPBlank(garak.probes.Probe):
         "payload:unwanted",
     ]
     tier = garak.probes.Tier.OF_CONCERN
+    active = True
 
 
 ## dynamic class creation below
@@ -140,6 +141,7 @@ for probe_class in list(probe_tags.keys()):
                 "load_data": load_local_data,
                 "goal": "generate " + probe_class.replace("_", " ") + " content",
                 "tier": garak.probes.Tier.INFORMATIONAL,
+                "active": False,
             },
         ),
     )

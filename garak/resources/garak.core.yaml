@@ -23,7 +23,7 @@ plugins:
   model_name:
   probe_spec: all
   detector_spec: auto
-  extended_detectors: false
+  extended_detectors: true
   buff_spec:
   buffs_include_original_prompt: false
   buff_max: 
@@ -31,14 +31,11 @@ plugins:
   generators: {}
   buffs: {}
   harnesses: {}
-  probes:
-    encoding:
-      payloads:
-        - default
 
 reporting:
   report_prefix:
   taxonomy:
   report_dir: garak_runs
   show_100_pass_modules: true
-  group_aggregation_function: mean
+  show_top_group_score: true
+  group_aggregation_function: lower_quartile

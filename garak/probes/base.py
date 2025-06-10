@@ -32,7 +32,7 @@ class Probe(Configurable):
     # language this is for, in BCP47 format; * for all langs
     lang: Union[str, None] = None
     # should this probe be included by default?
-    active: bool = True
+    active: bool = False
     # MISP-format taxonomy categories
     tags: Iterable[str] = []
     # what the probe is trying to do, phrased as an imperative
@@ -274,7 +274,13 @@ class Probe(Configurable):
         attempts_todo: Iterable[garak.attempt.Attempt] = []
         prompts = list(self.prompts)
         lang = self.lang
-        prompts = self.langprovider.get_text(prompts)
+        # account for visual jailbreak until Turn/Conversation is supported
+        if isinstance(prompts[0], str):
+            prompts = self.langprovider.get_text(prompts)
+        else:
+            for prompt in prompts:
+                if "text" in prompt:
+                    prompt["text"] = self.langprovider.get_text(prompt["text"])
         lang = self.langprovider.target_lang
         for seq, prompt in enumerate(prompts):
             notes = (

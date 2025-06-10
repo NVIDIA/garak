@@ -43,7 +43,7 @@ def test_atkgen_one_pass():
     _config.load_base_config()
     _config.plugins.probes["atkgen"]["generations"] = 1  # we only need one conversation
     p = _plugins.load_plugin("probes.atkgen.Tox", config_root=garak._config)
-    p.max_calls = 1  # we don't need a full conversation
+    p.max_calls_per_conv = 1  # we don't need a full conversation
     g = garak._plugins.load_plugin("generators.test.Repeat", config_root=garak._config)
     with tempfile.NamedTemporaryFile(mode="w+") as temp_report_file:
         _config.transient.reportfile = temp_report_file
@@ -86,7 +86,7 @@ def test_atkgen_custom_model():
     p = _plugins.load_plugin(
         "probes.atkgen.Tox", config_root=rt_custom_generator_config
     )
-    p.max_calls = 1  # we don't need a full conversation
+    p.max_calls_per_conv = 1  # we don't need a full conversation
     assert (
         p.red_team_model_type == red_team_model_type
     ), "red team model type config should be loaded"

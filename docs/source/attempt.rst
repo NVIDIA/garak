@@ -8,7 +8,7 @@ Then, a detector assesses the outputs from that attempt and the detector's score
 Finally, an evaluator makes judgments of these scores, and writes hits out to the hitlog for any successful probing attempts.
 
 garak.attempt
-=============
+-------------
 
 .. automodule:: garak.attempt
    :members:
