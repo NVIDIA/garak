@@ -19,15 +19,15 @@ class MultiRestGenerator(Generator):
         "uri": None,
         "template_requests": [],
         "template_responses": [],
-        "burpfile": "file://*.burp",
+        "burpfile": "/Users/host/Downloads/Burp Suite/Burpsuite test",
+        "description": "Bruh"
     }
 
-    def __init__(self, config_root=_config):
-        super().__init__(config_root=config_root)
+    def __init__(self, name="Bruh", config_root=_config):
+        super().__init__(name, config_root=config_root)
         self.get_reqrep_fromburp(self.burpfile)
 
     def variable_finder(self, dictionary: dict, locations: dict):
-        # I apologize for anyone who has to read this code snippet.
         key = ""
         for (k, v) in dictionary.items():
             if type(v) == str:
@@ -38,8 +38,6 @@ class MultiRestGenerator(Generator):
                     if k == "response_body" or k == "request_body":
                         locations[tag].append(k)
                         self.variable_finder(json.loads(v), locations)
-                    #if not locations.get(tag):
-                    #    locations[tag] = [k]
                     else:
                         locations[tag].append(k)
             else:
@@ -69,7 +67,7 @@ class MultiRestGenerator(Generator):
                         self.make_reqrep_dictionary(element.text)
                     )
 
-    def make_reqrep_dictionary(text: str):
+    def make_reqrep_dictionary(self, text):
         packet = {}
         x = text.split("\n")
         for y in x:
@@ -77,15 +75,15 @@ class MultiRestGenerator(Generator):
             # This condition should parse headers
             if ":" in y:
                 i = y.index(":")
-                packet[y[:i]] = y[i + 1 :].rstrip("\n").lstrip(" ")
+                packet[y[:i]] = y[i + 1 :].rstrip("\n").lstrip(" ").lower()
             # TODO: This needs to be changed to something more robust
             elif " HTTP/" in y:
-                a = y.rstrip("\n").split(" ")
+                a = y.rstrip('\n').split(' ')
                 packet["method"] = a[0]
                 packet["endpoint"] = a[1]
             # TODO: This needs to be changed to something more robust
             elif "HTTP/" in y:
-                a = y.rstrip("\n").split(" ")
+                a = y.rstrip('\n').split(' ')
                 packet["status"] = a[1]
                 packet["error message"] = "".join(a[2:])
             elif not y:
@@ -97,42 +95,65 @@ class MultiRestGenerator(Generator):
                 break
         return packet
 
-    def grab_value(locations: list, dictionary: dict):
-        tmp_value = dictionary
-        for index in locations:
-            tmp_value = tmp_value[index]
+    def grab_value(self, locations: list, dictionary: dict):
+        tmp_value = None
+        if dictionary == None:
+            pass
+        else:
+            for k, v in locations.items():
+                for index in range(len(v) - 1):
+                    tmp_value = dictionary[v[index]]
         return tmp_value
 
-    def place_value(request_locations, lookup_table, example_request):
+    def place_value(self, request_locations, lookup_table, example_request):
+        if not bool(lookup_table):
+            return
         tmp_value = example_request
         for (k, v) in request_locations.items():
             for index in range(len(v) - 1):
                 key = v[index]
                 tmp_value = tmp_value[key]
             leaf_key = v[-1]
+            print(lookup_table)
             tmp_value[leaf_key] = lookup_table[k]
 
-    def request_handler(req: dict):
+    def request_handler(self, req: dict):
         if req["method"] == "GET":
             uri = "https://"+ req["Host"] + req["endpoint"]
             headers = dict(list(req.items())[2:-1])
             resp = requests.get(uri, headers=headers)
+            status_code = {"status": str(resp.status_code)}
+            error_message = {"error message": ""}
+            headers = dict(resp.headers)
+            body = {"response_body": resp.text}
+            response = status_code | error_message | headers | body 
+            return response
         else:
             # Assuming POST request
             uri = "https://"+ req["Host"] + req["endpoint"]
             headers = dict(list(req.items())[2:-1])
-            resp = requests.post(uri, headers=headers, json=req["request_body"])
+            resp = requests.post(uri, headers=headers, json=json.loads(req["request_body"]))
+            status_code = {"status": str(resp.status_code)}
+            error_message = {"error message": ""}
+            headers = dict(resp.headers)
+            body = {"response_body": resp.text}
+            response = status_code | error_message | headers | body 
+            return response
 
     def run(self):
+        lookup_table = {} 
         output = ""
-        for i in range(len(self.template_request))
-            request_var_locations = self.variable_finder(self.template_request[i])
+        request_var_locations = {}
+        response_var_locations = {}
+        for i in range(len(self.template_requests)):
+            real_request = self.template_requests[i].copy()
+            self.variable_finder(self.template_requests[i], request_var_locations)
             self.place_value(request_var_locations, lookup_table, real_request)
 
             real_response = self.request_handler(real_request)
 
-            response_var_locations = self.variable_finder(self.template_response[i])
-            output = self.grab_value(response_var_locations, lookup_table, real_response)
+            self.variable_finder(self.template_responses[i].copy(), response_var_locations)
+            output = self.grab_value(response_var_locations, real_response)
 
         return output
 
