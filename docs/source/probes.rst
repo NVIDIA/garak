@@ -13,6 +13,7 @@ For a detailed oversight into how a probe operates, see :ref:`garak.probes.base.
    garak.probes.base
    garak.probes.ansiescape
    garak.probes.atkgen
+   garak.probes.audio
    garak.probes.av_spam_scanning
    garak.probes.continuation
    garak.probes.dan

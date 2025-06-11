@@ -88,10 +88,6 @@ class FigStepFull(garak.probes.Probe):
     def probe(self, generator):
         if not isinstance(generator, Generator):
             raise ValueError("Incorrect class type of incoming argument `generator`.")
-        if not generator.modality["in"] == self.modality["in"]:
-            raise ValueError(
-                f"Incorrect generator input modality {generator.modality['in']}, expect {self.modality['in']} for this probe."
-            )
         self.prompts = [
             {
                 "text": prompt["text"],
@@ -117,10 +113,6 @@ class FigStep(FigStepFull, garak.probes.Probe):
     def probe(self, generator):
         if not isinstance(generator, Generator):
             raise ValueError("Incorrect class type of incoming argument `generator`.")
-        if not generator.modality["in"] == self.modality["in"]:
-            raise ValueError(
-                f"Incorrect generator input modality {generator.modality['in']}, expect {self.modality['in']} for this probe."
-            )
         self.prompts = [
             {
                 "text": prompt["text"],

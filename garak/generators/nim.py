@@ -133,45 +133,83 @@ class NVOpenAICompletion(NVOpenAIChat):
         self.generator = self.client.completions
 
 
-class Vision(NVOpenAIChat):
+class NVMultimodal(NVOpenAIChat):
+    """Wrapper for text + image / audio to text NIMs. Expects NIM_API_KEY environment variable.
+
+    Expects keys to be a dict with keys 'text' (required), and 'image' or 'audio' (optional).
+    Message is sent with 'role' and 'content' where content is structured as text
+    followed by <img> and/or <audio> tags ala https://build.nvidia.com/microsoft/phi-4-multimodal-instruct
+    """
+
+    DEFAULT_PARAMS = NVOpenAIChat.DEFAULT_PARAMS | {
+        "suppressed_params": {"n", "frequency_penalty", "presence_penalty", "stop"},
+        "max_input_len": 180_000,
+    }
+
+    modality = {"in": {"text", "image", "audio"}, "out": {"text"}}
+
+    def _prepare_prompt(self, prompt: Union[str, dict]) -> str:
+        import base64
+        from pathlib import Path
+
+        if isinstance(prompt, str):
+            text = prompt
+        elif isinstance(prompt, dict):
+            try:
+                prompt_string = prompt["text"]
+                data_len = 0
+            except KeyError as e:
+                logging.error("`prompt` input requires 'text' field for Generator %s" % self.name, exc_info=e)
+                raise KeyError("`prompt` input requires 'text' field for Generator %s" % self.name)
+
+            if "image" in prompt.keys() and prompt["image"] is not None:
+                img_extension = Path(prompt["image"]).suffix.replace(".", "")
+                if img_extension == "jpg":  # image/jpg is not a valid mimetype
+                    image_extension = "jpeg"
+                with open(prompt["image"], "rb") as f:
+                    image_b64 = base64.b64encode(f.read()).decode()
+                prompt_string += (
+                    f'<img src="data:image/{img_extension};base64,{image_b64}" />'
+                )
+                data_len += len(image_b64)
+            else:
+                prompt["image"] = None
+            if "audio" in prompt.keys() and prompt["audio"] is not None:
+                audio_extension = Path(prompt["audio"]).suffix.replace(".", "")
+                with open(prompt["audio"], "rb") as f:
+                    audio_b64 = base64.b64encode(f.read()).decode()
+                prompt_string += (
+                    f'<audio src="data:audio/{audio_extension};base64,{audio_b64}" />'
+                )
+                data_len += len(audio_b64)
+            else:
+                prompt["audio"] = None
+
+            if data_len > self.max_input_len:
+                msg = (f"Data exceeds length limit. `max_input_len` is {self.max_input_len}. "
+                       f"Current data size is {data_len}. "
+                       f"To upload larger images or audio files, use the assets API (not yet supported)")
+                if prompt["image"] is not None:
+                    msg += f" Image file: {prompt['image']}"
+                if prompt["audio"] is not None:
+                    msg += f" Audio file: {prompt['audio']}"
+                logging.error(msg)
+                return None
+            text = prompt_string
+
+        else:
+            raise TypeError(f"{self.name} accepts `str` and `dict` type inputs but got {type(prompt)} instead.")
+
+        return text
+
+
+class Vision(NVMultimodal):
     """Wrapper for text+image to text NIMs. Expects NIM_API_KEY environment variable.
 
     Following generators.huggingface.LLaVa, expects prompts to be a dict with keys
     "text" and "image"; text holds the text prompt, image holds a path to the image."""
 
-    DEFAULT_PARAMS = NVOpenAIChat.DEFAULT_PARAMS | {
-        "suppressed_params": {"n", "frequency_penalty", "presence_penalty", "stop"},
-        "max_image_len": 180_000,
-    }
-
     modality = {"in": {"text", "image"}, "out": {"text"}}
-
-    def _prepare_prompt(self, prompt):
-        import base64
-
-        if isinstance(prompt, str):
-            prompt = {"text": prompt, "image": None}
-
-        text = prompt["text"]
-        image_filename = prompt["image"]
-        if image_filename is not None:
-            with open(image_filename, "rb") as f:
-                image_b64 = base64.b64encode(f.read()).decode()
-
-            if len(image_b64) > self.max_image_len:
-                logging.error(
-                    "Image %s exceeds length limit. To upload larger images, use the assets API (not yet supported)",
-                    image_filename,
-                )
-                return None
-
-            image_extension = prompt["image"].split(".")[-1].lower()
-            if image_extension == "jpg":  # image/jpg is not a valid mimetype
-                image_extension = "jpeg"
-            text = (
-                text + f' <img src="data:image/{image_extension};base64,{image_b64}" />'
-            )
-        return text
 
 
 DEFAULT_CLASS = "NVOpenAIChat"
