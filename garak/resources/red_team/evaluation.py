@@ -5,6 +5,7 @@ import re
 import tiktoken
 
 from . import conversation
+from garak.attempt import Turn
 from garak.generators.openai import context_lengths
 
 
@@ -122,7 +123,8 @@ class EvaluationJudge:
             for prompt, response in zip(attack_prompt_list, target_response_list)
         ]
         raw_outputs = [
-            self.evaluation_generator.generate(conv)[0] for conv in convs_list
+            self.evaluation_generator.generate(Turn(conv))[0].text
+            for conv in convs_list
         ]
         outputs = [process_output_judge_score(raw_output) for raw_output in raw_outputs]
         return outputs
@@ -136,7 +138,8 @@ class EvaluationJudge:
             for prompt in attempt_list
         ]
         raw_outputs = [
-            self.evaluation_generator.generate(conv)[0] for conv in convs_list
+            self.evaluation_generator.generate(Turn(conv))[0].text
+            for conv in convs_list
         ]
         outputs = [
             process_output_on_topic_score(raw_output) for raw_output in raw_outputs

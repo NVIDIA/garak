@@ -16,6 +16,7 @@ import jsonpath_ng
 from jsonpath_ng.exceptions import JsonPathParserError
 
 from garak import _config
+from garak.attempt import Turn
 from garak.exception import APIKeyMissingError, BadGeneratorException, RateLimitHit, GarakBackoffTrigger
 from garak.generators.base import Generator
 
@@ -187,19 +188,19 @@ class RestGenerator(Generator):
 
     @backoff.on_exception(backoff.fibo, (RateLimitHit, GarakBackoffTrigger), max_value=70)
     def _call_model(
-        self, prompt: str, generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
+        self, prompt: Turn, generations_this_call: int = 1
+    ) -> List[Union[Turn, None]]:
         """Individual call to get a rest from the REST API
 
         :param prompt: the input to be placed into the request template and sent to the endpoint
         :type prompt: str
         """
 
-        request_data = self._populate_template(self.req_template, prompt)
+        request_data = self._populate_template(self.req_template, prompt.text)
 
         request_headers = dict(self.headers)
         for k, v in self.headers.items():
-            request_headers[k] = self._populate_template(v, prompt)
+            request_headers[k] = self._populate_template(v, prompt.text)
 
         # the prompt should not be sent via data when using a GET request. Prompt should be
         # serialized as parameters, in general a method could be created to add
@@ -254,7 +255,7 @@ class RestGenerator(Generator):
             raise ConnectionError(error_msg)
 
         if not self.response_json:
-            return [str(resp.text)]
+            return [Turn(str(resp.text))]
 
         response_object = json.loads(resp.content)
 
@@ -293,7 +294,7 @@ class RestGenerator(Generator):
                 )
                 return [None]
 
-        return response
+        return [Turn(r) for r in response]
 
 
 DEFAULT_CLASS = "RestGenerator"

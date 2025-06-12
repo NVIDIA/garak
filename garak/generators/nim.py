@@ -10,6 +10,7 @@ from typing import List, Union
 import openai
 
 from garak import _config
+from garak.attempt import Turn
 from garak.exception import GarakException
 from garak.generators.openai import OpenAICompatible
 
@@ -63,12 +64,12 @@ class NVOpenAIChat(OpenAICompatible):
             )
         self.generator = self.client.chat.completions
 
-    def _prepare_prompt(self, prompt):
+    def _prepare_prompt(self, prompt: Turn) -> Turn:
         return prompt
 
     def _call_model(
-        self, prompt: str | List[dict], generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
+        self, prompt: Turn, generations_this_call: int = 1
+    ) -> List[Union[Turn, None]]:
         assert (
             generations_this_call == 1
         ), "generations_per_call / n > 1 is not supported"
@@ -90,11 +91,14 @@ class NVOpenAIChat(OpenAICompatible):
             msg = "Model call didn't match endpoint expectations, see log"
             logging.critical(msg, exc_info=uee)
             raise GarakException(f"🛑 {msg}") from uee
-        #        except openai.NotFoundError as oe:
-        except Exception as oe:  # too broad
+        except openai.NotFoundError as nfe:
+            msg = "NIM endpoint not found. Is the model name spelled correctly and the endpoint URI correct?"
+            logging.critical(msg, exc_info=nfe)
+            raise GarakException(f"🛑 {msg}") from nfe
+        except Exception as oe:
             msg = "NIM generation failed. Is the model name spelled correctly?"
             logging.critical(msg, exc_info=oe)
-            raise GarakException(f"🛑 {msg}") from oe
+            raise GarakException(f"🛑 {msg}") from nfe
 
         return result
 
@@ -148,59 +152,39 @@ class NVMultimodal(NVOpenAIChat):
 
     modality = {"in": {"text", "image", "audio"}, "out": {"text"}}
 
-    def _prepare_prompt(self, prompt: Union[str, dict]) -> str:
-        import base64
-        from pathlib import Path
+    def _prepare_prompt(self, turn: Turn) -> Turn:
+        text = turn.text
+        data_len = 0
+        # set an extension default, for now all provided turns have filenames
+        image_extension = "image/jpg"
 
-        if isinstance(prompt, str):
-            text = prompt
-        elif isinstance(prompt, dict):
-            try:
-                prompt_string = prompt["text"]
-                data_len = 0
-            except KeyError as e:
-                logging.error("`prompt` input requires 'text' field for Generator %s" % self.name, exc_info=e)
-                raise KeyError("`prompt` input requires 'text' field for Generator %s" % self.name)
+        if "image_filename" in turn.parts.keys():
+            import mimetypes
 
-            if "image" in prompt.keys() and prompt["image"] is not None:
-                img_extension = Path(prompt["image"]).suffix.replace(".", "")
-                if img_extension == "jpg":  # image/jpg is not a valid mimetype
-                    image_extension = "jpeg"
-                with open(prompt["image"], "rb") as f:
-                    image_b64 = base64.b64encode(f.read()).decode()
-                prompt_string += (
-                    f'<img src="data:image/{img_extension};base64,{image_b64}" />'
-                )
-                data_len += len(image_b64)
-            else:
-                prompt["image"] = None
-            if "audio" in prompt.keys() and prompt["audio"] is not None:
-                audio_extension = Path(prompt["audio"]).suffix.replace(".", "")
-                with open(prompt["audio"], "rb") as f:
-                    audio_b64 = base64.b64encode(f.read()).decode()
-                prompt_string += (
-                    f'<audio src="data:audio/{audio_extension};base64,{audio_b64}" />'
-                )
-                data_len += len(audio_b64)
-            else:
-                prompt["audio"] = None
+            image_extension, _ = mimetypes.guess_type(turn.parts["image_filename"])
+            if "image_data" not in turn.parts.keys():
+                turn.load_image()
 
-            if data_len > self.max_input_len:
-                msg = (f"Data exceeds length limit. `max_input_len` is {self.max_input_len}. "
-                       f"Current data size is {data_len}. "
-                       f"To upload larger images or audio files, use the assets API (not yet supported)")
-                if prompt["image"] is not None:
-                    msg += f" Image file: {prompt['image']}"
-                if prompt["audio"] is not None:
-                    msg += f" Audio file: {prompt['audio']}"
-                logging.error(msg)
-                return None
-            text = prompt_string
+        if "image_data" in turn.parts.keys():
+            import base64
 
-        else:
-            raise TypeError(f"{self.name} accepts `str` and `dict` type inputs but got {type(prompt)} instead.")
+            image_b64 = base64.b64encode(turn.parts["image_data"]).decode()
+            data_len = len(image_b64)
+            text = text + f' <img src="data:{image_extension};base64,{image_b64}" />'
 
-        return text
+        if data_len > self.max_input_len:
+            msg = (
+                f"Data exceeds length limit. `max_input_len` is {self.max_input_len}. "
+                f"Current data size is {data_len}. "
+                f"To upload larger images or audio files, use the assets API (not yet supported)"
+            )
+            if turn["image_filename"] is not None:
+                filename = turn["image_filename"]
+                msg += f" File: {filename}"
+            logging.error(msg)
+            return None
+
+        return Turn(text)
 
 
 class Vision(NVMultimodal):

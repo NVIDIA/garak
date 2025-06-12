@@ -14,6 +14,7 @@ import backoff
 import nemollm
 
 from garak import _config
+from garak.attempt import Turn
 from garak.exception import APIKeyMissingError
 from garak.generators.base import Generator
 
@@ -79,11 +80,11 @@ class NeMoGenerator(Generator):
         max_value=70,
     )
     def _call_model(
-        self, prompt: str, generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
+        self, prompt: Turn, generations_this_call: int = 1
+    ) -> List[Union[Turn, None]]:
         # avoid:
         #    doesn't match schema #/components/schemas/CompletionRequestBody: Error at "/prompt": minimum string length is 1
-        if prompt == "":
+        if prompt.text == "":
             return [None]
 
         reset_none_seed = False
@@ -97,7 +98,7 @@ class NeMoGenerator(Generator):
 
         response = self.nemo.generate(
             model=self.name,
-            prompt=prompt,
+            prompt=prompt.text,
             tokens_to_generate=self.max_tokens,
             temperature=self.temperature,
             random_seed=self.seed,
@@ -114,7 +115,7 @@ class NeMoGenerator(Generator):
         if reset_none_seed:
             self.seed = None
 
-        return [response["text"]]
+        return [Turn(response["text"])]
 
 
 DEFAULT_CLASS = "NeMoGenerator"
