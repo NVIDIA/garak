@@ -23,8 +23,8 @@ class JailbreakV(garak.probes.Probe):
     active = True
     doc_uri = "https://arxiv.org/abs/2404.03027"
     lang = "en"
-    primary_detector = "jailbreakv.JailbreakVDetector"
-    recommended_detectors = ["jailbreakv.JailbreakVDetector"]
+    primary_detector = "jailbreakv.JailbreakV"
+    recommended_detectors = ["jailbreakv.JailbreakV"]
     tags = [
         "owasp:llm01",
         "quality:Security:PromptStability", 
