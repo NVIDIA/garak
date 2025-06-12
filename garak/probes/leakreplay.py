@@ -69,10 +69,10 @@ class LiteratureClozeFull(garak.probes.Probe):
         return attempt
 
     def _postprocess_hook(self, attempt: Attempt) -> Attempt:
-        for idx, thread in enumerate(attempt.messages):
-            if thread[-1]["content"] is not None:
-                attempt.messages[idx][-1]["content"] = re.sub(
-                    "</?name>", "", thread[-1]["content"]
+        for idx, thread in enumerate(attempt.conversations):
+            if thread.turns[-1].content.text is not None:
+                attempt.conversations[idx].turns[-1].content.text = re.sub(
+                    "</?name>", "", thread.turns[-1].content.text
                 )
         return attempt
 

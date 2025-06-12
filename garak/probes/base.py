@@ -76,6 +76,7 @@ class Probe(Configurable):
             print(
                 f"loading {Style.BRIGHT}{Fore.LIGHTYELLOW_EX}probe: {Style.RESET_ALL}{self.probename}"
             )
+
         logging.info(f"probe init: {self}")
         if "description" not in dir(self):
             if self.__doc__:
@@ -228,11 +229,19 @@ class Probe(Configurable):
                     for result in attempt_pool.imap_unordered(
                         self._execute_attempt, attempts
                     ):
+                        # Messages from the generator have no language set, propagate the target language to all outputs
+                        # TODO: determine if this should come from `self.langprovider.target_lang` instead of the result object
+                        for output in result.all_outputs:
+                            output.lang = result.lang
                         # reverse translate outputs if required, this is intentionally executed in the core process
                         if result.lang != self.lang:
-                            result.reverse_translation_outputs = (
-                                self.reverse_langprovider.get_text(result.all_outputs)
-                            )
+                            results_text = [msg.text for msg in result.all_outputs]
+                            result.reverse_translation_outputs = [
+                                garak.attempt.Message(translated_text)
+                                for translated_text in self.reverse_langprovider.get_text(
+                                    results_text
+                                )
+                            ]
 
                         _config.transient.reportfile.write(
                             json.dumps(result.as_dict()) + "\n"
@@ -256,9 +265,13 @@ class Probe(Configurable):
                 result = self._execute_attempt(this_attempt)
                 # reverse langprovider outputs if required
                 if result.lang != self.lang:
-                    result.reverse_translation_outputs = (
-                        self.reverse_langprovider.get_text(result.all_outputs)
-                    )
+                    results_text = [msg.text for msg in result.all_outputs]
+                    result.reverse_translation_outputs = [
+                        garak.attempt.Message(translated_text)
+                        for translated_text in self.reverse_langprovider.get_text(
+                            results_text
+                        )
+                    ]
 
                 _config.transient.reportfile.write(json.dumps(result.as_dict()) + "\n")
                 attempts_completed.append(result)
@@ -272,15 +285,27 @@ class Probe(Configurable):
 
         # build list of attempts
         attempts_todo: Iterable[garak.attempt.Attempt] = []
-        prompts = list(self.prompts)
+        prompts = list(
+            self.prompts
+        )  # will this still make a copy if prompts are `Message` objects?
         lang = self.lang
         # account for visual jailbreak until Turn/Conversation is supported
         if isinstance(prompts[0], str):
-            prompts = self.langprovider.get_text(prompts)
+            localized_prompts = self.langprovider.get_text(prompts)
+            prompts = []
+            for prompt in localized_prompts:
+                prompts.append(garak.attempt.Message(prompt))
         else:
+            # what types should this expect? Message, Conversation?
             for prompt in prompts:
-                if "text" in prompt:
-                    prompt["text"] = self.langprovider.get_text(prompt["text"])
+                if isinstance(prompt, garak.attempt.Message):
+                    prompt.text = self.langprovider.get_text(prompt.text)
+                    prompt.lang = self.langprovider.target_lang
+                if isinstance(prompt, garak.attempt.Conversation):
+                    for turn in prompt.turns:
+                        msg = turn.content
+                        msg.text = self.langprovider.get_text(msg.text)
+                        msg.lang = self.langprovider.target_lang
         lang = self.langprovider.target_lang
         for seq, prompt in enumerate(prompts):
             notes = (
