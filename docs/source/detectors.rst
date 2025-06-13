@@ -32,3 +32,4 @@ garak.detectors
    garak.detectors.unsafe_content
    garak.detectors.xss
    garak.detectors.visual_jailbreak
+   garak.detectors.dropboxrepeat
