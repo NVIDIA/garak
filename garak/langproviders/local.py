@@ -5,7 +5,7 @@
 """Local language providers & translators."""
 
 
-from typing import List
+from typing import List, Callable
 
 from garak.exception import BadGeneratorException
 from garak.langproviders.base import LangProvider
@@ -25,6 +25,7 @@ class Passthru(LangProvider):
         self,
         prompts: List[str],
         reverse_translate_judge: bool = False,
+        notify_callback: Callable | None = None,
     ) -> List[str]:
         return prompts
 

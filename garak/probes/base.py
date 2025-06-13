@@ -85,18 +85,28 @@ class Probe(Configurable):
         self.langprovider = self._get_langprovider()
         if self.langprovider is not None and hasattr(self, "triggers"):
             # check for triggers that are not type str|list or just call translate_triggers
+            preparation_bar = tqdm.tqdm(
+                total=len(self.triggers),
+                leave=False,
+                colour=f"#{garak.resources.theme.PROBE_RGB}",
+                desc="Preparing triggers",
+            )
             if len(self.triggers) > 0:
                 if isinstance(self.triggers[0], str):
-                    self.triggers = self.langprovider.get_text(self.triggers)
+                    self.triggers = elf.langprovider.get_text(
+                        self.triggers, notify_callback=preparation_bar.update
+                    )
                 elif isinstance(self.triggers[0], list):
                     self.triggers = [
                         self.langprovider.get_text(trigger_list)
                         for trigger_list in self.triggers
                     ]
+                    preparation_bar.update()
                 else:
                     raise PluginConfigurationError(
                         f"trigger type: {type(self.triggers[0])} is not supported."
                     )
+            preparation_bar.close()
         self.reverse_langprovider = self._get_reverse_langprovider()
 
     def _get_langprovider(self):
@@ -275,13 +285,24 @@ class Probe(Configurable):
         prompts = list(self.prompts)
         lang = self.lang
         # account for visual jailbreak until Turn/Conversation is supported
+        preparation_bar = tqdm.tqdm(
+            total=len(prompts),
+            leave=False,
+            colour=f"#{garak.resources.theme.PROBE_RGB}",
+            desc="Preparing prompts",
+        )
         if isinstance(prompts[0], str):
-            prompts = self.langprovider.get_text(prompts)
+            prompts = self.langprovider.get_text(
+                prompts, notify_callback=preparation_bar.update
+            )
         else:
             for prompt in prompts:
                 if "text" in prompt:
-                    prompt["text"] = self.langprovider.get_text(prompt["text"])
+                    prompt["text"] = self.langprovider.get_text(
+                        prompt["text"], notify_callback=preparation_bar.update
+                    )
         lang = self.langprovider.target_lang
+        preparation_bar.close()
         for seq, prompt in enumerate(prompts):
             notes = (
                 {"pre_translation_prompt": self.prompts[seq]}
