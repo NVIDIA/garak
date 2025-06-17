@@ -177,6 +177,7 @@ def end_run():
     # Copy digest and index.json to frontend
     try:
         from shutil import copy2
+        frontend_ui_dir = Path(__file__).parent / "analyze" / "ui"
         frontend_reports_dir = Path(__file__).parent / "analyze" / "ui" / "reports"
         frontend_reports_dir.mkdir(parents=True, exist_ok=True)
 
@@ -208,7 +209,7 @@ def end_run():
             json.dump(digest_entries, jsfile, indent=2)
             jsfile.write(";")
 
-        print(f"📂 Copied report, index.json, and updated report.js to {frontend_reports_dir}")
+        print(f"📂 Check your reports at file://{frontend_ui_dir}/index.html")
     except Exception as e:
         print(f"⚠️  Failed to copy report to frontend: {e}")
 
