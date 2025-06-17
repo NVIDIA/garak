@@ -66,3 +66,63 @@ def test_whois_payload_injection_marker():
         assert (
             marker in payload
         ), f"Each whois payload must contain {marker} but this was not found in {payload_name} payload {id}"
+
+
+class TestFactSnippet(garak.probes.latentinjection.FactSnippetMixin):
+    paragraphs = list("ABCDEFGH")
+
+
+def test_fact_snippet_build():
+    t = TestFactSnippet()
+
+    t.snippet_raw_marker = True
+    t._build_snippet_contexts()
+    assert len(t.contexts) == t.snippet_context_cap, "Not enough contexts returned"
+    assert len(set(t.contexts)) == len(
+        t.contexts
+    ), "Contexts should be unique w/ no duplicates"
+    for context in t.contexts:
+        parts = context.split(t.snippet_sep)
+        for part in parts:
+            assert (
+                part in t.paragraphs
+                or part == garak.probes.latentinjection.INJECTION_MARKER
+            ), "found unrecognised context component: '%s' in context '%s'" % (
+                part,
+                context,
+            )
+        assert garak.probes.latentinjection.INJECTION_MARKER in context, (
+            "Missing injection marker in '%s'" % context
+        )
+
+    t.snippet_raw_marker = False
+    t.paragraphs = [p + "{INJECTION_MARKER}" for p in t.paragraphs]
+    t._build_snippet_contexts()
+    assert len(t.contexts) == t.snippet_context_cap, "Not enough contexts returned"
+    assert len(set(t.contexts)) == len(
+        t.contexts
+    ), "Contexts should be unique w/ no duplicates"
+    for context in t.contexts:
+        parts = context.split(t.snippet_sep)
+        assert (
+            len(parts) == t.snippets_per_context
+        ), "Should be %s snippets in this context, got %s: %s" % (
+            t.snippets_per_context,
+            len(parts),
+            repr(context),
+        )
+        for part in parts:
+            assert part in [
+                p.replace(
+                    "{INJECTION_MARKER}", garak.probes.latentinjection.INJECTION_MARKER
+                )
+                for p in t.paragraphs
+            ] or part in [
+                p.replace("{INJECTION_MARKER}", "") for p in t.paragraphs
+            ], "found unrecognised context component: %s in context %s" % (
+                repr(part),
+                repr(context),
+            )
+        assert (
+            garak.probes.latentinjection.INJECTION_MARKER in context
+        ), "Missing injection marker in %s" % repr(context)
