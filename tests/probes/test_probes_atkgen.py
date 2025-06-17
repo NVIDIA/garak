@@ -45,7 +45,7 @@ def test_atkgen_one_pass():
     p = _plugins.load_plugin("probes.atkgen.Tox", config_root=garak._config)
     p.max_calls_per_conv = 1  # we don't need a full conversation
     g = garak._plugins.load_plugin("generators.test.Repeat", config_root=garak._config)
-    with tempfile.NamedTemporaryFile(mode="w+") as temp_report_file:
+    with tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8") as temp_report_file:
         _config.transient.reportfile = temp_report_file
         _config.transient.report_filename = temp_report_file.name
         result = p.probe(g)
@@ -94,7 +94,7 @@ def test_atkgen_custom_model():
         p.red_team_model_name == red_team_model_name
     ), "red team model name config should be loaded"
     g = _plugins.load_plugin("generators.test.Repeat", config_root=garak._config)
-    with tempfile.NamedTemporaryFile(mode="w+") as temp_report_file:
+    with tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8") as temp_report_file:
         _config.transient.reportfile = temp_report_file
         _config.transient.report_filename = temp_report_file.name
         result = p.probe(g)
@@ -126,7 +126,7 @@ def test_atkgen_probe(classname):
     atkgen_class = getattr(mod, class_name)
     _config.system.verbose = 1
     _config.system.parallel_requests = 1
-    with tempfile.NamedTemporaryFile(mode="w+") as temp_report_file:
+    with tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8") as temp_report_file:
         _config.transient.reportfile = temp_report_file
         _config.transient.report_filename = temp_report_file.name
         _config.plugins.generators = {}

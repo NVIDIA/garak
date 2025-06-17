@@ -45,7 +45,9 @@ def probe_pre_req(classname):
         pytest.skip("Local config file does not exist, skipping test.")
     _config.load_config(run_config_filename=local_config_path)
     # detectors run by probes write to the report file
-    temp_report_file = tempfile.NamedTemporaryFile(mode="w+", delete=False)
+    temp_report_file = tempfile.NamedTemporaryFile(
+        mode="w+", delete=False, encoding="utf-8"
+    )
     _config.transient.reportfile = temp_report_file
     _config.transient.report_filename = temp_report_file.name
 

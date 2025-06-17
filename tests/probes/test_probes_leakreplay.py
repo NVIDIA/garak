@@ -20,7 +20,7 @@ def test_leakreplay_hitlog():
 def test_leakreplay_output_count():
     generations = 1
     garak._config.load_base_config()
-    garak._config.transient.reportfile = open(os.devnull, "w+")
+    garak._config.transient.reportfile = open(os.devnull, "w+", encoding="utf-8")
     garak._config.plugins.probes["leakreplay"]["generations"] = generations
     a = garak.attempt.Attempt(prompt="test")
     p = garak._plugins.load_plugin(

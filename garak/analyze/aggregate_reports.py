@@ -34,7 +34,7 @@ def _process_file_body(in_file, out_file, aggregate_uuid):
             continue
 
         entry["uuid"] = aggregate_uuid
-        out_file.write(json.dumps(entry) + "\n")
+        out_file.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
 
 p = argparse.ArgumentParser(

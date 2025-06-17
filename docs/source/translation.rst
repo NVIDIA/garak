@@ -21,21 +21,24 @@ Supported translation services
     - `facebook/m2m100_1.2B <https://huggingface.co/facebook/m2m100_1.2B>`_
 - `DeepL <https://www.deepl.com/docs-api>`_
 - `NVIDIA Riva <https://build.nvidia.com/nvidia/megatron-1b-nmt>`_
+- `Google Cloud Translation <https://cloud.google.com/translate/docs/reference/api-overview>`_
 
 API KEY Requirements
 --------------------
 
-To use use DeepL API or Riva API to translate probe and detector keywords and triggers from cloud services an API key must be supplied.
+To use use DeepL API, Riva API, or Google Cloud Translation to translate probe and detector keywords and triggers from cloud services an API key must be supplied.
 
 API keys for the preferred service can be obtained in following locations:
 
 - `DeepL <https://www.deepl.com/en/pro-api>`_
 - `Riva <https://build.nvidia.com/nvidia/megatron-1b-nmt>`_
+- `Google Cloud Translation <https://cloud.google.com/translate/docs/authentication>`_
 
 Supported languages for remote services:
 
 - `DeepL <https://developers.deepl.com/docs/resources/supported-languages>`_
 - `Riva <https://docs.nvidia.com/nim/riva/nmt/latest/getting-started.html#supported-languages>`_
+- `Google Cloud Translation <https://cloud.google.com/translate/docs/languages>`_
 
 API keys can be stored in environment variables with the following commands:
 
@@ -52,6 +55,13 @@ RIVA
 .. code-block:: bash
 
     export RIVA_API_KEY=xxxx
+
+Google Cloud Translation
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+    export GOOGLE_APPLICATION_CREDENTIALS=<path to credential configuration json file>
 
 Configuration file
 ------------------
@@ -141,6 +151,29 @@ run:
 .. code-block:: bash
 
     export RIVA_API_KEY=xxxx
+    python3 -m garak --model_type nim --model_name meta/llama-3.1-8b-instruct --probes encoding --config {path to your yaml config file} 
+
+
+Google Cloud Translation
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+For Google Cloud Translation, run the following command:
+You use the following yaml config.
+
+.. code-block:: yaml 
+
+run:
+  target_lang: {target language code}
+  langproviders:
+    - language: {source language code},{target language code}
+      model_type: remote.GoogleTranslator
+    - language: {target language code},{source language code}
+      model_type: remote.GoogleTranslator
+
+
+.. code-block:: bash
+
+    export GOOGLE_APPLICATION_CREDENTIALS=<path to credential configuration json file>
     python3 -m garak --model_type nim --model_name meta/llama-3.1-8b-instruct --probes encoding --config {path to your yaml config file} 
 
 
