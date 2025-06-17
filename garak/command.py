@@ -114,8 +114,11 @@ def start_run():
 def end_run():
     import datetime
     import logging
-
+    import glob
+    from pathlib import Path
     from garak import _config
+    import json
+    import os
 
     logging.info("run complete, ending")
     end_object = {
@@ -132,19 +135,83 @@ def end_run():
 
     timetaken = (datetime.datetime.now() - _config.transient.starttime).total_seconds()
 
-    digest_filename = _config.transient.report_filename.replace(".jsonl", ".html")
-    print(f"📜 report html summary being written to {digest_filename}")
-    try:
-        write_report_digest(_config.transient.report_filename, digest_filename)
-    except Exception as e:
-        msg = "Didn't successfully build the report - JSON log preserved. " + repr(e)
-        logging.exception(e)
-        logging.info(msg)
-        print(msg)
+    from garak.analyze import report_digest
+    digest = report_digest.build_digest(_config.transient.report_filename)
 
-    msg = f"garak run complete in {timetaken:.2f}s"
-    print(f"✔️  {msg}")
-    logging.info(msg)
+    if not digest:
+        print("❌ Digest not created — check build_digest() internals")
+    else:
+        # Append digest to end of .jsonl
+        with open(_config.transient.report_filename, "a+", encoding="utf-8") as report_file:
+            report_digest.append_report_object(report_file, digest)
+        print("✅ Digest appended to report")
+
+    # Build index.json
+    report_dir = Path(_config.transient.report_filename).parent
+
+    def build_report_index(report_dir):
+        index = []
+        for path in sorted(glob.glob(str(report_dir / "*.report.jsonl")), reverse=True):
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        obj = json.loads(line.strip())
+                        if obj.get("entry_type") == "digest":
+                            index.append({
+                                "filename": os.path.basename(path),
+                                "created_at": obj["meta"]["start_time"],
+                                "id": obj["meta"]["run_uuid"]
+                            })
+                            break
+            except Exception:
+                continue
+        return index
+
+    index_data = build_report_index(report_dir)
+    with open(report_dir / "index.json", "w", encoding="utf-8") as f:
+        json.dump(index_data, f, indent=2)
+
+    print(f"🗂️  index.json built with {len(index_data)} digested runs")
+    logging.info(f"garak run complete in {timetaken:.2f}s")
+
+    # Copy digest and index.json to frontend
+    try:
+        from shutil import copy2
+        frontend_reports_dir = Path(__file__).parent / "analyze" / "ui" / "reports"
+        frontend_reports_dir.mkdir(parents=True, exist_ok=True)
+
+        # Extract just the digest and write it
+        with open(_config.transient.report_filename, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        digest_line = next((line for line in reversed(lines) if '"entry_type": "digest"' in line), None)
+        if digest_line:
+            digest_filename = Path(_config.transient.report_filename).name
+            with open(frontend_reports_dir / digest_filename, "w", encoding="utf-8") as out:
+                out.write(digest_line)
+
+        copy2(report_dir / "index.json", frontend_reports_dir / "index.json")
+
+        # Generate report.js from all digests
+        digest_entries = []
+        for path in sorted(frontend_reports_dir.glob("*.report.jsonl"), reverse=True):
+            with open(path, "r", encoding="utf-8") as f:
+                try:
+                    obj = json.loads(f.read().strip())
+                    if obj.get("entry_type") == "digest":
+                        obj["filename"] = obj["meta"]["reportfile"]
+                        digest_entries.append(obj)
+                except Exception:
+                    continue
+
+        with open(frontend_reports_dir / "reports.js", "w", encoding="utf-8") as jsfile:
+            jsfile.write("window.reportsData = ")
+            json.dump(digest_entries, jsfile, indent=2)
+            jsfile.write(";")
+
+        print(f"📂 Copied report, index.json, and updated report.js to {frontend_reports_dir}")
+    except Exception as e:
+        print(f"⚠️  Failed to copy report to frontend: {e}")
+
 
 
 def print_plugins(prefix: str, color):
