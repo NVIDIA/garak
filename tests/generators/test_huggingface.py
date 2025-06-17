@@ -1,8 +1,10 @@
 import pytest
 import requests
 import transformers
-import garak.generators.huggingface
+
+from garak.attempt import Turn
 from garak._config import GarakSubConfig
+import garak.generators.huggingface
 
 
 @pytest.fixture
@@ -44,10 +46,10 @@ def test_pipeline(hf_generator_config):
     assert g.max_tokens == 99
     g.temperature = 0.1
     assert g.temperature == 0.1
-    output = g.generate("", generations_this_call=generations)
+    output = g.generate(Turn(""), generations_this_call=generations)
     assert len(output) == generations  # verify generation count matched call
     for item in output:
-        assert isinstance(item, str)
+        assert isinstance(item, Turn)
 
 
 def test_pipeline_chat(mocker, hf_generator_config):
@@ -58,11 +60,11 @@ def test_pipeline_chat(mocker, hf_generator_config):
     mock_format = mocker.patch.object(
         g, "_format_chat_prompt", wraps=g._format_chat_prompt
     )
-    output = g.generate("Hello world!")
+    output = g.generate(Turn("Hello world!"))
     mock_format.assert_called_once()
     assert len(output) == 1
     for item in output:
-        assert isinstance(item, str)
+        assert isinstance(item, Turn)
 
 
 def test_inference(mocker, hf_mock_response, hf_generator_config):
@@ -86,11 +88,11 @@ def test_inference(mocker, hf_mock_response, hf_generator_config):
     assert g.max_tokens == 99
     g.temperature = 0.1
     assert g.temperature == 0.1
-    output = g.generate("")
+    output = g.generate(Turn(""))
     mock_request.assert_called_once()
     assert len(output) == 1  # 1 generation by default
     for item in output:
-        assert isinstance(item, str)
+        assert isinstance(item, Turn)
 
 
 def test_endpoint(mocker, hf_mock_response, hf_generator_config):
@@ -112,11 +114,11 @@ def test_endpoint(mocker, hf_mock_response, hf_generator_config):
     assert g.max_tokens == 99
     g.temperature = 0.1
     assert g.temperature == 0.1
-    output = g.generate("")
+    output = g.generate(Turn(""))
     mock_request.assert_called_once()
     assert len(output) == 1  # 1 generation by default
     for item in output:
-        assert isinstance(item, str)
+        assert isinstance(item, Turn)
 
 
 def test_model(hf_generator_config):
@@ -130,7 +132,7 @@ def test_model(hf_generator_config):
     assert g.max_tokens == 99
     g.temperature = 0.1
     assert g.temperature == 0.1
-    output = g.generate("")
+    output = g.generate(Turn(""))
     assert len(output) == 1  # expect 1 generation by default
     for item in output:
         assert item is None  # gpt2 is known raise exception returning `None`
@@ -144,11 +146,11 @@ def test_model_chat(mocker, hf_generator_config):
     mock_format = mocker.patch.object(
         g, "_format_chat_prompt", wraps=g._format_chat_prompt
     )
-    output = g.generate("Hello world!")
+    output = g.generate(Turn("Hello world!"))
     mock_format.assert_called_once()
     assert len(output) == 1
     for item in output:
-        assert isinstance(item, str)
+        assert isinstance(item, Turn)
 
 
 def test_select_hf_device():

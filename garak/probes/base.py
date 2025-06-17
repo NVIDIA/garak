@@ -76,6 +76,7 @@ class Probe(Configurable):
             print(
                 f"loading {Style.BRIGHT}{Fore.LIGHTYELLOW_EX}probe: {Style.RESET_ALL}{self.probename}"
             )
+
         logging.info(f"probe init: {self}")
         if "description" not in dir(self):
             if self.__doc__:
@@ -230,9 +231,13 @@ class Probe(Configurable):
                     ):
                         # reverse translate outputs if required, this is intentionally executed in the core process
                         if result.lang != self.lang:
-                            result.reverse_translation_outputs = (
-                                self.reverse_langprovider.get_text(result.all_outputs)
-                            )
+                            results_text = [turn.text for turn in result.all_outputs]
+                            result.reverse_translation_outputs = [
+                                garak.attempt.Turn(translated_text)
+                                for translated_text in self.reverse_langprovider.get_text(
+                                    results_text
+                                )
+                            ]
 
                         _config.transient.reportfile.write(
                             json.dumps(result.as_dict()) + "\n"
@@ -256,9 +261,13 @@ class Probe(Configurable):
                 result = self._execute_attempt(this_attempt)
                 # reverse langprovider outputs if required
                 if result.lang != self.lang:
-                    result.reverse_translation_outputs = (
-                        self.reverse_langprovider.get_text(result.all_outputs)
-                    )
+                    results_text = [turn.text for turn in result.all_outputs]
+                    result.reverse_translation_outputs = [
+                        garak.attempt.Turn(translated_text)
+                        for translated_text in self.reverse_langprovider.get_text(
+                            results_text
+                        )
+                    ]
 
                 _config.transient.reportfile.write(json.dumps(result.as_dict()) + "\n")
                 attempts_completed.append(result)
@@ -276,11 +285,14 @@ class Probe(Configurable):
         lang = self.lang
         # account for visual jailbreak until Turn/Conversation is supported
         if isinstance(prompts[0], str):
-            prompts = self.langprovider.get_text(prompts)
+            localized_prompts = self.langprovider.get_text(prompts)
+            prompts = []
+            for prompt in localized_prompts:
+                prompts.append(garak.attempt.Turn(prompt))
         else:
             for prompt in prompts:
-                if "text" in prompt:
-                    prompt["text"] = self.langprovider.get_text(prompt["text"])
+                if hasattr(prompt, "text"):
+                    prompt.text = self.langprovider.get_text(prompt.text)
         lang = self.langprovider.target_lang
         for seq, prompt in enumerate(prompts):
             notes = (

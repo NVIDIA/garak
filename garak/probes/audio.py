@@ -9,8 +9,8 @@ Probes designed to test audio-to-text models and the audio component of multimod
 import logging
 from typing import Iterable
 
-import garak.attempt
 from garak import _config
+from garak.attempt import Attempt, Turn
 import garak.probes
 from garak.exception import GarakException
 
@@ -89,10 +89,12 @@ class AudioAchillesHeel(garak.probes.Probe):
             if filename.is_file()
         ]
 
-    def probe(self, generator) -> Iterable[garak.attempt.Attempt]:
-        self.prompts = [
-            {"text": self.text_prompt, "audio": str(file_path)}
-            for file_path in self.audio
-        ]
+    def probe(self, generator) -> Iterable[Attempt]:
+        self.prompts = []
+        for file_path in self.audio:
+            t = Turn(self.text_prompt)
+            # the filename concept here is generic this is just binary content
+            t.add_part("image_filename", str(file_path))
+            self.prompts.append(t)
 
         return super().probe(generator)
