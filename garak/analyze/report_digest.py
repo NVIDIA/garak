@@ -15,7 +15,6 @@ import statistics
 import sys
 from typing import IO, List, Union
 
-import jinja2
 import sqlite3
 
 import garak
@@ -27,20 +26,6 @@ import garak.analyze.calibration
 
 if not _config.loaded:
     _config.load_config()
-
-templateLoader = jinja2.FileSystemLoader(
-    searchpath=_config.transient.package_dir / "analyze" / "templates"
-)
-templateEnv = jinja2.Environment(loader=templateLoader)
-
-header_template = templateEnv.get_template("digest_header.jinja")
-footer_template = templateEnv.get_template("digest_footer.jinja")
-group_template = templateEnv.get_template("digest_group.jinja")
-probe_template = templateEnv.get_template("digest_probe.jinja")
-detector_template = templateEnv.get_template("digest_detector.jinja")
-end_module = templateEnv.get_template("digest_end_module.jinja")
-about_z_template = templateEnv.get_template("digest_about_z.jinja")
-
 
 misp_resource_file = data_path / "misp_descriptions.tsv"
 misp_descriptions = {}
@@ -439,66 +424,13 @@ def build_digest(report_filename: str, config=_config):
     if calibration_used:
         report_digest["meta"]["calibration"] = _get_calibration_info(calibration)
 
+    report_digest["results"] = extract_flattened_modules(report_digest, config=config)
+    
     return report_digest
 
 
 def build_html(digest: dict, config=_config):
-    # taxonomy = config.reporting.taxonomy
-    # group_aggregation_function = config.reporting.group_aggregation_function
-
-    html_report_content = ""
-
-    header_content = digest["meta"]
-    header_content["setup"] = pprint.pformat(
-        header_content["setup"], sort_dicts=True, width=60
-    )
-    header_content["now"] = datetime.datetime.now().isoformat()
-    html_report_content += header_template.render(header_content)
-
-    group_names = digest["eval"].keys()
-    for probe_group in group_names:
-        group_info = digest["eval"][probe_group]["_summary"]
-
-        group_info["unrecognised_aggregation_function"] = digest["meta"][
-            "aggregation_unknown"
-        ]
-        group_info["show_top_group_score"] = config.reporting.show_top_group_score
-
-        html_report_content += group_template.render(group_info)
-
-        if group_info["score"] < 1.0 or config.reporting.show_100_pass_modules:
-            for probe_name in digest["eval"][probe_group].keys():
-                if probe_name == "_summary":
-                    continue
-                probe_info = digest["eval"][probe_group][probe_name]["_summary"]
-                html_report_content += probe_template.render(probe_info)
-
-                detector_names = digest["eval"][probe_group][probe_name].keys()
-                for detector_name in detector_names:
-                    if detector_name == "_summary":
-                        continue
-
-                    probe_detector_result = digest["eval"][probe_group][probe_name][
-                        detector_name
-                    ]
-
-                    if (
-                        probe_detector_result["absolute_score"] < 1.0
-                        or config.reporting.show_100_pass_modules
-                    ):
-                        html_report_content += detector_template.render(
-                            probe_detector_result
-                        )
-
-        html_report_content += end_module.render()
-
-    if digest["meta"]["calibration_used"]:
-        html_report_content += about_z_template.render(digest["meta"]["calibration"])
-
-    html_report_content += footer_template.render()
-
-    return html_report_content
-
+    return json.dumps(digest, indent=2)
 
 def _get_report_digest(report_path):
     with open(report_path, "r", encoding="utf-8") as reportfile:
@@ -507,6 +439,54 @@ def _get_report_digest(report_path):
                 return entry
     return False
 
+def extract_flattened_modules(digest: dict, config=_config) -> List[dict]:
+    """Flatten full digest into detailed JSON structure (group -> probes -> detectors)"""
+    flat = []
+
+    for group_name, group_data in (digest.get("eval") or {}).items():
+        if not isinstance(group_data, dict):
+            continue
+
+        group_summary = group_data.get("_summary", {}).copy()
+        group_summary["unrecognised_aggregation_function"] = digest["meta"].get("aggregation_unknown", False)
+        group_summary["show_top_group_score"] = config.reporting.show_top_group_score
+
+        group_obj = {
+            "group_name": group_name,
+            "summary": group_summary,
+            "probes": []
+        }
+
+        if group_summary.get("score", 0.0) < 1.0 or config.reporting.show_100_pass_modules:
+            for probe_name, probe_data in group_data.items():
+                if probe_name == "_summary":
+                    continue
+
+                probe_summary = probe_data.get("_summary", {}).copy()
+                probe_obj = {
+                    "probe_name": probe_name,
+                    "summary": probe_summary,
+                    "detectors": []
+                }
+
+                for detector_name, detector_data in probe_data.items():
+                    if detector_name == "_summary":
+                        continue
+
+                    if (
+                        detector_data.get("absolute_score", 0.0) < 1.0
+                        or config.reporting.show_100_pass_modules
+                    ):
+                        probe_obj["detectors"].append({
+                            "detector_name": detector_name,
+                            **detector_data
+                        })
+
+                group_obj["probes"].append(probe_obj)
+
+        flat.append(group_obj)
+
+    return flat
 
 if __name__ == "__main__":
     import argparse
