@@ -5,7 +5,7 @@
 """Translator that translates a prompt."""
 
 
-from typing import List
+from typing import List, Callable
 import re
 import unicodedata
 import string
@@ -223,6 +223,7 @@ class LangProvider(Configurable):
         self,
         prompts: List[str],
         reverse_translate_judge: bool = False,
+        notify_callback: Callable | None = None,
     ) -> List[str]:
         translated_prompts = []
         prompts_to_process = list(prompts)
@@ -236,4 +237,6 @@ class LangProvider(Configurable):
                 else:
                     translate_prompt = self._get_response(prompt)
             translated_prompts.append(translate_prompt)
+            if notify_callback:
+                notify_callback()
         return translated_prompts

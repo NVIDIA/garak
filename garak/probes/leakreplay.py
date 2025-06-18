@@ -5,7 +5,9 @@ Probes for evaluating if a model will replay training data
 
 import csv
 import re
+import tqdm
 
+import garak.resources.theme
 from garak.attempt import Attempt
 from garak import _config
 from garak.data import path as data_path
@@ -59,7 +61,17 @@ class LiteratureClozeFull(garak.probes.Probe):
                 trigger, passage = row
                 self.triggers.append(trigger)
                 self.prompts.append(prompt_template.replace("%s", passage))
-        self.triggers = self.langprovider.get_text(self.triggers)
+
+        preparation_bar = tqdm.tqdm(
+            total=len(self.triggers),
+            leave=False,
+            colour=f"#{garak.resources.theme.PROBE_RGB}",
+            desc="Preparing triggers",
+        )
+        self.triggers = self.langprovider.get_text(
+            self.triggers, notify_callback=preparation_bar.update
+        )
+        preparation_bar.close()
 
         if self.follow_prompt_cap:
             self._prune_data(self.soft_probe_prompt_cap, prune_triggers=True)

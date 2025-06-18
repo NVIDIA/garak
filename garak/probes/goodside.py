@@ -3,8 +3,10 @@
 Implementations of [Riley Goodside](https://twitter.com/goodside) attacks"""
 
 import re
+import tqdm
 from typing import List
 
+import garak.resources.theme
 from garak import _config
 from garak.attempt import Attempt
 import garak.probes
@@ -164,7 +166,13 @@ class Tag(garak.probes.Probe):
         import json
 
         translated_attempt_descrs = []
-        for descr in attempt_descrs:
+        preparation_bar = tqdm.tqdm(
+            attempt_descrs,
+            leave=False,
+            colour=f"#{garak.resources.theme.PROBE_RGB}",
+            desc="Preparing descriptions",
+        )
+        for descr in preparation_bar:
             descr = json.loads(self._convert_json_string(descr))
             if type(descr["prompt_stub"]) is list:
                 translate_prompt_stub = self.langprovider.get_text(descr["prompt_stub"])
@@ -187,6 +195,7 @@ class Tag(garak.probes.Probe):
                     }
                 )
             )
+        preparation_bar.close()
         return translated_attempt_descrs
 
     def __init__(self, config_root=_config):
@@ -242,7 +251,16 @@ class Tag(garak.probes.Probe):
                                     )
                                 )
 
-        self.triggers = self.langprovider.get_text(self.triggers)  # triggers is a list?
+        preparation_bar = tqdm.tqdm(
+            total=len(self.triggers),
+            leave=False,
+            colour=f"#{garak.resources.theme.PROBE_RGB}",
+            desc="Preparing triggers",
+        )
+        self.triggers = self.langprovider.get_text(
+            self.triggers, notify_callback=preparation_bar.update
+        )
+        preparation_bar.close()
         self.attempt_descrs = self._translate_descr(self.attempt_descrs)
 
     def _attempt_prestore_hook(self, attempt: Attempt, seq: int) -> Attempt:
