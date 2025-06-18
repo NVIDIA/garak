@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Buff that converts prompts with different encodings. """
+"""Buff that converts prompts with different encodings."""
 
 from collections.abc import Iterable
 from deepl import Translator
@@ -35,24 +35,35 @@ class LRLBuff(Buff):
     def transform(
         self, attempt: garak.attempt.Attempt
     ) -> Iterable[garak.attempt.Attempt]:
+        # transform receives a copy of the attempt should it modify the prompt in place?
         deepl_translator = Translator(self.api_key)
-        prompt = attempt.prompt
-        attempt.notes["original_prompt"] = prompt
+        # only process the last message, this may need to be expanded to support all `Messages` in a `Conversation`
+        prompt_text = attempt.prompt.last_message().text
+        # if extended to all messages this should be a `Message` object
+        attempt.notes["original_prompt"] = prompt_text
         for language in LOW_RESOURCE_LANGUAGES:
             attempt.notes["LRL_buff_dest_lang"] = language
-            response = deepl_translator.translate_text(prompt, target_lang=language)
+            response = deepl_translator.translate_text(
+                prompt_text, target_lang=language
+            )
             translated_prompt = response.text
-            attempt.prompt = translated_prompt
+            delattr(attempt, "_prompt")  # hack to allow prompt set
+            attempt.prompt = garak.attempt.Message(translated_prompt, language)
             yield self._derive_new_attempt(attempt)
 
     def untransform(self, attempt: garak.attempt.Attempt) -> garak.attempt.Attempt:
         deepl_translator = Translator(self.api_key)
         outputs = attempt.outputs
-        attempt.notes["original_responses"] = outputs
+        attempt.notes["original_responses"] = [
+            msg.text for msg in outputs
+        ]  # serialise-friendly
         translated_outputs = list()
         for output in outputs:
-            response = deepl_translator.translate_text(output, target_lang="EN-US")
+            response = deepl_translator.translate_text(output.text, target_lang="EN-US")
             translated_output = response.text
-            translated_outputs.append(translated_output)
+            translated_outputs.append(
+                garak.attempt.Message(translated_output, lang="en")
+            )
+        # does this work as expected? Setting outputs would _add_ a new turn not replace the originals
         attempt.outputs = translated_outputs
         return attempt

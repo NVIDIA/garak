@@ -10,7 +10,7 @@ import tempfile
 
 import pytest
 
-from garak.attempt import Attempt
+from garak.attempt import Attempt, Message
 import garak.detectors.base
 import garak.detectors.fileformats
 
@@ -38,7 +38,7 @@ def test_possiblepickle_filenames(possible_pickle):
 def test_fileispickled_invalid_format():
     d = garak.detectors.fileformats.FileIsPickled()
     plain_attempt = Attempt(prompt="")
-    plain_attempt.outputs = ["a", "b", "c"]
+    plain_attempt.outputs = [Message(s) for s in ["a", "b", "c"]]
     with pytest.raises(
         ValueError
     ) as exc_info:  # should not process attempts without correct "format" note
@@ -49,7 +49,7 @@ def test_fileispickled_valid_format():
     d = garak.detectors.fileformats.FileIsPickled()
     file_attempt = Attempt(prompt="")
     file_attempt.notes["format"] = "local filename"
-    file_attempt.outputs = [""]
+    file_attempt.outputs = [Message("")]
     l = list(d.detect(file_attempt))
     assert l == []
 
@@ -63,7 +63,7 @@ def test_fileispickled_nonpickle():
             "Do you know what the sad part is, Odo? I'm a very good tailor."
         )
         nonpickle_file.close()
-        nonpickle_file_attempt.outputs = [nonpickle_file.name]
+        nonpickle_file_attempt.outputs = [Message(nonpickle_file.name)]
         l = list(d.detect(nonpickle_file_attempt))
         assert l == [0.0]
 
@@ -76,7 +76,7 @@ def test_fileispickled_pickle_default():
         test_data_struct = {"key": ["value", 37176]}
         pickle.dump(test_data_struct, pickle_file)
         pickle_file.close()
-        pickle_file_attempt.outputs = [pickle_file.name]
+        pickle_file_attempt.outputs = [Message(pickle_file.name)]
         l = list(d.detect(pickle_file_attempt))
         assert l == [1.0]
 
@@ -93,7 +93,7 @@ def test_fileispickled_pickle_versioned(pickle_ver):
         test_data_struct = {"key": ["value", 37176]}
         pickle.Pickler(pickle_file, pickle_ver).dump(test_data_struct)
         pickle_file.close()
-        pickle_file_attempt.outputs = [pickle_file.name]
+        pickle_file_attempt.outputs = [Message(pickle_file.name)]
         l = list(d.detect(pickle_file_attempt))
         assert l == [1.0]
 
@@ -105,7 +105,7 @@ def test_fileisexectuable_nonexec():
     with tempfile.NamedTemporaryFile(mode="w+", delete=False) as test_file:
         test_file.write("I'm a very good tailor.")
         test_file.close()
-        exec_attempt.outputs = [test_file.name]
+        exec_attempt.outputs = [Message(test_file.name)]
         results = d.detect(exec_attempt)
         assert list(results) == [0.0]
 
@@ -143,6 +143,6 @@ def test_fileisexectuable_exec(decoded_filename):
     exec_attempt.notes["format"] = "local filename"
 
     d = garak.detectors.fileformats.FileIsExecutable()
-    exec_attempt.outputs = [decoded_filename]
+    exec_attempt.outputs = [Message(decoded_filename)]
     results = d.detect(exec_attempt)
     assert list(results) == [1.0]
