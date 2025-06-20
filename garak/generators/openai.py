@@ -300,6 +300,44 @@ class OpenAIGenerator(OpenAICompatible):
         k: val for k, val in OpenAICompatible.DEFAULT_PARAMS.items() if k != "uri"
     }
 
+    @classmethod
+    def get_available_models_info(cls):
+        """Returns API key status and grouped available models for OpenAI.
+        
+        If an API key is available, this will attempt to fetch available models from the OpenAI API.
+        Otherwise, it will return the hardcoded list of models from this file.
+        
+        Returns:
+            tuple: (api_key_set, model_info_dict, api_models_list)
+                - api_key_set: Boolean indicating if API key is set
+                - model_info_dict: Dictionary with 'chat' and 'completion' keys, each containing a list of model names
+                - api_models_list: List of models from the API (if available), otherwise empty list
+        """
+        import os
+        
+        # Check if API key is set
+        api_key = os.environ.get("OPENAI_API_KEY", "")
+        api_key_set = bool(api_key)
+        api_models = []
+        
+        # If API key is set, try to fetch available models from the API
+        if api_key_set:
+            try:
+                client = openai.OpenAI(api_key=api_key)
+                models_response = client.models.list()
+                api_models = sorted([model.id for model in models_response.data])
+            except Exception as e:
+                # If API call fails, fall back to hardcoded lists
+                logging.warning(f"Failed to fetch models from OpenAI API: {e}")
+        
+        # Group models by type from our hardcoded lists
+        model_info = {
+            'chat': list(chat_models),
+            'completion': list(completion_models)
+        }
+        
+        return api_key_set, model_info, api_models
+
     def _load_client(self):
         self.client = openai.OpenAI(api_key=self.api_key)
 

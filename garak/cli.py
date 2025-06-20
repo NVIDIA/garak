@@ -540,13 +540,52 @@ def main(arguments=None) -> None:
                 # cli provided name overrides config from file
                 conf_root["name"] = _config.plugins.model_name
 
-            # Can this check be deferred to the generator instantiation?
-            if (
-                _config.plugins.model_type
-                in ("openai", "replicate", "ggml", "huggingface", "litellm")
-                and not _config.plugins.model_name
+            # Handle model types that require a model name
+            if not _config.plugins.model_name and _config.plugins.model_type in (
+                "replicate", "ggml", "huggingface", "litellm"
             ):
                 message = f"⚠️  Model type '{_config.plugins.model_type}' also needs a model name\n You can set one with e.g. --model_name \"billwurtz/gpt-1.0\""
+                logging.error(message)
+                raise ValueError(message)
+                
+            # Special handling for OpenAI to provide a better user experience
+            elif not _config.plugins.model_name and _config.plugins.model_type == "openai":
+                from garak.generators.openai import OpenAIGenerator
+                
+                # Get API key status and available models
+                api_key_set, model_info, api_models = OpenAIGenerator.get_available_models_info()
+                
+                print("\n🔍 OpenAI Model Selection Helper")
+                print("==================================")
+                
+                if not api_key_set:
+                    print("\n⚠️  No OpenAI API key found in environment variable OPENAI_API_KEY")
+                    print("Please set your API key before continuing:\n")
+                    print("  export OPENAI_API_KEY='your-api-key'\n")
+                else:
+                    print(f"\n✅ API Key found in environment variable OPENAI_API_KEY")
+                
+                # Show available models from the API if we were able to fetch them
+                if api_key_set and api_models:
+                    print("\n📝 Available models from your OpenAI account:")
+                    for model in api_models:
+                        print(f"  - {model}")
+                    print("\nNote: Use any of these models with --model_name")
+                else:
+                    # Fallback to hardcoded lists if we couldn't fetch from API
+                    print("\nRecommended OpenAI models:")
+                    print("\n📝 Chat Completion Models (use with --model_name):")
+                    for model in sorted(model_info['chat']):
+                        print(f"  - {model}")
+                        
+                    print("\n📝 Completion Models (use with --model_name):")
+                    for model in sorted(model_info['completion']):
+                        print(f"  - {model}")
+                
+                print("\nExample usage:")
+                print("  garak -m openai --model_name gpt-4\n")
+                
+                message = "Please specify a model name using --model_name"
                 logging.error(message)
                 raise ValueError(message)
 
