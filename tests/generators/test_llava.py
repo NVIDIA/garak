@@ -1,10 +1,9 @@
-import os
 import pytest
 import torch
-from pathlib import Path
 from PIL import Image, ImageDraw
 from unittest.mock import patch, MagicMock
 
+from garak.attempt import Conversation, Turn, Message
 from garak._config import GarakSubConfig
 from garak.generators.huggingface import LLaVA
 from garak.exception import ModelNameMissingError
@@ -20,16 +19,16 @@ ELLIPSE_COORDS = ((150, 50), (250, 150))
 
 # ─── Helpers & Fixtures ────────────────────────────────────────────────
 
+
 @pytest.fixture
 def llava_config():
     """Minimal config forcing CPU for tests."""
     cfg = GarakSubConfig()
     cfg.generators = {
-        "huggingface": {
-            "hf_args": {"device": "cpu", "torch_dtype": "float32"}
-        }
+        "huggingface": {"hf_args": {"device": "cpu", "torch_dtype": "float32"}}
     }
     return cfg
+
 
 @pytest.fixture
 def llava_test_image(tmp_path):
@@ -40,6 +39,7 @@ def llava_test_image(tmp_path):
     p = tmp_path / "test.png"
     img.save(p)
     return str(p)
+
 
 @pytest.fixture(autouse=True)
 def mock_hf_when_cpu(monkeypatch):
@@ -52,19 +52,21 @@ def mock_hf_when_cpu(monkeypatch):
         fake_dev = torch.device("cpu")
         monkeypatch.setattr(
             "garak.resources.api.huggingface.HFCompatible._select_hf_device",
-            lambda self: fake_dev
+            lambda self: fake_dev,
         )
         # fake processor/model loading
         monkeypatch.setattr(
             "transformers.LlavaNextProcessor.from_pretrained",
-            lambda name: MagicMock(name="Processor")
+            lambda name: MagicMock(name="Processor"),
         )
         monkeypatch.setattr(
             "transformers.LlavaNextForConditionalGeneration.from_pretrained",
-            lambda name, **kw: MagicMock(name="Model")
+            lambda name, **kw: MagicMock(name="Model"),
         )
 
+
 # ─── Tests ─────────────────────────────────────────────────────────────
+
 
 @pytest.mark.parametrize("model_name", SUPPORTED_MODELS)
 def test_llava_instantiation_and_device(llava_config, model_name):
@@ -75,8 +77,11 @@ def test_llava_instantiation_and_device(llava_config, model_name):
     assert isinstance(llava.device, torch.device)
     assert llava.device.type == "cpu"
 
+
 @pytest.mark.parametrize("model_name", SUPPORTED_MODELS)
-def test_llava_generate_returns_decoded_text(llava_config, llava_test_image, model_name):
+def test_llava_generate_returns_decoded_text(
+    llava_config, llava_test_image, model_name
+):
     # Prepare mocks: override the decode and generate on the fake objects
     fake_proc = LLaVA.processor if False else MagicMock()
     fake_proc.decode.return_value = "decoded output"
@@ -87,13 +92,19 @@ def test_llava_generate_returns_decoded_text(llava_config, llava_test_image, mod
     llava.processor = fake_proc
     llava.model = fake_model
 
-    out = llava.generate({"text": "foo", "image": llava_test_image})
-    assert isinstance(out, list) and out == ["decoded output"]
+    conv = Conversation([Turn("user", Message(text="foo", data_path=llava_test_image))])
+    out = llava.generate(conv)
+    assert isinstance(out, list) and out == [Message("decoded output")]
+
 
 def test_llava_error_on_missing_image(llava_config):
     llava = LLaVA(name=SUPPORTED_MODELS[0], config_root=llava_config)
+    conv = Conversation(
+        [Turn("user", Message(text="foo", data_path="/nonexistent.png"))]
+    )
     with pytest.raises(FileNotFoundError):
-        llava.generate({"text": "foo", "image": "/nonexistent.png"})
+        llava.generate(conv)
+
 
 def test_llava_unsupported_model(llava_config):
     """Test that instantiating with an unsupported model name raises ModelNameMissingError."""
@@ -101,12 +112,14 @@ def test_llava_unsupported_model(llava_config):
         LLaVA(name="not-a-supported-model", config_root=llava_config)
     # Verify the error message contains useful information
     assert "not-a-supported-model" in str(excinfo.value)
-    
+
+
 def test_llava_missing_model_name(llava_config):
     """Test that instantiating with an empty model name raises ModelNameMissingError."""
     with pytest.raises(ModelNameMissingError):
         LLaVA(name="", config_root=llava_config)
-        
+
+
 def test_llava_supported_models_list():
     """Verify that all supported models are properly defined."""
     assert len(SUPPORTED_MODELS) > 0

@@ -5,6 +5,7 @@ import re
 import tiktoken
 
 from . import conversation
+from garak.attempt import Message, Turn, Conversation
 from garak.generators.openai import context_lengths
 
 
@@ -118,25 +119,43 @@ class EvaluationJudge:
 
     def judge_score(self, attack_prompt_list, target_response_list):
         convs_list = [
-            self._create_conv(get_evaluator_prompt(prompt, response))
+            Conversation(
+                [
+                    Turn(
+                        "user",
+                        Message(
+                            self._create_conv(get_evaluator_prompt(prompt, response))
+                        ),
+                    )
+                ]
+            )
             for prompt, response in zip(attack_prompt_list, target_response_list)
         ]
         raw_outputs = [
-            self.evaluation_generator.generate(conv)[0] for conv in convs_list
+            self.evaluation_generator.generate(conv)[0].text for conv in convs_list
         ]
         outputs = [process_output_judge_score(raw_output) for raw_output in raw_outputs]
         return outputs
 
     def on_topic_score(self, attempt_list):
         convs_list = [
-            self._create_conv(
-                get_evaluator_prompt_on_topic(prompt),
-                system_prompt=self.system_prompt_on_topic,
+            Conversation(
+                [
+                    Turn(
+                        "user",
+                        Message(
+                            self._create_conv(
+                                get_evaluator_prompt_on_topic(prompt),
+                                system_prompt=self.system_prompt_on_topic,
+                            )
+                        ),
+                    )
+                ]
             )
             for prompt in attempt_list
         ]
         raw_outputs = [
-            self.evaluation_generator.generate(conv)[0] for conv in convs_list
+            self.evaluation_generator.generate(conv)[0].text for conv in convs_list
         ]
         outputs = [
             process_output_on_topic_score(raw_output) for raw_output in raw_outputs
