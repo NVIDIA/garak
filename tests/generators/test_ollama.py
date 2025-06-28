@@ -24,7 +24,9 @@ def ollama_is_running():
 
 
 def no_models():
-    return len(ollama.list()) == 0 or len(ollama.list()["models"]) == 0
+    response = ollama.list()
+    # ListResponse object has a models attribute that is a list
+    return not hasattr(response, 'models') or len(response.models) == 0
 
 
 @pytest.mark.skipif(
