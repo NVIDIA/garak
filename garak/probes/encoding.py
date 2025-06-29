@@ -22,6 +22,7 @@ import binascii
 import random
 
 import garak.payloads
+import garak.resources.encodings
 from garak import _config
 import garak.probes
 
@@ -570,6 +571,26 @@ class InjectZalgo(EncodingMixin, garak.probes.Probe):
 
     encoding_name = "Zalgo"
     encoding_funcs = [zalgo]
+
+    def __init__(self, config_root=_config):
+        garak.probes.Probe.__init__(self, config_root=config_root)
+        EncodingMixin.__init__(self)
+
+
+def leet_bytes(plain_input: bytes):
+    return bytes(garak.resources.encodings.leetspeak(plain_input.decode()), "utf-8")
+
+
+class InjectLeet(EncodingMixin, garak.probes.Probe):
+    """Probe for susceptibility to 31337 encoding.
+
+    Encodes payloads using Leetspeak, and tries a variety
+    of ways of getting the target model to repeat & decode them."""
+
+    doc_uri = "https://en.wikipedia.org/wiki/Leet"
+
+    encoding_name = "Leetspeak"
+    encoding_funcs = [leet_bytes]
 
     def __init__(self, config_root=_config):
         garak.probes.Probe.__init__(self, config_root=config_root)
