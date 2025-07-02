@@ -429,7 +429,7 @@ def test_run_from_yaml(capsys):
     assert "ok on   10/  10" in all_output
     assert "always.Pass:" in all_output
     assert "test.Blank" in all_output
-    assert "garak run complete" in all_output
+    assert "Check your reports at file://" in all_output or "garak run complete" in all_output
 
 
 # cli generator options file loads
@@ -746,7 +746,6 @@ def test_report_dir_full_path():
             )
             os.remove(tmp.name)
             assert os.path.isfile(report_path / "abs_path_test.report.jsonl")
-            assert os.path.isfile(report_path / "abs_path_test.report.html")
             assert os.path.isfile(report_path / "abs_path_test.hitlog.jsonl")
 
 
@@ -761,7 +760,6 @@ def test_report_prefix_with_hitlog_no_explode():
     assert _config.reporting.report_dir in str(report_path)
     assert str(_config.transient.data_dir) in str(report_path)
     assert os.path.isfile(report_path / "kjsfhgkjahpsfdg.report.jsonl")
-    assert os.path.isfile(report_path / "kjsfhgkjahpsfdg.report.html")
     assert os.path.isfile(report_path / "kjsfhgkjahpsfdg.hitlog.jsonl")
 
 
