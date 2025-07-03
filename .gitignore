@@ -130,6 +130,11 @@ ENV/
 env.bak/
 venv.bak/
 
+# Garak UI
+
+garak/analyze/ui/reports/index.json
+garak/analyze/ui/reports/reports.js
+
 # Spyder project settings
 .spyderproject
 .spyproject
