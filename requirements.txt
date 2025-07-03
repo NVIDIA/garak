@@ -18,7 +18,6 @@ langchain>=0.3.25
 nemollm>=0.3.0
 cmd2==2.4.3
 torch>=2.6.0
-sentencepiece>=0.1.99
 markdown>=3.4.3
 numpy>=1.26.4,<2.0
 zalgolib>=0.2.2
