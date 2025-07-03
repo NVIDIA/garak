@@ -16,7 +16,12 @@ import jsonpath_ng
 from jsonpath_ng.exceptions import JsonPathParserError
 
 from garak import _config
-from garak.exception import APIKeyMissingError, BadGeneratorException, RateLimitHit, GarakBackoffTrigger
+from garak.exception import (
+    APIKeyMissingError,
+    BadGeneratorException,
+    RateLimitHit,
+    GeneratorBackoffTrigger,
+)
 from garak.generators.base import Generator
 
 
@@ -185,7 +190,9 @@ class RestGenerator(Generator):
                 output = output.replace("$KEY", self.api_key)
         return output.replace("$INPUT", self.escape_function(text))
 
-    @backoff.on_exception(backoff.fibo, (RateLimitHit, GarakBackoffTrigger), max_value=70)
+    @backoff.on_exception(
+        backoff.fibo, (RateLimitHit, GeneratorBackoffTrigger), max_value=70
+    )
     def _call_model(
         self, prompt: str, generations_this_call: int = 1
     ) -> List[Union[str, None]]:
@@ -250,7 +257,7 @@ class RestGenerator(Generator):
         if str(resp.status_code)[0] == "5":
             error_msg = f"REST URI server error: {resp.status_code} - {resp.reason}, uri: {self.uri}"
             if self.retry_5xx:
-                raise GarakBackoffTrigger(error_msg)
+                raise GeneratorBackoffTrigger(error_msg)
             raise ConnectionError(error_msg)
 
         if not self.response_json:
