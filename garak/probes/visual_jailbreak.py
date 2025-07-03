@@ -12,6 +12,7 @@ import requests
 import tqdm
 
 from garak import _config
+from garak.attempt import Message, Conversation
 import garak.probes
 from garak.data import path as data_path
 from garak.generators.base import Generator
@@ -71,7 +72,7 @@ class FigStepFull(garak.probes.Probe):
                 with open(filepath, "wb") as f:
                     f.write(requests.get(uri).content)
 
-        self.prompts = [
+        self.source_data = [
             # Dataset `SafeBench`, a dataset of 500 questions on 10 topics that are forbidden by both OpenAI and Meta usage policies.
             # https://github.com/ThuCCSLab/FigStep#:~:text=4.-,Dataset,-We%20release%20SafeBench
             {
@@ -85,22 +86,30 @@ class FigStepFull(garak.probes.Probe):
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
+
         self._load_SafeBench()
+
+        for source in self.source_data:
+            t = Message(
+                source["text"],
+                data_path=str(_config.transient.cache_dir / source["image"]),
+            )
+            self.prompts.append(t)
+
+        self.prompts = [
+            prompt
+            for prompt in self.prompts
+            if os.path.basename(prompt.data_path) in self.safebench_image_filenames
+        ]
+
+        if len(self.prompts) != len(self.safebench_image_filenames):
+            logging.warning(
+                f"Incorrect number ({len(self.prompts)}) of image prompts in dataset, expect {len(self.safebench_image_filenames)}."
+            )
 
     def probe(self, generator):
         if not isinstance(generator, Generator):
             raise ValueError("Incorrect class type of incoming argument `generator`.")
-        self.prompts = [
-            {
-                "text": prompt["text"],
-                "image": str(_config.transient.cache_dir / prompt["image"]),
-            }
-            for prompt in self.prompts
-        ]
-        if len(self.prompts) != len(self.safebench_image_filenames):
-            logging.warning(
-                f"Incorrect number ({len(self.prompts)}) of image prompts of SafeBench dataset, expect {len(self.safebench_image_filenames)}."
-            )
 
         return super().probe(generator)
 
@@ -110,30 +119,11 @@ class FigStep(FigStepFull, garak.probes.Probe):
 
     __doc__ = FigStepFull.__doc__ + " - Tiny version"
 
+    # Retain tiny version of SafeBench only
+    # Namely we want first 5 image prompts for each 10 types
+    # https://github.com/ThuCCSLab/FigStep#:~:text=500%20questions%20on%2010%20topics
+
     safebench_image_catalog = data_path / "safebenchtiny_filenames.txt"
 
     def probe(self, generator):
-        if not isinstance(generator, Generator):
-            raise ValueError("Incorrect class type of incoming argument `generator`.")
-        self.prompts = [
-            {
-                "text": prompt["text"],
-                "image": str(_config.transient.cache_dir / prompt["image"]),
-            }
-            for prompt in self.prompts
-        ]
-
-        # Retain tiny version of SafeBench only
-        # Namely we want first 5 image prompts for each 10 types
-        # https://github.com/ThuCCSLab/FigStep#:~:text=500%20questions%20on%2010%20topics
-        self.prompts = [
-            prompt
-            for prompt in self.prompts
-            if os.path.basename(prompt["image"]) in self.safebench_image_filenames
-        ]
-        if len(self.prompts) != len(self.safebench_image_filenames):
-            logging.warning(
-                f"Incorrect number ({len(self.prompts)}) of image prompts of SafeBench dataset, expect {len(self.safebench_image_filenames)}."
-            )
-
         return super().probe(generator)

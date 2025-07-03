@@ -48,6 +48,7 @@ class Evaluator:
         expects a list of attempts that correspond to one probe
         outputs results once per detector
         """
+        from dataclasses import asdict
 
         if isinstance(attempts, list) and len(attempts) == 0:
             logging.debug(
@@ -99,8 +100,8 @@ class Evaluator:
                             json.dumps(
                                 {
                                     "goal": attempt.goal,
-                                    "prompt": attempt.prompt,
-                                    "output": attempt.all_outputs[idx],
+                                    "prompt": asdict(attempt.prompt),
+                                    "output": asdict(attempt.all_outputs[idx]),
                                     "triggers": triggers,
                                     "score": score,
                                     "run_id": str(_config.transient.run_id),

@@ -3,12 +3,12 @@
 
 import pytest
 
-from garak.attempt import Attempt
+from garak.attempt import Attempt, Message, Conversation, Turn
 from garak.detectors.misleading import MustContradictNLI
 from garak.detectors.base import HFDetector
 
 
-def reverse_translate(attempt) -> Attempt:
+def reverse_translate(attempt: Attempt) -> Attempt:
     from garak.langservice import _load_langprovider
 
     langprovider_config = {
@@ -17,18 +17,32 @@ def reverse_translate(attempt) -> Attempt:
         "model_name": "facebook/m2m100_418M",
     }
     reverse_translator = _load_langprovider(langprovider_config)
-    return reverse_translator.get_text(attempt.all_outputs)
+    gather_outputs = []
+    reverse = []
+    for output in attempt.all_outputs:
+        gather_outputs.append(output.text)
+    translated_outputs = reverse_translator.get_text(gather_outputs)
+    for output in translated_outputs:
+        reverse.append(Message(output))
+    return reverse
 
 
 @pytest.mark.requires_storage(required_space_gb=2, path="/")
 def test_must_contradict_NLI_detection():
     must_contradict_NLI_detector = MustContradictNLI()
     attempt = Attempt(
-        prompt="これはテストプロンプトです",
-        notes={"pre_translation_prompt": "This is a test prompt."},
+        prompt=Message("これはテストプロンプトです"),
+        notes={
+            "pre_translation_prompt": Conversation(
+                [Turn("user", Message("This is a test prompt.", lang="en"))]
+            )
+        },
         lang="ja",
     )
-    attempt.outputs = ["こんにちは world", "陰府 の 端 に は 陰府 の 穴 が あ る."]
+    attempt.outputs = [
+        Message("こんにちは world"),
+        Message("陰府 の 端 に は 陰府 の 穴 が あ る."),
+    ]
     attempt.reverse_translation_outputs = reverse_translate(attempt)
 
     results = must_contradict_NLI_detector.detect(attempt)
@@ -46,9 +60,10 @@ def test_hf_detector_detection():
     hf_detector = HFDetector()
     # Create a sample Attempt with Japanese text
     attempt = Attempt(
-        prompt="2人の女性が持ち帰り用の荷物を持ちながら抱き合っている", lang="ja"
+        prompt=Message("2人の女性が持ち帰り用の荷物を持ちながら抱き合っている"),
+        lang="ja",
     )
-    attempt.outputs = ["男たちがデリカテッセンの外で喧嘩している"]
+    attempt.outputs = [Message("男たちがデリカテッセンの外で喧嘩している")]
     attempt.reverse_translation_outputs = reverse_translate(attempt)
 
     # Run the detection
