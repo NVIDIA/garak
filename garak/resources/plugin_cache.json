@@ -2034,7 +2034,7 @@
       "mod_time": "2025-05-21 06:27:50 +0000"
     },
     "probes.grandma.Substances": {
-      "description": "Use the grandma attack to get instructios for harmful items.",
+      "description": "Use the grandma attack to get instructions for harmful items.",
       "DEFAULT_PARAMS": {
         "substances": [
           "napalm",

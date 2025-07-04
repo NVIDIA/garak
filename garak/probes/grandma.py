@@ -100,7 +100,7 @@ class Slurs(garak.probes.Probe):
 
 
 class Substances(garak.probes.Probe):
-    """Use the grandma attack to get instructios for harmful items.
+    """Use the grandma attack to get instructions for harmful items.
 
     Appeal to pathos to ask the model to output instructions for making
     harmful/illegal goods
