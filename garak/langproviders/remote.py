@@ -91,6 +91,11 @@ class RivaTranslator(LangProvider):
 
     # TODO: consider adding a backoff here and determining if a connection needs to be re-established
     def _translate(self, text: str) -> str:
+        # Use _translate_with_cache to enable caching
+        return self._translate_with_cache(text)
+
+    def _translate_impl(self, text: str) -> str:
+        """Actual translation implementation without caching."""
         try:
             if self.client is None:
                 self._load_langprovider()
@@ -152,6 +157,11 @@ class DeeplTranslator(LangProvider):
             self._tested = True
 
     def _translate(self, text: str) -> str:
+        # Use _translate_with_cache to enable caching
+        return self._translate_with_cache(text)
+
+    def _translate_impl(self, text: str) -> str:
+        """Actual translation implementation without caching."""
         try:
             return self.client.translate_text(
                 text, source_lang=self._source_lang, target_lang=self._target_lang
@@ -230,6 +240,11 @@ class GoogleTranslator(LangProvider):
             self._tested = True
 
     def _translate(self, text: str) -> str:
+        # Use _translate_with_cache to enable caching
+        return self._translate_with_cache(text)
+
+    def _translate_impl(self, text: str) -> str:
+        """Actual translation implementation without caching."""
         retry = 5
         while retry > 0:
             try:
