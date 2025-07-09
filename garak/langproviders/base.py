@@ -10,8 +10,13 @@ import re
 import unicodedata
 import string
 import logging
+import json
+import hashlib
+import os
+from pathlib import Path
 from garak.resources.api import nltk
 from langdetect import detect, DetectorFactory, LangDetectException
+from garak import _config
 
 _intialized_words = False
 
@@ -136,6 +141,95 @@ def is_meaning_string(text: str) -> bool:
 from garak.configurable import Configurable
 
 
+class TranslationCache:
+    def __init__(self, config_root: dict = None):
+        # Handle fallback for test configs if config_root is provided
+        self.source_lang = "en"
+        self.target_lang = "ja"
+        self.model_type = "unknown"
+
+        if config_root and isinstance(config_root, dict):
+            lang_cfg = list(config_root.get("langproviders", {}).values())[0]
+            self.source_lang = lang_cfg.get("language", "en,ja").split(",")[0]
+            self.target_lang = lang_cfg.get("language", "en,ja").split(",")[1]
+            self.model_type = lang_cfg.get("model_type", "unknown")
+
+        cache_dir = _config.transient.cache_dir / "translation"
+        cache_dir.mkdir(mode=0o740, parents=True, exist_ok=True)
+        cache_filename = (
+            f"translation_cache_{self.source_lang}_{self.target_lang}_{self.model_type}.json"
+        )
+        self.cache_file = cache_dir / cache_filename
+        logging.info(f"Cache file: {self.cache_file}")
+        self._cache = self._load_cache()
+
+    def _load_cache(self) -> dict:
+        if self.cache_file.exists():
+            try:
+                with open(self.cache_file, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except (json.JSONDecodeError, IOError) as e:
+                logging.warning(f"Failed to load translation cache: {e}")
+                return {}
+        return {}
+
+    def _save_cache(self):
+        try:
+            with open(self.cache_file, "w", encoding="utf-8") as f:
+                json.dump(self._cache, f, ensure_ascii=False, indent=2)
+        except IOError as e:
+            logging.warning(f"Failed to save translation cache: {e}")
+
+    def get_cache_key(self, text: str) -> str:
+        return hashlib.md5(text.encode("utf-8")).hexdigest()
+
+    def get(self, text: str) -> str | None:
+        cache_key = self.get_cache_key(text)
+        cache_entry = self._cache.get(cache_key)
+        if cache_entry and isinstance(cache_entry, dict):
+            return cache_entry.get("translation")
+        elif isinstance(cache_entry, str):
+            # Backward compatibility with old format
+            return cache_entry
+        return None
+
+    def set(self, text: str, translation: str):
+        cache_key = self.get_cache_key(text)
+        self._cache[cache_key] = {
+            "original": text,
+            "translation": translation,
+            "source_lang": self.source_lang,
+            "target_lang": self.target_lang,
+            "model_type": self.model_type
+        }
+        self._save_cache()
+
+    @property
+    def cache(self):
+        return self._cache
+
+    @property
+    def cache_file_path(self):
+        return self.cache_file
+
+    def get_cache_entry(self, text: str) -> dict | None:
+        """Get full cache entry including original text and metadata."""
+        cache_key = self.get_cache_key(text)
+        cache_entry = self._cache.get(cache_key)
+        if cache_entry and isinstance(cache_entry, dict):
+            return cache_entry
+        elif isinstance(cache_entry, str):
+            # Backward compatibility with old format
+            return {
+                "original": text,
+                "translation": cache_entry,
+                "source_lang": self.source_lang,
+                "target_lang": self.target_lang,
+                "model_type": self.model_type
+            }
+        return None
+
+
 class LangProvider(Configurable):
     """Base class for objects that provision language"""
 
@@ -147,6 +241,9 @@ class LangProvider(Configurable):
 
         self._validate_env_var()
 
+        # Use TranslationCache for caching
+        self.cache = TranslationCache(config_root)
+
         self._load_langprovider()
 
     def _load_langprovider(self):
@@ -154,6 +251,16 @@ class LangProvider(Configurable):
 
     def _translate(self, text: str) -> str:
         raise NotImplementedError
+
+    def _translate_with_cache(self, text: str) -> str:
+        """Translate text with caching support."""
+        cached_translation = self.cache.get(text)
+        if cached_translation is not None:
+            logging.debug(f"Using cached translation for text: {text[:50]}...")
+            return cached_translation
+        translation = self._translate_impl(text)
+        self.cache.set(text, translation)
+        return translation
 
     def _get_response(self, input_text: str):
         translated_lines = []
@@ -189,7 +296,7 @@ class LangProvider(Configurable):
         if needs_translation:
             cleaned_line = self._clean_line(line)
             if cleaned_line:
-                translated_line = self._translate(cleaned_line)
+                translated_line = self._translate_with_cache(cleaned_line)
                 translated_lines.append(translated_line)
 
         return translated_lines
@@ -202,7 +309,7 @@ class LangProvider(Configurable):
             if self._should_skip_line(cleaned_sentence):
                 translated_lines.append(cleaned_sentence)
                 continue
-            translated_line = self._translate(cleaned_sentence)
+            translated_line = self._translate_with_cache(cleaned_sentence)
             translated_lines.append(translated_line)
 
         return translated_lines
