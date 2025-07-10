@@ -426,22 +426,28 @@ def build_digest(report_filename: str, config=_config):
 
         report_digest["results"] = extract_flattened_modules(report_digest, config=config)
 
-        # --- Inject digest into index.html ---
-        html_path = "/Users/opadovani/Documents/Work/garak/garak/analyze/ui/index.html"
-        if os.path.exists(html_path):
-            with open(html_path, "r+", encoding="utf-8") as f:
-                content = f.read()
-                if "__GARAK_INSERT_HERE__" not in content:
-                    print("❌ Marker __GARAK_INSERT_HERE__ not found in index.html", file=sys.stderr)
-                else:
-                    digest_json = json.dumps([report_digest], separators=(",", ":"))
-                    new_content = content.replace("__GARAK_INSERT_HERE__", digest_json)
-                    f.seek(0)
-                    f.write(new_content)
-                    f.truncate()
-                    print(f"✅ Digest injected into {html_path}", file=sys.stderr)
+        # --- Inject digest into standalone HTML file ---
+        template_path = "/Users/opadovani/Documents/Work/garak/garak/analyze/ui/index.html"
+        output_path = f"/Users/opadovani/Documents/Work/garak/garak/analyze/ui/reports/{init['run_uuid']}.html"
+
+        if os.path.exists(template_path):
+            with open(template_path, "r", encoding="utf-8") as template_file:
+                content = template_file.read()
+
+            if "__GARAK_INSERT_HERE__" not in content:
+                print("❌ Marker __GARAK_INSERT_HERE__ not found in template HTML", file=sys.stderr)
+            else:
+                digest_json = json.dumps([report_digest], separators=(",", ":"))
+                new_content = content.replace("__GARAK_INSERT_HERE__", digest_json)
+
+                os.makedirs(os.path.dirname(output_path), exist_ok=True)
+                with open(output_path, "w", encoding="utf-8") as output_file:
+                    output_file.write(new_content)
+
+                print(f"✅ Standalone HTML report generated at: {output_path}", file=sys.stderr)
         else:
-            print(f"❌ index.html not found at {html_path}", file=sys.stderr)
+            print(f"❌ Template file not found: {template_path}", file=sys.stderr)
+
 
         return report_digest
 

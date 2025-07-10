@@ -10,8 +10,9 @@ import svgr from "vite-plugin-svgr";
 // Base Vite config
 const viteConfig: UserConfig = viteDefineConfig({
   plugins: [react(), viteSingleFile(), tailwindcss(), svgr()],
+  publicDir: false,
   build: {
-    outDir: "../../garak/analyze/ui",
+    outDir: "../garak/analyze/ui",
     assetsInlineLimit: Infinity,
     cssCodeSplit: false,
     emptyOutDir: false,
