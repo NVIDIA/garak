@@ -17,41 +17,31 @@ class WebSocketGenerator(Generator):
     DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
         "uri": None,
         "auth_key": None,
-        "temp_request": ["$INPUT"],
-        "skip": [],
-        "response_json": False,
-        "response_json_field": False,
-        "description": "bruh",
+        "body": '{}',
+        "json_response": True,
+        "json_key": "output",
     }
 
     def __init__(self, name="WebSocket", config_root=_config):
-        # Initialize and validate api_key
         super().__init__(name, config_root=config_root)
     
     def json_handler(self, data):
-        #TODO: Add try catch 
         response_json = json.loads(data)
-        print("AAAAAA")
-        return json.dumps(response_json[self.response_json_field])
+        return json.dumps(response_json[self.json_key])
 
 
-    def request(self, request, payload):
+    def request(self, payload):
         with connect(self.uri) as websocket:
-            websocket.send(request.replace("$INPUT", payload))
+            websocket.send(self.body.replace("$INPUT", payload))
             message = websocket.recv()
-            return self.json_handler(message) if self.response_json == True else message
-
-    def mult_request(self, request, payload):
-        with connect(self.uri) as websocket:
-            for requests in self.temp_request:
-                websocket.send(request.replace("$INPUT", payload))
+            return self.json_handler(message) if self.json_response == True else message
 
         
     def _call_model(self, prompt: str, generations_this_call: int = 1 ) -> List[Union[str, None]]:
-        return [str(self.request(self.temp_request[0], prompt))]
-
-
-        #return [str(self.request(self.temp_request,prompt))]
+        if output := self.request(self, prompt) == dict :
+            return output[self.json_key]
+        else :
+            return output
 
         
 DEFAULT_CLASS = "WebSocketGenerator" 
