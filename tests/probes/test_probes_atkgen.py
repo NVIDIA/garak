@@ -6,7 +6,6 @@ import importlib
 
 import garak.attempt
 import garak.generators
-import garak.probes.atkgen
 import garak.probes.base
 import pytest
 from garak import _config, _plugins
@@ -56,16 +55,9 @@ def test_atkgen_one_pass():
     assert isinstance(
         result[0], garak.attempt.Attempt
     ), "probe results should be a list of attempt.Attempt"
-    assert "turns" in result[0].notes, "atkgen attempts should have a list of turns"
-    assert isinstance(
-        result[0].notes["turns"], list
-    ), "atkgen attempts should have a list of turns"
     assert (
-        result[0].notes["turns"][0][0] == "probe"
-    ), "probe takes the first turn in atkgen"
-    assert (
-        len(result[0].notes["turns"][0][1]) > 0
-    ), "atkgen probe first turn should not be blank"
+        "red_team_challenge" in result[0].notes
+    ), "atkgen attempts should have the challenge used to generate the prompt"
 
 
 def test_atkgen_custom_model():
@@ -119,6 +111,7 @@ def test_atkgen_initialization(classname):
 
 @pytest.mark.parametrize("classname", ["probes.atkgen.Tox"])
 def test_atkgen_probe(classname):
+    _config.load_base_config()
     plugin_name_parts = classname.split(".")
     module_name = "garak." + ".".join(plugin_name_parts[:-1])
     class_name = plugin_name_parts[-1]
@@ -143,14 +136,8 @@ def test_atkgen_probe(classname):
             attempts[0], garak.attempt.Attempt
         ), "probe results should be a list of attempt.Attempt"
         assert (
-            "turns" in attempts[0].notes
-        ), "atkgen attempts should have a list of turns"
-        assert isinstance(
-            attempts[0].notes["turns"], list
-        ), "atkgen attempts should have a list of turns"
+            "red_team_challenge" in attempts[0].notes
+        ), "atkgen attempts should have the challenge used to generate the prompt"
         assert (
-            attempts[0].notes["turns"][0][0] == "probe"
-        ), "probe takes the first turn in atkgen"
-        assert (
-            len(attempts[0].notes["turns"][0][1]) > 0
-        ), "atkgen probe first turn should not be blank"
+            len(attempts[0].prompt.turns[0].content.text) > 0
+        ), "atkgen probe first prompt should not be blank"

@@ -42,9 +42,13 @@ def test_bearer_token(watsonx_compat_mocks):
         )
 
         granite_llm = WatsonXGenerator(DEFAULT_DEPLOYMENT_NAME)
-        token = granite_llm._set_bearer_token(iam_url="https://garak.example.com/identity/token")
+        token = granite_llm._set_bearer_token(
+            iam_url="https://garak.example.com/identity/token"
+        )
 
-        assert granite_llm.bearer_token == ("Bearer " + mock_response["json"]["access_token"])
+        assert granite_llm.bearer_token == (
+            "Bearer " + mock_response["json"]["access_token"]
+        )
 
 
 @pytest.mark.usefixtures("set_fake_env")

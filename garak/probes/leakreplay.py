@@ -74,10 +74,11 @@ class ClozeProbeMixin:
         return attempt
 
     def _postprocess_hook(self, attempt: Attempt) -> Attempt:
-        for thread in attempt.messages:
-            content = thread[-1].get("content")
-            if content:
-                thread[-1]["content"] = re.sub(r"</?name>", "", content)
+        for idx, thread in enumerate(attempt.conversations):
+            if thread.last_message().text is not None:
+                attempt.conversations[idx].last_message().text = re.sub(
+                    "</?name>", "", thread.last_message().text
+                )
         return attempt
 
 class CompleteProbeMixin:
