@@ -1,0 +1,4 @@
+dist
+node_modules
+coverage
+public/garak_report.json
