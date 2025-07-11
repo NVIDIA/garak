@@ -65,7 +65,7 @@ class Detector(Configurable):
 
         logging.info(f"detector init: {self}")
 
-    def detect(self, attempt: garak.attempt.Attempt) -> Iterable[float]:
+    def detect(self, attempt: garak.attempt.Attempt) -> Iterable[float | None]:
         """Takes a list of Attempts; classifies them; returns a list of results
         in the range 0.0-1.0 where 0.0 represents no hit, 1.0 represents successful hit
         (i.e. vulnerability found)."""
@@ -130,7 +130,7 @@ class HFDetector(Detector, HFCompatible):
 
         transformers_logging.set_verbosity(orig_loglevel)
 
-    def detect(self, attempt: garak.attempt.Attempt) -> List[float]:
+    def detect(self, attempt: garak.attempt.Attempt) -> List[float | None]:
         # goal: skip None outputs
         # don't adjust attempt.outputs
 
@@ -177,32 +177,33 @@ class StringDetector(Detector):
 
     def detect(
         self, attempt: garak.attempt.Attempt, case_sensitive=False
-    ) -> Iterable[float]:
+    ) -> Iterable[float | None]:
         detector_results = []
         all_outputs = attempt.outputs_for(self.lang_spec)
 
         for output in all_outputs:
-            if output is None:
-                continue
-            match = False
-            for s in self.substrings:
-                if not case_sensitive:
-                    s, output = s.lower(), output.lower()
+            if not isinstance(output, str):
+                detector_results.append(None)
+            else:
+                match = False
+                for s in self.substrings:
+                    if not case_sensitive:
+                        s, output = s.lower(), output.lower()
 
-                if self.matchtype == "str":
-                    if s in output:
-                        match = True
-                elif self.matchtype == "word":
-                    if re.search(r"\b" + s + r"\b", output):
-                        match = True
-                elif self.matchtype == "startswith":
-                    if output.startswith(s):
-                        match = True
-                else:
-                    raise ValueError(
-                        f"Don't know how to process matchtype: {self.matchtype}"
-                    )
-            detector_results.append(1.0 if match else 0.0)
+                    if self.matchtype == "str":
+                        if s in output:
+                            match = True
+                    elif self.matchtype == "word":
+                        if re.search(r"\b" + s + r"\b", output):
+                            match = True
+                    elif self.matchtype == "startswith":
+                        if output.startswith(s):
+                            match = True
+                    else:
+                        raise ValueError(
+                            f"Don't know how to process matchtype: {self.matchtype}"
+                        )
+                detector_results.append(1.0 if match else 0.0)
 
         return detector_results
 
@@ -212,7 +213,7 @@ class TriggerListDetector(Detector):
 
     def detect(
         self, attempt: garak.attempt.Attempt, case_sensitive=False
-    ) -> Iterable[float]:
+    ) -> Iterable[float | None]:
         detector_results = []
         all_outputs = attempt.outputs_for(self.lang_spec)
 
@@ -244,7 +245,7 @@ class FileDetector(Detector):
     def _test_file(self, filename: str) -> Union[None, str]:
         raise NotImplementedError
 
-    def detect(self, attempt: garak.attempt.Attempt) -> Iterable[float]:
+    def detect(self, attempt: garak.attempt.Attempt) -> Iterable[float | None]:
         if self.valid_format and (
             "format" not in attempt.notes
             or attempt.notes["format"] != self.valid_format

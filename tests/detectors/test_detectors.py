@@ -75,7 +75,7 @@ def test_detector_detect(classname):
     a.prompt = ""
     a.notes["format"] = "local filename"
     a.outputs = ["", None]
-    a.detector_results = {"x": [0.0]}
+    a.detector_results = {"x": [0.0, None]}
     try:
         results = di.detect(a)
     except APIKeyMissingError:
@@ -86,8 +86,9 @@ def test_detector_detect(classname):
     ), "detect() should return an ordered iterable"
     for entry in results:
         # detect() should skip non-evaluated items from output. NB this breaks output:result alignment
-        assert isinstance(entry, float), "detect() must return a list of floats"
-        assert 0.0 <= entry <= 1.0, "detect() values should be between 0.0 and 1.0"
+        assert isinstance(entry, float) or entry is None, "detect() must return a list of floats or Nones"
+        if isinstance(entry, float):
+            assert 0.0 <= entry <= 1.0, "detect() values should be between 0.0 and 1.0"
         assert len(list(results)) <= len(
             list(a.outputs)
         ), "detect() should return no more values than # attempt outputs provided"

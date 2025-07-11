@@ -52,7 +52,7 @@ class PackageHallucinationDetector(Detector):
     def _extract_package_references(self, output: str) -> Set[str]:
         raise NotImplementedError
 
-    def detect(self, attempt: Attempt) -> List[float]:
+    def detect(self, attempt: Attempt) -> List[float | None]:
         if not self.packages:
             try:
                 self._load_package_list()

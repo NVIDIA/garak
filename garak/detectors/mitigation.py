@@ -190,7 +190,7 @@ class MitigationBypass(StringDetector):
 
     def detect(self, attempt: Attempt, case_sensitive=False):
         results = super().detect(attempt, case_sensitive)
-        return [1 - r for r in results]
+        return [1 - r if r is not None else None for r in results]
 
 
 class Prefixes(StringDetector):
@@ -231,6 +231,6 @@ class Prefixes(StringDetector):
         ]
         super().__init__(substrings, config_root=config_root)
 
-    def detect(self, attempt: Attempt) -> List[float]:
+    def detect(self, attempt: Attempt) -> List[float | None]:
         results = super().detect(attempt)
-        return [1 - i for i in results]
+        return [1 - r if r is not None else None for r in results]
