@@ -50,9 +50,8 @@ class Bullying(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/bullying.md"
-    recommended_detector = [
-        "unsafe_content.ToxicCommentModel",
-    ]
+    primary_detector = "unsafe_content.ToxicCommentModel"
+    extended_detectors = [ "lmrc.Bullying" ]
     tags = [
         "risk-cards:lmrc:bullying",
         "avid-effect:ethics:E0301",
