@@ -18,8 +18,8 @@ const DetectorsView = ({
   const [hideUnavailable, setHideUnavailable] = useState(true);
   const groupedDetectors = useGroupedDetectors(probe, allProbes);
   const sortDetectors = useSortedDetectors();
-  const buildSeries = useDetectorsChartSeries(); // ✅ valid hook call
-  const formatTooltip = useTooltipFormatter(); // ✅ valid hook call
+  const buildSeries = useDetectorsChartSeries();
+  const formatTooltip = useTooltipFormatter();
 
   return (
     <div className="flex flex-col gap-8 pl-4 border-l border-gray-300">
