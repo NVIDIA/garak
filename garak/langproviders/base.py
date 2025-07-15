@@ -142,22 +142,18 @@ from garak.configurable import Configurable
 
 
 class TranslationCache:
-    def __init__(self, config_root: dict = None):
-        # Handle fallback for test configs if config_root is provided
-        self.source_lang = "en"
-        self.target_lang = "ja"
-        self.model_type = "unknown"
-
-        if config_root and isinstance(config_root, dict):
-            lang_cfg = list(config_root.get("langproviders", {}).values())[0]
-            self.source_lang = lang_cfg.get("language", "en,ja").split(",")[0]
-            self.target_lang = lang_cfg.get("language", "en,ja").split(",")[1]
-            self.model_type = lang_cfg.get("model_type", "unknown")
+    def __init__(self, provider: "LangProvider"):
+        self.source_lang = provider.source_lang
+        self.target_lang = provider.target_lang
+        self.model_type = provider.model_type
+        self.model_name = "default"
+        if hasattr(provider, "model_name"):
+            self.model_name = provider.model_name
 
         cache_dir = _config.transient.cache_dir / "translation"
         cache_dir.mkdir(mode=0o740, parents=True, exist_ok=True)
         cache_filename = (
-            f"translation_cache_{self.source_lang}_{self.target_lang}_{self.model_type}.json"
+            f"translation_cache_{self.source_lang}_{self.target_lang}_{self.model_type}_{self.model_name.replace('/', '_')}.json"
         )
         self.cache_file = cache_dir / cache_filename
         logging.info(f"Cache file: {self.cache_file}")
@@ -181,7 +177,7 @@ class TranslationCache:
             logging.warning(f"Failed to save translation cache: {e}")
 
     def get_cache_key(self, text: str) -> str:
-        return hashlib.md5(text.encode("utf-8")).hexdigest()
+        return hashlib.md5(text.encode("utf-8"), usedforsecurity=False).hexdigest()
 
     def get(self, text: str) -> str | None:
         cache_key = self.get_cache_key(text)
@@ -200,17 +196,10 @@ class TranslationCache:
             "translation": translation,
             "source_lang": self.source_lang,
             "target_lang": self.target_lang,
-            "model_type": self.model_type
+            "model_type": self.model_type,
+            "model_name": self.model_name
         }
         self._save_cache()
-
-    @property
-    def cache(self):
-        return self._cache
-
-    @property
-    def cache_file_path(self):
-        return self.cache_file
 
     def get_cache_entry(self, text: str) -> dict | None:
         """Get full cache entry including original text and metadata."""
@@ -225,7 +214,8 @@ class TranslationCache:
                 "translation": cache_entry,
                 "source_lang": self.source_lang,
                 "target_lang": self.target_lang,
-                "model_type": self.model_type
+                "model_type": self.model_type,
+                "model_name": self.model_name
             }
         return None
 
@@ -242,7 +232,7 @@ class LangProvider(Configurable):
         self._validate_env_var()
 
         # Use TranslationCache for caching
-        self.cache = TranslationCache(config_root)
+        self.cache = TranslationCache(self)
 
         self._load_langprovider()
 
