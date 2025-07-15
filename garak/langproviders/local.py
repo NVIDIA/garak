@@ -15,18 +15,11 @@ from garak.resources.api.huggingface import HFCompatible
 class Passthru(LangProvider):
     """Stand-in language provision for pass through / noop"""
 
-    def __init__(self, config_root: dict = {}) -> None:
-        super().__init__(config_root=config_root)
-
     def _load_langprovider(self):
         pass
 
     def _translate(self, text: str) -> str:
         # Use _translate_with_cache to enable caching
-        return self._translate_with_cache(text)
-
-    def _translate_impl(self, text: str) -> str:
-        """Actual translation implementation without caching."""
         return text
 
     def get_text(
