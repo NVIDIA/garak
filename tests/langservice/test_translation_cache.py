@@ -117,7 +117,9 @@ class TestTranslationCache:
             cache._cache["old_key"] = "old_translation"
 
             # Should still work with get method
-            result = cache.get("some_text")  # This will return None for non-existent key
+            result = cache.get(
+                "some_text"
+            )  # This will return None for non-existent key
             assert result is None
 
             # Should work with get_cache_entry for existing old entries
@@ -127,113 +129,137 @@ class TestTranslationCache:
     def test_remote_translator_cache_initialization(self, temp_cache_dir):
         """Test that remote translators work without __init__ methods."""
         with patch("garak._config.transient.cache_dir", temp_cache_dir):
-            from garak.langproviders.remote import RivaTranslator, DeeplTranslator, GoogleTranslator
-            
+            from garak.langproviders.remote import (
+                RivaTranslator,
+                DeeplTranslator,
+                GoogleTranslator,
+            )
+
             # Test RivaTranslator
             config_riva = {
                 "langproviders": {
                     "riva": {
                         "language": "en,ja",
                         "model_type": "remote.RivaTranslator",
-                        "api_key": "test_key"
+                        "api_key": "test_key",
                     }
                 }
             }
-            
+
             # Mock API key validation and create test subclass
-            with patch.object(RivaTranslator, '_validate_env_var'), patch.object(RivaTranslator, '_load_langprovider'):
+            with (
+                patch.object(RivaTranslator, "_validate_env_var"),
+                patch.object(RivaTranslator, "_load_langprovider"),
+            ):
+
                 class TestRivaTranslator(RivaTranslator):
                     def __init__(self, config_root={}):
                         self.language = "en,ja"
                         self.model_type = "remote.RivaTranslator"
                         super().__init__(config_root)
-                
+
                 translator_riva = TestRivaTranslator(config_root=config_riva)
-                
+
                 # Check that cache is initialized
                 assert translator_riva.cache is not None
                 assert "en_ja" in str(translator_riva.cache.cache_file)
                 assert "remote.RivaTranslator" in str(translator_riva.cache.cache_file)
-            
+
             # Test DeeplTranslator
             config_deepl = {
                 "langproviders": {
                     "deepl": {
                         "language": "en,ja",
                         "model_type": "remote.DeeplTranslator",
-                        "api_key": "test_key"
+                        "api_key": "test_key",
                     }
                 }
             }
-            
-            with patch.object(DeeplTranslator, '_validate_env_var'), patch.object(DeeplTranslator, '_load_langprovider'):
+
+            with (
+                patch.object(DeeplTranslator, "_validate_env_var"),
+                patch.object(DeeplTranslator, "_load_langprovider"),
+            ):
+
                 class TestDeeplTranslator(DeeplTranslator):
                     def __init__(self, config_root={}):
                         self.language = "en,ja"
                         self.model_type = "remote.DeeplTranslator"
                         super().__init__(config_root)
-                
+
                 translator_deepl = TestDeeplTranslator(config_root=config_deepl)
-                
+
                 assert translator_deepl.cache is not None
                 assert "en_ja" in str(translator_deepl.cache.cache_file)
-                assert "remote.DeeplTranslator" in str(translator_deepl.cache.cache_file)
-            
+                assert "remote.DeeplTranslator" in str(
+                    translator_deepl.cache.cache_file
+                )
+
             # Test GoogleTranslator
             config_google = {
                 "langproviders": {
                     "google": {
                         "language": "en,ja",
                         "model_type": "remote.GoogleTranslator",
-                        "api_key": "test_key"
+                        "api_key": "test_key",
                     }
                 }
             }
-            
-            with patch.object(GoogleTranslator, '_validate_env_var'), patch.object(GoogleTranslator, '_load_langprovider'):
+
+            with (
+                patch.object(GoogleTranslator, "_validate_env_var"),
+                patch.object(GoogleTranslator, "_load_langprovider"),
+            ):
+
                 class TestGoogleTranslator(GoogleTranslator):
                     def __init__(self, config_root={}):
                         self.language = "en,ja"
                         self.model_type = "remote.GoogleTranslator"
                         super().__init__(config_root)
-                
+
                 translator_google = TestGoogleTranslator(config_root=config_google)
-                
+
                 assert translator_google.cache is not None
                 assert "en_ja" in str(translator_google.cache.cache_file)
-                assert "remote.GoogleTranslator" in str(translator_google.cache.cache_file)
+                assert "remote.GoogleTranslator" in str(
+                    translator_google.cache.cache_file
+                )
 
     def test_remote_translator_cache_functionality(self, temp_cache_dir):
         """Test that remote translators can use cache functionality."""
         with patch("garak._config.transient.cache_dir", temp_cache_dir):
             from garak.langproviders.remote import RivaTranslator
-            
+
             config = {
                 "langproviders": {
                     "riva": {
                         "language": "en,ja",
                         "model_type": "remote.RivaTranslator",
-                        "api_key": "test_key"
+                        "api_key": "test_key",
                     }
                 }
             }
-            
-            with patch.object(RivaTranslator, '_validate_env_var'), patch.object(RivaTranslator, '_load_langprovider'):
+
+            with (
+                patch.object(RivaTranslator, "_validate_env_var"),
+                patch.object(RivaTranslator, "_load_langprovider"),
+            ):
+
                 class TestRivaTranslator(RivaTranslator):
                     def __init__(self, config_root={}):
                         self.language = "en,ja"
                         self.model_type = "remote.RivaTranslator"
                         super().__init__(config_root)
-                
+
                 translator = TestRivaTranslator(config_root=config)
-                
+
                 # Test cache functionality
                 test_text = "Hello world"
                 test_translation = "こんにちは世界"
-                
+
                 # Set cache manually
                 translator.cache.set(test_text, test_translation)
-                
+
                 # Verify cache entry
                 cache_entry = translator.cache.get_cache_entry(test_text)
                 assert cache_entry is not None
@@ -255,16 +281,16 @@ class TestTranslationCache:
             del provider.model_name  # 属性自体を削除
 
             cache = TranslationCache(provider)
-            
+
             # Verify default model_name is used
             assert cache.model_name == "default"
-            
+
             # Test cache functionality
             test_text = "Hello world"
             test_translation = "こんにちは世界"
-            
+
             cache.set(test_text, test_translation)
-            
+
             # Verify cache entry includes default model_name
             cache_entry = cache.get_cache_entry(test_text)
             assert cache_entry is not None
@@ -281,16 +307,16 @@ class TestTranslationCache:
             provider.model_name = "custom_model"
 
             cache = TranslationCache(provider)
-            
+
             # Verify custom model_name is used
             assert cache.model_name == "custom_model"
-            
+
             # Test cache functionality
             test_text = "Hello world"
             test_translation = "こんにちは世界"
-            
+
             cache.set(test_text, test_translation)
-            
+
             # Verify cache entry includes custom model_name
             cache_entry = cache.get_cache_entry(test_text)
             assert cache_entry is not None

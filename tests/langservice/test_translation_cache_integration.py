@@ -9,6 +9,7 @@ from unittest.mock import patch, MagicMock
 
 from garak.langproviders.base import LangProvider, TranslationCache
 
+
 class TestTranslationCacheIntegration:
     """Integration test for translation caching functionality."""
 
@@ -22,43 +23,49 @@ class TestTranslationCacheIntegration:
         """Test that remote translators work correctly in integration scenarios."""
         with patch("garak._config.transient.cache_dir", temp_cache_dir):
             from garak.langproviders.remote import RivaTranslator
-            
+
             config = {
                 "langproviders": {
                     "riva": {
                         "language": "en,ja",
                         "model_type": "remote.RivaTranslator",
-                        "api_key": "test_key"
+                        "api_key": "test_key",
                     }
                 }
             }
-            
+
             # Mock API key validation and create test subclass
-            with patch.object(RivaTranslator, '_validate_env_var'), patch.object(RivaTranslator, '_load_langprovider'):
+            with (
+                patch.object(RivaTranslator, "_validate_env_var"),
+                patch.object(RivaTranslator, "_load_langprovider"),
+            ):
+
                 class TestRivaTranslator(RivaTranslator):
                     def __init__(self, config_root={}):
                         self.language = "en,ja"
                         self.model_type = "remote.RivaTranslator"
                         super().__init__(config_root)
-                
+
                 translator = TestRivaTranslator(config_root=config)
-                
+
                 # Test that translator can be instantiated and has cache
                 assert translator.cache is not None
                 assert translator.source_lang == "en"
                 assert translator.target_lang == "ja"
-                
+
                 # Test that cache file path is correctly generated
                 cache_file_path = translator.cache.cache_file
                 assert "en_ja" in str(cache_file_path)
                 assert "remote.RivaTranslator" in str(cache_file_path)
                 assert "default" in str(cache_file_path)  # Default model_name
-                
+
                 # Test that translator can handle translation requests (mock)
-                with patch.object(translator, '_translate_impl', return_value="こんにちは世界"):
+                with patch.object(
+                    translator, "_translate_impl", return_value="こんにちは世界"
+                ):
                     result = translator._translate_with_cache("Hello world")
                     assert result == "こんにちは世界"
-                    
+
                     # Second call should use cache
                     result2 = translator._translate_with_cache("Hello world")
                     assert result2 == "こんにちは世界"
@@ -76,29 +83,33 @@ class TestTranslationCacheIntegration:
                     self._validate_env_var = lambda: None
                     self._load_langprovider = lambda: None
                     self.cache = TranslationCache(self)
+
                 def _translate(self, text):
                     return ""
+
                 def _translate_impl(self, text):
                     return ""
-            
+
             translator = MockLocalProvider()
-            
+
             # Test that translator can be instantiated and has cache
             assert translator.cache is not None
             assert translator.source_lang == "en"
             assert translator.target_lang == "ja"
-            
+
             # Test that cache file path is correctly generated
             cache_file_path = translator.cache.cache_file
             assert "en_ja" in str(cache_file_path)
             assert "local" in str(cache_file_path)
             assert "test_model" in str(cache_file_path)
-            
+
             # Test that translator can handle translation requests (mock)
-            with patch.object(translator, '_translate_impl', return_value="こんにちは世界"):
+            with patch.object(
+                translator, "_translate_impl", return_value="こんにちは世界"
+            ):
                 result = translator._translate_with_cache("Hello world")
                 assert result == "こんにちは世界"
-                
+
                 # Second call should use cache
                 result2 = translator._translate_with_cache("Hello world")
                 assert result2 == "こんにちは世界"
@@ -106,6 +117,7 @@ class TestTranslationCacheIntegration:
     def test_cache_persistence_across_sessions(self, temp_cache_dir):
         """Test that cache persists across different translator sessions (mocked, no Passthru)."""
         with patch("garak._config.transient.cache_dir", temp_cache_dir):
+
             class MockLocalProvider(LangProvider):
                 def __init__(self):
                     self.language = "en,ja"
@@ -115,8 +127,10 @@ class TestTranslationCacheIntegration:
                     self._validate_env_var = lambda: None
                     self._load_langprovider = lambda: None
                     self.cache = TranslationCache(self)
+
                 def _translate(self, text):
                     return ""
+
             # Create first translator instance
             translator1 = MockLocalProvider()
             # Set cache entry

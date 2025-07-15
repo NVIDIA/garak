@@ -152,9 +152,7 @@ class TranslationCache:
 
         cache_dir = _config.transient.cache_dir / "translation"
         cache_dir.mkdir(mode=0o740, parents=True, exist_ok=True)
-        cache_filename = (
-            f"translation_cache_{self.source_lang}_{self.target_lang}_{self.model_type}_{self.model_name.replace('/', '_')}.json"
-        )
+        cache_filename = f"translation_cache_{self.source_lang}_{self.target_lang}_{self.model_type}_{self.model_name.replace('/', '_')}.json"
         self.cache_file = cache_dir / cache_filename
         logging.info(f"Cache file: {self.cache_file}")
         self._cache = self._load_cache()
@@ -197,7 +195,7 @@ class TranslationCache:
             "source_lang": self.source_lang,
             "target_lang": self.target_lang,
             "model_type": self.model_type,
-            "model_name": self.model_name
+            "model_name": self.model_name,
         }
         self._save_cache()
 
@@ -215,7 +213,7 @@ class TranslationCache:
                 "source_lang": self.source_lang,
                 "target_lang": self.target_lang,
                 "model_type": self.model_type,
-                "model_name": self.model_name
+                "model_name": self.model_name,
             }
         return None
 
