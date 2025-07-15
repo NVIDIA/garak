@@ -20,8 +20,8 @@ Garak implements a translation caching system to improve performance and reduce 
 
 **How it works:**
 
-- Each translation pair (source language → target language) and model type combination gets its own cache file
-- Cache files are stored in JSON format under the cache directory: ``{cache_dir}/translation/translation_cache_{source_lang}_{target_lang}_{model_type}.json``
+- Each translation pair (source language → target language) gets its own cache file
+- Cache files are stored in JSON format under the cache directory: ``{cache_dir}/translation/translation_cache_{source_lang}_{target_lang}_{model_type}_{model_name}.json``
 - Translation results are keyed by MD5 hash of the input text for efficient storage and retrieval
 - Cache files persist between runs, allowing translations to be reused across multiple garak sessions
 
