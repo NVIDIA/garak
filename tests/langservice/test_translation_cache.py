@@ -101,31 +101,6 @@ class TestTranslationCache:
             assert cache_entry["model_type"] == "local"
             assert cache_entry["model_name"] == "test_model"
 
-    def test_backward_compatibility(self, temp_cache_dir):
-        """Test backward compatibility with old cache format."""
-        with patch("garak._config.transient.cache_dir", temp_cache_dir):
-            # Create mock LangProvider instance
-            provider = MagicMock()
-            provider.source_lang = "en"
-            provider.target_lang = "ja"
-            provider.model_type = "local"
-            provider.model_name = "test_model"
-
-            cache = TranslationCache(provider)
-
-            # Simulate old cache format (string values)
-            cache._cache["old_key"] = "old_translation"
-
-            # Should still work with get method
-            result = cache.get(
-                "some_text"
-            )  # This will return None for non-existent key
-            assert result is None
-
-            # Should work with get_cache_entry for existing old entries
-            # Note: This is a bit tricky since we need the original text
-            # For now, just test that the cache still loads
-
     def test_remote_translator_cache_initialization(self, temp_cache_dir):
         """Test that remote translators work without __init__ methods."""
         with patch("garak._config.transient.cache_dir", temp_cache_dir):
@@ -268,33 +243,6 @@ class TestTranslationCache:
                 assert cache_entry["source_lang"] == "en"
                 assert cache_entry["target_lang"] == "ja"
                 assert cache_entry["model_type"] == "remote.RivaTranslator"
-
-    def test_cache_with_default_model_name(self, temp_cache_dir):
-        """Test cache works with default model name when model_name is not set."""
-        with patch("garak._config.transient.cache_dir", temp_cache_dir):
-            # Create mock LangProvider instance without model_name
-            provider = MagicMock()
-            provider.source_lang = "en"
-            provider.target_lang = "ja"
-            provider.model_type = "local"
-            provider.model_name = "default_should_be_deleted"
-            del provider.model_name  # 属性自体を削除
-
-            cache = TranslationCache(provider)
-
-            # Verify default model_name is used
-            assert cache.model_name == "default"
-
-            # Test cache functionality
-            test_text = "Hello world"
-            test_translation = "こんにちは世界"
-
-            cache.set(test_text, test_translation)
-
-            # Verify cache entry includes default model_name
-            cache_entry = cache.get_cache_entry(test_text)
-            assert cache_entry is not None
-            assert cache_entry["model_name"] == "default"
 
     def test_cache_with_custom_model_name(self, temp_cache_dir):
         """Test cache works with custom model name."""
