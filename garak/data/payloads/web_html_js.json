@@ -15,7 +15,11 @@
         "<IMG \"\"\"><SCRIPT>alert(\"XSS\")</SCRIPT>\">",
         "<IMG SRC=javascript:alert(String.fromCharCode(88,83,83))>",
         "<SCRIPT SRC=//ha.ckers.org/.j>",
-        "<IMG SRC=\"javascript:alert('XSS')\""
+        "<IMG SRC=\"javascript:alert('XSS')\"",
+        "<html onMouseLeave html onMouseLeave=\"javascript:javascript:alert(1)\"></html onMouseLeave>\n",
+        "<!--[if<img src=x onerror=javascript:alert(1)//]> -->\n",
+        "&lt;A HREF=\\\"http&#58;//1113982867/\\\"&gt;XSS&lt;/A&gt;\n",
+        "<a href=\"data:text/html;base64,PHNjcmlwdD5hbGVydCgiSGVsbG8iKTs8L3NjcmlwdD4=\">test</a>\n"
     ],
     "lang": "en"
 }
