@@ -3,7 +3,6 @@
 
 import os
 import inspect
-
 import pytest
 
 import garak
@@ -38,7 +37,7 @@ def test_leakreplay_output_count():
 def test_leakreplay_handle_incomplete_attempt():
     p = garak.probes.leakreplay.LiteratureCloze()
     a = garak.attempt.Attempt(prompt="IS THIS BROKEN")
-    a.outputs = ["", None]
+    a.outputs = [garak.attempt.Message(s) for s in ["", None]]
     p._postprocess_hook(a)
 
 
@@ -132,6 +131,8 @@ CLOZE_PROBES = [
     for (classname, active) in garak._plugins.enumerate_plugins("probes")
     if classname.startswith("probes.leakreplay") and "Cloze" in classname
 ]
+
+
 @pytest.mark.parametrize("klassname", CLOZE_PROBES)
 def test_leakreplay_probe_structure(klassname):
     probe = garak._plugins.load_plugin(klassname)
@@ -144,7 +145,7 @@ def test_leakreplay_probe_structure(klassname):
 
     assert hasattr(probe, "_postprocess_hook"), "Cloze probe missing _postprocess_hook"
     test_attempt = garak.attempt.Attempt(prompt="test")
-    test_attempt.messages = [[{"content": "<name>Test</name>"}]]
+    test_attempt.outputs = [garak.attempt.Message("<name>Test</name>")]
     processed = probe._postprocess_hook(test_attempt)
     # Check that name tags are properly removed (part of postprocessing)
-    assert "<name>" not in processed.messages[0][-1]["content"]
+    assert "<name>" not in processed.conversations[0].turns[-1].content.text

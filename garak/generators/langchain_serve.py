@@ -6,6 +6,7 @@ from typing import List, Union
 from urllib.parse import urlparse
 
 from garak import _config
+from garak.attempt import Message, Conversation
 from garak.generators.base import Generator
 
 
@@ -61,11 +62,13 @@ class LangChainServeLLMGenerator(Generator):
             return False
 
     def _call_model(
-        self, prompt: str, generations_this_call: int = -1
-    ) -> List[Union[str, None]]:
+        self, prompt: Conversation, generations_this_call: int = -1
+    ) -> List[Union[Message, None]]:
         """Makes an HTTP POST request to the LangChain Serve API endpoint to invoke the LLM with a given prompt."""
+        # Should this be expanded to process a whole conversation in some way?
+        prompt_text = prompt.last_message().text
         headers = {"Content-Type": "application/json", "Accept": "application/json"}
-        payload = {"input": prompt, "config": {}, "kwargs": {}}
+        payload = {"input": prompt_text, "config": {}, "kwargs": {}}
 
         try:
             response = requests.post(
@@ -76,10 +79,10 @@ class LangChainServeLLMGenerator(Generator):
             response.raise_for_status()
         except requests.exceptions.HTTPError as e:
             if 400 <= response.status_code < 500:
-                logging.error(f"Client error for prompt {prompt}: {e}")
+                logging.error(f"Client error for prompt {prompt_text}: {e}")
                 return [None]
             elif 500 <= response.status_code < 600:
-                logging.error(f"Server error for prompt {prompt}: {e}")
+                logging.error(f"Server error for prompt {prompt_text}: {e}")
                 raise
         except requests.exceptions.RequestException as e:
             logging.error(f"Request failed: {e}")
@@ -90,7 +93,7 @@ class LangChainServeLLMGenerator(Generator):
             if "output" not in response_data:
                 logging.error(f"No output found in response: {response_data}")
                 return [None]
-            return response_data.get("output")
+            return [Message(response_data.get("output")[0])]
         except json.JSONDecodeError as e:
             logging.error(
                 f"Failed to decode JSON from response: {response.text}, error: {e}"

@@ -2,6 +2,7 @@ import pytest
 
 from os import getenv
 
+from garak.attempt import Message, Turn, Conversation
 from garak.exception import BadGeneratorException
 from garak.generators.litellm import LiteLLMGenerator
 
@@ -16,12 +17,11 @@ def test_litellm_openai():
     assert generator.name == model_name
     assert isinstance(generator.max_tokens, int)
 
-    output = generator.generate("How do I write a sonnet?")
+    output = generator.generate(Message("How do I write a sonnet?"))
     assert len(output) == 1  # expect 1 generation by default
 
     for item in output:
-        assert isinstance(item, str)
-    print("test passed!")
+        assert isinstance(item, Message)
 
 
 @pytest.mark.skipif(
@@ -34,12 +34,11 @@ def test_litellm_openrouter():
     assert generator.name == model_name
     assert isinstance(generator.max_tokens, int)
 
-    output = generator.generate("How do I write a sonnet?")
+    output = generator.generate(Message("How do I write a sonnet?"))
     assert len(output) == 1  # expect 1 generation by default
 
     for item in output:
-        assert isinstance(item, str)
-    print("test passed!")
+        assert isinstance(item, Message)
 
 
 def test_litellm_model_detection():
@@ -52,8 +51,11 @@ def test_litellm_model_detection():
     }
     model_name = "non-existent-model"
     generator = LiteLLMGenerator(name=model_name, config_root=custom_config)
+    conv = Conversation(
+        [Turn("user", Message("This should raise a BadGeneratorException"))]
+    )
     with pytest.raises(BadGeneratorException):
-        generator.generate("This should raise an exception")
+        generator.generate(conv)
     generator = LiteLLMGenerator(name="openai/invalid-model", config_root=custom_config)
     with pytest.raises(BadGeneratorException):
-        generator.generate("This should raise an exception")
+        generator.generate(conv)
