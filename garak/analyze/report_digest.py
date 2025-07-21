@@ -15,7 +15,6 @@ import statistics
 import sys
 from typing import IO, List, Union
 
-import jinja2
 import sqlite3
 
 import garak
@@ -27,20 +26,6 @@ import garak.analyze.calibration
 
 if not _config.loaded:
     _config.load_config()
-
-templateLoader = jinja2.FileSystemLoader(
-    searchpath=_config.transient.package_dir / "analyze" / "templates"
-)
-templateEnv = jinja2.Environment(loader=templateLoader)
-
-header_template = templateEnv.get_template("digest_header.jinja")
-footer_template = templateEnv.get_template("digest_footer.jinja")
-group_template = templateEnv.get_template("digest_group.jinja")
-probe_template = templateEnv.get_template("digest_probe.jinja")
-detector_template = templateEnv.get_template("digest_detector.jinja")
-end_module = templateEnv.get_template("digest_end_module.jinja")
-about_z_template = templateEnv.get_template("digest_about_z.jinja")
-
 
 misp_resource_file = data_path / "misp_descriptions.tsv"
 misp_descriptions = {}
@@ -442,63 +427,24 @@ def build_digest(report_filename: str, config=_config):
     return report_digest
 
 
-def build_html(digest: dict, config=_config):
-    # taxonomy = config.reporting.taxonomy
-    # group_aggregation_function = config.reporting.group_aggregation_function
+def build_html(digest: dict, config=_config) -> str:
+    # Read the template HTML
+    template_path = os.path.join(os.path.dirname(__file__), "ui", "index.html")
+    if not os.path.exists(template_path):
+        print(f"❌ Template file not found: {template_path}", file=sys.stderr)
+        return json.dumps(digest, indent=2)  # fallback: just dump JSON
 
-    html_report_content = ""
+    with open(template_path, "r", encoding="utf-8") as template_file:
+        content = template_file.read()
 
-    header_content = digest["meta"]
-    header_content["setup"] = pprint.pformat(
-        header_content["setup"], sort_dicts=True, width=60
-    )
-    header_content["now"] = datetime.datetime.now().isoformat()
-    html_report_content += header_template.render(header_content)
+    if "__GARAK_INSERT_HERE__" not in content:
+        print("❌ Marker __GARAK_INSERT_HERE__ not found in template HTML", file=sys.stderr)
+        return json.dumps(digest, indent=2)  # fallback: just dump JSON
 
-    group_names = digest["eval"].keys()
-    for probe_group in group_names:
-        group_info = digest["eval"][probe_group]["_summary"]
-
-        group_info["unrecognised_aggregation_function"] = digest["meta"][
-            "aggregation_unknown"
-        ]
-        group_info["show_top_group_score"] = config.reporting.show_top_group_score
-
-        html_report_content += group_template.render(group_info)
-
-        if group_info["score"] < 1.0 or config.reporting.show_100_pass_modules:
-            for probe_name in digest["eval"][probe_group].keys():
-                if probe_name == "_summary":
-                    continue
-                probe_info = digest["eval"][probe_group][probe_name]["_summary"]
-                html_report_content += probe_template.render(probe_info)
-
-                detector_names = digest["eval"][probe_group][probe_name].keys()
-                for detector_name in detector_names:
-                    if detector_name == "_summary":
-                        continue
-
-                    probe_detector_result = digest["eval"][probe_group][probe_name][
-                        detector_name
-                    ]
-
-                    if (
-                        probe_detector_result["absolute_score"] < 1.0
-                        or config.reporting.show_100_pass_modules
-                    ):
-                        html_report_content += detector_template.render(
-                            probe_detector_result
-                        )
-
-        html_report_content += end_module.render()
-
-    if digest["meta"]["calibration_used"]:
-        html_report_content += about_z_template.render(digest["meta"]["calibration"])
-
-    html_report_content += footer_template.render()
-
-    return html_report_content
-
+    # Embed digest JSON inside the template
+    digest_json = json.dumps([digest], separators=(",", ":"))
+    final_html = content.replace("__GARAK_INSERT_HERE__", digest_json)
+    return final_html
 
 def _get_report_digest(report_path):
     with open(report_path, "r", encoding="utf-8") as reportfile:
