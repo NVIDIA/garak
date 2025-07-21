@@ -89,6 +89,32 @@ python scripts/build_report_index.py
 
 ---
 
+### 🔄 How `reports.js` Works in Local Development
+
+`src/pages/Report.tsx` first tries to load build-time data that is injected by the Vite replacer (`__GARAK_INSERT_HERE__`).  In **production builds** this placeholder is replaced at build time with a JSON array of digest objects, so everything is bundled.
+
+During **development** the placeholder is left empty, so the code falls back to reading
+
+```ts
+window.reportsData
+```
+
+If the dev server finds `public/reports/reports.js` it is served automatically and executed by the browser, assigning `window.reportsData = [...]` before React renders.  This lets you:
+
+1. Drop any digest JSON (or a hand-crafted minimal sample) into `public/reports/`.
+2. Generate `reports.js` by running Garak’s helper:
+
+   ```bash
+   python -m garak.analyze.aggregate_reports --input public/reports/digest*.json \
+          --output public/reports/reports.js
+   ```
+
+3. Start the dev server (`yarn dev`) – the UI will pick up that global array and render immediately.
+
+No proxy or API server is needed; just regenerate `reports.js` whenever you’ve produced new digests and refresh the browser.
+
+---
+
 ## 🛠️ Project Structure
 
 ```
