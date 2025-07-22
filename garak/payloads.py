@@ -27,7 +27,7 @@ PAYLOAD_SCHEMA = {
         "detector_name": {"type": "string"},
         "detector_config": {"type": "object"},
         "payloads": {"type": "array", "items": {"type": "string"}},
-        "bcp47": {"type": "string"},
+        "lang": {"type": "string"},
     },
     "required": [
         "garak_payload_name",

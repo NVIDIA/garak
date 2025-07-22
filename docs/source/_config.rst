@@ -27,4 +27,4 @@ Code
 .. automodule:: garak._config
    :members:
    :undoc-members:
-   :show-inheritance:   
+   :show-inheritance:

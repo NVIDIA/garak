@@ -39,8 +39,7 @@ logger = getLogger(__name__)
 
 
 def token_gradients(model, input_ids, input_slice, target_slice, loss_slice):
-    """
-    Computes gradients of the loss with respect to the coordinates.
+    """Computes gradients of the loss with respect to the coordinates.
 
     Parameters
     ----------
@@ -116,7 +115,7 @@ class GCGPromptManager(PromptManager):
 
     def sample_control(self, grad, batch_size, topk=256, temp=1, allow_non_ascii=True):
         if not allow_non_ascii:
-            grad[:, self._nonascii_toks.to(grad.device)] = np.infty
+            grad[:, self._nonascii_toks.to(grad.device)] = np.inf
         top_indices = (-grad).topk(topk, dim=1).indices
         control_toks = self.control_toks.to(grad.device)
         original_control_toks = control_toks.repeat(batch_size, 1)

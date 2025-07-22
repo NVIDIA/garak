@@ -103,6 +103,5 @@ class ProbewiseHarness(Harness):
                     if d:
                         detectors.append(d)
 
-            h = Harness()
-            h.run(model, [probe], detectors, evaluator, announce_probe=False)
+            super().run(model, [probe], detectors, evaluator, announce_probe=False)
             # del probe, h, detectors

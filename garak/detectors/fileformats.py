@@ -21,7 +21,7 @@ class PossiblePickleName(FileDetector):
     that look like pickle files."""
 
     valid_format = None
-    bcp47 = "*"
+    lang_spec = "*"
 
     def _test_file(self, filename: str) -> None | str:
         if filename.lower().endswith(".pkl"):
@@ -33,11 +33,9 @@ class PossiblePickleName(FileDetector):
 
 
 class FileIsPickled(FileDetector):
-    """
-    Check whether a file is pickled.
-    """
+    """Check whether a file is pickled."""
 
-    bcp47 = "*"
+    lang_spec = "*"
 
     def _test_file(self, filename):
         try:
@@ -70,11 +68,9 @@ class FileIsPickled(FileDetector):
 
 
 class FileIsExecutable(FileDetector):
-    """
-    Magic check if file is portable or linear executable (exe/dll/vxd/..)
-    """
+    """Magic check if file is portable or linear executable (exe/dll/vxd/..)"""
 
-    bcp47 = "*"
+    lang_spec = "*"
 
     exec_types = {
         "text/x-shellscript",
@@ -94,7 +90,7 @@ class FileIsExecutable(FileDetector):
         except (ImportError, ModuleNotFoundError) as e:
             logging.info(
                 "detectors.fileformats: failed importing python-magic, try installing libmagic, e.g. `brew install libmagic`",
-                e,
+                exc_info=e,
             )
             self.magic = None
 

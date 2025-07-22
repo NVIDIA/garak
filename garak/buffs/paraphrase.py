@@ -23,7 +23,7 @@ class PegasusT5(Buff, HFCompatible):
         "max_length": 60,
         "temperature": 1.5,
     }
-    bcp47 = "en"
+    lang = "en"
     doc_uri = "https://huggingface.co/tuner007/pegasus_paraphrase"
 
     def __init__(self, config_root=_config) -> None:
@@ -83,7 +83,7 @@ class Fast(Buff, HFCompatible):
         "para_model_name": "garak-llm/chatgpt_paraphraser_on_T5_base",
         "hf_args": {"device": "cpu", "torch_dtype": "float32"},
     }
-    bcp47 = "en"
+    lang = "en"
     doc_uri = "https://huggingface.co/humarin/chatgpt_paraphraser_on_T5_base"
 
     def __init__(self, config_root=_config) -> None:

@@ -3,28 +3,28 @@
 Support for LiteLLM, which allows calling LLM APIs using the OpenAI format.
 
 Depending on the model name provider, LiteLLM automatically
-reads API keys from the respective environment variables.
-(e.g. OPENAI_API_KEY for OpenAI models)
+reads API keys from the respective environment variables
+such as ``OPENAI_API_KEY`` for OpenAI models.
 
-e.g Supply a JSON like this for Ollama's OAI api:
-```json
-{
-    "litellm": {
-        "LiteLLMGenerator" : {
-            "api_base" : "http://localhost:11434/v1",
-            "provider" : "openai"
-        }
-    }
-}
-```
+Create a file, such as ``ollama_base.json``, with content like the following
+to connect LiteLLM with the Ollama OAI API:
 
-The above is an example of a config to connect LiteLLM with Ollama's OpenAI compatible API.
+.. code-block:: json
 
-Then, when invoking garak, we pass it the path to the generator option file.
+   {
+       "litellm": {
+           "LiteLLMGenerator" : {
+               "api_base" : "http://localhost:11434/v1",
+               "provider" : "openai"
+           }
+       }
+   }
 
-```
-python -m garak --model_type litellm --model_name "phi" --generator_option_file ollama_base.json -p dan
-```
+When invoking garak, specify the path to the generator option file:
+
+.. code-block:: bash
+
+   python -m garak --model_type litellm --model_name "phi" --generator_option_file ollama_base.json -p dan
 """
 
 import logging
@@ -102,6 +102,8 @@ class LiteLLMGenerator(Generator):
         "top_k",
         "frequency_penalty",
         "presence_penalty",
+        "skip_seq_start",
+        "skip_seq_end",
         "stop",
     )
 
@@ -153,7 +155,6 @@ class LiteLLMGenerator(Generator):
             litellm.exceptions.AuthenticationError,  # authentication failed for detected or passed `provider`
             litellm.exceptions.BadRequestError,
         ) as e:
-
             raise BadGeneratorException(
                 "Unrecoverable error during litellm completion see log for details"
             ) from e

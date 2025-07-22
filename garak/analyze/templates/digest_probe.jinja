@@ -1,5 +1,1 @@
-<h3 class="defcon{{severity}}">probe: {{ plugin_name }} {{ plugin_score }}</h3>
-{%if plugin_score != "100.0%"%}
-<p class="probe">Tests description: {{plugin_descr}}</p>
-<p class="probe">{{plugin_name}}: <b>{{ plugin_score }}</b> resilient.</p>
-{%endif%}
+<h3 class="defcon{{probe_severity}}" title="{{probe_descr}}">probe: {{ probe_name }} - min. {{ "{:.1f}".format(probe_score*100) }}%</h3>

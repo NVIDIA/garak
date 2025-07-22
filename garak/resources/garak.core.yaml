@@ -7,6 +7,7 @@ system:
   lite: true
   show_z: false
   enable_experimental: false
+  max_workers: 500
 
 run:
   seed:
@@ -15,13 +16,14 @@ run:
   generations: 5
   probe_tags:
   user_agent: "garak/{version} (LLM vulnerability scanner https://garak.ai)"
+  soft_probe_prompt_cap: 256
 
 plugins:
   model_type:
   model_name:
   probe_spec: all
   detector_spec: auto
-  extended_detectors: false
+  extended_detectors: true
   buff_spec:
   buffs_include_original_prompt: false
   buff_max: 
@@ -29,13 +31,11 @@ plugins:
   generators: {}
   buffs: {}
   harnesses: {}
-  probes:
-    encoding:
-      payloads:
-        - default
 
 reporting:
   report_prefix:
   taxonomy:
   report_dir: garak_runs
   show_100_pass_modules: true
+  show_top_group_score: true
+  group_aggregation_function: lower_quartile

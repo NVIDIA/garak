@@ -7,11 +7,13 @@
 
 # logging should be set up before config is loaded
 
+import platform
 from collections import defaultdict
 from dataclasses import dataclass
 import importlib
 import logging
 import os
+import stat
 import pathlib
 from typing import List
 import yaml
@@ -53,6 +55,7 @@ class BuffManager:
 class TransientConfig(GarakSubConfig):
     """Object to hold transient global config items not set externally"""
 
+    log_filename = None
     report_filename = None
     reportfile = None
     hitlogfile = None
@@ -111,9 +114,24 @@ config_files = []
 
 # this is so popular, let's set a default. what other defaults are worth setting? what's the policy?
 run.seed = None
+run.soft_probe_prompt_cap = 64
+run.target_lang = "en"
+run.langproviders = []
 
 # placeholder
 # generator, probe, detector, buff = {}, {}, {}, {}
+
+
+def _key_exists(d: dict, key: str) -> bool:
+    # Check for the presence of a key in a nested dict.
+    if not isinstance(d, dict) and not isinstance(d, list):
+        return False
+    if isinstance(d, list):
+        return any([_key_exists(item, key) for item in d])
+    if isinstance(d, dict) and key in d.keys():
+        return True
+    else:
+        return any([_key_exists(val, key) for val in d.values()])
 
 
 def _set_settings(config_obj, settings_obj: dict):
@@ -122,7 +140,7 @@ def _set_settings(config_obj, settings_obj: dict):
     return config_obj
 
 
-def _combine_into(d: dict, combined: dict) -> None:
+def _combine_into(d: dict, combined: dict) -> dict:
     if d is None:
         return combined
     for k, v in d.items():
@@ -141,6 +159,28 @@ def _load_yaml_config(settings_filenames) -> dict:
         with open(settings_filename, encoding="utf-8") as settings_file:
             settings = yaml.safe_load(settings_file)
             if settings is not None:
+                if _key_exists(settings, "api_key"):
+                    if platform.system() == "Windows":
+                        msg = (
+                            f"A possibly secret value (`api_key`) was detected in {settings_filename}. "
+                            f"We recommend removing potentially sensitive values from config files or "
+                            f"ensuring the file is readable only by you."
+                        )
+                        logging.warning(msg)
+                        print(f"⚠️  {msg}")
+                    else:
+                        logging.info(
+                            f"API key found in {settings_filename}. Checking readability..."
+                        )
+                        res = os.stat(settings_filename)
+                        if res.st_mode & stat.S_IROTH or res.st_mode & stat.S_IRGRP:
+                            msg = (
+                                f"A possibly secret value (`api_key`) was detected in {settings_filename}, "
+                                f"which is readable by users other than yourself. "
+                                f"Consider changing permissions on this file to only be readable by you."
+                            )
+                            logging.warning(msg)
+                            print(f"⚠️  {msg}")
                 config = _combine_into(settings, config)
     return config
 

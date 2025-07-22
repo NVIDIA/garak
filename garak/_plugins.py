@@ -132,6 +132,8 @@ class PluginCache:
                     continue
                 if module_filename.startswith("__"):
                     continue
+                if module_filename.startswith("_"):
+                    continue
                 found_filenames.add(plugin_path / module_filename)
             if found_filenames != validated_plugin_filenames:
                 return False
@@ -373,9 +375,14 @@ def load_plugin(path, break_on_fail=True, config_root=_config) -> object:
         match len(parts):
             case 2:
                 category, module_name = parts
-                generator_mod = importlib.import_module(
-                    f"garak.{category}.{module_name}"
-                )
+                try:
+                    generator_mod = importlib.import_module(
+                        f"garak.{category}.{module_name}"
+                    )
+                except ModuleNotFoundError as e:
+                    raise ValueError(
+                        f"Unknown plugin module specification: {category}.{module_name}"
+                    ) from e
                 if generator_mod.DEFAULT_CLASS:
                     plugin_class_name = generator_mod.DEFAULT_CLASS
                 else:
@@ -391,7 +398,7 @@ def load_plugin(path, break_on_fail=True, config_root=_config) -> object:
     except ValueError as ve:
         if break_on_fail:
             raise ValueError(
-                f'Expected plugin name in format category.module_name.class_name, got "{path}"'
+                f'Expected plugin name in format category.module_name.class_name or category.module_name, got "{path}"'
             ) from ve
         else:
             return False
@@ -401,7 +408,13 @@ def load_plugin(path, break_on_fail=True, config_root=_config) -> object:
     except Exception as e:
         logging.warning("Exception failed import of %s", module_path, exc_info=e)
         if break_on_fail:
-            raise ValueError("Didn't successfully import " + module_name) from e
+            raise ValueError(
+                "❌ Didn't successfully import "
+                + category
+                + " plugin: '"
+                + module_name
+                + "'\n- Check spelling and garak log"
+            ) from e
         else:
             return False
 

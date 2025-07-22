@@ -3,14 +3,14 @@
 
 """Base harness
 
-A harness coordinates running probes on a generator, running detectors on the 
+A harness coordinates running probes on a generator, running detectors on the
 outputs, and evaluating the results.
 
-This module ncludes the class Harness, which all `garak` harnesses must 
+This module includes the class Harness, which all `garak` harnesses must
 inherit from.
 """
 
-
+import importlib
 import json
 import logging
 import types
@@ -24,6 +24,29 @@ from garak import _plugins
 from garak.configurable import Configurable
 
 
+def _initialize_runtime_services():
+    """Initialize and validate runtime services required for a successful test"""
+
+    from garak.exception import GarakException
+
+    # TODO: this block may be gated in the future to ensure it is only run once. At this time
+    # only one harness will execute per run so the output here is reasonable.
+    service_names = ["garak.langservice"]
+    for service_name in service_names:
+        logging.info("service import: " + service_name)
+        service = importlib.import_module(service_name)
+        try:
+            if service.enabled():
+                symbol, msg = service.start_msg()
+                if len(msg):
+                    logging.info(msg)
+                    print(f"{symbol} {msg}")
+                service.load()
+        except GarakException as e:
+            logging.critical(f"❌ {service_name} setup failed! ❌", exc_info=e)
+            raise e
+
+
 class Harness(Configurable):
     """Class to manage the whole process of probing, detecting and evaluating"""
 
@@ -35,6 +58,9 @@ class Harness(Configurable):
 
     def __init__(self, config_root=_config):
         self._load_config(config_root)
+
+        _initialize_runtime_services()
+
         logging.info("harness init: %s", self)
 
     def _load_buffs(self, buff_names: List) -> None:
@@ -139,7 +165,7 @@ class Harness(Configurable):
 
             for attempt in attempt_results:
                 attempt.status = garak.attempt.ATTEMPT_COMPLETE
-                _config.transient.reportfile.write(json.dumps(attempt.as_dict()) + "\n")
+                _config.transient.reportfile.write(json.dumps(attempt.as_dict(), ensure_ascii=False) + "\n")
 
             if len(attempt_results) == 0:
                 logging.warning(

@@ -3,6 +3,7 @@
 These always return a certain result, used mostly in testing
 or to indicate where a class' child should override something."""
 
+import random
 from typing import List
 
 from garak.attempt import Attempt
@@ -12,7 +13,7 @@ from garak.detectors.base import Detector
 class Fail(Detector):
     """Always Fail (for testing & prototyping)"""
 
-    bcp47 = "*"
+    lang_spec = "*"
 
     def detect(self, attempt: Attempt) -> List[float]:
         return [1.0] * len(attempt.all_outputs)
@@ -21,7 +22,7 @@ class Fail(Detector):
 class Pass(Detector):
     """Always Pass (for testing & prototyping)"""
 
-    bcp47 = "*"
+    lang_spec = "*"
 
     def detect(self, attempt: Attempt) -> List[float]:
         return [0.0] * len(attempt.all_outputs)
@@ -30,7 +31,7 @@ class Pass(Detector):
 class Passthru(Detector):
     """Send existing attempt detection results; use first detector"""
 
-    bcp47 = "*"
+    lang_spec = "*"
 
     DEFAULT_PARAMS = Detector.DEFAULT_PARAMS | {
         "skip": True,
@@ -42,3 +43,12 @@ class Passthru(Detector):
         ), "Only use passthru on attempts that already have detector scores"
         detector_chosen = sorted(list(attempt.detector_results.keys()))[0]
         return attempt.detector_results[detector_chosen]
+
+
+class Random(Detector):
+    """Always return a random result (for testing & prototyping)"""
+
+    lang_spec = "*"
+
+    def detect(self, attempt: Attempt) -> List[float]:
+        return [random.random() for _ in range(len(attempt.all_outputs))]

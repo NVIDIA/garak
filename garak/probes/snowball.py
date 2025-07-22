@@ -10,16 +10,16 @@ import json
 
 from garak import _config
 from garak.data import path as data_path
-from garak.probes.base import Probe
+import garak.probes
 
 
-class GraphConnectivity(Probe):
+class GraphConnectivityFull(garak.probes.Probe):
     """Probe asking for impossible flight routings
 
     This probe attempts to catch models generating false claims by asking for a solution
     to an impossible problem, couched as a flight routing question"""
 
-    bcp47 = "en"
+    lang = "en"
     doc_uri = "https://github.com/Nanami18/Snowballed_Hallucination"
     recommended_detector = ["snowball.DontStartYes"]
     tags = [
@@ -30,6 +30,7 @@ class GraphConnectivity(Probe):
     ]
     goal = "trick the model into saying an impossible flight routing is possible"
     active = False
+    tier = garak.probes.Tier.COMPETE_WITH_SOTA
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -41,8 +42,8 @@ class GraphConnectivity(Probe):
             self.prompts = json.load(f)
 
 
-class GraphConnectivityMini(GraphConnectivity, Probe):
-    __doc__ = GraphConnectivity.__doc__ + " - limited number of examples"
+class GraphConnectivity(GraphConnectivityFull, garak.probes.Probe):
+    __doc__ = GraphConnectivityFull.__doc__ + " - limited number of examples"
     active = True
 
     def __init__(self, config_root=_config):
@@ -50,13 +51,13 @@ class GraphConnectivityMini(GraphConnectivity, Probe):
         self.prompts = self.prompts[-100:]
 
 
-class Primes(Probe):
+class PrimesFull(garak.probes.Probe):
     """Ask model to check a list of higher primes
 
     This probe checks if a model is prone to generating false claims by asking if a given
     number is or isn't prime."""
 
-    bcp47 = "en"
+    lang = "en"
     doc_uri = "https://github.com/Nanami18/Snowballed_Hallucination"
     recommended_detector = ["snowball.DontStartNo"]
     tags = [
@@ -67,6 +68,7 @@ class Primes(Probe):
     ]
     goal = "trick the model into saying a prime number isn't prime"
     active = False
+    tier = garak.probes.Tier.INFORMATIONAL
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -79,23 +81,23 @@ class Primes(Probe):
             self.prompts = [entry["question"] for entry in dataset]
 
 
-class PrimesMini(Primes, Probe):
-    __doc__ = Primes.__doc__ + " - limited number of examples"
-    active = True
+class Primes(PrimesFull, garak.probes.Probe):
+    __doc__ = PrimesFull.__doc__ + " - limited number of examples"
+    active = False
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
         self.prompts = self.prompts[-100:]
 
 
-class Senators(Probe):
+class SenatorsFull(garak.probes.Probe):
     """Asking for senators that don't exist
 
     This probe attempts to find generators prone to generating false claims by
     requesting the name of a US senator given constraints for which there isn't
     a senator"""
 
-    bcp47 = "en"
+    lang = "en"
     doc_uri = "https://github.com/Nanami18/Snowballed_Hallucination"
     recommended_detector = ["snowball.DontStartYes"]
     tags = [
@@ -106,6 +108,7 @@ class Senators(Probe):
     ]
     goal = "trick the model into saying a fictitious senator exists"
     active = False
+    tier = garak.probes.Tier.INFORMATIONAL
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -117,9 +120,9 @@ class Senators(Probe):
             self.prompts = json.load(f)
 
 
-class SenatorsMini(Senators, Probe):
-    __doc__ = Senators.__doc__ + " - limited number of examples"
-    active = True
+class Senators(SenatorsFull, garak.probes.Probe):
+    __doc__ = SenatorsFull.__doc__ + " - limited number of examples"
+    active = False
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)

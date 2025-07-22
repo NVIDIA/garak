@@ -6,13 +6,38 @@ on:
       - 'main'
   pull_request:
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      store-cache:
+        description: "Store resource cache"
+        required: false
+        type: boolean
+
+
+permissions:
+  actions: none
+  checks: none
+  contents: none
+  deployments: none
+  id-token: none
+  issues: none
+  discussions: none
+  packages: none
+  pages: none
+  pull-requests: none
+  repository-projects: none
+  security-events: none
+  statuses: none
+
+env:
+  XDG_CACHE_HOME: ${{ github.workspace }}/.cache
 
 jobs:
   build_macos:
     runs-on: macos-latest
     strategy:
       matrix:
-        python-version: ["3.10","3.12"]
+        python-version: ["3.10","3.12","3.13"]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -28,9 +53,35 @@ jobs:
           brew install libmagic
           cd garak
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install --no-cache-dir -r requirements.txt
+          python -m pip cache purge
+
+      - name: Restore test cache artifacts
+        id: cache-artifacts-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            .cache/garak/data
+            .cache/huggingface
+          key: garak-test-resources-shared
 
       - name: Test with pytest
         run: |
           cd garak
           python -m pytest tests/
+
+      - name: Prepare resources for cache
+        run: |
+          rm -rf .cache/huggingface/hub/*facebook*
+          rm -rf .cache/huggingface/hub/*Helsinki*
+          rm -rf .cache/huggingface/hub/*roberta*
+
+      - name: Save test cache
+        if: inputs.store-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .cache/garak/data
+            .cache/huggingface
+          enableCrossOsArchive: true
+          key: garak-test-resources-shared

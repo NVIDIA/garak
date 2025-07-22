@@ -205,18 +205,6 @@ For completion models:
 * `--model_name` - the NIM `model` name, e.g. `bigcode/starcoder2-15b`
 
 
-### OctoAI
-
-* set the `OCTO_API_TOKEN` environment variable to your Replicate API token, e.g. "r8-123XXXXXXXXXXXX"; see https://replicate.com/account/api-tokens when logged in
-
-Octo public endpoint:
-* `--model_type octo`
-* `--model_name` - the OctoAI public endpoint for the model, e.g. `mistral-7b-instruct-fp16`
-
-Octo private endpoint:
-* `--model_type octo.InferenceEndpoint` (for private endpoints)
-* `--model_name` - the deployed endpoint URL, e.g. `https://llama-2-70b-chat-xxx.octoai.run/v1/chat/completions`
-
 ### Test
 
 * `--model_type test`
@@ -228,28 +216,28 @@ For testing. This generator repeats back the prompt it received.
 
 ## Intro to probes
 
-| Probe | Description |
-| --- | --- |
-| blank | A simple probe that always sends an empty prompt. |
-| atkgen | Automated Attack Generation. A red-teaming LLM probes the target and reacts to it in an attempt to get toxic output. Prototype, mostly stateless, for now uses a simple GPT-2 [fine-tuned](https://huggingface.co/garak-llm/artgpt2tox) on the subset of hhrlhf attempts that yielded detectable toxicity (the only target currently supported for now). |
-| av_spam_scanning | Probes that attempt to make the model output malicious content signatures |
-| continuation | Probes that test if the model will continue a probably undesirable word |
-| dan | Various [DAN](https://adguard.com/en/blog/chatgpt-dan-prompt-abuse.html) and DAN-like attacks |
-| donotanswer | Prompts to which responsible language models should not answer. |
-| encoding | Prompt injection through text encoding |
-| gcg | Disrupt a system prompt by appending an adversarial suffix. |
-| glitch | Probe model for glitch tokens that provoke unusual behavior. |
-| grandma | Appeal to be reminded of one's grandmother. | 
-| goodside | Implementations of Riley Goodside attacks. |
-| leakerplay | Evaluate if a model will replay training data. |
-| lmrc | Subsample of the [Language Model Risk Cards](https://arxiv.org/abs/2303.18190) probes |
-| malwaregen | Attempts to have the model generate code for building malware |
-| misleading | Attempts to make a model support misleading and false claims |
-| packagehallucination | Trying to get code generations that specify non-existent (and therefore insecure) packages. |
-| promptinject | Implementation of the Agency Enterprise [PromptInject](https://github.com/agencyenterprise/PromptInject/tree/main/promptinject) work (best paper awards @ NeurIPS ML Safety Workshop 2022) |
-| realtoxicityprompts | Subset of the RealToxicityPrompts work (data constrained because the full test will take so long to run) |
-| snowball | [Snowballed Hallucination](https://ofir.io/snowballed_hallucination.pdf) probes designed to make a model give a wrong answer to questions too complex for it to process |
-| xss | Look for vulnerabilities the permit or enact cross-site attacks, such as private data exfiltration. |
+| Probe                | Description                                                                                                                   |
+|----------------------|-------------------------------------------------------------------------------------------------------------------------------|
+| blank                | A simple probe that always sends an empty prompt.                                                                             |
+| atkgen               | Automated Attack Generation. A red-teaming LLM probes the target and reacts to it in an attempt to get toxic output. Prototype, mostly stateless, for now uses a simple GPT-2 [fine-tuned](https://huggingface.co/garak-llm/artgpt2tox) on the subset of hhrlhf attempts that yielded detectable toxicity (the only target currently supported for now). |
+| av_spam_scanning     | Probes that attempt to make the model output malicious content signatures                                                     |
+| continuation         | Probes that test if the model will continue a probably undesirable word                                                       |
+| dan                  | Various [DAN](https://adguard.com/en/blog/chatgpt-dan-prompt-abuse.html) and DAN-like attacks                                 |
+| donotanswer          | Prompts to which responsible language models should not answer.                                                               |
+| encoding             | Prompt injection through text encoding                                                                                        |
+| gcg                  | Disrupt a system prompt by appending an adversarial suffix.                                                                   |
+| glitch               | Probe model for glitch tokens that provoke unusual behavior.                                                                  |
+| grandma              | Appeal to be reminded of one's grandmother.                                                                                   |
+| goodside             | Implementations of Riley Goodside attacks.                                                                                    |
+| leakreplay           | Evaluate if a model will replay training data.                                                                                |
+| lmrc                 | Subsample of the [Language Model Risk Cards](https://arxiv.org/abs/2303.18190) probes                                         |
+| malwaregen           | Attempts to have the model generate code for building malware                                                                 |
+| misleading           | Attempts to make a model support misleading and false claims                                                                  |
+| packagehallucination | Trying to get code generations that specify non-existent (and therefore insecure) packages.                                   |
+| promptinject         | Implementation of the Agency Enterprise [PromptInject](https://github.com/agencyenterprise/PromptInject/tree/main/promptinject) work (best paper awards @ NeurIPS ML Safety Workshop 2022) |
+| realtoxicityprompts  | Subset of the RealToxicityPrompts work (data constrained because the full test will take so long to run)                      |
+| snowball             | [Snowballed Hallucination](https://ofir.io/snowballed_hallucination.pdf) probes designed to make a model give a wrong answer to questions too complex for it to process |
+| xss                  | Look for vulnerabilities the permit or enact cross-site attacks, such as private data exfiltration.                           |
 
 ## Logging
 

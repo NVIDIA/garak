@@ -233,6 +233,14 @@
       "pullRequestNo": 943
     },
     {
+      "name": "masayaOgushi",
+      "id": 69960846,
+      "comment_id": 2401315414,
+      "created_at": "2024-10-09T04:55:52Z",
+      "repoId": 639097338,
+      "pullRequestNo": 943
+    },
+    {
       "name": "zoenolan",
       "id": 1663274,
       "comment_id": 2481326242,
@@ -271,6 +279,166 @@
       "created_at": "2024-12-15T23:56:23Z",
       "repoId": 639097338,
       "pullRequestNo": 1045
+    },
+    {
+      "name": "pedramamini",
+      "id": 1253573,
+      "comment_id": 2560733953,
+      "created_at": "2024-12-24T06:45:24Z",
+      "repoId": 639097338,
+      "pullRequestNo": 1051
+    },
+    {
+      "name": "eltociear",
+      "id": 22633385,
+      "comment_id": 2566715240,
+      "created_at": "2024-12-31T21:19:42Z",
+      "repoId": 639097338,
+      "pullRequestNo": 1053
+    },
+    {
+      "name": "iamnotcj",
+      "id": 69222710,
+      "comment_id": 2571421616,
+      "created_at": "2025-01-04T21:56:10Z",
+      "repoId": 639097338,
+      "pullRequestNo": 1058
+    },
+    {
+      "name": "Eric-Hacker",
+      "id": 27235562,
+      "comment_id": 2574055843,
+      "created_at": "2025-01-06T22:44:14Z",
+      "repoId": 639097338,
+      "pullRequestNo": 1059
+    },
+    {
+      "name": "katherine-luna",
+      "id": 195215424,
+      "comment_id": 2596890227,
+      "created_at": "2025-01-16T21:07:42Z",
+      "repoId": 639097338,
+      "pullRequestNo": 1083
+    },
+    {
+      "name": "dltemple",
+      "id": 13315227,
+      "comment_id": 2600911835,
+      "created_at": "2025-01-19T15:31:54Z",
+      "repoId": 639097338,
+      "pullRequestNo": 1085
+    },
+    {
+      "name": "fcanogab",
+      "id": 69301309,
+      "comment_id": 2674740912,
+      "created_at": "2025-02-21T14:45:14Z",
+      "repoId": 639097338,
+      "pullRequestNo": 1107
+    },
+    {
+      "name": "shane-rosse",
+      "id": 134549241,
+      "comment_id": 2683358951,
+      "created_at": "2025-02-25T21:40:28Z",
+      "repoId": 639097338,
+      "pullRequestNo": 1115
+    },
+    {
+      "name": "dimensi0n",
+      "id": 25726586,
+      "comment_id": 2745898064,
+      "created_at": "2025-03-22T22:32:56Z",
+      "repoId": 639097338,
+      "pullRequestNo": 1135
+    },
+    {
+      "name": "JanetVictorious",
+      "id": 59339114,
+      "comment_id": 2748896508,
+      "created_at": "2025-03-24T17:30:18Z",
+      "repoId": 639097338,
+      "pullRequestNo": 1137
+    },
+    {
+      "name": "mrowebot",
+      "id": 155050,
+      "comment_id": 2803030138,
+      "created_at": "2025-04-14T21:12:56Z",
+      "repoId": 639097338,
+      "pullRequestNo": 1157
+    },
+    {
+      "name": "marcorosa",
+      "id": 10925009,
+      "comment_id": 2815531455,
+      "created_at": "2025-04-18T14:13:58Z",
+      "repoId": 639097338,
+      "pullRequestNo": 1171
+    },
+    {
+      "name": "aishwaryap",
+      "id": 6442600,
+      "comment_id": 2830943713,
+      "created_at": "2025-04-25T16:58:18Z",
+      "repoId": 639097338,
+      "pullRequestNo": 1185
+    },
+    {
+      "name": "IanYHChu",
+      "id": 68839971,
+      "comment_id": 2841154791,
+      "created_at": "2025-04-30T08:05:58Z",
+      "repoId": 639097338,
+      "pullRequestNo": 1189
+    },
+    {
+      "name": "dchiitmalla",
+      "id": 19983789,
+      "comment_id": 2913464279,
+      "created_at": "2025-05-27T18:00:28Z",
+      "repoId": 639097338,
+      "pullRequestNo": 1235
+    },
+    {
+      "name": "sinewaveai",
+      "id": 157084199,
+      "comment_id": 2913468870,
+      "created_at": "2025-05-27T18:02:25Z",
+      "repoId": 639097338,
+      "pullRequestNo": 1235
+    },
+    {
+      "name": "otavionvidia",
+      "id": 198823484,
+      "comment_id": 2979143846,
+      "created_at": "2025-06-17T06:47:28Z",
+      "repoId": 639097338,
+      "pullRequestNo": 1260
+    },
+    {
+      "name": "mikemckiernan",
+      "id": 18604620,
+      "comment_id": 2980756067,
+      "created_at": "2025-06-17T15:07:48Z",
+      "repoId": 639097338,
+      "pullRequestNo": 1262
+    },
+    {
+      "name": "sammykao",
+      "id": 123334119,
+      "comment_id": 3010624582,
+      "created_at": "2025-06-26T23:32:08Z",
+      "repoId": 639097338,
+      "pullRequestNo": 1271
+    },
+    {
+      "name": "dbaker-arch",
+      "id": 28928338,
+      "comment_id": 3035433810,
+      "created_at": "2025-07-04T10:28:44Z",
+      "repoId": 639097338,
+      "pullRequestNo": 1286
     }
   ]
 }

@@ -3,9 +3,9 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""
- aggregate multiple garak reports on the same generator 
- useful for e.g. assembling a report that's been run one probe at a time
+"""aggregate multiple garak reports on the same generator
+
+useful for e.g. assembling a report that's been run one probe at a time
 """
 
 # cli params:
@@ -34,7 +34,7 @@ def _process_file_body(in_file, out_file, aggregate_uuid):
             continue
 
         entry["uuid"] = aggregate_uuid
-        out_file.write(json.dumps(entry) + "\n")
+        out_file.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
 
 p = argparse.ArgumentParser(

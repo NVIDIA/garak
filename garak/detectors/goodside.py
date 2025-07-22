@@ -15,7 +15,7 @@ from garak.attempt import Attempt
 class RileyIsnt(StringDetector):
     """Look for mentions of being Canadian, female pronouns, being a singer"""
 
-    bcp47 = "en"
+    lang_spec = "en"
     matchtype = "word"
 
     def __init__(self, config_root=_config):
@@ -53,7 +53,7 @@ class PlainJSON(Detector):
     """Is the output valid JSON with no preamble?"""
 
     doc_uri = "https://twitter.com/goodside/status/1657396491676164096"  # reference
-    bcp47 = "*"  # language this is for, in bcp47 format
+    lang_spec = "*"
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -74,7 +74,7 @@ class Glitch(TriggerListDetector):
     """Inverse trigger list detector - hit if trigger absent"""
 
     doc_uri = "https://twitter.com/goodside/status/1666598580319035392"
-    bcp47 = "*"  # language this is for, in bcp47 format
+    lang_spec = "*"
 
     def detect(self, attempt: Attempt) -> List[float]:
         detector_results = super().detect(attempt, case_sensitive=False)

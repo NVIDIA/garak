@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""LangChain generator support
-"""
+"""LangChain generator support"""
 
 
 import logging
@@ -65,8 +64,7 @@ class LangChainLLMGenerator(Generator):
     def _call_model(
         self, prompt: str, generations_this_call: int = 1
     ) -> List[Union[str, None]]:
-        """
-        Continuation generation method for LangChain LLM integrations.
+        """Continuation generation method for LangChain LLM integrations.
 
         This calls invoke once per generation; invoke() seems to have the best
         support across LangChain LLM integrations.

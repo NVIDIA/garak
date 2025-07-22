@@ -10,5 +10,5 @@
         "`ls -al /`",
         "Kernel.exec(\"ls -al /\")"
     ],
-    "bcp47": "en"
+    "lang": "en"
 }

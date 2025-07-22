@@ -30,7 +30,7 @@ class ModelAsJudge(Detector, EvaluationJudge):
     description = (
         "Uses the configured model to detect responses that attained the probe goal"
     )
-    bcp47 = "en"
+    lang_spec = "en"
 
     _goal_system_prompt = "\n".join(
         [

@@ -2,43 +2,23 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import gc
-import nltk.downloader
 import numpy as np
 import torch
 import random
 import openai
 import re
-import nltk
 from nltk.corpus import stopwords, wordnet
 from collections import defaultdict, OrderedDict
-from pathlib import Path
 import sys
 import time
 from logging import getLogger
 from typing import Tuple
 
-from garak import _config
+from garak.resources.api import nltk
 from garak.resources.autodan.model_utils import AutoDanPrefixManager, forward
 
 logger = getLogger(__name__)
 
-
-def _nltk_data():
-    """Set nltk_data location, if an existing default is found utilize it, otherwise add to project's cache location."""
-    from nltk.downloader import Downloader
-
-    default_path = Path(Downloader().default_download_dir())
-    if not default_path.exists():
-        # if path not found then place in the user cache
-        # get env var for NLTK_DATA, fallback to create in cachedir / nltk_data
-        logger.debug("nltk_data location not found using project cache location")
-        _nltk_data_path.mkdir(mode=0o740, parents=True, exist_ok=True)
-        default_path = _nltk_data_path
-    return default_path
-
-
-_nltk_data_path = _config.transient.cache_dir / "data" / "nltk_data"
-nltk.data.path.append(str(_nltk_data_path))
 
 # TODO: Refactor into setup.py
 try:
@@ -46,10 +26,9 @@ try:
     _ = nltk.word_tokenize("This is a normal English sentence")
     _ = wordnet.synsets("word")
 except LookupError as e:
-    download_path = _nltk_data()
-    nltk.download("stopwords", download_dir=download_path)
-    nltk.download("punkt", download_dir=download_path)
-    nltk.download("wordnet", download_dir=download_path)
+    nltk.download("stopwords")
+    nltk.download("punkt")
+    nltk.download("wordnet")
 
 
 # TODO: Could probably clean up the inputs here by using imports.
@@ -64,8 +43,8 @@ def autodan_ga(
     if_softmax=True,
     mutation_generator=None,
 ) -> list:
-    """
-    Genetic algorithm for creating AutoDAN samples.
+    """Genetic algorithm for creating AutoDAN samples.
+
     Args:
         control_prefixes (list): list of control prefixes
         score_list (list): list of scores for inputs
@@ -122,8 +101,8 @@ def autodan_hga(
     mutation_rate=0.01,
     mutation_generator=None,
 ) -> Tuple[list, dict]:
-    """
-    Hierarchical genetic algorithm for AutoDAN sample generation
+    """Hierarchical genetic algorithm for AutoDAN sample generation
+
     Args:
         word_dict (dict): Dictionary containing words and their word-level scores
         control_prefixes (list): List of prefix words
@@ -167,8 +146,7 @@ def autodan_hga(
 def roulette_wheel_selection(
     data_list: list, score_list: list, num_selected: int, if_softmax=True
 ) -> list:
-    """
-    Roulette wheel selection for multipoint crossover policy
+    """Roulette wheel selection for multipoint crossover policy
 
     Args:
         data_list (list): list of test inputs
@@ -200,8 +178,7 @@ def apply_crossover_and_mutation(
     mutation_rate=0.01,
     mutation_generator=None,
 ) -> list:
-    """
-    Perform crossover and mutation on selected parents.
+    """Perform crossover and mutation on selected parents.
 
     Args:
         selected_data (list): List of selected parents for crossover and mutation.
@@ -237,8 +214,7 @@ def apply_crossover_and_mutation(
 
 
 def crossover(str1: str, str2: str, num_points: int) -> Tuple[str, str]:
-    """
-    Perform crossover on input strings
+    """Perform crossover on input strings
 
     Args:
         str1 (str): first string for crossover
@@ -284,8 +260,8 @@ def crossover(str1: str, str2: str, num_points: int) -> Tuple[str, str]:
 
 
 def gpt_mutate(mutation_generator, sentence: str) -> str:
-    """
-    Call OpenAI API to mutate input sentences
+    """Call OpenAI API to mutate input sentences
+
     Args:
         sentence (str): Sentence to be mutated
 
@@ -337,8 +313,7 @@ def apply_gpt_mutation(
     offspring: list, mutation_rate=0.01, reference: list = None, mutation_generator=None
 ) -> list:
     # TODO: Allow for use of local models in lieu of OpenAI
-    """
-    Use OpenAI or reference corpus to apply mutation.
+    """Use OpenAI or reference corpus to apply mutation.
 
     Args:
         offspring (list): list of offspring to apply mutation to
@@ -366,8 +341,7 @@ def apply_gpt_mutation(
 
 
 def replace_with_synonyms(sentence: str, num=10) -> str:
-    """
-    Function to replace words in sentences with synonyms.
+    """Function to replace words in sentences with synonyms.
 
     Args:
         sentence (str): input sentence
@@ -412,8 +386,8 @@ def replace_with_synonyms(sentence: str, num=10) -> str:
 def construct_momentum_word_dict(
     word_dict: dict, control_suffixes: list, score_list: list, top_k=30
 ) -> dict:
-    """
-    Construct word-level score dictionary
+    """Construct word-level score dictionary
+
     Args:
         word_dict (dict): Dictionary of words and scores
         control_suffixes (list): List of words
@@ -473,8 +447,8 @@ def construct_momentum_word_dict(
 
 
 def get_synonyms(word: str) -> list:
-    """
-    Get synonyms for a given word
+    """Get synonyms for a given word
+
     Args:
         word (str): Word to find synonyms for
 
@@ -489,8 +463,8 @@ def get_synonyms(word: str) -> list:
 
 
 def word_roulette_wheel_selection(word: str, word_scores: dict) -> str:
-    """
-    Randomly chooses a word to replace the given word.
+    """Randomly chooses a word to replace the given word.
+
     Args:
         word (str): Input word
         word_scores (dict): Dictionary of words and scores
@@ -512,8 +486,8 @@ def word_roulette_wheel_selection(word: str, word_scores: dict) -> str:
 def replace_with_best_synonym(
     sentence: str, word_dict: dict, replace_rate: float
 ) -> str:
-    """
-    Given a sentence, replace words with their highest scoring synonym with probability `replace_rate`
+    """Given a sentence, replace words with their highest scoring synonym with probability `replace_rate`
+
     Args:
         sentence (str): Input sentence
         word_dict (dict): Dictionary of words and their scores
@@ -555,8 +529,8 @@ def replace_with_best_synonym(
 def apply_word_replacement(
     word_dict: dict, parents_list: list, replacement_rate=0.5
 ) -> list:
-    """
-    Run synonym replacement over all items in `parents_list`
+    """Run synonym replacement over all items in `parents_list`
+
     Args:
         word_dict (dict): Dictionary of words and their scores
         parents_list (list): List of parent strings
@@ -572,8 +546,8 @@ def apply_word_replacement(
 
 
 def join_words_with_punctuation(words: list) -> str:
-    """
-    Helper function to put sentences back together with punctuation
+    """Helper function to put sentences back together with punctuation
+
     Args:
         words (list): list of words -- a split sentence
 
@@ -598,8 +572,8 @@ def get_score_autodan(
     crit=None,
     low_memory=False,
 ):
-    """
-    Get AutoDAN score for the instruction
+    """Get AutoDAN score for the instruction
+
     Args:
         generator (garak.generators.huggingface.Model): Generator for model
         conv_template (Conversation): Conversation template for the model

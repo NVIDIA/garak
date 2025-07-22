@@ -16,7 +16,7 @@ import jsonpath_ng
 from jsonpath_ng.exceptions import JsonPathParserError
 
 from garak import _config
-from garak.exception import APIKeyMissingError, RateLimitHit
+from garak.exception import APIKeyMissingError, BadGeneratorException, RateLimitHit, GarakBackoffTrigger
 from garak.generators.base import Generator
 
 
@@ -35,6 +35,8 @@ class RestGenerator(Generator):
         "response_json_field": None,
         "req_template": "$INPUT",
         "request_timeout": 20,
+        "proxies": None,
+        "verify_ssl": True,
     }
 
     ENV_VAR = "REST_API_KEY"
@@ -57,14 +59,17 @@ class RestGenerator(Generator):
         "request_timeout",
         "ratelimit_codes",
         "skip_codes",
+        "skip_seq_start",
+        "skip_seq_end",
         "temperature",
         "top_k",
+        "proxies",
+        "verify_ssl",
     )
 
     def __init__(self, uri=None, config_root=_config):
         self.uri = uri
         self.name = uri
-        self.seed = _config.run.seed
         self.supports_multiple_generations = False  # not implemented yet
         self.escape_function = self._json_escape
         self.retry_5xx = True
@@ -118,6 +123,18 @@ class RestGenerator(Generator):
             self.method = "post"
         self.http_function = getattr(requests, self.method)
 
+        # validate proxies formatting
+        # sanity check only leave actual parsing of values to the `requests` library on call.
+        if hasattr(self, "proxies") and self.proxies is not None:
+            if not isinstance(self.proxies, dict):
+                raise BadGeneratorException(
+                    "`proxies` value provided is not in the required format. See documentation from the `requests` package for details on expected format. https://requests.readthedocs.io/en/latest/user/advanced/#proxies"
+                )
+
+        # suppress warnings about intentional SSL validation suppression
+        if isinstance(self.verify_ssl, bool) and not self.verify_ssl:
+            requests.packages.urllib3.disable_warnings()
+
         # validate jsonpath
         if self.response_json and self.response_json_field:
             try:
@@ -168,8 +185,7 @@ class RestGenerator(Generator):
                 output = output.replace("$KEY", self.api_key)
         return output.replace("$INPUT", self.escape_function(text))
 
-    # we'll overload IOError as the rate limit exception
-    @backoff.on_exception(backoff.fibo, RateLimitHit, max_value=70)
+    @backoff.on_exception(backoff.fibo, (RateLimitHit, GarakBackoffTrigger), max_value=70)
     def _call_model(
         self, prompt: str, generations_this_call: int = 1
     ) -> List[Union[str, None]]:
@@ -193,8 +209,19 @@ class RestGenerator(Generator):
             data_kw: request_data,
             "headers": request_headers,
             "timeout": self.request_timeout,
+            "proxies": self.proxies,
+            "verify": self.verify_ssl,
         }
-        resp = self.http_function(self.uri, **req_kArgs)
+        try:
+            resp = self.http_function(self.uri, **req_kArgs)
+        except UnicodeEncodeError as uee:
+            # only RFC2616 (latin-1) is guaranteed
+            # don't print a repr, this might leak api keys
+            logging.error(
+                "Only latin-1 encoding supported by HTTP RFC 2616, check headers and values for unusual chars",
+                exc_info=uee,
+            )
+            raise BadGeneratorException from uee
 
         if resp.status_code in self.skip_codes:
             logging.debug(
@@ -223,7 +250,7 @@ class RestGenerator(Generator):
         if str(resp.status_code)[0] == "5":
             error_msg = f"REST URI server error: {resp.status_code} - {resp.reason}, uri: {self.uri}"
             if self.retry_5xx:
-                raise IOError(error_msg)
+                raise GarakBackoffTrigger(error_msg)
             raise ConnectionError(error_msg)
 
         if not self.response_json:

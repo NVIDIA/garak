@@ -41,12 +41,15 @@ class GgmlGenerator(Generator):
         "exception_on_failure": True,
         "first_call": True,
         "key_env_var": ENV_VAR,
+        "extra_ggml_flags": ["-no-cnv"],
+        "extra_ggml_params": dict(),
     }
 
     generator_family_name = "ggml"
 
-    def command_params(self):
-        return {
+    def _command_args_list(self):
+        command_list = []
+        params = {
             "-m": self.name,
             "-n": self.max_tokens,
             "--repeat-penalty": self.repeat_penalty,
@@ -56,7 +59,15 @@ class GgmlGenerator(Generator):
             "--top-p": self.top_p,
             "--temp": self.temperature,
             "-s": self.seed,
-        }
+        } | self.extra_ggml_params
+        # test all params for None type
+        for key, value in params.items():
+            if value is not None:
+                command_list.append(key)
+                command_list.append(value)
+        if isinstance(self.extra_ggml_flags, list):
+            command_list.extend(self.extra_ggml_flags)
+        return command_list
 
     def __init__(self, name="", config_root=_config):
         self.name = name
@@ -74,7 +85,8 @@ class GgmlGenerator(Generator):
             )
 
         # this value cannot be `None`, 0 is consistent and `-1` would produce random seeds
-        self.seed = _config.run.seed if _config.run.seed is not None else 0
+        if self.seed is None:
+            self.seed = 0
 
         # model is a file, validate exists and sanity check file header for supported format
         if not os.path.isfile(self.name):
@@ -106,10 +118,7 @@ class GgmlGenerator(Generator):
             prompt,
         ]
         # test all params for None type
-        for key, value in self.command_params().items():
-            if value is not None:
-                command.append(key)
-                command.append(value)
+        command.extend(self._command_args_list())
         command = [str(param) for param in command]
         if _config.system.verbose > 1:
             print("GGML invoked with", command)

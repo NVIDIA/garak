@@ -94,7 +94,7 @@ def test_unknown_module():
     assert "plugin module" in str(exc_info.value)
 
 
-def test_unknown_module():
+def test_invalid_class_path():
     with pytest.raises(ValueError) as exc_info:
         info = PluginCache.plugin_info("probes.invalid.format.length")
     assert "plugin class" in str(exc_info.value)

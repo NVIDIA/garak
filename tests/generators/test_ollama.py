@@ -2,7 +2,6 @@ import pytest
 import ollama
 import respx
 import httpx
-from httpx import ConnectError
 from garak.generators.ollama import OllamaGeneratorChat, OllamaGenerator
 
 PINGED_OLLAMA_SERVER = False  # Avoid calling the server multiple times if it is not running
@@ -17,7 +16,7 @@ def ollama_is_running():
         try:
             ollama.list()  # Gets a list of all pulled models. Used as a ping
             OLLAMA_SERVER_UP = True
-        except ConnectError:
+        except ConnectionError:
             OLLAMA_SERVER_UP = False
         finally:
             PINGED_OLLAMA_SERVER = True
@@ -25,7 +24,21 @@ def ollama_is_running():
 
 
 def no_models():
-    return len(ollama.list()) == 0 or len(ollama.list()["models"]) == 0
+    # In newer versions of ollama, list() returns a ListResponse object
+    response = ollama.list()
+    
+    try:
+        # Try to access the models attribute or property
+        models = getattr(response, 'models', None)
+        if models is None:
+            # If no models attribute, try using it as a dict
+            models = response.get('models', [])
+        
+        # Check if models is empty
+        return len(models) == 0
+    except (AttributeError, TypeError):
+        # If we can't access models, assume there are no models
+        return True
 
 
 @pytest.mark.skipif(

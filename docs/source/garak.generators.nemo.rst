@@ -3,7 +3,7 @@ garak.generators.nemo
 
 Wrapper for `nemollm <https://pypi.org/project/nemollm/>`_.
 
-Expects NGC API key in the environment variable ``NGC_API_KEY`` and the 
+Expects NGC API key in the environment variable ``NGC_API_KEY`` and the
 organisation ID in environment variable ``ORG_ID``.
 
 Configurable values:
@@ -24,5 +24,4 @@ Configurable values:
 .. automodule:: garak.generators.nemo
    :members:
    :undoc-members:
-   :show-inheritance:   
-
+   :show-inheritance:

@@ -35,23 +35,23 @@ class LRLBuff(Buff):
     def transform(
         self, attempt: garak.attempt.Attempt
     ) -> Iterable[garak.attempt.Attempt]:
-        translator = Translator(self.api_key)
+        deepl_translator = Translator(self.api_key)
         prompt = attempt.prompt
         attempt.notes["original_prompt"] = prompt
         for language in LOW_RESOURCE_LANGUAGES:
             attempt.notes["LRL_buff_dest_lang"] = language
-            response = translator.translate_text(prompt, target_lang=language)
+            response = deepl_translator.translate_text(prompt, target_lang=language)
             translated_prompt = response.text
             attempt.prompt = translated_prompt
             yield self._derive_new_attempt(attempt)
 
     def untransform(self, attempt: garak.attempt.Attempt) -> garak.attempt.Attempt:
-        translator = Translator(self.api_key)
+        deepl_translator = Translator(self.api_key)
         outputs = attempt.outputs
         attempt.notes["original_responses"] = outputs
         translated_outputs = list()
         for output in outputs:
-            response = translator.translate_text(output, target_lang="EN-US")
+            response = deepl_translator.translate_text(output, target_lang="EN-US")
             translated_output = response.text
             translated_outputs.append(translated_output)
         attempt.outputs = translated_outputs

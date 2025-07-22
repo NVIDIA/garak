@@ -60,6 +60,9 @@ class LocalDataPath(type(pathlib.Path())):
             if projected.exists():
                 return LocalDataPath(projected)
 
+        if projected in self.ORDERED_SEARCH_PATHS:
+            return LocalDataPath(projected)
+
         raise GarakException(f"The resource requested does not exist {segment}")
 
     def _glob(self, pattern, recursive=False):
@@ -95,6 +98,17 @@ class LocalDataPath(type(pathlib.Path())):
         for segment in pathsegments:
             projected = self._eval_paths(segment, "joinpath", "..")
         return projected
+
+    import sys
+
+    if sys.version_info >= (3, 13, 0):
+        # disabled override on older versions
+        def with_segments(self, *args):
+            if isinstance(args[0], LocalDataPath):
+                for segment in args:
+                    projected = self._eval_paths(segment, "joinpath", "..")
+                return projected
+            return super().with_segments(*args)
 
 
 path = LocalDataPath(_config.transient.data_dir / "data")

@@ -4,12 +4,13 @@
 """Base classes for probes.
 
 Probe plugins must inherit one of these. `Probe` serves as a template showing
-what expectations there are for inheriting classes. """
+what expectations there are for inheriting classes."""
 
 import copy
 import json
 import logging
 from collections.abc import Iterable
+import random
 from typing import Iterable, Union
 
 from colorama import Fore, Style
@@ -17,7 +18,8 @@ import tqdm
 
 from garak import _config
 from garak.configurable import Configurable
-from garak.exception import PluginConfigurationError
+from garak.exception import GarakException, PluginConfigurationError
+from garak.probes._tier import Tier
 import garak.attempt
 import garak.resources.theme
 
@@ -27,10 +29,10 @@ class Probe(Configurable):
 
     # docs uri for a description of the probe (perhaps a paper)
     doc_uri: str = ""
-    # language this is for, in bcp47 format; * for all langs
-    bcp47: Union[Iterable[str], None] = None
+    # language this is for, in BCP47 format; * for all langs
+    lang: Union[str, None] = None
     # should this probe be included by default?
-    active: bool = True
+    active: bool = False
     # MISP-format taxonomy categories
     tags: Iterable[str] = []
     # what the probe is trying to do, phrased as an imperative
@@ -50,10 +52,15 @@ class Probe(Configurable):
     # refer to Table 1 in https://arxiv.org/abs/2401.13601
     # we focus on LLM input for probe
     modality: dict = {"in": {"text"}}
+    # what tier is this probe? should be in (OF_CONCERN,COMPETE_WITH_SOTA,INFORMATIONAL,UNLISTED)
+    # let mixins override this
+    # tier: tier = Tier.UNLISTED
+    tier: Tier = Tier.UNLISTED
 
-    DEFAULT_PARAMS = {
-        "generations": 1,
-    }
+    DEFAULT_PARAMS = {}
+
+    _run_params = {"generations", "soft_probe_prompt_cap", "seed"}
+    _system_params = {"parallel_attempts", "max_workers"}
 
     def __init__(self, config_root=_config):
         """Sets up a probe.
@@ -75,6 +82,44 @@ class Probe(Configurable):
                 self.description = self.__doc__.split("\n", maxsplit=1)[0]
             else:
                 self.description = ""
+        self.langprovider = self._get_langprovider()
+        if self.langprovider is not None and hasattr(self, "triggers"):
+            # check for triggers that are not type str|list or just call translate_triggers
+            preparation_bar = tqdm.tqdm(
+                total=len(self.triggers),
+                leave=False,
+                colour=f"#{garak.resources.theme.LANGPROVIDER_RGB}",
+                desc="Preparing triggers",
+            )
+            if len(self.triggers) > 0:
+                if isinstance(self.triggers[0], str):
+                    self.triggers = self.langprovider.get_text(
+                        self.triggers, notify_callback=preparation_bar.update
+                    )
+                elif isinstance(self.triggers[0], list):
+                    self.triggers = [
+                        self.langprovider.get_text(trigger_list)
+                        for trigger_list in self.triggers
+                    ]
+                    preparation_bar.update()
+                else:
+                    raise PluginConfigurationError(
+                        f"trigger type: {type(self.triggers[0])} is not supported."
+                    )
+            preparation_bar.close()
+        self.reverse_langprovider = self._get_reverse_langprovider()
+
+    def _get_langprovider(self):
+        from garak.langservice import get_langprovider
+
+        langprovider_instance = get_langprovider(self.lang)
+        return langprovider_instance
+
+    def _get_reverse_langprovider(self):
+        from garak.langservice import get_langprovider
+
+        langprovider_instance = get_langprovider(self.lang, reverse=True)
+        return langprovider_instance
 
     def _attempt_prestore_hook(
         self, attempt: garak.attempt.Attempt, seq: int
@@ -133,7 +178,9 @@ class Probe(Configurable):
         """hook called to process completed attempts; always called"""
         return attempt
 
-    def _mint_attempt(self, prompt=None, seq=None) -> garak.attempt.Attempt:
+    def _mint_attempt(
+        self, prompt=None, seq=None, notes=None, lang="*"
+    ) -> garak.attempt.Attempt:
         """function for creating a new attempt given a prompt"""
         new_attempt = garak.attempt.Attempt(
             probe_classname=(
@@ -145,6 +192,8 @@ class Probe(Configurable):
             status=garak.attempt.ATTEMPT_STARTED,
             seq=seq,
             prompt=prompt,
+            notes=notes,
+            lang=lang,
         )
 
         new_attempt = self._attempt_prestore_hook(new_attempt, seq)
@@ -167,8 +216,8 @@ class Probe(Configurable):
         attempts_completed: Iterable[garak.attempt.Attempt] = []
 
         if (
-            _config.system.parallel_attempts
-            and _config.system.parallel_attempts > 1
+            self.parallel_attempts
+            and self.parallel_attempts > 1
             and self.parallelisable_attempts
             and len(attempts) > 1
             and self.generator.parallel_capable
@@ -178,24 +227,50 @@ class Probe(Configurable):
             attempt_bar = tqdm.tqdm(total=len(attempts), leave=False)
             attempt_bar.set_description(self.probename.replace("garak.", ""))
 
-            with Pool(_config.system.parallel_attempts) as attempt_pool:
-                for result in attempt_pool.imap_unordered(
-                    self._execute_attempt, attempts
-                ):
-                    _config.transient.reportfile.write(
-                        json.dumps(result.as_dict()) + "\n"
-                    )
-                    attempts_completed.append(
-                        result
-                    )  # these will be out of original order
-                    attempt_bar.update(1)
+            pool_size = min(
+                len(attempts),
+                self.parallel_attempts,
+                self.max_workers,
+            )
+
+            try:
+                with Pool(pool_size) as attempt_pool:
+                    for result in attempt_pool.imap_unordered(
+                        self._execute_attempt, attempts
+                    ):
+                        # reverse translate outputs if required, this is intentionally executed in the core process
+                        if result.lang != self.lang:
+                            result.reverse_translation_outputs = (
+                                self.reverse_langprovider.get_text(result.all_outputs)
+                            )
+
+                        _config.transient.reportfile.write(
+                            json.dumps(result.as_dict(), ensure_ascii=False) + "\n"
+                        )
+                        attempts_completed.append(
+                            result
+                        )  # these will be out of original order
+                        attempt_bar.update(1)
+            except OSError as o:
+                if o.errno == 24:
+                    msg = "Parallelisation limit hit. Try reducing parallel_attempts or raising limit (e.g. ulimit -n 4096)"
+                    logging.critical(msg)
+                    raise GarakException(msg) from o
+                else:
+                    raise (o)
 
         else:
             attempt_iterator = tqdm.tqdm(attempts, leave=False)
             attempt_iterator.set_description(self.probename.replace("garak.", ""))
             for this_attempt in attempt_iterator:
                 result = self._execute_attempt(this_attempt)
-                _config.transient.reportfile.write(json.dumps(result.as_dict()) + "\n")
+                # reverse langprovider outputs if required
+                if result.lang != self.lang:
+                    result.reverse_translation_outputs = (
+                        self.reverse_langprovider.get_text(result.all_outputs)
+                    )
+
+                _config.transient.reportfile.write(json.dumps(result.as_dict(), ensure_ascii=False) + "\n")
                 attempts_completed.append(result)
         return attempts_completed
 
@@ -208,8 +283,33 @@ class Probe(Configurable):
         # build list of attempts
         attempts_todo: Iterable[garak.attempt.Attempt] = []
         prompts = list(self.prompts)
+        lang = self.lang
+        # account for visual jailbreak until Turn/Conversation is supported
+        preparation_bar = tqdm.tqdm(
+            total=len(prompts),
+            leave=False,
+            colour=f"#{garak.resources.theme.LANGPROVIDER_RGB}",
+            desc="Preparing prompts",
+        )
+        if isinstance(prompts[0], str):
+            prompts = self.langprovider.get_text(
+                prompts, notify_callback=preparation_bar.update
+            )
+        else:
+            for prompt in prompts:
+                if "text" in prompt:
+                    prompt["text"] = self.langprovider.get_text(
+                        prompt["text"], notify_callback=preparation_bar.update
+                    )
+        lang = self.langprovider.target_lang
+        preparation_bar.close()
         for seq, prompt in enumerate(prompts):
-            attempts_todo.append(self._mint_attempt(prompt, seq))
+            notes = (
+                {"pre_translation_prompt": self.prompts[seq]}
+                if lang != self.lang
+                else None
+            )
+            attempts_todo.append(self._mint_attempt(prompt, seq, notes, lang))
 
         # buff hook
         if len(_config.buffmanager.buffs) > 0:
@@ -223,6 +323,16 @@ class Probe(Configurable):
         )
 
         return attempts_completed
+
+    def _prune_data(self, cap, prune_triggers=False):
+        num_ids_to_delete = max(0, len(self.prompts) - cap)
+        ids_to_rm = random.sample(range(len(self.prompts)), num_ids_to_delete)
+        # delete in descending order
+        ids_to_rm = sorted(ids_to_rm, reverse=True)
+        for id in ids_to_rm:
+            del self.prompts[id]
+            if prune_triggers:
+                del self.triggers[id]
 
 
 class TreeSearchProbe(Probe):
@@ -327,8 +437,8 @@ class TreeSearchProbe(Probe):
                     continue
 
                 for prompt in self._gen_prompts(surface_form):
-                    a = self._mint_attempt(prompt)
-                    a.notes["surface_form"] = surface_form
+                    notes = {"surface_form": surface_form}
+                    a = self._mint_attempt(prompt, notes=notes, lang=self.lang)
                     attempts_todo.append(a)
 
                 surface_forms_probed.add(surface_form)
@@ -352,7 +462,7 @@ class TreeSearchProbe(Probe):
                 )
                 node_results += attempt.detector_results[self.primary_detector]
                 attempt.status = garak.attempt.ATTEMPT_COMPLETE
-                _config.transient.reportfile.write(json.dumps(attempt.as_dict()) + "\n")
+                _config.transient.reportfile.write(json.dumps(attempt.as_dict(), ensure_ascii=False) + "\n")
 
             tree_bar.update()
             tree_bar.refresh()
@@ -378,7 +488,7 @@ class TreeSearchProbe(Probe):
                 "node_score": mean_score,
                 "surface_forms": new_surface_forms,
             }
-            _config.transient.reportfile.write(json.dumps(node_info) + "\n")
+            _config.transient.reportfile.write(json.dumps(node_info, ensure_ascii=False) + "\n")
             logging.debug("%s  node score %s" % (self.__class__.__name__, mean_score))
 
             if (mean_score > self.per_node_threshold and self.target_soft) or (

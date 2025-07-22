@@ -6,8 +6,7 @@ import requests
 
 
 class WatsonXGenerator(Generator):
-    """
-    This is a generator for watsonx.ai.
+    """This is a generator for watsonx.ai.
 
     Make sure that you initialize the environment variables:
         'WATSONX_TOKEN',

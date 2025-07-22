@@ -116,8 +116,7 @@ def get_nonascii_toks(tokenizer, device="cpu"):
 
 
 def get_conv_name(model_name: str) -> str:
-    """
-    Helper function to map model names to their conversational model name
+    """Helper function to map model names to their conversational model name
 
     Parameters
     ----------
@@ -154,8 +153,7 @@ class AttackPrompt(object):
         *args,
         **kwargs,
     ):
-        """
-        Initializes the AttackPrompt object with the provided parameters.
+        """Initializes the AttackPrompt object with the provided parameters.
 
         Parameters
         ----------
@@ -538,8 +536,7 @@ class PromptManager(object):
         *args,
         **kwargs,
     ):
-        """
-        Initializes the PromptManager object with the provided parameters.
+        """Initializes the PromptManager object with the provided parameters.
 
         Parameters
         ----------
@@ -678,8 +675,7 @@ class MultiPromptAttack(object):
         *args,
         **kwargs,
     ):
-        """
-        Initializes the MultiPromptAttack object with the provided parameters.
+        """Initializes the MultiPromptAttack object with the provided parameters.
 
         Parameters
         ----------
@@ -799,7 +795,7 @@ class MultiPromptAttack(object):
         control_weight=None,
         anneal=True,
         anneal_from=0,
-        prev_loss=np.infty,
+        prev_loss=np.inf,
         stop_on_success=True,
         test_steps=50,
         log_first=False,
@@ -1031,8 +1027,7 @@ class ProgressiveMultiPromptAttack(object):
         *args,
         **kwargs,
     ):
-        """
-        Initializes the ProgressiveMultiPromptAttack object with the provided parameters.
+        """Initializes the ProgressiveMultiPromptAttack object with the provided parameters.
 
         Parameters
         ----------
@@ -1142,8 +1137,7 @@ class ProgressiveMultiPromptAttack(object):
         verbose: bool = True,
         filter_cand: bool = True,
     ):
-        """
-        Executes the progressive multi prompt attack.
+        """Executes the progressive multi prompt attack.
 
         Parameters
         ----------
@@ -1198,7 +1192,7 @@ class ProgressiveMultiPromptAttack(object):
         num_workers = 1 if self.progressive_models else len(self.workers)
         step = 0
         stop_inner_on_success = self.progressive_goals
-        loss = np.infty
+        loss = np.inf
         success = False
 
         while step < n_steps:
@@ -1239,11 +1233,11 @@ class ProgressiveMultiPromptAttack(object):
 
             if num_goals < len(self.goals):
                 num_goals += 1
-                loss = np.infty
+                loss = np.inf
             elif num_goals == len(self.goals):
                 if num_workers < len(self.workers):
                     num_workers += 1
-                    loss = np.infty
+                    loss = np.inf
                 elif num_workers == len(self.workers) and stop_on_success:
                     model_tests = attack.test_all()
                     attack.log(
@@ -1260,7 +1254,7 @@ class ProgressiveMultiPromptAttack(object):
                     if isinstance(control_weight, (int, float)) and incr_control:
                         if control_weight <= 0.09:
                             control_weight += 0.01
-                            loss = np.infty
+                            loss = np.inf
                             if verbose:
                                 logger.debug(
                                     f"Control weight increased to {control_weight:.5}"
@@ -1290,8 +1284,7 @@ class IndividualPromptAttack(object):
         *args,
         **kwargs,
     ):
-        """
-        Initializes the IndividualPromptAttack object with the provided parameters.
+        """Initializes the IndividualPromptAttack object with the provided parameters.
 
         Parameters
         ----------
@@ -1477,7 +1470,7 @@ class IndividualPromptAttack(object):
                 control_weight=control_weight,
                 anneal=anneal,
                 anneal_from=0,
-                prev_loss=np.infty,
+                prev_loss=np.inf,
                 stop_on_success=stop_inner_on_success,
                 test_steps=test_steps,
                 log_first=True,
@@ -1506,8 +1499,7 @@ class EvaluateAttack(object):
         test_workers=[],
         **kwargs,
     ):
-        """
-        Initializes the EvaluateAttack object with the provided parameters.
+        """Initializes the EvaluateAttack object with the provided parameters.
 
         Parameters
         ----------
@@ -1722,8 +1714,8 @@ class EvaluateAttack(object):
 
 class ModelWorker(object):
     def __init__(self, generator, conv_template):
-        """
-        Worker for running against models
+        """Worker for running against models
+
         Args:
             generator (garak.Generator): Generator to run against
             conv_template (fastchat.Conversation): Conversation template
@@ -1787,8 +1779,7 @@ class ModelWorker(object):
 
 
 def get_workers(generators: list, n_train_models=1, evaluate=False):
-    """
-    Get workers for GCG generation and testing
+    """Get workers for GCG generation and testing
 
     Parameters
     ----------
@@ -1834,8 +1825,7 @@ def get_goals_and_targets(
     n_train: int = 0,
     n_test: int = 0,
 ):
-    """
-    Get goals and targets for GCG attack.
+    """Get goals and targets for GCG attack.
 
     Args:
         train_data (str): Path to CSV of training data

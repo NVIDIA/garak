@@ -44,7 +44,12 @@ class NeMoGuardrails(Generator):
         with redirect_stderr(io.StringIO()) as f:  # quieten the tqdm
             result = self.rails.generate(prompt)
 
-        return [result]
+        if isinstance(result, str):
+            return [result]
+        elif isinstance(result, dict):
+            return [result.get("content", None)]
+        else:
+            return [None]
 
 
 DEFAULT_CLASS = "NeMoGuardrails"

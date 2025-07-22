@@ -79,7 +79,7 @@ No, if the model is the same, you should get the same results - though there are
 
 ## How can I scan a RAG pipeline with garak?
 
-Currently the major attack we hear about in RAG systems is indirect prompt injection, and garak already scans for a few of those.
+Currently, the major attack we hear about in RAG systems is indirect prompt injection, and garak already scans for a few of those.
 
 ## There are so many probes in garak, I was trying to scan a model for all probes, but it took hours and I eventually had to kill that scan. What is the recommended practice on scanning a model? Which typical probes are recommended?
 

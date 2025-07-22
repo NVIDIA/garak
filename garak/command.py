@@ -1,11 +1,12 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Definitions of commands and actions that can be run in the garak toolkit"""
+"""Definitions of commands and actions that can be run in the garak toolkit"""
 
 import logging
 import json
 import random
+import typing
 
 HINT_CHANCE = 0.25
 
@@ -24,23 +25,8 @@ def hint(msg, logging=None):
 def start_logging():
     from garak import _config
 
-    log_filename = _config.transient.data_dir / "garak.log"
+    log_filename = _config.transient.log_filename
 
-    logging.basicConfig(
-        filename=log_filename,
-        level=logging.DEBUG,
-        format="%(asctime)s  %(levelname)s  %(message)s",
-    )
-    # garaklogger = logging.FileHandler("garak.log", encoding="utf-8")
-    # garakformatter = logging.Formatter("%(asctime)s  %(levelname)s  %(message)s")
-    # garaklogger.setFormatter(garakformatter)
-    # garaklogger.setLevel(logging.DEBUG)
-
-    # rootlogger = logging.getLogger()
-    # for h in rootlogger.handlers[:]:
-    #    rootlogger.removeHandler(h)
-    # rootlogger.addHandler(garaklogger)
-    # logging.root = rootlogger
     logging.info("invoked")
 
     return log_filename
@@ -110,7 +96,7 @@ def start_run():
             ):
                 setup_dict[f"{subset}.{k}"] = v
 
-    _config.transient.reportfile.write(json.dumps(setup_dict) + "\n")
+    _config.transient.reportfile.write(json.dumps(setup_dict, ensure_ascii=False) + "\n")
     _config.transient.reportfile.write(
         json.dumps(
             {
@@ -118,7 +104,7 @@ def start_run():
                 "garak_version": _config.version,
                 "start_time": _config.transient.starttime_iso,
                 "run": _config.transient.run_id,
-            }
+            }, ensure_ascii=False
         )
         + "\n"
     )
@@ -137,8 +123,9 @@ def end_run():
         "end_time": datetime.datetime.now().isoformat(),
         "run": _config.transient.run_id,
     }
-    _config.transient.reportfile.write(json.dumps(end_object))
+    _config.transient.reportfile.write(json.dumps(end_object, ensure_ascii=False) + "\n")
     _config.transient.reportfile.close()
+
     print(f"📜 report closed :) {_config.transient.report_filename}")
     if _config.transient.hitlogfile:
         _config.transient.hitlogfile.close()
@@ -267,9 +254,12 @@ def list_config():
         _enumerate_obj_values(getattr(_config, section))
 
 
-def write_report_digest(report_filename, digest_filename):
+def write_report_digest(report_filename, html_report_filename):
     from garak.analyze import report_digest
 
-    digest = report_digest.compile_digest(report_filename)
-    with open(digest_filename, "w", encoding="utf-8") as f:
-        f.write(digest)
+    digest = report_digest.build_digest(report_filename)
+    with open(report_filename, "a+", encoding="utf-8") as report_file:
+        report_digest.append_report_object(report_file, digest)
+    html_report = report_digest.build_html(digest)
+    with open(html_report_filename, "w", encoding="utf-8") as htmlfile:
+        htmlfile.write(html_report)

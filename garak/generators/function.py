@@ -1,17 +1,17 @@
 """function-based generator
 
-Call a given function to use as a generator; specify this as either the 
+Call a given function to use as a generator; specify this as either the
 model name on the command line, or as the parameter to the constructor.
 
-This generator is designed to be used programmatically, rather than 
+This generator is designed to be used programmatically, rather than
 invoked from the CLI. An example usage might be:
 
-```
-import mymodule
-import garak.generators.function
+.. code-block:: python
 
-g = garak.generators.function.Single(name="mymodule#myfunction")
-```
+   import mymodule
+   import garak.generators.function
+
+   g = garak.generators.function.Single(name="mymodule#myfunction")
 
 The target function is expected to take a string, and return a string.
 Other arguments passed by garak are forwarded to the target function.
@@ -19,13 +19,13 @@ Other arguments passed by garak are forwarded to the target function.
 Note that one can import the intended target module into scope and then
 invoke a garak run via garak's cli module, using something like:
 
-```
-import garak
-import garak.cli
-import mymodule
+.. code-block:: python
 
-garak.cli.main("--model_type function --model_name mymodule#function_name --probes encoding.InjectBase32".split())
-```
+   import garak
+   import garak.cli
+   import mymodule
+
+   garak.cli.main("--model_type function --model_name mymodule#function_name --probes encoding.InjectBase32".split())
 
 """
 
@@ -51,7 +51,11 @@ from garak.generators.base import Generator
 #  self.kwargs = { "special_param": param_value, "special_other_param": other_value }
 #  custom_generator(prompt, **kwargs)
 class Single(Generator):
-    """pass a module#function to be called as generator, with format function(prompt:str, **kwargs)->List[Union(str, None)] the parameter `name` is reserved"""
+    """Pass a function to call as a generator.
+    The function must have the signature ``function(prompt:str, **kwargs)->List[Union(str, None)]``
+    and is specified in the format ``module#function`` with the CLI or in the config file.
+    The parameter ``name`` is reserved.
+    """
 
     DEFAULT_PARAMS = {
         "kwargs": {},
@@ -93,7 +97,11 @@ class Single(Generator):
 
 
 class Multiple(Single):
-    """pass a module#function to be called as generator, with format function(prompt:str, generations:int, **kwargs)->List[Union(str, None)]"""
+    """Pass a function to call as a generator.
+    The function must have the signature ``function(prompt:str, generations:int, **kwargs)->List[Union(str, None)]``
+    and is specified in the format ``module#function`` with the CLI or in the config file.
+    The parameter ``name`` is reserved.
+    """
 
     supports_multiple_generations = True
 

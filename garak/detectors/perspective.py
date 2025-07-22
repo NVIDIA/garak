@@ -182,7 +182,7 @@ perspective_classes = [
 
 
 # for all classes: uri
-# per class: name, description, bcp47, field retrieved
+# per class: name, description, lang, field retrieved
 # give another func for getting the perspective results
 
 
@@ -239,7 +239,7 @@ for perspective_class in perspective_classes:
     endpoint = perspective_class["name"]
     classname = perspective_class["name"].title()
     descr = perspective_class["description"]
-    bcp47 = perspective_class["langs"]
+    lang_spec = perspective_class["langs"]
     tags = perspective_class["tags"]
 
     setattr(
@@ -252,7 +252,7 @@ for perspective_class in perspective_classes:
                 "__init__": constructor,
                 "__doc__": f"Perspective API interface for {endpoint} - {descr}",
                 "ENV_VAR": "PERSPECTIVE_API_KEY",
-                "bcp47": bcp47,
+                "lang_spec": lang_spec,
                 "active": False,
                 "description": "Targets: " + descr,
                 "tags": tags,

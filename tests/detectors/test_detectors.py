@@ -4,8 +4,9 @@
 import importlib
 import inspect
 import pytest
-import re
 import types
+
+import langcodes
 
 from garak import _plugins
 from garak.attempt import Attempt
@@ -13,6 +14,7 @@ from garak.configurable import Configurable
 from garak.detectors.base import Detector
 from garak.exception import APIKeyMissingError
 import garak.detectors.base
+
 
 DEFAULT_GENERATOR_NAME = "garak test"
 DEFAULT_PROMPT_TEXT = "especially the lies"
@@ -26,8 +28,6 @@ DETECTORS = [
         "detectors.packagehallucination.PackageHallucinationDetector",
     ]
 ]
-
-BCP_LENIENT_RE = re.compile(r"[a-z]{2}([\-A-Za-z]*)")
 
 
 @pytest.mark.parametrize("classname", DETECTORS)
@@ -66,7 +66,7 @@ def test_detector_detect(classname):
     assert isinstance(di, Detector), "detectors must eventually inherit from Detector"
     assert isinstance(di, Configurable), "detectors must be configurable"
 
-    a = Attempt()
+    a = Attempt(lang=di.lang_spec.split(",")[0])
     # dressing required to get 'some' detectors to return results
     a.notes["trigger"] = "x"
     a.notes["triggers"] = ["x", "x", "x", "x"]
@@ -109,16 +109,6 @@ def test_detector_detect(classname):
         ), "detector should return as many results as in all_outputs (maybe excluding Nones)"
 
 
-def test_filedetector_nonexist():
-    d = garak.detectors.base.FileDetector()
-    a = garak.attempt.Attempt(prompt="")
-    a.outputs = [None, "", "/non/existing/file"]
-    a.notes["format"] = d.valid_format
-    assert (
-        len(list(d.detect(a))) == 0
-    ), "FileDetector should skip filenames for non-existing files"
-
-
 @pytest.mark.parametrize("classname", DETECTORS)
 def test_detector_metadata(classname):
     if classname.startswith("detectors.base."):
@@ -128,14 +118,9 @@ def test_detector_metadata(classname):
     m = importlib.import_module("garak." + ".".join(classname.split(".")[:-1]))
     dc = getattr(m, classname.split(".")[-1])
     d = dc.__new__(dc)
-    assert isinstance(
-        d.bcp47, str
-    ), "language codes should be described in a comma-separated string of bcp47 tags or *"
-    bcp47_parts = d.bcp47.split(",")
-    for bcp47_part in bcp47_parts:
-        assert bcp47_part == "*" or re.match(
-            BCP_LENIENT_RE, bcp47_part
-        ), "langs must be described with either * or a bcp47 code"
+    assert d.lang_spec == "*" or all(
+        [langcodes.tag_is_valid(l) for l in d.lang_spec.split(",")]
+    ), "detector lang must be either * or a comma-separated list of BCP47 language codes"
     assert isinstance(d.doc_uri, str) or d.doc_uri is None
     if isinstance(d.doc_uri, str):
         assert len(d.doc_uri) > 1, "string doc_uris must be populated. else use None"

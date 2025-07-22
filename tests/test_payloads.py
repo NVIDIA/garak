@@ -88,7 +88,7 @@ OK_PAYLOADS = [
         "garak_payload_name": "test",
         "payloads": ["pay", "load"],
         "payload_types": [],
-        "bcp47": "en",
+        "lang": "en",
     },
     {
         "garak_payload_name": "test",

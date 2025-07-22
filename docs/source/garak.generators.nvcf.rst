@@ -61,8 +61,8 @@ garak YAML:
       model_type: nvcf.NvcfChat
       model_name: 341da0d0-aa68-4c4f-89b5-fc39286de6a1
 
-The ``nvcf`` generator uses the standard garak generator mechanism for 
-``max_tokens``, which is why this value is set at generator-level rather than 
+The ``nvcf`` generator uses the standard garak generator mechanism for
+``max_tokens``, which is why this value is set at generator-level rather than
 as a key-value pair in ``extra_params``.
 
 
@@ -71,7 +71,7 @@ Scaling
 
 The NVCF generator supports parallelisation and it's recommended to use this,
 invoking garak with ``--parallel_attempts`` set to a value higher than one.
-IF the NVCF times out due to insufficient capacity, garak will note this, 
+IF the NVCF times out due to insufficient capacity, garak will note this,
 backoff, and retry the request later.
 
 .. code-block::
@@ -96,5 +96,4 @@ Or, as yaml config:
 .. automodule:: garak.generators.nvcf
    :members:
    :undoc-members:
-   :show-inheritance:   
-
+   :show-inheritance:

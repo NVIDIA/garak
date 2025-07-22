@@ -55,8 +55,7 @@ class AttackManager(EvaluationJudge):
         attack_max_attempts: int = 5,
         max_parallel_streams: int = 5,
     ):
-        """
-        Initialize the AttackManager -- class for managing attack iterations
+        """Initialize the AttackManager -- class for managing attack iterations
 
         Parameters
         ----------
@@ -171,8 +170,7 @@ class AttackManager(EvaluationJudge):
         return valid_outputs
 
     def get_target_response(self, prompts):
-        """
-        Get response from the target generator
+        """Get response from the target generator
 
         Parameters
         ----------
@@ -229,8 +227,7 @@ def run_tap(
     save_results: bool = SAVE_RESULTS,
     outfile: Path = resources_tap_data_file,
 ):
-    """
-    Function for generating attacks using TAP where a generator has already been instantiated.
+    """Function for generating attacks using TAP where a generator has already been instantiated.
 
     Parameters
     ----------
@@ -454,8 +451,7 @@ def generate_tap(
     save_results: bool = SAVE_RESULTS,
     outfile: Path = resources_tap_data_file,
 ):
-    """
-    Function for generating attacks using TAP when a generator has not been instantiated.
+    """Function for generating attacks using TAP when a generator has not been instantiated.
 
     Parameters
     ----------

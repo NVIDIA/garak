@@ -1,10 +1,10 @@
 garak.report
 ============
 
-``garak``'s reports connect to things interested in consuming info on 
+``garak``'s reports connect to things interested in consuming info on
 LLM vulnerabilities and failures, such as the AI Vulnerability Database.
 
-``garak`` provides a CLI option to further structure this file for downstream consumption. 
+``garak`` provides a CLI option to further structure this file for downstream consumption.
 The open data schema of AI vulnerability Database (`AVID <https://avidml.org>`_) is used for this purpose.
 
 The syntax for this is as follows:

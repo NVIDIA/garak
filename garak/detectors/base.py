@@ -1,6 +1,6 @@
 """Base detectors.
 
-These detectors show expectations and operations of any detector implemented 
+These detectors show expectations and operations of any detector implemented
 in `garak`. `garak` detectors must inherit from a class in here."""
 
 import logging
@@ -21,7 +21,7 @@ class Detector(Configurable):
     """Base class for objects that define a way of detecting a probe hit / LLM failure"""
 
     doc_uri = None  # reference
-    bcp47 = None  # language this is for. format: a comma-separated list of bcp47 tags, or "*"
+    lang_spec = None  # language this is for. format: a comma-separated list of BCP47 tags, or "*"
     precision = 0.0
     recall = 0.0
     accuracy = None
@@ -37,6 +37,8 @@ class Detector(Configurable):
     DEFAULT_PARAMS = {
         "skip": False,
     }
+
+    _run_params = {"seed"}
 
     def _set_description(self):
         if "description" not in dir(self):
@@ -76,6 +78,7 @@ class HFDetector(Detector, HFCompatible):
     DEFAULT_PARAMS = Detector.DEFAULT_PARAMS | {
         "hf_args": {"device": "cpu"},
         "tokenizer_kwargs": {"padding": True, "truncation": True},
+        "graceful_fail": True,
     }
 
     def __init__(self, config_root=_config):
@@ -88,11 +91,11 @@ class HFDetector(Detector, HFCompatible):
             logging as transformers_logging,
         )
 
-        if _config.run.seed is not None:
-            set_seed(_config.run.seed)
-
         super().__init__(config_root=config_root)
         self.name = f"{self.__class__.__name__}: {self.detector_model_path}"
+
+        if self.seed is not None:
+            set_seed(self.seed)
 
         import torch.multiprocessing as mp
 
@@ -127,23 +130,22 @@ class HFDetector(Detector, HFCompatible):
 
         transformers_logging.set_verbosity(orig_loglevel)
 
-        self.graceful_fail = False
-
     def detect(self, attempt: garak.attempt.Attempt) -> List[float]:
         # goal: skip None outputs
         # don't adjust attempt.outputs
 
-        non_none_outputs = [
-            v for k, v in enumerate(attempt.all_outputs) if v is not None
-        ]
-        # non_none_offsets = [k for k,v in enumerate(attempt.all_outputs) if v is not None] # we'll want this when outputs+scores need to align
+        all_outputs = attempt.outputs_for(self.lang_spec)
+        non_none_outputs = [v for k, v in enumerate(all_outputs) if v is not None]
+        # non_none_offsets = [k for k,v in enumerate(all_outputs) if v is not None] # we'll want this when outputs+scores need to align
         try:
             detector_raw_results = self.detector(
                 non_none_outputs, **self.tokenizer_kwargs
             )
         except Exception as e:
             if self.graceful_fail:
-                print(e)
+                logging.critical(
+                    "Exception running %s" % self.__class__.__name__, exc_info=e
+                )
                 return []
             else:
                 raise Exception() from e
@@ -177,12 +179,14 @@ class StringDetector(Detector):
         self, attempt: garak.attempt.Attempt, case_sensitive=False
     ) -> Iterable[float]:
         detector_results = []
-        for output in attempt.all_outputs:
-            match = False
+        all_outputs = attempt.outputs_for(self.lang_spec)
+
+        for output in all_outputs:
             if output is None:
                 continue
+            match = False
             for s in self.substrings:
-                if case_sensitive:
+                if not case_sensitive:
                     s, output = s.lower(), output.lower()
 
                 if self.matchtype == "str":
@@ -190,6 +194,9 @@ class StringDetector(Detector):
                         match = True
                 elif self.matchtype == "word":
                     if re.search(r"\b" + s + r"\b", output):
+                        match = True
+                elif self.matchtype == "startswith":
+                    if output.startswith(s):
                         match = True
                 else:
                     raise ValueError(
@@ -207,14 +214,15 @@ class TriggerListDetector(Detector):
         self, attempt: garak.attempt.Attempt, case_sensitive=False
     ) -> Iterable[float]:
         detector_results = []
+        all_outputs = attempt.outputs_for(self.lang_spec)
+
         if "triggers" in attempt.notes:
             triggers = attempt.notes["triggers"]
             if isinstance(triggers, str):
                 triggers = [triggers]
-            for output in attempt.all_outputs:
+            for output in all_outputs:
                 if output is None:
                     continue  # trigger is absent
-
                 match = False
                 for trigger in triggers:
                     if case_sensitive:

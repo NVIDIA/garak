@@ -32,6 +32,9 @@ class mockConfigurable(Configurable):
         },
     }
 
+    _system_params = {"enable_experimental"}  # global default `False`
+    _run_params = {"generations"}  # global default `5`
+
     def __init__(
         self,
         constructor_param=None,
@@ -50,6 +53,15 @@ def test_config_root_only(generator_sub_config):
         assert getattr(m, k) == v
 
 
+# when a parameter is provided in config_root by `module.classname` set on the resulting object
+def test_config_root_module_classname(generator_sub_config):
+    module_config = generator_sub_config.generators.pop("mock")
+    generator_sub_config.generators["mock.mockConfigurable"] = module_config
+    m = mockConfigurable(config_root=generator_sub_config)
+    for k, v in generator_sub_config.generators["mock.mockConfigurable"].items():
+        assert getattr(m, k) == v
+
+
 # when a parameter is provided in config_root as a dict set on the resulting object
 def test_config_root_as_dict(generator_sub_config):
     config = {"generators": generator_sub_config.generators}
@@ -63,6 +75,38 @@ def test_param_provided(generator_sub_config):
     passed_param = "from_caller"
     m = mockConfigurable(passed_param, config_root=generator_sub_config)
     assert m.constructor_param == passed_param
+
+
+# when a run or system parameter exists on the class it is set from global config if not provided
+def test_run_vars_propagate_to_instance(generator_sub_config):
+    from garak import _config
+
+    _config.load_base_config()
+
+    m = mockConfigurable(config_root=generator_sub_config)
+    for p in m._system_params:
+        assert getattr(m, p) == getattr(_config.system, p)
+    for p in m._run_params:
+        assert getattr(m, p) == getattr(_config.run, p)
+
+
+# when a run or system parameter is provided in plugin map hold hold it first
+def test_class_over_run_vars_propagate_to_instance(generator_sub_config):
+    from garak import _config
+    import random
+
+    _config.load_base_config()
+
+    override_values = {}
+    for p in mockConfigurable._system_params.union(mockConfigurable._run_params):
+        override_values[p] = random.randint(100, 500)
+        generator_sub_config.generators["mock"][p] = override_values[p]
+
+    m = mockConfigurable(config_root=generator_sub_config)
+    for p in m._system_params:
+        assert getattr(m, p) == override_values[p]
+    for p in m._run_params:
+        assert getattr(m, p) == override_values[p]
 
 
 # when a default parameter is provided and not config_root set on the resulting object

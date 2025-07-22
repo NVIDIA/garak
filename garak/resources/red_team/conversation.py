@@ -118,9 +118,7 @@ def process_target_response(target_response, score, goal):
 
 
 def clean_attacks_and_convs(attack_list, convs_list):
-    """
-    Remove any failed attacks (which appear as None) and corresponding conversations
-    """
+    """Remove any failed attacks (which appear as None) and corresponding conversations"""
     # Catch case where no valid attacks are returned
     if not any(attack_list):
         msg = "No valid attacks returned by the model!"

@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""
-This module implements provide functionality useful in red team engagement involving LLMs.
+"""This module implements provide functionality useful in red team engagement involving LLMs.
+
 Functionality enables building blocks for reuse in techniques that utilized LLMs directly and
 indirectly in targeted LLM testing.
 

@@ -29,7 +29,7 @@ And if you like the project, but just don't have time to contribute, that's fine
 
 ## I Have a Question
 
-If you want to ask a question, good places to check first are the [garak quick start docs](https://docs.garak.ai) and, if its a coding question, the [garak reference](https://reference.garak.ai/).
+If you want to ask a question, good places to check first are the [garak quick start docs](https://docs.garak.ai) and, if it's a coding question, the [garak reference](https://reference.garak.ai/).
 
 Before you ask a question, it is best to search for existing [Issues](https://github.com/NVIDIA/garak/issues) that might help you. In case you have found a suitable issue and still need clarification, you can write your question in this issue. It is also advisable to search the internet for answers first. You can also often find helpful people on the garak [Discord](https://discord.gg/uVch4puUCs).
 
@@ -70,7 +70,7 @@ A good bug report shouldn't leave others needing to chase you up for more inform
 <!-- omit in toc -->
 #### How Do I Submit a Good Bug Report?
 
-You should never report security related issues, vulnerabilities or bugs including sensitive information to the issue tracker, or elsewhere in public. Instead sensitive bugs must be sent by email to security@garak.ai.
+You should never report security related issues, vulnerabilities or bugs including sensitive information to the issue tracker, or elsewhere in public. Instead, sensitive bugs must be sent by email to security@garak.ai.
 <!-- You may add a PGP key to allow the messages to be sent encrypted as well. -->
 
 We use GitHub issues to track bugs and errors. If you run into an issue with the project:

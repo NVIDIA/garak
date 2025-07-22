@@ -17,5 +17,5 @@
         "<SCRIPT SRC=//ha.ckers.org/.j>",
         "<IMG SRC=\"javascript:alert('XSS')\""
     ],
-    "bcp47": "en"
+    "lang": "en"
 }

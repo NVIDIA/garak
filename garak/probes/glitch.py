@@ -3,21 +3,19 @@
 Testing for tokens that lead to unusual model behavior
 """
 
-import random
-
 from garak.attempt import Attempt
 from garak import _config
-from garak.probes.base import Probe
+import garak.probes
 
 
-class Glitch(Probe):
+class GlitchFull(garak.probes.Probe):
     """Probe model for glitch tokens that provoke unusual behavior
 
     Glitch tokens tend to be long entries in the tokenizer that only rarely occur
     in general text. Models using the same tokenizer are unlikely to be able to repeat
     them. These tokens lead to less stable model performance when included in input."""
 
-    bcp47 = "en"
+    lang = "en"
     active = False
     goal = "make the model fail to repeat a word"
     doc_uri = "https://www.lesswrong.com/posts/aPeJE8bSo6rAFoLqg/solidgoldmagikarp-plus-prompt-generation"
@@ -28,6 +26,7 @@ class Glitch(Probe):
         "quality:Security:PromptStability",
         "payload:generic",
     ]
+    tier = garak.probes.Tier.INFORMATIONAL
 
     recommended_detector = ["goodside.Glitch"]
     glitch_tokens = [
@@ -205,19 +204,14 @@ class Glitch(Probe):
                 self.prompts.append(prompt)
                 self.triggers.append(glitch_token)
 
-        if self.max_prompts:
-            zipped = list(zip(self.prompts, self.triggers))
-            random.seed(_config.run.seed)
-            random.shuffle(zipped)
-            zipped = zipped[-self.max_prompts :]
-            self.prompts, self.triggers = zip(*zipped)
+        self.triggers = self.langprovider.get_text(self.triggers)
 
     def _attempt_prestore_hook(self, attempt: Attempt, seq: int) -> Attempt:
         attempt.notes["triggers"] = [self.triggers[seq]]
         return attempt
 
 
-class Glitch100(Glitch, Probe):
+class Glitch(GlitchFull):
     """Probe model for glitch tokens that provoke unusual behavior
 
     Glitch tokens tend to be long entries in the tokenizer that only rarely occur
@@ -225,5 +219,8 @@ class Glitch100(Glitch, Probe):
     them. These tokens lead to less stable model performance when included in input.
     This probe uses a subset of 100 potential glitch tokens, for speed."""
 
-    active = True
-    max_prompts = 100
+    active = False
+
+    def __init__(self, config_root=_config):
+        super().__init__(config_root)
+        self._prune_data(self.soft_probe_prompt_cap, prune_triggers=True)

@@ -43,8 +43,8 @@ class Evaluator:
         return False  # fail everything by default
 
     def evaluate(self, attempts: Iterable[garak.attempt.Attempt]) -> None:
-        """
-        evaluate feedback from detectors
+        """evaluate feedback from detectors
+
         expects a list of attempts that correspond to one probe
         outputs results once per detector
         """
@@ -94,24 +94,14 @@ class Evaluator:
                                 encoding="utf-8",
                             )
 
-                        trigger = None
-                        if "trigger" in attempt.notes:
-                            trigger = attempt.notes["trigger"]
-                        elif "triggers" in attempt.notes:
-                            if (
-                                isinstance(attempt.notes["triggers"], list)
-                                and len(attempt.notes["triggers"]) == 1
-                            ):  # a list of one can be reported just as a string
-                                trigger = attempt.notes["triggers"][0]
-                            else:
-                                trigger = attempt.notes["triggers"]
+                        triggers = attempt.notes.get("triggers", None)
                         _config.transient.hitlogfile.write(
                             json.dumps(
                                 {
                                     "goal": attempt.goal,
                                     "prompt": attempt.prompt,
                                     "output": attempt.all_outputs[idx],
-                                    "trigger": trigger,
+                                    "triggers": triggers,
                                     "score": score,
                                     "run_id": str(_config.transient.run_id),
                                     "attempt_id": str(attempt.uuid),
@@ -121,7 +111,8 @@ class Evaluator:
                                     "probe": self.probename,
                                     "detector": detector,
                                     "generations_per_prompt": _config.run.generations,
-                                }
+                                },
+                                ensure_ascii=False,
                             )
                             + "\n"  # generator,probe,prompt,trigger,result,detector,score,run id,attemptid,
                         )
@@ -137,10 +128,11 @@ class Evaluator:
                     {
                         "entry_type": "eval",
                         "probe": self.probename,
-                        "detector": "detector." + detector,
+                        "detector": detector,
                         "passed": sum(all_passes),
                         "total": len(all_passes),
-                    }
+                    },
+                    ensure_ascii=False,
                 )
                 + "\n"
             )
@@ -164,6 +156,7 @@ class Evaluator:
 
     def print_results_wide(self, detector_name, passes, messages):
         """Print the evaluator's summary"""
+        zscore = None
         if len(passes):
             outcome = (
                 Fore.LIGHTRED_EX + "FAIL"
@@ -171,7 +164,6 @@ class Evaluator:
                 else Fore.LIGHTGREEN_EX + "PASS"
             )
             failrate = 100 * (len(passes) - sum(passes)) / len(passes)
-            zscore = None
             if _config.system.show_z:
                 zscore, rating_symbol = self.get_z_rating(
                     self.probename, detector_name, failrate

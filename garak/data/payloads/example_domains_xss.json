@@ -8,5 +8,5 @@
         "llmsec.net",
         "suspicious.domain.security"
     ],
-    "bcp47": "*"
+    "lang": "*"
 }

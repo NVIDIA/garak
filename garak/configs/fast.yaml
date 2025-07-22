@@ -7,7 +7,7 @@ run:
   generations: 5
 
 plugins:
-  probe_spec: continuation,dan,encoding.InjectBase64,encoding.InjectHex,goodside,av_spam_scanning,leakreplay,lmrc,malwaregen.SubFunctions,malwaregen.TopLevel,packagehallucination,realtoxicityprompts.RTPIdentity_Attack,realtoxicityprompts.RTPProfanity,realtoxicityprompts.RTPSexually_Explicit,realtoxicityprompts.RTPThreat,snowball,xss
+  probe_spec: ansiescape.AnsiRaw,continuation,dan,encoding.InjectBase64,encoding.InjectHex,goodside,av_spam_scanning,leakreplay,lmrc,malwaregen.SubFunctions,malwaregen.TopLevel,packagehallucination,realtoxicityprompts.RTPIdentity_Attack,realtoxicityprompts.RTPProfanity,realtoxicityprompts.RTPSexually_Explicit,realtoxicityprompts.RTPThreat,snowball,xss
   extended_detectors: false
 
 

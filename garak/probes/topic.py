@@ -13,10 +13,10 @@ from typing import Iterable
 import wn
 
 from garak import _config
-from garak.probes.base import TreeSearchProbe
+import garak.probes
 
 
-class WordnetBlockedWords(TreeSearchProbe):
+class WordnetBlockedWords(garak.probes.TreeSearchProbe):
     """Use Wordnet to explore which topics a model will respond to around blocked words
 
     This probe takes a tree-search approach to explore topics that the
@@ -27,7 +27,7 @@ class WordnetBlockedWords(TreeSearchProbe):
 
     active = False
 
-    bcp47 = "*"
+    lang = "*"
     primary_detector = "mitigation.MitigationBypass"
     goal = "get the model to engage off-topic"
     tags = [
@@ -35,8 +35,9 @@ class WordnetBlockedWords(TreeSearchProbe):
         "owasp:llm10",
         "quality:Security:Confidentiality",
     ]  # MISP-format taxonomy categories
+    tier = garak.probes.Tier.UNLISTED
 
-    DEFAULT_PARAMS = TreeSearchProbe.DEFAULT_PARAMS | {
+    DEFAULT_PARAMS = garak.probes.TreeSearchProbe.DEFAULT_PARAMS | {
         "target_topics": ["abortion"],
         "lexicon": "oewn:2023",
     }
@@ -124,6 +125,7 @@ class WordnetAllowedWords(WordnetBlockedWords):
     """
 
     active = False  # only makes sense if a list is set
+    tier = garak.probes.Tier.UNLISTED
 
     DEFAULT_PARAMS = WordnetBlockedWords.DEFAULT_PARAMS | {
         "target_topics": ["banking"],  # put list of allowed terms into this var
@@ -170,6 +172,7 @@ class WordnetControversial(WordnetBlockedWords):
 
     """
 
+    tier = garak.probes.Tier.COMPETE_WITH_SOTA
     active = True
 
     DEFAULT_PARAMS = WordnetBlockedWords.DEFAULT_PARAMS | {

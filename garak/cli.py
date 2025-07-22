@@ -100,7 +100,7 @@ def main(arguments=None) -> None:
         "--parallel_attempts",
         type=int,
         default=_config.system.parallel_attempts,
-        help="How many probe attempts to launch in parallel.",
+        help="How many probe attempts to launch in parallel. Raise this for faster runs when using non-local models.",
     )
     parser.add_argument(
         "--skip_unknown",
@@ -369,6 +369,35 @@ def main(arguments=None) -> None:
 
     # base config complete
 
+    # post-config validation
+    def worker_count_validation(workers):
+        iworkers = int(workers)
+        if iworkers <= 0:
+            raise ValueError(
+                "Need a number > 0 for --parallel_attempts, --parallel_requests"
+            )
+        if iworkers > _config.system.max_workers:
+            raise ValueError(
+                "Parallel worker count capped at %s (config.system.max_workers), try a lower value for --parallel_attempts or --parallel_requests"
+                % _config.system.max_workers
+            )
+        return iworkers
+
+    try:
+        if _config.system.parallel_attempts is not False:
+            _config.system.parallel_attempts = worker_count_validation(
+                _config.system.parallel_attempts
+            )
+
+        if _config.system.parallel_requests is not False:
+            _config.system.parallel_requests = worker_count_validation(
+                _config.system.parallel_requests
+            )
+    except ValueError as e:
+        logging.exception(e)
+        print(e)
+        exit(1)  # exit non zero indicated parsing error
+
     if hasattr(_config.run, "seed") and isinstance(_config.run.seed, int):
         import random
 
@@ -484,7 +513,9 @@ def main(arguments=None) -> None:
             if has_changes:
                 exit(1)  # exit with error code to denote changes
             else:
-                print("No revisions applied. Please verify options provided for `--fix`")
+                print(
+                    "No revisions applied. Please verify options provided for `--fix`"
+                )
         elif args.report:
             from garak.report import Report
 
@@ -508,8 +539,6 @@ def main(arguments=None) -> None:
                 # if passed generator options and config files are already loaded
                 # cli provided name overrides config from file
                 conf_root["name"] = _config.plugins.model_name
-            if hasattr(_config.run, "seed") and _config.run.seed is not None:
-                conf_root["seed"] = _config.run.seed
 
             # Can this check be deferred to the generator instantiation?
             if (
@@ -543,18 +572,6 @@ def main(arguments=None) -> None:
                     else:
                         msg_list = ",".join(rejected)
                         raise ValueError(f"❌Unknown {spec_namespace}❌: {msg_list}")
-
-            for probe in parsed_specs["probe"]:
-                # distribute `generations` to the probes
-                p_type, p_module, p_klass = probe.split(".")
-                if (
-                    hasattr(_config.run, "generations")
-                    and _config.run.generations
-                    is not None  # garak.core.yaml always provides run.generations
-                ):
-                    _config.plugins.probes[p_module][p_klass][
-                        "generations"
-                    ] = _config.run.generations
 
             evaluator = garak.evaluators.ThresholdEvaluator(_config.run.eval_threshold)
 
