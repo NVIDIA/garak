@@ -69,34 +69,10 @@ def start_run():
     _config.transient.reportfile = open(
         _config.transient.report_filename, "w", buffering=1, encoding="utf-8"
     )
-    setup_dict = {"entry_type": "start_run setup"}
-    for k, v in _config.__dict__.items():
-        if k[:2] != "__" and type(v) in (
-            str,
-            int,
-            bool,
-            dict,
-            tuple,
-            list,
-            set,
-            type(None),
-        ):
-            setup_dict[f"_config.{k}"] = v
-    for subset in "system transient run plugins reporting".split():
-        for k, v in getattr(_config, subset).__dict__.items():
-            if k[:2] != "__" and type(v) in (
-                str,
-                int,
-                bool,
-                dict,
-                tuple,
-                list,
-                set,
-                type(None),
-            ):
-                setup_dict[f"{subset}.{k}"] = v
-
-    _config.transient.reportfile.write(json.dumps(setup_dict, ensure_ascii=False) + "\n")
+    
+    # Use the centralized config serialization function
+    serialized_config = _config.serialize_config_to_json()
+    _config.transient.reportfile.write(serialized_config + "\n")
     _config.transient.reportfile.write(
         json.dumps(
             {

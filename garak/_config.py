@@ -11,11 +11,12 @@ import platform
 from collections import defaultdict
 from dataclasses import dataclass
 import importlib
+import json
 import logging
 import os
 import stat
 import pathlib
-from typing import List
+from typing import Dict, List, Any, Set
 import yaml
 from xdg_base_dirs import (
     xdg_cache_home,
@@ -348,3 +349,276 @@ def parse_plugin_spec(
             plugin_names.remove(plugin_to_skip)
 
     return plugin_names, unknown_plugins
+
+
+# Fields that should be excluded from config serialization
+_EXCLUDED_CONFIG_FIELDS: Set[str] = {
+    # API keys and secrets
+    "api_key", 
+    "OPENAI_API_KEY", 
+    "AZURE_OPENAI_API_KEY", 
+    "ANTHROPIC_API_KEY",
+    "COHERE_API_KEY", 
+    "ENV_VAR",
+    
+    # Transient runtime values
+    "reportfile", 
+    "hitlogfile", 
+    "args", 
+    "package_dir",
+    "log_filename", 
+    "starttime", 
+    "starttime_iso",
+    
+    # Constants and internal implementations
+    "_crystallise", 
+    "_nested_dict", 
+    "nested_dict", 
+    "REQUESTS_AGENT",
+    "_garak_user_agent", 
+    "_key_exists", 
+    "_set_settings", 
+    "_combine_into",
+    "_store_config",
+}
+
+
+def serialize_config(include_transient: bool = False) -> Dict[str, Any]:
+    """Serializes the current config to support run reproducibility.
+    
+    Returns a dictionary with all config values necessary to reproduce a run,
+    while excluding sensitive data like API keys, constants, and implementation details.
+    
+    The serialized config includes:
+    - All non-constant configuration values from _config module
+    - Configuration from system, run, plugins, and reporting namespaces
+    - Plugin-specific configuration (both explicit and derived from DEFAULT_PARAMS)
+    - Essential transient values (run_id, config_dir, data_dir, cache_dir)
+    
+    The serialized config excludes:
+    - Sensitive information (api_key, token, password, secret)
+    - Constants (all uppercase variables, except VERSION)
+    - Implementation details (functions, classes, private attributes)
+    - Non-essential transient values (reportfile, logfile)
+    
+    Args:
+        include_transient: If True, include relevant transient values that might be 
+                          useful for auditing. Default is False (reproducibility mode).
+    
+    Returns:
+        Dict[str, Any]: Dictionary of config values suitable for serialization
+    """
+    config_dict = {"entry_type": "start_run setup"}
+    
+    # Constants and sensitive values to exclude
+    _EXCLUDED_CONFIG_FIELDS = [
+        # Sensitive patterns
+        "api_key", "apikey", "token", "password", "secret",
+        # Constants and internal details
+        "CONFIG_FILES", "CONFIG_DIR", "USER_CONFIG_FILE", "DEFAULT_CONFIG_FILE",
+        "osname", "loaded", "_defaults"
+    ]
+    
+    def should_exclude(key: str) -> bool:
+        """Check if a key should be excluded from serialization."""
+        # Skip private attributes (except _config itself)
+        if key.startswith('_') and key != '_config':
+            return True
+        
+        # Skip functions, classes, etc.
+        if callable(globals().get(key)):
+            return True
+        
+        # Check if it's a constant (all uppercase with underscores)
+        # but allow some constants that might be important for reproducibility
+        if key.isupper() and key not in ["VERSION"]:
+            return True
+            
+        # Skip excluded fields and known patterns
+        for pattern in _EXCLUDED_CONFIG_FIELDS:
+            if pattern in key.lower():
+                return True
+        
+        return False
+    
+    def is_serializable(value: Any) -> bool:
+        """Check if a value can be safely serialized to JSON."""
+        if value is None:
+            return True
+        
+        # Handle basic types
+        if isinstance(value, (str, int, float, bool)):
+            return True
+        
+        # Handle collections
+        if isinstance(value, (list, tuple)):
+            return all(is_serializable(item) for item in value)
+        
+        if isinstance(value, dict):
+            return (all(isinstance(k, str) for k in value.keys()) and
+                   all(is_serializable(v) for v in value.values()))
+        
+        # Reject all other types
+        return False
+    
+    # Process top-level config attributes
+    for k, v in globals().items():
+        if k[:2] != "__" and is_serializable(v) and not should_exclude(k):
+            config_dict[f"_config.{k}"] = v
+    
+    # Process submodules
+    for subset in "system run plugins reporting".split():
+        if subset in globals():
+            subset_obj = globals()[subset]
+            for k, v in subset_obj.__dict__.items():
+                if k[:2] != "__" and is_serializable(v) and not should_exclude(k):
+                    config_dict[f"{subset}.{k}"] = v
+    
+    # Handle plugin configuration specially
+    if "plugins" in globals():
+        # Ensure we capture all plugin-specific configuration
+        if hasattr(plugins, "plugin_info") and plugins.plugin_info:
+            plugin_config = {}
+            for plugin_type, plugin_list in plugins.plugin_info.items():
+                for plugin_name, plugin_class in plugin_list.items():
+                    # Get plugin-specific config key
+                    plugin_key = f"{plugin_type}.{plugin_name}"
+                    
+                    # First check if there's an instance with configuration
+                    if hasattr(plugins, plugin_key):
+                        plugin_config[plugin_key] = getattr(plugins, plugin_key)
+                    # Then check for class-level DEFAULT_PARAMS
+                    elif hasattr(plugin_class, "DEFAULT_PARAMS"):
+                        # Get default parameters from class
+                        default_params = plugin_class.DEFAULT_PARAMS.copy()
+                        
+                        # Check if there are any overrides in the config
+                        if hasattr(plugins, plugin_type) and isinstance(getattr(plugins, plugin_type), dict):
+                            plugin_type_config = getattr(plugins, plugin_type)
+                            if plugin_name in plugin_type_config:
+                                # Merge default params with configured overrides
+                                default_params.update(plugin_type_config[plugin_name])
+                        
+                        # Filter out sensitive information
+                        for key in list(default_params.keys()):
+                            if any(pattern in key.lower() for pattern in _EXCLUDED_CONFIG_FIELDS):
+                                del default_params[key]
+                        
+                        plugin_config[plugin_key] = default_params
+            
+            # Add plugin configuration if any was found
+            if plugin_config:
+                config_dict["plugins.specific"] = plugin_config
+    
+    # Include transient values based on parameter
+    if "transient" in globals():
+        # Always include these for reproducibility
+        essential_transient = ["run_id", "config_dir", "data_dir", "cache_dir"]
+        
+        for k, v in transient.__dict__.items():
+            # Include essential transient values or all relevant ones if include_transient=True
+            if (k in essential_transient or 
+                (include_transient and k not in ["reportfile", "logfile"] and is_serializable(v))):
+                config_dict[f"transient.{k}"] = v
+    
+    return config_dict
+
+
+def serialize_config_to_json(include_transient: bool = False) -> str:
+    """Serialize the config and return it as a JSON string.
+    
+    Args:
+        include_transient: If True, include relevant transient values that might be 
+                          useful for auditing. Default is False (reproducibility mode).
+    
+    Returns:
+        str: JSON representation of the serialized config
+    """
+    return json.dumps(serialize_config(include_transient), ensure_ascii=False)
+
+
+def deserialize_config(config_dict: Dict[str, Any]) -> bool:
+    """Deserialize a config dictionary and apply it to the current config.
+    
+    This function loads configuration values from a previously serialized config
+    dictionary, allowing for run reproducibility. It will not overwrite sensitive
+    information like API keys or constants.
+    
+    Args:
+        config_dict: Dictionary containing serialized configuration values
+        
+    Returns:
+        bool: True if deserialization was successful, False otherwise
+    """
+    if not isinstance(config_dict, dict):
+        logging.error("Config must be a dictionary")
+        return False
+        
+    # Skip entry_type as it's just metadata
+    if "entry_type" in config_dict:
+        del config_dict["entry_type"]
+    
+    # Process each config entry
+    for key, value in config_dict.items():
+        # Handle different config sections
+        if key.startswith("_config."):
+            # Set attribute on _config module
+            attr_name = key.split(".", 1)[1]
+            globals()[attr_name] = value
+        elif key.startswith("transient."):
+            # Set attribute on transient object
+            if "transient" in globals():
+                attr_name = key.split(".", 1)[1]
+                setattr(transient, attr_name, value)
+        elif key.startswith("plugins."):
+            # Handle plugin configuration
+            if key == "plugins.specific" and isinstance(value, dict):
+                # Handle plugin-specific configuration
+                for plugin_key, plugin_value in value.items():
+                    if "plugins" in globals():
+                        # Parse plugin key (e.g., "generators.test_generator")
+                        if "." in plugin_key:
+                            plugin_type, plugin_name = plugin_key.split(".", 1)
+                            
+                            # Ensure the plugin type attribute exists
+                            if not hasattr(plugins, plugin_type):
+                                setattr(plugins, plugin_type, {})
+                                
+                            # Get the plugin type dictionary
+                            plugin_type_dict = getattr(plugins, plugin_type)
+                            
+                            # Set the plugin configuration
+                            if isinstance(plugin_type_dict, dict):
+                                plugin_type_dict[plugin_name] = plugin_value
+                            else:
+                                # If it's not a dict, try direct attribute setting
+                                setattr(plugin_type_dict, plugin_name, plugin_value)
+            else:
+                # Regular plugins attribute
+                attr_name = key.split(".", 1)[1]
+                if "plugins" in globals():
+                    setattr(plugins, attr_name, value)
+        elif "." in key:
+            # Handle other namespaced attributes
+            namespace, attr_name = key.split(".", 1)
+            if namespace in globals():
+                setattr(globals()[namespace], attr_name, value)
+    
+    return True
+
+
+def deserialize_config_from_json(json_str: str) -> bool:
+    """Deserialize a JSON string into the current config.
+    
+    Args:
+        json_str: JSON string containing serialized configuration
+        
+    Returns:
+        bool: True if deserialization was successful, False otherwise
+    """
+    try:
+        config_dict = json.loads(json_str)
+        return deserialize_config(config_dict)
+    except json.JSONDecodeError as e:
+        logging.error(f"Failed to parse JSON: {e}")
+        return False
