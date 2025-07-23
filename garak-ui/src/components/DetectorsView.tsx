@@ -41,7 +41,7 @@ const DetectorsView = ({
           </span>
         </p>
       </div>
-      {Object.entries(groupedDetectors).map(([detectorType, entries]) => {
+      {[...Object.entries(groupedDetectors)].sort(([a],[b])=>a.localeCompare(b)).map(([detectorType, entries]) => {
         const sortedEntries = sortDetectors(entries) as unknown as ChartDetector[];
         const { pointSeries, lineSeries, naSeries, visible } = buildSeries(
           sortedEntries,
