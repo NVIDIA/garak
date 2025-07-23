@@ -102,29 +102,25 @@ const ProbesChart = ({ module, selectedProbe, setSelectedProbe }: ProbesChartPro
   );
 
   return (
-    <div className="space-y-2">
-      {/* Header + controls */}
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-1">
-          <h3 className="text-lg font-semibold">Probe scores</h3>
-          <InfoTooltip>
-            <p className="text-xs mb-2">
-              A probe is a predefined set of prompts targeting a specific failure mode.
-            </p>
-            <p className="text-xs mb-2">
-              Each bar shows the percentage of prompts where the model failed (higher = worse). Click a bar to drill down.
-            </p>
-            <ColorLegend />
-          </InfoTooltip>
-        </div>
-
-      </div>
-
+    <div className="space-y-2 mt-3">
       {filtered.length === 0 ? (
         <p className="text-sm italic text-gray-500 py-8">No probes meet the current filter.</p>
       ) : (
         <div style={{ display: "flex" }}>
           <div style={{ flex: selectedProbe ? "20%" : "100%" }}>
+            {/* Probe scores header */}
+            <div className="flex items-center gap-1 mb-1">
+              <h3 className="text-lg font-semibold">Probe scores</h3>
+              <InfoTooltip>
+                <p className="text-xs mb-2">
+                  A probe is a predefined set of prompts targeting a specific failure mode.
+                </p>
+                <p className="text-xs mb-2">
+                  Each bar shows the percentage of prompts where the model failed (higher = worse). Click a bar to drill down.
+                </p>
+                <ColorLegend />
+              </InfoTooltip>
+            </div>
             <ReactECharts
               option={{
                 ...option,
