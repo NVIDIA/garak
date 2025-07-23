@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import ProbesChart from "../ProbesChart";
 import { describe, it, expect, vi } from "vitest";
 
@@ -16,11 +16,9 @@ const moduleData:any = {
 };
 
 describe("ProbesChart slider", ()=>{
-  it("shows placeholder when filter hides all", async ()=>{
+  it("renders without slider after removal", ()=>{
     const setSel=vi.fn();
     render(<ProbesChart module={moduleData} selectedProbe={null} setSelectedProbe={setSel}/>);
-    const slider= screen.getByRole("slider");
-    fireEvent.change(slider,{ target:{ value:50}});
-    expect(await screen.findByText(/No probes meet/)).toBeInTheDocument();
+    expect(screen.queryByRole("slider")).toBeNull();
   });
 }); 

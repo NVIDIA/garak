@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import ReactECharts from "echarts-for-react";
 import DetectorsView from "./DetectorsView";
 import useSeverityColor from "../hooks/useSeverityColor";
@@ -28,9 +28,7 @@ const ProbesChart = ({ module, selectedProbe, setSelectedProbe }: ProbesChartPro
     });
   }, [module, getSeverityColorByLevel, getSeverityLabelByLevel]);
 
-  const [minFail, setMinFail] = useState(0);
-
-  const filtered = useMemo(() => probesData.filter(p => p.value >= minFail), [probesData, minFail]);
+  const filtered = probesData;
 
   const getTooltip = useProbeTooltip(filtered);
 
@@ -120,19 +118,6 @@ const ProbesChart = ({ module, selectedProbe, setSelectedProbe }: ProbesChartPro
           </InfoTooltip>
         </div>
 
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-700 w-24">Min failure&nbsp;%</label>
-          <input
-            type="range"
-            min={0}
-            max={100}
-            step={5}
-            value={minFail}
-            onChange={e => setMinFail(Number(e.target.value))}
-            className="w-48"
-          />
-          <span className="text-sm text-gray-700 w-8 text-right">{minFail}%</span>
-        </div>
       </div>
 
       {filtered.length === 0 ? (

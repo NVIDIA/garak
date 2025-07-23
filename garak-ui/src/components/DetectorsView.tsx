@@ -25,12 +25,11 @@ const DetectorsView = ({
   const { getSeverityColorByLevel } = useSeverityColor();
   const probeColor = getSeverityColorByLevel(probe.summary?.probe_severity ?? 0);
 
-
   return (
     <div className="flex flex-col gap-8 pl-4 border-l border-gray-300">
       <div className="mb-4 flex flex-col gap-1">
         <div className="flex items-center gap-1">
-          <h3 className="text-md font-semibold">Detector comparison</h3>
+          <h3 className="text-lg font-semibold">Detector comparison</h3>
           <InfoTooltip>
             Detectors score the model’s response; higher Z-score = worse (relative to calibration).
           </InfoTooltip>
