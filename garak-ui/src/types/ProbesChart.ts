@@ -50,4 +50,6 @@ export type ChartDetector = {
   detector_score: number | null;
   comment: string | null;
   color: string;
+  attempt_count?: number | null;
+  hit_count?: number | null;
 };

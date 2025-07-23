@@ -31,6 +31,8 @@ export const useGroupedDetectors = (probe: Probe, allProbes: Probe[]) => {
           zscore: zMissing ? null : zscore,
           detector_score: match?.absolute_score ? match.absolute_score * 100 : null,
           comment: match?.zscore_comment ?? "Unavailable",
+          attempt_count: (match as any)?.attempt_count ?? null,
+          hit_count: (match as any)?.hit_count ?? (match as any)?.fail_count ?? null,
           color: p.probe_name === probe.probe_name ? color : theme.colors.tk150,
           unavailable: zMissing,
         });

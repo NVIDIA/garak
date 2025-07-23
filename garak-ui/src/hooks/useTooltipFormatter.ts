@@ -7,13 +7,16 @@ export function useTooltipFormatter() {
     const score = data?.detector_score != null ? `${data.detector_score.toFixed(2)}%` : "—";
     const z = formatZ(data?.zscore ?? null);
     const comment = data?.comment ?? "Unavailable";
+    const attempts = data?.attempt_count;
+    const hits = data?.hit_count ?? data?.fail_count; // whichever makes sense
+    const countsLine = attempts != null && hits != null ? `<br/>Attempts: ${attempts}, Detected: ${hits}` : "";
     const color = data?.itemStyle?.color ?? "#666";
 
     return `
       <strong>${detectorType}</strong><br/>
       Score: ${score}<br/>
       Z-score: ${z}<br/>
-      Comment: <span style="color:${color}">${comment}</span>
+      Comment: <span style="color:${color}">${comment}</span>${countsLine}
     `;
   };
 }

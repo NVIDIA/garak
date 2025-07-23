@@ -113,7 +113,8 @@ def _init_populate_result_db(evals, taxonomy=None):
         probe_class VARCHAR(255) not null,
         detector VARCHAR(255) not null, 
         score FLOAT not null,
-        instances INT not null
+        instances INT not null,
+        passes INT not null
     );"""
 
     cursor.execute(create_table)
@@ -122,8 +123,9 @@ def _init_populate_result_db(evals, taxonomy=None):
         eval["probe"] = eval["probe"].replace("probes.", "")
         pm, pc = eval["probe"].split(".")
         detector = eval["detector"].replace("detector.", "")
-        score = eval["passed"] / eval["total"] if eval["total"] else 0
+        passes = eval["passed"]
         instances = eval["total"]
+        score = passes / instances if instances else 0
         groups = []
         if taxonomy is not None:
             # get the probe tags
@@ -139,7 +141,7 @@ def _init_populate_result_db(evals, taxonomy=None):
         # add a row for each group
         for group in groups:
             cursor.execute(
-                f"insert into results values ('{pm}', '{group}', '{pc}', '{detector}', '{score}', '{instances}')"
+                f"insert into results values ('{pm}', '{group}', '{pc}', '{detector}', '{score}', '{instances}', '{passes}')"
             )
 
     return conn, cursor
@@ -395,6 +397,19 @@ def build_digest(report_filename: str, config=_config):
             probe_info = _get_probe_info(
                 probe_module, probe_class, group_absolute_score
             )
+
+            # fetch counts for this probe
+            counts_row = cursor.execute(
+                "select sum(instances) as total, sum(passes) as passed from results where probe_module=? and probe_class=? and probe_group=?;",
+                (probe_module, probe_class, probe_group),
+            ).fetchone()
+            if counts_row:
+                total_attempts = counts_row[0] or 0
+                passed_attempts = counts_row[1] or 0
+                fail_attempts = total_attempts - passed_attempts
+                probe_info["prompt_count"] = total_attempts
+                probe_info["fail_count"] = fail_attempts
+
             report_digest["eval"][probe_group][f"{probe_module}.{probe_class}"][
                 "_summary"
             ] = probe_info
@@ -409,6 +424,15 @@ def build_digest(report_filename: str, config=_config):
                     calibration,
                     probe_info["probe_tier"],
                 )
+
+                # add attempt / hit counts for detector
+                det_counts = cursor.execute(
+                    "select instances, passes from results where probe_module=? and probe_class=? and detector=? and probe_group=? limit 1;",
+                    (probe_module, probe_class, detector, probe_group),
+                ).fetchone()
+                if det_counts:
+                    probe_detector_result["attempt_count"] = det_counts[0]
+                    probe_detector_result["hit_count"] = det_counts[0] - det_counts[1]
 
                 report_digest["eval"][probe_group][f"{probe_module}.{probe_class}"][
                     detector

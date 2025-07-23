@@ -22,6 +22,8 @@ export function useDetectorsChartSeries() {
         zscore: d.zscore,
         detector_score: d.detector_score,
         comment: d.comment,
+        attempt_count: d.attempt_count,
+        hit_count: d.hit_count,
         itemStyle: {
           color:
             d.color === theme.colors.tk150 ? "rgba(156,163,175,0.3)" : d.color,
@@ -39,6 +41,8 @@ export function useDetectorsChartSeries() {
         zscore: d.zscore,
         detector_score: d.detector_score,
         comment: d.comment,
+        attempt_count: d.attempt_count,
+        hit_count: d.hit_count,
         itemStyle: {
           color:
             d.color === theme.colors.tk150 ? "rgba(156,163,175,0.3)" : d.color,

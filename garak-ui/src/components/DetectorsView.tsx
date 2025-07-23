@@ -48,7 +48,12 @@ const DetectorsView = ({
           hideUnavailable
         );
 
-        const yAxisLabels = visible.map(d => d.label);
+        const yAxisLabels = visible.map(d => {
+          if (d.attempt_count != null && d.hit_count != null) {
+            return `${d.label} (${d.attempt_count}/${d.hit_count})`;
+          }
+          return d.label;
+        });
 
         const option = {
           grid: { containLabel: true, left: 10, right: 10, top: 10, bottom: 10 },
