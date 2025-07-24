@@ -133,7 +133,7 @@ def is_meaning_string(text: str) -> bool:
 # To be `Configurable` the root object must meet the standard type search criteria
 # { langproviders:
 #     "local": { # model_type
-#       "language": "<from>-<to>"
+#       "language": "<from>,<to>"
 #       "name": "model/name" # model_name
 #       "hf_args": {} # or any other translator specific values for the model_type
 #     }
@@ -143,6 +143,9 @@ from garak.configurable import Configurable
 
 class TranslationCache:
     def __init__(self, provider: "LangProvider"):
+        if not hasattr(provider, "model_type"):
+            return None  # providers without a model_type do not have a cache
+
         self.source_lang = provider.source_lang
         self.target_lang = provider.target_lang
         self.model_type = provider.model_type
