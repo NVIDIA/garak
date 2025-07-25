@@ -15,6 +15,7 @@ implemented buffs.
 
    garak.buffs
    garak.buffs.base
+   garak.buffs.ascii_smuggling
    garak.buffs.encoding
    garak.buffs.low_resource_languages
    garak.buffs.lowercase

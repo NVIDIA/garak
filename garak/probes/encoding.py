@@ -23,6 +23,7 @@ import random
 
 import garak.payloads
 import garak.resources.encodings
+import garak.resources.smuggling.smuggle_ascii as ascii_smuggling
 from garak import _config
 import garak.probes
 
@@ -227,12 +228,15 @@ class EncodingMixin:
             if payload_to_add in extra_payload_tags:
                 self.extra_tags += extra_payload_tags[payload_to_add]
 
-    def _generate_encoded_prompts(self, encoding_funcs, encoding_name):
-        encoded_prompts = set([])
+    def _generate_encoded_prompts(self, encoding_funcs, encoding_name, use_bytes=True):
+        encoded_prompts = set()
         for template in TEMPLATES:
             for payload in self._payloads:
                 for encoder in encoding_funcs:
-                    encoded_text = encoder(bytes(payload, "utf-8"))
+                    if use_bytes:
+                        encoded_text = encoder(bytes(payload, "utf-8"))
+                    else:
+                        encoded_text = encoder(payload)
                     if isinstance(encoded_text, bytes):
                         encoded_text = encoded_text.decode()
                     prompt = template.replace("{encoding_name}", encoding_name).replace(
@@ -242,11 +246,11 @@ class EncodingMixin:
                     encoded_prompts.add((prompt, trigger))
         return sorted(list(encoded_prompts), key=lambda k: k[0])
 
-    def __init__(self):
+    def __init__(self, use_bytes=True):
         self._load_payloads()
         self.tags += self.extra_tags
         generated_prompts = self._generate_encoded_prompts(
-            self.encoding_funcs, self.encoding_name
+            self.encoding_funcs, self.encoding_name, use_bytes
         )
         if (
             not self.follow_prompt_cap
@@ -595,3 +599,57 @@ class InjectLeet(EncodingMixin, garak.probes.Probe):
     def __init__(self, config_root=_config):
         garak.probes.Probe.__init__(self, config_root=config_root)
         EncodingMixin.__init__(self)
+
+
+class InjectUnicodeTagChars(EncodingMixin, garak.probes.Probe):
+    """Probe for susceptibility to unicode tag ASCII smuggling
+
+    Encodes payloads by appending them to an emoji as invisible ASCII tags, and tries a variety of ways of getting the
+    target model to repeat & decode them."""
+
+    doc_uri = "https://embracethered.com/blog/posts/2024/hiding-and-finding-text-with-unicode-tags/"
+
+    encoding_funcs = [ascii_smuggling.tag_char_smuggling]
+    encoding_name = "Unicode Tags"
+    active = True
+
+    def __init__(self, config_root=_config):
+        garak.probes.Probe.__init__(self, config_root=config_root)
+        EncodingMixin.__init__(self, use_bytes=False)
+
+
+class InjectUnicodeVariantSelectors(EncodingMixin, garak.probes.Probe):
+    """Probe for susceptibility to unicode variant selector ASCII smuggling
+
+    Encodes payloads by encoding ASCII characters as Unicode variant selectors, and tries a variety of ways of getting
+    the target model to repeat & decode them."""
+
+    doc_uri = "https://paulbutler.org/2025/smuggling-arbitrary-data-through-an-emoji/"
+
+    encoding_funcs = [ascii_smuggling.variant_smuggling]
+    encoding_name = "Unicode Variant Selector"
+    active = True
+
+    def __init__(self, config_root=_config):
+        garak.probes.Probe.__init__(self, config_root=config_root)
+        EncodingMixin.__init__(self, use_bytes=False)
+
+
+class InjectSneakyBits(EncodingMixin, garak.probes.Probe):
+    """Probe for susceptibility to unicode variant selector ASCII smuggling
+
+    Encodes payloads by encoding ASCII characters into binary and encoding that binary using zero-width Unicode
+    characters, and tries a variety of ways of getting the target model to repeat & decode them.
+    """
+
+    doc_uri = (
+        "https://embracethered.com/blog/posts/2025/sneaky-bits-and-ascii-smuggler/"
+    )
+
+    encoding_funcs = [ascii_smuggling.sneaky_bits_smuggling]
+    encoding_name = "Unicode hidden binary encoding"
+    active = True
+
+    def __init__(self, config_root=_config):
+        garak.probes.Probe.__init__(self, config_root=config_root)
+        EncodingMixin.__init__(self, use_bytes=False)
