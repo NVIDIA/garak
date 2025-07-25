@@ -1,8 +1,10 @@
 import pytest
 from garak.generators.rest import MultiRestGenerator
 from garak import _config, _plugins
-
-EXAMPLE_BURP_XML = {"burpfile": "./garak/data/rest/multirest.xml"}
+from pathlib import Path
+from garak.data import path as data_path
+            
+EXAMPLE_BURP_XML = {"burpfile": str(Path(data_path) / "rest" / "multirest.xml") }
 
 EXAMPLE_CONFIG = {
     "rest": {
