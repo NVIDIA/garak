@@ -1,0 +1,104 @@
+<?xml version="1.1"?>
+<!-- NOTE: Any NULL bytes in requests and responses are preserved within this output, even though this strictly breaks the XML syntax. If your XML parser rejects the NULL bytes then you will need to remove or replace these bytes before parsing. Alternatively, you can use the option to base64-encode requests and responses. -->
+<!DOCTYPE items [
+<!ELEMENT items (item*)>
+<!ATTLIST items burpVersion CDATA "">
+<!ATTLIST items exportTime CDATA "">
+<!ELEMENT item (time, url, host, port, protocol, method, path, extension, request, status, responselength, mimetype, response, comment)>
+<!ELEMENT time (#PCDATA)>
+<!ELEMENT url (#PCDATA)>
+<!ELEMENT host (#PCDATA)>
+<!ATTLIST host ip CDATA "">
+<!ELEMENT port (#PCDATA)>
+<!ELEMENT protocol (#PCDATA)>
+<!ELEMENT method (#PCDATA)>
+<!ELEMENT path (#PCDATA)>
+<!ELEMENT extension (#PCDATA)>
+<!ELEMENT request (#PCDATA)>
+<!ATTLIST request base64 (true|false) "false">
+<!ELEMENT status (#PCDATA)>
+<!ELEMENT responselength (#PCDATA)>
+<!ELEMENT mimetype (#PCDATA)>
+<!ELEMENT response (#PCDATA)>
+<!ATTLIST response base64 (true|false) "false">
+<!ELEMENT comment (#PCDATA)>
+]>
+<items burpVersion="2025.3.4" exportTime="Tue May 20 00:59:32 CDT 2025">
+  <item>
+    <time>Tue May 20 00:58:31 CDT 2025</time>
+    <url><![CDATA[https://example.com/score]]></url>
+    <host ip="1.1.1.1">example.com</host>
+    <port>443</port>
+    <protocol>https</protocol>
+    <method><![CDATA[POST]]></method>
+    <path><![CDATA[/score]]></path>
+    <extension>null</extension>
+    <request base64="false"><![CDATA[POST /score HTTP/2
+Host: example.com
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:138.0) Gecko/20100101 Firefox/138.0
+Accept: */*
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Content-Type: application/json
+Sec-Fetch-Mode: cors
+Sec-Fetch-Site: same-site
+Dnt: 1
+Sec-Gpc: 1
+Priority: u=0
+Te: trailers
+
+{"data":"$INPUT"}]]></request>
+    <status>200</status>
+    <responselength>270</responselength>
+    <mimetype>JSON</mimetype>
+    <response base64="false"><![CDATA[HTTP/2 200 OK
+Date: Tue, 20 May 2025 05:58:32 GMT
+Content-Type: application/json
+Content-Length: 52
+Server: uvicorn
+Apigw-Requestid: K2kBRiewPHcEM8A=
+
+{"id":"$1$asfsdaf$1$"}]]></response>
+    <comment></comment>
+  </item>
+  <item>
+    <time>Tue May 20 00:58:13 CDT 2025</time>
+    <url><![CDATA[https://example.com/score?id=123]]></url>
+    <host ip="1.1.1.1">example.com</host>
+    <port>443</port>
+    <protocol>https</protocol>
+    <method><![CDATA[GET]]></method>
+    <path><![CDATA[/score?id=123]]></path>
+    <extension>null</extension>
+    <request base64="false"><![CDATA[GET /score?id=$1$123$1$ HTTP/2
+Host: example.com
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:138.0) Gecko/20100101 Firefox/138.0
+Accept: */*
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Referer: https://example.com/score
+Content-Type: application/json
+Origin: https://example.com
+Sec-Fetch-Dest: empty 
+Sec-Fetch-Mode: cors
+Sec-Fetch-Site: same-site
+Dnt: 1
+Sec-Gpc: 1
+Priority: u=0
+Te: trailers
+
+]]></request>
+    <status>400</status>
+    <responselength>273</responselength>
+    <mimetype>JSON</mimetype>
+    <response base64="false"><![CDATA[HTTP/2 400 Bad Request
+Date: Tue, 20 May 2025 05:58:14 GMT
+Content-Type: application/json
+Content-Length: 46
+Server: uvicorn
+Apigw-Requestid: K2j-dj6KPHcEMvw=
+
+{"message":"$OUT$Hello World$OUT$"}]]></response>
+    <comment></comment>
+  </item>
+</items>
