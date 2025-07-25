@@ -632,8 +632,9 @@ class MultiRestGenerator(Generator):
                         f"Locator failure: Variable could not be found in actual response: {locations} -> {resp_packet}"
                     )
             else:
+                response = pair["response"]
                 raise ValueError(
-                    f"Response mismatch: expected {pair["response"]}, got {resp_packet}"
+                    f"Response mismatch: expected {response}, got {resp_packet}"
                 )
         if locations.get("OUT"):
             return locations["OUT"]
