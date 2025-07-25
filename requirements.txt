@@ -7,6 +7,7 @@ cohere>=4.5.1,<5
 openai>=1.45.0,<2
 replicate>=0.8.3
 google-api-python-client>=2.0
+google-generativeai>=0.8.5
 backoff>=2.1.1
 rapidfuzz>=3.0.0
 jinja2>=3.1.6
