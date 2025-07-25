@@ -308,7 +308,6 @@ class RestGenerator(Generator):
         return response
 
 
-DEFAULT_CLASS = "RestGenerator"
 
 
 class MultiRestGenerator(Generator):
@@ -680,3 +679,5 @@ class WebSocketGenerator(Generator):
             return output[self.json_key]
         else:
             return output
+            
+DEFAULT_CLASS = "RestGenerator"
