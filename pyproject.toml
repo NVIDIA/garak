@@ -98,6 +98,7 @@ dependencies = [
   'python-magic>=0.4.21; sys_platform != "win32"',
   "lorem==0.1.1",
   "xdg-base-dirs>=6.0.1",
+  "google-generativeai>=0.8.5",
   "wn==0.9.5",
   "ollama>=0.4.7",
   "nvidia-riva-client==2.16.0",
