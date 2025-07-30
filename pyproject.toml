@@ -86,7 +86,7 @@ dependencies = [
   "torch>=2.6.0",
   "sentencepiece>=0.1.99",
   "markdown>=3.4.3",
-  "numpy>=1.26.4,<2.0",
+  "numpy>=2.0.0",
   "zalgolib>=0.2.2",
   "ecoji>=0.1.1",
   "deepl==1.17.0",
