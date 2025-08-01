@@ -380,7 +380,7 @@ class MultiRestGenerator(Generator):
         Apigw-Requestid: K2j-dj6KPHcEMvw=
         Access-Control-Allow-Origin: https://platform.dreadnode.io
 
-        {"message":"$OUTPUT"}]]>
+        {"message":"$OUT$Hello World$OUT$"}]]>
 
     Here the location of $OUTPUT in the response body indicates that the output value will be extracted from the response JSON under the "message" key.
     If the response is not JSON, it will be returned as is.
