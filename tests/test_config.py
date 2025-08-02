@@ -867,3 +867,22 @@ def test_site_yaml_overrides_max_workers(capsys):
         )
         assert exc_info.type == SystemExit
         assert exc_info.value.code == 1
+
+
+def setup_function():
+    """pytest setup function to reset state before each test."""
+    _config.config_files = []
+    _config.loaded = False
+    _config.transient.package_dir = Path(_config.__file__).parent
+
+
+def test_no_duplicate_config_files_on_load():
+    """Verify that loading base and subsequent configs doesn't create duplicates."""
+    _config.load_base_config()
+    _config.load_config()
+
+    loaded_files = _config.config_files
+    assert len(loaded_files) > 0, "No config files were loaded."
+    assert len(loaded_files) == len(
+        set(loaded_files)
+    ), f"Duplicate configuration files found: {loaded_files}"

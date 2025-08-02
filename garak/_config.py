@@ -261,7 +261,7 @@ def load_config(
     # and then not have cli be upset when these are not given as cli params
     global loaded
 
-    settings_files = [str(transient.package_dir / "resources" / "garak.core.yaml")]
+    settings_files = []
 
     fq_site_config_filename = str(transient.config_dir / site_config_filename)
     if os.path.isfile(fq_site_config_filename):
