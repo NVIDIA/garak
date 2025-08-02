@@ -25,8 +25,9 @@ import garak.analyze
 import garak.analyze.calibration
 
 
-if not _config.loaded:
-    _config.load_config()
+# Always load the base config first, then subsequent configs
+_config.load_base_config()
+_config.load_config()
 
 templateLoader = jinja2.FileSystemLoader(
     searchpath=_config.transient.package_dir / "analyze" / "templates"

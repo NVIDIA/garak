@@ -20,6 +20,7 @@ from garak import cli, _config
 
 PREFIX = "test_buff_single" + str(uuid.uuid4())
 
+_config.load_base_config()
 _config.load_config()
 REPORT_PATH = _config.transient.data_dir / _config.reporting.report_dir
 
