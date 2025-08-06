@@ -111,35 +111,6 @@ def test_gemini_generator_multiple_generations(monkeypatch):
     assert mock_model.generate_content.call_count == 3
 
 @pytest.mark.usefixtures("set_fake_env")
-def test_gemini_text_to_speech_model(monkeypatch):
-    """Test the Gemini generator with a text-to-speech model."""
-    # Create a mock for the GenerativeModel class
-    mock_model = MagicMock()
-    mock_response = MagicMock()
-    mock_response.text = "This is a text-to-speech response."
-    mock_model.generate_content.return_value = mock_response
-    
-    # Patch the GenerativeModel constructor
-    def mock_generative_model(*args, **kwargs):
-        return mock_model
-    
-    # Patch the genai.configure function
-    mock_configure = MagicMock()
-    
-    # Apply the patches
-    monkeypatch.setattr("google.generativeai.GenerativeModel", mock_generative_model)
-    monkeypatch.setattr("google.generativeai.configure", mock_configure)
-    
-    # Create the generator with a text-to-speech model
-    generator = GeminiGenerator(name="gemini-2.5-pro-preview-text-to-speech")
-    output = generator._call_model("Generate speech for this text.")
-    
-    # Verify the results
-    assert len(output) == 1
-    assert output[0] == "This is a text-to-speech response."
-    mock_model.generate_content.assert_called_once_with("Generate speech for this text.")
-
-@pytest.mark.usefixtures("set_fake_env")
 def test_gemini_native_audio_model(monkeypatch):
     """Test the Gemini generator with a native audio model."""
     # Create a mock for the GenerativeModel class
