@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Generator for Google's Gemini models using the Google Generative AI Python client.
 """
