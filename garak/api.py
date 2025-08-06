@@ -2,11 +2,8 @@ from garak.cli import main
 from socket import socket, AF_INET, SOCK_STREAM
 import sys
 
-# 2 sockets, one that receives the arguments, and another that is dedicated to sending the output as a client.
-
 ADDRESS = "localhost"
 PORT = 45345
-
 
 def run():
     garak_socket = socket(AF_INET, SOCK_STREAM)
@@ -31,6 +28,6 @@ def run():
             with sock.makefile("w") as file:
                 sys.stdout = file
                 main(arguments[1:])
-            return sock  # if caller needs to access it raw
+            return sock
 
         redirectOut(client_port, client_address)
