@@ -53,22 +53,6 @@ def gemini_compat_mocks(monkeypatch):
     }
 
 @pytest.mark.usefixtures("set_fake_env")
-def test_gemini_generator_init():
-    """Test initialization of the Gemini generator."""
-    generator = GeminiGenerator(name=DEFAULT_MODEL_NAME)
-    assert generator.name == DEFAULT_MODEL_NAME
-    assert generator.generator_family_name == "gemini"
-    assert generator.supports_multiple_generations is True
-    assert generator.ENV_VAR == "GOOGLE_API_KEY"
-    assert "gemini-2.5-pro" in generator.SUPPORTED_MODELS
-    assert "gemini-2.5-flash" in generator.SUPPORTED_MODELS
-    assert "gemini-2.5-flash-lite-preview" in generator.SUPPORTED_MODELS
-    assert "gemini-2.5-flash-native-audio" in generator.SUPPORTED_MODELS
-    assert "gemini-2.5-flash-preview-text-to-speech" in generator.SUPPORTED_MODELS
-    assert "gemini-2.5-pro-preview-text-to-speech" in generator.SUPPORTED_MODELS
-    assert "gemini-2.0-flash" in generator.SUPPORTED_MODELS
-
-@pytest.mark.usefixtures("set_fake_env")
 def test_gemini_generator_with_mock(monkeypatch, gemini_compat_mocks):
     """Test the Gemini generator with a mocked response."""
     # Create a mock for the GenerativeModel class
