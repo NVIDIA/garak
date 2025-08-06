@@ -171,7 +171,7 @@ class GeminiGenerator(Generator):
         except GoogleAPIError as e:
             # This will be caught by the backoff decorator and retried
             logging.error(f"GoogleAPIError when calling {self.name}: {e}")
-            raise
+            raise e
         except Exception as e:
             # Other exceptions are not retried
             logging.error(f"Error generating response from {self.name}: {e}")
