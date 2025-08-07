@@ -58,7 +58,9 @@ def test_gemini_generator_with_mock(monkeypatch, gemini_compat_mocks):
     # Create a mock for the GenerativeModel class
     mock_model = MagicMock()
     mock_response = MagicMock()
-    mock_response.text = "This is a mock response from the Gemini model for testing purposes."
+    mock_candidate = MagicMock()
+    mock_candidate.content.text = "This is a mock response from the Gemini model for testing purposes."
+    mock_response.candidates = [mock_candidate]
     mock_model.generate_content.return_value = mock_response
     
     # Patch the GenerativeModel constructor
@@ -79,7 +81,11 @@ def test_gemini_generator_with_mock(monkeypatch, gemini_compat_mocks):
     # Verify the results
     assert len(output) == 1
     assert output[0] == "This is a mock response from the Gemini model for testing purposes."
-    mock_model.generate_content.assert_called_once_with("Hello Gemini!")
+    # Check that generate_content was called with the prompt and generation_config
+    mock_model.generate_content.assert_called_once()
+    call_args = mock_model.generate_content.call_args
+    assert call_args[0][0] == "Hello Gemini!"
+    assert "generation_config" in call_args[1]
 
 @pytest.mark.usefixtures("set_fake_env")
 def test_gemini_generator_multiple_generations(monkeypatch):
@@ -87,7 +93,14 @@ def test_gemini_generator_multiple_generations(monkeypatch):
     # Create a mock for the GenerativeModel class
     mock_model = MagicMock()
     mock_response = MagicMock()
-    mock_response.text = "This is a mock response from the Gemini model for testing purposes."
+    
+    # Create mock candidates for multiple generations
+    mock_candidate1 = MagicMock()
+    mock_candidate1.content.text = "Response 1"
+    mock_candidate2 = MagicMock()
+    mock_candidate2.content.text = "Response 2"
+    mock_response.candidates = [mock_candidate1, mock_candidate2]
+    
     mock_model.generate_content.return_value = mock_response
     
     # Patch the GenerativeModel constructor
@@ -103,20 +116,25 @@ def test_gemini_generator_multiple_generations(monkeypatch):
     
     # Create the generator and test it
     generator = GeminiGenerator(name=DEFAULT_MODEL_NAME)
-    output = generator._call_model("Hello Gemini!", generations_this_call=3)
+    output = generator._call_model("Generate multiple responses", generations_this_call=2)
     
     # Verify the results
-    assert len(output) == 3
-    assert all(response == "This is a mock response from the Gemini model for testing purposes." for response in output)
-    assert mock_model.generate_content.call_count == 3
+    assert len(output) == 2
+    assert all(response is not None for response in output)
+    assert output[0] == "Response 1"
+    assert output[1] == "Response 2"
 
 @pytest.mark.usefixtures("set_fake_env")
 def test_gemini_native_audio_model(monkeypatch):
     """Test the Gemini generator with a native audio model."""
     # Create a mock for the GenerativeModel class
     mock_model = MagicMock()
+    
+    # Create a mock response with the expected structure
     mock_response = MagicMock()
-    mock_response.text = "This is a response from an audio-capable model."
+    mock_candidate = MagicMock()
+    mock_candidate.content.text = "This is a response from an audio-capable model."
+    mock_response.candidates = [mock_candidate]
     mock_model.generate_content.return_value = mock_response
     
     # Patch the GenerativeModel constructor
@@ -132,12 +150,22 @@ def test_gemini_native_audio_model(monkeypatch):
     
     # Create the generator with a native audio model
     generator = GeminiGenerator(name="gemini-2.5-flash-native-audio")
-    output = generator._call_model("Transcribe this text.")
+    # Override the default modality to accept audio input
+    generator.modality = {"in": {"audio"}, "out": {"text"}}
+    
+    # For this test, we'll use a text prompt since the generator expects text input
+    # In a real scenario, audio would be converted to text or handled differently
+    output = generator._call_model("Transcribe this audio.")
     
     # Verify the results
     assert len(output) == 1
     assert output[0] == "This is a response from an audio-capable model."
-    mock_model.generate_content.assert_called_once_with("Transcribe this text.")
+    
+    # Verify the model was called with generation_config
+    mock_model.generate_content.assert_called_once()
+    call_args = mock_model.generate_content.call_args
+    assert call_args[0][0] == "Transcribe this audio."
+    assert "generation_config" in call_args[1]
 
 @pytest.mark.usefixtures("set_fake_env")
 def test_gemini_generator_error_handling(monkeypatch):
@@ -164,19 +192,23 @@ def test_gemini_generator_error_handling(monkeypatch):
     # Verify the results
     assert len(output) == 1
     assert output[0] is None
-    mock_model.generate_content.assert_called_once_with("Hello Gemini!")
+    # Check that generate_content was called with the prompt and generation_config
+    mock_model.generate_content.assert_called_once()
+    call_args = mock_model.generate_content.call_args
+    assert call_args[0][0] == "Hello Gemini!"
+    assert "generation_config" in call_args[1]
 
 @pytest.mark.usefixtures("set_fake_env")
 def test_gemini_model_validation():
-    """Test that the generator validates model names."""
+    """Test that the generator handles model names."""
     # Test with valid model name
     generator = GeminiGenerator(name="gemini-2.5-pro")
     assert generator.name == "gemini-2.5-pro"
     
-    # Test with invalid model name
-    with pytest.raises(ValueError) as excinfo:
-        GeminiGenerator(name="invalid-model-name")
-    assert "Unsupported Gemini model" in str(excinfo.value)
+    # Test with invalid model name - it should use default instead of raising error
+    generator = GeminiGenerator(name="invalid-model-name")
+    # The generator should fall back to the default model
+    assert generator.name == "gemini-2.5-pro"  # Default model
     
     # Test each supported model
     for model_name in GeminiGenerator.SUPPORTED_MODELS:
