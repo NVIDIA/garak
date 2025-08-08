@@ -17,7 +17,14 @@ import garak._config as _config
 class GeminiGenerator(Generator):
     """
     Interface for Google's Gemini models using the Google Generative AI Python client.
-    Expects API key in GOOGLE_API_KEY environment variable.
+    
+    Authentication:
+    - API key: Set the GOOGLE_API_KEY environment variable or pass api_key parameter
+    - Application Default Credentials (ADC): The client will automatically attempt to use ADC 
+      when no API key is provided. ADC can be set up in multiple ways:
+      * Run 'gcloud auth application-default login' to authenticate with your Google account
+      * Set GOOGLE_APPLICATION_CREDENTIALS environment variable pointing to a service account key file
+      * When running on Google Cloud Platform, credentials are automatically available
     
     Supported models:
     - gemini-2.5-pro: Gemini 2.5 Pro model (default)
@@ -68,6 +75,16 @@ class GeminiGenerator(Generator):
         
         Validates that the model name is supported and configures the model with appropriate parameters.
         Different models may have different capabilities and parameter constraints.
+        
+        Authentication:
+        - If an API key is provided via the GOOGLE_API_KEY environment variable or api_key parameter,
+          it will be used for authentication with the Gemini Developer API.
+        - If no API key is provided, check for Vertex AI configuration via environment variables:
+          * GOOGLE_CLOUD_PROJECT: Your Google Cloud project ID
+          * GOOGLE_CLOUD_LOCATION: Your Google Cloud location (e.g., us-central1)
+          * GOOGLE_GENAI_USE_VERTEXAI: Set to 'True' to use Vertex AI
+        - If Vertex AI configuration is present, initialize the client for Vertex AI
+        - Otherwise, initialize the client without an API key (will use GOOGLE_API_KEY env var if set)
         """
         # Validate model name and use default if unsupported (for testing purposes)
         if self.name not in self.SUPPORTED_MODELS:
@@ -77,12 +94,41 @@ class GeminiGenerator(Generator):
             self.name = self.DEFAULT_PARAMS["name"]
             print(f"Warning: Unsupported Gemini model: {original_name}. Using {self.name} instead.")
             
-        # Configure the API client
-        # Initialize the client and model
-        # Generation config will be set in _call_model for each request
-        # This allows us to set different parameters for each call, including candidate_count
-        self.client = genai.Client(api_key=self.api_key)
+        # Configure the API client based on available authentication methods
+        if self.api_key:
+            # Use explicit API key for Gemini Developer API
+            self.client = genai.Client(api_key=self.api_key)
+        else:
+            # Check for Vertex AI configuration
+            vertexai = os.getenv("GOOGLE_GENAI_USE_VERTEXAI", "").lower() == "true"
+            project = os.getenv("GOOGLE_CLOUD_PROJECT")
+            location = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
+            
+            if vertexai and project:
+                # Use Vertex AI with project and location
+                self.client = genai.Client(vertexai=True, project=project, location=location)
+            else:
+                # Use Gemini Developer API (will read GOOGLE_API_KEY from environment if set)
+                self.client = genai.Client()
         self.model = self.client.models.get(model=self.name)
+
+    def _validate_env_var(self):
+        """Override the default API key validation to allow for ADC when no API key is provided.
+        
+        For GCP services, authentication can be done via:
+        1. API key (via GOOGLE_API_KEY environment variable)
+        2. Application Default Credentials (ADC) when no API key is provided
+        
+        ADC can be set up using 'gcloud auth application-default login' or by setting
+        GOOGLE_APPLICATION_CREDENTIALS to point to a service account key file.
+        """
+        # Try to get API key from environment variable
+        if hasattr(self, "key_env_var"):
+            if not hasattr(self, "api_key") or self.api_key is None:
+                self.api_key = os.getenv(self.key_env_var, default=None)
+                # Note: We don't raise an error if api_key is None, as we'll attempt ADC authentication
+                # This is different from the base implementation which raises APIKeyMissingError
+        # If no API key is provided, the client will automatically attempt ADC authentication
 
     def _clear_model(self):
         """Clear the model to avoid pickling issues."""
