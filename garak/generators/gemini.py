@@ -12,6 +12,7 @@ from google.genai.errors import APIError
 
 from garak.generators.base import Generator
 import garak._config as _config
+import sys
 
 
 class GeminiGenerator(Generator):
@@ -82,73 +83,64 @@ class GeminiGenerator(Generator):
         - If no API key is provided, check for Vertex AI configuration via environment variables:
           * GOOGLE_CLOUD_PROJECT: Your Google Cloud project ID
           * GOOGLE_CLOUD_LOCATION: Your Google Cloud location (e.g., us-central1)
-          * GOOGLE_GENAI_USE_VERTEXAI: Set to 'True' to use Vertex AI
-        - If Vertex AI configuration is present, initialize the client for Vertex AI
-        - Otherwise, initialize the client without an API key (will use GOOGLE_API_KEY env var if set)
         """
-        # Validate model name and use default if unsupported (for testing purposes)
-        if self.name not in self.SUPPORTED_MODELS:
-            # For testing purposes, use the default model instead of raising an error
-            # This allows tests to run with generic model names like "gpt-3.5-turbo-instruct"
-            original_name = self.name
-            self.name = self.DEFAULT_PARAMS["name"]
-            print(f"Warning: Unsupported Gemini model: {original_name}. Using {self.name} instead.")
-            
-        # Configure the API client based on available authentication methods
+        # Validate that the model name is supported
+        if not self.name:
+            raise ValueError("Model name is required for GeminiGenerator")
+        
+        # If model name contains 'audio', set modality to accept audio input
+        if "audio" in self.name.lower():
+            self.modality = {"in": {"audio"}, "out": {"text"}}
+            logging.info(f"Audio model detected: {self.name}. Modality set to accept audio input.")
+        
+        # Initialize the Google GenAI client
         if self.api_key:
-            # Use explicit API key for Gemini Developer API
             self.client = genai.Client(api_key=self.api_key)
         else:
-            # Check for Vertex AI configuration
             vertexai = os.getenv("GOOGLE_GENAI_USE_VERTEXAI", "").lower() == "true"
             project = os.getenv("GOOGLE_CLOUD_PROJECT")
             location = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
-            
             if vertexai and project:
-                # Use Vertex AI with project and location
                 self.client = genai.Client(vertexai=True, project=project, location=location)
             else:
-                # Use Gemini Developer API (will read GOOGLE_API_KEY from environment if set)
-                self.client = genai.Client()
+                # Use GOOGLE_API_KEY from environment if available
+                env_api_key = os.getenv(self.ENV_VAR)
+                self.client = genai.Client(api_key=env_api_key)
+        
+        # Get the model from the client
         self.model = self.client.models.get(model=self.name)
 
     def _validate_env_var(self):
         """Override the default API key validation to allow for ADC when no API key is provided.
         
         For GCP services, authentication can be done via:
-        1. API key (via GOOGLE_API_KEY environment variable)
+        1. API key (via GOOGLE_API_KEY environment variable or api_key parameter)
         2. Application Default Credentials (ADC) when no API key is provided
         
         ADC can be set up using 'gcloud auth application-default login' or by setting
         GOOGLE_APPLICATION_CREDENTIALS to point to a service account key file.
         """
-        # Try to get API key from environment variable
-        if hasattr(self, "key_env_var"):
-            if not hasattr(self, "api_key") or self.api_key is None:
-                self.api_key = os.getenv(self.key_env_var, default=None)
-                # Note: We don't raise an error if api_key is None, as we'll attempt ADC authentication
-                # This is different from the base implementation which raises APIKeyMissingError
-        # If no API key is provided, the client will automatically attempt ADC authentication
-
     def _clear_model(self):
         """Clear the model to avoid pickling issues."""
         self.model = None
 
-    def __init__(self, name="", config_root=_config):
+    def __init__(self, name="", config_root=_config, api_key=None):
         """Initialize the Gemini generator."""
         # Initialize default parameters before calling super().__init__
         self.temperature = self.DEFAULT_PARAMS["temperature"]
         self.top_p = self.DEFAULT_PARAMS["top_p"]
         self.top_k = self.DEFAULT_PARAMS["top_k"]
         self.max_output_tokens = self.DEFAULT_PARAMS["max_output_tokens"]
-        
-        # Call parent init which will load config and override defaults
+        self.api_key = api_key
         super().__init__(name, config_root)
-        
-        # Load the model
-        self._load_model()
+        # Defer model loading until actually needed
+        self.client = None
+        self.model = None
 
     def _call_model(self, prompt: str, generations_this_call: int = 1) -> List[Union[str, None]]:
+        # Load model if not already loaded
+        if self.client is None or self.model is None:
+            self._load_model()
         """Call the Gemini model with the given prompt.
         
         Args:
@@ -174,11 +166,21 @@ class GeminiGenerator(Generator):
     @backoff.on_exception(backoff.expo, APIError, max_tries=5)
     def _generate_content_with_backoff(self, prompt: str, generations_this_call: int):
         """Generate content with backoff retry logic.
-        
-        This method is separate to ensure that when backoff retries occur,
-        we're retrying the entire multi-generation API call, not losing
-        any completed generations.
+
+        This method generates content using the Gemini model with backoff retry logic.
+        It loads the model if not already loaded, creates a generation config, and generates content.
+
+        Args:
+            prompt (str): The input text to send to the model.
+            generations_this_call (int): The number of responses to generate.
+
+        Returns:
+            The response object from the Gemini API.
         """
+        # Load model if not already loaded
+        if self.client is None or self.model is None:
+            self._load_model()
+        
         import logging
         
         # Create generation config with candidate count for multiple generations
@@ -190,20 +192,13 @@ class GeminiGenerator(Generator):
             candidate_count=generations_this_call
         )
         
+        # Generate content with the model
         try:
             response = self.model.generate_content(
                 contents=prompt,
-                config=types.GenerateContentConfig(
-                    temperature=self.temperature,
-                    top_p=self.top_p,
-                    top_k=self.top_k,
-                    max_output_tokens=self.max_output_tokens,
-                    candidate_count=generations_this_call
-                )
+                config=generation_config
             )
             return response
-        except APIError as e:
-            logging.error(f"APIError when calling {self.name}: {e}")
             raise e  # This will trigger backoff retry
         except Exception as e:
             logging.error(f"Unexpected error when calling {self.name}: {e}")

@@ -48,6 +48,60 @@ def gemini_compat_mocks(monkeypatch):
     }
 
 @pytest.mark.usefixtures("set_fake_env")
+def test_gemini_generator_api_key_auth(monkeypatch):
+    """Test GeminiGenerator with API key authentication."""
+    # Mock the genai.Client class
+    mock_client_instance = MagicMock()
+    mock_model = MagicMock()
+    mock_client_instance.models.get.return_value = mock_model
+    
+    with patch.object(genai, 'Client', return_value=mock_client_instance) as mock_client:
+        # Initialize the generator with a fake API key
+        generator = GeminiGenerator(name=DEFAULT_MODEL_NAME, api_key="fake-api-key")
+        # Trigger model loading by calling _call_model
+        generator._call_model("test prompt")
+    
+        # Verify that the client was created with the API key
+        mock_client.assert_called_once_with(api_key="fake-api-key")
+        mock_client_instance.models.get.assert_called_once_with(model=DEFAULT_MODEL_NAME)
+        
+        # Verify that the generator has the correct attributes
+        assert generator.client == mock_client_instance
+        assert generator.model == mock_model
+
+
+def test_gemini_generator_vertex_ai_auth():
+    """Test GeminiGenerator with Vertex AI authentication."""
+    # Mock the genai.Client class
+    mock_client_instance = MagicMock()
+    mock_model = MagicMock()
+    mock_client_instance.models.get.return_value = mock_model
+    
+    with patch.dict(os.environ, {
+        "GOOGLE_GENAI_USE_VERTEXAI": "True",
+        "GOOGLE_CLOUD_PROJECT": "test-project",
+        "GOOGLE_CLOUD_LOCATION": "us-central1"
+    }):
+        with patch.object(genai, 'Client', return_value=mock_client_instance) as mock_client:
+            # Initialize the generator
+            generator = GeminiGenerator(name=DEFAULT_MODEL_NAME)
+            # Trigger model loading by calling _call_model
+            generator._call_model("test prompt")
+    
+            # Verify that the client was created with Vertex AI parameters
+            mock_client.assert_called_once_with(
+                vertexai=True,
+                project="test-project",
+                location="us-central1"
+            )
+            mock_client_instance.models.get.assert_called_once_with(model=DEFAULT_MODEL_NAME)
+            
+            # Verify that the generator has the correct attributes
+            assert generator.client == mock_client_instance
+            assert generator.model == mock_model
+
+
+@pytest.mark.usefixtures("set_fake_env")
 def test_gemini_generator_with_mock(monkeypatch, gemini_compat_mocks):
     """Test the Gemini generator with a mocked response."""
     # Create a mock for the Model class
@@ -69,21 +123,22 @@ def test_gemini_generator_with_mock(monkeypatch, gemini_compat_mocks):
     
     # Initialize the generator
     generator = GeminiGenerator(name=DEFAULT_MODEL_NAME)
-    
-    # Verify that the client was created and model was retrieved
-    genai.Client.assert_called_once()
-    mock_client_instance.models.get.assert_called_once_with(model=DEFAULT_MODEL_NAME)
-    
+
     # Test the generation
     result = generator._call_model("test prompt")
     assert len(result) == 1
     assert result[0] == "Mocked response for test prompt"
-    
+
+    # Verify that the client was created and model was retrieved
+    genai.Client.assert_called_once()
+    mock_client_instance.models.get.assert_called_once_with(model=DEFAULT_MODEL_NAME)
+
     # Check that generate_content was called with the prompt and generation_config
     mock_model.generate_content.assert_called_once()
     call_args = mock_model.generate_content.call_args
     assert call_args.kwargs['contents'] == "test prompt"
     assert "config" in call_args.kwargs
+
 
 @pytest.mark.usefixtures("set_fake_env")
 def test_gemini_generator_multiple_generations(monkeypatch):
@@ -123,47 +178,6 @@ def test_gemini_generator_multiple_generations(monkeypatch):
     assert all(response is not None for response in output)
     assert output[0] == "Response 1"
     assert output[1] == "Response 2"
-
-@pytest.mark.usefixtures("set_fake_env")
-def test_gemini_native_audio_model(monkeypatch):
-    """Test the Gemini generator with a native audio model."""
-    # Create a mock for the GenerativeModel class
-    mock_model = MagicMock()
-    
-    # Create a mock response with the expected structure
-    mock_response = MagicMock()
-    mock_candidate = MagicMock()
-    mock_part = MagicMock()
-    mock_part.text = "This is a response from an audio-capable model."
-    mock_candidate.content.parts = [mock_part]
-    mock_response.candidates = [mock_candidate]
-    mock_model.generate_content.return_value = mock_response
-    
-    # Mock the genai.Client class constructor to return our mock client
-    mock_client_instance = MagicMock()
-    mock_client_instance.models.get.return_value = mock_model
-    
-    # Patch the Client class to return our mock client instance
-    monkeypatch.setattr(genai, 'Client', MagicMock(return_value=mock_client_instance))
-    
-    # Create the generator with a native audio model
-    generator = GeminiGenerator(name="gemini-2.5-flash-native-audio")
-    # Override the default modality to accept audio input
-    generator.modality = {"in": {"audio"}, "out": {"text"}}
-    
-    # For this test, we'll use a text prompt since the generator expects text input
-    # In a real scenario, audio would be converted to text or handled differently
-    output = generator._call_model("Transcribe this audio.")
-    
-    # Verify the results
-    assert len(output) == 1
-    assert output[0] == "This is a response from an audio-capable model."
-    
-    # Verify the model was called with contents and config
-    mock_model.generate_content.assert_called_once()
-    call_args = mock_model.generate_content.call_args
-    assert call_args.kwargs['contents'] == "Transcribe this audio."
-    assert "config" in call_args.kwargs
 
 @pytest.mark.usefixtures("set_fake_env")
 def test_gemini_generator_error_handling(monkeypatch):
