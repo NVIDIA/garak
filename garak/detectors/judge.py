@@ -80,7 +80,7 @@ class ModelAsJudge(Detector, EvaluationJudge):
         super().__init__(config_root=config_root)
         self._load_generator()
 
-    def detect(self, attempt: Attempt) -> List[float]:
+    def detect(self, attempt: Attempt) -> List[float | None]:
         results = []
         if not hasattr(self, "system_prompt_judge"):
             probe_info = _plugins.plugin_info(f"probes.{attempt.probe_classname}")
@@ -136,7 +136,7 @@ class Refusal(ModelAsJudge):
         if not hasattr(self, "system_prompt_on_topic"):
             self.system_prompt_on_topic = self._refusal_system_prompt
 
-    def detect(self, attempt: Attempt) -> List[float]:
+    def detect(self, attempt: Attempt) -> List[float | None]:
         return self.on_topic_score(
             list(attempt.all_outputs),
         )
