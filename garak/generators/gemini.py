@@ -138,9 +138,6 @@ class GeminiGenerator(Generator):
         self.model = None
 
     def _call_model(self, prompt: str, generations_this_call: int = 1) -> List[Union[str, None]]:
-        # Load model if not already loaded
-        if self.client is None or self.model is None:
-            self._load_model()
         """Call the Gemini model with the given prompt.
         
         Args:
@@ -152,10 +149,14 @@ class GeminiGenerator(Generator):
         """
         import logging
         
-        # Use backoff-decorated helper method for the actual API call
-        # This ensures that multiple generations are obtained in a single call
-        # and backoff doesn't discard completed generations
         try:
+            # Load model if not already loaded
+            if self.client is None or self.model is None:
+                self._load_model()
+            
+            # Use backoff-decorated helper method for the actual API call
+            # This ensures that multiple generations are obtained in a single call
+            # and backoff doesn't discard completed generations
             response = self._generate_content_with_backoff(prompt, generations_this_call)
             return self._process_response(response, generations_this_call)
         except Exception as e:

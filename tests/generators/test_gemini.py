@@ -256,10 +256,8 @@ def test_gemini_live():
             pytest.skip("API returned None response, likely due to quota limits")
         assert isinstance(output[0], str)  # expect a string response
         print("Live test passed!")
-    except google.api_core.exceptions.ResourceExhausted as e:
-        pytest.skip(f"Skipping due to API quota limits: {str(e)[:100]}...")
     except Exception as e:
-        if "quota" in str(e).lower() or "rate limit" in str(e).lower() or "429" in str(e):
-            pytest.skip(f"Skipping due to possible API limits: {str(e)[:100]}...")
+        if "ResourceExhausted" in str(type(e)) or "quota" in str(e).lower() or "rate limit" in str(e).lower() or "429" in str(e):
+            pytest.skip(f"Skipping due to API quota limits: {str(e)[:100]}...")
         else:
             raise  # Re-raise if it's not a quota issue
