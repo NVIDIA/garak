@@ -104,70 +104,72 @@ def test_gemini_generator_vertex_ai_auth():
 @pytest.mark.usefixtures("set_fake_env")
 def test_gemini_generator_with_mock(monkeypatch, gemini_compat_mocks):
     """Test the Gemini generator with a mocked response."""
-    # Create a mock for the Model class
-    mock_model = MagicMock()
+    # Create a mock for the response
     mock_response = MagicMock()
     mock_candidate = MagicMock()
     mock_part = MagicMock()
     mock_part.text = "Mocked response for test prompt"
-    mock_candidate.content.parts = [mock_part]
+    mock_content = MagicMock()
+    mock_content.parts = [mock_part]
+    mock_candidate.content = mock_content
     mock_response.candidates = [mock_candidate]
-    mock_model.generate_content.return_value = mock_response
     
     # Mock the genai.Client class constructor to return our mock client
     mock_client_instance = MagicMock()
-    mock_client_instance.models.get.return_value = mock_model
+    mock_client_instance.models.generate_content.return_value = mock_response
+    mock_client_class = MagicMock(return_value=mock_client_instance)
     
     # Patch the Client class to return our mock client instance
-    monkeypatch.setattr(genai, 'Client', MagicMock(return_value=mock_client_instance))
+    monkeypatch.setattr(genai, "Client", mock_client_class)
     
     # Initialize the generator
     generator = GeminiGenerator(name=DEFAULT_MODEL_NAME)
-
+        
     # Test the generation
     result = generator._call_model("test prompt")
     assert len(result) == 1
     assert result[0] == "Mocked response for test prompt"
-
+        
     # Verify that the client was created and model was retrieved
-    genai.Client.assert_called_once()
-    mock_client_instance.models.get.assert_called_once_with(model=DEFAULT_MODEL_NAME)
-
+    mock_client_class.assert_called_once()
+    mock_client_instance.models.generate_content.assert_called_once()
+        
     # Check that generate_content was called with the prompt and generation_config
-    mock_model.generate_content.assert_called_once()
-    call_args = mock_model.generate_content.call_args
-    assert call_args.kwargs['contents'] == "test prompt"
+    call_args = mock_client_instance.models.generate_content.call_args
+    assert call_args.kwargs["contents"] == "test prompt"
     assert "config" in call_args.kwargs
 
 
 @pytest.mark.usefixtures("set_fake_env")
 def test_gemini_generator_multiple_generations(monkeypatch):
     """Test the Gemini generator with multiple generations."""
-    # Create a mock for the Model class
-    mock_model = MagicMock()
+    # Create a mock for the response
     mock_response = MagicMock()
     
     # Create mock candidates for multiple generations
     mock_candidate1 = MagicMock()
     mock_part1 = MagicMock()
     mock_part1.text = "Response 1"
-    mock_candidate1.content.parts = [mock_part1]
+    mock_content1 = MagicMock()
+    mock_content1.parts = [mock_part1]
+    mock_candidate1.content = mock_content1
     
     mock_candidate2 = MagicMock()
     mock_part2 = MagicMock()
     mock_part2.text = "Response 2"
-    mock_candidate2.content.parts = [mock_part2]
+    mock_content2 = MagicMock()
+    mock_content2.parts = [mock_part2]
+    mock_candidate2.content = mock_content2
     
     mock_response.candidates = [mock_candidate1, mock_candidate2]
     
-    mock_model.generate_content.return_value = mock_response
-    
     # Mock the genai.Client class constructor to return our mock client
     mock_client_instance = MagicMock()
-    mock_client_instance.models.get.return_value = mock_model
+    mock_client_instance.models.generate_content.return_value = mock_response
+    mock_client_class = MagicMock(return_value=mock_client_instance)
     
     # Patch the Client class to return our mock client instance
-    monkeypatch.setattr(genai, 'Client', MagicMock(return_value=mock_client_instance))
+    monkeypatch.setattr(genai, "Client", mock_client_class)
     
     # Create the generator and test it
     generator = GeminiGenerator(name=DEFAULT_MODEL_NAME)
@@ -178,20 +180,27 @@ def test_gemini_generator_multiple_generations(monkeypatch):
     assert all(response is not None for response in output)
     assert output[0] == "Response 1"
     assert output[1] == "Response 2"
+        
+    # Verify that the client was created and model was retrieved
+    mock_client_class.assert_called_once()
+    mock_client_instance.models.generate_content.assert_called_once()
+        
+    # Check that generate_content was called with the prompt and generation_config
+    call_args = mock_client_instance.models.generate_content.call_args
+    assert call_args.kwargs["contents"] == "Generate multiple responses"
+    assert "config" in call_args.kwargs
+
 
 @pytest.mark.usefixtures("set_fake_env")
 def test_gemini_generator_error_handling(monkeypatch):
     """Test error handling in the Gemini generator."""
-    # Create a mock for the GenerativeModel class
-    mock_model = MagicMock()
-    mock_model.generate_content.side_effect = Exception("Test error")
-    
-    # Mock the genai.Client class constructor to return our mock client
+    # Create a mock for the client
     mock_client_instance = MagicMock()
-    mock_client_instance.models.get.return_value = mock_model
+    mock_client_instance.models.generate_content.side_effect = Exception("Test error")
+    mock_client_class = MagicMock(return_value=mock_client_instance)
     
     # Patch the Client class to return our mock client instance
-    monkeypatch.setattr(genai, 'Client', MagicMock(return_value=mock_client_instance))
+    monkeypatch.setattr(genai, "Client", mock_client_class)
     
     # Create the generator and test it
     generator = GeminiGenerator(name=DEFAULT_MODEL_NAME)
@@ -201,9 +210,9 @@ def test_gemini_generator_error_handling(monkeypatch):
     assert len(output) == 1
     assert output[0] is None
     # Check that generate_content was called with the prompt and config
-    mock_model.generate_content.assert_called_once()
-    call_args = mock_model.generate_content.call_args
-    assert call_args.kwargs['contents'] == "Hello Gemini!"
+    mock_client_instance.models.generate_content.assert_called_once()
+    call_args = mock_client_instance.models.generate_content.call_args
+    assert call_args.kwargs["contents"] == "Hello Gemini!"
     assert "config" in call_args.kwargs
 
 @pytest.mark.usefixtures("set_fake_env")
