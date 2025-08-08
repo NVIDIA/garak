@@ -184,7 +184,7 @@ class GeminiGenerator(Generator):
         import logging
         
         # Create generation config with candidate count for multiple generations
-        generation_config = types.GenerationConfig(
+        generation_config = types.GenerateContentConfig(
             temperature=self.temperature,
             top_p=self.top_p,
             top_k=self.top_k,
@@ -194,7 +194,8 @@ class GeminiGenerator(Generator):
         
         # Generate content with the model
         try:
-            response = self.model.generate_content(
+            response = self.client.models.generate_content(
+                model=self.name,
                 contents=prompt,
                 config=generation_config
             )
