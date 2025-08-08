@@ -69,7 +69,9 @@ class GeminiGenerator(Generator):
     # restore the model attribute
     def __setstate__(self, d) -> object:
         self.__dict__.update(d)
-        self._load_model()
+        # Use lazy loading - don't load model immediately
+        self.client = None
+        self.model = None
 
     def _load_model(self):
         """Load the Gemini model.
