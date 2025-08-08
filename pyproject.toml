@@ -89,6 +89,7 @@ dependencies = [
   "numpy>=2.0.0",
   "zalgolib>=0.2.2",
   "ecoji>=0.1.1",
+  "websockets>=14.0",
   "deepl==1.17.0",
   "fschat>=0.2.36",
   "litellm>=1.68.1",
