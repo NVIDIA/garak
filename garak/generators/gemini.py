@@ -6,8 +6,9 @@ import os
 import backoff
 from typing import List, Union
 
-import google.generativeai as genai
-from google.api_core.exceptions import GoogleAPIError
+from google import genai
+from google.genai import types
+from google.genai.errors import APIError
 
 from garak.generators.base import Generator
 import garak._config as _config
@@ -77,12 +78,11 @@ class GeminiGenerator(Generator):
             print(f"Warning: Unsupported Gemini model: {original_name}. Using {self.name} instead.")
             
         # Configure the API client
-        genai.configure(api_key=self.api_key)
-        
-        # Initialize the model without generation config
+        # Initialize the client and model
         # Generation config will be set in _call_model for each request
         # This allows us to set different parameters for each call, including candidate_count
-        self.model = genai.GenerativeModel(model_name=self.name)
+        self.client = genai.Client(api_key=self.api_key)
+        self.model = self.client.models.get(model=self.name)
 
     def _clear_model(self):
         """Clear the model to avoid pickling issues."""
@@ -125,7 +125,7 @@ class GeminiGenerator(Generator):
             logging.error(f"All retries failed for {self.name}: {e}")
             return [None] * generations_this_call
 
-    @backoff.on_exception(backoff.expo, GoogleAPIError, max_tries=5)
+    @backoff.on_exception(backoff.expo, APIError, max_tries=5)
     def _generate_content_with_backoff(self, prompt: str, generations_this_call: int):
         """Generate content with backoff retry logic.
         
@@ -136,7 +136,7 @@ class GeminiGenerator(Generator):
         import logging
         
         # Create generation config with candidate count for multiple generations
-        generation_config = genai.types.GenerationConfig(
+        generation_config = types.GenerationConfig(
             temperature=self.temperature,
             top_p=self.top_p,
             top_k=self.top_k,
@@ -146,12 +146,18 @@ class GeminiGenerator(Generator):
         
         try:
             response = self.model.generate_content(
-                prompt,
-                generation_config=generation_config
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    temperature=self.temperature,
+                    top_p=self.top_p,
+                    top_k=self.top_k,
+                    max_output_tokens=self.max_output_tokens,
+                    candidate_count=generations_this_call
+                )
             )
             return response
-        except GoogleAPIError as e:
-            logging.error(f"GoogleAPIError when calling {self.name}: {e}")
+        except APIError as e:
+            logging.error(f"APIError when calling {self.name}: {e}")
             raise e  # This will trigger backoff retry
         except Exception as e:
             logging.error(f"Unexpected error when calling {self.name}: {e}")
