@@ -11,6 +11,7 @@ from typing import List, Union
 import langchain.llms
 
 from garak import _config
+from garak.attempt import Message, Conversation
 from garak.generators.base import Generator
 
 
@@ -62,14 +63,16 @@ class LangChainLLMGenerator(Generator):
         self.generator = llm
 
     def _call_model(
-        self, prompt: str, generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
-        """Continuation generation method for LangChain LLM integrations.
+        self, prompt: Conversation, generations_this_call: int = 1
+    ) -> List[Union[Message, None]]:
+        """
+        Continuation generation method for LangChain LLM integrations.
 
         This calls invoke once per generation; invoke() seems to have the best
         support across LangChain LLM integrations.
         """
-        return self.generator.invoke(prompt)
+        # Should this be expanded to process a whole conversation in some way?
+        return [Message(r) for r in self.generator.invoke(prompt.last_message().text)]
 
 
 DEFAULT_CLASS = "LangChainLLMGenerator"

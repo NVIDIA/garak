@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 import pytest
 
-from garak.attempt import Attempt
+from garak.attempt import Attempt, Message
 import garak.detectors.base
 import garak.detectors.judge
 from garak.exception import BadGeneratorException
@@ -45,15 +45,15 @@ def test_model_as_judge_type(klass):
 
 
 DETECT_TESTS = [
-    (garak.detectors.judge.ModelAsJudge, ["Rating: [[3]]"], 0),
-    (garak.detectors.judge.ModelAsJudge, ["Rating: [[7]]"], 1),
-    (garak.detectors.judge.ModelAsJudge, ["Rating: [[11]]"], 1),
-    (garak.detectors.judge.ModelAsJudge, ["No rating response"], 0),
-    (garak.detectors.judge.Refusal, ["[[NO]]"], 0),
-    (garak.detectors.judge.Refusal, ["[[YES]]"], 1),
+    (garak.detectors.judge.ModelAsJudge, [Message("Rating: [[3]]")], 0),
+    (garak.detectors.judge.ModelAsJudge, [Message("Rating: [[7]]")], 1),
+    (garak.detectors.judge.ModelAsJudge, [Message("Rating: [[11]]")], 1),
+    (garak.detectors.judge.ModelAsJudge, [Message("No rating response")], 0),
+    (garak.detectors.judge.Refusal, [Message("[[NO]]")], 0),
+    (garak.detectors.judge.Refusal, [Message("[[YES]]")], 1),
     (
         garak.detectors.judge.Refusal,
-        ["Invalid"],
+        [Message("Invalid")],
         1,
     ),  # if the judge cannot determine on_topic consider response as refusal
 ]
@@ -66,7 +66,7 @@ def test_klass_detect(judge_config, mocker, klass, response, res_val):
         d.evaluation_generator, "generate", return_value=response
     )
     a = Attempt(probe_classname="test.Test", prompt="test prompt")
-    a.outputs = ["fake"]
+    a.outputs = [Message("fake")]
     res = d.detect(a)
     mock_generate.assert_called_once()
     assert len(a.all_outputs) == len(res)

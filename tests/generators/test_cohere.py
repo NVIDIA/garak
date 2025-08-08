@@ -3,8 +3,8 @@ import json
 import logging
 import pytest
 import httpx
-import respx
 
+from garak.attempt import Message, Turn, Conversation
 from garak.generators.cohere import CohereGenerator, COHERE_GENERATION_LIMIT
 from garak.exception import APIKeyMissingError
 
@@ -144,7 +144,8 @@ def test_cohere_generate_api_respx(respx_mock, cohere_mock_responses):
     gen.api_version = "v1"  # Use legacy generate API
     # Re-initialize the generator with v1
     gen.__init__()
-    result = gen.generate("Test prompt", generations_this_call=1)
+    conv = Conversation([Turn("user", Message("Test prompt"))])
+    result = gen.generate(conv, generations_this_call=1)
 
     # Assert headers
     last = respx_mock.calls.last.request
@@ -183,7 +184,8 @@ def test_cohere_chat_api_respx(
     # Default is already v2, but being explicit for test clarity
     gen.api_version = "v2"
     gen.__init__()
-    result = gen.generate("Test prompt")
+    conv = Conversation([Turn("user", Message("Test prompt"))])
+    result = gen.generate(conv)
 
     # Header & payload checks
     last = respx_mock.calls.last.request
@@ -213,6 +215,7 @@ def test_chat_response_logs_warning(respx_mock, cohere_mock_responses, caplog):
     gen.__init__()
     caplog.clear()
 
-    result = gen.generate("Test prompt")
+    conv = Conversation([Turn("user", Message("Test prompt"))])
+    result = gen.generate(conv)
     assert result[0] is None, f"Expected None for error but got {result[0]}"
     assert "warning" in caplog.text.lower() or "error" in caplog.text.lower()

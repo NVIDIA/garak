@@ -29,7 +29,6 @@ When invoking garak, specify the path to the generator option file:
 
 import logging
 
-from os import getenv
 from typing import List, Union
 
 import backoff
@@ -40,6 +39,7 @@ litellm_logger.setLevel(logging.CRITICAL)
 import litellm
 
 from garak import _config
+from garak.attempt import Message, Conversation
 from garak.exception import BadGeneratorException
 from garak.generators.base import Generator
 
@@ -122,15 +122,18 @@ class LiteLLMGenerator(Generator):
 
     @backoff.on_exception(backoff.fibo, litellm.exceptions.APIError, max_value=70)
     def _call_model(
-        self, prompt: str, generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
-        if isinstance(prompt, str):
-            prompt = [{"role": "user", "content": prompt}]
+        self, prompt: Conversation, generations_this_call: int = 1
+    ) -> List[Union[Message, None]]:
+        if isinstance(prompt, Conversation):
+            litellm_prompt = []
+            for turn in prompt.turns:
+                litellm_prompt.append({"role": turn.role, "content": turn.content.text})
         elif isinstance(prompt, list):
-            prompt = prompt
+            # should we maintain support for list here?
+            litellm_prompt = prompt
         else:
             msg = (
-                f"Expected a list of dicts for LiteLLM model {self.name}, but got {type(prompt)} instead. "
+                f"Expected list or Conversation for LiteLLM model {self.name}, but got {type(prompt)} instead. "
                 f"Returning nothing!"
             )
             logging.error(msg)
@@ -140,7 +143,7 @@ class LiteLLMGenerator(Generator):
         try:
             response = litellm.completion(
                 model=self.name,
-                messages=prompt,
+                messages=litellm_prompt,
                 temperature=self.temperature,
                 top_p=self.top_p,
                 n=generations_this_call,
@@ -154,15 +157,16 @@ class LiteLLMGenerator(Generator):
         except (
             litellm.exceptions.AuthenticationError,  # authentication failed for detected or passed `provider`
             litellm.exceptions.BadRequestError,
+            litellm.exceptions.APIError,  # this seems to be how LiteLLM/OpenAI are doing it on 2025.02.18
         ) as e:
             raise BadGeneratorException(
                 "Unrecoverable error during litellm completion see log for details"
             ) from e
 
         if self.supports_multiple_generations:
-            return [c.message.content for c in response.choices]
+            return [Message(c.message.content) for c in response.choices]
         else:
-            return [response.choices[0].message.content]
+            return [Message(response.choices[0].message.content)]
 
 
 DEFAULT_CLASS = "LiteLLMGenerator"

@@ -19,8 +19,9 @@ from cohere.core.api_error import ApiError
 import cohere
 import tqdm
 
+from garak import _config
+from garak.attempt import Message, Conversation
 from garak.generators.base import Generator
-import garak._config as _config
 
 
 COHERE_GENERATION_LIMIT = (
@@ -77,14 +78,14 @@ class CohereGenerator(Generator):
             self.generator = cohere.ClientV2(api_key=self.api_key)
 
     @backoff.on_exception(backoff.fibo, ApiError, max_value=70)
-    def _call_cohere_api(self, prompt, request_size=COHERE_GENERATION_LIMIT):
+    def _call_cohere_api(self, prompt_text, request_size=COHERE_GENERATION_LIMIT):
         """Empty prompts raise API errors (e.g. invalid request: prompt must be at least 1 token long).
         We catch these using the ApiError base class in Cohere v5+.
         Filtering exceptions based on message instead of type, in backoff, isn't immediately obvious
         - on the other hand blank prompt / RTP shouldn't hang forever
         """
-        if prompt == "":
-            return [""] * request_size
+        if prompt_text == "":
+            return [Message("")] * request_size
         else:
             if self.api_version == "v2":
                 # Use chat API with ClientV2 (recommended in v5+)
@@ -93,7 +94,7 @@ class CohereGenerator(Generator):
                 for _ in range(request_size):
                     try:
                         # Use the correct UserChatMessageV2 class
-                        message = cohere.UserChatMessageV2(content=prompt)
+                        message = cohere.UserChatMessageV2(content=prompt_text)
 
                         response = self.generator.chat(
                             model=self.name,
@@ -144,7 +145,7 @@ class CohereGenerator(Generator):
                 try:
                     response = self.generator.generate(
                         model=self.name,
-                        prompt=prompt,
+                        prompt=prompt_text,
                         temperature=self.temperature,
                         num_generations=request_size,
                         max_tokens=self.max_tokens,
@@ -180,8 +181,8 @@ class CohereGenerator(Generator):
                     return [None] * request_size
 
     def _call_model(
-        self, prompt: str, generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
+        self, prompt: Conversation, generations_this_call: int = 1
+    ) -> List[Union[Message, None]]:
         """Cohere's _call_model does sub-batching before calling,
         and so manages chunking internally"""
         quotient, remainder = divmod(generations_this_call, COHERE_GENERATION_LIMIT)
@@ -192,7 +193,9 @@ class CohereGenerator(Generator):
         generation_iterator = tqdm.tqdm(request_sizes, leave=False)
         generation_iterator.set_description(self.fullname)
         for request_size in generation_iterator:
-            outputs += self._call_cohere_api(prompt, request_size=request_size)
+            outputs += self._call_cohere_api(
+                prompt.last_message().text, request_size=request_size
+            )
         return outputs
 
 

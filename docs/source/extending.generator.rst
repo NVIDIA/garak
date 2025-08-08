@@ -169,7 +169,7 @@ Let's start the ``_call_model`` method like this:
 
 .. code-block:: python
 
-        def _call_model(self, prompt: str, generations_this_call: int = 1):
+        def _call_model(self, prompt: Conversation, generations_this_call: int = 1):
             response_iterator = self.replicate.run(
                 self.name,
                 input={
@@ -207,7 +207,7 @@ The ``backoff`` module offers a decorator that controls behaviour in response to
         @backoff.on_exception(
             backoff.fibo, replicate.exceptions.ReplicateError, max_value=70
         )
-        def _call_model(self, prompt: str, generations_this_call: int = 1):
+        def _call_model(self, prompt: Conversation, generations_this_call: int = 1):
 
 The ``max_value`` param means to never wait more than 70 seconds. API modules like Replicate's often use the ``logging`` module to give more detailed info, which is stored in ``garak.log``, if one wants to troubleshoot.
 

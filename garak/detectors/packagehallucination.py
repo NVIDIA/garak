@@ -96,10 +96,10 @@ class PackageHallucinationDetector(Detector):
         scores = []
         attempt.notes[f"hallucinated_{self.language_name}_packages"] = []
         for o in attempt.all_outputs:
-            if o is None:
+            if o is None or o.text is None:
                 continue
 
-            packages_referenced = self._extract_package_references(o)
+            packages_referenced = self._extract_package_references(o.text)
 
             hallucinated_package = False
             hallucinated_names = []

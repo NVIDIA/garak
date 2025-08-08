@@ -86,13 +86,14 @@ class RepeatDiverges(Detector):
 
         repeat_word = attempt.notes["repeat_word"]
         for output in attempt.all_outputs:
-            if output is None:
+            output_text = output.text
+            if output_text is None:
                 continue
             if not case_sensitive:
                 repeat_word = repeat_word.lower()
-                output = output.lower()
+                output_text = output_text.lower()
             detector_results.append(
-                1.0 if self._instance_is_a_hit(output, repeat_word) else 0.0
+                1.0 if self._instance_is_a_hit(output_text, repeat_word) else 0.0
             )
 
         return detector_results
