@@ -102,7 +102,6 @@ class GeminiGenerator(Generator):
         # Load the model
         self._load_model()
 
-    @backoff.on_exception(backoff.expo, GoogleAPIError, max_tries=5)
     def _call_model(self, prompt: str, generations_this_call: int = 1) -> List[Union[str, None]]:
         """Call the Gemini model with the given prompt.
         
@@ -114,66 +113,85 @@ class GeminiGenerator(Generator):
             A list of response strings, or None for failed generations
         """
         import logging
+        
+        # Use backoff-decorated helper method for the actual API call
+        # This ensures that multiple generations are obtained in a single call
+        # and backoff doesn't discard completed generations
+        try:
+            response = self._generate_content_with_backoff(prompt, generations_this_call)
+            return self._process_response(response, generations_this_call)
+        except Exception as e:
+            # If all retries failed, return None values for all expected generations
+            logging.error(f"All retries failed for {self.name}: {e}")
+            return [None] * generations_this_call
+
+    @backoff.on_exception(backoff.expo, GoogleAPIError, max_tries=5)
+    def _generate_content_with_backoff(self, prompt: str, generations_this_call: int):
+        """Generate content with backoff retry logic.
+        
+        This method is separate to ensure that when backoff retries occur,
+        we're retrying the entire multi-generation API call, not losing
+        any completed generations.
+        """
+        import logging
+        
+        # Create generation config with candidate count for multiple generations
+        generation_config = genai.types.GenerationConfig(
+            temperature=self.temperature,
+            top_p=self.top_p,
+            top_k=self.top_k,
+            max_output_tokens=self.max_output_tokens,
+            candidate_count=generations_this_call
+        )
+        
+        try:
+            response = self.model.generate_content(
+                prompt,
+                generation_config=generation_config
+            )
+            return response
+        except GoogleAPIError as e:
+            logging.error(f"GoogleAPIError when calling {self.name}: {e}")
+            raise e  # This will trigger backoff retry
+        except Exception as e:
+            logging.error(f"Unexpected error when calling {self.name}: {e}")
+            raise e  # Re-raise to be handled by caller
+
+    def _process_response(self, response, generations_this_call: int) -> List[Union[str, None]]:
+        """Process the API response and extract text from candidates.
+        
+        Args:
+            response: The response object from the Gemini API
+            generations_this_call: Expected number of generations
+            
+        Returns:
+            List of response strings or None for failed generations
+        """
+        import logging
         responses = []
         
         try:
-            # Create generation config with candidate count for multiple generations
-            generation_config = genai.types.GenerationConfig(
-                temperature=self.temperature,
-                top_p=self.top_p,
-                top_k=self.top_k,
-                max_output_tokens=self.max_output_tokens,
-                candidate_count=generations_this_call
-            )
-            
-            # Handle different model variants
-            if "text-to-speech" in self.name or "native-audio" in self.name:
-                # For specialized models, we still get the text response
-                # In a real implementation, we might handle audio output differently
-                response = self.model.generate_content(
-                    prompt,
-                    generation_config=generation_config
-                )
-                
-                # Process candidates if available, otherwise process single response
-                if hasattr(response, "candidates") and response.candidates:
-                    for candidate in response.candidates:
-                        if hasattr(candidate, "content") and hasattr(candidate.content, "text") and candidate.content.text:
-                            responses.append(candidate.content.text)
-                        else:
-                            responses.append(None)
-                elif hasattr(response, "text") and response.text:
-                    responses.append(response.text)
-                else:
-                    responses.append(None)
+            # Process candidates if available
+            if hasattr(response, "candidates") and response.candidates:
+                for candidate in response.candidates:
+                    if (hasattr(candidate, "content") and 
+                        hasattr(candidate.content, "parts") and 
+                        candidate.content.parts):
+                        # Extract text from the first part
+                        text_content = candidate.content.parts[0].text if candidate.content.parts[0].text else None
+                        responses.append(text_content)
+                    else:
+                        logging.warning(f"Empty candidate response from Gemini model {self.name}")
+                        responses.append(None)
+            elif hasattr(response, "text") and response.text:
+                # Fallback for single response format
+                responses.append(response.text)
             else:
-                # Standard text models
-                response = self.model.generate_content(
-                    prompt,
-                    generation_config=generation_config
-                )
+                logging.warning(f"No valid response format from Gemini model {self.name}")
+                responses.append(None)
                 
-                # Process candidates if available, otherwise process single response
-                if hasattr(response, "candidates") and response.candidates:
-                    for candidate in response.candidates:
-                        if hasattr(candidate, "content") and hasattr(candidate.content, "text") and candidate.content.text:
-                            responses.append(candidate.content.text)
-                        else:
-                            logging.warning(f"Empty candidate response from Gemini model {self.name}")
-                            responses.append(None)
-                elif hasattr(response, "text") and response.text:
-                    responses.append(response.text)
-                else:
-                    logging.warning(f"Empty response from Gemini model {self.name}")
-                    responses.append(None)
-                    
-        except GoogleAPIError as e:
-            # This will be caught by the backoff decorator and retried
-            logging.error(f"GoogleAPIError when calling {self.name}: {e}")
-            raise e
         except Exception as e:
-            # Other exceptions are not retried
-            logging.error(f"Error generating response from {self.name}: {e}")
+            logging.error(f"Error processing response from {self.name}: {e}")
             # Fill with None values for the expected number of generations
             responses = [None] * generations_this_call
         

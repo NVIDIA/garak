@@ -59,7 +59,9 @@ def test_gemini_generator_with_mock(monkeypatch, gemini_compat_mocks):
     mock_model = MagicMock()
     mock_response = MagicMock()
     mock_candidate = MagicMock()
-    mock_candidate.content.text = "This is a mock response from the Gemini model for testing purposes."
+    mock_part = MagicMock()
+    mock_part.text = "This is a mock response from the Gemini model for testing purposes."
+    mock_candidate.content.parts = [mock_part]
     mock_response.candidates = [mock_candidate]
     mock_model.generate_content.return_value = mock_response
     
@@ -96,9 +98,15 @@ def test_gemini_generator_multiple_generations(monkeypatch):
     
     # Create mock candidates for multiple generations
     mock_candidate1 = MagicMock()
-    mock_candidate1.content.text = "Response 1"
+    mock_part1 = MagicMock()
+    mock_part1.text = "Response 1"
+    mock_candidate1.content.parts = [mock_part1]
+    
     mock_candidate2 = MagicMock()
-    mock_candidate2.content.text = "Response 2"
+    mock_part2 = MagicMock()
+    mock_part2.text = "Response 2"
+    mock_candidate2.content.parts = [mock_part2]
+    
     mock_response.candidates = [mock_candidate1, mock_candidate2]
     
     mock_model.generate_content.return_value = mock_response
@@ -133,7 +141,9 @@ def test_gemini_native_audio_model(monkeypatch):
     # Create a mock response with the expected structure
     mock_response = MagicMock()
     mock_candidate = MagicMock()
-    mock_candidate.content.text = "This is a response from an audio-capable model."
+    mock_part = MagicMock()
+    mock_part.text = "This is a response from an audio-capable model."
+    mock_candidate.content.parts = [mock_part]
     mock_response.candidates = [mock_candidate]
     mock_model.generate_content.return_value = mock_response
     
