@@ -3,10 +3,10 @@ import ReactECharts from "echarts-for-react";
 import { useGroupedDetectors } from "../hooks/useGroupedDetectors";
 import type { ChartDetector, Probe } from "../types/ProbesChart";
 import { useTooltipFormatter } from "../hooks/useTooltipFormatter";
-import { useSortedDetectors } from "../hooks/useSortedDetectors";
 import { useDetectorsChartSeries } from "../hooks/useDetectorsChartSeries";
 import useSeverityColor from "../hooks/useSeverityColor";
 import InfoTooltip from "./InfoTooltip";
+import DefconBadge from "./DefconBadge";
 
 const DetectorsView = ({
   probe,
@@ -18,12 +18,31 @@ const DetectorsView = ({
   setSelectedProbe: (p: Probe) => void;
 }) => {
   const [hideUnavailable, setHideUnavailable] = useState(true);
+  const [selectedDefconByDetector, setSelectedDefconByDetector] = useState<Record<string, number[]>>({});
   const groupedDetectors = useGroupedDetectors(probe, allProbes);
-  const sortDetectors = useSortedDetectors();
   const buildSeries = useDetectorsChartSeries();
   const formatTooltip = useTooltipFormatter();
   const { getSeverityColorByLevel } = useSeverityColor();
   const probeColor = getSeverityColorByLevel(probe.summary?.probe_severity ?? 0);
+
+  const toggleDefconForDetector = (detectorType: string, defcon: number) => {
+    setSelectedDefconByDetector(prev => {
+      const currentSelected = prev[detectorType] || [1, 2, 3, 4, 5];
+      const newSelected = currentSelected.includes(defcon)
+        ? currentSelected.filter(d => d !== defcon)
+        : [...currentSelected, defcon].sort();
+      
+      return {
+        ...prev,
+        [detectorType]: newSelected,
+      };
+    });
+  };
+
+  const getDefconOpacity = (detectorType: string, defcon: number): number => {
+    const selected = selectedDefconByDetector[detectorType] || [1, 2, 3, 4, 5];
+    return selected.includes(defcon) ? 1 : 0.3;
+  };
 
   return (
     <div className="flex flex-col gap-8 pl-4 border-l border-gray-300">
@@ -31,7 +50,8 @@ const DetectorsView = ({
         <div className="flex items-center gap-1">
           <h3 className="text-lg font-semibold">Detector comparison</h3>
           <InfoTooltip>
-            Detectors score the model’s response; higher Z-score = worse (relative to calibration).
+            Detectors score the model's response; higher Z-score = worse (relative to calibration).
+            DEFCON levels indicate risk: DC-1 (Critical) to DC-5 (Minimal). Click DEFCON badges to filter.
           </InfoTooltip>
         </div>
         <p className="text-sm text-gray-600">
@@ -41,18 +61,40 @@ const DetectorsView = ({
           </span>
         </p>
       </div>
+      
       {[...Object.entries(groupedDetectors)].sort(([a],[b])=>a.localeCompare(b)).map(([detectorType, entries]) => {
-        const sortedEntries = sortDetectors(entries) as unknown as ChartDetector[];
+        // Filter by DEFCON and availability  
+        const chartEntries = entries as ChartDetector[];
+        const selectedDefcons = selectedDefconByDetector[detectorType] || [1, 2, 3, 4, 5];
+        const filteredEntries = chartEntries.filter((entry: ChartDetector) => {
+          if (hideUnavailable && entry.unavailable) return false;
+          if (entry.detector_defcon && !selectedDefcons.includes(entry.detector_defcon)) return false;
+          return true;
+        });
+        
+        // Convert to format expected by sortDetectors - using zscore for sorting
+        const sortableEntries = filteredEntries.map(entry => ({
+          ...entry,
+          zscore: entry.zscore ?? 0,
+        }));
+        
+        const sortedEntries = sortableEntries.sort((a, b) => {
+          if (a.zscore == null) return 1;
+          if (b.zscore == null) return -1;
+          return a.zscore - b.zscore;
+        });
+        
         const { pointSeries, lineSeries, naSeries, visible } = buildSeries(
           sortedEntries,
           hideUnavailable
         );
 
         const yAxisLabels = visible.map(d => {
+          let label = d.label;
           if (d.attempt_count != null && d.hit_count != null) {
-            return `${d.label} (${d.attempt_count}/${d.hit_count})`;
+            label = `${d.label} (${d.attempt_count}/${d.hit_count})`;
           }
-          return d.label;
+          return label;
         });
 
         const option = {
@@ -105,7 +147,31 @@ const DetectorsView = ({
         return (
           <div key={detectorType}>
             <div className="flex justify-between items-center w-full mb-2">
-              <h3 className="text-lg font-semibold">{detectorType}</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-semibold">{detectorType}</h3>
+                {/* Clickable DEFCON distribution for this detector type */}
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map(defcon => {
+                    const count = (entries as any[]).filter(e => e.detector_defcon === defcon).length;
+                    if (count === 0) return null;
+                    
+                    const opacity = getDefconOpacity(detectorType, defcon);
+                    
+                    return (
+                      <button
+                        key={defcon}
+                        onClick={() => toggleDefconForDetector(detectorType, defcon)}
+                        className="flex items-center gap-1 hover:bg-gray-50 px-1 py-0.5 rounded transition-all"
+                        style={{ opacity }}
+                        title={`${count} entries at DEFCON ${defcon}. Click to ${opacity === 1 ? 'hide' : 'show'}.`}
+                      >
+                        <DefconBadge defcon={defcon} size="sm" />
+                        <span className="text-xs text-gray-500">({count})</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
               <label className="flex items-center gap-2 text-sm text-gray-700">
                 <input
                   type="checkbox"
@@ -117,8 +183,10 @@ const DetectorsView = ({
               </label>
             </div>
 
-            {visible.length === 0 && hideUnavailable ? (
-              <div className="text-sm text-gray-500 italic">All entries are unavailable (N/A).</div>
+            {visible.length === 0 ? (
+              <div className="text-sm text-gray-500 italic">
+                {hideUnavailable ? "All entries are unavailable (N/A)." : "No entries match the current DEFCON filter."}
+              </div>
             ) : (
               <ReactECharts
                 option={option}

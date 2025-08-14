@@ -52,4 +52,8 @@ export type ChartDetector = {
   color: string;
   attempt_count?: number | null;
   hit_count?: number | null;
+  unavailable?: boolean;
+  detector_defcon?: number | null;
+  absolute_defcon?: number | null;
+  zscore_defcon?: number | null;
 };

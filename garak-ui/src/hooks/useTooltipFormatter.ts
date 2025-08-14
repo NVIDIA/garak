@@ -11,12 +11,16 @@ export function useTooltipFormatter() {
     const hits = data?.hit_count ?? data?.fail_count; // whichever makes sense
     const countsLine = attempts != null && hits != null ? `<br/>Attempts: ${attempts}, Detected: ${hits}` : "";
     const color = data?.itemStyle?.color ?? "#666";
+    
+    // Add DEFCON information
+    const defcon = data?.detector_defcon;
+    const defconLine = defcon != null ? `<br/>DEFCON: <strong>DC-${defcon}</strong>` : "";
 
     return `
       <strong>${detectorType}</strong><br/>
       Score: ${score}<br/>
       Z-score: ${z}<br/>
-      Comment: <span style="color:${color}">${comment}</span>${countsLine}
+      Comment: <span style="color:${color}">${comment}</span>${defconLine}${countsLine}
     `;
   };
 }

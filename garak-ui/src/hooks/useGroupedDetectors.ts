@@ -35,6 +35,9 @@ export const useGroupedDetectors = (probe: Probe, allProbes: Probe[]) => {
           hit_count: (match as any)?.hit_count ?? (match as any)?.fail_count ?? null,
           color: p.probe_name === probe.probe_name ? color : theme.colors.tk150,
           unavailable: zMissing,
+          detector_defcon: match?.detector_defcon ?? null,
+          absolute_defcon: match?.absolute_defcon ?? null,
+          zscore_defcon: match?.zscore_defcon ?? null,
         });
       }
 

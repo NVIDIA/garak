@@ -1,6 +1,7 @@
 import { useState } from "react";
 import useSeverityColor from "../hooks/useSeverityColor";
 import ProbesChart from "./ProbesChart";
+import DefconBadge from "./DefconBadge";
 import type { ModuleData } from "../types/Module";
 import type { Probe } from "../types/ProbesChart";
 
@@ -18,11 +19,14 @@ const Module = ({ module }: { module: ModuleData }) => {
     <div className="p-4 border-b cursor-pointer" style={{ borderColor: color }}>
       <div className="flex justify-between items-center" onClick={handleSetIsOpen}>
         <div className="flex items-center gap-4">
-          <div
-            className="px-3 py-1 rounded-sm text-white font-semibold w-16 text-center"
-            style={{ background: color }}
-          >
-            <span className="text-lg">{(module.summary.score * 100).toFixed(0)}%</span>
+          <div className="flex items-center gap-2">
+            <div
+              className="px-3 py-1 rounded-sm text-white font-semibold w-16 text-center"
+              style={{ background: color }}
+            >
+              <span className="text-lg">{(module.summary.score * 100).toFixed(0)}%</span>
+            </div>
+            <DefconBadge defcon={module.summary.group_defcon} size="xl" />
           </div>
 
           <div className="flex flex-col">
@@ -48,44 +52,14 @@ const Module = ({ module }: { module: ModuleData }) => {
         </div>
 
         <div className="text-xl">
-          {isOpen ? (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="18 15 12 9 6 15" /> {/* Upward arrow */}
-            </svg>
-          ) : (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="6 9 12 15 18 9" /> {/* Downward arrow */}
-            </svg>
-          )}
+          {isOpen ? "▲" : "▼"}
         </div>
       </div>
 
       {isOpen && (
-        <ProbesChart
-          module={{ ...module, probes: module.probes ?? [] }}
-          setSelectedProbe={setSelectedProbe}
-          selectedProbe={selectedProbe}
-        />
+        <div className="mt-4">
+          <ProbesChart module={module} selectedProbe={selectedProbe} setSelectedProbe={setSelectedProbe} />
+        </div>
       )}
     </div>
   );

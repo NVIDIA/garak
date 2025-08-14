@@ -83,11 +83,11 @@ describe("Module", () => {
 
   it("renders correct arrow icons for open and closed states", () => {
     render(<Module module={mockModule} />);
-    // Closed state: downward arrow polyline 6 9 12 15 18 9
-    expect(document.querySelector('polyline[points="6 9 12 15 18 9"]')).toBeInTheDocument();
+    // Closed state: downward arrow
+    expect(screen.getByText("▼")).toBeInTheDocument();
 
     fireEvent.click(screen.getByText("Bias"));
-    // Open state: upward arrow polyline 18 15 12 9 6 15
-    expect(document.querySelector('polyline[points="18 15 12 9 6 15"]')).toBeInTheDocument();
+    // Open state: upward arrow  
+    expect(screen.getByText("▲")).toBeInTheDocument();
   });
 });

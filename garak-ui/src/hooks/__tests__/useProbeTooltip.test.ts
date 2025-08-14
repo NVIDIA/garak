@@ -38,6 +38,7 @@ describe("useProbeTooltip", () => {
     expect(tooltip).toContain(
       'Severity: <span style="color: #ff0; font-weight: 600">medium</span>'
     );
+    expect(tooltip).toContain("DEFCON: <strong>DC-2</strong>");
   });
 
   it("handles unknown probe name", () => {
@@ -49,5 +50,20 @@ describe("useProbeTooltip", () => {
     expect(tooltip).toContain(
       'Severity: <span style="color: #999; font-weight: 600">Unknown</span>'
     );
+    expect(tooltip).not.toContain("DEFCON:");
+  });
+
+  it("includes DEFCON information when severity is available", () => {
+    const dataWithDefcon = [
+      {
+        ...sampleData[0],
+        severity: 1,
+        severityLabel: "Critical",
+      },
+    ];
+    const { result } = renderHook(() => useProbeTooltip(dataWithDefcon));
+    const tooltip = result.current({ name: "probe-1", value: 50 });
+
+    expect(tooltip).toContain("DEFCON: <strong>DC-1</strong>");
   });
 });
