@@ -46,6 +46,7 @@ export type ProbesChartProps = {
 
 export type ChartDetector = {
   label: string;
+  probeName?: string;
   zscore: number;
   detector_score: number | null;
   comment: string | null;

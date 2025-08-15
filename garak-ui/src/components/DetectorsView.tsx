@@ -133,7 +133,20 @@ const DetectorsView = ({
           yAxis: {
             type: "category",
             data: yAxisLabels,
-            axisLabel: { fontSize: 14 },
+            axisLabel: { 
+              fontSize: 14,
+              rich: {
+                selected: {
+                  fontWeight: 'bold',
+                  fontSize: 14,
+                }
+              },
+              formatter: (value: string, index: number) => {
+                // Check if this label corresponds to the selected probe
+                const isSelected = visible[index]?.probeName === probe.probe_name;
+                return isSelected ? `{selected|${value}}` : value;
+              }
+            },
           },
           series: [lineSeries, pointSeries, naSeries],
         };

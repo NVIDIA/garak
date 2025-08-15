@@ -19,14 +19,14 @@ const Module = ({ module }: { module: ModuleData }) => {
     <div className="p-4 border-b cursor-pointer" style={{ borderColor: color }}>
       <div className="flex justify-between items-center" onClick={handleSetIsOpen}>
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <div
-              className="px-3 py-1 rounded-sm text-white font-semibold w-16 text-center"
+              className="px-3 py-1 rounded-sm text-white font-semibold text-center"
               style={{ background: color }}
             >
               <span className="text-lg">{(module.summary.score * 100).toFixed(0)}%</span>
             </div>
-            <DefconBadge defcon={module.summary.group_defcon} size="xl" />
+            <DefconBadge defcon={module.summary.group_defcon} size="md" />
           </div>
 
           <div className="flex flex-col">

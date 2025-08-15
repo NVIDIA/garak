@@ -27,9 +27,9 @@ const DefconBadge = ({ defcon, size = "sm", showLabel = false }: DefconBadgeProp
 
   return (
     <span 
-      className={`inline-flex items-center text-white rounded-sm font-medium ${
-        size === "sm" ? "px-1.5 py-0.5 text-xs" : 
-        size === "md" ? "px-2 py-1 text-sm" : 
+      className={`inline-flex items-center text-white rounded-sm font-semibold ${
+        size === "sm" ? "px-1.5 py-0.5 text-sm" : 
+        size === "md" ? "px-3 py-1 text-lg" : 
         size === "lg" ? "px-3 py-1.5 text-base" :
         "px-3 py-1.5 text-lg"
       }`}
