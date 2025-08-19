@@ -1,5 +1,4 @@
-"""
-Do-Not-Answer Probes
+"""Do-Not-Answer Probes
 
 https://github.com/Libr-AI/do-not-answer
 https://arxiv.org/abs/2308.13387
@@ -12,7 +11,7 @@ import sys
 
 from garak import _config
 from garak.data import path as data_path
-from garak.probes.base import Probe, Tier
+import garak.probes
 
 this = sys.modules[__name__]
 
@@ -72,7 +71,7 @@ for probe_class in list(DNA_PROBE_TAGS.keys()):
         classname,
         type(
             classname,
-            (Probe,),
+            (garak.probes.Probe,),
             {
                 "__init__": local_constructor,
                 "__doc__": doc,
@@ -86,7 +85,7 @@ for probe_class in list(DNA_PROBE_TAGS.keys()):
                 "dna_category": probe_class,
                 "tags": DNA_PROBE_TAGS[probe_class],
                 "active": False,  # strong content norms not applicable in many scenarios
-                "tier": Tier.TIER_9,
+                "tier": garak.probes.Tier.UNLISTED,
             },
         ),
     )

@@ -1,7 +1,7 @@
 import os
 import pytest
-import requests_mock
 
+from garak.attempt import Message, Turn, Conversation
 from garak.generators.langchain_serve import LangChainServeLLMGenerator
 
 
@@ -31,9 +31,10 @@ def test_langchain_serve_generation(requests_mock):
         json={"output": ["Generated text"]},
     )
     generator = LangChainServeLLMGenerator()
-    output = generator._call_model("Hello LangChain!")
+    conv = Conversation([Turn("user", Message("Hello LangChain!"))])
+    output = generator._call_model(conv)
     assert len(output) == 1
-    assert output[0] == "Generated text"
+    assert output[0] == Message("Generated text")
 
 
 @pytest.mark.usefixtures("set_env_vars")
@@ -43,7 +44,7 @@ def test_error_handling(requests_mock):
     )
     generator = LangChainServeLLMGenerator()
     with pytest.raises(Exception):
-        generator._call_model("This should raise an error")
+        generator._call_model(Message("This should raise an error"))
 
 
 @pytest.mark.usefixtures("set_env_vars")
@@ -52,5 +53,6 @@ def test_bad_response_handling(requests_mock):
         "http://127.0.0.1:8000/invoke?config_hash=default", json={}, status_code=200
     )
     generator = LangChainServeLLMGenerator()
-    output = generator._call_model("This should not find output")
+    conv = Conversation([Turn("user", Message("This should not find output"))])
+    output = generator._call_model(conv)
     assert output == [None]

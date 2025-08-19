@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Buff that paraphrases a prompt. """
+"""Buff that paraphrases a prompt."""
 
 from collections.abc import Iterable
 
@@ -68,11 +68,18 @@ class PegasusT5(Buff, HFCompatible):
     def transform(
         self, attempt: garak.attempt.Attempt
     ) -> Iterable[garak.attempt.Attempt]:
-        yield self._derive_new_attempt(attempt)
-        paraphrases = self._get_response(attempt.prompt)
+        yield self._derive_new_attempt(
+            attempt
+        )  # why does this yield a copy of the original with no modification?
+        last_message = attempt.prompt.last_message()
+        paraphrases = self._get_response(last_message.text)
         for paraphrase in set(paraphrases):
             paraphrased_attempt = self._derive_new_attempt(attempt)
-            paraphrased_attempt.prompt = paraphrase
+            # transform receives a copy of the attempt should it modify the prompt in place?
+            delattr(paraphrased_attempt, "_prompt")  # hack to allow prompt set
+            paraphrased_attempt._prompt = garak.attempt.Message(
+                text=paraphrase, lang=last_message.lang
+            )
             yield paraphrased_attempt
 
 
@@ -144,9 +151,16 @@ class Fast(Buff, HFCompatible):
     def transform(
         self, attempt: garak.attempt.Attempt
     ) -> Iterable[garak.attempt.Attempt]:
-        yield self._derive_new_attempt(attempt)
-        paraphrases = self._get_response(attempt.prompt)
+        yield self._derive_new_attempt(
+            attempt
+        )  # why does this yield a copy of the original with no modification?
+        last_message = attempt.prompt.last_message()
+        paraphrases = self._get_response(last_message.text)
         for paraphrase in set(paraphrases):
             paraphrased_attempt = self._derive_new_attempt(attempt)
-            paraphrased_attempt.prompt = paraphrase
+            # transform receives a copy of the attempt should it modify the prompt in place?
+            delattr(paraphrased_attempt, "_prompt")  # hack to allow prompt set
+            paraphrased_attempt._prompt = garak.attempt.Message(
+                text=paraphrase, lang=last_message.lang
+            )
             yield paraphrased_attempt

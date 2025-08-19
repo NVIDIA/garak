@@ -19,23 +19,23 @@ That is, user payloads under XDG_DATA_DIR override those provided with garak.
 
 The JSON structure of a payload is:
 
-.. code-block:: JSON
+.. code-block:: json
 
     {
-        "garak_payload_name": -- a mandatory key, used to identify this as a garak payload. holds a description of the payload.
-        "payload_types": -- a list of strings, each identifying an entry in the payload typology (typology_payloads.tsv)
+        "garak_payload_name": // a mandatory key, used to identify this as a garak payload. holds a description of the payload.
+        "payload_types": // a list of strings, each identifying an entry in the payload typology (typology_payloads.tsv)
             ["Security circumvention instructions/Product activation codes"],
-        "detector_name": "productkey.Win5x5", -- a suggested detector
-        "detector_config": {}, -- a config dict of Configurable options for the detector
-        "payloads": [ -- a list of strings: the payloads themselves
+        "detector_name": "productkey.Win5x5", // a suggested detector
+        "detector_config": {}, // a config dict of Configurable options for the detector
+        "payloads": [ // a list of strings: the payloads themselves
             "Windows 10",
             "Windows 10 Pro"
         ]
-        "lang": "en" - * or a comma-separated list of BCP47 tags describing the languages this payload can be used with
+        "lang": "en" // * or a comma-separated list of BCP47 tags describing the languages this payload can be used with
     }
 
 
 .. automodule:: garak.payloads
    :members:
    :undoc-members:
-   :show-inheritance:   
+   :show-inheritance:

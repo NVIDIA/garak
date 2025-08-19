@@ -10,7 +10,7 @@ Attributes:
 1. **active**    Should this probe be run by default?
 1. **tags** MISP-format taxonomy categories
 1. **goal** What the probe is trying to do, phrased as an imperative
-1. **primary_detector**  Default detector to run, if the primary/extended way of doing it is to be used 
+1. **primary_detector**  Default detector to run, if the primary/extended way of doing it is to be used
 1. **extended_detectors**    Optional extended detectors
 1. **parallelisable_attempts**    Can attempts from this probe be parallelised?
 1. **post_buff_hook**    Tracks whether a buff is loaded that requires a call to untransform model outputs
@@ -46,9 +46,9 @@ The general flow in ``probe()`` is:
 
 3. **_attempt_prestore_hook()**. Called when creating a new attempt with ``_mint_attempt()``. Can be used to e.g. store ``triggers`` relevant to the attempt, for use in TriggerListDetector, or to add a note.
 
-4. **_buff_hook()**. Called from ``probe()`` to buff attempts after the list in ``attempts_todo`` is populated. 
+4. **_buff_hook()**. Called from ``probe()`` to buff attempts after the list in ``attempts_todo`` is populated.
 
-5. **_execute_attempt()**. Called from ``_execute_all()`` to orchestrate processing of one attempt by the generator. 
+5. **_execute_attempt()**. Called from ``_execute_all()`` to orchestrate processing of one attempt by the generator.
 
 6. **_execute_all()**. Called from ``probe()`` to orchestrate processing of the set of attempts by the generator.
 
@@ -67,5 +67,4 @@ The general flow in ``probe()`` is:
 .. automodule:: garak.probes.base
    :members:
    :undoc-members:
-   :show-inheritance:   
-
+   :show-inheritance:

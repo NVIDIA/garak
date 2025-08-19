@@ -132,6 +132,8 @@ class PluginCache:
                     continue
                 if module_filename.startswith("__"):
                     continue
+                if module_filename.startswith("_"):
+                    continue
                 found_filenames.add(plugin_path / module_filename)
             if found_filenames != validated_plugin_filenames:
                 return False
@@ -423,7 +425,13 @@ def load_plugin(path, break_on_fail=True, config_root=_config) -> object:
     except Exception as e:
         logging.warning("Exception failed import of %s", module_path, exc_info=e)
         if break_on_fail:
-            raise ValueError("Didn't successfully import " + module_name) from e
+            raise ValueError(
+                "❌ Didn't successfully import "
+                + category
+                + " plugin: '"
+                + module_name
+                + "'\n- Check spelling and garak log"
+            ) from e
         else:
             return False
 

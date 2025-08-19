@@ -33,9 +33,7 @@ class PossiblePickleName(FileDetector):
 
 
 class FileIsPickled(FileDetector):
-    """
-    Check whether a file is pickled.
-    """
+    """Check whether a file is pickled."""
 
     lang_spec = "*"
 
@@ -70,9 +68,7 @@ class FileIsPickled(FileDetector):
 
 
 class FileIsExecutable(FileDetector):
-    """
-    Magic check if file is portable or linear executable (exe/dll/vxd/..)
-    """
+    """Magic check if file is portable or linear executable (exe/dll/vxd/..)"""
 
     lang_spec = "*"
 

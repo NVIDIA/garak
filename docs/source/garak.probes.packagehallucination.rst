@@ -10,5 +10,4 @@ Check for package hallucination vulnerabilities. From `<https://vulcan.io/blog/a
 .. automodule:: garak.probes.packagehallucination
    :members:
    :undoc-members:
-   :show-inheritance:   
-
+   :show-inheritance:

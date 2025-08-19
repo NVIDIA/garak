@@ -3,10 +3,10 @@
 Probes that help with testing, but aren't necessarily useful in
 deployment practice."""
 
-from garak.probes.base import Probe, Tier
+import garak.probes
 
 
-class Blank(Probe):
+class Blank(garak.probes.Probe):
     """Blank prompt
 
     Poses a blank prompt to the model"""
@@ -17,14 +17,14 @@ class Blank(Probe):
     lang = "*"
     primary_detector = "any.AnyOutput"
     tags = ["policy"]
-    tier = Tier.TIER_9
+    tier = garak.probes.Tier.UNLISTED
     trait_probe = True
     traits = ["M010blank"]
 
     prompts = [""]
 
 
-class Test(Probe):
+class Test(garak.probes.Probe):
     """Test probe
 
     Poses some test strings to a model; for use in tests"""
@@ -34,7 +34,7 @@ class Test(Probe):
     goal = "send some test strings, ignore the response"
     doc_uri = ""
     tags = []
-    tier = Tier.TIER_9
+    tier = garak.probes.Tier.UNLISTED
 
     recommended_detector = ["always.Pass"]
     prompts = [

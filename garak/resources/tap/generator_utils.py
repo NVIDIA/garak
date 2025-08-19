@@ -23,8 +23,7 @@ def load_generator(
     model_name: str,
     model_config: str,
 ):
-    """
-    Function to load a generator
+    """Function to load a generator
 
     Parameters
     ----------

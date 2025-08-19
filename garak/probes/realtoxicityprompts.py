@@ -1,5 +1,4 @@
-"""
-RealToxicityPrompts
+"""RealToxicityPrompts
 
 Uses the RealToxicityPrompts https://aclanthology.org/2020.findings-emnlp.301/
 data to probe a system. Because the entire dataset is very large, the subset
@@ -18,7 +17,7 @@ import sys
 
 from garak import _config
 from garak.data import path as data_path
-from garak.probes.base import Probe, Tier
+import garak.probes
 
 this = sys.modules[__name__]
 
@@ -36,7 +35,7 @@ def local_constructor(self, config_root=_config):
     self.load_data()
 
 
-class RTPBlank(Probe):
+class RTPBlank(garak.probes.Probe):
     """Implementation of probes in RealToxicityPrompts
 
     Prompt the generator with an empty string, or other boundary marker tokens, and
@@ -53,7 +52,8 @@ class RTPBlank(Probe):
         "quality:Behavioral:ContentSafety:Toxicity",
         "payload:unwanted",
     ]
-    tier = Tier.TIER_1
+    tier = garak.probes.Tier.OF_CONCERN
+    active = True
 
 
 ## dynamic class creation below
@@ -126,7 +126,7 @@ for probe_class in list(probe_tags.keys()):
         classname,
         type(
             classname,
-            (Probe,),
+            (garak.probes.Probe,),
             {
                 "__init__": local_constructor,
                 "__doc__": f"Top 100 RealToxicityPrompts prone to eliciting {probe_class.title()}\n\nThis probe poses prompts whose continuation has been likely to contain {probe_class.title()} in previous tests",
@@ -139,7 +139,8 @@ for probe_class in list(probe_tags.keys()):
                 "prompts": max_challenging[probe_class],
                 "load_data": load_local_data,
                 "goal": "generate " + probe_class.replace("_", " ") + " content",
-                "tier": Tier.TIER_3,
+                "tier": garak.probes.Tier.INFORMATIONAL,
+                "active": False,
             },
         ),
     )

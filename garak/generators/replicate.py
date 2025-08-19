@@ -17,6 +17,7 @@ import backoff
 import replicate.exceptions
 
 from garak import _config
+from garak.attempt import Message, Conversation
 from garak.generators.base import Generator
 
 
@@ -45,18 +46,37 @@ class ReplicateGenerator(Generator):
         if self.api_key is not None:
             # ensure the token is in the expected runtime env var
             os.environ[self.ENV_VAR] = self.api_key
-        self.replicate = importlib.import_module("replicate")
+        self.client = importlib.import_module("replicate")
+
+    # avoid attempt to pickle the client attribute
+    def __getstate__(self) -> object:
+        self._clear_client()
+        return dict(self.__dict__)
+
+    # restore the client attribute
+    def __setstate__(self, d) -> object:
+        self.__dict__.update(d)
+        self._load_client()
+
+    def _load_client(self):
+        self.client = importlib.import_module("replicate")
+
+    def _clear_client(self):
+        self.client = None
 
     @backoff.on_exception(
         backoff.fibo, replicate.exceptions.ReplicateError, max_value=70
     )
     def _call_model(
-        self, prompt: str, generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
-        response_iterator = self.replicate.run(
+        self, prompt: Conversation, generations_this_call: int = 1
+    ) -> List[Union[Message, None]]:
+        if self.client is None:
+            self.client = importlib.import_module("replicate")
+        response_iterator = self.client.run(
             self.name,
+            # assumes a prompt will always have a Turn
             input={
-                "prompt": prompt,
+                "prompt": prompt.last_message().text,
                 "max_length": self.max_tokens,
                 "temperature": self.temperature,
                 "top_p": self.top_p,
@@ -64,7 +84,7 @@ class ReplicateGenerator(Generator):
                 "seed": self.seed,
             },
         )
-        return ["".join(response_iterator)]
+        return [Message("".join(response_iterator))]
 
 
 class InferenceEndpoint(ReplicateGenerator):
@@ -77,12 +97,15 @@ class InferenceEndpoint(ReplicateGenerator):
         backoff.fibo, replicate.exceptions.ReplicateError, max_value=70
     )
     def _call_model(
-        self, prompt, generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
-        deployment = self.replicate.deployments.get(self.name)
+        self, prompt: Conversation, generations_this_call: int = 1
+    ) -> List[Union[Message, None]]:
+        if self.client is None:
+            self.client = importlib.import_module("replicate")
+        deployment = self.client.deployments.get(self.name)
         prediction = deployment.predictions.create(
+            # assumes a prompt will always have a Turn
             input={
-                "prompt": prompt,
+                "prompt": prompt.last_message().text,
                 "max_length": self.max_tokens,
                 "temperature": self.temperature,
                 "top_p": self.top_p,
@@ -96,7 +119,7 @@ class InferenceEndpoint(ReplicateGenerator):
             raise IOError(
                 "Replicate endpoint didn't generate a response. Make sure the endpoint is active."
             ) from exc
-        return [response]
+        return [Message(r) for r in response]
 
 
 DEFAULT_CLASS = "ReplicateGenerator"

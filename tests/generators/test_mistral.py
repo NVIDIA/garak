@@ -2,9 +2,11 @@ import os
 import pytest
 import httpx
 from unittest.mock import patch
+from garak.attempt import Message, Turn, Conversation
 from garak.generators.mistral import MistralGenerator
 
 DEFAULT_DEPLOYMENT_NAME = "mistral-small-latest"
+
 
 @pytest.fixture
 def set_fake_env(request) -> None:
@@ -19,9 +21,11 @@ def set_fake_env(request) -> None:
     os.environ[MistralGenerator.ENV_VAR] = os.path.abspath(__file__)
     request.addfinalizer(restore_env)
 
+
 @pytest.mark.usefixtures("set_fake_env")
 @pytest.mark.respx(base_url="https://api.mistral.ai/v1")
 def test_mistral_generator(respx_mock, mistral_compat_mocks):
+
     mock_response = mistral_compat_mocks["mistralai_generation"]
     extended_request = "chat/completions"
     respx_mock.post(extended_request).mock(
@@ -29,9 +33,10 @@ def test_mistral_generator(respx_mock, mistral_compat_mocks):
     )
     generator = MistralGenerator(name=DEFAULT_DEPLOYMENT_NAME)
     assert generator.name == DEFAULT_DEPLOYMENT_NAME
-    output = generator.generate("Hello Mistral!")
+    conv = Conversation([Turn("user", Message("Hello Mistral!"))])
+    output = generator.generate(conv)
     assert len(output) == 1  # expect 1 generation by default
-    print("test passed!")
+
 
 @pytest.mark.skipif(
     os.getenv(MistralGenerator.ENV_VAR, None) is None,
@@ -40,6 +45,5 @@ def test_mistral_generator(respx_mock, mistral_compat_mocks):
 def test_mistral_chat():
     generator = MistralGenerator(name=DEFAULT_DEPLOYMENT_NAME)
     assert generator.name == DEFAULT_DEPLOYMENT_NAME
-    output = generator.generate("Hello Mistral!")
+    output = generator.generate(Message("Hello Mistral!"))
     assert len(output) == 1  # expect 1 generation by default
-    print("test passed!")

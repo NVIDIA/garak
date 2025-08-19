@@ -1,4 +1,5 @@
 from garak import _config
+from garak.attempt import Message, Turn, Conversation
 from garak.generators.base import Generator
 from typing import List, Union
 import os
@@ -6,8 +7,7 @@ import requests
 
 
 class WatsonXGenerator(Generator):
-    """
-    This is a generator for watsonx.ai.
+    """This is a generator for watsonx.ai.
 
     Make sure that you initialize the environment variables:
         'WATSONX_TOKEN',
@@ -125,26 +125,27 @@ class WatsonXGenerator(Generator):
         return super()._validate_env_var()
 
     def _call_model(
-        self, prompt: str, generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
+        self, prompt: Conversation, generations_this_call: int = 1
+    ) -> List[Union[Message, None]]:
         if not self.bearer_token:
             self._set_bearer_token()
 
         # Check if message is empty. If it is, append null byte.
-        if not prompt:
-            prompt = "\x00"
+        if not prompt or not prompt.last_message().text:
+            prompt = Conversation([Turn("user", Message("\x00"))])
             print(
                 "WARNING: Empty prompt was found. Null byte character appended to prevent API failure."
             )
 
+        # can this support a Conversation?
         output = ""
         if self.deployment_id:
-            output = self._generate_with_deployment(prompt)
+            output = self._generate_with_deployment(prompt.last_message().text)
         else:
-            output = self._generate_with_project(prompt)
+            output = self._generate_with_project(prompt.last_message().text)
 
         # Parse the output to only contain the output message from the model. Return a list containing that message.
-        return ["".join(output["results"][0]["generated_text"])]
+        return [Message("".join(output["results"][0]["generated_text"]))]
 
 
 DEFAULT_CLASS = "WatsonXGenerator"

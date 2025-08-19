@@ -94,8 +94,8 @@ def autodan_generate(
     low_memory: bool = False,
     random_seed: int = None,
 ):
-    """
-    Execute base AutoDAN generation
+    """Execute base AutoDAN generation
+
     Args:
         generator (garak.generators.Generator): Loaded Garak generator
         prompt(str): Malicious instruction to model

@@ -28,16 +28,29 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10","3.12"]
+        os: [ubuntu-latest, ubuntu-24.04-arm]
+        python-version: ["3.10","3.12","3.13"]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name: Reduce disk usage
+        if: ${{ matrix.os }} == 'ubuntu-latest'
+        run: |
+          sudo rm -rf /usr/local/lib/android || true
+          sudo rm -rf /usr/share/dotnet || true
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --no-cache-dir -r requirements.txt
+          python -m pip cache purge
 
       - name: Restore test cache artifacts
         id: cache-artifacts-restore
@@ -47,12 +60,6 @@ jobs:
             .cache/garak/data
             .cache/huggingface
           key: garak-test-resources-shared
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          python -m pip cache purge
 
       - name: Test with pytest
         run: |

@@ -15,9 +15,7 @@ All generators in garak must descend from ``garak.generators.base.Generator``. S
     from garak.generators.base import Generator
 
     class ReplicateGenerator(Generator):
-        """
-        Interface for public endpoints of models hosted in Replicate (replicate.com).
-        """
+        """Interface for public endpoints of models hosted in Replicate (replicate.com)."""
         pass
 
 Class docstrings are mandatory in garak, enforced by a test that's required to pass before merging. And they're just sensible practice anyway. So we add a brief docstring here too.
@@ -59,7 +57,7 @@ In this case, we set a few default inference parameters that reflect how the mod
 Descriptive params
 ******************
 
-The next things we need to define in this new class are the core generator parameters, that describe a bit about how this generator behaves and what default values it should have. 
+The next things we need to define in this new class are the core generator parameters, that describe a bit about how this generator behaves and what default values it should have.
 
 In the class, we'll set the ``generator_family_name`` to ``Replicate``. This can be the same for every generator in a module, or can vary a bit, but it should be a descriptive name that reflects what this class is for - the generator family name is printed to garak users at run time. Finally, because Replicate endpoints aren't guaranteed to support a single request for multiple generations at a time, we set ``supports_multiple_generations`` false. This is also the default value, so technically we don't have to do it, but it's OK to be explicit here.
 
@@ -68,8 +66,8 @@ We end up with this:
 .. code-block:: python
 
     Class ReplicateGenerator(Generator):
-        """
-        Interface for public endpoints of models hosted in Replicate (replicate.com).
+        """Interface for public endpoints of models hosted in Replicate (replicate.com).
+        
         Expects API key in REPLICATE_API_TOKEN environment variable.
         """
 
@@ -112,11 +110,11 @@ Populating a different value than api_key:
 
 .. code-block:: python
 
-        def _validate_env_var(self): 
-            if self.uri is None and hasattr(self, "key_env_var"): 
-                self.uri = os.getenv(self.key_env_var) 
-            if not self._validate_uri(self.uri): 
-                raise ValueError("Invalid API endpoint URI") 
+        def _validate_env_var(self):
+            if self.uri is None and hasattr(self, "key_env_var"):
+                self.uri = os.getenv(self.key_env_var)
+            if not self._validate_uri(self.uri):
+                raise ValueError("Invalid API endpoint URI")
 
 (from garak/generators/langchain_serve.py)
 
@@ -125,27 +123,27 @@ Populating from additional environment vars -- notice the call to super()._valid
 
 .. code-block:: python
 
-        def _validate_env_var(self): 
-            if self.org_id is None: 
-                if not hasattr(self, "org_env_var"): 
-                    self.org_env_var = self.ORG_ENV_VAR 
-                self.org_id = os.getenv(self.org_env_var, None) 
+        def _validate_env_var(self):
+            if self.org_id is None:
+                if not hasattr(self, "org_env_var"):
+                    self.org_env_var = self.ORG_ENV_VAR
+                self.org_id = os.getenv(self.org_env_var, None)
 
-            if self.org_id is None: 
-                raise APIKeyMissingError( 
-                    f'Put your org ID in the {self.org_env_var} environment variable (this was empty)\n \ 
-                    e.g.: export {self.org_env_var}="xxxx8yyyy/org-name"\n \ 
-                    Check "view code" on https://llm.ngc.nvidia.com/playground to see the ID' 
-                ) 
+            if self.org_id is None:
+                raise APIKeyMissingError(
+                    f'Put your org ID in the {self.org_env_var} environment variable (this was empty)\n \
+                    e.g.: export {self.org_env_var}="xxxx8yyyy/org-name"\n \
+                    Check "view code" on https://llm.ngc.nvidia.com/playground to see the ID'
+                )
 
-            return super()._validate_env_var() 
+            return super()._validate_env_var()
 
 (garak/generators/nemo.py)
 
 
 Finally, if the key check passed, let's try to load up the Replicate API using the ``replicate`` module and the user-supplied key. We don't want to do speculative loading in garak - everything should be imported as late as reasonable, to keep user experience fast.
 
-How one handles this can vary. It's done this way here because replicate holds a ``Client()`` object, and the import there may not support if more than one ``ReplicateGenerator`` needed to exist at the same time using different API keys. This is a quirk of the replicate library's design. 
+How one handles this can vary. It's done this way here because replicate holds a ``Client()`` object, and the import there may not support if more than one ``ReplicateGenerator`` needed to exist at the same time using different API keys. This is a quirk of the replicate library's design.
 
 So in this case, we import the ``replicate`` API module after the initial validation. Finally, to give the module some persistence, it's loaded at the level of our generator module, instead of just in this method. We add this to the end of ``__init__()``:
 
@@ -171,7 +169,7 @@ Let's start the ``_call_model`` method like this:
 
 .. code-block:: python
 
-        def _call_model(self, prompt: str, generations_this_call: int = 1):
+        def _call_model(self, prompt: Conversation, generations_this_call: int = 1):
             response_iterator = self.replicate.run(
                 self.name,
                 input={
@@ -209,7 +207,7 @@ The ``backoff`` module offers a decorator that controls behaviour in response to
         @backoff.on_exception(
             backoff.fibo, replicate.exceptions.ReplicateError, max_value=70
         )
-        def _call_model(self, prompt: str, generations_this_call: int = 1):
+        def _call_model(self, prompt: Conversation, generations_this_call: int = 1):
 
 The ``max_value`` param means to never wait more than 70 seconds. API modules like Replicate's often use the ``logging`` module to give more detailed info, which is stored in ``garak.log``, if one wants to troubleshoot.
 
@@ -223,7 +221,8 @@ One housekeeping point: because we lazy-import ``replicate``, the requested back
 Generator failure
 =================
 
-If the request really can't be served - maybe the prompt is longer than the context window and there's no specific handling in this case - then ``_call_model`` can return a ``None``. In the case of models that support multiple generations, ``_call_model`` should return a list of outputs and, optionally, ``None``s, with one list entry per requested generation.
+If the request really can't be served - maybe the prompt is longer than the context window and there's no specific handling in this case - then ``_call_model`` can return a ``None``.
+In the case of models that support multiple generations, ``_call_model`` should return a list of outputs and, optionally, ``None``\ s, with one list entry per requested generation.
 
 Testing
 =======
@@ -240,7 +239,7 @@ A good first step is to fire up the Python interpreter and try to import the mod
     Python 3.11.9 (main, Apr 19 2024, 16:48:06) [GCC 11.2.0] on linux
     Type "help", "copyright", "credits" or "license" for more information.
     >>> import garak.generators.replicate
-    >>> 
+    >>>
 
 If all goes well, no errors will appear. If some turn up, try and address those.
 
@@ -273,7 +272,7 @@ Oh, that's right! No API key. This stack trace is an example of how the ``Config
     >>> import garak.generators.replicate
     >>> g = garak.generators.replicate.ReplicateGenerator("meta/llama-2-70b-chat")
     🦜 loading generator: Replicate: meta/llama-2-70b-chat
-    >>> 
+    >>>
 
 Excellent! Now let's try a test generation (remember to do the export of the API token using a real token):
 
@@ -318,4 +317,4 @@ This tutorial covered a tool that takes text as input and produces text as outpu
 
     modality: dict = {"in": {"text"}, "out": {"text"}}
 
-For an example of a multimodal model, check out LLaVa in `garak.generators.huggingface <https://github.com/NVIDIA/garak/blob/main/garak/generators/huggingface.py>`_ . 
+For an example of a multimodal model, check out LLaVa in `garak.generators.huggingface <https://github.com/NVIDIA/garak/blob/main/garak/generators/huggingface.py>`_ .

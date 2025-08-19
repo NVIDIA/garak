@@ -107,8 +107,7 @@ def _get_perplexity(
 def _score_candidates(
     generator: Generator, input_str: str, response_str: str, candidate: list[int]
 ) -> float:
-    """
-    Function to score the value of jailbreak candidates
+    """Function to score the value of jailbreak candidates
 
     Args:
         generator: Target generator
@@ -157,8 +156,8 @@ def _score_candidates(
 
 
 def _check_jailbreak(outputs: list[str]) -> bool:
-    """
-    Check list of outputs for rejection, assuming no rejection is a success.
+    """Check list of outputs for rejection, assuming no rejection is a success.
+
     Args:
         outputs: List of output strings
     Returns:
@@ -179,8 +178,8 @@ def _sample_tokens(
     k: int,
     suffix_ids: Union[list[int], torch.Tensor, None] = None,
 ) -> list[int]:
-    """
-    Sample the generator for a new response
+    """Sample the generator for a new response
+
     Args:
         generator: targeted generator
         prompt: prompt to the model
@@ -217,8 +216,7 @@ def _get_best_candidate(
     suffix_ids: Union[list[int], torch.Tensor, None] = None,
     stop_early: bool = False,
 ) -> tuple[list[int], float]:
-    """
-    Return the best candidate suffix and its associated score.
+    """Return the best candidate suffix and its associated score.
 
     Args:
         generator: Target generator
@@ -350,8 +348,8 @@ def run_beast(
     outfile: Path = beast_resource_data / "suffixes.txt",
     stop_early: bool = False,
 ) -> Union[list[str], None]:
-    """
-    Function to run BEAST attack
+    """Function to run BEAST attack
+
     Args:
         target_generator (Generator): Generator to target with attack
         prompts (list[str]): List of prompts (optional)

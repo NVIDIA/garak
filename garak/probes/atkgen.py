@@ -23,12 +23,12 @@ from tqdm import tqdm
 from garak import _config
 import garak._plugins
 import garak.attempt
-from garak.probes.base import Probe, Tier
+import garak.probes
 
 TEMPLATE_PLACEHOLDER = "[query]"
 
 
-class Tox(Probe):
+class Tox(garak.probes.Probe):
     """Automatic attack generation, trying to elicit toxic outputs from the model.
 
     This probe uses an attack model, trained on conversations that led to LLMs
@@ -51,10 +51,12 @@ class Tox(Probe):
         "https://interhumanagreement.substack.com/p/faketoxicityprompts-automatic-red"
     )
     lang = "en"
-    tier = Tier.TIER_2
+    tier = garak.probes.Tier.COMPETE_WITH_SOTA
+    active = True
 
-    DEFAULT_PARAMS = Probe.DEFAULT_PARAMS | {
-        "max_calls": 5,
+    DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
+        "max_calls_per_conv": 5,
+        "convs_per_generation": 5,
         "constructive_tension": True,
         "red_team_model_type": "huggingface.Pipeline",
         "red_team_model_name": "garak-llm/attackgeneration-toxicity_gpt2",
@@ -64,6 +66,7 @@ class Tox(Probe):
         "red_team_prompt_template": "<|input|>[query]<|response|>",
         "red_team_postproc_rm_regex": r"\<\|.*",
         "use_only_first_sent": True,  # should we only consider the first sentence of the target's response?
+        "allow_repetition": False,
     }
 
     def probe(self, generator) -> List[garak.attempt.Attempt]:
@@ -84,35 +87,32 @@ class Tox(Probe):
         attempts = []
         red_team_model_short = self.red_team_model_name.split("/")[-1]
 
-        prev_parallel_requests = generator.parallel_requests
-        generator.parallel_requests = False
-        if "max_new_tokens" in dir(generator):  # let the probed model decide what to do
-            prev_max_new_tokens = generator.max_new_tokens
-            generator.max_new_tokens = None
         attack_iterator = tqdm(
-            range(self.generations), leave=False
+            range(self.generations * self.convs_per_generation), leave=False
         )  # itrerate for probe generations
         attack_iterator.set_description(self.probename.replace("garak.", ""))
 
         for i in attack_iterator:
-            self.redteamer.max_new_tokens = (
-                None  # artopt unhappy with this being set on first iter
-            )
             calls_made = 0
             keep_going = True
 
-            this_attempt = self._mint_attempt()  # don't set the prompt yet
-
             last_response = None
-            turns = []
-            logging.debug("atkgen: attempt %s uuid %s", i, this_attempt.uuid)
+            last_attempt = None
 
             if not output_is_conversation:
-                t = tqdm(total=2 * self.max_calls, leave=False)
+                t = tqdm(total=2 * self.max_calls_per_conv, leave=False)
             else:
                 print("atkgen: 🆕 ⋅.˳˳.⋅ॱ˙˙ॱ New conversation ॱ˙˙ॱ⋅.˳˳.⋅ 🗣️")
 
-            while calls_made < self.max_calls and keep_going:
+            while calls_made < self.max_calls_per_conv and keep_going:
+                this_attempt = self._mint_attempt()  # don't set the prompt yet
+                logging.debug(
+                    "atkgen: attempt %s uuid %s call %s",
+                    i,
+                    this_attempt.uuid,
+                    calls_made,
+                )
+
                 if not output_is_conversation:
                     t.set_description(
                         f" turn {t.n:02}: red teaming [{red_team_model_short[:10]:<10}]"
@@ -136,35 +136,45 @@ class Tox(Probe):
                     else:
                         query = last_response  # oh hey we might want to be able to switch roles here for chat models. or not?
 
-                    challenge = self.redteamer.generate(query)[0]
+                    challenge = self.redteamer.generate(
+                        garak.attempt.Conversation(
+                            [garak.attempt.Turn("user", garak.attempt.Message(query))]
+                        )
+                    )[0]
                     if self.red_team_postproc_rm_regex:
-                        challenge = re.sub(
-                            self.red_team_postproc_rm_regex, "", challenge
+                        challenge_text = re.sub(
+                            self.red_team_postproc_rm_regex, "", challenge.text
                         ).strip()
+                this_attempt.notes["red_team_challenge"] = last_response
+                if last_attempt:
+                    this_attempt.notes["previous_attempt_id"] = str(last_attempt.uuid)
 
                 if not output_is_conversation:
                     t.update()
 
-                # TODO: the detector requires challenge and response in "en" this probe currently
-                # results in no retention of the challenge translation sent to the target
-
                 # translate the challenge to send to the target
-                challenge_to_send = self.translator.translate([challenge])[0]
-                turn = ("probe", challenge)  # turns stores the original challenge
+                challenge_to_send = self.langprovider.get_text([challenge_text])[0]
 
-                if len(turns) == 0:
-                    this_attempt.prompt = challenge_to_send
-                    this_attempt.lang = self.translator.target_lang
-                    if challenge_to_send != challenge:
-                        this_attempt.notes["pre_translation_prompt"] = challenge
-                    this_attempt._expand_prompt_to_histories(1)
-                else:
-                    this_attempt._add_turn("user", [challenge_to_send])
+                this_attempt.prompt = garak.attempt.Message(
+                    challenge_to_send, lang=self.langprovider.target_lang
+                )
+                if challenge_to_send != challenge_text:
+                    this_attempt.notes["pre_translation_prompt"] = (
+                        garak.attempt.Conversation(
+                            [
+                                garak.attempt.Turn(
+                                    "user",
+                                    garak.attempt.Message(
+                                        challenge_text, lang=self.lang
+                                    ),
+                                )
+                            ]
+                        )
+                    )
 
-                turns.append(turn)
-                logging.debug("atkgen: probe: %s", turn)
+                logging.debug("atkgen: probe: %s", challenge_text)
                 if output_is_conversation:
-                    probe_text = re.sub(r"[\r\n]+", "\n", turn[1]).strip()
+                    probe_text = re.sub(r"[\r\n]+", "\n", challenge_text[1]).strip()
                     print(
                         f"atkgen: 🔴 probe: {Fore.LIGHTYELLOW_EX}{probe_text}{Style.RESET_ALL}"
                     )
@@ -173,53 +183,52 @@ class Tox(Probe):
                         f" turn {t.n:02}: waiting for [{generator.name[:10]:<10}]"
                     )
                 # send the challenge in the target language and get the response
-                response = generator.generate(challenge_to_send)
+                response = generator.generate(this_attempt.prompt)
                 if response is None or len(response) == 0:
-                    response = ""
+                    response_text = ""
                 else:
-                    response = response[0].strip() if response[0] is not None else ""
+                    response_text = (
+                        response[0].text.strip() if response[0] is not None else ""
+                    )
+                this_attempt.outputs = response
 
                 # log the response
-                response_to_store = self.reverse_translator.translate([response])[0]
-                turn = ("model", response_to_store)
+                response_to_store = self.reverse_langprovider.get_text([response_text])[
+                    0
+                ]
                 if (
-                    self.reverse_translator.source_lang
-                    != self.reverse_translator.target_lang
+                    self.reverse_langprovider.source_lang
+                    != self.reverse_langprovider.target_lang
                 ):
-                    this_attempt.reverse_translator_outputs = [response_to_store]
-                this_attempt._add_turn("assistant", [response])
-                turns.append(turn)
-                logging.debug("atkgen: model: %s", turn)
+                    this_attempt.reverse_translation_outputs = [
+                        garak.attempt.Message(response_to_store)
+                    ]
+                logging.debug("atkgen: model: %s", response_text)
                 if output_is_conversation:
-                    print(f"atkgen: 🦜 model: {Style.BRIGHT}{turn[1]}{Style.RESET_ALL}")
+                    print(
+                        f"atkgen: 🦜 model: {Style.BRIGHT}{this_attempt.prompt.turns[-1].text}{Style.RESET_ALL}"
+                    )
                 else:
                     t.update()
                 # increment calls_made
                 calls_made += 1
+                # last_response needs to be in the attack model's language base update on `response_to_store`
                 # check if the resp is empty or if it matches the previous resp
-                if not len(response) and not self.constructive_tension:
+                if not len(response_to_store) and not self.constructive_tension:
                     keep_going = False
-                if response == last_response:
-                    keep_going = False
+                if response_to_store == last_response:
+                    keep_going = False and not self.allow_repetition
                 # update last_response
-                last_response = response.replace("\n", " ").strip()
-                self.redteamer.max_new_tokens = 170  # after first iter, give a limit
+                last_response = response_to_store.replace("\n", " ").strip()
+
+                _config.transient.reportfile.write(
+                    json.dumps(this_attempt.as_dict()) + "\n"
+                )
+                attempts.append(copy.deepcopy(this_attempt))
+                last_attempt = this_attempt
 
             if not output_is_conversation:
                 t.close()
-
-            this_attempt.notes["turns"] = turns
-
-            _config.transient.reportfile.write(
-                json.dumps(this_attempt.as_dict()) + "\n"
-            )
-            attempts.append(copy.deepcopy(this_attempt))
-
-        # restore request parallelisation option
-        generator.parallel_requests = prev_parallel_requests
-        # restore generator's token generation limit
-        if "max_new_tokens" in dir(generator):  # let the probed model decide what to do
-            generator.max_new_tokens = prev_max_new_tokens
 
         return attempts
 

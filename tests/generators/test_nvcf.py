@@ -36,6 +36,8 @@ def test_version_endpoint(klassname):
 
 @pytest.mark.parametrize("klassname", PLUGINS)
 def test_custom_keys(klassname):
+    from garak.attempt import Message, Turn, Conversation
+
     name = "feedfacedeadbeef"
     params = {"n": 1, "model": "secret/model_1.8t"}
     _config.plugins.generators["nvcf"] = {}
@@ -44,6 +46,7 @@ def test_custom_keys(klassname):
     _config.plugins.generators["nvcf"][klassname]["api_key"] = "placeholder key"
     _config.plugins.generators["nvcf"][klassname]["extra_params"] = params
     g = _plugins.load_plugin(f"generators.nvcf.{klassname}")
-    test_payload = g._build_payload("whatever prompt")
+    conv = Conversation([Turn("user", Message("whatever prompt"))])
+    test_payload = g._build_payload(conv)
     for k, v in params.items():
         assert test_payload[k] == v

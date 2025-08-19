@@ -7,8 +7,7 @@ import pytest
 import re
 
 from garak import _config, _plugins
-from garak.probes.base import Probe, Tier
-
+import garak.probes
 PROBES = [classname for (classname, active) in _plugins.enumerate_plugins("probes")]
 
 DETECTORS = [
@@ -75,7 +74,7 @@ def test_probe_metadata(classname):
     p = _plugins.load_plugin(classname)
     assert isinstance(p.goal, str), "probe goals should be a text string"
     assert len(p.goal) > 0, "probes must state their general goal"
-    assert p.lang == "*" or langcodes.tag_is_valid(p.lang), "lang must be either * or a BCP47 code"
+    assert p.lang is not None and (p.lang == "*" or langcodes.tag_is_valid(p.lang)), "lang must be either * or a BCP47 code"
     assert isinstance(
         p.doc_uri, str
     ), "probes should give a doc uri describing/citing the attack"
@@ -90,7 +89,7 @@ def test_probe_metadata(classname):
     if p.trait_probe:
         assert len(p.policies) > 0, "trait probes must specify which traits they test"
     assert p.tier is not None, "probe tier must be specified"
-    assert isinstance(p.tier, Tier), "probe tier must be one of type Tier'"
+    assert isinstance(p.tier, garak.probes.Tier), "probe tier must be one of type Tier'"
 
 
 @pytest.mark.parametrize("plugin_name", PROBES)

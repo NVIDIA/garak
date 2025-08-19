@@ -20,5 +20,4 @@ Attributes:
 .. automodule:: garak.detectors.base
    :members:
    :undoc-members:
-   :show-inheritance:   
-
+   :show-inheritance:

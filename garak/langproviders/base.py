@@ -5,7 +5,7 @@
 """Translator that translates a prompt."""
 
 
-from typing import List
+from typing import List, Callable
 import re
 import unicodedata
 import string
@@ -37,8 +37,7 @@ def remove_english_punctuation(text: str) -> str:
 
 
 def is_english(text):
-    """
-    Determines if the given text is predominantly English based on word matching.
+    """Determines if the given text is predominantly English based on word matching.
 
     Args:
         text (str): The text to evaluate.
@@ -126,7 +125,7 @@ def is_meaning_string(text: str) -> bool:
 
 
 # To be `Configurable` the root object must meet the standard type search criteria
-# { translators:
+# { langproviders:
 #     "local": { # model_type
 #       "language": "<from>-<to>"
 #       "name": "model/name" # model_name
@@ -136,19 +135,20 @@ def is_meaning_string(text: str) -> bool:
 from garak.configurable import Configurable
 
 
-class Translator(Configurable):
-    """Base class for objects that execute translation"""
+class LangProvider(Configurable):
+    """Base class for objects that provision language"""
 
     def __init__(self, config_root: dict = {}) -> None:
+
         self._load_config(config_root=config_root)
 
         self.source_lang, self.target_lang = self.language.split(",")
 
         self._validate_env_var()
 
-        self._load_translator()
+        self._load_langprovider()
 
-    def _load_translator(self):
+    def _load_langprovider(self):
         raise NotImplementedError
 
     def _translate(self, text: str) -> str:
@@ -218,10 +218,11 @@ class Translator(Configurable):
     def _clean_line(self, line: str) -> str:
         return remove_english_punctuation(line.strip().lower().split())
 
-    def translate(
+    def get_text(
         self,
         prompts: List[str],
         reverse_translate_judge: bool = False,
+        notify_callback: Callable | None = None,
     ) -> List[str]:
         translated_prompts = []
         prompts_to_process = list(prompts)
@@ -235,4 +236,6 @@ class Translator(Configurable):
                 else:
                     translate_prompt = self._get_response(prompt)
             translated_prompts.append(translate_prompt)
+            if notify_callback:
+                notify_callback()
         return translated_prompts

@@ -3,23 +3,23 @@
 
 import pytest
 
-from garak.attempt import Attempt
+from garak.attempt import Attempt, Message
 from garak.detectors.leakreplay import StartsWith
 
 
-def reverse_translate(attempt) -> Attempt:
-    from garak.langservice import _load_translator
+def reverse_translate(attempt: Attempt) -> Attempt:
+    from garak.langservice import _load_langprovider
 
     translator_config = {
         "language": "ja,en",
         "model_type": "local",
     }
-    reverse_translator = _load_translator(translator_config)
-    for i, thread in enumerate(attempt.messages):
-        for j, turn in enumerate(thread):
-            if turn["role"] == "assistant":
-                attempt.messages[i][j]["content"] = "\n".join(
-                    reverse_translator.translate(turn["content"].split("\n"))
+    reverse_translator = _load_langprovider(translator_config)
+    for i, thread in enumerate(attempt.conversations):
+        for j, turn in enumerate(thread.turns):
+            if turn.role == "assistant":
+                attempt.conversations[i].turns[j].content.text = "\n".join(
+                    reverse_translator.get_text(turn.content.text.split("\n"))
                 )
     return attempt
 
@@ -28,15 +28,16 @@ def reverse_translate(attempt) -> Attempt:
 def test_startswith_detect():
     detector = StartsWith()
 
-    attempt = Attempt(prompt="This is a test prompt")
+    attempt = Attempt(prompt=Message("This is a test prompt"))
     attempt.notes["triggers"] = ["Hello", "Test"]
-    attempt.outputs = [
-        "Hello world",
-        "This is a test",
-        "Test case",
-        "No match here",
-        "陰府 の 端 に は 陰府 の 穴 が あ る.",
+    outputs = [
+        Message("Hello world"),
+        Message("This is a test"),
+        Message("Test case"),
+        Message("No match here"),
+        Message("陰府 の 端 に は 陰府 の 穴 が あ る."),
     ]
+    attempt.outputs = outputs
 
     # Run the detection
     results = detector.detect(attempt)

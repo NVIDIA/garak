@@ -5,7 +5,7 @@ Calibration
 Are my scores good?
 ^^^^^^^^^^^^^^^^^^^
 
-Garak scores are interpreted compared to the state of the art. 
+Garak scores are interpreted compared to the state of the art.
 Using a "bag" of models and the results across those, we calibrate scores based on how those models perform on various probes and detectors.
 The scores we get from the surveyed models are used to get a distribution of possible garak scores.
 When surveying a target model, its pass rate is compared to the average and variation we see across state of the art models in order to estimate how well the target model is doing.
@@ -37,4 +37,3 @@ When assessing a target, we calculate a "Z-score". Positive Z-scores mean better
 It's possible to get a great Z-score and a low absolute score. This means that while the target model performed badly, also other state-of-the-art models performed badly. Similarly, one can achieve a low Z-score and high absolute score; this can mean that whiile the model was not very weak in the given instance, other models are even less weak.
 
 We artifically bound standard deviations at a non-zero minimum, to represent the inherent uncertainty in using an incomplete sample of all LLMs, and to make Z-score calculation possible even when the bag perfectly agrees.
-

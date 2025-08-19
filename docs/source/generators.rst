@@ -3,7 +3,7 @@ garak.generators
 
 garak's generators each wrap a set of ways for interfacing with a dialogue system or LLM.
 
-For a detailed oversight into how a generator operates, see :ref:`garak.generators.base.rst`.
+For a detailed oversight into how a generator operates, see :doc:`garak.generators.base`.
 
 .. toctree::
    :maxdepth: 2
@@ -21,7 +21,6 @@ For a detailed oversight into how a generator operates, see :ref:`garak.generato
    garak.generators.langchain_serve
    garak.generators.litellm
    garak.generators.mistral
-   garak.generators.octo
    garak.generators.ollama
    garak.generators.openai
    garak.generators.nemo
@@ -32,4 +31,3 @@ For a detailed oversight into how a generator operates, see :ref:`garak.generato
    garak.generators.rasa
    garak.generators.test
    garak.generators.watsonx
-

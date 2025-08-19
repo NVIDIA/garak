@@ -79,4 +79,3 @@ When you're ready, send a pull request. Include as much context as possible here
 Review
 ~~~~~~
 We review almost all pull requests, and we'll almost certainly chat with you about the code here. Please take this as a positive sign - we want to understand what's happening in the code. If you can, please also be reasonably responsive during code review; it's hard for us to merge code if we don't understand it or it does unusual things, and we can't contact the people who wrote it.
-

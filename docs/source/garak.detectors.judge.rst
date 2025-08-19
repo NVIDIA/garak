@@ -11,5 +11,4 @@ This includes OpenAI, NIM, Azure and Groq generators.
 .. automodule:: garak.detectors.judge
    :members:
    :undoc-members:
-   :show-inheritance:   
-
+   :show-inheritance:

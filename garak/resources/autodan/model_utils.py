@@ -13,8 +13,8 @@ logger = getLogger(__name__)
 def forward(
     generator, input_ids: torch, attention_mask, batch_size=512
 ) -> torch.Tensor:
-    """
-    Run a forward pass on the specified model
+    """Run a forward pass on the specified model
+
     Args:
         generator (garak.generators.huggingface.Model): Generator with model for forward pass
         input_ids (torch.Tensor): Tokenized input to the model
@@ -48,8 +48,7 @@ def forward(
 
 
 def check_for_attack_success(gen_str: str, test_prefixes) -> bool:
-    """
-    Check if the jailbreak is successful against the specified model
+    """Check if the jailbreak is successful against the specified model
 
     Args:
         gen_str (str): Generated model output
@@ -71,8 +70,8 @@ def check_for_attack_success(gen_str: str, test_prefixes) -> bool:
 
 
 def load_conversation_template(template_name: str):
-    """
-    Load the specified conversation template
+    """Load the specified conversation template
+
     Args:
         template_name (str): template name to load from fastchat
 
@@ -93,8 +92,8 @@ def load_conversation_template(template_name: str):
 
 class AutoDanPrefixManager:
     def __init__(self, *, generator, conv_template, instruction, target, adv_string):
-        """
-        Prefix manager class for AutoDAN
+        """Prefix manager class for AutoDAN
+
         Args:
             generator (garak.generators.huggingface.Model): Generator to use
             conv_template (ConversationTemplate): Conversation template for specified model
@@ -240,8 +239,8 @@ class AutoDanPrefixManager:
         return prompt
 
     def get_input_ids(self, adv_string=None):
-        """
-        Get input ids from the tokenizer for a provided string
+        """Get input ids from the tokenizer for a provided string
+
         Args:
             adv_string (str): String to tokenize
 

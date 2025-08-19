@@ -3,7 +3,7 @@
 # -- Project information
 
 project = "garak"
-copyright = "2023-, Leon Derczynski"
+copyright = "2023, NVIDIA CORPORATION & AFFILIATES"
 author = "Leon Derczynski"
 
 # -- General configuration

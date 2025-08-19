@@ -34,7 +34,7 @@ _download_path = _nltk_data()
 def download(
     info_or_id=None,
     download_dir=_download_path,
-    quiet=False,
+    quiet=True,
     force=False,
     prefix="[nltk_data] ",
     halt_on_error=True,
@@ -55,3 +55,4 @@ def download(
 
 data = _nltk.data
 word_tokenize = _nltk.word_tokenize
+pos_tag = _nltk.pos_tag

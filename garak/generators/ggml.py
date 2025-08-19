@@ -18,6 +18,7 @@ import subprocess
 from typing import List, Union
 
 from garak import _config
+from garak.attempt import Message, Conversation
 from garak.generators.base import Generator
 
 GGUF_MAGIC = bytes([0x47, 0x47, 0x55, 0x46])
@@ -41,12 +42,15 @@ class GgmlGenerator(Generator):
         "exception_on_failure": True,
         "first_call": True,
         "key_env_var": ENV_VAR,
+        "extra_ggml_flags": ["-no-cnv"],
+        "extra_ggml_params": dict(),
     }
 
     generator_family_name = "ggml"
 
-    def command_params(self):
-        return {
+    def _command_args_list(self):
+        command_list = []
+        params = {
             "-m": self.name,
             "-n": self.max_tokens,
             "--repeat-penalty": self.repeat_penalty,
@@ -56,7 +60,15 @@ class GgmlGenerator(Generator):
             "--top-p": self.top_p,
             "--temp": self.temperature,
             "-s": self.seed,
-        }
+        } | self.extra_ggml_params
+        # test all params for None type
+        for key, value in params.items():
+            if value is not None:
+                command_list.append(key)
+                command_list.append(value)
+        if isinstance(self.extra_ggml_flags, list):
+            command_list.extend(self.extra_ggml_flags)
+        return command_list
 
     def __init__(self, name="", config_root=_config):
         self.name = name
@@ -94,8 +106,9 @@ class GgmlGenerator(Generator):
         pass  # suppress default behavior for api_key
 
     def _call_model(
-        self, prompt: str, generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
+        self, prompt: Conversation, generations_this_call: int = 1
+    ) -> List[Union[Message, None]]:
+        # should this be expanded to process all Conversation messages?
         if generations_this_call != 1:
             logging.warning(
                 "GgmlGenerator._call_model invokes with generations_this_call=%s but only 1 supported",
@@ -104,13 +117,10 @@ class GgmlGenerator(Generator):
         command = [
             self.path_to_ggml_main,
             "-p",
-            prompt,
+            prompt.last_message().text,
         ]
         # test all params for None type
-        for key, value in self.command_params().items():
-            if value is not None:
-                command.append(key)
-                command.append(value)
+        command.extend(self._command_args_list())
         command = [str(param) for param in command]
         if _config.system.verbose > 1:
             print("GGML invoked with", command)
@@ -124,7 +134,7 @@ class GgmlGenerator(Generator):
             output = result.stdout.decode("utf-8")
             output = re.sub("^" + re.escape(prompt.lstrip()), "", output.lstrip())
             self.first_call = False
-            return [output]
+            return [Message(output)]
         except subprocess.CalledProcessError as err:
             # if this is the first call attempt, raise the exception to indicate
             # the generator is mis-configured

@@ -39,6 +39,7 @@ def test_report_digest_runs():
             sys.executable,
             "-m",
             "garak.analyze.report_digest",
+            "-r",
             str(
                 _config.transient.data_dir
                 / _config.reporting.report_dir

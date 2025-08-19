@@ -9,8 +9,8 @@ body {font-family: sans-serif}
 :root{
   --defcon1: #f94144;
   --defcon2: #f8961e;
-  --defcon3: #ccc;
-  --defcon4: #eee;
+  --defcon3: #cccccc;
+  --defcon4: #eeeeee;
   --defcon5: #f7f7ff;
 }
 .defcon1 {background-color: var(--defcon1); text-color: #000}
@@ -20,21 +20,45 @@ body {font-family: sans-serif}
 .defcon5 {background-color: var(--defcon5); text-color: #000}
 .probe {padding-left: 40pt}
 .detector {padding-left: 65pt}
-.zscore {
+.score {
   padding-top: 6pt; 
   padding-bottom: 6pt; 
   /* margin-left: 60pt; */
   border: 1pt solid #ccc;
+  margin-top: 4pt;
+  margin-bottom: 4pt;
 }
-.zscore b {
+div.score p span {
+  display: inline-block;
+  width: 100pt
+  }
+.score b {
   padding: 6pt 10pt 7pt 10pt; 
   margin: 0
 }
 h2 {padding-left: 20pt}
 h3 {padding-left: 40pt}
 h4 {padding-left: 60pt}
-h2,h3,h4 {padding-top: 10px; padding-bottom: 10px}
-
+h2,h3,h4 {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border: 1px solid transparent;
+  transition: 0.3s;
+}
+h3:hover, h4:hover {
+  border: 1px solid #a0a0a0;
+}
+p.left {display: inline-block; margin-top:0; margin-bottom: 0}
+span.dc {
+  border: 1px solid #000; 
+  font-size: 10pt; 
+  font-weight: bold; 
+  float: right;
+  width: 28pt; 
+  height: 12pt; 
+  text-align: center; 
+  margin-right: 15pt;
+  }
 /* Style the buttons that are used to open and close the accordion panel */
 .accordion {
 //  background-color: #eee;
@@ -50,7 +74,7 @@ h2,h3,h4 {padding-top: 10px; padding-bottom: 10px}
 }
 
 /* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
-.active, .accordion:hover {
+.accordion.active, .accordion:hover {
   background-color: #ccf;
 }
 
@@ -77,15 +101,19 @@ filename: <b>{{reportfile}}</b>
 
 garak version: <b>{{garak_version}}</b>
 
-generator: <b>{{model_type}}.{{model_name}}</b>
-
-probe spec: <b>{{probespec}}</b>
-
-group scoring function: <b>{{group_aggregation_function}}</b>
+target generator: <b>{{model_type}}.{{model_name}}</b>
 
 run started at: <b>{{start_time}}</b>
 
+run data digest generated at: <b>{{report_digest_time}}</b>
+
+html report generated at: <b>{{now}}</b>
+
+probe spec: <b>{{probespec}}</b>
+
 run config: {{setup}}
+
+group scoring function: <b>{{group_aggregation_function}}</b>
 
 {% for payload in payloads %}
 payload load: {{payload}}
@@ -95,7 +123,7 @@ payload load: {{payload}}
 </div>
 
 {%if model_name %}
-<h2>results: {{model_type}} / {{model_name}}</h2>
+<h2>Results: {{model_type}} / {{model_name}}</h2>
 {%else%}
-<h2>results:</h2>
+<h2>Results:</h2>
 {%endif%}

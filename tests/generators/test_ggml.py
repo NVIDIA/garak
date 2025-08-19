@@ -45,3 +45,36 @@ def test_init_good_model():
         g = garak.generators.ggml.GgmlGenerator(file.name)
         os.remove(file.name)
         assert type(g) is garak.generators.ggml.GgmlGenerator
+
+
+def test_command_args_list():
+    """ensure command list overrides apply and `extra_ggml_params` are in correct relative order"""
+    with tempfile.NamedTemporaryFile(suffix="_test_model.gguf", delete=False) as file:
+        file.write(garak.generators.ggml.GGUF_MAGIC)
+        file.close()
+
+        gen_config = {
+            "extra_ggml_flags": [
+                "test_value",
+                "another_value",
+            ],
+            "extra_ggml_params": {
+                "custom_param": "custom_value",
+            },
+        }
+
+        config_root = {"generators": {"ggml": {"GgmlGenerator": gen_config}}}
+
+        g = garak.generators.ggml.GgmlGenerator(file.name, config_root=config_root)
+        arg_list = g._command_args_list()
+        for arg in gen_config["extra_ggml_flags"]:
+            assert arg in arg_list
+        for arg, value in gen_config["extra_ggml_params"].items():
+            assert arg in arg_list
+            assert value in arg_list
+            arg_index = arg_list.index(arg)
+            value_index = arg_list.index(value)
+            assert arg_index + 1 == value_index
+
+        os.remove(file.name)
+        assert type(g) is garak.generators.ggml.GgmlGenerator

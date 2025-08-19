@@ -1,6 +1,6 @@
 run:
   target_lang: ja
-  translators:
+  langproviders:
     - language: en,ja
       model_type: remote.DeeplTranslator
     - language: ja,en

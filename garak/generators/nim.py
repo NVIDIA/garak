@@ -10,6 +10,7 @@ from typing import List, Union
 import openai
 
 from garak import _config
+from garak.attempt import Message, Turn, Conversation
 from garak.exception import GarakException
 from garak.generators.openai import OpenAICompatible
 
@@ -63,12 +64,12 @@ class NVOpenAIChat(OpenAICompatible):
             )
         self.generator = self.client.chat.completions
 
-    def _prepare_prompt(self, prompt):
+    def _prepare_prompt(self, prompt: Conversation) -> Conversation:
         return prompt
 
     def _call_model(
-        self, prompt: str | List[dict], generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
+        self, prompt: Conversation, generations_this_call: int = 1
+    ) -> List[Union[Message, None]]:
         assert (
             generations_this_call == 1
         ), "generations_per_call / n > 1 is not supported"
@@ -90,8 +91,11 @@ class NVOpenAIChat(OpenAICompatible):
             msg = "Model call didn't match endpoint expectations, see log"
             logging.critical(msg, exc_info=uee)
             raise GarakException(f"🛑 {msg}") from uee
-        #        except openai.NotFoundError as oe:
-        except Exception as oe:  # too broad
+        except openai.NotFoundError as nfe:
+            msg = "NIM endpoint not found. Is the model name spelled correctly and the endpoint URI correct?"
+            logging.critical(msg, exc_info=nfe)
+            raise GarakException(f"🛑 {msg}") from nfe
+        except Exception as oe:
             msg = "NIM generation failed. Is the model name spelled correctly?"
             logging.critical(msg, exc_info=oe)
             raise GarakException(f"🛑 {msg}") from oe
@@ -133,45 +137,72 @@ class NVOpenAICompletion(NVOpenAIChat):
         self.generator = self.client.completions
 
 
-class Vision(NVOpenAIChat):
+class NVMultimodal(NVOpenAIChat):
+    """Wrapper for text + image / audio to text NIMs. Expects NIM_API_KEY environment variable.
+
+    Expects keys to be a dict with keys 'text' (required), and 'image' or 'audio' (optional).
+    Message is sent with 'role' and 'content' where content is structured as text
+    followed by <img> and/or <audio> tags ala https://build.nvidia.com/microsoft/phi-4-multimodal-instruct
+    """
+
+    DEFAULT_PARAMS = NVOpenAIChat.DEFAULT_PARAMS | {
+        "suppressed_params": {"n", "frequency_penalty", "presence_penalty", "stop"},
+        "max_input_len": 180_000,
+    }
+
+    modality = {"in": {"text", "image", "audio"}, "out": {"text"}}
+
+    def _prepare_prompt(self, conv: Conversation) -> Conversation:
+        from dataclasses import asdict
+
+        prepared_conv = Conversation()
+
+        for turn in conv.turns:
+            msg = turn.content
+            # only manipulate the copy
+            prepared_msg = Message(**asdict(msg))
+
+            text = msg.text
+
+            # guessing a default in the case of direct data
+            image_extension = "image/jpg"
+            # should this use mime/type detection on the actually data vs a default guess?
+
+            if msg.data is not None:
+                import base64
+
+                if msg.data_path is not None:
+                    image_extension, _ = msg.data_type
+
+                image_b64 = base64.b64encode(msg.data).decode()
+
+                if len(image_b64) > self.max_input_len:
+                    big_img_filename = "<direct data>"
+                    if msg.data_path is not None:
+                        big_img_filename = msg.data_path
+                    logging.error(
+                        "Request for %s exceeds length limit. To upload larger files, use the assets API (not yet supported)",
+                        big_img_filename,
+                    )
+                    return None
+
+                text = (
+                    text + f' <img src="data:{image_extension};base64,{image_b64}" />'
+                )
+            prepared_msg.text = text
+
+        prepared_conv.turns.append(Turn(turn.role, prepared_msg))
+
+        return prepared_conv
+
+
+class Vision(NVMultimodal):
     """Wrapper for text+image to text NIMs. Expects NIM_API_KEY environment variable.
 
     Following generators.huggingface.LLaVa, expects prompts to be a dict with keys
     "text" and "image"; text holds the text prompt, image holds a path to the image."""
 
-    DEFAULT_PARAMS = NVOpenAIChat.DEFAULT_PARAMS | {
-        "suppressed_params": {"n", "frequency_penalty", "presence_penalty", "stop"},
-        "max_image_len": 180_000,
-    }
-
     modality = {"in": {"text", "image"}, "out": {"text"}}
-
-    def _prepare_prompt(self, prompt):
-        import base64
-
-        if isinstance(prompt, str):
-            prompt = {"text": prompt, "image": None}
-
-        text = prompt["text"]
-        image_filename = prompt["image"]
-        if image_filename is not None:
-            with open(image_filename, "rb") as f:
-                image_b64 = base64.b64encode(f.read()).decode()
-
-            if len(image_b64) > self.max_image_len:
-                logging.error(
-                    "Image %s exceeds length limit. To upload larger images, use the assets API (not yet supported)",
-                    image_filename,
-                )
-                return None
-
-            image_extension = prompt["image"].split(".")[-1].lower()
-            if image_extension == "jpg":  # image/jpg is not a valid mimetype
-                image_extension = "jpeg"
-            text = (
-                text + f' <img src="data:image/{image_extension};base64,{image_b64}" />'
-            )
-        return text
 
 
 DEFAULT_CLASS = "NVOpenAIChat"

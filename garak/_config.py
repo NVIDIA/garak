@@ -119,7 +119,7 @@ config_files = []
 run.seed = None
 run.soft_probe_prompt_cap = 64
 run.target_lang = "en"
-run.translators = []
+run.langproviders = []
 
 # placeholder
 # generator, probe, detector, buff = {}, {}, {}, {}

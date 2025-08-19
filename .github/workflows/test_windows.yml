@@ -42,6 +42,13 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          cd garak
+          pip install --no-cache-dir -r requirements.txt
+          python -m pip cache purge
+
       - name: Restore test cache artifacts
         id: cache-artifacts-restore
         uses: actions/cache/restore@v4
@@ -51,13 +58,6 @@ jobs:
             .cache/huggingface
           enableCrossOsArchive: true
           key: garak-test-resources-shared
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          cd garak
-          pip install -r requirements.txt
-          python -m pip cache purge
 
       - name: Test with pytest
         run: |

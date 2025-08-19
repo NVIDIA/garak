@@ -30,7 +30,7 @@ The ``$INPUT`` and ``$KEY`` placeholders can also be specified in header values.
 If we want to call an endpoint where the API key is defined in the value
 of an ``X-Authorization`` header, sending and receiving JSON where the prompt
 and response value are both under the ``text`` key, we'd define the service
-using something like: 
+using something like:
 
 .. code-block:: JSON
 
@@ -60,9 +60,9 @@ To use this specification with garak, you can either pass the JSON as a
 strong option on the command line via ``--generator_options``, or save the
 JSON definition into a file and pass the filename to
 ``--generator_option_file`` / ``-G``. For example, if we save the above
-JSON into ``example_service.json``, we can invoke garak as: 
+JSON into ``example_service.json``, we can invoke garak as:
 
-.. code-block:: 
+.. code-block::
 
    garak --model_type rest -G example_service.json
 
@@ -77,5 +77,4 @@ from RestGenerator.
 .. automodule:: garak.generators.rest
    :members:
    :undoc-members:
-   :show-inheritance:   
-
+   :show-inheritance:

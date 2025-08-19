@@ -67,8 +67,8 @@ def run_gcg(
     save_logs: bool = False,
     **kwargs,
 ):
-    """
-    Function to generate GCG attack strings
+    """Function to generate GCG attack strings
+
     Args:
         target_generator (Generator): Generator to target with GCG attack
         transfer (bool): Whether the attack generated is for a transfer attack

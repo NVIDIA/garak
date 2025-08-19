@@ -16,7 +16,8 @@ from garak.generators.rest import RestGenerator
 class RasaRestGenerator(RestGenerator):
     """API interface for RASA models
 
-    Uses the following options from _config.plugins.generators["rasa.RasaRestGenerator"]:
+    Uses the following options from ``_config.plugins.generators["rasa.RasaRestGenerator"]``:
+
     * ``uri`` - (optional) the URI of the REST endpoint; this can also be passed
             in --model_name
     * ``name`` - a short name for this service; defaults to the uri
@@ -48,26 +49,28 @@ class RasaRestGenerator(RestGenerator):
     The $INPUT and $KEY placeholders can also be specified in header values.
 
     If we want to call an endpoint where the API key is defined in the value
-    of an ``X-Authorization header``, sending and receiving JSON where the prompt
+    of an ``X-Authorization`` header, sending and receiving JSON where the prompt
     and response value are both under the "text" key, we'd define the service
     using something like:
 
-    {
-        "rasa": {
-            "RasaRestGenerator": {
-                "name": "example rasa service",
-                "uri": "https://test.com/webhooks/rest/webhook"
-            }
-        }
-    }
+    .. code-block:: json
+
+       {
+           "rasa": {
+               "RasaRestGenerator": {
+                   "name": "example rasa service",
+                   "uri": "https://test.com/webhooks/rest/webhook"
+               }
+           }
+       }
 
     To use this specification with garak, you can either pass the JSON as a
     strong option on the command line via --generator_options, or save the
     JSON definition into a file and pass the filename to
     --generator_option_file / -G. For example, if we save the above JSON into
-    `example_rasa_service.json", we can invoke garak as:
+    ``example_rasa_service.json``, we can invoke garak as:
 
-    garak --model_type rest -G example_rasa_service.json
+      garak --model_type rest -G example_rasa_service.json
 
     This will load up the default RasaRestGenerator and use the details in the
     JSON file to connect to the LLM endpoint.

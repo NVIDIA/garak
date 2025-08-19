@@ -1,8 +1,7 @@
-garak.detectors.always
-======================
+garak.detectors.ansiescape
+==========================
 
-.. automodule:: garak.detectors.always
+.. automodule:: garak.detectors.ansiescape
    :members:
    :undoc-members:
-   :show-inheritance:   
-
+   :show-inheritance:

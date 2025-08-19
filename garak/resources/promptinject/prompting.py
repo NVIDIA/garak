@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2020 Agency Enterprise, LLC
+# SPDX-License-Identifier: MIT
+
 import copy
 import itertools
 
@@ -116,7 +119,6 @@ def _compile_prompts(prompt_dicts, current_product):
             p["tuple_base_text"]["config"]["id"],
             _defaults["config"]["id"],
         ),
-        "vis_columns": p["visualization_settings_columns"],
     }
 
 
@@ -205,9 +207,6 @@ def _build_product_list(products, prompts):
 def _product_from_iterables(prompt_dicts):
     tuple_list = []
     for key, value in prompt_dicts.items():
-        if key.split("_")[0] == "visualization":
-            continue
-
         if isinstance(value, tuple):
             group_dict = tuple({key: j_item} for j_item in value)
             tuple_list.append(group_dict)
@@ -262,19 +261,14 @@ def _build_config_settings(preset):
     }
 
 
-def _build_visualizations_settings(preset):
-    return {"visualization_settings_columns": preset["visualization"]["columns"]}
-
-
 def build_prompts(preset):
     preset = DeepDict(preset)
     prompt_config = _build_config_settings(preset)
     prompt_base = _build_base_prompt(preset)
     prompt_attack = _build_attack_prompt(preset)
-    prompt_visualizations = _build_visualizations_settings(preset)
 
     merged_prompt_dicts = (
-        prompt_base | prompt_attack | prompt_config | prompt_visualizations
+        prompt_base | prompt_attack | prompt_config
     )
 
     product_list = _product_from_iterables(merged_prompt_dicts)

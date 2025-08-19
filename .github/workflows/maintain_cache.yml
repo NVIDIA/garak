@@ -50,6 +50,7 @@ jobs:
           git ls-files garak/ -z | xargs -0 -I{} -- git log -1 --date=iso-local --format="%ad {}" {} | while read -r udate utime utz ufile ; do
             touch -d "$udate $utime" $ufile
           done
+          touch -d "2024-07-01" garak/resources/plugin_cache.json
           python -m garak --list_probes
       - name: Commit updated plugin cache if modified
         env:

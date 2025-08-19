@@ -16,7 +16,13 @@ import jsonpath_ng
 from jsonpath_ng.exceptions import JsonPathParserError
 
 from garak import _config
-from garak.exception import APIKeyMissingError, BadGeneratorException, RateLimitHit
+from garak.attempt import Message, Conversation
+from garak.exception import (
+    APIKeyMissingError,
+    BadGeneratorException,
+    RateLimitHit,
+    GarakBackoffTrigger,
+)
 from garak.generators.base import Generator
 
 
@@ -185,22 +191,27 @@ class RestGenerator(Generator):
                 output = output.replace("$KEY", self.api_key)
         return output.replace("$INPUT", self.escape_function(text))
 
-    # we'll overload IOError as the rate limit exception
-    @backoff.on_exception(backoff.fibo, RateLimitHit, max_value=70)
+    @backoff.on_exception(
+        backoff.fibo, (RateLimitHit, GarakBackoffTrigger), max_value=70
+    )
     def _call_model(
-        self, prompt: str, generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
+        self, prompt: Conversation, generations_this_call: int = 1
+    ) -> List[Union[Message, None]]:
         """Individual call to get a rest from the REST API
 
         :param prompt: the input to be placed into the request template and sent to the endpoint
         :type prompt: str
         """
 
-        request_data = self._populate_template(self.req_template, prompt)
+        # should this support a serialized Conversation?
+        request_data = self._populate_template(
+            self.req_template, prompt.last_message().text
+        )
 
         request_headers = dict(self.headers)
         for k, v in self.headers.items():
-            request_headers[k] = self._populate_template(v, prompt)
+            # why does this provide the prompt to fill out headers?
+            request_headers[k] = self._populate_template(v, prompt.last_message().text)
 
         # the prompt should not be sent via data when using a GET request. Prompt should be
         # serialized as parameters, in general a method could be created to add
@@ -251,11 +262,11 @@ class RestGenerator(Generator):
         if str(resp.status_code)[0] == "5":
             error_msg = f"REST URI server error: {resp.status_code} - {resp.reason}, uri: {self.uri}"
             if self.retry_5xx:
-                raise IOError(error_msg)
+                raise GarakBackoffTrigger(error_msg)
             raise ConnectionError(error_msg)
 
         if not self.response_json:
-            return [str(resp.text)]
+            return [Message(str(resp.text))]
 
         response_object = json.loads(resp.content)
 
@@ -294,7 +305,7 @@ class RestGenerator(Generator):
                 )
                 return [None]
 
-        return response
+        return [Message(r) for r in response]
 
 
 DEFAULT_CLASS = "RestGenerator"

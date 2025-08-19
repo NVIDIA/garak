@@ -5,4 +5,3 @@ garak.generators.azure
    :members:
    :undoc-members:
    :show-inheritance:
-

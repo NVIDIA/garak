@@ -29,7 +29,6 @@ garak.detectors
    garak.detectors.productkey
    garak.detectors.shields
    garak.detectors.snowball
-   garak.detectors.specialwords
    garak.detectors.unsafe_content
    garak.detectors.xss
    garak.detectors.visual_jailbreak

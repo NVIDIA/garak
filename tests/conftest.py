@@ -74,8 +74,7 @@ def pytest_configure(config):
 
 
 def check_storage(required_space_gb=1, path="/"):
-    """
-    Check the available disk space.
+    """Check the available disk space.
 
     Args:
         required_space_gb (float): Minimum required free space in GB.
@@ -91,13 +90,10 @@ def check_storage(required_space_gb=1, path="/"):
 
 
 def pytest_runtest_setup(item):
-    """
-    Called before each test is run. Performs a storage check if a specific marker is present.
-    """
+    """Called before each test is run. Performs a storage check if a specific marker is present."""
     marker = item.get_closest_marker("requires_storage")
     if marker:
-        required_space_gb = marker.kwargs.get(
-            "required_space_gb", 1)  # Default is 1GB
+        required_space_gb = marker.kwargs.get("required_space_gb", 1)  # Default is 1GB
         path = marker.kwargs.get("path", "/")  # Default is the root directory
 
         if not check_storage(required_space_gb, path):

@@ -14,7 +14,7 @@ to be passed as its name. For example,
 This generator requires installation of the `guardrails <https://pypi.org/project/nemoguardrails/>`_
 Python package.
 
-When invoked, garak sends prompts in series to the Guardrails setup using 
+When invoked, garak sends prompts in series to the Guardrails setup using
 ``rails.generate``, and waits for a response. The generator does not support
 parallisation, so it's recommended to run smaller probes, or set ``generations``
 to a low value, in order to reduce garak run time.
@@ -22,5 +22,4 @@ to a low value, in order to reduce garak run time.
 .. automodule:: garak.generators.guardrails
    :members:
    :undoc-members:
-   :show-inheritance:   
-
+   :show-inheritance:

@@ -9,7 +9,7 @@ import types
 import langcodes
 
 from garak import _plugins
-from garak.attempt import Attempt
+from garak.attempt import Attempt, Message
 from garak.configurable import Configurable
 from garak.detectors.base import Detector
 from garak.exception import APIKeyMissingError
@@ -36,11 +36,13 @@ def test_detector_structure(classname):
     m = importlib.import_module("garak." + ".".join(classname.split(".")[:-1]))
     d = getattr(m, classname.split(".")[-1])
 
+    detect_signature = inspect.signature(d.detect)
+
     # has method detect
     assert "detect" in dir(d), f"detector {classname} must have a method detect"
     # _call_model has a generations_this_call param
     assert (
-        "attempt" in inspect.signature(d.detect).parameters
+        "attempt" in detect_signature.parameters
     ), f"{classname}.detect() must accept parameter attempt"
     # any parameter that has a default must be supported
     unsupported_defaults = []
@@ -66,13 +68,14 @@ def test_detector_detect(classname):
     assert isinstance(di, Detector), "detectors must eventually inherit from Detector"
     assert isinstance(di, Configurable), "detectors must be configurable"
 
-    a = Attempt(lang=di.lang_spec.split(",")[0])
+    a = Attempt()
     # dressing required to get 'some' detectors to return results
     a.notes["trigger"] = "x"
     a.notes["triggers"] = ["x", "x", "x", "x"]
     a.notes["repeat_word"] = "x"
+    a.probe_classname = "test.Blank"
 
-    a.prompt = ""
+    a.prompt = Message("", lang=di.lang_spec.split(",")[0])
     a.notes["format"] = "local filename"
     a.outputs = ["", None]
     a.detector_results = {"x": [0.0]}
@@ -103,6 +106,7 @@ def test_detector_detect(classname):
     if not isinstance(
         di, garak.detectors.base.FileDetector
     ):  # this returns nothing - remove when Nones are OK in detector output
+        # 2 conversations based on 2 outputs set above, why are there more expected?
         assert len(list(results)) in (
             3,
             4,

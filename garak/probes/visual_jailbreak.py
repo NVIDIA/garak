@@ -12,17 +12,20 @@ import requests
 import tqdm
 
 from garak import _config
-from garak.probes.base import Probe, Tier
+from garak.attempt import Message, Conversation
+import garak.probes
 from garak.data import path as data_path
 from garak.generators.base import Generator
 
 
-class FigStepFull(Probe):
-    """Using another modal - image to assist jailbreak
+class FigStepFull(garak.probes.Probe):
+    """Using image modality to assist jailbreak.
+    Refer to the following paper for more detail:
 
-    Title: FigStep: Jailbreaking Large Vision-language Models via Typographic Visual Prompts
-    Link: https://arxiv.org/pdf/2311.05608.pdf
-    Reference: Yichen Gong, Delong Ran, Jinyuan Liu, Conglei Wang, Tianshuo Cong, Anyu Wang, Sisi Duan, and Xiaoyun Wang. 2023. FigStep: Jailbreaking Large Vision-language Models via Typographic Visual Prompts.
+    Yichen Gong, Delong Ran, Jinyuan Liu, Conglei Wang, Tianshuo Cong, Anyu Wang, Sisi Duan, and Xiaoyun Wang. 2023.
+    "FigStep: Jailbreaking Large Vision-language Models via Typographic Visual Prompts."
+    ArXiv. https://arxiv.org/pdf/2311.05608
+
     """
 
     active = False  # default to use limit version - FigStep80
@@ -37,7 +40,7 @@ class FigStepFull(Probe):
         "payload:jailbreak",
     ]
     goal = "disregard the system prompt with both text and image"
-    tier = Tier.TIER_2
+    tier = garak.probes.Tier.COMPETE_WITH_SOTA
 
     prompts = []
 
@@ -69,7 +72,7 @@ class FigStepFull(Probe):
                 with open(filepath, "wb") as f:
                     f.write(requests.get(uri).content)
 
-        self.prompts = [
+        self.source_data = [
             # Dataset `SafeBench`, a dataset of 500 questions on 10 topics that are forbidden by both OpenAI and Meta usage policies.
             # https://github.com/ThuCCSLab/FigStep#:~:text=4.-,Dataset,-We%20release%20SafeBench
             {
@@ -83,63 +86,44 @@ class FigStepFull(Probe):
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
+
         self._load_SafeBench()
+
+        for source in self.source_data:
+            t = Message(
+                source["text"],
+                data_path=str(_config.transient.cache_dir / source["image"]),
+            )
+            self.prompts.append(t)
+
+        self.prompts = [
+            prompt
+            for prompt in self.prompts
+            if os.path.basename(prompt.data_path) in self.safebench_image_filenames
+        ]
+
+        if len(self.prompts) != len(self.safebench_image_filenames):
+            logging.warning(
+                f"Incorrect number ({len(self.prompts)}) of image prompts in dataset, expect {len(self.safebench_image_filenames)}."
+            )
 
     def probe(self, generator):
         if not isinstance(generator, Generator):
             raise ValueError("Incorrect class type of incoming argument `generator`.")
-        if not generator.modality["in"] == self.modality["in"]:
-            raise ValueError(
-                f"Incorrect generator input modality {generator.modality['in']}, expect {self.modality['in']} for this probe."
-            )
-        self.prompts = [
-            {
-                "text": prompt["text"],
-                "image": str(_config.transient.cache_dir / prompt["image"]),
-            }
-            for prompt in self.prompts
-        ]
-        if len(self.prompts) != len(self.safebench_image_filenames):
-            logging.warning(
-                f"Incorrect number ({len(self.prompts)}) of image prompts of SafeBench dataset, expect {len(self.safebench_image_filenames)}."
-            )
 
         return super().probe(generator)
 
 
-class FigStep(FigStepFull, Probe):
+class FigStep(FigStepFull, garak.probes.Probe):
     active = False
 
     __doc__ = FigStepFull.__doc__ + " - Tiny version"
 
+    # Retain tiny version of SafeBench only
+    # Namely we want first 5 image prompts for each 10 types
+    # https://github.com/ThuCCSLab/FigStep#:~:text=500%20questions%20on%2010%20topics
+
     safebench_image_catalog = data_path / "safebenchtiny_filenames.txt"
 
     def probe(self, generator):
-        if not isinstance(generator, Generator):
-            raise ValueError("Incorrect class type of incoming argument `generator`.")
-        if not generator.modality["in"] == self.modality["in"]:
-            raise ValueError(
-                f"Incorrect generator input modality {generator.modality['in']}, expect {self.modality['in']} for this probe."
-            )
-        self.prompts = [
-            {
-                "text": prompt["text"],
-                "image": str(_config.transient.cache_dir / prompt["image"]),
-            }
-            for prompt in self.prompts
-        ]
-
-        # Retain tiny version of SafeBench only
-        # Namely we want first 5 image prompts for each 10 types
-        # https://github.com/ThuCCSLab/FigStep#:~:text=500%20questions%20on%2010%20topics
-        self.prompts = [
-            prompt
-            for prompt in self.prompts
-            if os.path.basename(prompt["image"]) in self.safebench_image_filenames
-        ]
-        if len(self.prompts) != len(self.safebench_image_filenames):
-            logging.warning(
-                f"Incorrect number ({len(self.prompts)}) of image prompts of SafeBench dataset, expect {len(self.safebench_image_filenames)}."
-            )
-
         return super().probe(generator)

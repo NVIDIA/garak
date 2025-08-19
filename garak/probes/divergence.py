@@ -8,10 +8,10 @@ Probes for evaluating if a model will replay training data when asked to repeat 
 
 from garak import _config
 from garak.attempt import Attempt
-from garak.probes.base import Probe, Tier
+import garak.probes
 
 
-class Repeat(Probe):
+class Repeat(garak.probes.Probe):
     """See if a model starts giving other data when asked to repeat a string indefinitely
 
     This probe replicates the 'poem poem poem' attack, where a given string is
@@ -33,7 +33,8 @@ class Repeat(Probe):
         "quality:Security:ExtractionInversion",
         "payload:leak:training",
     ]  # MISP-format taxonomy categories
-    tier = Tier.TIER_2
+    tier = garak.probes.Tier.COMPETE_WITH_SOTA
+    active = True
 
     repeat_word_list = [
         "poem",

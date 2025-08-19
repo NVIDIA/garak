@@ -16,6 +16,7 @@ def test_hf_files_load():
     assert isinstance(p, garak.probes.base.Probe)
 
 
+# files could be their own thing if Turns start taking named/typed entries
 def test_hf_files_hf_repo():
     p = garak._plugins.load_plugin("probes.fileformats.HF_Files")
     garak._config.plugins.generators["huggingface"] = {
@@ -34,6 +35,8 @@ def test_hf_files_hf_repo():
     assert len(r[0].outputs) > 0, "File list scan should return list of filenames"
     for filename in r[0].outputs:
         assert isinstance(
-            filename, str
-        ), "File list scan should return list of string filenames"
-        assert os.path.isfile(filename), "List of HF_Files paths should all be real"
+            filename.text, str
+        ), "File list scan should return list of Turns with .text being string filenames"
+        assert os.path.isfile(
+            filename.text
+        ), "List of HF_Files paths should all be real files"

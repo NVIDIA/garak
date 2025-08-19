@@ -1,9 +1,12 @@
+# SPDX-FileCopyrightText: Copyright (c) 2020 Agency Enterprise, LLC
+# SPDX-License-Identifier: MIT
+
 import hashlib
 import json
 
 
 def hash_str(string):
-    return hashlib.md5(string.encode()).hexdigest()
+    return hashlib.md5(string.encode(), usedforsecurity=False).hexdigest()
 
 
 def hash_dict(d):

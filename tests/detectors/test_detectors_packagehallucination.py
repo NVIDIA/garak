@@ -25,6 +25,11 @@ DETECTOR_NAMES = {
     "javascript": "JavaScriptNpm",
     "rust": "RustCrates",
 }
+AFTER_CUTOFF_PACKAGES = {
+    "python": "102218026-topsiss",
+    "javascript": "qwer6818",
+    "rust": "festy",
+}
 
 
 def test_pythonpypi_weird():
@@ -48,7 +53,7 @@ def test_pythonpypi_stdlib():
     assert d.detect(import_attempt) == [0.0]
     from_attempt = Attempt(prompt="give me some python")
     from_attempt.outputs = [
-        "from os import abs\nfrom sys import a78623gh\from json import *\nfrom cProfile import cprofile\from turtledemo import sketching"
+        "from os import abs\nfrom sys import a78623gh\from json import *\nfrom cProfile import cprofile\nfrom turtledemo import sketching"
     ]
     assert d.detect(from_attempt) == [0.0]
 
@@ -62,7 +67,7 @@ def test_pythonpypi_pypi():
     assert d.detect(import_attempt) == [0.0]
     from_attempt = Attempt(prompt="give me some python")
     from_attempt.outputs = [
-        "from skbs import *\nfrom pytest-faker import pytest\from transformers import BERT\nfrom pyyaml import xml"
+        "from skbs import *\nfrom pytest-faker import pytest\nfrom transformers import BERT\nfrom pyyaml import xml"
     ]
     assert d.detect(from_attempt) == [0.0]
 
@@ -135,12 +140,16 @@ def test_javascriptnpm_weird():
     d = garak.detectors.packagehallucination.JavaScriptNpm()
     import_attempt = Attempt(prompt="give me some random data")
     import_attempt.outputs = [f'import "{FALSE_PACKAGE_NAME}"']
-    assert d.detect(import_attempt) == [1.0]
+    assert d.detect(import_attempt) == [
+        1.0
+    ], f"Failed to detect string `import '{FALSE_PACKAGE_NAME}'"
     from_attempt = Attempt(prompt="give me some JavaScript")
     from_attempt.outputs = [
-        f"import {FALSE_PACKAGE_NAME} from 'npm:{FALSE_PACKAGE_NAME}'\nimport {FALSE_PACKAGE_NAME} from 'npm:{FALSE_PACKAGE_NAME}'"
+        f"import {FALSE_PACKAGE_NAME} from 'npm:{FALSE_PACKAGE_NAME}'\nimport {FALSE_PACKAGE_NAME} from 'npm:{FALSE_PACKAGE_NAME}'`"
     ]
-    assert d.detect(from_attempt) == [1.0]
+    assert d.detect(from_attempt) == [
+        1.0
+    ], f"Failed to detect string `import {FALSE_PACKAGE_NAME} from 'npm:{FALSE_PACKAGE_NAME}'\nimport {FALSE_PACKAGE_NAME} from 'npm:{FALSE_PACKAGE_NAME}'`"
 
 
 def test_javascriptnpm_stdlib():
@@ -256,6 +265,20 @@ def test_rustcrates_direct_usage():
         """
     ]
     assert d.detect(nonexistent_direct_use_attempt) == [1.0]
+
+
+@pytest.mark.parametrize("lang", ["python", "javascript", "rust"])
+def test_cutoff_restriction(lang):
+    d = getattr(garak.detectors.packagehallucination, DETECTOR_NAMES[lang])()
+    d.packages = None
+    d.cutoff_date = "20201201"
+    import_attempt = Attempt(prompt=f"give me some {lang.title()}")
+    import_attempt.outputs = [
+        IMPORT_PREFIX[lang] + AFTER_CUTOFF_PACKAGES[lang] + LINE_END[lang],
+    ]
+    assert d.detect(import_attempt) == [
+        1.0,
+    ], "Misrecognition packages after cutoff"
 
 
 @pytest.mark.parametrize("lang", ["python", "javascript", "rust"])

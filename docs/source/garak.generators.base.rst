@@ -1,7 +1,7 @@
 garak.generators.base
 =====================
 
-In garak, ``Generator``s wrap any text-to-text+ system that garak will examine. This could be a raw LLM, a chatbot endpoint, or even a non-LLM dialog system. This base class defines the basic structure of garak's generators. All generators inherit from garak.generators.base.Generator.
+In garak, ``Generator``\ s wrap any text-to-text+ system that garak will examine. This could be a raw LLM, a chatbot endpoint, or even a non-LLM dialog system. This base class defines the basic structure of garak's generators. All generators inherit from garak.generators.base.Generator.
 
 Attributes:
 
@@ -24,18 +24,20 @@ Functions:
 
 #. **generate*()**: This method is mediating access to the underlying model or dialogue system. The ``generate()`` orchestrates all interaction with the dialogue service/model. It takes a prompt and, optionally, a number of output generations (``generations_this_call``). It returns a list of responses of length up to the number of output generations, with each member a prompt response (e.g. text). Since ``generate()`` involves a reasonable amount of logic, it is preferable to not override this function, and rather work with the hooks and sub-methods provided.
 
-The general flow in ``generate()`` is as follows:
+   The general flow in ``generate()`` is as follows:
 
-  #. Call the ``_pre_generate_hook()``.
-  #. Work out how many generations we're doing this call (passed via ``generations_this_call``).
-  #. If only one generation is requested, return the output of ``_call_model`` with 1 generation specified.
-  #. If the underlying model supports multiple generations, return the output of ``_call_model`` invoked with the full count of generations.
-  #. Otherwise, we need to assemble the outputs over multiple calls. There are two options here.
-    #. Is garak running with ``parallel_attempts > 1`` configured? In that case, start a multiprocessing pool with as many workers as the value of ``parallel_attempts``, and have each one of these work on building the required number of generations, in any order.
-    #. Otherwise, call ``_call_model()`` repeatedly to collect the requested number of generations.
-  #. Call the ``_post_generate_hook()`` (a no-op by default)
-  #. If skip sequence start and end are both defined, call ``_prune_skip_sequences()``
-  #. Return the resulting list of prompt responses.
+     #. Call the ``_pre_generate_hook()``.
+     #. Work out how many generations we're doing this call (passed via ``generations_this_call``).
+     #. If only one generation is requested, return the output of ``_call_model`` with 1 generation specified.
+     #. If the underlying model supports multiple generations, return the output of ``_call_model`` invoked with the full count of generations.
+     #. Otherwise, we need to assemble the outputs over multiple calls. There are two options here.
+
+        #. Is garak running with ``parallel_attempts > 1`` configured? In that case, start a multiprocessing pool with as many workers as the value of ``parallel_attempts``, and have each one of these work on building the required number of generations, in any order.
+        #. Otherwise, call ``_call_model()`` repeatedly to collect the requested number of generations.
+
+     #. Call the ``_post_generate_hook()`` (a no-op by default)
+     #. If skip sequence start and end are both defined, call ``_prune_skip_sequences()``
+     #. Return the resulting list of prompt responses.
 
 
 #. **_call_model()**: This method handles direct interaction with the model. It takes a prompt and an optional number of generations this call, and returns a list of prompt responses (e.g. strings) and ``None``s. Models may return ``None`` in the case the underlying system failed unrecoverably. This is the method to write model interaction code in. If the class' supports_multiple_generations is false, _call_model does not need to accept values of ``generations_this_call`` other than ``1``.
@@ -53,5 +55,4 @@ The general flow in ``generate()`` is as follows:
 .. automodule:: garak.generators.base
    :members:
    :undoc-members:
-   :show-inheritance:   
-
+   :show-inheritance:

@@ -1,7 +1,7 @@
 """Azure OpenAI generator
 
-Supports chat + chatcompletion models. Put your API key in the AZURE_API_KEY environment variable, 
-the azure openai endpoint in the AZURE_ENDPOINT environment variable and the azure openai model name 
+Supports chat + chatcompletion models. Put your API key in the AZURE_API_KEY environment variable,
+the azure openai endpoint in the AZURE_ENDPOINT environment variable and the azure openai model name
 in AZURE_MODEL_NAME environment variable.
 
 Put the deployment name in either the --model_name command line parameter, or
@@ -10,6 +10,7 @@ pass it as an argument to the Generator constructor.
 
 import os
 import openai
+import re
 
 from garak.generators.openai import (
     OpenAICompatible,

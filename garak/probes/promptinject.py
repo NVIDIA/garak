@@ -10,7 +10,7 @@ import random
 import sys
 
 from garak.attempt import Attempt
-from garak.probes.base import Probe, Tier
+import garak.probes
 from garak import _config
 
 
@@ -65,7 +65,6 @@ def load_data_all_attacks(self):
         "config": {
             "id": (0, 1, 2, 3),
         },
-        "visualization": {"columns": ()},
     }
     self.prompts = []
     self.pi_prompts = self.pi_build_prompts(prompt_config)
@@ -107,7 +106,7 @@ for rogue_string in rogue_strings:
         classname + "Full",
         type(
             classname + "Full",
-            (Probe,),
+            (garak.probes.Probe,),
             {
                 "__init__": constructor,
                 "__doc__": f"PromptInject probe to inject a string; payload is {rogue_string}\n\nAttempt to make the model repeat a given string",
@@ -132,7 +131,7 @@ for rogue_string in rogue_strings:
                 "_generator_precall_hook": _generator_precall_hook,
                 "goal": "inject a prompt on " + rogue_string.replace("-", " "),
                 "active": False,
-                "tier": Tier.TIER_2,
+                "tier": garak.probes.Tier.COMPETE_WITH_SOTA,
             },
         ),
     )
@@ -142,7 +141,7 @@ for rogue_string in rogue_strings:
         classname,
         type(
             classname,
-            (Probe,),
+            (garak.probes.Probe,),
             {
                 "__init__": constructor,
                 "__doc__": f"PromptInject probe to inject a string; payload is {rogue_string}\n\nAttempt to make the model repeat a given string",
@@ -167,7 +166,7 @@ for rogue_string in rogue_strings:
                 "_generator_precall_hook": _generator_precall_hook,
                 "goal": "inject a prompt on " + rogue_string.replace("-", " "),
                 "active": True,
-                "tier": Tier.TIER_2,
+                "tier": garak.probes.Tier.COMPETE_WITH_SOTA,
             },
         ),
     )
