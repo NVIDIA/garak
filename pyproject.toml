@@ -1,6 +1,6 @@
 [build-system]
-requires      = ["setuptools>=61.0.0", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["flit_core >=3.11,<4"]
+build-backend = "flit_core.buildapi"
 
 [project]
 name = "garak"
@@ -139,11 +139,18 @@ audio = [
 [project.scripts]
 garak = "garak.__main__:main"
 
-[tool.setuptools]
-packages = ["garak"]
+[tool.flit.module]
+name = "garak"
 
-[tool.setuptools.package-data]
-"garak.resources" = ["*"]
+[tool.flit.sdist]
+include = [
+  "*.md",
+  "*.txt",
+  "garak/analyze/templates/*",
+  "garak/configs/*",
+  "garak/resources/*.json",
+  "garak/resources/*.yaml",
+]
 
 [tool.black]
 line-length = 88
