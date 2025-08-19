@@ -51,7 +51,8 @@ authors = [
   { name = "Divya Chitimalla" },
   { name = "Katherine Luna" },
 ]
-license = { file = "LICENSE" }
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 description = "LLM vulnerability scanner"
 readme = "README.md"
 classifiers = [
