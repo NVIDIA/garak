@@ -76,6 +76,10 @@ def test_generator_structure(classname):
                 if k not in g._supported_params:
                     unsupported_defaults.append(k)
     assert unsupported_defaults == []
+    # extra dependency modules is a list
+    assert hasattr(g, "extra_dependency_names") and isinstance(
+        g.extra_dependency_names, list
+    ), "extra_dependency_names must be a list"
 
 
 TESTABLE_GENERATORS = [
@@ -119,7 +123,13 @@ def test_instantiate_generators(classname):
     setattr(config_root, category, gen_config)
 
     m = importlib.import_module("garak." + ".".join(classname.split(".")[:-1]))
-    g = getattr(m, classname.split(".")[-1])(config_root=config_root)
+    klass = getattr(m, classname.split(".")[-1])
+    try:
+        g = klass(config_root=config_root)
+    except ModuleNotFoundError:
+        pytest.skip(
+            "dependencies not present; requires " + repr(klass.extra_dependency_names)
+        )
     assert isinstance(g, Generator)
 
 
