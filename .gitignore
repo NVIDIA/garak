@@ -171,3 +171,4 @@ garak_runs/
 runs/
 logs/
 .DS_Store
+Miniforge3.sh
