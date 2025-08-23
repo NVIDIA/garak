@@ -17,6 +17,8 @@ import datetime
 import json
 import uuid
 
+import garak.analyze.report_digest
+
 
 def _process_file_body(in_file, out_file, aggregate_uuid):
     eof = False
@@ -26,6 +28,8 @@ def _process_file_body(in_file, out_file, aggregate_uuid):
             eof = True
             continue
         entry = json.loads(line.strip())
+        if entry["entry_type"] == "digest":
+            return entry  # quit at last line
         if entry["entry_type"] not in ("attempt", "eval"):
             continue
         if (
@@ -40,7 +44,7 @@ def _process_file_body(in_file, out_file, aggregate_uuid):
 p = argparse.ArgumentParser(
     description="aggregate multiple similar garak reports into one jsonl"
 )
-p.add_argument("-o", help="output filename", required=True)
+p.add_argument("-o", "--output", help="output filename", required=True)
 p.add_argument("infiles", nargs="+", help="garak jsonl reports to be aggregated")
 a = p.parse_args()
 
@@ -57,10 +61,11 @@ in_filenames = a.infiles
 aggregate_uuid = str(uuid.uuid4())
 aggregate_starttime_iso = datetime.datetime.now().isoformat()
 
-print("writing aggregated data to", a.o)
-with open(a.o, "w", encoding="utf-8") as out_file:
-    print("lead file", in_filenames[0])
-    with open(in_filenames[0], "r", encoding="utf8") as lead_file:
+print("writing aggregated data to", a.output)
+with open(a.output, "w+", encoding="utf-8") as out_file:
+    lead_filename = in_filenames[0]
+    print("lead file", lead_filename)
+    with open(lead_filename, "r", encoding="utf8") as lead_file:
         # extract model type, model name, garak version
 
         setup_line = lead_file.readline()
@@ -89,7 +94,11 @@ with open(a.o, "w", encoding="utf-8") as out_file:
 
         out_file.write(json.dumps(init) + "\n")
 
-        _process_file_body(lead_file, out_file, aggregate_uuid)
+        digest = _process_file_body(lead_file, out_file, aggregate_uuid)
+        digest["meta"]["report_aggregation"] = {
+            "files": [lead_filename],
+            "lead_file": lead_filename,
+        }
 
     if len(in_filenames) > 1:
         # for each other file
@@ -111,6 +120,14 @@ with open(a.o, "w", encoding="utf-8") as out_file:
                 assert init["garak_version"] == version
 
                 # write the completed attempts and eval rows
-                _process_file_body(subsequent_file, out_file, aggregate_uuid)
+                subsequent_digest = _process_file_body(
+                    subsequent_file, out_file, aggregate_uuid
+                )
+                digest["meta"]["report_aggregation"]["files"].append(
+                    subsequent_filename
+                )
+                digest["eval"] = digest["eval"] | subsequent_digest["eval"]
+
+    garak.analyze.report_digest.append_report_object(out_file, digest)
 
 print("done")
