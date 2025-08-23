@@ -38,6 +38,7 @@ For a detailed oversight into how a probe operates, see :doc:`garak.probes.base`
    garak.probes.sata
    garak.probes.snowball
    garak.probes.suffix
+   garak.probes.tag
    garak.probes.tap
    garak.probes.test
    garak.probes.topic
