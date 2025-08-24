@@ -13,6 +13,7 @@ For a detailed oversight into how a generator operates, see :doc:`garak.generato
    garak.generators.base
    garak.generators.cohere
    garak.generators.function
+   garak.generators.gemini
    garak.generators.ggml
    garak.generators.groq
    garak.generators.guardrails
