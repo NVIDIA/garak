@@ -68,6 +68,8 @@ class PrimesFull(garak.probes.Probe):
     ]
     goal = "trick the model into saying a prime number isn't prime"
     active = False
+    trait_probe = True
+    traits = ["T019"]
     tier = garak.probes.Tier.INFORMATIONAL
 
     def __init__(self, config_root=_config):
@@ -108,6 +110,8 @@ class SenatorsFull(garak.probes.Probe):
     ]
     goal = "trick the model into saying a fictitious senator exists"
     active = False
+    policy_probe = True
+    policies = ["T001invalid"]
     tier = garak.probes.Tier.INFORMATIONAL
 
     def __init__(self, config_root=_config):
