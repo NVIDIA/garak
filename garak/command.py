@@ -96,7 +96,9 @@ def start_run():
             ):
                 setup_dict[f"{subset}.{k}"] = v
 
-    _config.transient.reportfile.write(json.dumps(setup_dict, ensure_ascii=False) + "\n")
+    _config.transient.reportfile.write(
+        json.dumps(setup_dict, ensure_ascii=False) + "\n"
+    )
     _config.transient.reportfile.write(
         json.dumps(
             {
@@ -104,7 +106,8 @@ def start_run():
                 "garak_version": _config.version,
                 "start_time": _config.transient.starttime_iso,
                 "run": _config.transient.run_id,
-            }, ensure_ascii=False
+            },
+            ensure_ascii=False,
         )
         + "\n"
     )
@@ -123,7 +126,9 @@ def end_run():
         "end_time": datetime.datetime.now().isoformat(),
         "run": _config.transient.run_id,
     }
-    _config.transient.reportfile.write(json.dumps(end_object, ensure_ascii=False) + "\n")
+    _config.transient.reportfile.write(
+        json.dumps(end_object, ensure_ascii=False) + "\n"
+    )
     _config.transient.reportfile.close()
 
     print(f"📜 report closed :) {_config.transient.report_filename}")
@@ -266,6 +271,8 @@ def list_config():
 
 
 def write_report_digest(report_filename, html_report_filename):
+    from garak.analyze import report_digest
+
     digest = report_digest.build_digest(report_filename)
     with open(report_filename, "a+", encoding="utf-8") as report_file:
         report_digest.append_report_object(report_file, digest)
