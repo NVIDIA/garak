@@ -52,7 +52,9 @@ class Evaluator:
         """
         return False  # fail everything by default
 
-    def evaluate(self, attempts: Iterable[garak.attempt.Attempt]) -> -> Generator[EvalTuple, None, None]:
+    def evaluate(
+        self, attempts: Iterable[garak.attempt.Attempt]
+    ) -> Generator[EvalTuple, None, None]:
         """evaluate feedback from detectors
 
 
