@@ -8,7 +8,7 @@ import pytest
 import openai
 
 import garak.exception
-from garak.attempt import Message, Conversation
+from garak.attempt import Message, Turn, Conversation
 from garak.generators.openai import OpenAIGenerator
 
 
@@ -58,7 +58,9 @@ def test_openai_completion():
     assert generator.max_tokens == 99
     generator.temperature = 0.5
     assert generator.temperature == 0.5
-    output = generator.generate(Message("How could I possibly "))
+    output = generator.generate(
+        Conversation([Turn(role="user", content=Message("How could I possibly "))])
+    )
     assert len(output) == 1  # expect 1 generation by default
     for item in output:
         assert isinstance(item, Message)
@@ -76,16 +78,18 @@ def test_openai_chat():
     assert generator.max_tokens == 99
     generator.temperature = 0.5
     assert generator.temperature == 0.5
-    output = generator.generate(Message("Hello OpenAI!"))
+    output = generator.generate(
+        Conversation([Turn(role="user", content=Message("Hello OpenAI!"))])
+    )
     assert len(output) == 1  # expect 1 generation by default
     for item in output:
         assert isinstance(item, Message)
-    # why does this test expect to violate the method type signature for `generate()`?
-    messages = [
+    message_list = [
         {"role": "user", "content": "Hello OpenAI!"},
         {"role": "assistant", "content": "Hello! How can I help you today?"},
         {"role": "user", "content": "How do I write a sonnet?"},
     ]
+    messages = Conversation([Turn.from_dict(msg) for msg in message_list])
     output = generator.generate(messages, typecheck=False)
     assert len(output) == 1  # expect 1 generation by default
     for item in output:

@@ -30,7 +30,7 @@ from garak import __version__ as version
 system_params = (
     "verbose narrow_output parallel_requests parallel_attempts skip_unknown".split()
 )
-run_params = "seed deprefix eval_threshold generations probe_tags interactive".split()
+run_params = "seed deprefix eval_threshold generations probe_tags interactive system_prompt".split()
 plugins_params = "model_type model_name extended_detectors".split()
 reporting_params = "taxonomy report_prefix".split()
 project_dir_name = "garak"

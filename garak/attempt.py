@@ -97,13 +97,19 @@ class Turn:
     role: str
     content: Message
 
-    @staticmethod
-    def from_dict(value: dict):
+    @classmethod
+    def from_dict(cls, value: dict):
         entity = deepcopy(value)
+        if "role" in entity.keys():
+            role = entity["role"]
+        else:
+            raise ValueError("Expected `role` in Turn dict")
         message = entity.pop("content", {})
-        entity["content"] = Message(**message)
-        ret_val = Turn(**entity)
-        return ret_val
+        if isinstance(message, str):
+            content = Message(text=message)
+        else:
+            content = Message(**message)
+        return cls(role=role, content=content)
 
 
 @dataclass
@@ -226,9 +232,7 @@ class Attempt:
                 self.conversations = [Conversation([Turn("user", msg)])]
             self.prompt = self.conversations[0]
         else:
-            # is this the right way to model an empty Attempt?
             self.conversations = [Conversation()]
-
         self.status = status
         self.probe_classname = probe_classname
         self.probe_params = {} if probe_params is None else probe_params
@@ -361,9 +365,9 @@ class Attempt:
         """
         if (
             lang is not None
-            and self.conversations[0].turns[0].content.lang != "*"
+            and self.prompt.last_message().lang != "*"
             and lang != "*"
-            and self.conversations[0].turns[0].content.lang != lang
+            and self.prompt.last_message().lang != lang
         ):
             return self.notes.get(
                 "pre_translation_prompt", self.prompt
@@ -378,9 +382,9 @@ class Attempt:
         """
         if (
             lang is not None
-            and self.conversations[0].turns[0].content.lang != "*"
+            and self.prompt.last_message().lang != "*"
             and lang != "*"
-            and self.conversations[0].turns[0].content.lang != lang
+            and self.prompt.last_message().lang != lang
         ):
             return (
                 self.reverse_translation_outputs

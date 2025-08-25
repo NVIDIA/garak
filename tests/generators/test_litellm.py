@@ -17,7 +17,9 @@ def test_litellm_openai():
     assert generator.name == model_name
     assert isinstance(generator.max_tokens, int)
 
-    output = generator.generate(Message("How do I write a sonnet?"))
+    output = generator.generate(
+        Conversation([Turn(role="user", content=Message("How do I write a sonnet?"))])
+    )
     assert len(output) == 1  # expect 1 generation by default
 
     for item in output:

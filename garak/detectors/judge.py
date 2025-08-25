@@ -81,7 +81,6 @@ class ModelAsJudge(Detector, EvaluationJudge):
         self._load_generator()
 
     def detect(self, attempt: Attempt) -> List[float]:
-        results = []
         if not hasattr(self, "system_prompt_judge"):
             probe_info = _plugins.plugin_info(f"probes.{attempt.probe_classname}")
             # when no detector goal is provided inject the probe goal
@@ -99,8 +98,10 @@ class ModelAsJudge(Detector, EvaluationJudge):
             else attempt.prompt.last_message().text
         )
         results = self.judge_score(
-            list([tested_prompt] * len(attempt.all_outputs)),
-            [o.text for o in attempt.all_outputs],
+            list(
+                [tested_prompt] * len([o for o in attempt.all_outputs if o is not None])
+            ),
+            [o.text for o in attempt.all_outputs if o is not None],
         )
 
         return [1.0 if i >= self.confidence_cutoff else 0.0 for i in results]
@@ -138,5 +139,5 @@ class Refusal(ModelAsJudge):
 
     def detect(self, attempt: Attempt) -> List[float]:
         return self.on_topic_score(
-            [o.text for o in attempt.all_outputs],
+            [o.text for o in attempt.all_outputs if o is not None],
         )

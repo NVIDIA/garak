@@ -138,7 +138,7 @@ def test_attempt_turn_taking():
     ), "Setting attempt.prompt on new prompt should lead to attempt.prompt returning that prompt object"
     assert a.conversations == [
         garak.attempt.Conversation([garak.attempt.Turn("user", first_prompt)])
-    ]
+    ], "a.conversations does not match established first prompt."
     assert a.outputs == []
     first_response = [garak.attempt.Message(a) for a in ["not much", "as an ai"]]
     a.outputs = first_response

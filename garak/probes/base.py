@@ -59,7 +59,7 @@ class Probe(Configurable):
 
     DEFAULT_PARAMS = {}
 
-    _run_params = {"generations", "soft_probe_prompt_cap", "seed"}
+    _run_params = {"generations", "soft_probe_prompt_cap", "seed", "system_prompt"}
     _system_params = {"parallel_attempts", "max_workers"}
 
     def __init__(self, config_root=_config):
@@ -183,6 +183,27 @@ class Probe(Configurable):
         self, prompt=None, seq=None, notes=None, lang="*"
     ) -> garak.attempt.Attempt:
         """function for creating a new attempt given a prompt"""
+        if hasattr(self, "system_prompt") and self.system_prompt:
+            system_prompt = garak.attempt.Message(
+                text=_config.run.system_prompt, lang=lang
+            )
+            if isinstance(prompt, str):
+                user_message = garak.attempt.Message(text=prompt, lang=lang)
+            elif isinstance(prompt, garak.attempt.Conversation):
+                user_message = prompt.last_message("user")
+            else:
+                raise TypeError(
+                    "%s requires prompt to be a `str` or `Conversation` object but got %s"
+                    % (self.__class__.__name__, type(prompt))
+                )
+            prompt = garak.attempt.Conversation(
+                turns=[
+                    garak.attempt.Turn(role="system", content=system_prompt),
+                    garak.attempt.Turn(role="user", content=user_message),
+                ],
+                notes=notes,
+            )
+
         new_attempt = garak.attempt.Attempt(
             probe_classname=(
                 str(self.__class__.__module__).replace("garak.probes.", "")
