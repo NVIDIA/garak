@@ -76,6 +76,6 @@ class Glitch(TriggerListDetector):
     doc_uri = "https://twitter.com/goodside/status/1666598580319035392"
     lang_spec = "*"
 
-    def detect(self, attempt: Attempt) -> List[float]:
+    def detect(self, attempt: Attempt) -> List[float | None]:
         detector_results = super().detect(attempt, case_sensitive=False)
         return [1.0 - r for r in detector_results]

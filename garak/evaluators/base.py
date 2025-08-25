@@ -64,17 +64,22 @@ class Evaluator:
         detector_names = attempts[0].detector_results.keys()
 
         for detector in detector_names:
-            all_passes = []
-            all_outputs = []
+            passes = 0
+            fails = 0
+            nones = 0
+            messages = []
+
             for attempt in attempts:
-                passes = [
-                    1 if self.test(r) else 0
-                    for r in map(float, attempt.detector_results[detector])
-                ]
-                all_passes += passes
-                all_outputs += attempt.outputs
                 for idx, score in enumerate(attempt.detector_results[detector]):
-                    if not self.test(score):  # if we don't pass
+                    if score is None:
+                        nones += 1
+                    elif self.test(float(score)):
+                        passes += 1
+                    else:  # if we don't pass
+                        fails += 1
+                        messages.append(
+                            attempt.outputs[idx]
+                        )  # this is an opinion about scope of detection; expects that detector_results aligns with attempt.outputs (not all_outputs)
                         if (
                             _config.transient.hitlogfile is None
                             or _config.transient.hitlogfile.closed
@@ -118,11 +123,14 @@ class Evaluator:
                             + "\n"  # generator,probe,prompt,trigger,result,detector,score,run id,attemptid,
                         )
 
+            outputs_evaluated = passes + fails
+            outputs_processed = passes + fails + nones
+
             if _config.system.narrow_output:
                 print_func = self.print_results_narrow
             else:
                 print_func = self.print_results_wide
-            print_func(detector, all_passes, all_outputs)
+            print_func(detector, passes, outputs_evaluated, messages)
 
             _config.transient.reportfile.write(
                 json.dumps(
@@ -130,8 +138,9 @@ class Evaluator:
                         "entry_type": "eval",
                         "probe": self.probename,
                         "detector": detector,
-                        "passed": sum(all_passes),
-                        "total": len(all_passes),
+                        "passed": passes,
+                        "nones": nones,
+                        "total": outputs_evaluated,
                     },
                     ensure_ascii=False,
                 )
@@ -155,16 +164,17 @@ class Evaluator:
             )
         return zscore, zrating_symbol
 
-    def print_results_wide(self, detector_name, passes, messages):
+    def print_results_wide(self, detector_name, passes, evals, messages=list()):
         """Print the evaluator's summary"""
         zscore = None
-        if len(passes):
+        failrate = 0.0
+        if evals:
             outcome = (
                 Fore.LIGHTRED_EX + "FAIL"
-                if sum(passes) < len(passes)
+                if passes < evals
                 else Fore.LIGHTGREEN_EX + "PASS"
             )
-            failrate = 100 * (len(passes) - sum(passes)) / len(passes)
+            failrate = 100 * (evals - passes) / evals
             if _config.system.show_z:
                 zscore, rating_symbol = self.get_z_rating(
                     self.probename, detector_name, failrate
@@ -176,10 +186,10 @@ class Evaluator:
 
         print(
             f"{self.probename:<50}{detector_name:>50}: {Style.BRIGHT}{outcome}{Style.RESET_ALL}",
-            f" ok on {sum(passes):>4}/{len(passes):>4}",
+            f" ok on {passes:>4}/{evals:>4}",
             end="",
         )
-        if len(passes) and failrate > 0.0:
+        if evals and failrate > 0.0:
             print(
                 f"   ({Fore.LIGHTRED_EX}attack success rate:{Style.RESET_ALL} {failrate:6.2f}%)",
                 end="",
@@ -191,22 +201,22 @@ class Evaluator:
         print()
 
         if _config.system.verbose > 0 and messages:
-            for i in range(len(passes)):
-                if not passes[i]:
-                    try:
-                        print("❌", messages[i].strip().replace("\n", " "))
-                    except:
-                        pass
+            for m in messages:
+                try:
+                    print("❌", m.strip().replace("\n", " "))
+                except:
+                    pass
 
-    def print_results_narrow(self, detector_name, passes, messages):
+    def print_results_narrow(self, detector_name, passes, evals, messages=list()):
         """Print the evaluator's summary"""
-        if len(passes):
+        failrate = 0.0
+        if evals:
             outcome = (
                 Fore.LIGHTRED_EX + "FAIL"
-                if sum(passes) < len(passes)
+                if passes < evals
                 else Fore.LIGHTGREEN_EX + "PASS"
             )
-            failrate = 100 * (len(passes) - sum(passes)) / len(passes)
+            failrate = 100 * (evals - passes) / evals
             zscore = None
             if _config.system.show_z:
                 zscore, rating_symbol = self.get_z_rating(
@@ -223,9 +233,9 @@ class Evaluator:
 
         short_detector_name = detector_name.split(".")[-1]
         print(
-            f"  {Style.BRIGHT}{outcome}{Style.RESET_ALL} score {sum(passes):>4}/{len(passes):>4} -- {short_detector_name:<20}"
+            f"  {Style.BRIGHT}{outcome}{Style.RESET_ALL} score {passes:>4}/{evals:>4} -- {short_detector_name:<20}"
         )
-        if len(passes) and failrate > 0.0:
+        if evals and failrate > 0.0:
             print(
                 f"    {Fore.LIGHTRED_EX}attack success rate:{Style.RESET_ALL} {failrate:6.2f}%",
                 end="",
@@ -236,12 +246,11 @@ class Evaluator:
             print()
 
         if _config.system.verbose > 0 and messages:
-            for i in range(len(passes)):
-                if not passes[i]:
-                    try:
-                        print("  ❌", messages[i].strip().replace("\n", " "))
-                    except:
-                        pass
+            for m in messages:
+                try:
+                    print("❌", m.strip().replace("\n", " "))
+                except:
+                    pass
 
 
 class ZeroToleranceEvaluator(Evaluator):
