@@ -402,6 +402,23 @@ def load_plugin(path, break_on_fail=True, config_root=_config) -> object:
             ) from ve
         else:
             return False
+
+    full_plugin_name = ".".join((category, module_name, plugin_class_name))
+
+    # check cache for optional imports
+    if category in PLUGIN_TYPES:
+        extra_dependency_names = PluginCache.instance()[category][full_plugin_name][
+            "extra_dependency_names"
+        ]
+        if len(extra_dependency_names) > 0:
+            for dependency_module_name in extra_dependency_names:
+                for dependency_path in [ # support both plain names and also multi-point names e.g. langchain.llms
+                    ".".join(dependency_module_name.split(".")[: n + 1])
+                    for n in range(dependency_module_name.count(".") + 1)
+                ]:
+                    if importlib.util.find_spec(dependency_path) is None:
+                        _import_failed(dependency_path, full_plugin_name)
+
     module_path = f"garak.{category}.{module_name}"
     try:
         mod = importlib.import_module(module_path)
@@ -428,6 +445,7 @@ def load_plugin(path, break_on_fail=True, config_root=_config) -> object:
         if plugin_instance is None:
             plugin_instance = klass(config_root=config_root)
             PluginProvider.storeInstance(plugin_instance, config_root)
+
     except Exception as e:
         logging.warning(
             "Exception instantiating %s.%s: %s",
@@ -442,3 +460,21 @@ def load_plugin(path, break_on_fail=True, config_root=_config) -> object:
             return False
 
     return plugin_instance
+
+
+def load_optional_module(module_name: str):
+    try:
+        m = importlib.import_module(module_name)
+    except ModuleNotFoundError:
+        requesting_module = Path(inspect.stack()[1].filename).name.replace(".py", "")
+        _import_failed(module_name, requesting_module)
+    return m
+
+
+def _import_failed(import_module: str, calling_module: str):
+    msg = f"⛔ Plugin '{calling_module}' requires Python module '{import_module}' but this isn't installed/available."
+    hint = f"💡 Try 'pip install {import_module}' to get it."
+    logging.critical(msg)
+    print(msg + "\n" + hint)
+    raise ModuleNotFoundError(msg)
+

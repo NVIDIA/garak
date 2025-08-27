@@ -15,12 +15,11 @@ import logging
 from typing import List, Union
 
 import backoff
-from cohere.core.api_error import ApiError
-import cohere
 import tqdm
 
 from garak import _config
 from garak.attempt import Message, Conversation
+from garak.exception import GeneratorBackoffTrigger
 from garak.generators.base import Generator
 
 
@@ -50,10 +49,12 @@ class CohereGenerator(Generator):
         "preset": None,  # Only used with v1 API
         "api_version": "v2",  # "v1" for legacy generate API, "v2" for chat API (recommended)
     }
+    extra_dependency_names = ["cohere"]
 
     generator_family_name = "Cohere"
 
     def __init__(self, name="command", config_root=_config):
+
         self.name = name
         self.fullname = f"Cohere {self.name}"
 
@@ -62,6 +63,7 @@ class CohereGenerator(Generator):
         logging.debug(
             "Cohere generation request limit capped at %s", COHERE_GENERATION_LIMIT
         )
+        self.generator = self.cohere.Client(self.api_key)
 
         # Validate api_version
         if self.api_version not in ["v1", "v2"]:
@@ -73,17 +75,20 @@ class CohereGenerator(Generator):
         # Initialize appropriate client based on API version
         # Following Cohere's guidance to use Client() for v1 and ClientV2() for v2
         if self.api_version == "v1":
-            self.generator = cohere.Client(api_key=self.api_key)
+            self.generator = self.cohere.Client(api_key=self.api_key)
         else:  # api_version == "v2"
-            self.generator = cohere.ClientV2(api_key=self.api_key)
+            self.generator = self.cohere.ClientV2(api_key=self.api_key)
 
-    @backoff.on_exception(backoff.fibo, ApiError, max_value=70)
-    def _call_cohere_api(self, prompt_text, request_size=COHERE_GENERATION_LIMIT):
+    @backoff.on_exception(backoff.fibo, GeneratorBackoffTrigger, max_value=70)
+    def _call_cohere_api(
+        self, prompt: Conversation, request_size=COHERE_GENERATION_LIMIT
+    ) -> List[Union[Message, None]]:
         """Empty prompts raise API errors (e.g. invalid request: prompt must be at least 1 token long).
         We catch these using the ApiError base class in Cohere v5+.
         Filtering exceptions based on message instead of type, in backoff, isn't immediately obvious
         - on the other hand blank prompt / RTP shouldn't hang forever
         """
+        prompt_text = prompt.last_message().text
         if prompt_text == "":
             return [Message("")] * request_size
         else:
@@ -94,7 +99,7 @@ class CohereGenerator(Generator):
                 for _ in range(request_size):
                     try:
                         # Use the correct UserChatMessageV2 class
-                        message = cohere.UserChatMessageV2(content=prompt_text)
+                        message = self.cohere.UserChatMessageV2(content=prompt_text)
 
                         response = self.generator.chat(
                             model=self.name,
@@ -129,16 +134,18 @@ class CohereGenerator(Generator):
                                 "Chat response structure doesn't match expected format"
                             )
                             responses.append(str(response))
-                    except ApiError as e:
-                        raise e  # bubble up ApiError for backoff handling
                     except Exception as e:
+                        backoff_exception_types = [self.cohere.error.CohereAPIError]
+                        for backoff_exception in backoff_exception_types:
+                            if isinstance(e, backoff_exception):
+                                raise GeneratorBackoffTrigger from e
                         logging.error(f"Chat API error: {e}")
                         responses.append(None)
 
                 # Ensure we return the correct number of responses
                 if len(responses) < request_size:
                     responses.extend([None] * (request_size - len(responses)))
-                return responses
+
             else:  # api_version == "v1"
                 # Use legacy generate API with cohere.Client()
                 # Following Cohere's guidance for full backward compatibility
@@ -157,28 +164,37 @@ class CohereGenerator(Generator):
                         end_sequences=self.stop,
                     )
 
-                    # Handle response based on structure
-                    if hasattr(response, "generations"):
-                        # Handle the v5+ API response format
-                        return [gen.text for gen in response.generations]
-                    else:
-                        # Try to handle other possible response formats
-                        try:
-                            if isinstance(response, list):
-                                return [g.text for g in response]
-                            elif hasattr(response, "text"):
-                                return [response.text]
-                            else:
-                                # Last resort - try to convert response to string
-                                return [str(response)]
-                        except RuntimeError as e:
-                            logging.error(
-                                f"Failed to extract text from Cohere response: {e}"
-                            )
-                            return [None] * request_size
                 except RuntimeError as e:
                     logging.error(f"Generate API error: {e}")
                     return [None] * request_size
+                except Exception as e:
+                    backoff_exception_types = [self.cohere.error.CohereAPIError]
+                    for backoff_exception in backoff_exception_types:
+                        if isinstance(e, backoff_exception):
+                            raise GeneratorBackoffTrigger from e
+                    raise e
+
+                # Handle response based on structure
+                if hasattr(response, "generations"):
+                    # Handle the v5+ API response format
+                    responses = [gen.text for gen in response.generations]
+                else:
+                    # Try to handle other possible response formats
+                    try:
+                        if isinstance(response, list):
+                            responses = [g.text for g in response]
+                        elif hasattr(response, "text"):
+                            responses = [response.text]
+                        else:
+                            # Last resort - try to convert response to string
+                            responses = [str(response)]
+                    except RuntimeError as e:
+                        logging.error(
+                            f"Failed to extract text from Cohere response: {e}"
+                        )
+                        responses = [None] * request_size
+
+            return [Message(g.text) for g in response]
 
     def _call_model(
         self, prompt: Conversation, generations_this_call: int = 1
