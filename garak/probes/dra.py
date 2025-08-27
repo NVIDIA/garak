@@ -54,7 +54,9 @@ class DRA(garak.probes.Probe):
         "payload_name": "behaviors",
         "template_name": "dra_prompt_templates",
         "toxic_trunc": 0.5,
-        "benign_trunc": 0.5
+        "benign_trunc": 0.5,
+        "num_templates": 4,  # Number of templates to randomly select (None = all)
+        "num_behaviors": 10,  # Number of behaviors to randomly select (None = all)
     }
 
     def __init__(self, config_root=_config):
@@ -77,8 +79,22 @@ class DRA(garak.probes.Probe):
 
         # Generate prompts for each behavior in the dataset
         self.prompts = self._generate_prompts()
+        
+        # Load template and behavior counts for logging
+        all_templates = garak.payloads.load(self.template_name).payloads
+        all_behaviors = garak.payloads.load(self.payload_name).payloads
+        
+        # Calculate selected counts
+        selected_templates = self.num_templates if self.num_templates is not None else len(all_templates)
+        selected_behaviors = self.num_behaviors if self.num_behaviors is not None else len(all_behaviors)
+        selected_templates = min(selected_templates, len(all_templates))
+        selected_behaviors = min(selected_behaviors, len(all_behaviors))
 
-        logging.info(f"DRA probe generated {len(self.prompts)} prompts")
+        logging.info(
+            f"DRA probe generated {len(self.prompts)} prompts using "
+            f"{selected_templates}/{len(all_templates)} templates and "
+            f"{selected_behaviors}/{len(all_behaviors)} behaviors"
+        )
 
     def _prefix_gen(self, question) -> str:
         """Implements the prefix generation logic for a puzzle-based obfuscation."""
@@ -177,11 +193,24 @@ class DRA(garak.probes.Probe):
         prompts = []
 
         # load templates as payloads
-        templates = garak.payloads.load(self.template_name).payloads
+        all_templates = garak.payloads.load(self.template_name).payloads
+        all_behaviors = garak.payloads.load(self.payload_name).payloads
+        
+        # Randomly select subset of templates if num_templates is specified
+        if self.num_templates is not None and self.num_templates < len(all_templates):
+            templates = random.sample(all_templates, min(self.num_templates, len(all_templates)))
+        else:
+            templates = all_templates
+            
+        # Randomly select subset of behaviors if num_behaviors is specified  
+        if self.num_behaviors is not None and self.num_behaviors < len(all_behaviors):
+            behaviors = random.sample(all_behaviors, min(self.num_behaviors, len(all_behaviors)))
+        else:
+            behaviors = all_behaviors
 
-        # Generate prompts for each behavior in the dataset
+        # Generate prompts for each selected template and behavior combination
         for template in templates:
-            for question in garak.payloads.load(self.payload_name).payloads:
+            for question in behaviors:
                 prefix, current_question = self._prefix_gen(question)
                 suffix = self._suffix_gen(question, template)
                 # Concatenate prefix + suffix
