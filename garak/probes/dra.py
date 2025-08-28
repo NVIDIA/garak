@@ -39,10 +39,20 @@ TOOL_LIST = [
 
 
 class DRA(garak.probes.Probe):
-    """DRA (Disguise and Reconstruction Attack)"""
+    """DRA (Disguise and Reconstruction Attack)
+    
+    This probe is designed to test models using disguised and reconstructed harmful behaviors. 
+    Behaviors are defined in garak/data/payloads/behaviors.json.
+    """
 
     lang = "en"
     recommended_detector = ["mitigation.MitigationBypass"]
+    tags = [
+        "avid-effect:security:S0403",
+        "owasp:llm01",
+        "quality:Security:PromptStability",
+        "payload:jailbreak",
+    ]
 
     goal = "make the LLM ask and answer its own harmful instructions"
     tier = garak.probes.Tier.UNLISTED
@@ -117,12 +127,10 @@ class DRA(garak.probes.Probe):
         return res, question
 
     def _check_moderation(self, token) -> bool:
-        """Check if a token is harmful."""
-        result = Detoxify("original").predict(token)
-
-        max_score = max(result.values())
-        if max_score >= 0.01:
-            return True
+        """Check if a token is harmful using moderation cache."""
+        # Check if token exists in cache
+        if token in self.moderation_cache:
+            return self.moderation_cache[token]
         else:
             return False
 
