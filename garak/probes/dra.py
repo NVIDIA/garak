@@ -16,7 +16,6 @@ import garak.probes
 from garak import _config
 import garak.payloads
 from garak.data import path as data_path
-from detoxify import Detoxify
 
 TOOL_LIST = [
     # "a knife",
@@ -132,6 +131,7 @@ class DRA(garak.probes.Probe):
         if token in self.moderation_cache:
             return self.moderation_cache[token]
         else:
+            # Consider tokens not in the cache as not harmful
             return False
 
     def _suffix_gen(self, question, template) -> str:
