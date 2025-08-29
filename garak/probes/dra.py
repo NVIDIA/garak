@@ -5,6 +5,9 @@
 
 This probe is designed to test models using disguised and reconstructed harmful behaviors. 
 
+https://arxiv.org/abs/2402.18104v2
+https://github.com/LLM-DRA/DRA
+
 """
 
 import json
