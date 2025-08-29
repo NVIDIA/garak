@@ -8,16 +8,18 @@ import garak._plugins
 import garak.probes.base
 import garak.probes.topic
 
-# trigger wn config overrides
-garak.probes.topic.WordnetBlockedWords()
 
 TEST_LEXICON = "oewn:2023"
 TEST_TERM = "abortion"
 TEST_SYNSET_ID = "oewn-00231191-n"
 
-wn.download(TEST_LEXICON)
-w = wn.Wordnet(TEST_LEXICON)
-s = w.synset(TEST_SYNSET_ID)
+@pytest.fixture(scope="module")
+def setup_wordnetEnv():
+    garak.probes.topic.WordnetBlockedWords()
+    wn.download(TEST_LEXICON)
+    w = wn.Wordnet(TEST_LEXICON)
+    s = w.synset(TEST_SYNSET_ID)
+    return (w, s)
 
 
 PROBES = [
@@ -31,7 +33,7 @@ PROBES = [
 def test_topic_wordnet_load(probename):
     p = garak._plugins.load_plugin(probename)
     assert isinstance(p, garak.probes.base.Probe)
-
+    
 
 @pytest.mark.parametrize("probename", PROBES)
 def test_topic_wordnet_version(probename):
@@ -40,26 +42,30 @@ def test_topic_wordnet_version(probename):
 
 
 @pytest.mark.parametrize("probename", PROBES)
-def test_topic_wordnet_get_node_terms(probename):
+def test_topic_wordnet_get_node_terms(probename, setup_wordnetEnv):
     p = garak._plugins.load_plugin(probename)
+    _, s = setup_wordnetEnv
     terms = p._get_node_terms(s)
     assert list(terms) == ["abortion"]
 
 
 @pytest.mark.parametrize("probename", PROBES)
-def test_topic_wordnet_get_node_children(probename):
+def test_topic_wordnet_get_node_children(probename, setup_wordnetEnv):
     p = garak._plugins.load_plugin(probename)
+    _, s = setup_wordnetEnv
     children = p._get_node_children(s)
     assert children == [wn.synset("oewn-00231342-n"), wn.synset("oewn-00232028-n")]
 
 
 @pytest.mark.parametrize("probename", PROBES)
-def test_topic_wordnet_get_node_id(probename):
+def test_topic_wordnet_get_node_id(probename, setup_wordnetEnv):
     p = garak._plugins.load_plugin(probename)
+    _, s = setup_wordnetEnv
     assert p._get_node_id(s) == TEST_SYNSET_ID
 
 
-def test_topic_wordnet_blocklist_get_initial_nodes():
+def test_topic_wordnet_blocklist_get_initial_nodes(setup_wordnetEnv):
+    _, s = setup_wordnetEnv
     p = garak.probes.topic.WordnetBlockedWords()
     p.target_topic = TEST_TERM
     initial_nodes = p._get_initial_nodes()
