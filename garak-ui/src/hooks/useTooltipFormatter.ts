@@ -20,7 +20,7 @@ export function useTooltipFormatter() {
       <strong>${detectorType}</strong><br/>
       Score: ${score}<br/>
       Z-score: ${z}<br/>
-      Comment: <span style="color:${color}">${comment}</span>${defconLine}${countsLine}
+      Comment: <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: ${color}; margin-right: 6px; vertical-align: middle;"></span>${comment}${defconLine}${countsLine}
     `;
   };
 }

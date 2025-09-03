@@ -1,4 +1,5 @@
 import useSeverityColor from "../hooks/useSeverityColor";
+import { Flex, Text, Button } from "@kui/react";
 
 const levels = [1, 2, 3, 4, 5];
 
@@ -6,26 +7,35 @@ const ColorLegend = ({ onClose }: { onClose?: () => void }) => {
   const { getSeverityColorByLevel, getSeverityLabelByLevel } = useSeverityColor();
 
   return (
-    <div className="flex items-center gap-3 flex-wrap text-xs mt-1 bg-white p-2 border rounded shadow">
+    <Flex gap="density-xl">
       {levels.map(l => (
-        <div key={l} className="flex items-center gap-1">
-          <span
-            style={{ background: getSeverityColorByLevel(l), width: 14, height: 14, display: "inline-block" }}
+        <Flex key={l} align="center" gap="density-xs">
+          <div
+            style={{ 
+              background: getSeverityColorByLevel(l), 
+              width: 14, 
+              height: 14, 
+              borderRadius: 2,
+              flexShrink: 0
+            }}
             aria-label={getSeverityLabelByLevel(l)}
           />
-          <span className="text-gray-700 select-none">{getSeverityLabelByLevel(l)}</span>
-        </div>
+          <Text kind="body/regular/sm">{getSeverityLabelByLevel(l)}</Text>
+        </Flex>
       ))}
       {onClose && (
-        <button
-          onClick={onClose}
-          className="ml-auto text-gray-500 hover:text-gray-700 px-1"
-          aria-label="Hide legend"
-        >
-          ×
-        </button>
+        <Flex justify="end">
+          <Button
+            kind="tertiary"
+            size="small"
+            onClick={onClose}
+            aria-label="Hide legend"
+          >
+            ×
+          </Button>
+        </Flex>
       )}
-    </div>
+    </Flex>
   );
 };
 

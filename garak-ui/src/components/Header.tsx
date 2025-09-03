@@ -1,12 +1,14 @@
-import Logo from "../logo.svg?react";
+import { AppBar, AppBarLogo, Text } from "@kui/react";
 
 const Header = () => (
-  <header className="flex items-center justify-between px-6 py-4 bg-gray-100 border-b border-gray-300">
-    <div className="flex items-center gap-2 text-3xl font-semibold text-gray-800">
-      <Logo height={28} data-testid="logo" />
-      <span className="tracking-tight">garak</span>
-    </div>
-  </header>
-);
+  <AppBar 
+    slotLeft={
+      <>
+        <AppBarLogo size="small" />
+        <Text kind="label/bold/2xl">GARAK</Text>
+      </>
+    }
+  />
+)
 
 export default Header;

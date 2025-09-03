@@ -5,11 +5,11 @@ import useSeverityColor from "../hooks/useSeverityColor";
 import type { ProbesChartProps } from "../types/ProbesChart";
 import type { ECElementEvent } from "echarts";
 import { useProbeTooltip } from "../hooks/useProbeTooltip";
-import InfoTooltip from "./InfoTooltip";
+import { Button, Flex, Grid, Stack, Text, Tooltip } from "@kui/react";
 import ColorLegend from "./ColorLegend";
 
 const ProbesChart = ({ module, selectedProbe, setSelectedProbe }: ProbesChartProps) => {
-  const { getSeverityColorByLevel, getSeverityLabelByLevel } = useSeverityColor();
+  const { getSeverityColorByLevel, getSeverityLabelByLevel, getDefconColor } = useSeverityColor();
 
   const probesData = useMemo(() => {
     return module.probes.map(probe => {
@@ -34,30 +34,17 @@ const ProbesChart = ({ module, selectedProbe, setSelectedProbe }: ProbesChartPro
 
   const option = useMemo(
     () => ({
-      grid: { containLabel: true, bottom: 0, left: 75 },
-      tooltip: {
-        trigger: "item",
-        formatter: getTooltip,
-        confine: false,
-        position: (pos: any, _params: any, dom: HTMLElement) => {
-          const [x, y] = pos as [number, number];
-          const margin = 10;
-          const tipWidth = dom?.offsetWidth ?? 0;
-          const vw = document.documentElement.clientWidth;
-
-          const containerLeft = dom.parentElement?.getBoundingClientRect()?.left ?? 0;
-
-          let clampedX = x;
-          if (containerLeft + x + tipWidth + margin > vw) {
-            clampedX = vw - tipWidth - margin - containerLeft;
-          }
-          if (containerLeft + clampedX < margin) {
-            clampedX = margin - containerLeft;
-          }
-
-          return [clampedX, y];
-        },
+      grid: { 
+        containLabel: true, 
+        bottom: 0, 
+        left: 10, 
+        right: 20 
       },
+          tooltip: {
+          trigger: "item",
+          formatter: getTooltip,
+          confine: true,
+        },
       xAxis: {
         type: "category",
         data: probesData.map(p => {
@@ -68,6 +55,19 @@ const ProbesChart = ({ module, selectedProbe, setSelectedProbe }: ProbesChartPro
           rotate: 45,
           interval: 0,
           fontSize: 14,
+          rich: {
+            selected1: { fontWeight: 'bold', fontSize: 14, color: getDefconColor(1) },
+            selected2: { fontWeight: 'bold', fontSize: 14, color: getDefconColor(2) },
+            selected3: { fontWeight: 'bold', fontSize: 14, color: getDefconColor(3) },
+            selected4: { fontWeight: 'bold', fontSize: 14, color: getDefconColor(4) },
+            selected5: { fontWeight: 'bold', fontSize: 14, color: getDefconColor(5) },
+          },
+          formatter: (value: string, index: number) => {
+            const probe = probesData[index];
+            const isSelected = selectedProbe?.summary?.probe_name === probe.summary?.probe_name;
+            const defcon = probe.severity ?? 0;
+            return isSelected ? `{selected${defcon}|${value}}` : value;
+          }
         },
       },
       yAxis: { type: "value" },
@@ -75,7 +75,7 @@ const ProbesChart = ({ module, selectedProbe, setSelectedProbe }: ProbesChartPro
         {
           type: "bar",
           barMinHeight: 5,
-          barMaxWidth: 50,
+          barMaxWidth: 80,
           data: probesData.map(p => {
             const isSelected = selectedProbe?.summary?.probe_name === p.summary?.probe_name;
             return {
@@ -86,11 +86,12 @@ const ProbesChart = ({ module, selectedProbe, setSelectedProbe }: ProbesChartPro
                 position: "top",
                 formatter: ({ value }: { value: number }) => `${value.toFixed(0)}%`,
                 fontSize: 12,
-                color: "#333",
+                fontWeight: isSelected ? 'bold' : 'normal',
+                color: isSelected ? getDefconColor(p.severity ?? 0) : "#333",
               },
               itemStyle: {
                 color: p.color,
-                opacity: isSelected ? 0.5 : 1,
+                opacity: selectedProbe ? (isSelected ? 1 : 0.3) : 1,
               },
             };
           }),
@@ -102,25 +103,27 @@ const ProbesChart = ({ module, selectedProbe, setSelectedProbe }: ProbesChartPro
   );
 
   return (
-    <div className="space-y-2 mt-3">
+    <>
       {filtered.length === 0 ? (
         <p className="text-sm italic text-gray-500 py-8">No probes meet the current filter.</p>
       ) : (
-        <div style={{ display: "flex" }}>
-          <div style={{ flex: selectedProbe ? "20%" : "100%" }}>
-            {/* Probe scores header */}
-            <div className="flex items-center gap-1 mb-1">
-              <h3 className="text-lg font-semibold">Probe scores</h3>
-              <InfoTooltip>
-                <p className="text-xs mb-2">
-                  A probe is a predefined set of prompts targeting a specific failure mode.
-                </p>
-                <p className="text-xs mb-2">
-                  Each bar shows the percentage of prompts where the model failed (higher = worse). Click a bar to drill down.
-                </p>
-                <ColorLegend />
-              </InfoTooltip>
-            </div>
+        <Grid cols={selectedProbe ? 2 : 1}>
+          <div>
+            <Flex align="center" gap="density-xxs">
+              <Text kind="title/xs">Probe scores</Text>
+              <Tooltip slotContent={
+                <Stack gap="density-xxs">
+                  <Text kind="body/regular/sm">A probe is a predefined set of prompts targeting a specific failure mode.</Text>
+                  <Text kind="body/regular/sm">Each bar shows the percentage of prompts where the model failed (higher = worse). Click a bar to drill down.</Text>
+                  <ColorLegend />
+                </Stack>
+              }>
+                <Button kind="tertiary">
+                  <i className="nv-icons-line-info-circle"></i>
+                </Button>
+              </Tooltip>
+            </Flex>
+          
             <ReactECharts
               option={{
                 ...option,
@@ -139,17 +142,23 @@ const ProbesChart = ({ module, selectedProbe, setSelectedProbe }: ProbesChartPro
                       return {
                         name: p.label,
                         value: p.value,
-                        label: (option.series[0] as any).data[0].label, // reuse label config
+                        label: {
+                          show: true,
+                          position: "top",
+                          formatter: ({ value }: { value: number }) => `${value.toFixed(0)}%`,
+                          fontSize: 12,
+                          fontWeight: isSelected ? 'bold' : 'normal',
+                          color: isSelected ? getDefconColor(p.severity ?? 0) : "#333",
+                        },
                         itemStyle: {
                           color: p.color,
-                          opacity: isSelected ? 0.5 : 1,
+                          opacity: selectedProbe ? (isSelected ? 1 : 0.3) : 1,
                         },
                       };
                     }),
                   },
                 ],
               }}
-              style={{ height: 300, width: "100%" }}
               onEvents={{
                 click: (params: ECElementEvent) => {
                   const clicked = module.probes.find(p => p.summary?.probe_name === params.name);
@@ -165,18 +174,16 @@ const ProbesChart = ({ module, selectedProbe, setSelectedProbe }: ProbesChartPro
             />
           </div>
           {selectedProbe && (
-            <div style={{ flex: "40%" }}>
-              <DetectorsView
-                probe={selectedProbe}
-                allProbes={module.probes}
-                setSelectedProbe={setSelectedProbe}
-                data-testid="detectors-view"
-              />
-            </div>
+            <DetectorsView
+              probe={selectedProbe}
+              allProbes={module.probes}
+              setSelectedProbe={setSelectedProbe}
+              data-testid="detectors-view"
+            />
           )}
-        </div>
+        </Grid>
       )}
-    </div>
+    </>
   );
 };
 

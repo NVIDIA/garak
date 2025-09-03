@@ -24,7 +24,7 @@ export function useProbeTooltip(
       return `
         <strong>${params.name}</strong><br/>
         Score: ${params.value.toFixed(2)}%<br/>
-        Severity: <span style="color: ${severityColor}; font-weight: 600">${severityText}</span>${defconLine}<br/>
+        Severity: <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: ${severityColor}; margin-right: 6px; vertical-align: middle;"></span><span style="font-weight: 600">${severityText}</span>${defconLine}<br/>
         Detectors: ${item?.detectors.length ?? 0}
       `;
     },

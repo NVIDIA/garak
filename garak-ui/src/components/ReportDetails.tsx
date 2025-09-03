@@ -2,6 +2,7 @@ import { useState } from "react";
 import SetupSection from "./SetupSection";
 import CalibrationSummary from "./CalibrationSummary";
 import type { ReportDetailsProps } from "../types/ReportEntry";
+import { Badge, Flex, PageHeader, SidePanel, Text, Accordion, Button } from "@kui/react";
 
 const ReportDetails = ({ setupData, calibrationData }: ReportDetailsProps) => {
   const [showDetails, setShowDetails] = useState(false);
@@ -9,79 +10,51 @@ const ReportDetails = ({ setupData, calibrationData }: ReportDetailsProps) => {
 
   return (
     <>
-      <div className="p-4">
-        <div
-          data-testid="report-summary"
-          className="w-full border rounded-lg p-4 bg-white shadow cursor-pointer"
-          onClick={toggleDetails}
-        >
-          <div className="space-y-2">
-            <h1 className="text-2xl font-bold">Report for {setupData?.["transient.run_id"]}</h1>
-            <div className="space-y-1 text-sm text-gray-700">
-              <p>
-                <strong>Garak Version:</strong> {setupData?.["_config.version"]}
-              </p>
-              <p>
-                <strong>Model Type:</strong> {setupData?.["plugins.model_type"]}
-              </p>
-              <p>
-                <strong>Model Name:</strong> {setupData?.["plugins.model_name"] || "N/A"}
-              </p>
-              <p>
-                <strong>Run ID:</strong> {setupData?.["transient.run_id"]}
-              </p>
-              <p>
-                <strong>Start Time:</strong>{" "}
-                {new Date(setupData?.["transient.starttime_iso"]).toLocaleString()}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        data-testid="report-summary"
+        kind="floating"
+        slotSubheading={<Text kind="label/bold/xl">Report for</Text>}
+        slotHeading={<Text onClick={toggleDetails} kind="title/xl">{setupData?.["transient.run_id"]}</Text>}
+        slotActions={
+          <Button kind="secondary" onClick={toggleDetails}>More info</Button>
+        }
+      >
+        <Flex gap="density-md" wrap="wrap">
+          <Badge color="green" kind="outline">Garak Version: {setupData?.["_config.version"]}</Badge>
+          <Badge color="green" kind="outline">Model Type: {setupData?.["plugins.model_type"]}</Badge>
+          {setupData?.["plugins.model_name"] && (
+            <Badge color="green" kind="outline">Model Name: {setupData?.["plugins.model_name"]}</Badge>
+          )}
+          <Badge color="green" kind="outline">Start Time: {new Date(setupData?.["transient.starttime_iso"]).toLocaleString()}</Badge>
+        </Flex>
+      </PageHeader>
 
-      {showDetails && (
-        <>
-          {/* Backdrop */}
-          <div
-            data-testid="report-backdrop"
-            onClick={toggleDetails}
-            className="fixed inset-0 bg-black/10 backdrop-blur-sm z-40"
-            role="presentation"
-          />
-
-          {/* Sidebar */}
-          <div
-            data-testid="report-sidebar"
-            className="fixed top-0 right-0 w-full sm:w-[820px] h-full bg-white border-l border-gray-200 shadow-lg z-50 overflow-y-auto"
-            style={{ transition: "transform 0.3s ease-in-out" }}
-          >
-            <div className="flex items-center justify-between px-4 py-3 border-b">
-              <h2 className="text-lg font-semibold">Report Details</h2>
-              <button
-                className="text-gray-500 hover:text-black text-xl"
-                onClick={toggleDetails}
-                aria-label="Close"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="p-4 space-y-6">
-              <div data-testid="setup-section">
-                <h3 className="text-md font-semibold mb-2">Setup Section</h3>
-                <SetupSection setup={setupData} />
-              </div>
-
-              {calibrationData && (
-                <div data-testid="calibration-summary">
-                  <h3 className="text-md font-semibold mb-2">Calibration Details</h3>
-                  <CalibrationSummary calibration={calibrationData} />
-                </div>
-              )}
-            </div>
-          </div>
-        </>
-      )}
+      <SidePanel
+        modal
+        slotHeading="Report Details"
+        data-testid="report-sidebar"
+        open={showDetails}
+        onInteractOutside={toggleDetails}
+        hideCloseButton
+        density="compact"
+        style={{ width: "520px" }}
+      >
+        <Accordion
+          kind="single"
+          items={[
+            {
+              slotTrigger: <Text kind="title/xs">Setup Section</Text>,
+              slotContent: <SetupSection setup={setupData} />,
+              value: "setup",
+            },
+            {
+              slotTrigger: <Text kind="title/xs">Calibration Details</Text>,
+              slotContent: calibrationData && <CalibrationSummary calibration={calibrationData} />,
+              value: "calibration",
+            }
+          ]}
+        />
+      </SidePanel>
     </>
   );
 };

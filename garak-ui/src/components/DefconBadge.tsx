@@ -1,44 +1,34 @@
 import useSeverityColor from "../hooks/useSeverityColor";
+import { Badge } from "@kui/react";
 
 interface DefconBadgeProps {
   defcon: number | null | undefined;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "sm" | "md" | "lg" | "xl"; // kept for compatibility but not used with Kaizen Badge
   showLabel?: boolean;
 }
 
-const DefconBadge = ({ defcon, size = "sm", showLabel = false }: DefconBadgeProps) => {
-  const { getDefconColor, getSeverityLabelByLevel } = useSeverityColor();
+const DefconBadge = ({ defcon, showLabel = false }: DefconBadgeProps) => {
+  const { getSeverityLabelByLevel, getDefconBadgeColor } = useSeverityColor();
+  const color = getDefconBadgeColor(defcon ?? 0);
+  const label = getSeverityLabelByLevel(defcon ?? 0);
   
   if (defcon == null || defcon === 0) {
     return (
-      <span className={`inline-flex items-center bg-gray-200 text-gray-600 rounded-sm font-medium ${
-        size === "sm" ? "px-1.5 py-0.5 text-xs" : 
-        size === "md" ? "px-2 py-1 text-sm" : 
-        size === "lg" ? "px-3 py-1.5 text-base" :
-        "px-3 py-1.5 text-lg"
-      }`}>
+      <Badge kind="outline" color="gray">
         N/A
-      </span>
+      </Badge>
     );
   }
 
-  const color = getDefconColor(defcon);
-  const label = getSeverityLabelByLevel(defcon);
-
   return (
-    <span 
-      className={`inline-flex items-center text-white rounded-sm font-semibold ${
-        size === "sm" ? "px-1.5 py-0.5 text-sm" : 
-        size === "md" ? "px-3 py-1 text-lg" : 
-        size === "lg" ? "px-3 py-1.5 text-base" :
-        "px-3 py-1.5 text-lg"
-      }`}
-      style={{ backgroundColor: color }}
+    <Badge 
+      kind="solid" 
+      color={color}
       title={`DEFCON ${defcon}: ${label}`}
     >
       DC-{defcon}
       {showLabel && <span className="ml-1">{label}</span>}
-    </span>
+    </Badge>
   );
 };
 

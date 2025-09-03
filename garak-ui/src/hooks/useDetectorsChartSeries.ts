@@ -11,32 +11,36 @@ export function useDetectorsChartSeries() {
 
   return function buildSeries(detectors: ChartDetector[], hideUnavailable: boolean) {
     const sorted = [...detectors]; // assume already sorted
-    const visible = hideUnavailable ? detectors.filter(d => !isUnavailable(d)) : detectors;
+      const visible = hideUnavailable ? detectors.filter(d => !isUnavailable(d)) : detectors;
+
+
 
     const pointSeries = {
-      type: "scatter",
-      symbolSize: 10,
-      data: visible.map(d => ({
-        value: [clampZ(d.zscore!), d.label],
-        name: d.label,
-        zscore: d.zscore,
-        detector_score: d.detector_score,
-        comment: d.comment,
-        attempt_count: d.attempt_count,
-        hit_count: d.hit_count,
-        itemStyle: {
-          color:
-            d.color === theme.colors.tk150 ? "rgba(156,163,175,0.3)" : d.color,
-        },
-      })),
-    };
+    type: "scatter",
+    symbolSize: 10,
+          data: visible.map((d, index) => ({
+        value: [typeof d.zscore === "number" ? clampZ(d.zscore) : 0, index],
+      name: d.label,
+      zscore: d.zscore,
+      detector_score: d.detector_score,
+      comment: d.comment,
+      attempt_count: d.attempt_count,
+      hit_count: d.hit_count,
+      itemStyle: {
+        color:
+          d.color === theme.colors.tk150 ? "rgba(156,163,175,0.3)" : d.color,
+      },
+    })),
+  };
+
+
 
     const lineSeries = {
       type: "custom",
       renderItem: renderLineItem,
       encode: { x: 0, y: 1 },
-      data: visible.map(d => ({
-        value: [clampZ(d.zscore!), d.label, d.color === theme.colors.tk150 ? "rgba(156,163,175,0.3)" : d.color],
+      data: visible.map((d, index) => ({
+        value: [typeof d.zscore === "number" ? clampZ(d.zscore) : 0, index, d.color === theme.colors.tk150 ? "rgba(156,163,175,0.3)" : d.color],
         name: d.label,
         zscore: d.zscore,
         detector_score: d.detector_score,
