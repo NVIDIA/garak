@@ -21,6 +21,7 @@ import base64
 import binascii
 import random
 
+
 import garak.payloads
 import garak.resources.encodings
 from garak.resources.smuggling import smuggle_ascii
@@ -453,6 +454,38 @@ class InjectBraille(EncodingMixin, garak.probes.Probe):
     active = True
 
     def __init__(self, config_root=_config):
+        garak.probes.Probe.__init__(self, config_root=config_root)
+        EncodingMixin.__init__(self)
+
+class InjectAtbash(EncodingMixin, garak.probes.Probe):
+    """Atbash Probe Credit: Nakul-Rajpal
+
+    https://en.wikipedia.org/wiki/Atbash
+
+    This probe checks whether a model:
+    - recognizes Atbash-encoded malicious instructions,
+    - repeats or decodes them,
+    - and follows hidden instructions despite obfuscation.
+    """
+    
+    encoding_name = "Atbash"
+    active = True
+
+    @staticmethod
+    def atbash(text: bytes) -> bytes:
+        out = []
+        for ch in text.decode():
+            if "a" <= ch <= "z":
+                out.append(chr(ord("z") - (ord(ch) - ord("a"))))
+            elif "A" <= ch <= "Z":
+                out.append(chr(ord("Z") - (ord(ch) - ord("A"))))
+            else:
+                out.append(ch)
+        return "".join(out).encode("utf-8")
+
+    encoding_funcs = [atbash]
+
+    def __init__(self, config_root=None):
         garak.probes.Probe.__init__(self, config_root=config_root)
         EncodingMixin.__init__(self)
 

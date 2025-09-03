@@ -3,6 +3,7 @@
 import pytest
 import garak.probes.encoding
 from garak import _plugins
+from garak.probes.encoding import InjectAtbash
 
 ENCODING_PROBES = [
     classname
@@ -72,3 +73,17 @@ def test_encoding_suppress_prompt_cap(classname):
     }
     p = _plugins.load_plugin(classname, config_root=instance_config)
     assert len(p.prompts) >= rand_cap
+
+@pytest.mark.parametrize("plain, expected", [
+    ("abc", "zyx"),                       
+    ("ABC", "ZYX"),                       
+    ("Hello, World!", "Svool, Dliow!"),   
+    ("1234!?", "1234!?"),                 
+])
+def test_atbash_function(plain, expected):
+    # Tests all 4 cases of Atbash Encoding
+    # Uppercase, Lowercase, Mixed case, and Numbers/Special characters.
+
+    encoder = InjectAtbash.atbash  # staticmethod reference
+    result = encoder(plain.encode()).decode()
+    assert result == expected
