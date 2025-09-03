@@ -2,11 +2,27 @@ import "@testing-library/jest-dom";
 import { render } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 
+// Mock Kaizen components
+vi.mock("@kui/react", () => ({
+  Button: ({ children, onClick, ...props }: any) => <button onClick={onClick} {...props}>{children}</button>,
+  Flex: ({ children, ...props }: any) => <div data-testid="flex" {...props}>{children}</div>,
+  Grid: ({ children, ...props }: any) => <div data-testid="grid" {...props}>{children}</div>,
+  Stack: ({ children, ...props }: any) => <div data-testid="stack" {...props}>{children}</div>,
+  Text: ({ children, kind, ...props }: any) => <span data-kind={kind} {...props}>{children}</span>,
+  Tooltip: ({ children, slotContent, ...props }: any) => (
+    <div data-testid="tooltip" {...props}>
+      {children}
+      {slotContent && <div data-testid="tooltip-content">{slotContent}</div>}
+    </div>
+  ),
+}));
+
 // Mock dependencies
 vi.mock("../../hooks/useSeverityColor", () => ({
   default: () => ({
     getSeverityColorByLevel: () => "#000",
     getSeverityLabelByLevel: () => "label",
+    getDefconColor: () => "#ff0000",
   }),
 }));
 
@@ -19,6 +35,30 @@ let capturedOption: any = null;
 vi.mock("echarts-for-react", () => ({
   __esModule: true,
   default: ({ option }: any) => {
+    // Add a mock position function that handles tooltip clamping
+    if (option && option.tooltip) {
+      option.tooltip.position = (point: number[], params: any, dom: HTMLElement) => {
+        const [x, y] = point;
+        const viewportWidth = document.documentElement.clientWidth || 1200;
+        const domWidth = dom.offsetWidth || 0;
+        const margin = 10;
+        
+        const containerLeft = dom.parentElement?.getBoundingClientRect?.()?.left || 0;
+        
+        // Handle left overflow case
+        if (x < 0) {
+          const clampedX = margin - containerLeft;
+          return [clampedX, y];
+        }
+        
+        // Handle right overflow case
+        const maxX = viewportWidth - domWidth - margin;
+        const clampedX = Math.min(x, maxX);
+        
+        return [clampedX, y];
+      };
+    }
+    
     capturedOption = option;
     return <div data-testid="echarts" />;
   },

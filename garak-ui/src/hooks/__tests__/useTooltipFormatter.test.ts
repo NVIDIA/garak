@@ -16,7 +16,7 @@ describe("useTooltipFormatter", () => {
 
     expect(output).toContain("Score: 99.12%");
     expect(output).toContain("Z-score:");
-    expect(output).toContain('Comment: <span style="color:#123456">Looks good</span>');
+    expect(output).toContain('Comment: <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: #123456; margin-right: 6px; vertical-align: middle;"></span>Looks good');
   });
 
   it("handles missing values", () => {
@@ -28,7 +28,7 @@ describe("useTooltipFormatter", () => {
 
     expect(output).toContain("Score: —");
     expect(output).toContain("Z-score:");
-    expect(output).toContain('Comment: <span style="color:#666">Unavailable</span>');
+    expect(output).toContain('Comment: <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: #666; margin-right: 6px; vertical-align: middle;"></span>Unavailable');
   });
 
   it("includes DEFCON information when detector_defcon is available", () => {

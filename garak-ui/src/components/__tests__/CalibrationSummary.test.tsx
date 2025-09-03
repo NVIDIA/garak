@@ -1,7 +1,26 @@
 import "@testing-library/jest-dom";
-import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
 import CalibrationSummary from "../CalibrationSummary";
+
+// Mock Kaizen components
+vi.mock("@kui/react", () => ({
+  Tabs: ({ items }: any) => (
+    <div data-testid="tabs">
+      {items.map((item: any, index: number) => (
+        <div key={index} data-testid={`tab-${index}`}>
+          <div data-testid={`tab-trigger-${index}`}>{item.children}</div>
+          <div data-testid={`tab-content-${index}`}>{item.slotContent}</div>
+        </div>
+      ))}
+    </div>
+  ),
+  Text: ({ children, kind, ...props }: any) => (
+    <span data-kind={kind} {...props}>{children}</span>
+  ),
+  Stack: ({ children, ...props }: any) => <div data-testid="stack" {...props}>{children}</div>,
+  Flex: ({ children, ...props }: any) => <div data-testid="flex" {...props}>{children}</div>,
+}));
 
 const mockCalibration = {
   calibration_date: "2025-06-25T12:00:00Z",
@@ -10,48 +29,45 @@ const mockCalibration = {
 };
 
 describe("CalibrationSummary", () => {
-  it("renders both buttons", () => {
+  it("renders both tab labels", () => {
     render(<CalibrationSummary calibration={mockCalibration} />);
     expect(screen.getByText("Calibration Summary")).toBeInTheDocument();
     expect(screen.getByText("Calibration Models")).toBeInTheDocument();
   });
 
-  it("toggles Calibration Summary section", () => {
+  it("renders calibration summary content", () => {
     render(<CalibrationSummary calibration={mockCalibration} />);
-    const summaryButton = screen.getByText("Calibration Summary");
-
-    fireEvent.click(summaryButton);
     expect(screen.getByText("Date:")).toBeInTheDocument();
     expect(screen.getByText("Model Count:")).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
-
-    fireEvent.click(summaryButton);
-    expect(screen.queryByText("Date:")).not.toBeInTheDocument();
+    expect(screen.getByText(new Date(mockCalibration.calibration_date).toLocaleString())).toBeInTheDocument();
   });
 
-  it("toggles Models Evaluated section", () => {
+  it("renders calibration models content", () => {
     render(<CalibrationSummary calibration={mockCalibration} />);
-    const modelsButton = screen.getByText("Calibration Models");
-
-    fireEvent.click(modelsButton);
+    expect(screen.getByText("Models:")).toBeInTheDocument();
     expect(screen.getByText("Model A")).toBeInTheDocument();
     expect(screen.getByText("Model B")).toBeInTheDocument();
     expect(screen.getByText("Model C")).toBeInTheDocument();
-
-    fireEvent.click(modelsButton);
-    expect(screen.queryByText("Model A")).not.toBeInTheDocument();
   });
 
-  it("switches between sections", () => {
+  it("renders correct tab structure", () => {
     render(<CalibrationSummary calibration={mockCalibration} />);
-    const summaryButton = screen.getByText("Calibration Summary");
-    const modelsButton = screen.getByText("Calibration Models");
+    expect(screen.getByTestId("tabs")).toBeInTheDocument();
+    expect(screen.getByTestId("tab-0")).toBeInTheDocument();
+    expect(screen.getByTestId("tab-1")).toBeInTheDocument();
+  });
 
-    fireEvent.click(summaryButton);
-    expect(screen.getByText("Date:")).toBeInTheDocument();
-
-    fireEvent.click(modelsButton);
-    expect(screen.queryByText("Date:")).not.toBeInTheDocument();
-    expect(screen.getByText("Model A")).toBeInTheDocument();
+  it("splits model list correctly", () => {
+    const calibrationWithManyModels = {
+      ...mockCalibration,
+      model_list: "Model X, Model Y, Model Z, Model W",
+    };
+    
+    render(<CalibrationSummary calibration={calibrationWithManyModels} />);
+    expect(screen.getByText("Model X")).toBeInTheDocument();
+    expect(screen.getByText("Model Y")).toBeInTheDocument();
+    expect(screen.getByText("Model Z")).toBeInTheDocument();
+    expect(screen.getByText("Model W")).toBeInTheDocument();
   });
 });

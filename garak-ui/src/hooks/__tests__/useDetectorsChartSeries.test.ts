@@ -40,14 +40,14 @@ describe("useDetectorsChartSeries", () => {
 
     expect(pointSeries.data).toHaveLength(1);
     expect(pointSeries.data[0]).toMatchObject({
-      value: [1.5, "D1"],
+      value: [1.5, 0], // Now uses index instead of label
       name: "D1",
       comment: "ok",
     });
 
     expect(lineSeries.data).toHaveLength(1);
     expect(lineSeries.data[0]).toMatchObject({
-      value: [1.5, "D1", "#f00"],
+      value: [1.5, 0, "#f00"], // Now uses index instead of label
       name: "D1",
       zscore: 1.5,
       detector_score: 90,

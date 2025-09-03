@@ -5,10 +5,10 @@ import type { Probe } from "../../types/ProbesChart";
 import theme from "../../styles/theme";
 
 // Mock useSeverityColor
-vi.mock("./useSeverityColor", () => ({
+vi.mock("../useSeverityColor", () => ({
   default: () => ({
     getSeverityColorByComment: (comment: string) => {
-      return comment === "low" ? "green" : comment === "high" ? "red" : "gray";
+      return comment === "low" ? "#bbf7d0" : comment === "high" ? "#fecaca" : "#e5e7eb";
     },
   }),
 }));
@@ -130,7 +130,7 @@ describe("useGroupedDetectors", () => {
     const { result } = renderHook(() => useGroupedDetectors(probeA, [probeA, probeB]));
 
     const entries = result.current["det-A"];
-    expect(entries[0].color).toBe("#9ca3af"); // current probe with zscore
+    expect(entries[0].color).toBe("#fecaca"); // current probe with "high" comment -> red color
     expect(entries[1].color).toBe(theme.colors.tk150); // other probe fallback
   });
 

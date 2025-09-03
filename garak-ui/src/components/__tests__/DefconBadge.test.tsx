@@ -2,23 +2,32 @@ import { render, screen } from "@testing-library/react";
 import DefconBadge from "../DefconBadge";
 import { describe, it, expect, vi } from "vitest";
 
+// Mock Kaizen Badge component
+vi.mock("@kui/react", () => ({
+  Badge: ({ children, title, color, kind, ...props }: any) => (
+    <span title={title} data-color={color} data-kind={kind} {...props}>
+      {children}
+    </span>
+  ),
+}));
+
 // Mock the useSeverityColor hook
 vi.mock("../../hooks/useSeverityColor", () => ({
   default: () => ({
-    getDefconColor: (defcon: number) => {
+    getDefconBadgeColor: (defcon: number) => {
       switch (defcon) {
-        case 1: return "#b91c1c"; // red-700
-        case 2: return "#f87171"; // red-400
-        case 3: return "#fde047"; // yellow-300
-        case 4: return "#4ade80"; // green-400
-        case 5: return "#16a34a"; // green-600
-        default: return "#6b7280"; // gray-500
+        case 1: return "red";
+        case 2: return "yellow"; 
+        case 3: return "green";
+        case 4: return "green";
+        case 5: return "teal";
+        default: return "gray";
       }
     },
     getSeverityLabelByLevel: (defcon: number) => {
       switch (defcon) {
-        case 1: return "Very Bad";
-        case 2: return "Below Average";
+        case 1: return "Critical";
+        case 2: return "Poor";
         case 3: return "Average";
         case 4: return "Good";
         case 5: return "Excellent";
@@ -56,17 +65,17 @@ describe("DefconBadge", () => {
     expect(badge).toHaveAttribute("title", "DEFCON 3: Average");
   });
 
-  it("applies correct size classes", () => {
-    const { rerender } = render(<DefconBadge defcon={2} size="sm" />);
-    expect(screen.getByText("DC-2")).toHaveClass("px-1.5", "py-0.5", "text-xs");
+  it("uses correct badge properties", () => {
+    render(<DefconBadge defcon={2} />);
+    const badge = screen.getByText("DC-2");
+    expect(badge).toHaveAttribute("data-color", "yellow");
+    expect(badge).toHaveAttribute("data-kind", "solid");
+  });
 
-    rerender(<DefconBadge defcon={2} size="md" />);
-    expect(screen.getByText("DC-2")).toHaveClass("px-2", "py-1", "text-sm");
-
-    rerender(<DefconBadge defcon={2} size="lg" />);
-    expect(screen.getByText("DC-2")).toHaveClass("px-3", "py-1.5", "text-base");
-
-    rerender(<DefconBadge defcon={2} size="xl" />);
-    expect(screen.getByText("DC-2")).toHaveClass("px-3", "py-1.5", "text-lg");
+  it("uses correct color for N/A badge", () => {
+    render(<DefconBadge defcon={null} />);
+    const badge = screen.getByText("N/A");
+    expect(badge).toHaveAttribute("data-color", "gray");
+    expect(badge).toHaveAttribute("data-kind", "outline");
   });
 }); 

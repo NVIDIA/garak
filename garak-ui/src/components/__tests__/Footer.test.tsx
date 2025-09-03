@@ -1,59 +1,65 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import Footer from "../Footer";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
-const mockCalibration = {
-  model_count: 8,
-  calibration_date: "2023-10-01T12:00:00Z",
-  model_list: "model1, model2, model3, model4, model5",
-};
+// Mock Kaizen components
+vi.mock("@kui/react", () => ({
+  Flex: ({ children, ...props }: any) => <div data-testid="flex" {...props}>{children}</div>,
+  Popover: ({ children, slotContent, ...props }: any) => (
+    <div data-testid="popover" {...props}>
+      {children}
+      <div data-testid="popover-content" style={{ display: "none" }}>
+        {slotContent}
+      </div>
+    </div>
+  ),
+  Button: ({ children, onClick, kind, ...props }: any) => (
+    <button onClick={onClick} data-kind={kind} {...props}>
+      {children}
+    </button>
+  ),
+  Stack: ({ children, ...props }: any) => <div data-testid="stack" {...props}>{children}</div>,
+  Text: ({ children, kind, ...props }: any) => <span data-kind={kind} {...props}>{children}</span>,
+  Anchor: ({ children, href, target, ...props }: any) => (
+    <a href={href} target={target} {...props}>
+      {children}
+    </a>
+  ),
+}));
 
 describe("Footer", () => {
   it("renders static text and button", () => {
-    render(<Footer calibration={null} />);
+    render(<Footer />);
     expect(screen.getByText("About this comparison")).toBeInTheDocument();
     expect(screen.getByText(/Generated with/i)).toBeInTheDocument();
     expect(screen.getByText(/garak/i)).toBeInTheDocument();
   });
 
-  it("reveals z-score info when button is clicked", () => {
-    render(<Footer calibration={null} />);
-    fireEvent.click(screen.getByText("About this comparison"));
-
+  it("renders popover with z-score information", () => {
+    render(<Footer />);
+    
+    // Check that the popover contains the expected z-score information
     expect(screen.getByText(/Positive Z-scores mean better than average/i)).toBeInTheDocument();
-    expect(
-      screen.getByText(/The middle 10% of models score -0.125 to \+0.125/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/The middle 10% of models score -0.125 to \+0.125/i)).toBeInTheDocument();
+    expect(screen.getByText(/A Z-score of \+1.0 means the score was one standard deviation better/i)).toBeInTheDocument();
   });
 
-  it("shows calibration details if provided", () => {
-    render(<Footer calibration={mockCalibration} />);
-    fireEvent.click(screen.getByText("About this comparison"));
-
-    expect(screen.getByText("Calibration Details")).toBeInTheDocument();
-    expect(screen.getByText("8")).toBeInTheDocument();
-    expect(screen.getByText(/built at/i)).toBeInTheDocument();
+  it("has correct button kind", () => {
+    render(<Footer />);
+    const button = screen.getByText("About this comparison");
+    expect(button).toHaveAttribute("data-kind", "secondary");
   });
 
-  it("toggles details off on second click", () => {
-    render(<Footer calibration={null} />);
-    const btn = screen.getByText("About this comparison");
-
-    fireEvent.click(btn);
-    expect(screen.getByText(/Positive Z-scores/i)).toBeInTheDocument();
-
-    fireEvent.click(btn);
-    expect(screen.queryByText(/Positive Z-scores/i)).toBeNull();
+  it("has correct garak link", () => {
+    render(<Footer />);
+    const link = screen.getByText("garak");
+    expect(link).toHaveAttribute("href", "https://github.com/NVIDIA/garak");
+    expect(link).toHaveAttribute("target", "_blank");
   });
 
-  it("shows model count and formatted date from calibration", () => {
-    render(<Footer calibration={mockCalibration} />);
-    fireEvent.click(screen.getByText("About this comparison"));
-
-    expect(screen.getByText("Calibration Details")).toBeInTheDocument();
-    expect(screen.getByText("Calibration Details").closest("div")).toHaveTextContent(/8 models/);
-    expect(
-      screen.getByText(new Date(mockCalibration.calibration_date).toLocaleString())
-    ).toBeInTheDocument();
+  it("has correct test id for footer text", () => {
+    render(<Footer />);
+    const footerText = screen.getByTestId("footer-garak");
+    expect(footerText).toBeInTheDocument();
   });
 });

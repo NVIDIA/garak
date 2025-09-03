@@ -3,10 +3,47 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import ColorLegend from "../ColorLegend";
 import { describe, it, expect, vi } from "vitest";
 
+// Mock Kaizen components
+vi.mock("@kui/react", () => ({
+  Flex: ({ children, ...props }: any) => <div data-testid="flex" {...props}>{children}</div>,
+  Text: ({ children, ...props }: any) => <span {...props}>{children}</span>,
+  Button: ({ children, onClick, "aria-label": ariaLabel, ...props }: any) => (
+    <button onClick={onClick} aria-label={ariaLabel} {...props}>
+      {children}
+    </button>
+  ),
+}));
+
+// Mock useSeverityColor hook
+vi.mock("../../hooks/useSeverityColor", () => ({
+  default: () => ({
+    getSeverityColorByLevel: (level: number) => {
+      const colors: Record<number, string> = {
+        1: "#fecaca", // red-200
+        2: "#fef08a", // yellow-200
+        3: "#bbf7d0", // green-200
+        4: "#bbf7d0", // green-200
+        5: "#7dd3fc", // teal-200
+      };
+      return colors[level] || "#e5e7eb";
+    },
+    getSeverityLabelByLevel: (level: number) => {
+      const labels: Record<number, string> = {
+        1: "Critical",
+        2: "Poor", 
+        3: "Average",
+        4: "Good",
+        5: "Excellent",
+      };
+      return labels[level] || "Unknown";
+    },
+  }),
+}));
+
 describe("ColorLegend", () => {
   it("renders five severity items", () => {
     render(<ColorLegend />);
-    const labels = ["Very Bad", "Below Average", "Average", "Good", "Excellent"];
+    const labels = ["Critical", "Poor", "Average", "Good", "Excellent"];
     labels.forEach(label => expect(screen.getByText(label)).toBeInTheDocument());
 
     // Each label should have a preceding color square

@@ -36,7 +36,7 @@ describe("useProbeTooltip", () => {
     expect(tooltip).toContain("<strong>probe-1</strong>");
     expect(tooltip).toContain("Score: 50.00%");
     expect(tooltip).toContain(
-      'Severity: <span style="color: #ff0; font-weight: 600">medium</span>'
+      'Severity: <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: #ff0; margin-right: 6px; vertical-align: middle;"></span><span style="font-weight: 600">medium</span>'
     );
     expect(tooltip).toContain("DEFCON: <strong>DC-2</strong>");
   });
@@ -48,7 +48,7 @@ describe("useProbeTooltip", () => {
     expect(tooltip).toContain("<strong>unknown</strong>");
     expect(tooltip).toContain("Score: 42.00%");
     expect(tooltip).toContain(
-      'Severity: <span style="color: #999; font-weight: 600">Unknown</span>'
+      'Severity: <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: #999; margin-right: 6px; vertical-align: middle;"></span><span style="font-weight: 600">Unknown</span>'
     );
     expect(tooltip).not.toContain("DEFCON:");
   });

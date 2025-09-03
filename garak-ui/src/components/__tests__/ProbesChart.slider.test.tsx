@@ -3,9 +3,24 @@ import { render, screen } from "@testing-library/react";
 import ProbesChart from "../ProbesChart";
 import { describe, it, expect, vi } from "vitest";
 
+// Mock Kaizen components
+vi.mock("@kui/react", () => ({
+  Button: ({ children, onClick, ...props }: any) => <button onClick={onClick} {...props}>{children}</button>,
+  Flex: ({ children, ...props }: any) => <div data-testid="flex" {...props}>{children}</div>,
+  Grid: ({ children, ...props }: any) => <div data-testid="grid" {...props}>{children}</div>,
+  Stack: ({ children, ...props }: any) => <div data-testid="stack" {...props}>{children}</div>,
+  Text: ({ children, kind, ...props }: any) => <span data-kind={kind} {...props}>{children}</span>,
+  Tooltip: ({ children, slotContent, ...props }: any) => (
+    <div data-testid="tooltip" {...props}>
+      {children}
+      {slotContent && <div data-testid="tooltip-content">{slotContent}</div>}
+    </div>
+  ),
+}));
+
 vi.mock("echarts-for-react", () => ({ __esModule:true, default: ()=> <div data-testid="chart"/> }));
 vi.mock("../DetectorsView", () => ({ __esModule:true, default: () => <div/> }));
-vi.mock("../../hooks/useSeverityColor", () => ({ default: () => ({ getSeverityColorByLevel: () => "#000", getSeverityLabelByLevel:()=>"" }) }));
+vi.mock("../../hooks/useSeverityColor", () => ({ default: () => ({ getSeverityColorByLevel: () => "#000", getSeverityLabelByLevel:()=>"", getDefconColor: () => "#ff0000" }) }));
 
 const moduleData:any = {
   group_name:"m",

@@ -1,7 +1,34 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import DefconSummaryPanel from '../DefconSummaryPanel';
 import type { ModuleData } from '../../types/Module';
+
+// Mock DefconBadge component
+vi.mock('../DefconBadge', () => ({
+  __esModule: true,
+  default: ({ defcon, size, showLabel, ...props }: any) => (
+    <div data-testid="defcon-badge" data-defcon={defcon} data-size={size} data-show-label={showLabel} {...props}>
+      DC-{defcon}
+    </div>
+  ),
+}));
+
+// Mock useSeverityColor hook
+vi.mock('../../hooks/useSeverityColor', () => ({
+  __esModule: true,
+  default: () => ({
+    getSeverityColorByLevel: (level: number) => {
+      const colors: Record<number, string> = {
+        1: "#fecaca", // red-200
+        2: "#fef08a", // yellow-200
+        3: "#bbf7d0", // green-200
+        4: "#bbf7d0", // green-200
+        5: "#7dd3fc", // teal-200
+      };
+      return colors[level] || "#e5e7eb";
+    },
+  }),
+}));
 
 const createMockModule = (groupName: string, score: number, groupDefcon: number): ModuleData => ({
   group_name: groupName,
@@ -24,125 +51,139 @@ describe('DefconSummaryPanel', () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it('calculates and displays overall statistics correctly', () => {
+  it('shows critical failures card when there are DEFCON 1 modules', () => {
     const modules = [
-      createMockModule('module1', 0.8, 4), // Good
-      createMockModule('module2', 0.6, 3), // Average  
-      createMockModule('module3', 0.2, 2), // Poor
-      createMockModule('module4', 0.05, 1), // Critical
+      createMockModule('critical-module', 0.05, 1), // Critical
+      createMockModule('safe-module', 0.8, 4), // Safe
     ];
 
     render(<DefconSummaryPanel modules={modules} />);
 
-    // Check executive summary heading
-    expect(screen.getByText('Executive Summary')).toBeInTheDocument();
-
-    // Check average score calculation: (0.8 + 0.6 + 0.2 + 0.05) / 4 = 0.4125 = 41.3%
-    expect(screen.getByText('41.3%')).toBeInTheDocument();
-    expect(screen.getByText('Average Score')).toBeInTheDocument();
-    expect(screen.getByText('Across 4 modules')).toBeInTheDocument();
+    expect(screen.getByText('🚨 Critical Failures')).toBeInTheDocument();
+    expect(screen.getByText('Module requiring immediate action')).toBeInTheDocument();
+    expect(screen.getByText('critical-module')).toBeInTheDocument();
+    
+    // Check that critical failures card exists with correct content  
+    const criticalCard = screen.getByText('🚨 Critical Failures').closest('.p-4');
+    expect(criticalCard).toBeInTheDocument();
+    expect(criticalCard).toHaveClass('bg-red-50');
   });
 
-  it('correctly identifies red flags (DEFCON 1-2)', () => {
+  it('shows poor performance card when there are DEFCON 2 modules', () => {
     const modules = [
-      createMockModule('safe1', 0.9, 5),
-      createMockModule('safe2', 0.8, 4), 
-      createMockModule('concern1', 0.3, 2), // Red flag
-      createMockModule('critical1', 0.1, 1), // Red flag
+      createMockModule('poor-module', 0.3, 2), // Poor
+      createMockModule('safe-module', 0.8, 4), // Safe
     ];
 
     render(<DefconSummaryPanel modules={modules} />);
 
-    // Should show 2 red flags out of 4 modules = 50%
-    expect(screen.getByText('2')).toBeInTheDocument();
-    expect(screen.getByText('Critical/Poor (50.0%)')).toBeInTheDocument();
+    expect(screen.getByText('⚡ Poor Performance')).toBeInTheDocument();
+    expect(screen.getByText('Module needing review')).toBeInTheDocument();
+    expect(screen.getByText('poor-module')).toBeInTheDocument();
+    
+    // Check that poor performance card exists with correct styling
+    const poorCard = screen.getByText('⚡ Poor Performance').closest('.p-4');
+    expect(poorCard).toBeInTheDocument();
+    expect(poorCard).toHaveClass('bg-orange-50');
   });
 
-  it('correctly identifies low risk modules (DEFCON 4-5)', () => {
+  it('shows all systems secure card when no failures exist', () => {
     const modules = [
-      createMockModule('good1', 0.85, 4), // Low risk
-      createMockModule('excellent1', 0.95, 5), // Low risk
-      createMockModule('average1', 0.5, 3),
-      createMockModule('poor1', 0.2, 2),
+      createMockModule('good1', 0.8, 4),
+      createMockModule('excellent1', 0.95, 5),
+      createMockModule('average1', 0.6, 3),
     ];
 
     render(<DefconSummaryPanel modules={modules} />);
 
-    // Should show 2 low risk out of 4 modules = 50%  
-    expect(screen.getByText('Good/Excellent (50.0%)')).toBeInTheDocument();
+    expect(screen.getByText('✅ All Systems Secure')).toBeInTheDocument();
+    expect(screen.getByText('All 3 modules performing acceptably')).toBeInTheDocument();
+    expect(screen.getByText('No modules require immediate security attention')).toBeInTheDocument();
   });
 
-  it('displays DEFCON distribution correctly', () => {
+  it('always shows performance overview card', () => {
+    const modules = [
+      createMockModule('module1', 0.95, 5), // Best
+      createMockModule('module2', 0.8, 4),  // Second
+      createMockModule('module3', 0.6, 3),  // Worst
+    ];
+
+    render(<DefconSummaryPanel modules={modules} />);
+
+    expect(screen.getByText('📊 Performance Overview')).toBeInTheDocument();
+    expect(screen.getByText('Top 3 lowest scoring modules:')).toBeInTheDocument();
+    
+    // Check that modules are listed in order of lowest scores first
+    expect(screen.getByText('1.')).toBeInTheDocument();
+    expect(screen.getByText('2.')).toBeInTheDocument();
+    expect(screen.getByText('3.')).toBeInTheDocument();
+    
+    // Check module names and scores appear
+    expect(screen.getByText('module3')).toBeInTheDocument(); // Lowest score first
+    expect(screen.getByText('(60.0%)')).toBeInTheDocument(); // 0.6 * 100
+  });
+
+  it('shows multiple critical modules correctly', () => {
     const modules = [
       createMockModule('crit1', 0.02, 1),
-      createMockModule('crit2', 0.03, 1), // 2 × DEFCON 1
-      createMockModule('poor1', 0.3, 2), // 1 × DEFCON 2
-      createMockModule('avg1', 0.5, 3), // 1 × DEFCON 3
-      createMockModule('good1', 0.8, 4),
-      createMockModule('good2', 0.85, 4), // 2 × DEFCON 4
-      createMockModule('exc1', 0.99, 5), // 1 × DEFCON 5
+      createMockModule('crit2', 0.03, 1),
+      createMockModule('safe1', 0.9, 5),
     ];
 
     render(<DefconSummaryPanel modules={modules} />);
 
-    expect(screen.getByText('DEFCON Distribution')).toBeInTheDocument();
-    
-    // Check individual DEFCON counts
-    expect(screen.getByText('(2)')).toBeInTheDocument(); // DEFCON 1 count
-    expect(screen.getByText('(1)')).toBeInTheDocument(); // DEFCON 2, 3, 5 counts
-    // Note: There should be multiple (1) and (2) texts, but at least they exist
+    expect(screen.getByText('🚨 Critical Failures')).toBeInTheDocument();
+    expect(screen.getByText('Modules requiring immediate action')).toBeInTheDocument(); // Plural
+    expect(screen.getByText('crit1')).toBeInTheDocument();
+    expect(screen.getByText('crit2')).toBeInTheDocument();
+    expect(screen.getByText('2')).toBeInTheDocument(); // Count badge
   });
 
-  it('calculates overall risk level correctly based on red flag percentage', () => {
-    // High red flag scenario (>25% = overall DEFCON 1)
-    const highRiskModules = [
-      createMockModule('crit1', 0.05, 1), // Red flag
-      createMockModule('crit2', 0.1, 1),  // Red flag  
-      createMockModule('poor1', 0.3, 2),  // Red flag
-      createMockModule('safe1', 0.9, 5),  // 3/4 = 75% red flags
+  it('shows multiple poor performance modules correctly', () => {
+    const modules = [
+      createMockModule('poor1', 0.25, 2),
+      createMockModule('poor2', 0.35, 2),
+      createMockModule('safe1', 0.9, 5),
     ];
 
-    const { rerender } = render(<DefconSummaryPanel modules={highRiskModules} />);
-    
-    // Should show an overall critical DEFCON badge
-    expect(screen.getByText('Critical/Poor (75.0%)')).toBeInTheDocument();
+    render(<DefconSummaryPanel modules={modules} />);
 
-    // Low risk scenario (>70% low risk = overall DEFCON 5)
-    const lowRiskModules = [
-      createMockModule('good1', 0.8, 4),   // Low risk
-      createMockModule('good2', 0.85, 4),  // Low risk
-      createMockModule('exc1', 0.95, 5),   // Low risk
-      createMockModule('avg1', 0.5, 3),    // 3/4 = 75% low risk
-    ];
-
-    rerender(<DefconSummaryPanel modules={lowRiskModules} />);
-    expect(screen.getByText('Good/Excellent (75.0%)')).toBeInTheDocument();
+    expect(screen.getByText('⚡ Poor Performance')).toBeInTheDocument();
+    expect(screen.getByText('Modules needing review')).toBeInTheDocument(); // Plural
+    expect(screen.getByText('poor1')).toBeInTheDocument();
+    expect(screen.getByText('poor2')).toBeInTheDocument();
+    expect(screen.getByText('2')).toBeInTheDocument(); // Count badge
   });
 
-  it('handles single module correctly', () => {
+  it('uses correct DEFCON badges throughout', () => {
+    const modules = [
+      createMockModule('crit1', 0.05, 1),
+      createMockModule('poor1', 0.3, 2),
+      createMockModule('avg1', 0.6, 3),
+    ];
+
+    render(<DefconSummaryPanel modules={modules} />);
+
+    // Should have DefconBadge components with correct defcon levels
+    const badges = screen.getAllByTestId('defcon-badge');
+    expect(badges.length).toBeGreaterThan(0);
+    
+    // Check that we have badges for the modules' DEFCON levels
+    const badge1 = badges.find(badge => badge.getAttribute('data-defcon') === '1');
+    const badge2 = badges.find(badge => badge.getAttribute('data-defcon') === '2');
+    const badge3 = badges.find(badge => badge.getAttribute('data-defcon') === '3');
+    
+    expect(badge1).toBeInTheDocument();
+    expect(badge2).toBeInTheDocument();
+    expect(badge3).toBeInTheDocument();
+  });
+
+  it('handles single module with singular text', () => {
     const modules = [createMockModule('single', 0.7, 3)];
 
     render(<DefconSummaryPanel modules={modules} />);
 
-    expect(screen.getByText('70.0%')).toBeInTheDocument();
-    expect(screen.getByText('Across 1 module')).toBeInTheDocument(); // Singular form
-  });
-
-  it('only displays DEFCON levels that have counts > 0', () => {
-    // Only DEFCON 1 and 5 modules
-    const modules = [
-      createMockModule('crit1', 0.05, 1),
-      createMockModule('exc1', 0.95, 5),
-    ];
-
-    render(<DefconSummaryPanel modules={modules} />);
-
-    // Should only show badges for DEFCON 1 and 5, not 2, 3, 4
-    const defconSection = screen.getByText('DEFCON Distribution').parentElement;
-    expect(defconSection).toBeInTheDocument();
-    
-    // We should see exactly 2 DEFCON badges (1 and 5)
-    const defconBadges = defconSection?.querySelectorAll('[class*="rounded-sm"]');
-    expect(defconBadges?.length).toBe(2);
+    expect(screen.getByText('All 1 module performing acceptably')).toBeInTheDocument();
+    expect(screen.getByText('single')).toBeInTheDocument();
   });
 }); 
