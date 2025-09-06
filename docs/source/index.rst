@@ -1,7 +1,7 @@
-Welcome to the garak reference documentation
-============================================
+Garak Reference Documentation
+=============================
 
-**garak** is an LLM vulnerability scanner, `<https://garak.ai>`_.
+Garak is an LLM vulnerability scanner, `<https://garak.ai>`_.
 It uses a huge range of probes to examine and query a large language model, simulating
 attacks, and uses a range of detectors on the model's outputs to see if the model was
 vulnerable to any of those attacks.
@@ -26,71 +26,51 @@ Check out the :doc:`usage` section for further information, including :ref:`inst
    mail `docs@garak.ai <mailto:docs@garak.ai>`_ or drop us a note on `Discord <https://discord.gg/uVch4puUCs>`_.
    Thank you!
 
-Contents
---------
-
-
-Using garak
-^^^^^^^^^^^
 
 .. toctree::
+   :caption: Using garak
    :maxdepth: 1
+   :hidden:
 
    how
    usage
-   reporting
-   FAQ <https://github.com/NVIDIA/garak/blob/main/FAQ.md>
-
-Advanced usage
-^^^^^^^^^^^^^^
-
-.. toctree::
-   :maxdepth: 1
-
    configurable
    cliref
+   reporting
    translation
    ascii_smuggling
-
-Code reference
-^^^^^^^^^^^^^^
+   FAQ <https://github.com/NVIDIA/garak/blob/main/FAQ.md>
 
 .. toctree::
+   :caption: Reference
    :maxdepth: 1
+   :hidden:
 
    basic
    attempt
+   buffs
    cli
    command
+   detectors
+   evaluators
    exception
+   generators
+   harnesses
    interactive
    langservice
    payloads
+   probes
+   report
    _config
    _plugins
 
 
-
-Plugin structure
-^^^^^^^^^^^^^^^^
-
 .. toctree::
+   :caption: Extending and Contributing
    :maxdepth: 1
-
-   buffs
-   detectors
-   evaluators
-   generators
-   harnesses
-   probes
-   report
-
-
-Building further
-^^^^^^^^^^^^^^^^
-
-.. toctree::
-   :maxdepth: 1
+   :hidden:
 
    extending
+   extending.generator
+   extending.probe
    contributing
