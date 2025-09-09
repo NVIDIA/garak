@@ -64,7 +64,7 @@ class Probe(Configurable):
 
     DEFAULT_PARAMS = {}
 
-    _run_params = {"generations", "soft_probe_prompt_cap", "seed"}
+    _run_params = {"generations", "soft_probe_prompt_cap", "seed", "system_prompt"}
     _system_params = {"parallel_attempts", "max_workers"}
 
     def __init__(self, config_root=_config):
@@ -188,6 +188,42 @@ class Probe(Configurable):
         self, prompt=None, seq=None, notes=None, lang="*"
     ) -> garak.attempt.Attempt:
         """function for creating a new attempt given a prompt"""
+        turns = []
+        if isinstance(prompt, garak.attempt.Conversation):
+            try:
+                # only add system prompt if the prompt does not contain one
+                prompt.last_message("system")
+                turns = prompt.turns
+            except ValueError as e:
+                turns.append(prompt.turns)
+        elif hasattr(self, "system_prompt") and self.system_prompt:
+            turns.append(
+                garak.attempt.Turn(
+                    role="system",
+                    content=garak.attempt.Message(
+                        text=self.system_prompt, lang=lang
+                    ),
+                )
+            )
+        if isinstance(prompt, str):
+            turns.append(
+                garak.attempt.Turn(
+                    role="user", content=garak.attempt.Message(text=prompt, lang=lang)
+                )
+            )
+        elif isinstance(prompt, garak.attempt.Message):
+            turns.append(garak.attempt.Turn(role="user", content=prompt))
+        else:
+            # May eventually want to raise a ValueError here
+            # Currently we need to allow for an empty attempt to be returned to support atkgen
+            logging.warning("No prompt set for attempt in %s" % self.__class__.__name__)
+
+        if len(turns) > 0:
+            prompt = garak.attempt.Conversation(
+                turns=turns,
+                notes=notes,
+            )
+
         new_attempt = garak.attempt.Attempt(
             probe_classname=(
                 str(self.__class__.__module__).replace("garak.probes.", "")

@@ -80,7 +80,7 @@ class ModelAsJudge(Detector, EvaluationJudge):
         super().__init__(config_root=config_root)
         self._load_generator()
 
-    def detect(self, attempt: Attempt) -> List[float]:
+    def detect(self, attempt: Attempt) -> List[float | None]:
         results = []
         if not hasattr(self, "system_prompt_judge"):
             probe_info = _plugins.plugin_info(f"probes.{attempt.probe_classname}")
@@ -98,12 +98,21 @@ class ModelAsJudge(Detector, EvaluationJudge):
             if "original_prompt" in attempt.notes
             else attempt.prompt.last_message().text
         )
-        results = self.judge_score(
-            list([tested_prompt] * len(attempt.all_outputs)),
-            [o.text for o in attempt.all_outputs],
-        )
+        results = [
+            self.judge_score([tested_prompt], [o.text])[0] if o else None
+            for o in attempt.all_outputs
+        ]
+        ret_list = []
+        for i in results:
+            if i:
+                if i >= self.confidence_cutoff:
+                    ret_list.append(1.0)
+                else:
+                    ret_list.append(0.0)
+            else:
+                ret_list.append(None)
 
-        return [1.0 if i >= self.confidence_cutoff else 0.0 for i in results]
+        return ret_list
 
 
 class Refusal(ModelAsJudge):
@@ -136,7 +145,8 @@ class Refusal(ModelAsJudge):
         if not hasattr(self, "system_prompt_on_topic"):
             self.system_prompt_on_topic = self._refusal_system_prompt
 
-    def detect(self, attempt: Attempt) -> List[float]:
-        return self.on_topic_score(
-            [o.text for o in attempt.all_outputs],
-        )
+    def detect(self, attempt: Attempt) -> List[float | None]:
+        # these need to eval individually of the methods called need to support `None`
+        return [
+            self.on_topic_score([o.text])[0] if o else None for o in attempt.all_outputs
+        ]

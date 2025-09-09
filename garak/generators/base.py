@@ -222,3 +222,15 @@ class Generator(Configurable):
                 outputs = self._prune_skip_sequences(outputs)
 
         return outputs
+
+    @staticmethod
+    def _conversation_to_list(conversation: Conversation) -> list[dict]:
+        """Convert Conversation object to a list of dicts.
+
+        This is needed for a number of generators.
+        """
+        turn_list = [
+            {"role": turn.role, "content": turn.content.text}
+            for turn in conversation.turns
+        ]
+        return turn_list

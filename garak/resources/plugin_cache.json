@@ -100,7 +100,7 @@
         "payload:unwanted"
       ],
       "tier": 2,
-      "mod_time": "2025-08-15 20:02:18 +0000"
+      "mod_time": "2025-08-28 19:55:49 +0000"
     },
     "probes.audio.AudioAchillesHeel": {
       "description": "Audio is the Achilles Heel",
@@ -235,7 +235,7 @@
       ],
       "tags": [],
       "tier": 9,
-      "mod_time": "2025-08-15 20:02:18 +0000"
+      "mod_time": "2025-08-28 13:46:07 +0000"
     },
     "probes.base.TreeSearchProbe": {
       "DEFAULT_PARAMS": {
@@ -262,7 +262,7 @@
       ],
       "tags": [],
       "tier": 9,
-      "mod_time": "2025-08-15 20:02:18 +0000"
+      "mod_time": "2025-08-28 13:46:07 +0000"
     },
     "probes.continuation.ContinueSlursReclaimedSlurs": {
       "description": "Continue partial word with slur or reclaimed slur.",
@@ -5015,7 +5015,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-04-17 08:31:20 +0000"
+      "mod_time": "2025-07-02 06:55:12 +0000"
     },
     "detectors.always.Pass": {
       "description": "Always Pass (for testing & prototyping)",
@@ -5034,7 +5034,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-04-17 08:31:20 +0000"
+      "mod_time": "2025-07-02 06:55:12 +0000"
     },
     "detectors.always.Passthru": {
       "description": "Send existing attempt detection results; use first detector",
@@ -5053,7 +5053,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-04-17 08:31:20 +0000"
+      "mod_time": "2025-07-02 06:55:12 +0000"
     },
     "detectors.always.Random": {
       "description": "Always return a random result (for testing & prototyping)",
@@ -5072,7 +5072,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-04-17 08:31:20 +0000"
+      "mod_time": "2025-07-02 06:55:12 +0000"
     },
     "detectors.ansiescape.Escaped": {
       "description": "pick up escaped ANSI escape sequences",
@@ -5131,7 +5131,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-08-13 22:01:46 +0000"
+      "mod_time": "2025-09-02 21:22:52 +0000"
     },
     "detectors.base.FileDetector": {
       "description": "Detector subclass for processing attempts whose outputs are filenames for checking",
@@ -5151,7 +5151,7 @@
       "recall": 0.0,
       "tags": [],
       "valid_format": "local filename",
-      "mod_time": "2025-08-13 22:01:46 +0000"
+      "mod_time": "2025-09-02 21:22:52 +0000"
     },
     "detectors.base.HFDetector": {
       "description": "Detector using a Hugging Face model",
@@ -5178,7 +5178,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-08-13 22:01:46 +0000"
+      "mod_time": "2025-09-02 21:22:52 +0000"
     },
     "detectors.base.StringDetector": {
       "description": "Subclass of Detector using list of substrings as detection triggers",
@@ -5198,7 +5198,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-08-13 22:01:46 +0000"
+      "mod_time": "2025-09-02 21:22:52 +0000"
     },
     "detectors.base.TriggerListDetector": {
       "description": "Subclass of Detector using attempt's notes[triggers] as list of strings to match",
@@ -5217,7 +5217,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-08-13 22:01:46 +0000"
+      "mod_time": "2025-09-02 21:22:52 +0000"
     },
     "detectors.continuation.Continuation": {
       "description": "Detect if model intiates / continues a trigger word",
@@ -5650,7 +5650,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-04-17 08:31:20 +0000"
+      "mod_time": "2025-07-02 06:55:12 +0000"
     },
     "detectors.goodside.PlainJSON": {
       "description": "Is the output valid JSON with no preamble?",
@@ -5669,7 +5669,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-04-17 08:31:20 +0000"
+      "mod_time": "2025-07-02 06:55:12 +0000"
     },
     "detectors.goodside.RileyIsnt": {
       "description": "Look for mentions of being Canadian, female pronouns, being a singer",
@@ -5689,7 +5689,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-04-17 08:31:20 +0000"
+      "mod_time": "2025-07-02 06:55:12 +0000"
     },
     "detectors.judge.ModelAsJudge": {
       "description": "Uses the configured model to detect responses that attained the probe goal",
@@ -5713,7 +5713,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2025-09-02 21:22:52 +0000"
     },
     "detectors.judge.Refusal": {
       "description": "Uses the configured model to detect if the responses is a refusal to answer",
@@ -5735,7 +5735,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2025-09-02 21:22:52 +0000"
     },
     "detectors.knownbadsignatures.EICAR": {
       "description": "Is the EICAR test string present?",
@@ -5884,7 +5884,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-08-08 14:23:52 +0000"
+      "mod_time": "2025-08-25 19:24:36 +0000"
     },
     "detectors.misleading.MustContradictNLI": {
       "description": "This detector is looking for the model to contradict a claim.",
@@ -5913,7 +5913,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-08-14 13:10:09 +0000"
+      "mod_time": "2025-08-20 13:55:46 +0000"
     },
     "detectors.misleading.MustRefuteClaimKW": {
       "description": "Looking for strings indicating a refutation",
@@ -5933,7 +5933,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-08-14 13:10:09 +0000"
+      "mod_time": "2025-08-20 13:55:46 +0000"
     },
     "detectors.misleading.MustRefuteClaimModel": {
       "description": "Using garak-llm/refutation_detector_distilbert to detect model refutations",
@@ -5962,7 +5962,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-08-14 13:10:09 +0000"
+      "mod_time": "2025-08-20 13:55:46 +0000"
     },
     "detectors.mitigation.MitigationBypass": {
       "description": "Detect if a string response does not contain a mitigation message.",
@@ -5985,7 +5985,7 @@
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204"
       ],
-      "mod_time": "2025-04-23 07:10:52 +0000"
+      "mod_time": "2025-07-02 06:55:12 +0000"
     },
     "detectors.mitigation.Prefixes": {
       "description": "Detect failure prefixes",
@@ -6005,7 +6005,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-04-23 07:10:52 +0000"
+      "mod_time": "2025-07-02 06:55:12 +0000"
     },
     "detectors.packagehallucination.JavaScriptNpm": {
       "description": "Check if the output tries to import or require an npm package not listed in the npm registry",
@@ -6027,7 +6027,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-08-08 14:23:52 +0000"
+      "mod_time": "2025-08-20 13:55:46 +0000"
     },
     "detectors.packagehallucination.PackageHallucinationDetector": {
       "description": "Base class for package hallucination detectors",
@@ -6049,7 +6049,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-08-08 14:23:52 +0000"
+      "mod_time": "2025-08-20 13:55:46 +0000"
     },
     "detectors.packagehallucination.PythonPypi": {
       "description": "Check if the output tries to import a package not listed in stdlib or a pypi archive listing",
@@ -6071,7 +6071,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-08-08 14:23:52 +0000"
+      "mod_time": "2025-08-20 13:55:46 +0000"
     },
     "detectors.packagehallucination.RubyGems": {
       "description": "Check if the output tries to require a gem not listed in the Ruby standard library or RubyGems",
@@ -6093,7 +6093,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-08-08 14:23:52 +0000"
+      "mod_time": "2025-08-20 13:55:46 +0000"
     },
     "detectors.packagehallucination.RustCrates": {
       "description": "Check if the output tries to use a Rust crate not listed in the crates.io registry",
@@ -6115,7 +6115,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-08-08 14:23:52 +0000"
+      "mod_time": "2025-08-20 13:55:46 +0000"
     },
     "detectors.perspective.Attack_On_Author": {
       "description": "Targets: Attack on the author of an article or post.",
@@ -6664,7 +6664,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-04-17 08:31:20 +0000"
+      "mod_time": "2025-07-02 06:55:12 +0000"
     },
     "detectors.shields.Up": {
       "description": "Checks for strings commonly returned when a security system is",
@@ -6694,7 +6694,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-04-17 08:31:20 +0000"
+      "mod_time": "2025-07-02 06:55:12 +0000"
     },
     "detectors.snowball.DontStartNo": {
       "description": "Response should start no, or contain a negation, to pass",
@@ -7443,7 +7443,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-06-12 16:14:56 +0000"
+      "mod_time": "2025-08-26 14:02:31 +0000"
     },
     "generators.cohere.CohereGenerator": {
       "description": "Interface to Cohere's python library for their text2text model.",
@@ -7474,7 +7474,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-08-08 14:23:52 +0000"
+      "mod_time": "2025-08-26 14:02:31 +0000"
     },
     "generators.function.Multiple": {
       "description": "Pass a function to call as a generator.",
@@ -7616,7 +7616,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2025-08-26 14:02:31 +0000"
     },
     "generators.huggingface.InferenceAPI": {
       "description": "Get text generations from Hugging Face Inference API",
@@ -7643,7 +7643,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2025-08-14 13:10:09 +0000"
+      "mod_time": "2025-08-26 14:02:31 +0000"
     },
     "generators.huggingface.InferenceEndpoint": {
       "description": "Interface for Hugging Face private endpoints",
@@ -7670,7 +7670,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-08-14 13:10:09 +0000"
+      "mod_time": "2025-08-26 14:02:31 +0000"
     },
     "generators.huggingface.LLaVA": {
       "description": "Get LLaVA ([ text + image ] -> text) generations",
@@ -7700,7 +7700,7 @@
       },
       "parallel_capable": false,
       "supports_multiple_generations": false,
-      "mod_time": "2025-08-14 13:10:09 +0000"
+      "mod_time": "2025-08-26 14:02:31 +0000"
     },
     "generators.huggingface.Model": {
       "description": "Get text generations from a locally-run Hugging Face model",
@@ -7729,7 +7729,7 @@
       },
       "parallel_capable": false,
       "supports_multiple_generations": true,
-      "mod_time": "2025-08-14 13:10:09 +0000"
+      "mod_time": "2025-08-26 14:02:31 +0000"
     },
     "generators.huggingface.OptimumPipeline": {
       "description": "Get text generations from a locally-run Hugging Face pipeline using NVIDIA Optimum",
@@ -7758,7 +7758,7 @@
       },
       "parallel_capable": false,
       "supports_multiple_generations": true,
-      "mod_time": "2025-08-14 13:10:09 +0000"
+      "mod_time": "2025-08-26 14:02:31 +0000"
     },
     "generators.huggingface.Pipeline": {
       "description": "Get text generations from a locally-run Hugging Face pipeline",
@@ -7787,7 +7787,7 @@
       },
       "parallel_capable": false,
       "supports_multiple_generations": true,
-      "mod_time": "2025-08-14 13:10:09 +0000"
+      "mod_time": "2025-08-26 14:02:31 +0000"
     },
     "generators.langchain.LangChainLLMGenerator": {
       "description": "Class supporting LangChain LLM interfaces",
@@ -7873,7 +7873,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2025-07-02 22:27:38 +0000"
+      "mod_time": "2025-08-26 14:02:31 +0000"
     },
     "generators.mistral.MistralGenerator": {
       "description": "Interface for public endpoints of models hosted in Mistral La Plateforme (console.mistral.ai).",
@@ -7898,7 +7898,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-08-08 14:23:52 +0000"
+      "mod_time": "2025-08-26 14:02:31 +0000"
     },
     "generators.nemo.NeMoGenerator": {
       "description": "Wrapper for the NVIDIA NeMo models via NGC. Expects NGC_API_KEY and ORG_ID environment variables.",
@@ -8139,7 +8139,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2025-08-26 14:02:31 +0000"
     },
     "generators.nvcf.NvcfCompletion": {
       "description": "Wrapper for NVIDIA Cloud Functions Completion models via NGC. Expects NVCF_API_KEY environment variables.",
@@ -8172,7 +8172,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2025-08-26 14:02:31 +0000"
     },
     "generators.ollama.OllamaGenerator": {
       "description": "Interface for Ollama endpoints",
@@ -8198,7 +8198,7 @@
       },
       "parallel_capable": false,
       "supports_multiple_generations": false,
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2025-08-26 14:02:31 +0000"
     },
     "generators.ollama.OllamaGeneratorChat": {
       "description": "Interface for Ollama endpoints, using the chat functionality",
@@ -8224,7 +8224,7 @@
       },
       "parallel_capable": false,
       "supports_multiple_generations": false,
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2025-08-26 14:02:31 +0000"
     },
     "generators.openai.OpenAICompatible": {
       "description": "Generator base class for OpenAI compatible text2text restful API. Implements shared initialization and execution methods.",
@@ -8260,7 +8260,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2025-08-26 14:02:31 +0000"
     },
     "generators.openai.OpenAIGenerator": {
       "description": "Generator wrapper for OpenAI text2text models. Expects API key in the OPENAI_API_KEY environment variable",
@@ -8295,7 +8295,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2025-08-26 14:02:31 +0000"
     },
     "generators.openai.OpenAIReasoningGenerator": {
       "description": "Generator wrapper for OpenAI reasoning models, e.g. `o1` family.",
@@ -8335,7 +8335,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2025-08-26 14:02:31 +0000"
     },
     "generators.rasa.RasaRestGenerator": {
       "description": "API interface for RASA models",

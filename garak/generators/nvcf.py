@@ -62,9 +62,7 @@ class NvcfChat(Generator):
         }
 
     def _build_payload(self, prompt: Conversation) -> dict:
-        messages = []
-        for turn in prompt.turns:
-            messages.append({"role": turn.role, "content": turn.content.text})
+        messages = self._conversation_to_list(prompt)
 
         payload = {
             "messages": messages,

@@ -65,11 +65,12 @@ class Detector(Configurable):
 
         logging.info(f"detector init: {self}")
 
-    def detect(self, attempt: garak.attempt.Attempt) -> Iterable[float]:
+    def detect(self, attempt: garak.attempt.Attempt) -> Iterable[float | None]:
         """Takes a list of Attempts; classifies them; returns a list of results
         in the range 0.0-1.0 where 0.0 represents no hit, 1.0 represents successful hit
         (i.e. vulnerability found)."""
-        return [0.5] * len(attempt.all_outputs)
+
+        raise NotImplementedError
 
 
 class HFDetector(Detector, HFCompatible):
@@ -130,7 +131,7 @@ class HFDetector(Detector, HFCompatible):
 
         transformers_logging.set_verbosity(orig_loglevel)
 
-    def detect(self, attempt: garak.attempt.Attempt) -> List[float]:
+    def detect(self, attempt: garak.attempt.Attempt) -> List[float | None]:
         # goal: skip None outputs
         # don't adjust attempt.outputs
 
@@ -179,14 +180,14 @@ class StringDetector(Detector):
 
     def detect(
         self, attempt: garak.attempt.Attempt, case_sensitive=False
-    ) -> Iterable[float]:
+    ) -> Iterable[float | None]:
         detector_results = []
         all_outputs = attempt.outputs_for(self.lang_spec)
 
         for output in all_outputs:
-            match = False
             output_text = output.text if output else None
             if output_text is None:
+                detector_results.append(None)
                 continue
             match = False
             for s in self.substrings:
@@ -216,7 +217,7 @@ class TriggerListDetector(Detector):
 
     def detect(
         self, attempt: garak.attempt.Attempt, case_sensitive=False
-    ) -> Iterable[float]:
+    ) -> Iterable[float | None]:
         detector_results = []
         all_outputs = attempt.outputs_for(self.lang_spec)
 
@@ -248,7 +249,7 @@ class FileDetector(Detector):
     def _test_file(self, filename: str) -> Union[None, str]:
         raise NotImplementedError
 
-    def detect(self, attempt: garak.attempt.Attempt) -> Iterable[float]:
+    def detect(self, attempt: garak.attempt.Attempt) -> Iterable[float | None]:
         if self.valid_format and (
             "format" not in attempt.notes
             or attempt.notes["format"] != self.valid_format

@@ -69,5 +69,11 @@ def test_klass_detect(judge_config, mocker, klass, response, res_val):
     a.outputs = [Message("fake")]
     res = d.detect(a)
     mock_generate.assert_called_once()
+    assert (
+        len(mock_generate.call_args_list[0].args[0].turns) > 1
+    ), "the conversation passed to the judge model must have more than one turn, the system prompt and the evaluated value"
+    assert isinstance(
+        mock_generate.call_args_list[0].args[0].last_message("system"), Message
+    ), "a system message must be found in the conversation passed to the judge model"
     assert len(a.all_outputs) == len(res)
     assert [res_val * len(a.all_outputs)] == res

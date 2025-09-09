@@ -284,7 +284,7 @@ Larger artefacts, like model files and bigger corpora, are kept out of the repos
 
 ## FAQ
 
-We have an FAQ [here](https://github.com/NVIDIA/garak/blob/main/FAQ.md). Reach out if you have any more questions! [leon@garak.ai](mailto:leon@garak.ai)
+We have an FAQ [here](https://github.com/NVIDIA/garak/blob/main/FAQ.md). Reach out if you have any more questions! [garak@nvidia.com](mailto:garak@nvidia.com)
 
 Code reference documentation is at [garak.readthedocs.io](https://garak.readthedocs.io/en/latest/).
 

@@ -105,6 +105,30 @@ def test_conversation_internal_serialize():
     assert src_conv == dest
 
 
+def test_last_message():
+    test_system_msg = garak.attempt.Message("the system is under control")
+    test_user_msg = garak.attempt.Message(
+        "But the point is, if you lie all the time, nobody's going to believe you, even when you're telling the truth."
+    )
+    test_assistant_msg = garak.attempt.Message("AI does not understand")
+    test_user_msg_2 = garak.attempt.Message("That figures")
+
+    turns = [
+        garak.attempt.Turn("system", test_system_msg),
+        garak.attempt.Turn("user", test_user_msg),
+        garak.attempt.Turn("assistant", test_assistant_msg),
+    ]
+    conv = garak.attempt.Conversation(turns)
+    assert conv.last_message() == test_assistant_msg
+    assert conv.last_message("system") == test_system_msg
+    assert conv.last_message("user") == test_user_msg
+
+    new_turn = garak.attempt.Turn("user", test_user_msg_2)
+    conv.turns.append(new_turn)
+    assert conv.last_message("user") == test_user_msg_2
+    assert conv.last_message() == test_user_msg_2
+
+
 ##########################
 # Test Attempt LifeCycle #
 ##########################
@@ -138,7 +162,7 @@ def test_attempt_turn_taking():
     ), "Setting attempt.prompt on new prompt should lead to attempt.prompt returning that prompt object"
     assert a.conversations == [
         garak.attempt.Conversation([garak.attempt.Turn("user", first_prompt)])
-    ]
+    ], "a.conversations does not match established first prompt."
     assert a.outputs == []
     first_response = [garak.attempt.Message(a) for a in ["not much", "as an ai"]]
     a.outputs = first_response

@@ -105,13 +105,6 @@ class Tox(garak.probes.Probe):
                 print("atkgen: 🆕 ⋅.˳˳.⋅ॱ˙˙ॱ New conversation ॱ˙˙ॱ⋅.˳˳.⋅ 🗣️")
 
             while calls_made < self.max_calls_per_conv and keep_going:
-                this_attempt = self._mint_attempt()  # don't set the prompt yet
-                logging.debug(
-                    "atkgen: attempt %s uuid %s call %s",
-                    i,
-                    this_attempt.uuid,
-                    calls_made,
-                )
 
                 if not output_is_conversation:
                     t.set_description(
@@ -145,18 +138,14 @@ class Tox(garak.probes.Probe):
                         challenge_text = re.sub(
                             self.red_team_postproc_rm_regex, "", challenge.text
                         ).strip()
-                this_attempt.notes["red_team_challenge"] = last_response
-                if last_attempt:
-                    this_attempt.notes["previous_attempt_id"] = str(last_attempt.uuid)
-
-                if not output_is_conversation:
-                    t.update()
 
                 # translate the challenge to send to the target
                 challenge_to_send = self.langprovider.get_text([challenge_text])[0]
 
-                this_attempt.prompt = garak.attempt.Message(
-                    challenge_to_send, lang=self.langprovider.target_lang
+                this_attempt = self._mint_attempt(
+                    prompt=garak.attempt.Message(
+                        challenge_to_send, lang=self.langprovider.target_lang
+                    )
                 )
                 if challenge_to_send != challenge_text:
                     this_attempt.notes["pre_translation_prompt"] = (
@@ -171,6 +160,16 @@ class Tox(garak.probes.Probe):
                             ]
                         )
                     )
+                logging.debug(
+                    "atkgen: attempt %s uuid %s call %s"
+                    % (i, this_attempt.uuid, calls_made)
+                )
+                this_attempt.notes["red_team_challenge"] = last_response
+                if last_attempt:
+                    this_attempt.notes["previous_attempt_id"] = str(last_attempt.uuid)
+
+                if not output_is_conversation:
+                    t.update()
 
                 logging.debug("atkgen: probe: %s", challenge_text)
                 if output_is_conversation:

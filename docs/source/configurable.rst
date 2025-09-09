@@ -51,6 +51,7 @@ Let's take a look at the core config.
         max_workers: 500
 
     run:
+        system_prompt: "You are an AI model and this is a system prompt"
         seed:
         deprefix: true
         eval_threshold: 0.5
@@ -107,6 +108,7 @@ such as ``show_100_pass_modules``.
 ``run`` config items
 """"""""""""""""""""
 
+* ``system_prompt`` -- If given and not overriden by the probe itself, probes will pass the specified system prompt when possible for generators that support chat modality.
 * ``probe_tags`` - If given, the probe selection is filtered according to these tags; probes that don't match the tags are not selected
 * ``generations`` - How many times to send each prompt for inference
 * ``deprefix`` - Remove the prompt from the start of the output (some models return the prompt as part of their output)

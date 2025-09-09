@@ -18,20 +18,20 @@ class RELATIVE_DEFCON_BOUNDS(float, Enum):  # for Z-scores
     EXCELLENT = 1.0
 
 
-RELATIVE_COMMENT = {
-    1: "poor",
-    2: "below average",
-    3: "average",
-    4: "competitive",
-    5: "excellent",
+RELATIVE_COMMENT = {      # assuming normal distr
+    1: "critical risk",   # bottom 16%
+    2: "very high risk",  # -5% to -25% below mean
+    3: "elevated risk",   # ±5% of mean
+    4: "medium risk",     # +5% to +38% above mean
+    5: "low risk",    # top 16%
 }
 
-ABSOLUTE_COMMENT = {
-    1: "failed",
-    2: "poor",
-    3: "needs improved",
-    4: "OK",
-    5: "excellent",
+ABSOLUTE_COMMENT = {      # see ABSOLUTE_DEFCON_BOUNDS
+    1: "immediate risk (complete failure)",
+    2: "critical risk",
+    3: "elevated risk",
+    4: "low risk",
+    5: "minimal risk",
 }
 
 # stddev close to 0 gives unusable z-scores

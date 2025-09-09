@@ -1,10 +1,10 @@
 [build-system]
-requires      = ["setuptools>=61.0.0", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["flit_core >=3.11,<4"]
+build-backend = "flit_core.buildapi"
 
 [project]
 name = "garak"
-version = "0.13.0.pre1"
+version = "0.13.1.pre1"
 authors = [
   { name = "Leon Derczynski", email="lderczynski@nvidia.com" },
   { name = "Subho Majumdar", email="subho@vijil.ai" },
@@ -50,8 +50,12 @@ authors = [
   { name = "Mike McKiernan" },
   { name = "Divya Chitimalla" },
   { name = "Katherine Luna" },
+  { name = "Dave Baker" },
+  { name = "Jack Kelly" },
+  { name = "Amrit Prakash" },
 ]
-license = { file = "LICENSE" }
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 description = "LLM vulnerability scanner"
 readme = "README.md"
 classifiers = [
@@ -60,7 +64,6 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Operating System :: OS Independent",
-    "License :: OSI Approved :: Apache Software License",
 ]
 requires-python = ">=3.10"
 dependencies = [
@@ -139,11 +142,18 @@ audio = [
 [project.scripts]
 garak = "garak.__main__:main"
 
-[tool.setuptools]
-packages = ["garak"]
+[tool.flit.module]
+name = "garak"
 
-[tool.setuptools.package-data]
-"garak.resources" = ["*"]
+[tool.flit.sdist]
+include = [
+  "*.md",
+  "*.txt",
+  "garak/analyze/templates/*",
+  "garak/configs/*",
+  "garak/resources/*.json",
+  "garak/resources/*.yaml",
+]
 
 [tool.black]
 line-length = 88

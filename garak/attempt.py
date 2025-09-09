@@ -97,13 +97,19 @@ class Turn:
     role: str
     content: Message
 
-    @staticmethod
-    def from_dict(value: dict):
+    @classmethod
+    def from_dict(cls, value: dict):
         entity = deepcopy(value)
+        if "role" in entity.keys():
+            role = entity["role"]
+        else:
+            raise ValueError("Expected `role` in Turn dict")
         message = entity.pop("content", {})
-        entity["content"] = Message(**message)
-        ret_val = Turn(**entity)
-        return ret_val
+        if isinstance(message, str):
+            content = Message(text=message)
+        else:
+            content = Message(**message)
+        return cls(role=role, content=content)
 
 
 @dataclass
@@ -129,7 +135,7 @@ class Conversation:
             raise ValueError("No messages available")
         if not role:
             return self.turns[-1].content
-        for idx in range(len(self.turns), 0):
+        for idx in range(len(self.turns) - 1, -1, -1):
             if role == self.turns[idx].role:
                 return self.turns[idx].content
         raise ValueError(f"No messages for role: {role}")
@@ -226,9 +232,7 @@ class Attempt:
                 self.conversations = [Conversation([Turn("user", msg)])]
             self.prompt = self.conversations[0]
         else:
-            # is this the right way to model an empty Attempt?
             self.conversations = [Conversation()]
-
         self.status = status
         self.probe_classname = probe_classname
         self.probe_params = {} if probe_params is None else probe_params
@@ -361,9 +365,9 @@ class Attempt:
         """
         if (
             lang is not None
-            and self.conversations[0].turns[0].content.lang != "*"
+            and self.prompt.last_message().lang != "*"
             and lang != "*"
-            and self.conversations[0].turns[0].content.lang != lang
+            and self.prompt.last_message().lang != lang
         ):
             return self.notes.get(
                 "pre_translation_prompt", self.prompt
@@ -378,9 +382,9 @@ class Attempt:
         """
         if (
             lang is not None
-            and self.conversations[0].turns[0].content.lang != "*"
+            and self.prompt.last_message().lang != "*"
             and lang != "*"
-            and self.conversations[0].turns[0].content.lang != lang
+            and self.prompt.last_message().lang != lang
         ):
             return (
                 self.reverse_translation_outputs
@@ -393,9 +397,11 @@ class Attempt:
             raise TypeError(
                 "A prompt needs to be set before it can be expanded to conversation threads"
             )
-        elif len(self.conversations) > 1 or len(self.conversations[-1].turns) > 1:
+        elif len(self.conversations) > 1 or len(self.conversations[-1].turns) > len(
+            self.prompt.turns
+        ):
             raise TypeError(
-                "attempt.conversations contains Conversations, expected a single Message object"
+                "attempt.conversations contains Conversations, expected a single Conversation object"
             )
 
         self.conversations = [deepcopy(self.conversations[0]) for _ in range(breadth)]

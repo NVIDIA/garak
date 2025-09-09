@@ -43,7 +43,7 @@ class NeMoGuardrails(Generator):
     ) -> List[Union[Message, None]]:
         with redirect_stderr(io.StringIO()) as f:  # quieten the tqdm
             # should this be expanded to process all Conversation messages?
-            result = self.rails.generate(prompt.last_message().text)
+            result = self.rails.generate(messages=self._conversation_to_list(prompt))
 
         if isinstance(result, str):
             return [Message(result)]

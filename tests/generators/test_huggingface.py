@@ -59,7 +59,7 @@ def test_pipeline_chat(mocker, hf_generator_config):
         "microsoft/DialoGPT-small", config_root=hf_generator_config
     )
     mock_format = mocker.patch.object(
-        g, "_format_chat_prompt", wraps=g._format_chat_prompt
+        g, "_conversation_to_list", wraps=g._conversation_to_list
     )
     conv = Conversation([Turn("user", Message("Hello world!"))])
     output = g.generate(conv)
@@ -149,7 +149,7 @@ def test_model_chat(mocker, hf_generator_config):
         "microsoft/DialoGPT-small", config_root=hf_generator_config
     )
     mock_format = mocker.patch.object(
-        g, "_format_chat_prompt", wraps=g._format_chat_prompt
+        g, "_conversation_to_list", wraps=g._conversation_to_list
     )
     conv = Conversation([Turn("user", Message("Hello world!"))])
     output = g.generate(conv)

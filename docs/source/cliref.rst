@@ -3,7 +3,7 @@ CLI reference for garak
 
 ::
 
-  garak LLM vulnerability scanner v0.13.0.pre1 ( https://github.com/NVIDIA/garak ) at 2025-08-15T15:14:43.035774
+  garak LLM vulnerability scanner v0.13.1.pre1 ( https://github.com/NVIDIA/garak ) at 2025-09-02T07:56:46.667342
   usage: python -m garak [-h] [--verbose] [--report_prefix REPORT_PREFIX]
                          [--narrow_output]
                          [--parallel_requests PARALLEL_REQUESTS]
@@ -110,7 +110,7 @@ CLI reference for garak
     --interactive, -I     Enter interactive probing mode
     --generate_autodan    generate AutoDAN prompts; requires --prompt_options
                           with JSON containing a prompt and target
-    --interactive.py      Launch garak in interactive.py mode
+    --interactive         Launch garak in interactive Python mode
     --fix                 Update provided configuration with fixer migrations;
                           requires one of --config / --*_option_file, /
                           --*_options
