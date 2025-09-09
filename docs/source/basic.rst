@@ -1,5 +1,5 @@
-Top-level concepts in ``garak``
-===============================
+Key Concepts and Classes
+========================
 
 What are we doing here, and how does it all fit together?
 Our goal is to test the security of something that takes prompts
