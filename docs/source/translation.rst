@@ -13,6 +13,41 @@ Limitations
 - If probes or detectors fail to load, you need may need to choose a smaller local translation model or utilize a remote service.
 - Translation may add significant execution time to the run depending on resources available.
 
+Translation Caching
+------------------
+
+Garak implements a translation caching system to improve performance and reduce API costs when using translation services. The caching mechanism automatically stores and retrieves translation results to avoid redundant API calls.
+
+**How it works:**
+
+- Each translation pair (source language → target language) gets its own cache file
+- Cache files are stored in JSON format under the cache directory: ``{cache_dir}/translation/translation_cache_{source_lang}_{target_lang}_{model_type}_{model_name}.json``
+- Translation results are keyed by MD5 hash of the input text for efficient storage and retrieval
+- Cache files persist between runs, allowing translations to be reused across multiple garak sessions
+
+**Benefits:**
+
+- **Performance**: Significantly reduces translation time for repeated text
+- **Cost savings**: Reduces API calls to paid services like DeepL, Google Cloud Translation, and NVIDIA Riva
+- **Reliability**: Provides fallback for offline scenarios when cached translations are available
+- **Consistency**: Ensures identical translations for the same input text across different runs
+
+**Cache management:**
+
+- Cache files are automatically created when translations are performed
+- Corrupted cache files are handled gracefully with fallback to empty cache
+- Cache files can be manually deleted to force fresh translations
+- Cache directory location follows garak's standard cache configuration
+
+**Supported for all translation services:**
+
+- Local translation models (Hugging Face)
+- DeepL API
+- NVIDIA Riva API  
+- Google Cloud Translation API
+
+The caching system is transparent to users and requires no additional configuration. It automatically activates when translation services are used.
+
 Supported translation services
 ------------------------------
 
