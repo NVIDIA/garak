@@ -30,7 +30,9 @@ from garak import __version__ as version
 system_params = (
     "verbose narrow_output parallel_requests parallel_attempts skip_unknown".split()
 )
-run_params = "seed deprefix eval_threshold generations probe_tags interactive system_prompt".split()
+run_params = (
+    "seed deprefix eval_threshold generations probe_tags interactive system_prompt trait_scan".split()
+)
 plugins_params = "model_type model_name extended_detectors".split()
 reporting_params = "taxonomy report_prefix".split()
 project_dir_name = "garak"
@@ -80,6 +82,7 @@ system = GarakSubConfig()
 run = GarakSubConfig()
 plugins = GarakSubConfig()
 reporting = GarakSubConfig()
+policy = GarakSubConfig()
 
 
 def _lock_config_as_dict():
@@ -186,13 +189,14 @@ def _load_yaml_config(settings_filenames) -> dict:
 
 
 def _store_config(settings_files) -> None:
-    global system, run, plugins, reporting, version
+    global system, run, plugins, reporting, version, policy
     settings = _load_yaml_config(settings_files)
     system = _set_settings(system, settings["system"])
     run = _set_settings(run, settings["run"])
     run.user_agent = run.user_agent.replace("{version}", version)
     plugins = _set_settings(plugins, settings["plugins"])
     reporting = _set_settings(reporting, settings["reporting"])
+    policy = _set_settings(plugins, settings["policy"])
 
 
 # not my favourite solution in this module, but if

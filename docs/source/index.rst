@@ -49,6 +49,7 @@ Advanced usage
 
    configurable
    cliref
+   policy
    translation
    ascii_smuggling
 

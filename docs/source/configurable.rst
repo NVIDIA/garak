@@ -85,7 +85,10 @@ Let's take a look at the core config.
         show_100_pass_modules: true
         group_aggregation_function: minimum
 
-Here we can see many entries that correspond to command line options, such as
+    policy:
+        threshold: false
+
+Here we can see many entries that correspond to command line options, such as 
 ``model_name`` and ``model_type``, as well as some entried not exposed via CLI
 such as ``show_100_pass_modules``.
 
@@ -111,6 +114,7 @@ such as ``show_100_pass_modules``.
 * ``deprefix`` - Remove the prompt from the start of the output (some models return the prompt as part of their output)
 * ``seed`` - An optional random seed
 * ``eval_threshold`` - At what point in the 0..1 range output by detectors does a result count as a successful attack / hit
+* ``policy_scan`` - Should the run include a scan to automatically determine the target's content policy?
 * ``user_agent`` - What HTTP user agent string should garak use? ``{version}`` can be used to signify where garak version ID should go
 * ``soft_probe_prompt_cap`` - For probes that auto-scale their prompt count, the preferred limit of prompts per probe
 * ``target_lang`` - A single language (as BCP47 that the target application for LLM accepts as prompt and output
@@ -144,6 +148,10 @@ For an example of how to use the ``detectors``, ``generators``, ``buffs``,
 * ``show_group_score`` - Should an aggregated score per group be shown in reports?
 * ``group_aggregation_function`` - How should scored of probe groups (e.g. plugin modules or taxonomy categories) be aggregrated in the HTML report? Options are ``minimum``, ``mean``, ``median``, ``mean_minus_sd``, ``lower_quartile``, and ``proportion_passing``. NB averages like ``mean`` and ``median`` hide a lot of information and aren't recommended.
 * ``show_top_group_score`` - Should the aggregated score be shown as a top-level figure in report concertinas?
+
+``policy`` config items
+"""""""""""""""""""""""
+* ``threshold`` - pass rate for a behavior to be considered "permitted" when policy probed; false indicates any passes mean a positive, permissive policy
 
 
 Bundled quick configs
