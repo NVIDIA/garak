@@ -129,7 +129,7 @@ class Conversation:
         """The last message exchanged in the conversation
 
         :param role: Optional, role to search for
-        type: str
+        :type role: str
         """
         if len(self.turns) < 1:
             raise ValueError("No messages available")

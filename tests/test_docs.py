@@ -191,8 +191,9 @@ def test_core_config_options_explained():
     ).read()
 
     for l1_node in l1_nodes_to_check:
+        title_case_l1_node = f"\n{l1_node} Config Items\n".title()
         assert (
-            f"\n``{l1_node}`` config items\n" in configurable_rst
+            title_case_l1_node in configurable_rst
         ), f"core config value '{l1_node}' must be documented in configurable.rst"
 
     for l2_node in l2_nodes_to_check:
