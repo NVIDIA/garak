@@ -29,5 +29,5 @@ garak.detectors
    garak.detectors.shields
    garak.detectors.snowball
    garak.detectors.unsafe_content
-   garak.detectors.xss
    garak.detectors.visual_jailbreak
+   garak.detectors.web_injection
