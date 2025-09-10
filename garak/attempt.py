@@ -106,7 +106,9 @@ class Turn:
             raise ValueError("Expected `role` in Turn dict")
         message = entity.pop("content", {})
         if isinstance(message, str):
-            content = Message(text=message)
+            raise TypeError(
+                "Turn does not support str-type content, use Message / report this as a bug"
+            )
         else:
             content = Message(**message)
         return cls(role=role, content=content)
@@ -156,7 +158,7 @@ class Attempt:
     :param status: The status of this attempt; ``ATTEMPT_NEW``, ``ATTEMPT_STARTED``, or ``ATTEMPT_COMPLETE``
     :type status: int
     :param prompt: The processed prompt that will presented to the generator
-    :type prompt: Union[str|Turn|Conversation]
+    :type prompt: Message|Conversation
     :param probe_classname: Name of the probe class that originated this ``Attempt``
     :type probe_classname: str
     :param probe_params: Non-default parameters logged by the probe
@@ -223,11 +225,16 @@ class Attempt:
             if isinstance(prompt, Conversation):
                 self.conversations = [prompt]
             elif isinstance(prompt, str):
-                msg = Message(text=prompt, lang=lang)
+                raise ValueError(
+                    "attempt Prompt must be Message or Conversation, not string"
+                )
+                # msg = Message(text=prompt, lang=lang)
             elif isinstance(prompt, Message):
                 msg = prompt
             else:
-                raise TypeError("prompts must be of type str | Message | Conversation")
+                raise TypeError(
+                    "attempt prompts must be of type Message | Conversation"
+                )
             if not hasattr(self, "conversations"):
                 self.conversations = [Conversation([Turn("user", msg)])]
             self.prompt = self.conversations[0]
@@ -321,14 +328,17 @@ class Attempt:
         return all_outputs
 
     @prompt.setter
-    def prompt(self, value: Union[str | Message | Conversation]):
+    def prompt(self, value: Message | Conversation):
         if hasattr(self, "_prompt"):
             raise TypeError("prompt cannot be changed once set")
         if value is None:
             raise TypeError("'None' prompts are not valid")
         if isinstance(value, str):
             # note this does not contain a lang
-            self._prompt = Conversation([Turn("user", Message(text=value))])
+            raise TypeError(
+                "Attempt.prompt must be Message or Conversation, not bare string"
+            )
+            # self._prompt = Conversation([Turn("user", Message(text=value))])
         if isinstance(value, Message):
             # make a copy to store an immutable object
             self._prompt = Conversation([Turn("user", Message(**asdict(value)))])
