@@ -16,6 +16,7 @@ class PegasusT5(Buff, HFCompatible):
 
     DEFAULT_PARAMS = Buff.DEFAULT_PARAMS | {
         "para_model_name": "garak-llm/pegasus_paraphrase",
+        "para_tokenizer_name": "google/bigbird-pegasus-large-arxiv",
         "hf_args": {
             "device": "cpu",
             "trust_remote_code": False,
@@ -29,19 +30,21 @@ class PegasusT5(Buff, HFCompatible):
     def __init__(self, config_root=_config) -> None:
         self.num_return_sequences = 6
         self.num_beams = self.num_return_sequences
+
         self.tokenizer = None
         self.para_model = None
         super().__init__(config_root=config_root)
 
     def _load_model(self):
-        from transformers import PegasusForConditionalGeneration, PegasusTokenizer
+        from transformers import PegasusForConditionalGeneration, AutoTokenizer
 
         self.device = self._select_hf_device()
         self.para_model = PegasusForConditionalGeneration.from_pretrained(
             self.para_model_name
         ).to(self.device)
-        self.tokenizer = PegasusTokenizer.from_pretrained(
-            self.para_model_name, trust_remote_code=self.hf_args["trust_remote_code"]
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            self.para_tokenizer_name,
+            trust_remote_code=self.hf_args["trust_remote_code"],
         )
 
     def _get_response(self, input_text):
