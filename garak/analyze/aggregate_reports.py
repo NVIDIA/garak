@@ -16,6 +16,10 @@ import argparse
 import datetime
 import json
 import uuid
+import sys
+
+from garak import __description__
+from garak import _config
 
 
 def _process_file_body(in_file, out_file, aggregate_uuid):
@@ -37,80 +41,92 @@ def _process_file_body(in_file, out_file, aggregate_uuid):
         out_file.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
 
-p = argparse.ArgumentParser(
-    description="aggregate multiple similar garak reports into one jsonl"
-)
-p.add_argument("-o", help="output filename", required=True)
-p.add_argument("infiles", nargs="+", help="garak jsonl reports to be aggregated")
-a = p.parse_args()
+def main(argv=None) -> None:
+    if argv is None:
+        argv = sys.argv[1:]
 
-# get the list of files
-in_filenames = a.infiles
+    _config.load_config()
+    print(
+        f"garak {__description__} v{_config.version} ( https://github.com/NVIDIA/garak )"
+    )
 
-# get the header from the first file
-# start_run setup
-# init
-#  attempt status 1
-#  attempt status 2
-#  eval
+    p = argparse.ArgumentParser(
+        prog="python -m garak.analyze.aggregate_reports",
+        description="Aggregate multiple similar garak reports into one JSONL",
+        epilog="See https://github.com/NVIDIA/garak",
+        allow_abbrev=False,
+    )
+    p.add_argument("-o", "--output_path", help="Output filename", required=True)
+    p.add_argument(
+        "infiles", nargs="+", help="garak jsonl reports to be aggregated"
+    )
+    a = p.parse_args(argv)
 
-aggregate_uuid = str(uuid.uuid4())
-aggregate_starttime_iso = datetime.datetime.now().isoformat()
+    # get the list of files
+    in_filenames = a.infiles
 
-print("writing aggregated data to", a.o)
-with open(a.o, "w", encoding="utf-8") as out_file:
-    print("lead file", in_filenames[0])
-    with open(in_filenames[0], "r", encoding="utf8") as lead_file:
-        # extract model type, model name, garak version
+    # get the header from the first file
+    aggregate_uuid = str(uuid.uuid4())
+    aggregate_starttime_iso = datetime.datetime.now().isoformat()
 
-        setup_line = lead_file.readline()
-        setup = json.loads(setup_line)
-        assert setup["entry_type"] == "start_run setup"
-        model_type = setup["plugins.model_type"]
-        model_name = setup["plugins.model_name"]
-        version = setup["_config.version"]
-        setup["aggregation"] = in_filenames
+    print("writing aggregated data to", a.output_path)
+    with open(a.output_path, "w", encoding="utf-8") as out_file:
+        print("lead file", in_filenames[0])
+        with open(in_filenames[0], "r", encoding="utf8") as lead_file:
+            # extract model type, model name, garak version
 
-        # write the header, completed attempts, and eval rows
+            setup_line = lead_file.readline()
+            setup = json.loads(setup_line)
+            assert setup["entry_type"] == "start_run setup"
+            model_type = setup["plugins.model_type"]
+            model_name = setup["plugins.model_name"]
+            version = setup["_config.version"]
+            setup["aggregation"] = in_filenames
 
-        out_file.write(json.dumps(setup) + "\n")
+            # write the header, completed attempts, and eval rows
 
-        init_line = lead_file.readline()
-        init = json.loads(init_line)
-        assert init["entry_type"] == "init"
-        assert init["garak_version"] == version
+            out_file.write(json.dumps(setup) + "\n")
 
-        orig_uuid = init["run"]
-        init["orig_uuid"] = init["run"]
-        init["run"] = aggregate_uuid
+            init_line = lead_file.readline()
+            init = json.loads(init_line)
+            assert init["entry_type"] == "init"
+            assert init["garak_version"] == version
 
-        init["orig_start_time"] = init["start_time"]
-        init["start_time"] = aggregate_starttime_iso
+            orig_uuid = init["run"]
+            init["orig_uuid"] = init["run"]
+            init["run"] = aggregate_uuid
 
-        out_file.write(json.dumps(init) + "\n")
+            init["orig_start_time"] = init["start_time"]
+            init["start_time"] = aggregate_starttime_iso
 
-        _process_file_body(lead_file, out_file, aggregate_uuid)
+            out_file.write(json.dumps(init) + "\n")
 
-    if len(in_filenames) > 1:
-        # for each other file
-        for subsequent_filename in in_filenames[1:]:
-            print("processing", subsequent_filename)
-            with open(subsequent_filename, "r", encoding="utf8") as subsequent_file:
-                # check the header, quit if not good
+            _process_file_body(lead_file, out_file, aggregate_uuid)
 
-                setup_line = subsequent_file.readline()
-                setup = json.loads(setup_line)
-                assert setup["entry_type"] == "start_run setup"
-                assert model_type == setup["plugins.model_type"]
-                assert model_name == setup["plugins.model_name"]
-                assert version == setup["_config.version"]
+        if len(in_filenames) > 1:
+            # for each other file
+            for subsequent_filename in in_filenames[1:]:
+                print("processing", subsequent_filename)
+                with open(subsequent_filename, "r", encoding="utf8") as subsequent_file:
+                    # check the header, quit if not good
 
-                init_line = subsequent_file.readline()
-                init = json.loads(init_line)
-                assert init["entry_type"] == "init"
-                assert init["garak_version"] == version
+                    setup_line = subsequent_file.readline()
+                    setup = json.loads(setup_line)
+                    assert setup["entry_type"] == "start_run setup"
+                    assert model_type == setup["plugins.model_type"]
+                    assert model_name == setup["plugins.model_name"]
+                    assert version == setup["_config.version"]
 
-                # write the completed attempts and eval rows
-                _process_file_body(subsequent_file, out_file, aggregate_uuid)
+                    init_line = subsequent_file.readline()
+                    init = json.loads(init_line)
+                    assert init["entry_type"] == "init"
+                    assert init["garak_version"] == version
 
-print("done")
+                    # write the completed attempts and eval rows
+                    _process_file_body(subsequent_file, out_file, aggregate_uuid)
+
+    print("done")
+
+
+if __name__ == "__main__":
+    main()

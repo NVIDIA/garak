@@ -10,9 +10,12 @@ from collections import defaultdict
 import json
 import random
 import sys
+import argparse
 
 import garak.analyze
 import garak.analyze.calibration
+from garak import __description__
+from garak import _config
 from garak.probes import Tier
 
 PROBE_DETECTOR_SEP = "+"
@@ -33,133 +36,171 @@ def build_tiers() -> dict:
     return tiers
 
 
-tiers = build_tiers()
-# load in the scores
+def qual_review(report_path: str) -> None:
+    tiers = build_tiers()
+    c = garak.analyze.calibration.Calibration()
+    probe_detector_scores = {}
+    pos_examples = defaultdict(list)
+    neg_examples = defaultdict(list)
 
-c = garak.analyze.calibration.Calibration()
-probe_detector_scores = {}
-pos_examples = defaultdict(list)
-neg_examples = defaultdict(list)
+    print("# garak Qualitative review")
+    print(
+        "Analysis of failing & passing probes/detectors, grouped by tier, including prompt & response samples for failing entries"
+    )
+    print("source filename: ", report_path)
 
-print("# garak Qualitative review")
-print(
-    "Analysis of failing & passing probes/detectors, grouped by tier, including prompt & response samples for failing entries"
-)
-print("source filename: ", sys.argv[1])
+    with open(report_path, "r", encoding="utf-8") as report_file:
+        g = (json.loads(line.strip()) for line in report_file if line.strip())
+        for record in g:
+            if record["entry_type"] == "eval":
+                passrate = (
+                    record["passed"] / record["total"] if record["total"] > 0 else 0
+                )
+                probe_module, probe_classname = record["probe"].split(".", 1)
+                detector = record["detector"].replace("detector.", "")
+                detector_module, detector_classname = detector.split(".", 1)
+                z = c.get_z_score(
+                    probe_module,
+                    probe_classname,
+                    detector_module,
+                    detector_classname,
+                    passrate,
+                )
+                probe_detector_scores[
+                    f"{record['probe']}{PROBE_DETECTOR_SEP}{detector}"
+                ] = {
+                    "passrate": passrate,
+                    "z": z,
+                }
+            elif record["entry_type"] == "attempt" and record["status"] == 2:
+                results = record["detector_results"]
+                for detector_name in results:
+                    for i, score in enumerate(results[detector_name]):
+                        try:
+                            fields = [record["prompt"], record["outputs"][i]]
+                            if "triggers" in record.get("notes", {}).keys():
+                                fields.append(record["notes"]["triggers"])
+                            if score > 0.5:
+                                pos_examples[
+                                    record["probe_classname"]
+                                    + PROBE_DETECTOR_SEP
+                                    + detector_name
+                                ].append(fields)
+                            else:
+                                neg_examples[
+                                    record["probe_classname"]
+                                    + PROBE_DETECTOR_SEP
+                                    + detector_name
+                                ].append(fields)
+                        except IndexError:
+                            continue
 
-with open(sys.argv[1], "r", encoding="utf-8") as report_file:
-    g = (json.loads(line.strip()) for line in open(sys.argv[1]) if line.strip())
-    for record in g:
-        if record["entry_type"] == "eval":
-            passrate = record["passed"] / record["total"] if record["total"] > 0 else 0
-            probe_module, probe_classname = record["probe"].split(".", 1)
-            detector = record["detector"].replace("detector.", "")
-            detector_module, detector_classname = detector.split(".", 1)
-            z = c.get_z_score(
-                probe_module,
-                probe_classname,
-                detector_module,
-                detector_classname,
-                passrate,
+    def _print_examples(probe_detector):
+        print("\n#### Examples of responses marked failing")
+        excerpt = pos_examples[probe_detector]
+        random.shuffle(excerpt)
+        for index, entry in enumerate(excerpt[0:10]):
+            print(f"##### Example {index+1}")
+            print()
+            print("  * **prompt**:\n```\n" + repr(entry[0]) + "\n```\n")
+            if len(entry) == 3:
+                print("  * **trigger**:\n```\n" + repr(entry[2]) + "\n```\n")
+            print("  * **response**:\n```\n" + repr(entry[1]) + "\n```\n")
+            print()
+        print("\n#### Examples of responses marked passing")
+        excerpt = neg_examples[probe_detector]
+        random.shuffle(excerpt)
+        for entry in excerpt[0:10]:
+            print()
+            print("  * **prompt**:\n```\n" + repr(entry[0]) + "\n```\n")
+            if len(entry) == 3:
+                print("  * **trigger**:\n```\n" + repr(entry[2]) + "\n```\n")
+            print("  * **response**:\n```\n" + repr(entry[1]) + "\n```\n")
+            print()
+
+    print("## Tier 1 probe results")
+    t1_probe_names = tiers[Tier.OF_CONCERN]
+    for probe_detector in probe_detector_scores.keys():
+        if probe_detector.split(PROBE_DETECTOR_SEP)[0] in t1_probe_names:
+            z, passrate = (
+                probe_detector_scores[probe_detector]["z"],
+                probe_detector_scores[probe_detector]["passrate"],
             )
-            probe_detector_scores[
-                f"{record['probe']}{PROBE_DETECTOR_SEP}{detector}"
-            ] = {
-                "passrate": passrate,
-                "z": z,
-            }
-        elif record["entry_type"] == "attempt" and record["status"] == 2:
-            results = record["detector_results"]
-            for detector_name in results:
-                for i, score in enumerate(results[detector_name]):
-                    try:
-                        fields = [record["prompt"], record["outputs"][i]]
-                        if "triggers" in record["notes"].keys():
-                            fields.append(record["notes"]["triggers"])
-                        if score > 0.5:
-                            pos_examples[
-                                record["probe_classname"]
-                                + PROBE_DETECTOR_SEP
-                                + detector_name
-                            ].append(fields)
-                        else:
-                            neg_examples[
-                                record["probe_classname"]
-                                + PROBE_DETECTOR_SEP
-                                + detector_name
-                            ].append(fields)
-                    except IndexError:
-                        continue
+            print("\n### Probe and detector: " + probe_detector)
+            print(f"\n\n * passrate: `{passrate:0.4f}`\n * z: `{z}`\n\n")
+            if passrate < garak.analyze.ABSOLUTE_DEFCON_BOUNDS.BELOW_AVG or (
+                z is not None and z < garak.analyze.RELATIVE_DEFCON_BOUNDS.BELOW_AVG
+            ):
+                print("Issues found:")
+                if passrate < garak.analyze.ABSOLUTE_DEFCON_BOUNDS.BELOW_AVG:
+                    print(f"* low pass rate `{passrate:0.4f}`")
+                if z is not None and z < garak.analyze.RELATIVE_DEFCON_BOUNDS.BELOW_AVG:
+                    print(f"* low z         `{z:-0.4f}`")
+                _print_examples(probe_detector)
+            else:
+                print("All performance within bounds")
 
-
-def _print_examples(probe_detector):
-    print("\n#### Examples of responses marked failing")
-    excerpt = pos_examples[probe_detector]
-    random.shuffle(excerpt)
-    for index, entry in enumerate(excerpt[0:10]):
-        print(f"##### Example {index+1}")
-        print()
-        print("  * **prompt**:\n```\n" + repr(entry[0]) + "\n```\n")
-        if len(entry) == 3:
-            print("  * **trigger**:\n```\n" + repr(entry[2]) + "\n```\n")
-        print("  * **response**:\n```\n" + repr(entry[1]) + "\n```\n")
-        print()
-    print("\n#### Examples of responses marked passing")
-    excerpt = neg_examples[probe_detector]
-    random.shuffle(excerpt)
-    for entry in excerpt[0:10]:
-        print()
-        print("  * **prompt**:\n```\n" + repr(entry[0]) + "\n```\n")
-        if len(entry) == 3:
-            print("  * **trigger**:\n```\n" + repr(entry[2]) + "\n```\n")
-        print("  * **response**:\n```\n" + repr(entry[1]) + "\n```\n")
-        print()
-
-
-print("## Tier 1 probe results")
-t1_probe_names = tiers[Tier.OF_CONCERN]
-for probe_detector in probe_detector_scores.keys():
-    if probe_detector.split(PROBE_DETECTOR_SEP)[0] in t1_probe_names:
-        z, passrate = (
-            probe_detector_scores[probe_detector]["z"],
-            probe_detector_scores[probe_detector]["passrate"],
-        )
-        print("\n### Probe and detector: " + probe_detector)
-        print(f"\n\n * passrate: `{passrate:0.4f}`\n * z: `{z}`\n\n")
-        if passrate < garak.analyze.ABSOLUTE_DEFCON_BOUNDS.BELOW_AVG or (
-            z is not None and z < garak.analyze.RELATIVE_DEFCON_BOUNDS.BELOW_AVG
-        ):
-            print("Issues found:")
-            if passrate < garak.analyze.ABSOLUTE_DEFCON_BOUNDS.BELOW_AVG:
-                print(f"* low pass rate `{passrate:0.4f}`")
+    print("## Tier 2 probe results")
+    t2_probe_names = tiers[Tier.COMPETE_WITH_SOTA]
+    for probe_detector in probe_detector_scores.keys():
+        if probe_detector.split(PROBE_DETECTOR_SEP)[0] in t2_probe_names:
+            z, passrate = (
+                probe_detector_scores[probe_detector]["z"],
+                probe_detector_scores[probe_detector]["passrate"],
+            )
+            print("\n### Probe and detector: " + probe_detector)
+            print(f"\n\n * passrate: `{passrate:0.4f}`\n * z: `{z}`\n\n")
             if z is not None and z < garak.analyze.RELATIVE_DEFCON_BOUNDS.BELOW_AVG:
-                print(f"* low z         `{z:-0.4f}`")
-            _print_examples(probe_detector)
-        else:
-            print("All performance within bounds")
+                print("Issues found:")
+                print(f"* low z   `{z:-0.4f}`")
+                _print_examples(probe_detector)
+            else:
+                print("All performance within bounds")
 
-print("## Tier 2 probe results")
-t2_probe_names = tiers[Tier.COMPETE_WITH_SOTA]
-for probe_detector in probe_detector_scores.keys():
-    if probe_detector.split(PROBE_DETECTOR_SEP)[0] in t2_probe_names:
-        z, passrate = (
-            probe_detector_scores[probe_detector]["z"],
-            probe_detector_scores[probe_detector]["passrate"],
-        )
-        print("\n### Probe and detector: " + probe_detector)
-        print(f"\n\n * passrate: `{passrate:0.4f}`\n * z: `{z}`\n\n")
-        if z is not None and z < garak.analyze.RELATIVE_DEFCON_BOUNDS.BELOW_AVG:
-            print("Issues found:")
-            print(f"* low z   `{z:-0.4f}`")
-            _print_examples(probe_detector)
-        else:
-            print("All performance within bounds")
+    print("\n## Probe/detector pairs not processed:")
+    t1_t2_probes = t1_probe_names + t2_probe_names
+    for entry in [
+        probe_detector
+        for probe_detector in probe_detector_scores.keys()
+        if probe_detector.split(PROBE_DETECTOR_SEP)[0] not in t1_t2_probes
+    ]:
+        print("*", entry)
 
-print("\n## Probe/detector pairs not processed:")
-t1_t2_probes = t1_probe_names + t2_probe_names
-for entry in [
-    probe_detector
-    for probe_detector in probe_detector_scores.keys()
-    if probe_detector.split(PROBE_DETECTOR_SEP)[0] not in t1_t2_probes
-]:
-    print("*", entry)
+
+def main(argv=None) -> None:
+    if argv is None:
+        argv = sys.argv[1:]
+
+    _config.load_config()
+    print(
+        f"garak {__description__} v{_config.version} ( https://github.com/NVIDIA/garak )"
+    )
+
+    parser = argparse.ArgumentParser(
+        prog="python -m garak.analyze.qual_review",
+        description="Qualitative review of failing/passing probes and detectors with sample prompts/responses",
+        epilog="See https://github.com/NVIDIA/garak",
+        allow_abbrev=False,
+    )
+    parser.add_argument(
+        "-r",
+        "--report_path",
+        required=False,
+        help="Path to the garak JSONL report",
+    )
+    parser.add_argument(
+        "report_path_positional",
+        nargs="?",
+        help="Path to the garak JSONL report (positional)",
+    )
+    args = parser.parse_args(argv)
+    report_path = args.report_path or args.report_path_positional
+    if not report_path:
+        parser.error("a report path is required (positional or -r/--report_path)")
+
+    sys.stdout.reconfigure(encoding="utf-8")
+    qual_review(report_path)
+
+
+if __name__ == "__main__":
+    main()

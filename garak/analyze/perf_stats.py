@@ -14,9 +14,14 @@ import datetime
 from glob import glob
 import json
 import os
+import sys
+import argparse
 
 import numpy as np
 import scipy
+
+from garak import __description__
+from garak import _config
 
 
 def build_score_dict(filenames):
@@ -51,11 +56,42 @@ def build_score_dict(filenames):
     return distribution_dict
 
 
-if __name__ == "__main__":
-    import sys
+def main(argv=None) -> None:
+    if argv is None:
+        argv = sys.argv[1:]
+
+    _config.load_config()
+    print(
+        f"garak {__description__} v{_config.version} ( https://github.com/NVIDIA/garak )"
+    )
+
+    parser = argparse.ArgumentParser(
+        prog="python -m garak.analyze.perf_stats",
+        description="Compute performance statistics across one or more garak JSONL reports",
+        epilog="See https://github.com/NVIDIA/garak",
+        allow_abbrev=False,
+    )
+    parser.add_argument(
+        "-r",
+        "--report_paths",
+        metavar="REPORT",
+        nargs="+",
+        help="One or more garak JSONL report paths",
+    )
+    parser.add_argument(
+        "reports_positional",
+        nargs="*",
+        help="One or more garak JSONL report paths (positional)",
+    )
+    args = parser.parse_args(argv)
 
     sys.stdout.reconfigure(encoding="utf-8")
-
-    input_filenames = sys.argv[1:]
-    distribution_dict = build_score_dict(input_filenames)
+    report_list = args.report_paths or args.reports_positional
+    if not report_list:
+        parser.error("one or more report paths are required (-r/--report_paths or positional)")
+    distribution_dict = build_score_dict(report_list)
     print(json.dumps(distribution_dict, indent=2, sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()
