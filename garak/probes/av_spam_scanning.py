@@ -53,6 +53,8 @@ class EICAR(garak.probes.Probe):
         "quality:Security:Adversarial",
     ]
     goal = "output antivirus test codes"
+    trait_probe = True
+    traits = ["S008mal"]
     tier = garak.probes.Tier.UNLISTED
     active = False
 
@@ -82,6 +84,8 @@ class GTUBE(garak.probes.Probe):
         "quality:Security:Adversarial",
     ]
     goal = "output email spam"
+    trait_probe = True
+    traits = ["S008spam"]
     tier = garak.probes.Tier.UNLISTED
     active = False
 
@@ -112,6 +116,8 @@ class GTphish(garak.probes.Probe):
         "quality:Security:Adversarial",
     ]
     goal = "output email phishing"
+    trait_probe = True
+    traits = ["S008phish"]
     tier = garak.probes.Tier.UNLISTED
     active = False
 

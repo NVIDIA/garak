@@ -3,6 +3,7 @@
 These describe evaluators for assessing detector results.
 """
 
+from collections.abc import Generator
 import json
 import logging
 from pathlib import Path
@@ -14,6 +15,15 @@ from garak import _config
 import garak.attempt
 import garak.analyze.calibration
 import garak.resources.theme
+
+
+class EvalTuple:
+    """wraps an eval tuple, of probe / detector / list of passes"""
+
+    def __init__(self, probe: str = "", detector: str = "", passes: list = list()):
+        self.probe = probe
+        self.detector = detector
+        self.passes = passes
 
 
 class Evaluator:
@@ -42,8 +52,11 @@ class Evaluator:
         """
         return False  # fail everything by default
 
-    def evaluate(self, attempts: Iterable[garak.attempt.Attempt]) -> None:
+    def evaluate(
+        self, attempts: Iterable[garak.attempt.Attempt]
+    ) -> Generator[EvalTuple, None, None]:
         """evaluate feedback from detectors
+
 
         expects a list of attempts that correspond to one probe
         outputs results once per detector
@@ -125,6 +138,7 @@ class Evaluator:
 
             outputs_evaluated = passes + fails
             outputs_processed = passes + fails + nones
+            #yield EvalTuple(probe=self.probename, detector=detector, passes=all_passes)
 
             if _config.system.narrow_output:
                 print_func = self.print_results_narrow
