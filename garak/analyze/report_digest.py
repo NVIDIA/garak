@@ -310,7 +310,7 @@ def _get_probe_detector_details(
 
     else:
         relative_defcon, relative_comment = calibration.defcon_and_comment(zscore)
-        relative_score = zscore
+        relative_score = float(zscore)
         calibration_used = True
 
     absolute_defcon = map_absolute_score(absolute_score)

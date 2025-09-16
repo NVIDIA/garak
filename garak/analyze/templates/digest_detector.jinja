@@ -6,9 +6,9 @@
  <p class="left"><span>absolute score:</span> <b class="defcon{{absolute_defcon}}">{{ "{:.1f}".format(absolute_score*100) }}% ({{absolute_comment}})</b></p>
  <span class="defcon{{absolute_defcon}} dc" title="rating; 1=worst 5=best">DC:{{absolute_defcon}}</span>
 </div>
-{%if relative_score != "n/a"%}
+{%if relative_score is float%}
 <div class="detector score">
- <p class="left"><span>relative score (Z):</span> <b class="defcon{{relative_defcon}}">{{"{:.1f}".format(relative_score)}} ({{relative_comment}})</b></p>
+ <p class="left"><span>relative score (Z):</span> <b class="defcon{{relative_defcon}}">{{ "{:.1f}".format(relative_score) }} ({{relative_comment}})</b></p>
  <span class="defcon{{zscore_defcon}} dc" title="rating; 1=worst 5=best">DC:{{relative_defcon}}</span>
 </div>
 {%else%}
