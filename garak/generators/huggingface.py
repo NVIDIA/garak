@@ -584,7 +584,14 @@ class LLaVA(Generator, HFCompatible):
         except Exception as e:
             raise Exception(e)
 
-        inputs = self.processor(text_prompt, image_prompt, return_tensors="pt").to(
+        # Ensure the special image token is present for LlavaNext
+        # Without it, the model will see 0 image tokens and raise a mismatch error
+        if text_prompt is None:
+            text_prompt = ""
+        if ("<image>" not in text_prompt) and ("<|image|>" not in text_prompt):
+            text_prompt = "<image>\n" + text_prompt
+
+        inputs = self.processor(text=text_prompt, images=image_prompt, return_tensors="pt").to(
             self.device
         )
         exist_token_number: int = inputs.data["input_ids"].shape[1]
