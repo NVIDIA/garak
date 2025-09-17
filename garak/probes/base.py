@@ -622,3 +622,99 @@ class TreeSearchProbe(Probe):
 
         self.never_queue_nodes: Iterable[str] = set()
         self.never_queue_forms: Iterable[str] = set()
+
+
+class IterativeProbe(Probe):
+    """
+    Base class for multi turn probes where each probe turn is generated based on the target's response to the previous turn.
+    """
+
+    DEFAULT_PARAMS = Probe.DEFAULT_PARAMS | {
+        "max_turns": 10,
+        "end_condition": "detector",
+    }
+
+    def __init__(self, config_root=_config):
+        super().__init__(config_root)
+        if self.DEFAULT_PARAMS["end_condition"] not in ("detector", "verify"):
+            raise ValueError(f"Unsupported end condition '{self.DEFAULT_PARAMS['end_condition']}'")
+        self.max_turns = self.DEFAULT_PARAMS["max_turns"]
+        self.end_condition = self.DEFAULT_PARAMS["end_condition"]
+        self.detector = garak._plugins.load_plugin(f"detectors.{self.primary_detector}")
+        self.detector_score_threshold = 0.5
+        self.init_turns = self.generate_init_turns()
+
+    def generate_init_turns(self) -> Iterable[str]:
+        """Function to be overridden with initial turns of each unique attempt"""
+        raise NotImplementedError
+    
+    def create_init_attempts(self, init_turns: Iterable[str]) -> Iterable[garak.attempt.Attempt]:
+        """Convert init turns in text to garak.attempt.Message objects"""
+        # TODO: Ideally the langprovider processing in Probe.probe() should be moved out into a function that gets used here
+        return [self._mint_attempt(prompt=turn, seq=None, notes=None, lang="*") for turn in init_turns]
+        
+    def verify_last_response(self, attempt: garak.attempt.Attempt) -> bool:
+        """Function to be overridden if a custom method is used to determine whether to terminate the conversation based on the last response."""
+        raise NotImplementedError
+
+    def _should_terminate_conversation(self, attempt: garak.attempt.Attempt) -> bool:
+        """Uses detector or verify_last_response function based on end_condition to determine if the conversation should be terminated."""
+        if self.end_condition == "detector":
+            if self.detector.detect(attempt) > self.detector_score_threshold:
+                return True
+            else:
+                return False
+        elif self.end_condition == "verify":
+            return self.verify_last_response(attempt)
+        else:
+            raise ValueError(f"Unsupported end condition '{self.end_condition}'")
+
+    def get_next_turn(self, attempt: garak.attempt.Attempt) -> str:
+        """Function to be overridden with logic to get the next turn of the conversation based on the previous turn"""
+        raise NotImplementedError
+
+    def _execute_attempt(self, this_init_attempt) -> garak.attempt.Attempt:
+        """Multi-turn handling of an attempt. Starts with an attempt with an initial turn, handles sending to the generator, postprocessing, and logging, checking for termination or getting the next turn."""
+        this_attempt = this_init_attempt
+        for _ in range(self.max_turns):
+            self._generator_precall_hook(self.generator, this_attempt)
+            generator_input = this_attempt.conversations[0]
+            print("*********")
+            print("In IterativeProbe _execute_attempt: generator_input =", generator_input)
+            print("*********")
+            _ = input("Press Enter to continue...")
+
+            this_attempt.outputs = self.generator.generate(
+                generator_input, generations_this_call=1
+            ) # generations_this_call=1 here because assuming that multiple generations will require restartign from the first turn
+            if self.post_buff_hook:
+                this_attempt = self._postprocess_buff(this_attempt)
+            this_attempt = self._postprocess_hook(this_attempt)
+
+            if self._should_terminate_conversation(this_attempt):
+                break
+            else:
+                # last_response = this_attempt.outputs[0]
+                # this_attempt._add_turn(role="assistant", contents=[last_response])
+                next_turn = self.get_next_turn(this_attempt)
+                this_attempt._add_turn(role="user", contents=[next_turn])
+
+        self._generator_cleanup()    
+        return copy.deepcopy(this_attempt)
+
+    def probe(self, generator):
+        """Wrapper generating all attempts and handling execution against generator"""
+        self.generator = generator
+        init_attempts = self.create_init_attempts(self.init_turns)
+        attempts_todo = list()
+        for attempt in init_attempts:
+            for gen_num in range(self.generations):
+                attempts_todo.append(copy.deepcopy(attempt))
+        
+        attempts_completed = self._execute_all(attempts_todo)
+
+        logging.debug(
+            "probe return: %s with %s attempts", self, len(attempts_completed)
+        )
+
+        return attempts_completed
