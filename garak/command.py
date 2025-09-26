@@ -6,7 +6,6 @@
 import logging
 import json
 import random
-import typing
 
 HINT_CHANCE = 0.25
 
@@ -20,6 +19,14 @@ def hint(msg, logging=None):
         logging.info(msg)
     if random.random() < HINT_CHANCE:
         print(msg)
+
+
+def deprecation_notice(deprecated_item: str, version: str, logging=None):
+    msg = f"DEPRECATION: {deprecated_item} is deprecated since version {version}"
+    visible_msg = f"✋ {msg}"
+    if logging is not None:
+        logging.info(msg)
+    print(visible_msg)
 
 
 def start_logging():
@@ -96,7 +103,9 @@ def start_run():
             ):
                 setup_dict[f"{subset}.{k}"] = v
 
-    _config.transient.reportfile.write(json.dumps(setup_dict, ensure_ascii=False) + "\n")
+    _config.transient.reportfile.write(
+        json.dumps(setup_dict, ensure_ascii=False) + "\n"
+    )
     _config.transient.reportfile.write(
         json.dumps(
             {
@@ -104,7 +113,8 @@ def start_run():
                 "garak_version": _config.version,
                 "start_time": _config.transient.starttime_iso,
                 "run": _config.transient.run_id,
-            }, ensure_ascii=False
+            },
+            ensure_ascii=False,
         )
         + "\n"
     )
@@ -123,7 +133,9 @@ def end_run():
         "end_time": datetime.datetime.now().isoformat(),
         "run": _config.transient.run_id,
     }
-    _config.transient.reportfile.write(json.dumps(end_object, ensure_ascii=False) + "\n")
+    _config.transient.reportfile.write(
+        json.dumps(end_object, ensure_ascii=False) + "\n"
+    )
     _config.transient.reportfile.close()
 
     print(f"📜 report closed :) {_config.transient.report_filename}")

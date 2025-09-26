@@ -6,13 +6,13 @@ and flexible generation.
 
 NVCF functions work by sending a request to an invocation endpoint, and then polling
 a status endpoint until the response is received. The cloud function is described
-using a UUID, which is passed to garak as the ``model_name``. API key should be placed in
+using a UUID, which is passed to garak as the ``target_name``. API key should be placed in
 environment variable ``NVCF_API_KEY`` or set in a garak config. For example:
 
 .. code-block::
 
    export NVCF_API_KEY="example-api-key-xyz"
-   garak -m nvcf -n 341da0d0-aa68-4c4f-89b5-fc39286de6a1
+   garak -t nvcf -n 341da0d0-aa68-4c4f-89b5-fc39286de6a1
 
 
 Configuration
@@ -58,8 +58,8 @@ garak YAML:
                extra_params:
                   stream: false
                   model: prefix/obsidianorder/terer-nor
-      model_type: nvcf.NvcfChat
-      model_name: 341da0d0-aa68-4c4f-89b5-fc39286de6a1
+      target_type: nvcf.NvcfChat
+      target_name: 341da0d0-aa68-4c4f-89b5-fc39286de6a1
 
 The ``nvcf`` generator uses the standard garak generator mechanism for
 ``max_tokens``, which is why this value is set at generator-level rather than
@@ -76,7 +76,7 @@ backoff, and retry the request later.
 
 .. code-block::
 
-   garak -m nvcf -n 341da0d0-aa68-4c4f-89b5-fc39286de6a1 --parallel_attempts 32
+   garak -t nvcf -n 341da0d0-aa68-4c4f-89b5-fc39286de6a1 --parallel_attempts 32
 
 
 Or, as yaml config:
@@ -87,8 +87,8 @@ Or, as yaml config:
    system:
       parallel_attempts: 32
    plugins:
-      model_type: nvcf.NvcfChat
-      model_name: 341da0d0-aa68-4c4f-89b5-fc39286de6a1
+      target_type: nvcf.NvcfChat
+      target_name: 341da0d0-aa68-4c4f-89b5-fc39286de6a1
 
 
 

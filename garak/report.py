@@ -92,10 +92,11 @@ class Report:
         if self.metadata is not None:
             report_template.affects = ac.Affects(
                 developer=[],
-                deployer=[self.metadata["model_type"]],
+                deployer=[self.metadata["target_type"]],
                 artifacts=[
                     ac.Artifact(
-                        type=ae.ArtifactTypeEnum.model, name=self.metadata["model_name"]
+                        type=ae.ArtifactTypeEnum.model,
+                        name=self.metadata["target_name"],
                     )
                 ],
             )
@@ -117,7 +118,7 @@ class Report:
 
             report.description = ac.LangValue(
                 lang="eng",
-                value=f"The model {self.metadata['model_name']} from {self.metadata['model_type']} was evaluated by the Garak LLM Vunerability scanner using the probe `{probe}`.",
+                value=f"The model {self.metadata['target_name']} from {self.metadata['target_type']} was evaluated by the Garak LLM Vunerability scanner using the probe `{probe}`.",
             )
             report.problemtype = ac.Problemtype(
                 classof=ae.ClassEnum.llm,

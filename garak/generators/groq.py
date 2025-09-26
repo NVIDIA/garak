@@ -43,7 +43,7 @@ class GroqChat(OpenAICompatible):
         self.client = openai.OpenAI(base_url=self.uri, api_key=self.api_key)
         if self.name in ("", None):
             raise ValueError(
-                "Groq API requires model name to be set, e.g. --model_name llama-3.1-8b-instant \nCurrent models:\n"
+                "Groq API requires model name to be set, e.g. --target_name llama-3.1-8b-instant \nCurrent models:\n"
                 + "\n - ".join(
                     sorted([entry.id for entry in self.client.models.list().data])
                 )

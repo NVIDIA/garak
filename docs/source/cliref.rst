@@ -11,7 +11,7 @@ CLI reference for garak
                          [--skip_unknown] [--seed SEED] [--deprefix]
                          [--eval_threshold EVAL_THRESHOLD]
                          [--generations GENERATIONS] [--config CONFIG]
-                         [--model_type MODEL_TYPE] [--model_name MODEL_NAME]
+                         [--target_type target_type] [--target_name target_name]
                          [--probes PROBES] [--probe_tags PROBE_TAGS]
                          [--detectors DETECTORS] [--extended_detectors]
                          [--buffs BUFFS]
@@ -50,10 +50,10 @@ CLI reference for garak
     --generations GENERATIONS, -g GENERATIONS
                           number of generations per prompt
     --config CONFIG       YAML config file for this run
-    --model_type MODEL_TYPE, -m MODEL_TYPE
+    --target_type target_type, -m target_type
                           module and optionally also class of the generator,
                           e.g. 'huggingface', or 'openai'
-    --model_name MODEL_NAME, -n MODEL_NAME
+    --target_name target_name, -n target_name
                           name of the model, e.g.
                           'timdettmers/guanaco-33b-merged'
     --probes PROBES, -p PROBES

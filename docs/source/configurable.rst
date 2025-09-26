@@ -62,8 +62,8 @@ Let's take a look at the core config.
         soft_probe_prompt_cap: 256
 
     plugins:
-        model_type:
-        model_name:
+        target_type:
+        target_name:
         probe_spec: all
         detector_spec: auto
         extended_detectors: false
@@ -87,7 +87,7 @@ Let's take a look at the core config.
         group_aggregation_function: minimum
 
 Here we can see many entries that correspond to command line options, such as
-``model_name`` and ``model_type``, as well as some entried not exposed via CLI
+``target_name`` and ``target_type``, as well as some entried not exposed via CLI
 such as ``show_100_pass_modules``.
 
 
@@ -120,8 +120,8 @@ Run Config Items
 Plugins Config Items
 """"""""""""""""""""
 
-* ``model_type`` - The generator model type, e.g. "nim" or "huggingface"
-* ``model_name`` - The name of the model to be used (optional - if blank, type-specific default is used)
+* ``target_type`` - The type of target generator, e.g. "nim" or "huggingface"
+* ``target_name`` - The specific name of the target to be used (optional - if blank, type-specific default is used)
 * ``probe_spec`` - A comma-separated list of probe modules or probe classnames (in ``module.classname``) format to be used. If a module is given, only ``active`` plugin in that module are chosen, this is equivalent to passing `-p` to the CLI
 * ``detector_spec`` - An optional spec of detectors to be used, if overriding those recommended in probes. Specifying ``detector_spec`` means the ``pxd`` harness will be used. This is equivalent to passing `-d` to the CLI
 * ``extended_detectors`` - Should just the primary detector be used per probe, or should the extended detectors also be run? The former is fast, the latter thorough.
@@ -279,7 +279,7 @@ Example: RestGenerator
 
 RestGenerator is a slightly complex generator, though mostly because it exposes
 so many config values, allowing flexible integrations. This example sets
-``model_type: rest`` to ensure that this model is selected for the run; that might
+``target_type: rest`` to ensure that this model is selected for the run; that might
 not always be wanted, and it isn't compulsory.
 
 RestGenerator with YAML
@@ -288,7 +288,7 @@ RestGenerator with YAML
 .. code-block:: yaml
 
     plugins:
-        model_type: rest
+        target_type: rest
         generators:
             rest:
                 RestGenerator:

@@ -19,7 +19,6 @@ import uuid
 import sys
 
 import garak
-
 import garak.analyze.report_digest
 
 
@@ -52,9 +51,17 @@ p.add_argument("infiles", nargs="+", help="garak jsonl reports to be aggregated"
 a = p.parse_args()
 
 
+def model_target_depr_notice(entry):
+    import garak.command
+
+    garak.command.deprecation_notice(f"config plugins.{entry}", "0.13.1.pre1")
+
+
 def main(argv=None) -> None:
     if argv is None:
         argv = sys.argv[1:]
+
+    import garak._config
 
     garak._config.load_config()
     print(
@@ -84,12 +91,17 @@ def main(argv=None) -> None:
         print("lead file", in_filenames[0])
         with open(in_filenames[0], "r", encoding="utf8") as lead_file:
             # extract model type, model name, garak version
-
             setup_line = lead_file.readline()
             setup = json.loads(setup_line)
             assert setup["entry_type"] == "start_run setup"
-            model_type = setup["plugins.model_type"]
-            model_name = setup["plugins.model_name"]
+            if "plugins.model_type" in setup:
+                model_target_depr_notice("plugins.model_type")
+                setup["plugins.target_type"] = setup["plugins.model_type"]
+            target_type = setup["plugins.target_type"]
+            if "plugins.model_name" in setup:
+                model_target_depr_notice("plugins.model_name")
+                setup["plugins.target_name"] = setup["plugins.model_name"]
+            target_name = setup["plugins.target_name"]
             version = setup["_config.version"]
             setup["aggregation"] = in_filenames
 
@@ -127,8 +139,14 @@ def main(argv=None) -> None:
                     setup_line = subsequent_file.readline()
                     setup = json.loads(setup_line)
                     assert setup["entry_type"] == "start_run setup"
-                    assert model_type == setup["plugins.model_type"]
-                    assert model_name == setup["plugins.model_name"]
+                    if "plugins.target_type" not in setup:
+                        model_target_depr_notice("plugins.model_type")
+                        setup["plugins.target_type"] = setup["plugins.model_type"]
+                    if "plugins.target_name" not in setup:
+                        model_target_depr_notice("plugins.model_name")
+                        setup["plugins.target_name"] = setup["plugins.model_name"]
+                    assert target_type == setup["plugins.target_type"]
+                    assert target_name == setup["plugins.target_name"]
                     assert version == setup["_config.version"]
 
                     init_line = subsequent_file.readline()

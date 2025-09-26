@@ -107,7 +107,7 @@ class RestGenerator(Generator):
 
         if self.uri is None:
             raise ValueError(
-                "No REST endpoint URI definition found in either constructor param, JSON, or --model_name. Please specify one."
+                "No REST endpoint URI definition found in either constructor param, JSON, or --target_name. Please specify one."
             )
 
         self.fullname = f"{self.generator_family_name} {self.name}"

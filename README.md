@@ -93,7 +93,7 @@ The general syntax is:
 
 `garak --list_probes`
 
-To specify a generator, use the `--model_type` and, optionally, the `--model_name` options. Model type specifies a model family/interface; model name specifies the exact model to be used. The "Intro to generators" section below describes some of the generators supported. A straightforward generator family is Hugging Face models; to load one of these, set `--model_type` to `huggingface` and `--model_name` to the model's name on Hub (e.g. `"RWKV/rwkv-4-169m-pile"`). Some generators might need an API key to be set as an environment variable, and they'll let you know if they need that.
+To specify a generator, use the `--target_type` and, optionally, the `--target_name` options. Model type specifies a model family/interface; model name specifies the exact model to be used. The "Intro to generators" section below describes some of the generators supported. A straightforward generator family is Hugging Face models; to load one of these, set `--target_type` to `huggingface` and `--target_name` to the model's name on Hub (e.g. `"RWKV/rwkv-4-169m-pile"`). Some generators might need an API key to be set as an environment variable, and they'll let you know if they need that.
 
 `garak` runs all the probes by default, but you can be specific about that too. `--probes promptinject` will use only the [PromptInject](https://github.com/agencyenterprise/promptinject) framework's methods, for example. You can also specify one specific plugin instead of a plugin family by adding the plugin name after a `.`; for example, `--probes lmrc.SlurUsage` will use an implementation of checking for models generating slurs based on the [Language Model Risk Cards](https://arxiv.org/abs/2303.18190) framework.
 
@@ -105,13 +105,13 @@ Probe ChatGPT for encoding-based prompt injection (OSX/\*nix) (replace example v
  
 ```
 export OPENAI_API_KEY="sk-123XXXXXXXXXXXX"
-python3 -m garak --model_type openai --model_name gpt-3.5-turbo --probes encoding
+python3 -m garak --target_type openai --target_name gpt-3.5-turbo --probes encoding
 ```
 
 See if the Hugging Face version of GPT2 is vulnerable to DAN 11.0
 
 ```
-python3 -m garak --model_type huggingface --model_name gpt2 --probes dan.Dan_11_0
+python3 -m garak --target_type huggingface --target_name gpt2 --probes dan.Dan_11_0
 ```
 
 
@@ -136,23 +136,23 @@ Send PRs & open issues. Happy hunting!
 ### Hugging Face
 
 Using the Pipeline API:
-* `--model_type huggingface` (for transformers models to run locally)
-* `--model_name` - use the model name from Hub. Only generative models will work. If it fails and shouldn't, please open an issue and paste in the command you tried + the exception!
+* `--target_type huggingface` (for transformers models to run locally)
+* `--target_name` - use the model name from Hub. Only generative models will work. If it fails and shouldn't, please open an issue and paste in the command you tried + the exception!
 
 Using the Inference API:
-* `--model_type huggingface.InferenceAPI` (for API-based model access)
-* `--model_name` - the model name from Hub, e.g. `"mosaicml/mpt-7b-instruct"`
+* `--target_type huggingface.InferenceAPI` (for API-based model access)
+* `--target_name` - the model name from Hub, e.g. `"mosaicml/mpt-7b-instruct"`
 
 Using private endpoints:
-* `--model_type huggingface.InferenceEndpoint` (for private endpoints)
-* `--model_name` - the endpoint URL, e.g. `https://xxx.us-east-1.aws.endpoints.huggingface.cloud`
+* `--target_type huggingface.InferenceEndpoint` (for private endpoints)
+* `--target_name` - the endpoint URL, e.g. `https://xxx.us-east-1.aws.endpoints.huggingface.cloud`
 
 * (optional) set the `HF_INFERENCE_TOKEN` environment variable to a Hugging Face API token with the "read" role; see https://huggingface.co/settings/tokens when logged in
 
 ### OpenAI
 
-* `--model_type openai`
-* `--model_name` - the OpenAI model you'd like to use. `gpt-3.5-turbo-0125` is fast and fine for testing.
+* `--target_type openai`
+* `--target_name` - the OpenAI model you'd like to use. `gpt-3.5-turbo-0125` is fast and fine for testing.
 * set the `OPENAI_API_KEY` environment variable to your OpenAI API key (e.g. "sk-19763ASDF87q6657"); see https://platform.openai.com/account/api-keys when logged in
 
 Recognised model types are whitelisted, because the plugin needs to know which sub-API to use. Completion or ChatCompletion models are OK. If you'd like to use a model not supported, you should get an informative error message, and please send a PR / open an issue.
@@ -162,29 +162,29 @@ Recognised model types are whitelisted, because the plugin needs to know which s
 * set the `REPLICATE_API_TOKEN` environment variable to your Replicate API token, e.g. "r8-123XXXXXXXXXXXX"; see https://replicate.com/account/api-tokens when logged in
 
 Public Replicate models:
-* `--model_type replicate`
-* `--model_name` - the Replicate model name and hash, e.g. `"stability-ai/stablelm-tuned-alpha-7b:c49dae36"`
+* `--target_type replicate`
+* `--target_name` - the Replicate model name and hash, e.g. `"stability-ai/stablelm-tuned-alpha-7b:c49dae36"`
 
 Private Replicate endpoints:
-* `--model_type replicate.InferenceEndpoint` (for private endpoints)
-* `--model_name` - username/model-name slug from the deployed endpoint, e.g. `elim/elims-llama2-7b`
+* `--target_type replicate.InferenceEndpoint` (for private endpoints)
+* `--target_name` - username/model-name slug from the deployed endpoint, e.g. `elim/elims-llama2-7b`
 
 ### Cohere
 
-* `--model_type cohere`
-* `--model_name` (optional, `command` by default) - The specific Cohere model you'd like to test
+* `--target_type cohere`
+* `--target_name` (optional, `command` by default) - The specific Cohere model you'd like to test
 * set the `COHERE_API_KEY` environment variable to your Cohere API key, e.g. "aBcDeFgHiJ123456789"; see https://dashboard.cohere.ai/api-keys when logged in
 
 ### Groq
 
-* `--model_type groq`
-* `--model_name` - The name of the model to access via the Groq API
+* `--target_type groq`
+* `--target_name` - The name of the model to access via the Groq API
 * set the `GROQ_API_KEY` environment variable to your Groq API key, see https://console.groq.com/docs/quickstart for details on creating an API key
 
 ### ggml
 
-* `--model_type ggml`
-* `--model_name` - The path to the ggml model you'd like to load, e.g. `/home/leon/llama.cpp/models/7B/ggml-model-q4_0.bin`
+* `--target_type ggml`
+* `--target_name` - The path to the ggml model you'd like to load, e.g. `/home/leon/llama.cpp/models/7B/ggml-model-q4_0.bin`
 * set the `GGML_MAIN_PATH` environment variable to the path to your ggml `main` executable
 
 ### REST
@@ -197,21 +197,21 @@ Use models from https://build.nvidia.com/ or other NIM endpoints.
 * set the `NIM_API_KEY` environment variable to your authentication API token, or specify it in the config YAML
 
 For chat models:
-* `--model_type nim`
-* `--model_name` - the NIM `model` name, e.g. `meta/llama-3.1-8b-instruct`
+* `--target_type nim`
+* `--target_name` - the NIM `model` name, e.g. `meta/llama-3.1-8b-instruct`
 
 For completion models:
-* `--model_type nim.NVOpenAICompletion`
-* `--model_name` - the NIM `model` name, e.g. `bigcode/starcoder2-15b`
+* `--target_type nim.NVOpenAICompletion`
+* `--target_name` - the NIM `model` name, e.g. `bigcode/starcoder2-15b`
 
 
 ### Test
 
-* `--model_type test`
-* (alternatively) `--model_name test.Blank`
+* `--target_type test`
+* (alternatively) `--target_name test.Blank`
 For testing. This always generates the empty string, using the `test.Blank` generator.  Will be marked as failing for any tests that *require* an output, e.g. those that make contentious claims and expect the model to refute them in order to pass.
 
-* `--model_type test.Repeat`
+* `--target_type test.Repeat`
 For testing. This generator repeats back the prompt it received.
 
 ## Intro to probes

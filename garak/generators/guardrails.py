@@ -31,7 +31,7 @@ class NeMoGuardrails(Generator):
         self._load_config(config_root)
         self.fullname = f"Guardrails {self.name}"
 
-        # Currently, we use the model_name as the path to the config
+        # Currently, we use the target_name as the path to the config
         with redirect_stderr(io.StringIO()) as f:  # quieten the tqdm
             config = RailsConfig.from_path(self.name)
             self.rails = LLMRails(config=config)

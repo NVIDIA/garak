@@ -25,7 +25,7 @@ invoke a garak run via garak's cli module, using something like:
    import garak.cli
    import mymodule
 
-   garak.cli.main("--model_type function --model_name mymodule#function_name --probes encoding.InjectBase32".split())
+   garak.cli.main("--target_type function --target_name mymodule#function_name --probes encoding.InjectBase32".split())
 
 """
 

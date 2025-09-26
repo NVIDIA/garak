@@ -32,7 +32,7 @@ Before we go ahead and code up the generator, we need to tell garak which genera
 
     DEFAULT_CLASS = "ReplicateGenerator"
 
-When this generator module is selected using ``--model_type replicate``, with ``replicate`` being the name of the Python module we're working in, the generator loader (in ``garak/generators/__init__.py``) will search for the ``DEFAULT_CLASS`` constant and use its value to determine which class to instantiate.
+When this generator module is selected using ``--target_type replicate``, with ``replicate`` being the name of the Python module we're working in, the generator loader (in ``garak/generators/__init__.py``) will search for the ``DEFAULT_CLASS`` constant and use its value to determine which class to instantiate.
 
 Configuration
 *************
@@ -78,7 +78,7 @@ We end up with this:
 Constructor
 ***********
 
-Garak supports both a model type and a model name. Model type refers to the name of the class that will be used. Model name is an optional parameter that provides further detail. In the case of Replicate, they offer a selection of models which can be requested, each referred to by a name, such as ``meta/llama-2-70b-chat``. We'll use the model name to track this information. It's collected on the command line as the parameter to ``--model_name``, and passed to a generator constructor in the sole mandatory positional argument, ``name``.
+Garak supports both a model type and a model name. Model type refers to the name of the class that will be used. Model name is an optional parameter that provides further detail. In the case of Replicate, they offer a selection of models which can be requested, each referred to by a name, such as ``meta/llama-2-70b-chat``. We'll use the model name to track this information. It's collected on the command line as the parameter to ``--target_name``, and passed to a generator constructor in the sole mandatory positional argument, ``name``.
 
 Sometimes, we can leave the generator constructor alone and just inherit from ``base.Generator``. In the case of replicate, though, we want to check that there's a Replicate API key in place, and fail early if it's missing. Replicate calls require a user to add an API key, and garak won't be able to do a run without that key - so the polite thing to do is fail as early as we can. Generator load seems like a fine place to do that. The parent class' constructor already manages tracking this value and storing it in ``self.name``.
 
@@ -293,7 +293,7 @@ Well, this looks promising.
 The next step is to try some integration tests - executing garak from the command line, accessing this generator. There are some pointers in :doc:`contributing`. You might need to execute garak by specifying it as a Python module, running the command from the garak root code directory. Things to test are:
 
 * Does the new generator appear in ``python -m garak --list_generators``?
-* Does the generator work with a test probe, via ``python -m garak -m replicate -n meta/llama-2-70b-chat -p test.Blank``?
+* Does the generator work with a test probe, via ``python -m garak -t replicate -n meta/llama-2-70b-chat -p test.Blank``?
 * Do the garak tests pass? ``python -m pytest tests/``
 
 Add some of your own tests if there are edge-case behaviours, general validation, or other things in ``__init__()``, ``_call_model()``, and other new methods that can be checked. Plugin-specific tests should go into a new file, ``tests/generators/test_[modulename].py``.

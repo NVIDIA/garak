@@ -47,8 +47,8 @@ def convert_to_avid(report_location: str) -> str:
     if meta is not None:
         report_template.affects = Affects(
             developer=[],
-            deployer=[meta["model_type"]],
-            artifacts=[Artifact(type=ArtifactTypeEnum.model, name=meta["model_name"])],
+            deployer=[meta["target_type"]],
+            artifacts=[Artifact(type=ArtifactTypeEnum.model, name=meta["target_name"])],
         )
 
     report_template.references = [
@@ -67,13 +67,9 @@ def convert_to_avid(report_location: str) -> str:
         probe_data = evals_df.query(f"probe=='{probe}'")
 
         if meta is not None:
-            desc_text = (
-                f"The model {meta['model_name']} from {meta['model_type']} was evaluated by the Garak LLM Vunerability scanner using the probe `{probe}`."
-            )
+            desc_text = f"The model {meta['target_name']} from {meta['target_type']} was evaluated by the Garak LLM Vunerability scanner using the probe `{probe}`."
         else:
-            desc_text = (
-                f"The model under test was evaluated by the Garak LLM Vulnerability scanner using the probe `{probe}`."
-            )
+            desc_text = f"The model under test was evaluated by the Garak LLM Vulnerability scanner using the probe `{probe}`."
         report.description = LangValue(lang="eng", value=desc_text)
         report.problemtype = Problemtype(
             classof=ClassEnum.llm,

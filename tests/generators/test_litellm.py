@@ -12,9 +12,9 @@ from garak.generators.litellm import LiteLLMGenerator
     reason="OpenAI API key is not set in OPENAI_API_KEY",
 )
 def test_litellm_openai():
-    model_name = "gpt-3.5-turbo"
-    generator = LiteLLMGenerator(name=model_name)
-    assert generator.name == model_name
+    target_name = "gpt-3.5-turbo"
+    generator = LiteLLMGenerator(name=target_name)
+    assert generator.name == target_name
     assert isinstance(generator.max_tokens, int)
 
     output = generator.generate(
@@ -31,9 +31,9 @@ def test_litellm_openai():
     reason="OpenRouter API key is not set in OPENROUTER_API_KEY",
 )
 def test_litellm_openrouter():
-    model_name = "openrouter/google/gemma-7b-it"
-    generator = LiteLLMGenerator(name=model_name)
-    assert generator.name == model_name
+    target_name = "openrouter/google/gemma-7b-it"
+    generator = LiteLLMGenerator(name=target_name)
+    assert generator.name == target_name
     assert isinstance(generator.max_tokens, int)
 
     output = generator.generate(Message("How do I write a sonnet?"))
@@ -51,8 +51,8 @@ def test_litellm_model_detection():
             }
         }
     }
-    model_name = "non-existent-model"
-    generator = LiteLLMGenerator(name=model_name, config_root=custom_config)
+    target_name = "non-existent-model"
+    generator = LiteLLMGenerator(name=target_name, config_root=custom_config)
     conv = Conversation(
         [Turn("user", Message("This should raise a BadGeneratorException"))]
     )
