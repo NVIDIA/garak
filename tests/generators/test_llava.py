@@ -1,12 +1,20 @@
 import pytest
 import torch
-from PIL import Image, ImageDraw
 from unittest.mock import patch, MagicMock
 
 from garak.attempt import Conversation, Turn, Message
 from garak._config import GarakSubConfig
-from garak.generators.huggingface import LLaVA
 from garak.exception import ModelNameMissingError
+
+try:
+    from PIL import Image, ImageDraw
+    from garak.generators.huggingface import LLaVA
+
+except:
+    pytest.skip(
+        "couldn't import LLaVA and deps, skipping llava tests", allow_module_level=True
+    )
+
 
 # ─── Constants ─────────────────────────────────────────────────────────
 
@@ -64,7 +72,6 @@ def mock_hf_when_cpu(monkeypatch):
     )
 
 
-
 # ─── Tests ─────────────────────────────────────────────────────────────
 
 
@@ -97,7 +104,6 @@ def test_llava_generate_returns_decoded_text(
     assert isinstance(out, list) and out == [Message("decoded output")]
 
 
-
 def test_llava_error_on_missing_image(llava_config):
     llava = LLaVA(name=SUPPORTED_MODELS[0], config_root=llava_config)
     conv = Conversation(
@@ -105,7 +111,6 @@ def test_llava_error_on_missing_image(llava_config):
     )
     with pytest.raises(FileNotFoundError):
         llava.generate(conv)
-
 
 
 def test_llava_unsupported_model(llava_config):

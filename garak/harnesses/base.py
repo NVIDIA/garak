@@ -51,6 +51,8 @@ class Harness(Configurable):
     """Class to manage the whole process of probing, detecting and evaluating"""
 
     active = True
+    # list of strings naming modules required but not explicitly in garak by default
+    extra_dependency_names = []
 
     DEFAULT_PARAMS = {
         "strict_modality_match": False,
