@@ -6,7 +6,7 @@
 import logging
 import json
 import random
-import typing
+import sys
 
 HINT_CHANCE = 0.25
 
@@ -96,7 +96,9 @@ def start_run():
             ):
                 setup_dict[f"{subset}.{k}"] = v
 
-    _config.transient.reportfile.write(json.dumps(setup_dict, ensure_ascii=False) + "\n")
+    _config.transient.reportfile.write(
+        json.dumps(setup_dict, ensure_ascii=False) + "\n"
+    )
     _config.transient.reportfile.write(
         json.dumps(
             {
@@ -104,7 +106,8 @@ def start_run():
                 "garak_version": _config.version,
                 "start_time": _config.transient.starttime_iso,
                 "run": _config.transient.run_id,
-            }, ensure_ascii=False
+            },
+            ensure_ascii=False,
         )
         + "\n"
     )
@@ -123,7 +126,9 @@ def end_run():
         "end_time": datetime.datetime.now().isoformat(),
         "run": _config.transient.run_id,
     }
-    _config.transient.reportfile.write(json.dumps(end_object, ensure_ascii=False) + "\n")
+    _config.transient.reportfile.write(
+        json.dumps(end_object, ensure_ascii=False) + "\n"
+    )
     _config.transient.reportfile.close()
 
     print(f"📜 report closed :) {_config.transient.report_filename}")
@@ -147,16 +152,35 @@ def end_run():
     logging.info(msg)
 
 
-def print_plugins(prefix: str, color):
-    from colorama import Style
+def print_plugins(prefix: str, color, selected_plugins=None):
+    """
+    Print plugins for a category (probes/detectors/generators/buffs).
 
+    Args:
+        prefix: Plugin category (probes/detectors/generators/buffs)
+        color: Color for output formatting
+        selected_plugins: Optional list of specific plugins to show. If None, shows all.
+    """
+    from colorama import Style
     from garak._plugins import enumerate_plugins
 
-    plugin_names = enumerate_plugins(category=prefix)
-    plugin_names = [(p.replace(f"{prefix}.", ""), a) for p, a in plugin_names]
-    module_names = set([(m.split(".")[0], True) for m, a in plugin_names])
-    plugin_names += module_names
-    for plugin_name, active in sorted(plugin_names):
+    # enumerate with activation flags
+    rows = enumerate_plugins(
+        category=prefix
+    )  # [("probes.dan.AntiDAN", active_bool), ...]
+    if selected_plugins is not None:
+        if len(selected_plugins) > 0 and prefix in selected_plugins[0]:
+            rows = zip(selected_plugins, [True] * len(selected_plugins))
+        else:
+            print(f"No {prefix} match the provided filter")
+            return
+    short = [(p.replace(f"{prefix}.", ""), a) for p, a in rows]
+    if selected_plugins is None:
+        module_names = set([(m.split(".")[0], True) for m, a in short])
+        short += module_names
+
+    # print output
+    for plugin_name, active in sorted(short):
         print(f"{Style.BRIGHT}{color}{prefix}: {Style.RESET_ALL}", end="")
         print(plugin_name, end="")
         if "." not in plugin_name:
@@ -166,16 +190,16 @@ def print_plugins(prefix: str, color):
         print()
 
 
-def print_probes():
+def print_probes(selected_probes=None):
     from colorama import Fore
 
-    print_plugins("probes", Fore.LIGHTYELLOW_EX)
+    print_plugins("probes", Fore.LIGHTYELLOW_EX, selected_probes)
 
 
-def print_detectors():
+def print_detectors(selected_detectors=None):
     from colorama import Fore
 
-    print_plugins("detectors", Fore.LIGHTBLUE_EX)
+    print_plugins("detectors", Fore.LIGHTBLUE_EX, selected_detectors)
 
 
 def print_generators():

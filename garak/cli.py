@@ -445,10 +445,20 @@ def main(arguments=None) -> None:
             command.plugin_info(args.plugin_info)
 
         elif args.list_probes:
-            command.print_probes()
+            selected_probes = None
+            probe_spec = getattr(args, "probes", None)
+            if probe_spec and probe_spec.lower() not in ("", "auto", "all", "*"):
+                selected_probes, _ = _config.parse_plugin_spec(probe_spec, "probes")
+            command.print_probes(selected_probes)
 
         elif args.list_detectors:
-            command.print_detectors()
+            selected_detectors = None
+            detector_spec = getattr(args, "detectors", None)
+            if detector_spec and detector_spec.lower() not in ("", "auto", "all", "*"):
+                selected_detectors, _ = _config.parse_plugin_spec(
+                    detector_spec, "detectors"
+                )
+            command.print_detectors(selected_detectors)
 
         elif args.list_buffs:
             command.print_buffs()
