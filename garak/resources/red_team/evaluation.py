@@ -142,6 +142,20 @@ class EvaluationJudge:
             )
             for prompt in attempt_list
         ]
+        print("******")
+        print("In EvaluationJudge on_topic_score")
+        for conv in convs_list:
+            print("Conv to evaluate:")
+            print(conv)
+            print("------")
+            eval_generation = self.evaluation_generator.generate(conv)[0]
+            print("eval_generation =", eval_generation)
+            if eval_generation is not None:
+                print("eval_generation.text =", eval_generation.text)
+            else:
+                print("eval_generation is None")
+        print("******")
+        # _ = input("Press Enter to continue...")
         raw_outputs = [
             self.evaluation_generator.generate(conv)[0].text for conv in convs_list
         ]
