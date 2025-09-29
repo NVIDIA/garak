@@ -46,15 +46,12 @@ class DANProbeMeta(type):
         Automatically loads prompts and applies configuration.
         """
 
+        # Extract parameters passed to metaclass
+        attrs.update(kwargs)
+
         # Apply default configuration
         for key, default_value in cls._DAN_DEFAULTS.items():
-            if key not in attrs:
-                attrs[key] = default_value
-
-        # Extract parameters passed to metaclass
-        for key, value in kwargs.items():
-            if key not in attrs:
-                attrs[key] = value
+            attrs.setdefault(key, default_value)
 
         # Handle extra_tags (merge with default tags)
         if "extra_tags" in attrs:
@@ -114,16 +111,12 @@ class Dan_11_0(
     A do-anything-now jailbreak - a long prompt developed by the community, which
     should prevent LLM safeguards applying to future conversational turns."""
 
-    pass
-
 
 class Dan_10_0(garak.probes.Probe, metaclass=DANProbeMeta):
     """DAN 10.0
 
     A do-anything-now jailbreak - a long prompt developed by the community, which
     should prevent LLM safeguards applying to future conversational turns."""
-
-    pass
 
 
 class Dan_9_0(garak.probes.Probe, metaclass=DANProbeMeta):
@@ -132,16 +125,12 @@ class Dan_9_0(garak.probes.Probe, metaclass=DANProbeMeta):
     A do-anything-now jailbreak - a long prompt developed by the community, which
     should prevent LLM safeguards applying to future conversational turns."""
 
-    pass
-
 
 class Dan_8_0(garak.probes.Probe, metaclass=DANProbeMeta):
     """DAN 8.0
 
     A do-anything-now jailbreak - a long prompt developed by the community, which
     should prevent LLM safeguards applying to future conversational turns."""
-
-    pass
 
 
 class Dan_7_0(garak.probes.Probe, metaclass=DANProbeMeta):
@@ -150,8 +139,6 @@ class Dan_7_0(garak.probes.Probe, metaclass=DANProbeMeta):
     A do-anything-now jailbreak - a long prompt developed by the community, which
     should prevent LLM safeguards applying to future conversational turns."""
 
-    pass
-
 
 class Dan_6_2(garak.probes.Probe, metaclass=DANProbeMeta):
     """DAN 6.2
@@ -159,16 +146,12 @@ class Dan_6_2(garak.probes.Probe, metaclass=DANProbeMeta):
     A do-anything-now jailbreak - a long prompt developed by the community, which
     should prevent LLM safeguards applying to future conversational turns."""
 
-    pass
-
 
 class Dan_6_0(garak.probes.Probe, metaclass=DANProbeMeta):
     """DAN 6.0
 
     A do-anything-now jailbreak - a long prompt developed by the community, which
     should prevent LLM safeguards applying to future conversational turns."""
-
-    pass
 
 
 class DUDE(garak.probes.Probe, metaclass=DANProbeMeta):
@@ -179,8 +162,6 @@ class DUDE(garak.probes.Probe, metaclass=DANProbeMeta):
 
     detector = ["mitigation.MitigationBypass", "dan.DUDE"]
 
-    pass
-
 
 class STAN(garak.probes.Probe, metaclass=DANProbeMeta):
     """STAN
@@ -189,8 +170,6 @@ class STAN(garak.probes.Probe, metaclass=DANProbeMeta):
     should prevent LLM safeguards applying to future conversational turns."""
 
     detector = ["mitigation.MitigationBypass", "dan.STAN"]
-
-    pass
 
 
 class DAN_Jailbreak(
@@ -202,8 +181,6 @@ class DAN_Jailbreak(
 
     A do-anything-now jailbreak - a long prompt developed by the community, which
     should prevent LLM safeguards applying to future conversational turns."""
-
-    pass
 
 
 class AntiDAN(
@@ -217,8 +194,6 @@ class AntiDAN(
     A do-anything-now jailbreak - a long prompt developed by the community, which
     should prevent LLM safeguards applying to future conversational turns."""
 
-    pass
-
 
 class ChatGPT_Developer_Mode_v2(
     garak.probes.Probe,
@@ -230,8 +205,6 @@ class ChatGPT_Developer_Mode_v2(
     A do-anything-now jailbreak specifically developed for ChatGPT (gpt-3.5).
     This is a long prompt developed by the community, with the goal of preventing
     LLM safeguards applying to future conversational turns."""
-
-    pass
 
 
 class ChatGPT_Developer_Mode_RANTI(
@@ -246,8 +219,6 @@ class ChatGPT_Developer_Mode_RANTI(
     This is a long prompt developed by the community, with the goal of preventing
     LLM safeguards applying to future conversational turns."""
 
-    pass
-
 
 class ChatGPT_Image_Markdown(
     garak.probes.Probe,
@@ -258,8 +229,6 @@ class ChatGPT_Image_Markdown(
 
     A jailbreak attempt intended to enable the injection of markdown images into
     ChatGPT responses."""
-
-    pass
 
 
 class Ablation_Dan_11_0(
