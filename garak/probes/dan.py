@@ -12,6 +12,7 @@ from typing import Iterable
 import garak.attempt
 from garak import _config
 from garak.data import path as data_path
+from garak.exception import GarakException
 import garak.probes
 
 
@@ -62,24 +63,36 @@ class DANProbeMeta(type):
         if "detector" in attrs:
             attrs["recommended_detector"] = attrs.pop("detector")
 
-        # Determine prompt file
-        prompt_file = attrs.get("prompt_file", f"dan/{name}.txt")
+        # Determine prompt file - check bases for inherited prompt_file
+        prompt_file = attrs.get("prompt_file")
+        if prompt_file is None:
+            for base in bases:
+                if hasattr(base, "prompt_file"):
+                    prompt_file = base.prompt_file
+                    break
+            else:
+                # No inherited prompt_file found, use default
+                prompt_file = f"dan/{name}.txt"
 
-        # Load the prompts from the prompt file
-        try:
-            prompt_path = data_path / prompt_file
-            with open(prompt_path, "r", encoding="utf-8") as f:
-                content = f.read().strip()
-                # Allow multi-prompt files (one prompt per line)
-                if "\n" in content:
-                    prompts = [
-                        line.strip() for line in content.split("\n") if line.strip()
-                    ]
-                else:
-                    prompts = [content] if content else []
-            attrs["prompts"] = prompts
-        except Exception:
-            prompts = attrs.get("prompts", [])
+        # Load the prompts from the prompt file (only if not already defined)
+        if "prompts" not in attrs:
+            try:
+                prompt_path = data_path / prompt_file
+            except GarakException:
+                # Fallback to empty prompts
+                attrs["prompts"] = []
+            else:
+                # Read the file
+                with open(prompt_path, "r", encoding="utf-8") as f:
+                    content = f.read().strip()
+                    # Allow multi-prompt files (one prompt per line)
+                    if "\n" in content:
+                        prompts = [
+                            line.strip() for line in content.split("\n") if line.strip()
+                        ]
+                    else:
+                        prompts = [content] if content else []
+                attrs["prompts"] = prompts
 
         # Auto-add the probe method for prompt formatting
         if "probe" not in attrs:
