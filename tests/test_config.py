@@ -14,6 +14,7 @@ import tempfile
 from pytest_httpserver import HTTPServer
 
 from garak import _config
+from garak._config import GarakSubConfig
 import garak.cli
 
 
@@ -924,3 +925,27 @@ def test_model_target_override():
         c = _config._load_yaml_config([t.name])
         assert c["plugins"]["target_name"] == demo_name
         assert c["plugins"]["target_type"] == demo_type
+
+
+# test GarakSubConfig has verbose attribute by default
+def test_garaksubconfig_has_verbose_attribute():
+    """Test that GarakSubConfig instances have the verbose attribute with default value."""
+    config = GarakSubConfig()
+    assert hasattr(config, "verbose"), "GarakSubConfig should have verbose attribute"
+    assert config.verbose == 0, "verbose should default to 0"
+
+
+# test GarakSubConfig has all system params by default
+def test_garaksubconfig_has_system_params():
+    """Test that GarakSubConfig instances have all system parameters with defaults."""
+    config = GarakSubConfig()
+    assert hasattr(config, "verbose")
+    assert config.verbose == 0
+    assert hasattr(config, "narrow_output")
+    assert config.narrow_output is False
+    assert hasattr(config, "parallel_requests")
+    assert config.parallel_requests is False
+    assert hasattr(config, "parallel_attempts")
+    assert config.parallel_attempts is False
+    assert hasattr(config, "skip_unknown")
+    assert config.skip_unknown is False
