@@ -157,7 +157,8 @@ def _combine_into(d: dict, combined: dict) -> dict:
 
 def _load_yaml_config(settings_filenames) -> dict:
     global config_files
-    config_files += settings_filenames
+    # Only add filenames that aren't already in config_files to avoid duplicates
+    config_files += [f for f in settings_filenames if f not in config_files]
     config = nested_dict()
     for settings_filename in settings_filenames:
         with open(settings_filename, encoding="utf-8") as settings_file:

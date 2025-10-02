@@ -924,3 +924,42 @@ def test_model_target_override():
         c = _config._load_yaml_config([t.name])
         assert c["plugins"]["target_name"] == demo_name
         assert c["plugins"]["target_type"] == demo_type
+
+
+def test_config_files_no_duplicates():
+    """Test that config_files doesn't contain duplicate entries after loading configs."""
+    # Save original state
+    original_config_files = _config.config_files.copy()
+    original_loaded = _config.loaded
+    
+    try:
+        # Reset config state
+        _config.config_files = []
+        _config.loaded = False
+        
+        # Load base config (adds garak.core.yaml)
+        _config.load_base_config()
+        
+        # Load config again (should not add duplicate garak.core.yaml)
+        _config.load_config()
+        
+        # Check for duplicates
+        config_files = _config.config_files
+        unique_files = list(set(config_files))
+        
+        # Assert no duplicates
+        assert len(config_files) == len(unique_files), (
+            f"Found duplicate config files. "
+            f"config_files: {config_files}, unique: {unique_files}"
+        )
+        
+        # Specifically check that garak.core.yaml appears only once
+        core_yaml_count = sum(1 for f in config_files if "garak.core.yaml" in f)
+        assert core_yaml_count == 1, (
+            f"garak.core.yaml should appear exactly once, found {core_yaml_count} times"
+        )
+        
+    finally:
+        # Restore original state
+        _config.config_files = original_config_files
+        _config.loaded = original_loaded
