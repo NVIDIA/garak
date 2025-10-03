@@ -42,10 +42,15 @@ project_dir_name = "garak"
 
 loaded = False
 
-
 @dataclass
 class GarakSubConfig:
-    pass
+    """Base config class with default system parameters"""
+    # System parameters (from system_params at line 34)
+    verbose: int = 0
+    narrow_output: bool = False
+    parallel_requests: bool = False
+    parallel_attempts: bool = False
+    skip_unknown: bool = False
 
 
 @dataclass

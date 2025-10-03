@@ -78,3 +78,23 @@ def test_command_args_list():
 
         os.remove(file.name)
         assert type(g) is garak.generators.ggml.GgmlGenerator
+
+
+def test_ggml_generator_with_bare_config():
+    """Test that ggml generator can be instantiated with a bare GarakSubConfig that has verbose attr."""
+    from garak._config import GarakSubConfig
+
+    with tempfile.NamedTemporaryFile(suffix="_test_model.gguf", delete=False) as file:
+        file.write(garak.generators.ggml.GGUF_MAGIC)
+        file.close()
+
+        # Create a bare config like in the issue scenario
+        config_root = GarakSubConfig()
+
+        # This should not raise AttributeError about verbose
+        g = garak.generators.ggml.GgmlGenerator(file.name, config_root=config_root)
+        os.remove(file.name)
+
+        assert type(g) is garak.generators.ggml.GgmlGenerator
+        # Verify verbose attribute is accessible
+        assert hasattr(config_root, "verbose")
