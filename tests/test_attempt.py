@@ -219,7 +219,7 @@ def test_attempt_history_lengths():
 
 def test_attempt_illegal_ops():
     a = garak.attempt.Attempt()
-    a.prompt = "prompt"
+    a.prompt = garak.attempt.Message("prompt")
     a.outputs = [garak.attempt.Message("output")]
     with pytest.raises(TypeError):
         a.prompt = "shouldn't be able to set initial prompt after output turned up"
@@ -238,7 +238,7 @@ def test_attempt_illegal_ops():
 
     a = garak.attempt.Attempt()
     with pytest.raises(TypeError):
-        a.prompt = "obsidian"
+        a.prompt = garak.attempt.Message("obsidian")
         a.outputs = [garak.attempt.Message("order")]
         a._expand_prompt_to_histories(
             1
@@ -246,7 +246,7 @@ def test_attempt_illegal_ops():
 
     a = garak.attempt.Attempt()
     with pytest.raises(TypeError):
-        a.prompt = "obsidian"
+        a.prompt = garak.attempt.Message("obsidian")
         a._expand_prompt_to_histories(3)
         a._expand_prompt_to_histories(
             3
@@ -268,7 +268,7 @@ def test_attempt_no_prompt_output_access():
 def test_attempt_set_prompt_var():
     test_text = "Plain Simple Garak"
     direct_attempt = garak.attempt.Attempt()
-    direct_attempt.prompt = test_text
+    direct_attempt.prompt = garak.attempt.Message(test_text)
     assert direct_attempt.prompt == garak.attempt.Conversation(
         [garak.attempt.Turn("user", garak.attempt.Message(test_text))]
     ), "setting attempt.prompt should put the a Prompt with the given text in attempt.prompt"
@@ -276,7 +276,9 @@ def test_attempt_set_prompt_var():
 
 def test_attempt_constructor_prompt():
     test_text = "Plain Simple Garak"
-    constructor_attempt = garak.attempt.Attempt(prompt=test_text, lang="*")
+    constructor_attempt = garak.attempt.Attempt(
+        prompt=garak.attempt.Message(test_text, lang="*"), lang="*"
+    )
     assert constructor_attempt.prompt == garak.attempt.Conversation(
         [garak.attempt.Turn("user", garak.attempt.Message(test_text, lang="*"))]
     ), "instantiating an Attempt with prompt in the constructor should put a Prompt with the prompt text in attempt.prompt"
@@ -401,7 +403,7 @@ def test_attempt_outputs():
     output_a = garak.attempt.Attempt()
     assert output_a.outputs == []
 
-    output_a.prompt = test_prompt
+    output_a.prompt = garak.attempt.Message(test_prompt)
     assert output_a.outputs == []
 
     output_a.outputs = [garak.attempt.Message(test_sys1, lang=prompt_lang)]
@@ -457,14 +459,18 @@ def test_attempt_all_outputs():
 
 def test_attempt_message_prompt_init():
     test_prompt = "Enabran Tain"
-    att = garak.attempt.Attempt(prompt=test_prompt, lang="*")
+    att = garak.attempt.Attempt(
+        prompt=garak.attempt.Message(test_prompt, lang="*"), lang="*"
+    )
     assert att.prompt == garak.attempt.Conversation(
         [garak.attempt.Turn("user", garak.attempt.Message(text=test_prompt, lang="*"))]
     )
 
 
 def test_json_serialize():
-    att = garak.attempt.Attempt(prompt="well hello", lang="*")
+    att = garak.attempt.Attempt(
+        prompt=garak.attempt.Message("well hello", lang="*"), lang="*"
+    )
     att.outputs = [garak.attempt.Message("output one"), None]
 
     att_dict = att.as_dict()
