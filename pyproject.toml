@@ -111,6 +111,7 @@ dependencies = [
   "mistralai==1.5.2",
   "pillow>=10.4.0",
   "ftfy>=6.3.1",
+  "websockets>=13.0",
 ]
 
 [project.optional-dependencies]
