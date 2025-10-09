@@ -256,3 +256,5 @@ class TestWebSocketGenerator:
         assert gen.request_timeout == 20
         assert gen.connection_timeout == 10
         assert gen.verify_ssl is True
+
+
