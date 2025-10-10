@@ -6,7 +6,7 @@ WebSocket connector for real-time LLM services.
 This generator enables garak to test WebSocket-based LLM services that use 
 real-time bidirectional communication, similar to modern chat applications.
 
-Uses the following options from ``_config.plugins.generators["websocket.WebSocketGenerator"]``:
+Uses the following options from ``_config.plugins.generators["websocket"]["WebSocketGenerator"]``:
 
 * ``uri`` - the WebSocket URI (ws:// or wss://); can also be passed in --model_name
 * ``name`` - a short name for this service; defaults to "WebSocket LLM"
