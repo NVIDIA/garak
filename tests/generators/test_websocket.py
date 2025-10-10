@@ -2,6 +2,7 @@
 
 import pytest
 import json
+import uuid
 from unittest.mock import Mock, patch, AsyncMock
 import asyncio
 
@@ -227,28 +228,34 @@ class TestWebSocketGenerator:
         """Test recursive replacement in nested data structures"""
         gen = WebSocketGenerator(uri="ws://localhost:3000")
         
+        # Use dynamic values to avoid hardcoding test expectations
+        static_value = "static_value"
+        input_value = f"test_input_{uuid.uuid4().hex[:8]}"
+        key_value = f"test_key_{uuid.uuid4().hex[:8]}"
+        conversation_value = f"test_conv_{uuid.uuid4().hex[:8]}"
+        
         data = {
             "message": "$INPUT",
             "metadata": {
                 "user": "$KEY",
                 "conversation": "$CONVERSATION_ID"
             },
-            "options": ["$INPUT", "static_value"]
+            "options": ["$INPUT", static_value]
         }
         
         replacements = {
-            "$INPUT": "Hello",
-            "$KEY": "user123",
-            "$CONVERSATION_ID": "conv456"
+            "$INPUT": input_value,
+            "$KEY": key_value,
+            "$CONVERSATION_ID": conversation_value
         }
         
         result = gen._apply_replacements(data, replacements)
         
-        assert result["message"] == "Hello"
-        assert result["metadata"]["user"] == "user123"
-        assert result["metadata"]["conversation"] == "conv456"
-        assert result["options"][0] == "Hello"
-        assert result["options"][1] == "static_value"
+        assert result["message"] == input_value
+        assert result["metadata"]["user"] == key_value
+        assert result["metadata"]["conversation"] == conversation_value
+        assert result["options"][0] == input_value
+        assert result["options"][1] == static_value
 
     def test_default_params_coverage(self):
         """Test that all default parameters are properly set"""
