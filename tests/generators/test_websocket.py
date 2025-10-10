@@ -40,12 +40,19 @@ class TestWebSocketGenerator:
 
     def test_auth_basic(self):
         """Test basic authentication setup"""
-        gen = WebSocketGenerator(
-            uri="ws://localhost:3000",
-            auth_type="basic",
-            username="testuser",
-            password="testpass"
-        )
+        instance_config = {
+            "generators": {
+                "websocket": {
+                    "WebSocketGenerator": {
+                        uri="ws://localhost:3000",
+                        auth_type="basic",
+                        username="testuser",
+                        api_key="testpass",
+                    }
+                }
+            }
+        }
+        gen = WebSocketGenerator(config_root=instance_config)
         assert "Authorization" in gen.headers
         assert gen.headers["Authorization"].startswith("Basic ")
 
