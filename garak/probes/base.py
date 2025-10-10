@@ -717,16 +717,17 @@ class IterativeProbe(Probe):
         else:
             raise ValueError(f"Unsupported end condition '{self.end_condition}'")
 
-    def generate_next_turn_str(self, conversation: garak.attempt.Conversation) -> str:
+    def generate_next_turn_str(self, conversation: garak.attempt.Conversation, last_attempt: garak.attempt.Attempt) -> str:
         """Function to be overridden with logic to get the next turn of the conversation based on the previous turn"""
         raise NotImplementedError
 
-    def generate_next_turn(self, conversation: garak.attempt.Conversation) -> garak.attempt.Conversation:
+    def generate_next_turn_attempt(self, conversation: garak.attempt.Conversation, last_attempt: garak.attempt.Attempt) -> garak.attempt.Attempt:
         """Function to be overridden with logic to get a conversation object for the next turn of the conversation based on the previous turn"""
-        next_turn_str = self.generate_next_turn_str(conversation)
+        next_turn_str = self.generate_next_turn_str(conversation, last_attempt)
         next_turn_conv = copy.deepcopy(conversation)
         next_turn_conv.turns.append(garak.attempt.Turn("user", garak.attempt.Message(text=next_turn_str)))
-        return next_turn_conv
+        next_turn_attempt = self._create_attempt(next_turn_conv)
+        return next_turn_attempt
 
     def probe(self, generator):
         """Wrapper generating all attempts and handling execution against generator"""
@@ -745,9 +746,8 @@ class IterativeProbe(Probe):
             for attempt in attempts_completed:
                 should_terminate_per_output = self._should_terminate_conversation(attempt)
                 conversations_to_continue = [attempt.conversations[idx] for idx, should_terminate in enumerate(should_terminate_per_output) if not should_terminate]
-                next_turns = [self.generate_next_turn(conversation) for conversation in conversations_to_continue]
-                next_turn_convs = [self.generate_next_turn(conversation) for conversation in conversations_to_continue]
-                attempts_todo.extend([self._create_attempt(next_turn_conv) for next_turn_conv in next_turn_convs])
+                next_turn_attempts = [self.generate_next_turn_attempt(conversation, attempt) for conversation in conversations_to_continue]
+                attempts_todo.extend(next_turn_attempts)
                 # TODO: Ideally this happens in next_turn_convs but before we continue every attempt in attempts_todo needs notes to update turn number and which prompts are adversarial
 
             logging.debug("Turn %d: Attempts created: %d", turn_num, len(attempts_todo))
