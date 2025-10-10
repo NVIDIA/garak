@@ -34,7 +34,7 @@ class WebSocketGenerator(Generator):
     - auth_type: Authentication method (none, basic, bearer, custom)
     - username/password: Basic authentication credentials
     - api_key: API key for bearer token auth
-    - key_env_var: Environment variable name for API key
+    - ENV_VAR: Environment variable name for API key (class constant)
     - req_template: String template with $INPUT and $KEY placeholders
     - req_template_json_object: JSON object template for structured messages
     - headers: Additional WebSocket headers
@@ -67,6 +67,8 @@ class WebSocketGenerator(Generator):
         "max_response_length": 10000,
         "verify_ssl": True,
     }
+
+    ENV_VAR = "WEBSOCKET_API_KEY"
 
     def __init__(self, uri=None, config_root=_config, **kwargs):
         # Accept all parameters that tests might pass
@@ -112,8 +114,8 @@ class WebSocketGenerator(Generator):
     def _validate_env_var(self):
         """Only validate API key if it's actually needed in templates or auth"""
         # Get API key from environment if specified
-        if self.key_env_var and not self.api_key:
-            self.api_key = os.getenv(self.key_env_var)
+        if hasattr(self, 'ENV_VAR') and not self.api_key:
+            self.api_key = os.getenv(self.ENV_VAR)
             
         if self.auth_type in ["bearer", "custom"] and not self.api_key:
             return super()._validate_env_var()
