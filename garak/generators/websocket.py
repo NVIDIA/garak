@@ -28,7 +28,6 @@ DEFAULT_PARAMS = {
     "username": None,
     "password": None,
     "api_key": None,
-    "key_env_var": "WEBSOCKET_API_KEY",
     "conversation_id": None,
     "req_template": "$INPUT",
     "req_template_json_object": None,
