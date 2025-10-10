@@ -21,26 +21,6 @@ from garak.generators.base import Generator
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_PARAMS = {
-    "uri": None,
-    "name": "WebSocket LLM",
-    "auth_type": "none",  # none, basic, bearer, custom
-    "username": None,
-    "api_key": None,
-    "conversation_id": None,
-    "req_template": "$INPUT",
-    "req_template_json_object": None,
-    "headers": {},
-    "response_json": False,
-    "response_json_field": "text",
-    "response_after_typing": True,
-    "typing_indicator": "typing",
-    "request_timeout": 20,
-    "connection_timeout": 10,
-    "max_response_length": 10000,
-    "verify_ssl": True,
-}
-
 
 class WebSocketGenerator(Generator):
     """Generator for WebSocket-based LLM services
@@ -68,7 +48,25 @@ class WebSocketGenerator(Generator):
     - verify_ssl: SSL certificate verification
     """
 
-    DEFAULT_PARAMS = DEFAULT_PARAMS
+    DEFAULT_PARAMS = {
+        "uri": None,
+        "name": "WebSocket LLM",
+        "auth_type": "none",  # none, basic, bearer, custom
+        "username": None,
+        "api_key": None,
+        "conversation_id": None,
+        "req_template": "$INPUT",
+        "req_template_json_object": None,
+        "headers": {},
+        "response_json": False,
+        "response_json_field": "text",
+        "response_after_typing": True,
+        "typing_indicator": "typing",
+        "request_timeout": 20,
+        "connection_timeout": 10,
+        "max_response_length": 10000,
+        "verify_ssl": True,
+    }
 
     def __init__(self, uri=None, config_root=_config, **kwargs):
         # Accept all parameters that tests might pass
