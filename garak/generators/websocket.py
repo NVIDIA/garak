@@ -113,6 +113,10 @@ class WebSocketGenerator(Generator):
 
     def _validate_env_var(self):
         """Only validate API key if it's actually needed in templates or auth"""
+        # Get API key from environment if specified
+        if self.key_env_var and not self.api_key:
+            self.api_key = os.getenv(self.key_env_var)
+            
         if self.auth_type in ["bearer", "custom"] and not self.api_key:
             return super()._validate_env_var()
         
@@ -134,10 +138,6 @@ class WebSocketGenerator(Generator):
     def _setup_auth(self):
         """Set up authentication headers and credentials"""
         self.auth_header = None
-        
-        # Get API key from environment if specified
-        if self.key_env_var and not self.api_key:
-            self.api_key = os.getenv(self.key_env_var)
         
         # Set up authentication headers
         if self.auth_type == "basic" and self.username and self.password:
