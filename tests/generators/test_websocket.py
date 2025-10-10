@@ -151,7 +151,9 @@ class TestWebSocketGenerator:
         gen = WebSocketGenerator(uri="ws://localhost:3000")
         
         mock_websocket = AsyncMock()
-        with patch('garak.generators.websocket.websockets.connect', return_value=mock_websocket) as mock_connect:
+        # Mock websockets.connect to return the mock_websocket directly
+        with patch('garak.generators.websocket.websockets.connect') as mock_connect:
+            mock_connect.return_value = mock_websocket
             await gen._connect_websocket()
             mock_connect.assert_called_once()
             assert gen.websocket == mock_websocket
@@ -205,7 +207,8 @@ class TestWebSocketGenerator:
         
         with patch.object(gen, '_generate_async', side_effect=mock_generate):
             result = gen._call_model("Test prompt")
-            assert result == ["Response to: Test prompt"]
+            assert len(result) == 1
+            assert result[0].text == "Response to: Test prompt"
 
     def test_call_model_error_handling(self):
         """Test error handling in model call"""
@@ -217,7 +220,8 @@ class TestWebSocketGenerator:
         
         with patch.object(gen, '_generate_async', side_effect=mock_generate_error):
             result = gen._call_model("Test prompt")
-            assert result == [""]  # Should return empty string on error
+            assert len(result) == 1
+            assert result[0].text == ""  # Should return empty string on error
 
     def test_apply_replacements_nested(self):
         """Test recursive replacement in nested data structures"""

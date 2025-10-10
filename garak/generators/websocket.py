@@ -123,17 +123,10 @@ class WebSocketGenerator(Generator):
         if not self.uri:
             raise ValueError("WebSocket uri is required")
         
-        # Parse URI - handle non-WebSocket URIs gracefully for tests
+        # Parse URI
         parsed = urlparse(self.uri)
-        if parsed.scheme not in ['ws', 'wss', 'http', 'https']:
-            raise ValueError("URI must use ws://, wss://, http://, or https:// scheme")
-        
-        # Convert HTTP(S) to WebSocket for test compatibility
-        if parsed.scheme in ['http', 'https']:
-            logger.warning(f"Converting {parsed.scheme}:// to WebSocket scheme for testing")
-            ws_scheme = 'wss' if parsed.scheme == 'https' else 'ws'
-            self.uri = self.uri.replace(parsed.scheme + '://', ws_scheme + '://')
-            parsed = urlparse(self.uri)
+        if parsed.scheme not in ['ws', 'wss']:
+            raise ValueError("URI must use ws:// or wss:// scheme")
         
         self.host = parsed.hostname
         self.port = parsed.port or (443 if parsed.scheme == 'wss' else 80)
@@ -234,11 +227,13 @@ class WebSocketGenerator(Generator):
             if self.response_json_field.startswith('$'):
                 # Simple JSONPath support for common cases
                 path = self.response_json_field[1:]  # Remove $
+                if path.startswith('.'):
+                    path = path[1:]  # Remove leading dot
                 if '.' in path:
                     # Navigate nested fields
                     current = response_data
                     for field in path.split('.'):
-                        if isinstance(current, dict) and field in current:
+                        if field and isinstance(current, dict) and field in current:
                             current = current[field]
                         else:
                             return response  # Fallback to raw response
@@ -387,16 +382,18 @@ class WebSocketGenerator(Generator):
                 response_text = loop.run_until_complete(self._generate_async(prompt_text))
                 # Create Message objects for garak
                 if response_text:
-                    message = Message(text=response_text, role="assistant")
+                    message = Message(text=response_text)
                     return [message] * min(generations_this_call, 1)
                 else:
-                    return [None] * min(generations_this_call, 1)
+                    message = Message(text="")
+                    return [message] * min(generations_this_call, 1)
             finally:
                 loop.close()
                 
         except Exception as e:
             logger.error(f"WebSocket generation failed: {e}")
-            return [None] * min(generations_this_call, 1)
+            message = Message(text="")
+            return [message] * min(generations_this_call, 1)
 
     def __del__(self):
         """Clean up WebSocket connection"""
