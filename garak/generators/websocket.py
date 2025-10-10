@@ -1,32 +1,7 @@
-"""WebSocket generator
+"""WebSocket generator for real-time LLM communication
 
-Connect to LLM services via WebSocket protocol. This generator enables garak
-to test WebSocket-based LLM services that use real-time bidirectional communication.
-
-The WebSocket generator supports:
-- Custom authentication (Basic Auth, API keys, custom headers)
-- Template-based message formatting (similar to REST generator)
-- JSON response extraction with JSONPath support
-- Configurable response patterns and timing
-- SSH tunnel compatibility for secure remote testing
-
-Example usage:
-
-.. code-block:: python
-
-   import garak.generators.websocket
-
-   g = garak.generators.websocket.WebSocketGenerator(
-       uri="ws://localhost:3000/",
-       auth_type="basic",
-       username="user",
-       password="pass",
-       req_template_json_object={"message": "$INPUT", "conversation_id": "$CONVERSATION_ID"},
-       response_json=True,
-       response_json_field="text"
-   )
-
-This generator was developed and tested with production WebSocket LLM services.
+This module provides WebSocket-based connectivity for testing LLM services
+that use real-time bidirectional communication protocols.
 """
 
 import asyncio
@@ -285,7 +260,7 @@ class WebSocketGenerator(Generator):
         try:
             # Send message
             await self.websocket.send(message)
-            logger.debug(f"Sent message: {message[:100]}...")
+            logger.debug("WebSocket message sent")
             
             # Collect response parts
             response_parts = []
@@ -304,18 +279,16 @@ class WebSocketGenerator(Generator):
                         timeout=min(2.0, remaining_time)
                     )
                     
-                    logger.debug(f"Received WebSocket message: {response[:100]}...")
+                    logger.debug("WebSocket message received")
                     
                     # Handle typing indicators
                     if self.response_after_typing and self.typing_indicator in response:
                         typing_detected = True
-                        logger.debug("Typing indicator detected, waiting for completion")
                         continue
                     
                     # If we were waiting for typing to finish and got a non-typing message
                     if typing_detected and self.typing_indicator not in response:
                         response_parts.append(response)
-                        logger.debug("Typing completed, got final response")
                         break
                     
                     # Collect response parts
@@ -323,7 +296,6 @@ class WebSocketGenerator(Generator):
                     
                     # If not using typing indicators, assume first response is complete
                     if not self.response_after_typing:
-                        logger.debug("No typing mode: accepting first response")
                         break
                     
                     # Check if we have enough content
@@ -344,7 +316,7 @@ class WebSocketGenerator(Generator):
             
             # Combine response parts
             full_response = ''.join(response_parts)
-            logger.debug(f"Received response: {full_response[:200]}...")
+            logger.debug(f"WebSocket response received ({len(full_response)} chars)")
             
             return full_response
             
