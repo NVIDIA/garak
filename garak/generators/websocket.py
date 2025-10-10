@@ -26,7 +26,6 @@ DEFAULT_PARAMS = {
     "name": "WebSocket LLM",
     "auth_type": "none",  # none, basic, bearer, custom
     "username": None,
-    "password": None,
     "api_key": None,
     "conversation_id": None,
     "req_template": "$INPUT",
