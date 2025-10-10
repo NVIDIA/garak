@@ -45,10 +45,10 @@ class TestWebSocketGenerator:
             "generators": {
                 "websocket": {
                     "WebSocketGenerator": {
-                        uri="ws://localhost:3000",
-                        auth_type="basic",
-                        username="testuser",
-                        api_key="testpass",
+                        "uri": "ws://localhost:3000",
+                        "auth_type": "basic",
+                        "username": "testuser",
+                        "api_key": "testpass",
                     }
                 }
             }
