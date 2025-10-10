@@ -12,8 +12,7 @@ Uses the following options from ``_config.plugins.generators["websocket"]["WebSo
 * ``name`` - a short name for this service; defaults to "WebSocket LLM"
 * ``auth_type`` - authentication method: "none", "basic", "bearer", or "custom"
 * ``username`` - username for basic authentication
-* ``password`` - password for basic authentication  
-* ``api_key`` - API key for bearer token authentication
+* ``api_key`` - API key for bearer token auth or password for basic auth
 * ``key_env_var`` - environment variable holding API key; default ``WEBSOCKET_API_KEY``
 * ``req_template`` - string template where ``$INPUT`` is replaced by prompt, ``$KEY`` by API key, ``$CONVERSATION_ID`` by conversation ID
 * ``req_template_json_object`` - request template as Python object, serialized to JSON with placeholder replacements
