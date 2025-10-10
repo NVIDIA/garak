@@ -4,6 +4,7 @@ Trying to get code generations that specify non-existent (and therefore insecure
 packages
 """
 
+from abc import ABC, abstractmethod
 from garak import _config
 import garak.probes
 
@@ -33,8 +34,8 @@ code_tasks = [
 ]
 
 
-class PackageHallucinationProbe(garak.probes.Probe):
-    """Base class for package hallucination probes
+class PackageHallucinationProbe(garak.probes.Probe, ABC):
+    """Abstract base class for package hallucination probes
 
     Generators sometimes recommend importing non-existent packages into code. These
     package names can be found by attackers and then squatted in public package
@@ -42,7 +43,6 @@ class PackageHallucinationProbe(garak.probes.Probe):
     loading malicious squatted packages onto the machine. This is bad. This probe
     checks whether a model will recommend code that uses non-existent packages."""
 
-    active = False
     lang = "*"
     doc_uri = "https://vulcan.io/blog/ai-hallucinations-package-risk"
     tags = [
@@ -51,9 +51,13 @@ class PackageHallucinationProbe(garak.probes.Probe):
         "quality:Robustness:GenerativeMisinformation",
         "payload:malicious:badcode",
     ]
-    language_name = ""
     goal = "base probe for importing non-existent packages"
-    tier = garak.probes.Tier.UNLISTED
+
+    @property
+    @abstractmethod
+    def language_name(self) -> str:
+        """Programming language name - must be overridden by subclasses"""
+        pass
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)

@@ -18,6 +18,7 @@ https://web.archive.org/web/20230000000000*/https://pypi.org/simple/ .
 Existing packages are also checked from the current version of Python's
 stdlib according to the stdlibs package."""
 
+from abc import ABC, abstractmethod
 from datetime import datetime
 import pytz
 import logging
@@ -29,18 +30,27 @@ from garak.data import path as data_path
 from garak.detectors.base import Detector
 
 
-class PackageHallucinationDetector(Detector):
-    """Base class for package hallucination detectors"""
+class PackageHallucinationDetector(Detector, ABC):
+    """Abstract base class for package hallucination detectors"""
 
     DEFAULT_PARAMS = Detector.DEFAULT_PARAMS | {
-        "dataset_name": None,
-        "language_name": None,
         "cutoff_date": None,
     }
 
     lang_spec = "*"
     packages = None
     active = False
+
+    @property
+    @abstractmethod
+    def language_name(self) -> str:
+        """Programming language name - must be overridden by subclasses"""
+        pass
+
+    @abstractmethod
+    def _extract_package_references(self, output: str) -> Set[str]:
+        """Extract package references from output - must be overridden by subclasses"""
+        pass
 
     def _load_package_list(self):
         import datasets
@@ -79,9 +89,6 @@ class PackageHallucinationDetector(Detector):
                 self.packages = set(dataset["text"])
         else:
             self.packages = set(dataset["text"])
-
-    def _extract_package_references(self, output: str) -> Set[str]:
-        raise NotImplementedError
 
     def detect(self, attempt: Attempt) -> List[float | None]:
         if not self.packages:
@@ -123,8 +130,9 @@ class PythonPypi(PackageHallucinationDetector):
 
     DEFAULT_PARAMS = PackageHallucinationDetector.DEFAULT_PARAMS | {
         "dataset_name": "garak-llm/pypi-20241031",
-        "language_name": "python",
     }
+
+    language_name = "python"
 
     def _load_package_list(self):
         super()._load_package_list()
@@ -147,8 +155,9 @@ class RubyGems(PackageHallucinationDetector):
 
     DEFAULT_PARAMS = PackageHallucinationDetector.DEFAULT_PARAMS | {
         "dataset_name": "garak-llm/rubygems-20241031",
-        "language_name": "ruby",
     }
+
+    language_name = "ruby"
 
     def _extract_package_references(self, output: str) -> Set[str]:
         requires = re.findall(
@@ -165,8 +174,9 @@ class JavaScriptNpm(PackageHallucinationDetector):
 
     DEFAULT_PARAMS = PackageHallucinationDetector.DEFAULT_PARAMS | {
         "dataset_name": "garak-llm/npm-20241031",
-        "language_name": "javascript",
     }
+
+    language_name = "javascript"
 
     def _extract_package_references(self, output: str) -> Set[str]:
         imports = re.findall(
@@ -186,8 +196,9 @@ class RustCrates(PackageHallucinationDetector):
 
     DEFAULT_PARAMS = PackageHallucinationDetector.DEFAULT_PARAMS | {
         "dataset_name": "garak-llm/crates-20250307",
-        "language_name": "rust",
     }
+
+    language_name = "rust"
 
     def _load_package_list(self):
         super()._load_package_list()
@@ -215,8 +226,9 @@ class RakuLand(PackageHallucinationDetector):
 
     DEFAULT_PARAMS = PackageHallucinationDetector.DEFAULT_PARAMS | {
         "dataset_name": "garak-llm/raku-20250811",
-        "language_name": "raku",
     }
+
+    language_name = "raku"
 
     def _extract_package_references(self, output: str) -> Set[str]:
         # Match: use Module::Name including hyphens, dots, apostrophes - but exclude angle bracket symbols
@@ -236,8 +248,9 @@ class Perl(PackageHallucinationDetector):
 
     DEFAULT_PARAMS = PackageHallucinationDetector.DEFAULT_PARAMS | {
         "dataset_name": "garak-llm/perl-20250811",
-        "language_name": "perl",
     }
+
+    language_name = "perl"
 
     def _extract_package_references(self, output: str) -> Set[str]:
         # Look for "use Module::Name" style references
@@ -252,8 +265,9 @@ class Dart(PackageHallucinationDetector):
 
     DEFAULT_PARAMS = PackageHallucinationDetector.DEFAULT_PARAMS | {
         "dataset_name": "garak-llm/dart-20250811",
-        "language_name": "dart",
     }
+
+    language_name = "dart"
 
     def _load_package_list(self):
         super()._load_package_list()
