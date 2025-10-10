@@ -32,8 +32,8 @@ class WebSocketGenerator(Generator):
     - uri: WebSocket URL (ws:// or wss://)
     - name: Display name for the service
     - auth_type: Authentication method (none, basic, bearer, custom)
-    - username/password: Basic authentication credentials
-    - api_key: API key for bearer token auth
+    - username: Basic authentication username
+    - api_key: API key for bearer token auth or password for basic auth
     - ENV_VAR: Environment variable name for API key (class constant)
     - req_template: String template with $INPUT and $KEY placeholders
     - req_template_json_object: JSON object template for structured messages
