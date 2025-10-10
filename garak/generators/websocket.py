@@ -103,9 +103,6 @@ class WebSocketGenerator(Generator):
         if parsed.scheme not in ['ws', 'wss']:
             raise ValueError("URI must use ws:// or wss:// scheme")
         
-        self.host = parsed.hostname
-        self.port = parsed.port or (443 if parsed.scheme == 'wss' else 80)
-        self.path = parsed.path or '/'
         self.secure = parsed.scheme == 'wss'
         
         # Set up authentication
