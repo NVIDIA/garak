@@ -136,8 +136,8 @@ class WebSocketGenerator(Generator):
         self.auth_header = None
         
         # Set up authentication headers
-        if self.auth_type == "basic" and self.username and self.password:
-            credentials = base64.b64encode(f"{self.username}:{self.password}".encode()).decode()
+        if self.auth_type == "basic" and self.username and self.api_key:
+            credentials = base64.b64encode(f"{self.username}:{self.api_key}".encode()).decode()
             self.auth_header = f"Basic {credentials}"
         elif self.auth_type == "bearer" and self.api_key:
             self.auth_header = f"Bearer {self.api_key}"
