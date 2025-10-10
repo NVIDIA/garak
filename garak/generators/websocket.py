@@ -113,11 +113,7 @@ class WebSocketGenerator(Generator):
 
     def _validate_env_var(self):
         """Only validate API key if it's actually needed in templates or auth"""
-        # Get API key from environment if specified
-        if hasattr(self, 'ENV_VAR') and not self.api_key:
-            self.api_key = os.getenv(self.ENV_VAR)
-            
-        if self.auth_type in ["bearer", "custom"] and not self.api_key:
+        if self.auth_type != "none":
             return super()._validate_env_var()
         
         # Check if templates require API key
