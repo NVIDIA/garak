@@ -64,11 +64,16 @@ Authentication Methods
          "WebSocketGenerator": {
             "uri": "ws://localhost:3000/chat",
             "auth_type": "basic",
-            "username": "user",
-            "password": "pass"
+            "username": "user"
          }
       }
    }
+
+Set the password via environment variable:
+
+.. code-block:: bash
+
+   export WEBSOCKET_PASSWORD="your_secure_password"
 
 **Bearer Token:**
 
@@ -159,8 +164,11 @@ Usage Examples
 
 .. code-block:: bash
 
+   # Set password securely via environment variable
+   export WEBSOCKET_PASSWORD="your_secure_password"
+   
    garak --model_type websocket.WebSocketGenerator \
-         --generator_options '{"websocket": {"WebSocketGenerator": {"uri": "ws://localhost:3000", "auth_type": "basic", "username": "user", "password": "pass"}}}' \
+         --generator_options '{"websocket": {"WebSocketGenerator": {"uri": "ws://localhost:3000", "auth_type": "basic", "username": "user"}}}' \
          --probes dan
 
 **Configuration File:**
