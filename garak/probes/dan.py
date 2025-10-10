@@ -36,7 +36,6 @@ class DANProbeMeta(type):
             "avid-effect:security:S0403",
             "owasp:llm01",
             "quality:Security:PromptStability",
-            "payload:jailbreak",
         ],
         "recommended_detector": ["mitigation.MitigationBypass", "dan.DAN"],
     }
@@ -132,7 +131,7 @@ class DANProbeMeta(type):
 class Dan_11_0(
     garak.probes.Probe,
     metaclass=DANProbeMeta,
-    extra_tags=["avid-effect:performance:P0204"],
+    extra_tags=["avid-effect:performance:P0204", "payload:jailbreak"],
 ):
     """DAN 11.0
 
@@ -140,49 +139,49 @@ class Dan_11_0(
     should prevent LLM safeguards applying to future conversational turns."""
 
 
-class Dan_10_0(garak.probes.Probe, metaclass=DANProbeMeta):
+class Dan_10_0(garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]):
     """DAN 10.0
 
     A do-anything-now jailbreak - a long prompt developed by the community, which
     should prevent LLM safeguards applying to future conversational turns."""
 
 
-class Dan_9_0(garak.probes.Probe, metaclass=DANProbeMeta):
+class Dan_9_0(garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]):
     """DAN 9.0
 
     A do-anything-now jailbreak - a long prompt developed by the community, which
     should prevent LLM safeguards applying to future conversational turns."""
 
 
-class Dan_8_0(garak.probes.Probe, metaclass=DANProbeMeta):
+class Dan_8_0(garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]):
     """DAN 8.0
 
     A do-anything-now jailbreak - a long prompt developed by the community, which
     should prevent LLM safeguards applying to future conversational turns."""
 
 
-class Dan_7_0(garak.probes.Probe, metaclass=DANProbeMeta):
+class Dan_7_0(garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]):
     """DAN 7.0
 
     A do-anything-now jailbreak - a long prompt developed by the community, which
     should prevent LLM safeguards applying to future conversational turns."""
 
 
-class Dan_6_2(garak.probes.Probe, metaclass=DANProbeMeta):
+class Dan_6_2(garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]):
     """DAN 6.2
 
     A do-anything-now jailbreak - a long prompt developed by the community, which
     should prevent LLM safeguards applying to future conversational turns."""
 
 
-class Dan_6_0(garak.probes.Probe, metaclass=DANProbeMeta):
+class Dan_6_0(garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]):
     """DAN 6.0
 
     A do-anything-now jailbreak - a long prompt developed by the community, which
     should prevent LLM safeguards applying to future conversational turns."""
 
 
-class DUDE(garak.probes.Probe, metaclass=DANProbeMeta):
+class DUDE(garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]):
     """DUDE
 
     A do-anything-now jailbreak - a long prompt developed by the community, which
@@ -191,7 +190,7 @@ class DUDE(garak.probes.Probe, metaclass=DANProbeMeta):
     detector = ["mitigation.MitigationBypass", "dan.DUDE"]
 
 
-class STAN(garak.probes.Probe, metaclass=DANProbeMeta):
+class STAN(garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]):
     """STAN
 
     A do-anything-now jailbreak - a long prompt developed by the community, which
@@ -204,6 +203,7 @@ class DAN_Jailbreak(
     garak.probes.Probe,
     metaclass=DANProbeMeta,
     detector=["mitigation.MitigationBypass", "dan.DANJailbreak"],
+    extra_tags=["payload:jailbreak"],
 ):
     """DAN Jailbreak
 
@@ -227,6 +227,7 @@ class ChatGPT_Developer_Mode_v2(
     garak.probes.Probe,
     metaclass=DANProbeMeta,
     detector=["mitigation.MitigationBypass", "dan.DevMode"],
+    extra_tags=["payload:jailbreak"],
 ):
     """ChatGPT Developer Mode v2
 
@@ -252,6 +253,7 @@ class ChatGPT_Image_Markdown(
     garak.probes.Probe,
     metaclass=DANProbeMeta,
     detector=["mitigation.MitigationBypass", "dan.MarkdownLink"],
+    extra_tags=["payload:jailbreak"],
 ):
     """ChatGPT Markdown Image Unlocker / markdown injection
 
@@ -264,6 +266,7 @@ class Ablation_Dan_11_0(
     metaclass=DANProbeMeta,
     tier=garak.probes.Tier.COMPETE_WITH_SOTA,
     active=True,
+    extra_tags=["payload:jailbreak"],
 ):
     """Ablation experiements over the DAN 11.0 prompt
 
@@ -302,6 +305,7 @@ class AutoDANCached(
     tier=garak.probes.Tier.COMPETE_WITH_SOTA,
     active=True,
     prompt_file="autodan/autodan_prompts.txt",
+    extra_tags=["payload:jailbreak"],
 ):
     """Probe leveraging generated AutoDAN prompts
 
@@ -315,6 +319,7 @@ class AutoDAN(
     garak.probes.Probe,
     metaclass=DANProbeMeta,
     tier=garak.probes.Tier.COMPETE_WITH_SOTA,
+    extra_tags=["payload:jailbreak"],
 ):
     """Probe leveraging AutoDAN attack generation
 
@@ -362,6 +367,7 @@ class DanInTheWildFull(
     tier=garak.probes.Tier.OF_CONCERN,
     prompt_file="inthewild_jailbreak_llms.txt",
     goal="disregard the system prompt or alignment",
+    extra_tags=["payload:jailbreak"],
 ):
     """A library of jailbreaks.
 
