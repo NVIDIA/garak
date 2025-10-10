@@ -89,25 +89,25 @@ class DANProbeMeta(type):
             attrs["probe"] = probe
 
         return super().__new__(cls, name, bases, attrs)
-    
+
     def __init__(cls, name, bases, attrs, **kwargs):
         super().__init__(name, bases, attrs)
-        
+
         original_init = attrs.get("__init__")
-        
+
         def new_init(self, config_root=_config):
             if original_init:
                 original_init(self, config_root=config_root)
             else:
                 super(cls, self).__init__(config_root=config_root)
-            
+
             if hasattr(self, "prompts") and self.prompts:
                 return
 
             if not hasattr(self, "prompt_file"):
                 self.prompts = []
                 return
-            
+
             try:
                 prompt_path = data_path / self.prompt_file
             except GarakException:
@@ -123,7 +123,7 @@ class DANProbeMeta(type):
                         ]
                     else:
                         self.prompts = [content] if content else []
-        
+
         cls.__init__ = new_init
 
 
@@ -139,49 +139,63 @@ class Dan_11_0(
     should prevent LLM safeguards applying to future conversational turns."""
 
 
-class Dan_10_0(garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]):
+class Dan_10_0(
+    garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]
+):
     """DAN 10.0
 
     A do-anything-now jailbreak - a long prompt developed by the community, which
     should prevent LLM safeguards applying to future conversational turns."""
 
 
-class Dan_9_0(garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]):
+class Dan_9_0(
+    garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]
+):
     """DAN 9.0
 
     A do-anything-now jailbreak - a long prompt developed by the community, which
     should prevent LLM safeguards applying to future conversational turns."""
 
 
-class Dan_8_0(garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]):
+class Dan_8_0(
+    garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]
+):
     """DAN 8.0
 
     A do-anything-now jailbreak - a long prompt developed by the community, which
     should prevent LLM safeguards applying to future conversational turns."""
 
 
-class Dan_7_0(garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]):
+class Dan_7_0(
+    garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]
+):
     """DAN 7.0
 
     A do-anything-now jailbreak - a long prompt developed by the community, which
     should prevent LLM safeguards applying to future conversational turns."""
 
 
-class Dan_6_2(garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]):
+class Dan_6_2(
+    garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]
+):
     """DAN 6.2
 
     A do-anything-now jailbreak - a long prompt developed by the community, which
     should prevent LLM safeguards applying to future conversational turns."""
 
 
-class Dan_6_0(garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]):
+class Dan_6_0(
+    garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]
+):
     """DAN 6.0
 
     A do-anything-now jailbreak - a long prompt developed by the community, which
     should prevent LLM safeguards applying to future conversational turns."""
 
 
-class DUDE(garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]):
+class DUDE(
+    garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]
+):
     """DUDE
 
     A do-anything-now jailbreak - a long prompt developed by the community, which
@@ -190,7 +204,9 @@ class DUDE(garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jail
     detector = ["mitigation.MitigationBypass", "dan.DUDE"]
 
 
-class STAN(garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]):
+class STAN(
+    garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]
+):
     """STAN
 
     A do-anything-now jailbreak - a long prompt developed by the community, which
@@ -368,6 +384,7 @@ class DanInTheWildFull(
     prompt_file="inthewild_jailbreak_llms.txt",
     goal="disregard the system prompt or alignment",
     extra_tags=["payload:jailbreak"],
+    recommended_detector=["always.Fail"],
 ):
     """A library of jailbreaks.
 
