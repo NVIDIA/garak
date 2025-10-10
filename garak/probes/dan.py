@@ -21,7 +21,7 @@ class DANProbeMeta(type):
     Metaclass for DAN probes that automatically configures probe classes.
 
     Define a class with this metaclass and it will:
-    1. Load prompts from the specified prompt_file or auto-detect from class name
+    1. Set prompt_file attribute (auto-detect from class name if not specified)
     2. Apply common DAN probe configuration (lang, goal, tier, etc)
     3. Handle custom attributes like detector, extra tags, etc.
     """
@@ -44,7 +44,7 @@ class DANProbeMeta(type):
     def __new__(cls, name, bases, attrs, **kwargs):
         """
         Called when a new DAN probe class is created.
-        Automatically loads prompts and applies configuration.
+        Sets prompt_file attribute and applies default configuration.
         """
 
         # Extract parameters passed to metaclass
@@ -64,35 +64,14 @@ class DANProbeMeta(type):
             attrs["recommended_detector"] = attrs.pop("detector")
 
         # Determine prompt file - check bases for inherited prompt_file
-        prompt_file = attrs.get("prompt_file")
-        if prompt_file is None:
+        if "prompt_file" not in attrs:
             for base in bases:
                 if hasattr(base, "prompt_file"):
-                    prompt_file = base.prompt_file
+                    attrs["prompt_file"] = base.prompt_file
                     break
             else:
                 # No inherited prompt_file found, use default
-                prompt_file = f"dan/{name}.txt"
-
-        # Load the prompts from the prompt file (only if not already defined)
-        if "prompts" not in attrs:
-            try:
-                prompt_path = data_path / prompt_file
-            except GarakException:
-                # Fallback to empty prompts
-                attrs["prompts"] = []
-            else:
-                # Read the file
-                with open(prompt_path, "r", encoding="utf-8") as f:
-                    content = f.read().strip()
-                    # Allow multi-prompt files (one prompt per line)
-                    if "\n" in content:
-                        prompts = [
-                            line.strip() for line in content.split("\n") if line.strip()
-                        ]
-                    else:
-                        prompts = [content] if content else []
-                attrs["prompts"] = prompts
+                attrs["prompt_file"] = f"dan/{name}.txt"
 
         # Auto-add the probe method for prompt formatting
         if "probe" not in attrs:
@@ -111,6 +90,42 @@ class DANProbeMeta(type):
             attrs["probe"] = probe
 
         return super().__new__(cls, name, bases, attrs)
+    
+    def __init__(cls, name, bases, attrs, **kwargs):
+        super().__init__(name, bases, attrs)
+        
+        original_init = attrs.get("__init__")
+        
+        def new_init(self, config_root=_config):
+            if original_init:
+                original_init(self, config_root=config_root)
+            else:
+                super(cls, self).__init__(config_root=config_root)
+            
+            if hasattr(self, "prompts") and self.prompts:
+                return
+
+            if not hasattr(self, "prompt_file"):
+                self.prompts = []
+                return
+            
+            try:
+                prompt_path = data_path / self.prompt_file
+            except GarakException:
+                # Fallback to empty prompts
+                self.prompts = []
+            else:
+                with open(prompt_path, "r", encoding="utf-8") as f:
+                    content = f.read().strip()
+                    # Allow multi-prompt files (one prompt per line)
+                    if "\n" in content:
+                        self.prompts = [
+                            line.strip() for line in content.split("\n") if line.strip()
+                        ]
+                    else:
+                        self.prompts = [content] if content else []
+        
+        cls.__init__ = new_init
 
 
 # DAN PROBE DEFINITIONS
