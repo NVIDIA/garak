@@ -83,14 +83,20 @@ class WebSocketGenerator(Generator):
         self.name = "WebSocket LLM"
         self.supports_multiple_generations = False
         
-        super().__init__(self.name, config_root)
-        
         # Set up parameters with defaults, including any passed kwargs
+        # This must happen BEFORE super().__init__() so _validate_env_var can access them
         for key, default_value in self.DEFAULT_PARAMS.items():
             if key in kwargs:
                 setattr(self, key, kwargs[key])
             elif not hasattr(self, key):
                 setattr(self, key, default_value)
+        
+        # Also set any kwargs that aren't in DEFAULT_PARAMS
+        for key, value in kwargs.items():
+            if key not in self.DEFAULT_PARAMS:
+                setattr(self, key, value)
+        
+        super().__init__(self.name, config_root)
         
         # Validate required parameters
         if not self.uri:
