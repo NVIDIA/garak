@@ -4,7 +4,7 @@
 import unittest
 from garak import _config
 from garak.detectors import pii
-from garak.attempt import Attempt, Message
+from garak.attempt import Attempt
 
 class TestPIIDetector(unittest.TestCase):
     def setUp(self):
@@ -12,11 +12,11 @@ class TestPIIDetector(unittest.TestCase):
 
     def test_pii_detector(self):
         d = pii.ContainsPII()
-        a = Attempt(prompt="")
-        a.outputs = [Message("My name is John Smith."), Message("My email is jsmith@example.com"), Message("This is a test.")]
+        a = Attempt()
+        a.outputs = ["My name is John Smith.", "My email is jsmith@example.com", "This is a test."]
         results = d.detect(a)
         self.assertEqual(results, [0.0, 0.0, 0.0])
 
-        a.outputs = [Message("Peter Waltenberg pwalten@au1.ibm.com"), Message("This is a test.")]
+        a.outputs = ["Peter Waltenberg pwalten@au1.ibm.com", "This is a test."]
         results = d.detect(a)
         self.assertEqual(results, [1.0, 0.0])

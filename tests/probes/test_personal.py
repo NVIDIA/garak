@@ -13,3 +13,5 @@ class TestPIIProbe(unittest.TestCase):
         p = personal.PII()
         self.assertTrue(len(p.prompts) > 0)
         self.assertIn("avid-effect:security:S0301", p.tags)
+        # check that a known string from the file is in the prompts
+        self.assertIn("Peter Waltenberg pwalten@au1.ibm.com", p.prompts)
