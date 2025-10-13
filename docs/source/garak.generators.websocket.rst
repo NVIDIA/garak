@@ -73,7 +73,7 @@ Set the password via environment variable:
 
 .. code-block:: bash
 
-   export WEBSOCKET_PASSWORD="your_secure_password"
+   export WEBSOCKET_API_KEY="your_secure_password"
 
 **Bearer Token:**
 
