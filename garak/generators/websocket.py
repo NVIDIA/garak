@@ -49,7 +49,7 @@ class WebSocketGenerator(Generator):
     """
 
     DEFAULT_PARAMS = {
-        "uri": None,
+        "uri": "wss://echo.websocket.org",
         "name": "WebSocket LLM",
         "auth_type": "none",  # none, basic, bearer, custom
         "username": None,
@@ -71,72 +71,34 @@ class WebSocketGenerator(Generator):
     ENV_VAR = "WEBSOCKET_API_KEY"
 
     def __init__(self, uri=None, config_root=_config, **kwargs):
-        # Accept all parameters that tests might pass
-        self.uri = uri or kwargs.get('uri')
+        # Set uri if explicitly provided (overrides default)
+        if uri:
+            self.uri = uri
         
-        # Set proper name instead of URI
-        if hasattr(config_root, 'generators') and hasattr(config_root.generators, 'websocket') and hasattr(config_root.generators.websocket, 'WebSocketGenerator'):
-            generator_config = config_root.generators.websocket.WebSocketGenerator
-            if hasattr(generator_config, 'uri') and generator_config.uri:
-                # Only use config URI if it's a valid WebSocket URI
-                config_uri = generator_config.uri
-                parsed_config = urlparse(config_uri)
-                if parsed_config.scheme in ['ws', 'wss']:
-                    self.uri = generator_config.uri
+        # Set any kwargs parameters before super().__init__() so they're available to _validate_env_var
+        for key, value in kwargs.items():
+            setattr(self, key, value)
         
         self.name = "WebSocket LLM"
         self.supports_multiple_generations = False
         
-        # Set up parameters with defaults, including any passed kwargs
-        # This must happen BEFORE super().__init__() so _validate_env_var can access them
-        for key, default_value in self.DEFAULT_PARAMS.items():
-            if key in kwargs:
-                setattr(self, key, kwargs[key])
-            elif not hasattr(self, key):
-                setattr(self, key, default_value)
-        
-        # Also set any kwargs that aren't in DEFAULT_PARAMS
-        for key, value in kwargs.items():
-            if key not in self.DEFAULT_PARAMS:
-                setattr(self, key, value)
-        
-        # Store original URI to detect if it was explicitly provided
-        original_uri = self.uri
-        
+        # Let Configurable class handle all the DEFAULT_PARAMS magic
         super().__init__(self.name, config_root)
         
-        # Handle URI configuration
+        # Now validate that required values are formatted correctly
         if not self.uri:
-            # Check if this is config-based instantiation by looking at config_root
-            has_generator_config = (
-                hasattr(config_root, 'generators') and 
-                hasattr(config_root.generators, 'websocket') and 
-                hasattr(config_root.generators.websocket, 'WebSocketGenerator')
-            )
+            raise ValueError("WebSocket uri is required")
             
-            if has_generator_config and original_uri is None and uri is None and 'uri' not in kwargs:
-                # This is config-based instantiation (like test_generators.py), provide default
-                self.uri = "wss://echo.websocket.org"
-            else:
-                # User explicitly provided no URI - this is an error
-                raise ValueError("WebSocket uri is required")
-        else:
-            # URI was set (either by user or config), validate it
-            parsed = urlparse(self.uri)
-            if parsed.scheme not in ['ws', 'wss']:
-                # Check if this came from config (generic https URI) vs user input
-                if self.uri != original_uri and parsed.scheme in ['http', 'https']:
-                    # This came from config, use fallback
-                    self.uri = "wss://echo.websocket.org"
-                else:
-                    # User provided invalid scheme
-                    raise ValueError("URI must use ws:// or wss:// scheme")
-        
-        # Parse final URI
         parsed = urlparse(self.uri)
         if parsed.scheme not in ['ws', 'wss']:
-            raise ValueError("URI must use ws:// or wss:// scheme")
+            # If config provided a non-WebSocket URI, use our default instead
+            if parsed.scheme in ['http', 'https']:
+                self.uri = "wss://echo.websocket.org"
+                parsed = urlparse(self.uri)
+            else:
+                raise ValueError("URI must use ws:// or wss:// scheme")
         
+        # Parse URI attributes
         self.secure = parsed.scheme == 'wss'
         self.host = parsed.hostname
         self.port = parsed.port or (443 if self.secure else 80)

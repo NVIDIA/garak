@@ -32,12 +32,14 @@ class TestWebSocketGenerator:
     def test_init_invalid_scheme(self):
         """Test initialization with invalid scheme"""
         with pytest.raises(ValueError, match="URI must use ws:// or wss:// scheme"):
-            WebSocketGenerator(uri="http://localhost:3000")
+            WebSocketGenerator(uri="ftp://localhost:3000")
 
     def test_init_no_uri(self):
-        """Test initialization without URI"""
-        with pytest.raises(ValueError, match="WebSocket uri is required"):
-            WebSocketGenerator()
+        """Test initialization without URI uses default"""
+        gen = WebSocketGenerator()
+        assert gen.uri == "wss://echo.websocket.org"
+        assert gen.secure
+        assert gen.host == "echo.websocket.org"
 
     def test_auth_basic(self):
         """Test basic authentication setup"""
