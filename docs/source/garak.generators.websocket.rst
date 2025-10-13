@@ -165,7 +165,7 @@ Usage Examples
 .. code-block:: bash
 
    # Set password securely via environment variable
-   export WEBSOCKET_PASSWORD="your_secure_password"
+   export WEBSOCKET_API_KEY="your_secure_password"
    
    garak --model_type websocket.WebSocketGenerator \
          --generator_options '{"websocket": {"WebSocketGenerator": {"uri": "ws://localhost:3000", "auth_type": "basic", "username": "user"}}}' \
