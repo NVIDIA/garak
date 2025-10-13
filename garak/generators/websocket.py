@@ -326,13 +326,38 @@ class WebSocketGenerator(Generator):
         raw_response = await self._send_and_receive(formatted_message)
         return self._extract_response_text(raw_response)
 
+    def _has_system_prompt(self, prompt: Conversation) -> bool:
+        """Check if conversation contains system prompts"""
+        if hasattr(prompt, 'turns') and prompt.turns:
+            for turn in prompt.turns:
+                if hasattr(turn, 'role') and turn.role == 'system':
+                    return True
+        return False
+    
+    def _has_conversation_history(self, prompt: Conversation) -> bool:
+        """Check if conversation has multiple turns (history)"""
+        if hasattr(prompt, 'turns') and len(prompt.turns) > 1:
+            return True
+        return False
+    
     def _call_model(self, prompt: Conversation, generations_this_call: int = 1, **kwargs) -> List[Union[Message, None]]:
-        """Call the WebSocket LLM model"""
+        """Call the WebSocket LLM model with smart limitation detection"""
         try:
-            # Extract text from conversation
-                if len(prompt.turns) > 1:
-                    return None
-                prompt_text = prompt.last_messge().text
+            # Check for unsupported features and skip gracefully
+            if self._has_system_prompt(prompt):
+                logger.warning("WebSocket generator doesn't support system prompts yet - skipping test")
+                return [None] * min(generations_this_call, 1)
+                
+            if self._has_conversation_history(prompt):
+                logger.warning("WebSocket generator doesn't support conversation history yet - skipping test") 
+                return [None] * min(generations_this_call, 1)
+            
+            # Extract text from simple, single-turn conversation
+            if hasattr(prompt, 'turns') and prompt.turns:
+                prompt_text = prompt.turns[-1].text
+            else:
+                # Fallback for simple string prompts
+                prompt_text = str(prompt)
             
             # Run async generation in event loop
             loop = asyncio.new_event_loop()
