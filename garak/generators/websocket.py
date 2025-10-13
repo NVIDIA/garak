@@ -368,14 +368,9 @@ class WebSocketGenerator(Generator):
         """Call the WebSocket LLM model"""
         try:
             # Extract text from conversation
-            if isinstance(prompt, Conversation):
-                # Get the last message text
-                if prompt.messages:
-                    prompt_text = prompt.messages[-1].text
-                else:
-                    prompt_text = ""
-            else:
-                prompt_text = str(prompt)
+                if len(prompt.turns) > 1:
+                    return None
+                prompt_text = prompt.last_messge().text
             
             # Run async generation in event loop
             loop = asyncio.new_event_loop()
