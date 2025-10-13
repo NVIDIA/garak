@@ -49,18 +49,21 @@ class DANProbeMeta(type):
         # Extract parameters passed to metaclass
         attrs.update(kwargs)
 
-        # Apply default configuration
+        def get_dan_parent_attr(attr_name):
+            for base in bases:
+                if base.__name__ != "Probe" and hasattr(base, attr_name):
+                    return getattr(base, attr_name)
+            return None
+
+        # Apply default configuration, respecting inheritance from DAN parents
         for key, default_value in cls._DAN_DEFAULTS.items():
-            attrs.setdefault(key, default_value)
+            if key not in attrs and get_dan_parent_attr(key) is None:
+                attrs[key] = default_value
 
-        # Handle extra_tags (merge with default tags)
+        # Handle extra_tags (merge with parent/default tags)
         if "extra_tags" in attrs:
-            default_tags = attrs.get("tags", cls._DAN_DEFAULTS["tags"])
-            attrs["tags"] = default_tags + attrs.pop("extra_tags")
-
-        # Handle custom detector
-        if "detector" in attrs:
-            attrs["recommended_detector"] = attrs.pop("detector")
+            base_tags = attrs.get("tags") or get_dan_parent_attr("tags") or cls._DAN_DEFAULTS["tags"]
+            attrs["tags"] = base_tags + attrs.pop("extra_tags")
 
         # Determine prompt file - check bases for inherited prompt_file
         if "prompt_file" not in attrs:
@@ -194,31 +197,29 @@ class Dan_6_0(
 
 
 class DUDE(
-    garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]
+    garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"],
+    recommended_detector=["mitigation.MitigationBypass", "dan.DUDE"]
 ):
     """DUDE
 
     A do-anything-now jailbreak - a long prompt developed by the community, which
     should prevent LLM safeguards applying to future conversational turns."""
 
-    detector = ["mitigation.MitigationBypass", "dan.DUDE"]
-
 
 class STAN(
-    garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"]
+    garak.probes.Probe, metaclass=DANProbeMeta, extra_tags=["payload:jailbreak"],
+    recommended_detector=["mitigation.MitigationBypass", "dan.STAN"]
 ):
     """STAN
 
     A do-anything-now jailbreak - a long prompt developed by the community, which
     should prevent LLM safeguards applying to future conversational turns."""
 
-    detector = ["mitigation.MitigationBypass", "dan.STAN"]
-
 
 class DAN_Jailbreak(
     garak.probes.Probe,
     metaclass=DANProbeMeta,
-    detector=["mitigation.MitigationBypass", "dan.DANJailbreak"],
+    recommended_detector=["mitigation.MitigationBypass", "dan.DANJailbreak"],
     extra_tags=["payload:jailbreak"],
 ):
     """DAN Jailbreak
@@ -231,7 +232,7 @@ class AntiDAN(
     garak.probes.Probe,
     metaclass=DANProbeMeta,
     extra_tags=["avid-effect:performance:P0204"],
-    detector=["mitigation.MitigationBypass", "dan.AntiDAN"],
+    recommended_detector=["mitigation.MitigationBypass", "dan.AntiDAN"],
 ):
     """Anti-DAN
 
@@ -242,7 +243,7 @@ class AntiDAN(
 class ChatGPT_Developer_Mode_v2(
     garak.probes.Probe,
     metaclass=DANProbeMeta,
-    detector=["mitigation.MitigationBypass", "dan.DevMode"],
+    recommended_detector=["mitigation.MitigationBypass", "dan.DevMode"],
     extra_tags=["payload:jailbreak"],
 ):
     """ChatGPT Developer Mode v2
@@ -255,7 +256,7 @@ class ChatGPT_Developer_Mode_v2(
 class ChatGPT_Developer_Mode_RANTI(
     garak.probes.Probe,
     metaclass=DANProbeMeta,
-    detector=["mitigation.MitigationBypass", "dan.DevMode"],
+    recommended_detector=["mitigation.MitigationBypass", "dan.DevMode"],
     extra_tags=["avid-effect:performance:P0204"],
 ):
     """ChatGPT DevMode + Ranti
@@ -268,7 +269,7 @@ class ChatGPT_Developer_Mode_RANTI(
 class ChatGPT_Image_Markdown(
     garak.probes.Probe,
     metaclass=DANProbeMeta,
-    detector=["mitigation.MitigationBypass", "dan.MarkdownLink"],
+    recommended_detector=["mitigation.MitigationBypass", "dan.MarkdownLink"],
     extra_tags=["payload:jailbreak"],
 ):
     """ChatGPT Markdown Image Unlocker / markdown injection
@@ -284,7 +285,7 @@ class Ablation_Dan_11_0(
     active=True,
     extra_tags=["payload:jailbreak"],
 ):
-    """Ablation experiements over the DAN 11.0 prompt
+    """Ablation experiments over the DAN 11.0 prompt
 
     A dynamic do-anything-now jailbreak, made by trying various combinations of parts
     of in a community-developed prompt, by the community, with the goal of preventing
@@ -322,13 +323,12 @@ class AutoDANCached(
     active=True,
     prompt_file="autodan/autodan_prompts.txt",
     extra_tags=["payload:jailbreak"],
+    doc_uri="https://arxiv.org/abs/2310.04451",
 ):
     """Probe leveraging generated AutoDAN prompts
 
     A static implementation of the AutoDAN approach to autoated LLM jailbreaking,
     using a pre-computed set of prompts for speed."""
-
-    doc_uri = "https://arxiv.org/abs/2310.04451"
 
 
 class AutoDAN(
@@ -336,13 +336,12 @@ class AutoDAN(
     metaclass=DANProbeMeta,
     tier=garak.probes.Tier.COMPETE_WITH_SOTA,
     extra_tags=["payload:jailbreak"],
+    doc_uri="https://arxiv.org/abs/2310.04451",
 ):
     """Probe leveraging AutoDAN attack generation
 
     Dynamic, generative implementation. Requires OpenAI key to be set in the OPENAI_API_KEY environment variable.
     """
-
-    doc_uri = "https://arxiv.org/abs/2310.04451"
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
