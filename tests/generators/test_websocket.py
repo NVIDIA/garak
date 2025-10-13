@@ -152,9 +152,13 @@ class TestWebSocketGenerator:
         gen = WebSocketGenerator(uri="ws://localhost:3000")
         
         mock_websocket = AsyncMock()
-        # Mock websockets.connect to return the mock_websocket directly
+        # Mock websockets.connect to return the mock_websocket as an awaitable
         with patch('garak.generators.websocket.websockets.connect') as mock_connect:
-            mock_connect.return_value = mock_websocket
+            # Create an async mock that returns the mock_websocket when awaited
+            async def async_connect(*args, **kwargs):
+                return mock_websocket
+            mock_connect.side_effect = async_connect
+            
             await gen._connect_websocket()
             mock_connect.assert_called_once()
             assert gen.websocket == mock_websocket
