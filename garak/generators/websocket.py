@@ -70,7 +70,7 @@ class WebSocketGenerator(Generator):
 
     ENV_VAR = "WEBSOCKET_API_KEY"
 
-    def __init__(self, uri=None, config_root=_config, **kwargs):
+    def __init__(self, uri=None, config_root=_config):
         # Set uri if explicitly provided (overrides default)
         if uri:
             self.uri = uri
