@@ -138,19 +138,35 @@ class LiteLLMGenerator(Generator):
             return []
 
         try:
-            response = litellm.completion(
-                model=self.name,
-                messages=litellm_prompt,
-                temperature=self.temperature,
-                top_p=self.top_p,
-                n=generations_this_call,
-                stop=self.stop,
-                max_tokens=self.max_tokens,
-                frequency_penalty=self.frequency_penalty,
-                presence_penalty=self.presence_penalty,
-                api_base=self.api_base,
-                custom_llm_provider=self.provider,
+            # Check if this is Claude 4.5 on Bedrock
+            is_claude_4_5 = (
+                "claude-sonnet-4-5" in self.name or "claude-4-5" in self.name
             )
+            is_bedrock = (
+                self.provider == "bedrock" or
+                self.name.startswith("bedrock/") or
+                (self.api_base and ".amazonaws." in self.api_base)
+            )
+
+            params = {
+                "model": self.name,
+                "messages": litellm_prompt,
+                "n": generations_this_call,
+                "stop": self.stop,
+                "max_tokens": self.max_tokens,
+                "frequency_penalty": self.frequency_penalty,
+                "presence_penalty": self.presence_penalty,
+                "api_base": self.api_base,
+                "custom_llm_provider": self.provider,
+            }
+
+            if is_claude_4_5 and is_bedrock:
+                params["temperature"] = self.temperature
+            else:
+                params["temperature"] = self.temperature
+                params["top_p"] = self.top_p
+
+            response = litellm.completion(**params)
         except (
             litellm.exceptions.AuthenticationError,  # authentication failed for detected or passed `provider`
             litellm.exceptions.BadRequestError,

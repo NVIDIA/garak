@@ -1,5 +1,5 @@
 import pytest
-
+from unittest.mock import patch
 from os import getenv
 
 from garak.attempt import Message, Turn, Conversation
@@ -61,3 +61,68 @@ def test_litellm_model_detection():
     generator = LiteLLMGenerator(name="openai/invalid-model", config_root=custom_config)
     with pytest.raises(BadGeneratorException):
         generator.generate(conv)
+
+
+def test_litellm_claude_4_5_params():
+    """Test that Claude 4.5 models on Bedrock only receive temperature parameter (not top_p)."""
+    # Create a mock response object that matches what litellm.completion returns
+    mock_response = type('obj', (object,), {
+        'choices': [
+            type('obj', (object,), {
+                'message': type('obj', (object,), {
+                    'content': 'Mock response'
+                })
+            })
+        ]
+    })
+    
+    # Test case 1: Claude 4.5 model on AWS Bedrock (should omit top_p)
+    with patch('litellm.completion', return_value=mock_response) as mock_completion:
+        claude_model = "eu.anthropic.claude-sonnet-4-5-20250929-v1:0"
+        custom_config = {
+            "generators": {
+                "litellm": {
+                    "provider": "bedrock",
+                    "api_base": "https://bedrock-runtime.us-east-1.amazonaws.com"
+                }
+            }
+        }
+        generator = LiteLLMGenerator(name=claude_model, config_root=custom_config)
+        conv = Conversation([Turn("user", Message("Test message"))])
+        generator.generate(conv)
+
+        args, kwargs = mock_completion.call_args
+        assert 'temperature' in kwargs
+        assert 'top_p' not in kwargs
+    
+    # Test case 2: Claude 4.5 model NOT on AWS Bedrock (should include top_p)
+    with patch('litellm.completion', return_value=mock_response) as mock_completion:
+        claude_model = "eu.anthropic.claude-sonnet-4-5-20250929-v1:0"
+        custom_config = {
+            "generators": {
+                "litellm": {
+                    "provider": "openai",
+                    "api_base": "https://api.openai.com/v1"
+                }
+            }
+        }
+        generator = LiteLLMGenerator(name=claude_model, config_root=custom_config)
+        conv = Conversation([Turn("user", Message("Test message"))])
+        generator.generate(conv)
+        
+        # Check that both temperature and top_p were included
+        args, kwargs = mock_completion.call_args
+        assert 'temperature' in kwargs
+        assert 'top_p' in kwargs
+        
+    # Test case 3: Non-Claude 4.5 model (should include top_p)
+    with patch('litellm.completion', return_value=mock_response) as mock_completion:
+        other_model = "gpt-4"
+        generator = LiteLLMGenerator(name=other_model)
+        conv = Conversation([Turn("user", Message("Test message"))])
+        generator.generate(conv)
+        
+        # Check that both temperature and top_p were included
+        args, kwargs = mock_completion.call_args
+        assert 'temperature' in kwargs
+        assert 'top_p' in kwargs
