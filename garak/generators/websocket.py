@@ -75,12 +75,6 @@ class WebSocketGenerator(Generator):
         if uri:
             self.uri = uri
         
-        # Set any kwargs parameters before super().__init__() so they're available to _validate_env_var
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-        
-        self.name = "WebSocket LLM"
-        self.supports_multiple_generations = False
         
         # Let Configurable class handle all the DEFAULT_PARAMS magic
         super().__init__(self.name, config_root)
