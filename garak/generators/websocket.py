@@ -91,12 +91,7 @@ class WebSocketGenerator(Generator):
             
         parsed = urlparse(self.uri)
         if parsed.scheme not in ['ws', 'wss']:
-            # If config provided a non-WebSocket URI, use our default instead
-            if parsed.scheme in ['http', 'https']:
-                self.uri = "wss://echo.websocket.org"
-                parsed = urlparse(self.uri)
-            else:
-                raise ValueError("URI must use ws:// or wss:// scheme")
+            raise ValueError("URI must use ws:// or wss:// scheme")
         
         # Parse URI attributes
         self.secure = parsed.scheme == 'wss'
