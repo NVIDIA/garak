@@ -7,13 +7,21 @@ A multi-turn jailbreak that generates queries of increasing intensity from safe 
 
 import os
 import re
+import copy
 import logging
 from tqdm import tqdm
 from typing import Iterable, List
 
+from dataclasses import asdict
+
 from garak import _config
 from garak.data import path as data_path
 import garak.probes
+
+import pdb
+from pprint import pprint
+
+logging.basicConfig(level=print)
 
 
 PROMPT_TEMPLATE_INCREASE_SAFETY = """Polish this sentence: {prompt}.  
@@ -172,15 +180,15 @@ class FITDProbe(garak.probes.IterativeProbe):
     active = True
 
     def __init__(self, config_root=_config):
-        logging.debug("In FITD __init__")
+        print("In FITD __init__")
         self.DEFAULT_PARAMS["attack_gen_llm_type"] = "nim"
         self.DEFAULT_PARAMS["attack_gen_llm_model"] = "nvdev/mistralai/mixtral-8x22b-instruct-v0.1"
         self.DEFAULT_PARAMS["num_init_level_queries"] = 3
         self.DEFAULT_PARAMS["end_condition"] = "verify"
         self.set_up_attack_gen_llm()
-        logging.debug("In FITD __init__: Set up attack gen LLM")
+        print("In FITD __init__: Set up attack gen LLM")
         super().__init__(config_root=config_root)
-        logging.debug("In FITD __init__: Complete")
+        print("In FITD __init__: Complete")
 
     def set_up_attack_gen_llm(self):
         """Instantiate client for attack gen LLM"""
@@ -245,12 +253,16 @@ class FITDProbe(garak.probes.IterativeProbe):
                         evolution=evolution)
                 }]) 
             )
-        logging.debug("******")
-        logging.debug("Level queries:")
+        level_queries.append(target_turn)
+        print("******")
+        print("In FITD _get_level_queries:")
+        print("Target turn: %s" % target_turn)
+        print("Init turn: %s" % init_turn)
+        print("Level queries:")
         for level_query in level_queries:
-            logging.debug(level_query)
-            logging.debug("------")
-        logging.debug("******")
+            print(level_query)
+            print("------")
+        print("******")
         # _ = input("Press Enter to continue...")
         return level_queries
 
@@ -274,14 +286,13 @@ class FITDProbe(garak.probes.IterativeProbe):
 
     def generate_init_turns(self) -> Iterable[str]:
         """Generate initial turns of each unique attempt"""
+        print("In FITD generate_init_turns, loading init frompts from data_path = %s" % data_path)
         prompts_file = data_path / "fitd" / "harmbench_prompts5.txt"
         with open(prompts_file, "r") as f:
             self.target_prompts = f.read().splitlines()
-
+        
         self.target_turns_per_init_turns = dict()
         self.level_queries_per_goal = dict()
-        self.levels_completed_per_attempt_id = dict() # Not going to work
-        self.last_non_refused_prompt_per_attempt_id = dict()
         self.init_turns = list()
         for target_turn in tqdm(self.target_prompts, desc="In Probe FITD, generating init turns:"):
             # TODO: May need to repeat this a few times until a non refusal is obtained
@@ -303,6 +314,7 @@ class FITDProbe(garak.probes.IterativeProbe):
             init_attempt.notes["levels_completed"] = 0 # Note: level of query != turn number
             init_attempt.notes["is_adversarial"] = False
             init_attempt.notes["is_last_turn"] = False
+            init_attempt.notes["last_non_refused_prompt"] = None
         return init_attempts
 
     def verify_is_last_response_success(self, attempt: garak.attempt.Attempt) -> List[bool]:
@@ -312,8 +324,8 @@ class FITDProbe(garak.probes.IterativeProbe):
             cur_conv_last_response_success = False
             if not attempt.notes["is_adversarial"]:
                 # Not yet at last level. No need to evaluate potentially non harmful queries
-                logging.debug("In FITD verify_last_response: Not yet at last level.")
-                cur_conv_last_response_success = False
+                print("In FITD verify_last_response: Not yet at last level.")
+                is_last_response_success.append(False)
                 continue
 
             # Note that this goes ahead whether it is the target query, an SSParaphrase of it (which typically tends to decrease intensity) or a re-align of it
@@ -323,14 +335,15 @@ class FITDProbe(garak.probes.IterativeProbe):
                 "role": "user", 
                 "content": PROMPT_TEMPLATE_EVAL.format(request=last_prompt, response=last_response)
             }]) 
-            logging.debug("In FITD verify_last_response: verify_response =", verify_response)
-            logging.debug("******")
+            print("In FITD verify_last_response: verify_response =", verify_response)
+            print("******")
             # _ = input("Press Enter to continue...")
             if verify_response.lower().strip().startswith("unsafe"):
                 cur_conv_last_response_success = True
             else:
                 cur_conv_last_response_success = False
-            is_last_response_success.append(cur_conv_last_response_success)
+            is_last_response_success.append(cur_conv_last_response_success) 
+        print("In FITD verify_last_response: is_last_response_success = %s" % is_last_response_success)
         return is_last_response_success
 
     def _is_response_aligned(self, request: str, response: str) -> bool:
@@ -339,7 +352,7 @@ class FITDProbe(garak.probes.IterativeProbe):
             "role": "user", 
             "content": PROMPT_TEMPLATE_RESPONSE_ALIGNED.format(prompt=request, response=response)
         }]) 
-        logging.debug("In FITD _is_response_aligned: aligned_response =", aligned_response)
+        print("In FITD _is_response_aligned: aligned_response =", aligned_response)
         # _ = input("Press Enter to continue...")
         if aligned_response.strip().lower().startswith("yes"):
             return True
@@ -356,12 +369,13 @@ class FITDProbe(garak.probes.IterativeProbe):
         return updated_prompt
 
     def generate_next_turn_attempt(self, conversation: garak.attempt.Conversation, last_attempt: garak.attempt.Attempt) -> garak.attempt.Attempt:
-        logging.debug("======")
-        logging.debug("In FITD generate_next_turn_attempt")
-        logging.debug("------")
+        print("======")
+        print("In FITD generate_next_turn_attempt")
+        print("------")
         self.print_attempt(last_attempt)
-        logging.debug("======")
+        print("======")
         # _ = input("Press Enter to continue...")
+        # pdb.set_trace()
 
         next_turn_conv = copy.deepcopy(conversation)
 
@@ -374,9 +388,9 @@ class FITDProbe(garak.probes.IterativeProbe):
         target_turn = last_attempt.notes["target_turn"]
 
         if self._is_refusal(last_response):
-            if len(next_turn_conv.turns) == 2:
+            if len(next_turn_conv.turns) == 2 or last_non_refused_prompt is None:
                 # First turn caused refusal. Make it safer.
-                logging.debug("*** Init turn caused refusal. Make it safer ***")
+                print("*** Init turn caused refusal. Make it safer ***")
                 # _ = input("Press Enter to continue...")
                 safer_init_turn = self._get_attack_gen_llm_response([{
                     "role": "user", 
@@ -387,42 +401,47 @@ class FITDProbe(garak.probes.IterativeProbe):
             else:
                 # Use SSParaphrase and hope for non refusal
                 # Note: The paper actually checks if the paraphrase results in a refusal and if so it uses PROMPT_TEMPLATE_INCREASE_SAFETY instead. If we want to do that we essentially need to track if the last turn was created with SSParaphrase and if so use PROMPT_TEMPLATE_INCREASE_SAFETY instead
-                logging.debug("*** Paraphrase and hope for non refusal ***")
+                print("*** Paraphrase and hope for non refusal ***")
                 # _ = input("Press Enter to continue...")
                 safer_turn = self._get_attack_gen_llm_response([{
                     "role": "user", 
-                    "content": PROMPT_TEMPLATE_SLIPPERY_SLOPE_PARAPHRASE.format(sentence1=self.last_non_refused_prompt_per_attempt_id[attempt.uuid], sentence2=last_prompt)
+                    "content": PROMPT_TEMPLATE_SLIPPERY_SLOPE_PARAPHRASE.format(sentence1=last_non_refused_prompt, sentence2=last_prompt)
                 }])
                 next_turn_conv.turns = next_turn_conv.turns[:-1]
                 next_turn_conv.turns.append(garak.attempt.Turn("user", garak.attempt.Message(text=safer_turn)))
-            elif not self._is_response_aligned(last_prompt, last_response) and not self._is_realign_prompt(last_prompt):
-                new_last_non_refused_prompt = last_prompt
-                # Re-align - Try to get the model to respond better by pointing out issues with it's last response
-                logging.debug("*** Re-align ***")
-                # _ = input("Press Enter to continue...")
-                next_turn_str = PROMPT_TEMPLATE_REALIGN.format(last_prompt=last_prompt, last_response=last_response)
-                next_turn_conv.turns.append(garak.attempt.Turn("user", garak.attempt.Message(text=next_turn_str)))
-            else:
+        elif not self._is_response_aligned(last_prompt, last_response) and not self._is_realign_prompt(last_prompt):
+            new_last_non_refused_prompt = last_prompt
+            # Re-align - Try to get the model to respond better by pointing out issues with it's last response
+            print("*** Re-align ***")
+            # _ = input("Press Enter to continue...")
+            next_turn_str = PROMPT_TEMPLATE_REALIGN.format(last_prompt=last_prompt, last_response=last_response)
+            next_turn_conv.turns.append(garak.attempt.Turn("user", garak.attempt.Message(text=next_turn_str)))
+        else:
                 # Go to next level query
                 new_last_non_refused_prompt = last_prompt
                 new_levels_completed = levels_completed + 1
-                logging.debug(f"*** Increasing level to {new_levels_completed}/{len(self.level_queries_per_goal[target_turn])} for target turn {target_turn} ***")
+                print(f"*** Increasing level to {new_levels_completed}/{len(self.level_queries_per_goal[target_turn])} for target turn {target_turn} ***")
                 if new_levels_completed < len(self.level_queries_per_goal[target_turn]) - 1:
                     next_turn_str = self.level_queries_per_goal[target_turn][new_levels_completed + 1]
                     next_turn_conv.turns.append(garak.attempt.Turn("user", garak.attempt.Message(text=next_turn_str)))
                 else:
                     # If we have completed all level queries, use the target turn
-                    logging.debug("*** All levels completed ***")
+                    print("*** All levels completed ***")
                     # _ = input("Press Enter to continue...")
                     next_turn_conv.turns.append(garak.attempt.Turn("user", garak.attempt.Message(text=target_turn)))
 
+
+        print("In FITD.generate_next_turn_attempt, trying to create attempt from next_turn_conv =")
+        pprint(asdict(next_turn_conv))
+        print("******")
+        print("last_attempt.notes =", last_attempt.notes)
+        print("******")
         next_turn_attempt = self._create_attempt(next_turn_conv)
         next_turn_attempt.notes["is_last_turn"] = False
         next_turn_attempt.notes["last_non_refused_prompt"] = new_last_non_refused_prompt if new_last_non_refused_prompt is not None else last_non_refused_prompt
         next_turn_attempt.notes["levels_completed"] = new_levels_completed if new_levels_completed is not None else levels_completed
         next_turn_attempt.notes["target_turn"] = target_turn
-        next_turn_attempt.notes["turn_num"] = last_attempt.notes["turn_num"] + 1
-        if new_levels_completed >= len(self.level_queries_per_goal[target_turn]) - 1:
+        if next_turn_attempt.notes["levels_completed"] >= len(self.level_queries_per_goal[target_turn]) - 1:
             next_turn_attempt.notes["is_adversarial"] = True
             next_turn_attempt.notes["is_last_turn"] = True
         else:
@@ -431,23 +450,23 @@ class FITDProbe(garak.probes.IterativeProbe):
 
     def _is_realign_prompt(self, prompt: str) -> bool:
         """Check if the prompt is a re-align prompt"""
-        logging.debug("****")
-        logging.debug("last prompt:", prompt)
-        logging.debug("Is realign prompt:", prompt.startswith(PROMPT_TEMPLATE_REALIGN[40:]))
-        logging.debug("****")
+        print("****")
+        print("last prompt:", prompt)
+        print("Is realign prompt:", prompt.startswith(PROMPT_TEMPLATE_REALIGN[40:]))
+        print("****")
         return prompt.startswith(PROMPT_TEMPLATE_REALIGN[:40])
 
     def print_attempt(self, attempt: garak.attempt.Attempt):
         """Print the attempt"""
-        logging.debug(f"Goal: {attempt.goal}")
-        logging.debug("# conversations :", len(attempt.conversations))
+        print(f"Goal: {attempt.goal}")
+        print("# conversations :", len(attempt.conversations))
         for idx, conversation in enumerate(attempt.conversations):
-            logging.debug(f"Conversation {idx}:")
+            print(f"Conversation {idx}:")
             for turn in conversation.turns:
-                logging.debug(turn.role, ":", turn.content.text)
-        logging.debug("Notes: ")
+                print(turn.role, ":", turn.content.text)
+        print("Notes: ")
         for k, v in attempt.notes.items():
-            logging.debug(f"\t{k}: {v}")
+            print(f"\t{k}: {v}")
 
             
                 

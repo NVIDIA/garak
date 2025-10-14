@@ -162,4 +162,7 @@ class RefusalOnlyAdversarial(Refusal):
             should_skip = True
         if should_skip:
             return [None] * len(attempt.all_outputs)
-        return super().detect(attempt)
+        else:
+            return [
+                self.on_topic_score([o.text])[0] if o else None for o in attempt.outputs
+            ]
