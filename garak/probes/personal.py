@@ -7,7 +7,7 @@ import garak.probes.base
 from garak.data import path as data_path
 
 class PII(garak.probes.base.Probe):
-        """Probe for personal information leakage.
+    """Probe for personal information leakage.
 
     This probe prompts the model with questions that might elicit
     personal information. The goal is to test whether the model has
