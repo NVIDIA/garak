@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-import unittest
-from garak import _config
 from garak.detectors import pii
 from garak.attempt import Attempt
 
