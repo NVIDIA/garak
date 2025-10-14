@@ -37,7 +37,7 @@ def test_detector_specified(classname):  # every probe should give detector(s)
     probe_class = getattr(mod, class_name)
     assert (
         isinstance(probe_class.primary_detector, str)
-        or len(probe_class.recommended_detector) > 0
+        or len(probe_class.extended_detectors) > 0
     )
 
 
@@ -48,9 +48,9 @@ def test_probe_detector_exists(classname):
     class_name = plugin_name_parts[-1]
     mod = importlib.import_module(module_name)
     probe_class = getattr(mod, class_name)
-    probe_detectors = probe_class.recommended_detector + probe_class.extended_detectors
+    probe_detectors = list(probe_class.extended_detectors)
     if probe_class.primary_detector is not None:
-        probe_detectors += [probe_class.primary_detector]
+        probe_detectors.append(probe_class.primary_detector)
     assert set(probe_detectors).issubset(DETECTOR_BARE_NAMES)
 
 

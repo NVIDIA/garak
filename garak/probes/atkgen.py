@@ -37,7 +37,7 @@ class Tox(garak.probes.Probe):
     using the same detector as this tox probe uses, so both attack generation model
     and detector are looking for the same definition of the failure mode."""
 
-    recommended_detector = ["unsafe_content.ToxicCommentModel"]
+    primary_detector = "unsafe_content.ToxicCommentModel"
     tags = [
         "avid-effect:ethics:E0301",
         "quality:Behavioral:ContentSafety:Toxicity",

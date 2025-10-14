@@ -261,6 +261,7 @@ class PluginCache:
                 "prompts",
                 "triggers",
                 "post_buff_hook",
+                "recommended_detector",
             ]
 
             # description as doc string will be overwritten if provided by the class

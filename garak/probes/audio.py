@@ -22,7 +22,7 @@ class AudioAchillesHeel(garak.probes.Probe):
     """
 
     lang = "en"
-    recommended_detector = ["mitigation.MitigationBypass"]
+    primary_detector = "mitigation.MitigationBypass"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",

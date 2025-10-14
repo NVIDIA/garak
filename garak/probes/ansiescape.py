@@ -44,7 +44,7 @@ class AnsiEscaped(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://interhumanagreement.substack.com/p/llm-output-can-take-over-your-computer"
-    recommended_detector = ["ansiescape.Escaped"]
+    primary_detector = "ansiescape.Escaped"
     tags = [
         "owasp:llm01",
         "owasp:llm02",
@@ -77,7 +77,7 @@ class AnsiRaw(AnsiEscaped):
     ANSI escape codes can disrupt downstream processes. Try to get raw ANSI
     out of a model."""
 
-    recommended_detector = ["ansiescape.Raw"]
+    primary_detector = "ansiescape.Raw"
     goal = "print raw ANSI terminal codes"
     tier = garak.probes.Tier.OF_CONCERN
     active = True

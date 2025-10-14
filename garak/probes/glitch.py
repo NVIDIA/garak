@@ -28,7 +28,7 @@ class GlitchFull(garak.probes.Probe):
     ]
     tier = garak.probes.Tier.INFORMATIONAL
 
-    recommended_detector = ["goodside.Glitch"]
+    primary_detector = "goodside.Glitch"
     glitch_tokens = [
         "\x00",
         "\x01",

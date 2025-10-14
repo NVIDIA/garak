@@ -22,7 +22,8 @@ class Dan_11_0(garak.probes.Probe):
     should prevent LLM safeguards applying to future conversational turns."""
 
     lang = "en"
-    recommended_detector = ["mitigation.MitigationBypass", "dan.DAN"]
+    primary_detector = "dan.DAN"
+    extended_detectors = ["mitigation.MitigationBypass"]
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -49,7 +50,8 @@ class Dan_10_0(garak.probes.Probe):
     should prevent LLM safeguards applying to future conversational turns."""
 
     lang = "en"
-    recommended_detector = ["mitigation.MitigationBypass", "dan.DAN"]
+    primary_detector = "dan.DAN"
+    extended_detectors = ["mitigation.MitigationBypass"]
     tags = [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -75,7 +77,8 @@ class Dan_9_0(garak.probes.Probe):
     should prevent LLM safeguards applying to future conversational turns."""
 
     lang = "en"
-    recommended_detector = ["mitigation.MitigationBypass", "dan.DAN"]
+    primary_detector = "dan.DAN"
+    extended_detectors = ["mitigation.MitigationBypass"]
     tags = [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -127,7 +130,8 @@ class Dan_8_0(garak.probes.Probe):
     should prevent LLM safeguards applying to future conversational turns."""
 
     lang = "en"
-    recommended_detector = ["mitigation.MitigationBypass", "dan.DAN"]
+    primary_detector = "dan.DAN"
+    extended_detectors = ["mitigation.MitigationBypass"]
     tags = [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -183,7 +187,8 @@ class Dan_7_0(garak.probes.Probe):
     should prevent LLM safeguards applying to future conversational turns."""
 
     lang = "en"
-    recommended_detector = ["mitigation.MitigationBypass", "dan.DAN"]
+    primary_detector = "dan.DAN"
+    extended_detectors = ["mitigation.MitigationBypass"]
     tags = [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -227,7 +232,8 @@ class Dan_6_2(garak.probes.Probe):
     should prevent LLM safeguards applying to future conversational turns."""
 
     lang = "en"
-    recommended_detector = ["mitigation.MitigationBypass", "dan.DAN"]
+    primary_detector = "dan.DAN"
+    extended_detectors = ["mitigation.MitigationBypass"]
     tags = [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -267,7 +273,8 @@ class Dan_6_0(garak.probes.Probe):
     should prevent LLM safeguards applying to future conversational turns."""
 
     lang = "en"
-    recommended_detector = ["mitigation.MitigationBypass", "dan.DAN"]
+    primary_detector = "dan.DAN"
+    extended_detectors = ["mitigation.MitigationBypass"]
     tags = [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -293,7 +300,8 @@ class DUDE(garak.probes.Probe):
     should prevent LLM safeguards applying to future conversational turns."""
 
     lang = "en"
-    recommended_detector = ["mitigation.MitigationBypass", "dan.DUDE"]
+    primary_detector = "dan.DUDE"
+    extended_detectors = ["mitigation.MitigationBypass"]
     tags = [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -319,7 +327,8 @@ class STAN(garak.probes.Probe):
     should prevent LLM safeguards applying to future conversational turns."""
 
     lang = "en"
-    recommended_detector = ["mitigation.MitigationBypass", "dan.STAN"]
+    primary_detector = "dan.STAN"
+    extended_detectors = ["mitigation.MitigationBypass"]
     tags = [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -345,10 +354,8 @@ class DAN_Jailbreak(garak.probes.Probe):
     should prevent LLM safeguards applying to future conversational turns."""
 
     lang = "en"
-    recommended_detector = [
-        "mitigation.MitigationBypass",
-        "dan.DANJailbreak",
-    ]
+    primary_detector = "dan.DANJailbreak"
+    extended_detectors = ["mitigation.MitigationBypass"]
     tags = [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -374,10 +381,8 @@ class AntiDAN(garak.probes.Probe):
     should prevent LLM safeguards applying to future conversational turns."""
 
     lang = "en"
-    recommended_detector = [
-        "mitigation.MitigationBypass",
-        "dan.AntiDAN",
-    ]
+    primary_detector = "dan.AntiDAN"
+    extended_detectors = ["mitigation.MitigationBypass"]
     tags = [
         "quality:Security:PromptStability",
         "avid-effect:security:S0403",
@@ -418,10 +423,8 @@ class ChatGPT_Developer_Mode_v2(garak.probes.Probe):
     LLM safeguards applying to future conversational turns."""
 
     lang = "en"
-    recommended_detector = [
-        "mitigation.MitigationBypass",
-        "dan.DevMode",
-    ]
+    primary_detector = "dan.DevMode"
+    extended_detectors = ["mitigation.MitigationBypass"]
     tags = [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -448,10 +451,8 @@ class ChatGPT_Developer_Mode_RANTI(garak.probes.Probe):
     LLM safeguards applying to future conversational turns."""
 
     lang = "en"
-    recommended_detector = [
-        "mitigation.MitigationBypass",
-        "dan.DevMode",
-    ]
+    primary_detector = "dan.DevMode"
+    extended_detectors = ["mitigation.MitigationBypass"]
     tags = [
         "avid-effect:security:S0403",
         "quality:Security:PromptStability",
@@ -477,10 +478,8 @@ class ChatGPT_Image_Markdown(garak.probes.Probe):
     ChatGPT responses."""
 
     lang = "en"
-    recommended_detector = [
-        "mitigation.MitigationBypass",
-        "dan.MarkdownLink",
-    ]
+    primary_detector = "dan.MarkdownLink"
+    extended_detectors = ["mitigation.MitigationBypass"]
     tags = [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -509,7 +508,8 @@ class Ablation_Dan_11_0(garak.probes.Probe):
     LLM safeguards applying to future conversational turns."""
 
     lang = "en"
-    recommended_detector = ["mitigation.MitigationBypass", "dan.DAN"]
+    primary_detector = "dan.DAN"
+    extended_detectors = ["mitigation.MitigationBypass"]
     tags = [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -555,7 +555,8 @@ class AutoDANCached(garak.probes.Probe):
     using a pre-computed set of prompts for speed."""
 
     lang = "en"
-    recommended_detector = ["mitigation.MitigationBypass", "dan.DAN"]
+    primary_detector = "dan.DAN"
+    extended_detectors = ["mitigation.MitigationBypass"]
     tags = [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -590,7 +591,8 @@ class AutoDAN(garak.probes.Probe):
     """
 
     lang = "en"
-    recommended_detector = ["mitigation.MitigationBypass", "dan.DAN"]
+    primary_detector = "dan.DAN"
+    extended_detectors = ["mitigation.MitigationBypass"]
     tags = [
         "avid-effect:security:S0403",
         "owasp:llm01",

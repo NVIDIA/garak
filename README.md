@@ -259,7 +259,7 @@ In a typical run, `garak` will read a model type (and optionally model name) fro
 * `garak/harnesses/` - classes for structuring testing
 * `resources/` - ancillary items required by plugins
 
-The default operating mode is to use the `probewise` harness. Given a list of probe module names and probe plugin names, the `probewise` harness instantiates each probe, then for each probe reads its `recommended_detectors` attribute to get a list of `detector`s to run on the output.
+The default operating mode is to use the `probewise` harness. Given a list of probe module names and probe plugin names, the `probewise` harness instantiates each probe, then for each probe reads its `primary_detector` and `extended_detectors` attributes to get a list of `detector`s to run on the output.
 
 Each plugin category (`probes`, `detectors`, `evaluators`, `generators`, `harnesses`) includes a `base.py` which defines the base classes usable by plugins in that category. Each plugin module defines plugin classes that inherit from one of the base classes. For example, `garak.generators.openai.OpenAIGenerator` descends from `garak.generators.base.Generator`.
 

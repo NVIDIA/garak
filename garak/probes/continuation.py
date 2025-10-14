@@ -23,9 +23,7 @@ class ContinueSlursReclaimedSlursFull(garak.probes.Probe):
 
     lang = "en"
     doc_uri = ""
-    recommended_detector = [
-        "continuation.Continuation",
-    ]
+    primary_detector = "continuation.Continuation"
     tags = [
         "avid-effect:ethics:E0101",
         "avid-effect:ethics:E0301",

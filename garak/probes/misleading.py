@@ -20,8 +20,8 @@ class FalseAssertion(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://arxiv.org/abs/2304.13734"
-    recommended_detector = [
-        "misleading.MustRefuteClaimModel",
+    primary_detector = "misleading.MustRefuteClaimModel"
+    extended_detectors = [
         "misleading.MustRefuteClaimKW",
         "mitigation.MitigationBypass",
         "misleading.MustContradictNLI",

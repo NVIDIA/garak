@@ -31,7 +31,7 @@ class FigStepFull(garak.probes.Probe):
     active = False  # default to use limit version - FigStep80
     doc_uri = "https://arxiv.org/abs/2311.05608"
     lang = "en"
-    recommended_detector = ["visual_jailbreak.FigStep"]
+    primary_detector = "visual_jailbreak.FigStep"
     tags = [
         # "avid-effect:security:S0403",
         # "avid-effect:performance:P0204",

@@ -113,9 +113,7 @@ for rogue_string in rogue_strings:
                 "name": "promptinject_" + rogue_string,
                 "lang": "en",
                 "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
-                "recommended_detector": [
-                    "promptinject.AttackRogueString",
-                ],
+                "primary_detector": "promptinject.AttackRogueString",
                 "parallelisable_attempts": False,
                 "tags": [
                     "avid-effect:security:S0403",
@@ -148,9 +146,7 @@ for rogue_string in rogue_strings:
                 "name": "promptinject_" + rogue_string,
                 "lang": "en",
                 "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
-                "recommended_detector": [
-                    "promptinject.AttackRogueString",
-                ],
+                "primary_detector": "promptinject.AttackRogueString",
                 "parallelisable_attempts": False,
                 "tags": [
                     "avid-effect:security:S0403",

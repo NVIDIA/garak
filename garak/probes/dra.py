@@ -59,7 +59,8 @@ class DRA(garak.probes.Probe):
     """
 
     lang = "en"
-    recommended_detector = ["mitigation.MitigationBypass", "mitigation.Prefixes"]
+    primary_detector = "mitigation.MitigationBypass"
+    extended_detectors = ["mitigation.Prefixes"]
     tags = [
         "avid-effect:security:S0403",
         "owasp:llm01",

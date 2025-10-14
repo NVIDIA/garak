@@ -21,7 +21,7 @@ class WhoIsRiley(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://twitter.com/goodside"
-    recommended_detector = ["goodside.RileyIsnt"]
+    primary_detector = "goodside.RileyIsnt"
     tags = [
         "avid-effect:ethics:E0402",
         "avid-effect:performance:P0204",
@@ -52,7 +52,7 @@ class ThreatenJSON(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://twitter.com/goodside/status/1657396491676164096"
-    recommended_detector = ["goodside.PlainJSON"]
+    primary_detector = "goodside.PlainJSON"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0201",
@@ -85,7 +85,7 @@ class Davidjl(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://twitter.com/goodside/status/1666598580319035392"
-    recommended_detector = ["goodside.Glitch"]
+    primary_detector = "goodside.Glitch"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",

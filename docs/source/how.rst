@@ -19,7 +19,7 @@ plugins.
 
 The default operating mode is to use the :class:`garak.harnesses.probewise` harness. Given a list of
 probe module names and probe plugin names, the ``probewise`` harness instantiates
-each probe, then for each probe reads its ``recommended_detectors`` attribute to
+each probe, then for each probe reads its ``primary_detector`` and ``extended_detectors`` attributes to
 get a list of ``detector`` s to run on the output.
 
 Each plugin category (``probes``, ``detectors``, ``evaluators``, ``generators``,
