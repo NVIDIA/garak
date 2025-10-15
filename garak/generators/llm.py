@@ -36,28 +36,44 @@ class LLMGenerator(Generator):
     """
 
     DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
-        "temperature": None,
         "max_tokens": None,
         "top_p": None,
         "stop": [],
-        "system": None,
     }
 
-    generator_family_name = "LLM"
+    generator_family_name = "llm"
 
     def __init__(self, name: str = "", config_root=_config):
+        self.target = None
         self.name = name
         self._load_config(config_root)
-        self.fullname = f"LLM (simonw/llm) {self.name or '(default)'}"
+        self.fullname = f"llm (simonw/llm) {self.name or '(default)'}"
+
+        self._load_client()
 
         super().__init__(self.name, config_root=config_root)
 
+        self._clear_client()
+
+    def __getstate__(self) -> object:
+        self._clear_client()
+        return dict(self.__dict__)
+
+    def __setstate__(self, data: dict) -> None:
+        self.__dict__.update(data)
+        self._load_client()
+
+    def _load_client(self) -> None:
         try:
-            # Resolve the llm model; fall back to llm's default if no name given
-            self.model = llm.get_model(self.name) if self.name else llm.get_model()
-        except Exception as e:
-            logging.error("Failed to resolve `llm` model '%s': %s", self.name, repr(e))
-            raise e
+            self.target = llm.get_model(self.name) if self.name else llm.get_model()
+        except Exception as exc:
+            logging.error(
+                "Failed to resolve `llm` target '%s': %s", self.name, repr(exc)
+            )
+            raise
+
+    def _clear_client(self) -> None:
+        self.target = None
 
     def _call_model(
         self, prompt: Conversation, generations_this_call: int = 1
@@ -67,23 +83,33 @@ class LLMGenerator(Generator):
 
         This calls model.prompt() once per generation and materializes the text().
         """
-        text_prompt = prompt.last_message().text
+        if self.target is None:
+            self._load_client()
+
+        system_turns = [turn for turn in prompt.turns if turn.role == "system"]
+        user_turns = [turn for turn in prompt.turns if turn.role == "user"]
+        assistant_turns = [turn for turn in prompt.turns if turn.role == "assistant"]
+
+        if assistant_turns:
+            raise ValueError("llm generator does not accept assistant turns")
+        if len(system_turns) > 1:
+            raise ValueError("llm generator supports at most one system turn")
+        if len(user_turns) != 1:
+            raise ValueError("llm generator requires exactly one user turn")
+
+        text_prompt = prompt.last_message("user").text
 
         # Build kwargs only for parameters explicitly set (non-None / non-empty)
-        prompt_kwargs = {}
-        if self.system:
-            prompt_kwargs["system"] = self.system
-        if self.max_tokens is not None:
-            prompt_kwargs["max_tokens"] = self.max_tokens
-        if self.temperature is not None:
-            prompt_kwargs["temperature"] = self.temperature
-        if self.top_p is not None:
-            prompt_kwargs["top_p"] = self.top_p
+        prompt_kwargs = {
+            key: getattr(self, key)
+            for key in ("max_tokens", "temperature", "top_p")
+            if getattr(self, key) is not None
+        }
         if self.stop:
             prompt_kwargs["stop"] = self.stop
 
         try:
-            response = self.model.prompt(text_prompt, **prompt_kwargs)
+            response = self.target.prompt(text_prompt, **prompt_kwargs)
             out = response.text() 
             return [Message(out)]
         except Exception as e:

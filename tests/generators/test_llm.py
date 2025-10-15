@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2025 NVIDIA CORPORATION &
 #                         AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Portions Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
 """Tests for simonw/llm-backed garak generator"""
@@ -58,14 +59,15 @@ def fake_llm(monkeypatch):
 def test_instantiation_resolves_model(cfg, fake_llm):
     gen = LLMGenerator(name="my-alias", config_root=cfg)
     assert gen.name == "my-alias"
-    assert hasattr(gen, "model")
-    assert "LLM (simonw/llm)" in gen.fullname
+    assert hasattr(gen, "target")
+    assert "llm (simonw/llm)" in gen.fullname
 
 
 def test_generate_returns_message(cfg, fake_llm):
     gen = LLMGenerator(name="alias", config_root=cfg)
 
-    conv = Conversation([Turn("user", Message(text="ping"))])
+    test_txt = "ping"
+    conv = Conversation([Turn("user", Message(text=test_txt))])
     out = gen._call_model(conv)
 
     assert isinstance(out, list) and len(out) == 1
@@ -73,27 +75,30 @@ def test_generate_returns_message(cfg, fake_llm):
     assert out[0].text == "OK_FAKE"
 
     prompt_text, kwargs = fake_llm.calls[0]
-    assert prompt_text == "ping"
+    assert prompt_text == test_txt
     assert kwargs == {}  
 
 
 def test_param_passthrough(cfg, fake_llm):
     gen = LLMGenerator(name="alias", config_root=cfg)
-    gen.temperature = 0.2
-    gen.max_tokens = 64
-    gen.top_p = 0.9
-    gen.stop = ["\n\n"]
-    gen.system = "you are testy"
+    temperature = 0.2
+    max_tokens = 64
+    top_p = 0.9
+    stop = ["\n\n"]
+
+    gen.temperature = temperature
+    gen.max_tokens = max_tokens
+    gen.top_p = top_p
+    gen.stop = stop
 
     conv = Conversation([Turn("user", Message(text="hello"))])
     _ = gen._call_model(conv)
 
     _, kwargs = fake_llm.calls[0]
-    assert kwargs["temperature"] == 0.2
-    assert kwargs["max_tokens"] == 64
-    assert kwargs["top_p"] == 0.9
-    assert kwargs["stop"] == ["\n\n"]
-    assert kwargs["system"] == "you are testy"
+    assert kwargs["temperature"] == temperature
+    assert kwargs["max_tokens"] == max_tokens
+    assert kwargs["top_p"] == top_p
+    assert kwargs["stop"] == stop
 
 
 def test_wrapper_handles_llm_exception(cfg, monkeypatch):
@@ -126,3 +131,40 @@ def test_default_model_when_name_empty(cfg, fake_llm, monkeypatch):
     spy.assert_called_once()
     assert spy.call_args.args == ()
     assert spy.call_args.kwargs == {}
+
+
+def test_rejects_multiple_user_turns(cfg, fake_llm):
+    gen = LLMGenerator(name="alias", config_root=cfg)
+    user_turns = [
+        Turn("user", Message(text="first")),
+        Turn("user", Message(text="second")),
+    ]
+    conv = Conversation(user_turns)
+    with pytest.raises(ValueError):
+        gen._call_model(conv)
+
+
+def test_rejects_assistant_turns(cfg, fake_llm):
+    gen = LLMGenerator(name="alias", config_root=cfg)
+    conv = Conversation(
+        [
+            Turn("system", Message(text="system prompt")),
+            Turn("assistant", Message(text="historic reply")),
+            Turn("user", Message(text="question")),
+        ]
+    )
+    with pytest.raises(ValueError):
+        gen._call_model(conv)
+
+
+def test_rejects_multiple_system_turns(cfg, fake_llm):
+    gen = LLMGenerator(name="alias", config_root=cfg)
+    conv = Conversation(
+        [
+            Turn("system", Message(text="one")),
+            Turn("system", Message(text="two")),
+            Turn("user", Message(text="ping")),
+        ]
+    )
+    with pytest.raises(ValueError):
+        gen._call_model(conv)
