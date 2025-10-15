@@ -23,8 +23,6 @@ from garak.probes._tier import Tier
 import garak.attempt
 import garak.resources.theme
 
-import pdb
-
 
 class Probe(Configurable):
     """Base class for objects that define and execute LLM evaluations"""

@@ -163,6 +163,7 @@ class RefusalOnlyAdversarial(Refusal):
         if should_skip:
             return [None] * len(attempt.all_outputs)
         else:
+            # TODO: Should be able to call super().detect(attempt) here but we can't because currently a lot of detectors including refusal.Judge operate over Attempt.all_outputs (or Attempt.outputs_for which can have the same shape), but Evaluator at one place indexes Attempt.outputs for idxeses in detector outputs. That discrepancy needs to be fixed. 
             return [
                 self.on_topic_score([o.text])[0] if o else None for o in attempt.outputs
             ]
