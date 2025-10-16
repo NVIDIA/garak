@@ -162,7 +162,6 @@ class FITDProbe(garak.probes.IterativeProbe):
     lang = "en"
     doc_uri = "http://arxiv.org/abs/2502.19820"
     primary_detector = "judge.RefusalOnlyAdversarial"
-    recommended_detector = ["judge.RefusalOnlyAdversarial"] # TODO: Try skipping this
     tags = [
         "owasp:llm01",
         "owasp:llm02",
@@ -320,8 +319,8 @@ class FITDProbe(garak.probes.IterativeProbe):
                 continue
 
             # Note that this goes ahead whether it is the target query, an SSParaphrase of it (which typically tends to decrease intensity) or a re-align of it
-            last_prompt = conversation.turns[-2].content.text
-            last_response = conversation.turns[-1].content.text
+            last_prompt = conversation.last_message("user").text
+            last_response = conversation.last_message("assistant").text
             verify_response = self._get_attack_gen_llm_response(PROMPT_TEMPLATE_EVAL.format(request=last_prompt, response=last_response))
             logging.debug("In FITD verify_last_response: verify_response =" + verify_response)
             logging.debug("******")
