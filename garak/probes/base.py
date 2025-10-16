@@ -67,7 +67,7 @@ class Probe(Configurable):
 
         This constructor:
         1. populates self.probename based on the class name,
-        2. logs and optionally prints the probe's loading,
+        2. logs and optionally logging.debugs the probe's loading,
         3. populates self.description based on the class docstring if not yet set
         """
         self._load_config(config_root)
@@ -336,7 +336,7 @@ class Probe(Configurable):
 
     def probe(self, generator) -> Iterable[garak.attempt.Attempt]:
         """attempt to exploit the target generator, returning a list of results"""
-        print("probe execute: %s", self)
+        logging.debug("probe execute: %s", self)
 
         self.generator = generator
 
@@ -405,7 +405,7 @@ class Probe(Configurable):
         # iterate through attempts
         attempts_completed = self._execute_all(attempts_todo)
 
-        print(
+        logging.debug(
             "probe return: %s with %s attempts", self, len(attempts_completed)
         )
 
@@ -484,7 +484,7 @@ class TreeSearchProbe(Probe):
 
         while len(nodes_to_explore):
 
-            print(
+            logging.debug(
                 "%s Queue: %s" % (self.__class__.__name__, repr(nodes_to_explore))
             )
             if self.strategy == "breadth_first":
@@ -495,9 +495,9 @@ class TreeSearchProbe(Probe):
             # update progress bar
             progress_nodes_previous = len(node_ids_explored)
             progress_nodes_todo = int(1 + len(nodes_to_explore) * 2.5)
-            # print("seen", node_ids_explored, progress_nodes_previous)
-            # print("curr", current_node)
-            # print("todo", nodes_to_explore, progress_nodes_todo)
+            # logging.debug("seen", node_ids_explored, progress_nodes_previous)
+            # logging.debug("curr", current_node)
+            # logging.debug("todo", nodes_to_explore, progress_nodes_todo)
 
             tree_bar.total = progress_nodes_previous + progress_nodes_todo
             tree_bar.refresh()
@@ -507,7 +507,7 @@ class TreeSearchProbe(Probe):
             # init this round's list of attempts
             attempts_todo: Iterable[garak.attempt.Attempt] = []
 
-            print(
+            logging.debug(
                 "%s %s, %s"
                 % (self.__class__.__name__, current_node, current_node.words())
             )
@@ -580,13 +580,13 @@ class TreeSearchProbe(Probe):
             _config.transient.reportfile.write(
                 json.dumps(node_info, ensure_ascii=False) + "\n"
             )
-            print("%s  node score %s" % (self.__class__.__name__, mean_score))
+            logging.debug("%s  node score %s" % (self.__class__.__name__, mean_score))
 
             if (mean_score > self.per_node_threshold and self.target_soft) or (
                 mean_score < self.per_node_threshold and not self.target_soft
             ):
                 children = self._get_node_children(current_node)
-                print(
+                logging.debug(
                     f"{self.__class__.__name__}  adding children" + repr(children)
                 )
                 for child in children:
@@ -595,14 +595,14 @@ class TreeSearchProbe(Probe):
                         and child not in nodes_to_explore
                         and child not in self.never_queue_nodes
                     ):
-                        print("%s   %s" % (self.__class__.__name__, child))
+                        logging.debug("%s   %s" % (self.__class__.__name__, child))
                         nodes_to_explore.append(child)
                     else:
-                        print(
+                        logging.debug(
                             "%s   skipping %s" % (self.__class__.__name__, child)
                         )
             else:
-                print("%s closing node" % self.__class__.__name__)
+                logging.debug("%s closing node" % self.__class__.__name__)
 
         tree_bar.total = len(node_ids_explored)
         tree_bar.update(len(node_ids_explored))
@@ -779,12 +779,12 @@ class IterativeProbe(Probe):
                     should_terminate.append(detector_output > self.detector_score_threshold)
                 else:
                     should_terminate.append(True)
-            print("IterativeProbe._should_terminate_conversation() using detector, should_terminate = %s" % should_terminate)
+            logging.debug("IterativeProbe._should_terminate_conversation() using detector, should_terminate = %s" % should_terminate)
             return should_terminate
             # TODO: Is it really correct to terminate the conversation of the detector returns None? What about skips?
             # TODO: It's an interesting trade-off if on the one hand a probe does want to use a detector to decide whether to terminate the conversation, but also specifies that most turns are non adversarial and should be skipped by the detector.
         elif self.end_condition == "verify":
-            print("IterativeProbe._should_terminate_conversation() using verify")
+            logging.debug("IterativeProbe._should_terminate_conversation() using verify")
             return self.verify_is_last_response_success(attempt)
         else:
             raise ValueError(f"Unsupported end condition '{self.end_condition}'")
@@ -803,7 +803,7 @@ class IterativeProbe(Probe):
 
     def probe(self, generator):
         """Wrapper generating all attempts and handling execution against generator"""
-        print("In IterativeProbe.probe()")
+        logging.debug("In IterativeProbe.probe()")
         self.generator = generator
         all_attempts_completed = list()
         attempts_todo = self.create_init_attempts(self.init_turns)
@@ -811,7 +811,7 @@ class IterativeProbe(Probe):
         if len(_config.buffmanager.buffs) > 0:
             attempts_todo = self._buff_hook(attempts_todo) # TODO: What's actually happening here? Is it possible to abstract it out at attempt creation?
 
-        print("In IterativeProbe.probe() running init turns")
+        logging.debug("In IterativeProbe.probe() running init turns")
         attempts_completed = self._execute_all(attempts_todo)
         all_attempts_completed.extend(attempts_completed)
 
@@ -840,9 +840,5 @@ class IterativeProbe(Probe):
             print("End of turn %d; Attempts this turn: %d; Total attempts completed: %d" % (turn_num, len(attempts_completed), len(all_attempts_completed)))
 
         print("Probe completed; Total attempts completed: %d" % len(all_attempts_completed))
-
-        print("Sanity checking returned attempts")
-        num_outputs_per_attempt = [len(attempt.outputs) for attempt in all_attempts_completed]
-        print("Uniq values in num_outputs_per_attempt =", set(num_outputs_per_attempt))
 
         return all_attempts_completed
