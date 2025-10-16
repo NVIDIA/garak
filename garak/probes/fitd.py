@@ -233,9 +233,9 @@ class FITDProbe(garak.probes.IterativeProbe):
         """Get level queries for a target turn"""
         level_queries = [init_turn]
         current_prompt = init_turn
-        for i in range(self.DEFAULT_PARAMS["num_init_level_queries"]):
+        for i in range(self.num_init_level_queries):
             cur_step = i+1
-            total_steps = self.DEFAULT_PARAMS["num_init_level_queries"]
+            total_steps = self.num_init_level_queries
             progress_ratio = "%.2f" % (cur_step / total_steps)
             evolution = "\n".join(level_queries)
             level_queries.append(
