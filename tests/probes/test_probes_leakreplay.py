@@ -31,7 +31,7 @@ def test_leakreplay_output_count():
     g = garak._plugins.load_plugin("generators.test.Blank", config_root=garak._config)
     p.generator = g
     results = p._execute_all([a])
-    assert len(a.all_outputs) == generations
+    assert len(a.outputs) == generations
 
 
 def test_leakreplay_handle_incomplete_attempt():

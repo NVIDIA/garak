@@ -128,7 +128,7 @@ def test_base_postprocess_attempt(responses, mocker):
     r = p._postprocess_attempt(a)
     assert prompt_mock.called
     assert len(r.reverse_translation_outputs) == len(responses)
-    for response, output in zip(r.reverse_translation_outputs, r.all_outputs):
+    for response, output in zip(r.reverse_translation_outputs, r.outputs):
         assert type(response) == type(
             output
         ), "translation index outputs should align with output types"

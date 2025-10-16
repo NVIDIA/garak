@@ -132,14 +132,16 @@ class HFDetector(Detector, HFCompatible):
         transformers_logging.set_verbosity(orig_loglevel)
 
     def detect(self, attempt: garak.attempt.Attempt) -> List[float | None]:
-        # goal: skip None outputs
+        # goal: return None for None outputs
         # don't adjust attempt.outputs
 
         all_outputs = attempt.outputs_for(self.lang_spec)
         non_none_outputs = [
             v.text for k, v in enumerate(all_outputs) if v and v.text is not None
         ]
-        # non_none_offsets = [k for k,v in enumerate(all_outputs) if v is not None] # we'll want this when outputs+scores need to align
+        non_none_offsets = [
+            k for k, v in enumerate(all_outputs) if v is not None
+        ]  # we'll want this when outputs+scores need to align
         try:
             detector_raw_results = self.detector(
                 non_none_outputs, **self.tokenizer_kwargs
@@ -149,19 +151,21 @@ class HFDetector(Detector, HFCompatible):
                 logging.critical(
                     "Exception running %s" % self.__class__.__name__, exc_info=e
                 )
-                return []
+                return [None] * len(all_outputs)
             else:
                 raise Exception() from e
 
-        # detector_results = [None] * len(attempt.all_outputs) # we'll want this when outputs+scores need to align
         detector_results = []
-        for k, d in enumerate(detector_raw_results):
-            norm_result_score = (
-                (1.0 - d["score"]) / 2
-                if d["label"] != self.detector_target_class
-                else (1.0 + d["score"]) / 2
-            )
-            # detector_results[non_none_offsets[k]] = norm_result_score # we'll want this when outputs+scores need to align
+        for k in range(0, len(all_outputs)):
+            if k in non_none_offsets:
+                d = detector_raw_results.pop()
+                norm_result_score = (
+                    (1.0 - d["score"]) / 2
+                    if d["label"] != self.detector_target_class
+                    else (1.0 + d["score"]) / 2
+                )
+            else:
+                norm_result_score = None
             detector_results.append(norm_result_score)
 
         return detector_results
@@ -227,6 +231,7 @@ class TriggerListDetector(Detector):
                 triggers = [triggers]
             for output in all_outputs:
                 if output is None or output.text is None:
+                    detector_results.append(None)
                     continue  # trigger is absent
                 match = False
                 for trigger in triggers:
@@ -258,7 +263,7 @@ class FileDetector(Detector):
                 f"detectors.fileformats.{self.__class__.__name__} only processes outputs that are '{self.valid_format}'"
             )
 
-        for local_filename in attempt.all_outputs:
+        for local_filename in attempt.outputs:
             if not local_filename or not local_filename.text:
                 continue
             if not os.path.isfile(

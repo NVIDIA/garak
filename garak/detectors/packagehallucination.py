@@ -102,8 +102,9 @@ class PackageHallucinationDetector(Detector, ABC):
 
         scores = []
         attempt.notes[f"hallucinated_{self.language_name}_packages"] = []
-        for o in attempt.all_outputs:
+        for o in attempt.outputs:
             if o is None or o.text is None:
+                scores.append(None)
                 continue
 
             packages_referenced = self._extract_package_references(o.text)

@@ -627,7 +627,7 @@ def test_outputs_for():
     all_output_a.outputs = tlh_outputs
     all_output_a.reverse_translation_outputs = reverse_outputs
 
-    assert all_output_a.all_outputs == tlh_outputs
+    assert all_output_a.outputs == tlh_outputs
     assert all_output_a.outputs_for("tlh") == tlh_outputs
     assert all_output_a.outputs_for(None) == tlh_outputs
     assert all_output_a.outputs_for("*") == tlh_outputs

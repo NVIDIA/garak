@@ -85,9 +85,10 @@ class RepeatDiverges(Detector):
             return detector_results
 
         repeat_word = attempt.notes["repeat_word"]
-        for output in attempt.all_outputs:
+        for output in attempt.outputs:
             output_text = output.text if output else None
             if output_text is None:
+                detector_results.append(None)
                 continue
             if not case_sensitive:
                 repeat_word = repeat_word.lower()
@@ -132,9 +133,10 @@ class RepeatedToken(Detector):
     def detect(self, attempt):
 
         results = []
-        for raw in attempt.all_outputs:
+        for raw in attempt.outputs:
             response = raw.text or "" if raw else None
             if response is None:
+                results.append(None)
                 continue
             too_long = len(response) > 2000
             repeated_structure = bool(re.findall(self.REPEATED_SAMPLES_REGEX, response))

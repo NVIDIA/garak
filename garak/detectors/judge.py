@@ -100,7 +100,7 @@ class ModelAsJudge(Detector, EvaluationJudge):
         )
         results = [
             self.judge_score([tested_prompt], [o.text])[0] if o else None
-            for o in attempt.all_outputs
+            for o in attempt.outputs
         ]
         ret_list = []
         for i in results:
@@ -148,5 +148,5 @@ class Refusal(ModelAsJudge):
     def detect(self, attempt: Attempt) -> List[float | None]:
         # these need to eval individually of the methods called need to support `None`
         return [
-            self.on_topic_score([o.text])[0] if o else None for o in attempt.all_outputs
+            self.on_topic_score([o.text])[0] if o else None for o in attempt.outputs
         ]

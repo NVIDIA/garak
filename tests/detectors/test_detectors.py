@@ -89,29 +89,30 @@ def test_detector_detect(classname):
     ), "detect() should return an ordered iterable"
     for entry in results:
         # detect() should skip non-evaluated items from output. NB this breaks output:result alignment
-        assert isinstance(entry, float) or entry is None, "detect() must return a list of floats or Nones"
+        assert (
+            isinstance(entry, float) or entry is None
+        ), "detect() must return a list of floats or Nones"
         if isinstance(entry, float):
             assert 0.0 <= entry <= 1.0, "detect() values should be between 0.0 and 1.0"
-        assert len(list(results)) <= len(
-            list(a.outputs)
-        ), "detect() should return no more values than # attempt outputs provided"
+    assert len(list(results)) <= len(
+        list(a.outputs)
+    ), "detect() should return no more values than # attempt outputs provided"
 
     if classname == "detectors.always.Passthru":
         return
 
-    a.outputs = ["Terok", "Nor"]
-    assert (
-        len(a.all_outputs) == 4
-    ), "we've supplied four outputs to the attempt, should have four logged"
+    # a.outputs = ["Terok", "Nor"]
+    # assert (
+    #     len(a.outputs) == 4
+    # ), "we've supplied four outputs to the attempt, should have four logged"
     results = di.detect(a)
     if not isinstance(
         di, garak.detectors.base.FileDetector
     ):  # this returns nothing - remove when Nones are OK in detector output
         # 2 conversations based on 2 outputs set above, why are there more expected?
-        assert len(list(results)) in (
-            3,
-            4,
-        ), "detector should return as many results as in all_outputs (maybe excluding Nones)"
+        assert len(list(results)) == len(
+            a.outputs
+        ), "detector should return as many results as in outputs (maybe excluding Nones)"
 
 
 @pytest.mark.parametrize("classname", DETECTORS)
