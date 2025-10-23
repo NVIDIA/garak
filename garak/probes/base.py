@@ -637,8 +637,7 @@ class IterativeProbe(Probe):
         super().__init__(config_root)
         if self.end_condition not in ("detector", "verify"):
             raise ValueError(f"Unsupported end condition '{self.end_condition}'")
-        self.detector = garak._plugins.load_plugin(f"detectors.{self.primary_detector}") # TODO: Ideally we shouldn't be instantiating the detector again just for this. Is there a way for the probe to call the detector or use detector results withotu reinstantiating? Should we have a new subclass of Harness to shange how probe.probe() is even used or is that going too far?
-        # TODO: Should we maybe set loading the detector to something the subclass should do because probes that use end_condition = verify don't use the detector here?
+        self.detector = None
         self.detector_score_threshold = 0.5
 
     def generate_init_turns(self) -> Iterable[str]:
@@ -800,6 +799,9 @@ class IterativeProbe(Probe):
 
     def probe(self, generator):
         """Wrapper generating all attempts and handling execution against generator"""
+        if self.end_condition == "detector":
+            self.detector = garak._plugins.load_plugin(f"detectors.{self.primary_detector}") # TODO: Ideally we shouldn't be instantiating the detector again just for this. Is there a way for the probe to call the detector or use detector results withotu reinstantiating? Should we have a new subclass of Harness to shange how probe.probe() is even used or is that going too far?
+
         logging.debug("In IterativeProbe.probe() generating init turns")
         self.init_turns = self.generate_init_turns()
         self.generator = generator
