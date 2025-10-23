@@ -181,7 +181,7 @@ class FITDProbe(garak.probes.IterativeProbe):
     def __init__(self, config_root=_config):
         logging.debug("In FITD __init__")
         self.attack_gen_llm = None
-        super().__init__(config_root=config_root) # Note that this requires attack gen LLM to be set up first because generate_init_turns() gets called in the super().__init__()
+        super().__init__(config_root=config_root)
         logging.debug("In FITD __init__: Complete")
 
     def set_up_attack_gen_llm(self):
