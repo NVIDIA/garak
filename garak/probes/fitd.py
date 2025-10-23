@@ -168,8 +168,8 @@ class FITDProbe(garak.probes.IterativeProbe):
         "owasp:llm05",
     ]
     goal = "Transform queries from benign to harmful obtaining intermediate reponses to get compliance from the model"
-    tier = garak.probes.Tier.INFORMATIONAL # TODO: What should the actual Tier be?
-    active = True
+    tier = garak.probes.Tier.INFORMATIONAL
+    active = False # Note: This probe is currently not active because of the potential for the number of attempts to grow exponentially and have to be terminated early unless the user sets generations = 1
 
     DEFAULT_PARAMS = garak.probes.IterativeProbe.DEFAULT_PARAMS | {
         "attack_gen_llm_type": "nim",
