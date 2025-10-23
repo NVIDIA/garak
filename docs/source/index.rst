@@ -17,7 +17,7 @@ to contribute code, you're in the right place - welcome!
 You can also join our `Discord <https://discord.gg/uVch4puUCs>`_
 and follow us on `Twitter <https://twitter.com/garak_llm>`_!
 
-Check out the :doc:`usage` section for further information, including :ref:`installation`.
+Check out the :doc:`usage` section for further information, including :doc:`install`.
 
 .. note::
 
@@ -33,6 +33,7 @@ Check out the :doc:`usage` section for further information, including :ref:`inst
    :hidden:
 
    how
+   install
    usage
    configurable
    cliref

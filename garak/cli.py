@@ -141,17 +141,20 @@ def main(arguments=None) -> None:
     ## PLUGINS
     # generators
     parser.add_argument(
+        "--target_type",
+        "-t",
         "--model_type",
         "-m",
         type=str,
         help="module and optionally also class of the generator, e.g. 'huggingface', or 'openai'",
     )
     parser.add_argument(
+        "--target_name",
         "--model_name",
         "-n",
         type=str,
         default=None,
-        help="name of the model, e.g. 'timdettmers/guanaco-33b-merged'",
+        help="name of the target, e.g. 'timdettmers/guanaco-33b-merged'",
     )
     # probes
     parser.add_argument(
@@ -221,10 +224,14 @@ def main(arguments=None) -> None:
         help="show info about one plugin; format as type.plugin.class, e.g. probes.lmrc.Profanity",
     )
     parser.add_argument(
-        "--list_probes", action="store_true", help="list available vulnerability probes"
+        "--list_probes",
+        action="store_true",
+        help="list all available probes. Usage: combine with --probes/-p to filter for probes that will be activated based on a `probe_spec`, e.g. '--list_probes -p dan' to show only active 'dan' family probes.",
     )
     parser.add_argument(
-        "--list_detectors", action="store_true", help="list available detectors"
+        "--list_detectors",
+        action="store_true",
+        help="list available detectors. Usage: combine with --detectors/-d to filter for detectors that will be activated based on a `detector_spec`, e.g. '--list_detectors -d misleading.Invalid' to show only that detector.",
     )
     parser.add_argument(
         "--list_generators",
@@ -264,11 +271,6 @@ def main(arguments=None) -> None:
         action="store_true",
         help="generate AutoDAN prompts; requires --prompt_options with JSON containing a prompt and target",
     )
-    parser.add_argument(
-        "--interactive.py",
-        action="store_true",
-        help="Launch garak in interactive.py mode",
-    )
 
     parser.add_argument(
         "--fix",
@@ -282,12 +284,16 @@ def main(arguments=None) -> None:
         parser.description = (
             str(parser.description) + " - EXPERIMENTAL FEATURES ENABLED"
         )
-        pass
 
     logging.debug("args - raw argument string received: %s", arguments)
 
     args = parser.parse_args(arguments)
     logging.debug("args - full argparse: %s", args)
+
+    for deprecated_model_option in {"-m", "--model_name", "--model_type"}.intersection(
+        set(arguments)
+    ):
+        command.deprecation_notice(f"{deprecated_model_option} on CLI", "0.13.1.pre1")
 
     # load site config before loading CLI config
     _cli_config_supplied = args.config is not None
@@ -445,10 +451,20 @@ def main(arguments=None) -> None:
             command.plugin_info(args.plugin_info)
 
         elif args.list_probes:
-            command.print_probes()
+            selected_probes = None
+            probe_spec = getattr(args, "probes", None)
+            if probe_spec and probe_spec.lower() not in ("", "auto", "all", "*"):
+                selected_probes, _ = _config.parse_plugin_spec(probe_spec, "probes")
+            command.print_probes(selected_probes)
 
         elif args.list_detectors:
-            command.print_detectors()
+            selected_detectors = None
+            detector_spec = getattr(args, "detectors", None)
+            if detector_spec and detector_spec.lower() not in ("", "auto", "all", "*"):
+                selected_detectors, _ = _config.parse_plugin_spec(
+                    detector_spec, "detectors"
+                )
+            command.print_detectors(selected_detectors)
 
         elif args.list_buffs:
             command.print_buffs()
@@ -526,27 +542,27 @@ def main(arguments=None) -> None:
             print(f"📜 AVID reports generated at {report.write_location}")
 
         # model is specified, we're doing something
-        elif _config.plugins.model_type:
+        elif _config.plugins.target_type:
 
             print(f"📜 logging to {log_filename}")
 
             conf_root = _config.plugins.generators
-            for part in _config.plugins.model_type.split("."):
+            for part in _config.plugins.target_type.split("."):
                 if not part in conf_root:
                     conf_root[part] = {}
                 conf_root = conf_root[part]
-            if _config.plugins.model_name:
+            if _config.plugins.target_name:
                 # if passed generator options and config files are already loaded
                 # cli provided name overrides config from file
-                conf_root["name"] = _config.plugins.model_name
+                conf_root["name"] = _config.plugins.target_name
 
             # Can this check be deferred to the generator instantiation?
             if (
-                _config.plugins.model_type
+                _config.plugins.target_type
                 in ("openai", "replicate", "ggml", "huggingface", "litellm")
-                and not _config.plugins.model_name
+                and not _config.plugins.target_name
             ):
-                message = f"⚠️  Model type '{_config.plugins.model_type}' also needs a model name\n You can set one with e.g. --model_name \"billwurtz/gpt-1.0\""
+                message = f"⚠️  Model type '{_config.plugins.target_type}' also needs a model name\n You can set one with e.g. --target_name \"billwurtz/gpt-1.0\""
                 logging.error(message)
                 raise ValueError(message)
 
@@ -578,7 +594,7 @@ def main(arguments=None) -> None:
             from garak import _plugins
 
             generator = _plugins.load_plugin(
-                f"generators.{_config.plugins.model_type}", config_root=_config
+                f"generators.{_config.plugins.target_type}", config_root=_config
             )
 
             if (
@@ -623,9 +639,9 @@ def main(arguments=None) -> None:
             command.end_run()
         else:
             print("nothing to do 🤷  try --help")
-            if _config.plugins.model_name and not _config.plugins.model_type:
+            if _config.plugins.target_name and not _config.plugins.target_type:
                 print(
-                    "💡 try setting --model_type (--model_name is currently set but not --model_type)"
+                    "💡 try setting --target_type (--target_name is currently set but not --target_type)"
                 )
             logging.info("nothing to do 🤷")
     except KeyboardInterrupt as e:

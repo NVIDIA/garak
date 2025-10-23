@@ -25,7 +25,7 @@ from PIL import Image
 
 from garak import _config
 from garak.attempt import Message, Conversation
-from garak.exception import ModelNameMissingError, GarakException
+from garak.exception import TargetNameMissingError, GarakException
 from garak.generators.base import Generator
 from garak.resources.api.huggingface import HFCompatible
 
@@ -552,7 +552,7 @@ class LLaVA(Generator, HFCompatible):
             self.name = name
 
         if self.name not in self.supported_models:
-            raise ModelNameMissingError(
+            raise TargetNameMissingError(
                 f"Invalid model name {self.name}, current support: {self.supported_models}."
             )
         super().__init__(self.name, config_root=config_root)

@@ -32,8 +32,8 @@ class NVOpenAIChat(OpenAICompatible):
     #. In your console, set the ``NIM_API_KEY`` variable to this API key.
 
        On Linux, this might look like ``export NIM_API_KEY="nvapi-xXxXxXx"``.
-    #. Run garak, setting ``--model_type 'nim.NVIDIAOpenAIChat'`` and ``--model_name`` to
-       the name of the model on build.nvidia.com, such as ``--model_name 'mistralai/mixtral-8x7b-instruct-v0.1'``.
+    #. Run garak, setting ``--target_type 'nim.NVIDIAOpenAIChat'`` and ``--target_name`` to
+       the name of the model on build.nvidia.com, such as ``--target_name 'mistralai/mixtral-8x7b-instruct-v0.1'``.
     """
 
     # per https://docs.nvidia.com/ai-enterprise/nim-llm/latest/openai-api.html
@@ -58,7 +58,7 @@ class NVOpenAIChat(OpenAICompatible):
         self.client = openai.OpenAI(base_url=self.uri, api_key=self.api_key)
         if self.name in ("", None):
             raise ValueError(
-                "NIMs require model name to be set, e.g. --model_name mistralai/mistral-8x7b-instruct-v0.1\nCurrent models:\n"
+                "NIMs require model name to be set, e.g. --target_name mistralai/mistral-8x7b-instruct-v0.1\nCurrent models:\n"
                 + "\n - ".join(
                     sorted([entry.id for entry in self.client.models.list().data])
                 )
@@ -128,8 +128,8 @@ class NVOpenAICompletion(NVOpenAIChat):
     #. In your console, set the ``NIM_API_KEY`` variable to this API key.
 
        On Linux, this might look like ``export NIM_API_KEY="nvapi-xXxXxXx"``.
-    #. Run garak, setting ``--model_type 'nim.NVIDIAOpenAIChat'`` and ``--model_name`` to
-       the name of the model on build.nvidia.com, such as ``--model_name 'mistralai/mixtral-8x7b-instruct-v0.1'``.
+    #. Run garak, setting ``--target_type 'nim.NVIDIAOpenAIChat'`` and ``--target_name`` to
+       the name of the model on build.nvidia.com, such as ``--target_name 'mistralai/mixtral-8x7b-instruct-v0.1'``.
     """
 
     def _load_client(self):
@@ -158,8 +158,8 @@ class NVMultimodal(NVOpenAIChat):
     #. In your console, set the ``NIM_API_KEY`` variable to this API key.
 
        On Linux, this might look like ``export NIM_API_KEY="nvapi-xXxXxXx"``.
-    #. Run garak, setting ``--model_type 'nim.NVMultimodal'`` and ``--model_name`` to
-       the name of the model on build.nvidia.com, such as ``--model_name 'microsoft/phi-4-multimodal-instruct-v0.1'``.
+    #. Run garak, setting ``--target_type 'nim.NVMultimodal'`` and ``--target_name`` to
+       the name of the model on build.nvidia.com, such as ``--target_name 'microsoft/phi-4-multimodal-instruct-v0.1'``.
     """
 
     DEFAULT_PARAMS = NVOpenAIChat.DEFAULT_PARAMS | {

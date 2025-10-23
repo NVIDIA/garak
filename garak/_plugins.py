@@ -57,6 +57,7 @@ class PluginCache:
             name
             for name, klass in inspect.getmembers(base_klass, inspect.isclass)
             if klass.__module__.startswith(base_klass.__name__)
+            and not inspect.isabstract(klass)
         ]
 
     def _load_plugin_cache(self):
@@ -387,7 +388,7 @@ def load_plugin(path, break_on_fail=True, config_root=_config) -> object:
                     plugin_class_name = generator_mod.DEFAULT_CLASS
                 else:
                     raise ValueError(
-                        f"module {module_name} has no default class; pass module.ClassName to model_type"
+                        f"module {module_name} has no default class; pass module.ClassName to target_type"
                     )
             case 3:
                 category, module_name, plugin_class_name = parts
@@ -420,6 +421,10 @@ def load_plugin(path, break_on_fail=True, config_root=_config) -> object:
 
     try:
         klass = getattr(mod, plugin_class_name)
+        if inspect.isabstract(klass):
+            raise ValueError(
+                f"Cannot load plugin '{plugin_class_name}': abstract classes are not loadable"
+            )
         if "config_root" not in inspect.signature(klass.__init__).parameters:
             raise ConfigFailure(
                 'Incompatible function signature: plugin must take a "config_root"'

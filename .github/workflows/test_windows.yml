@@ -25,6 +25,8 @@ permissions:
 
 env:
   XDG_CACHE_HOME: ${{ github.workspace }}/.cache
+  PYTHONIOENCODING: utf-8
+  PYTHONUTF8: 1
 
 jobs:
   build_windows:

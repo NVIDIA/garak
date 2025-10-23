@@ -5,3 +5,5 @@ garak.probes.phrasing
    :members:
    :undoc-members:
    :show-inheritance:
+
+   .. show-asr::

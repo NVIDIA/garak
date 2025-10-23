@@ -5,3 +5,5 @@ garak.probes.audio
    :members:
    :undoc-members:
    :show-inheritance:
+
+   .. show-asr::

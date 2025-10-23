@@ -5,3 +5,5 @@ garak.probes.snowball
    :members:
    :undoc-members:
    :show-inheritance:
+
+   .. show-asr::

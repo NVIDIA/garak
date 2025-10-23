@@ -11,3 +11,5 @@ Check for package hallucination vulnerabilities. From `<https://vulcan.io/blog/a
    :members:
    :undoc-members:
    :show-inheritance:
+
+   .. show-asr::

@@ -2,7 +2,7 @@
 
 Supports chat + chatcompletion models. Put your API key in
 an environment variable documented in the selected generator. Put the name of the
-model you want in either the --model_name command line parameter, or
+model you want in either the --target_name command line parameter, or
 pass it as an argument to the Generator constructor.
 
 sources:
@@ -162,7 +162,7 @@ class OpenAICompatible(Generator):
         self.client = openai.OpenAI(base_url=self.uri, api_key=self.api_key)
         if self.name in ("", None):
             raise ValueError(
-                f"{self.generator_family_name} requires model name to be set, e.g. --model_name org/private-model-name"
+                f"{self.generator_family_name} requires model name to be set, e.g. --target_name org/private-model-name"
             )
         self.generator = self.client.chat.completions
 
@@ -308,7 +308,7 @@ class OpenAIGenerator(OpenAICompatible):
         if self.name == "":
             openai_model_list = sorted([m.id for m in self.client.models.list().data])
             raise ValueError(
-                f"Model name is required for {self.generator_family_name}, use --model_name\n"
+                f"Model name is required for {self.generator_family_name}, use --target_name\n"
                 + "  API returns following available models: ▶️   "
                 + "  ".join(openai_model_list)
                 + "\n"

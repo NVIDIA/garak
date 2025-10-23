@@ -1,0 +1,134 @@
+.wy-nav-top, 
+.rst-content .note .admonition-title {
+    background: #000000;
+}
+.wy-side-nav-search .icon-home {
+    color: #ffffff;
+}
+.rst-content .note {
+    border-left: .25em solid #9ca4af;
+    background: #111; /* Grey Light 1 */
+}
+.wy-menu span.caption-text {
+    color: #ffffff
+} 
+.reference, 
+.icon-home, 
+a:link, 
+a:visited, 
+a:hover, 
+a:active {
+    color: #76b900; /* nv */
+}
+.wy-menu-vertical a:hover,
+.wy-menu-vertical li.toctree-l2 a:hover,
+.wy-menu-vertical li.toctree-l1.current>a:hover {
+    background-color: #111;
+}
+.wy-menu-vertical .toctree-l1>a:link,
+.wy-menu-vertical .toctree-l1>a:visited, 
+.wy-menu-vertical .toctree-l1>a:active,
+.wy-menu-vertical li.toctree-l2 a {
+    color: #999; 
+}
+.wy-menu-vertical .toctree-l1>a:hover,
+.wy-menu-vertical li.toctree-l2 a:hover {
+    color: #ffffff !important;
+    text-decoration: underline;
+    text-decoration-thickness: double;
+}
+.wy-side-nav-search, 
+div.bd-content,
+.wy-nav-side,
+body.wy-body-for-nav,
+.wy-nav-content,
+.toctree-l1.current,
+.toctree-l2,
+.wy-menu-vertical li.current>a,
+.wy-menu-vertical li.toctree-l2.current>a,
+.wy-menu-vertical li.toctree-l2.current li.toctree-l3>a,
+.wy-menu-vertical li.toctree-l3.current li.toctree-l4>a {
+    background-color: #111;
+}
+.wy-menu-vertical li.toctree-l1.current>a,
+.wy-menu-vertical li.current a,
+.wy-menu-vertical li.toctree-l2.current>a {
+    border: none;
+}
+.wy-menu-vertical li.toctree-l1.current>a,
+li.toctree-l1.current>a:link,
+li.toctree-l2.current>a:link,
+.wy-menu-vertical li.toctree-l3.current>a>code,
+.rst-content code.literal {
+    color: #76b900;
+}
+code {
+    word-wrap: break-word;
+    border-image-width: 1;
+}
+.rst-content code {
+    background-color: #1a1a1a;
+    border: 1px solid #48566b;
+    border-radius: .25rem;
+    padding: .1rem .25rem;
+    font-size: 0.875em;    
+}
+.rst-content code.literal {
+    background-color: #111;
+}
+html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.citation):not(.glossary):not(.simple)>dt {
+    border-top: 3px solid #76b900; /* nv */
+    color: #76b900; /* nv */
+    /* background: #e0e0e0; /* grey light 1 */
+    background: #111;
+}
+html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.citation):not(.glossary):not(.simple) .descclassname {
+    color: #fff;
+}
+html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.citation):not(.glossary):not(.simple) .descname {
+    color: #76b900;
+}
+html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.citation):not(.glossary):not(.simple) dl:not(.option-list):not(.field-list):not(.footnote):not(.citation):not(.glossary):not(.simple)>dt {
+    background: #111;
+    color:  #e0e0e0; /* Grey Light 1 */
+}
+.highlight .nn, 
+.highlight .nc {
+    color: #76b900; /* nv */
+}
+nav.bd-links .current>a {
+    inset max(3px, .1875rem, .12em) 0 0 #76b900;
+    color: #76b900;
+    font-weight: 600;    
+}
+nav.bd-links p.caption {
+    background-color: #e0e0e0; /* Grey Light 1 */
+}
+body {
+    color: #e0e0e0; /* Grey Light 1 */
+    background-color: #111;
+}
+html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.citation):not(.glossary):not(.simple)>dt .headerlink {
+    color: #e0e0e0;
+}
+.highlight {
+    background-color: #000;
+}
+.btn-neutral {
+    background-color: #111 !important;
+}
+.btn-neutral:link,
+.btn-neutral:visited,
+.btn-neutral:hover,
+.btn-neutral:active {
+    color: #76b900 !important;
+}
+.highlight .go {
+    color: #dbb7ff;
+}
+body, 
+h1,
+a.icon {
+    /* font-family:  Lato, proxima-nova, Helvetica Neue, Arial, sans-serif;*/
+    font-family: Arial, Helvetica, Sans-Serif;
+}

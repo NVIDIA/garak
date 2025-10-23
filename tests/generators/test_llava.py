@@ -6,7 +6,7 @@ from unittest.mock import patch, MagicMock
 from garak.attempt import Conversation, Turn, Message
 from garak._config import GarakSubConfig
 from garak.generators.huggingface import LLaVA
-from garak.exception import ModelNameMissingError
+from garak.exception import TargetNameMissingError
 
 # ─── Constants ─────────────────────────────────────────────────────────
 
@@ -64,23 +64,22 @@ def mock_hf_when_cpu(monkeypatch):
     )
 
 
-
 # ─── Tests ─────────────────────────────────────────────────────────────
 
 
-@pytest.mark.parametrize("model_name", SUPPORTED_MODELS)
-def test_llava_instantiation_and_device(llava_config, model_name):
-    llava = LLaVA(name=model_name, config_root=llava_config)
-    assert llava.name == model_name
+@pytest.mark.parametrize("target_name", SUPPORTED_MODELS)
+def test_llava_instantiation_and_device(llava_config, target_name):
+    llava = LLaVA(name=target_name, config_root=llava_config)
+    assert llava.name == target_name
     assert hasattr(llava, "processor")
     assert hasattr(llava, "model")
     assert isinstance(llava.device, torch.device)
     assert llava.device.type == "cpu"
 
 
-@pytest.mark.parametrize("model_name", SUPPORTED_MODELS)
+@pytest.mark.parametrize("target_name", SUPPORTED_MODELS)
 def test_llava_generate_returns_decoded_text(
-    llava_config, llava_test_image, model_name
+    llava_config, llava_test_image, target_name
 ):
     # Prepare mocks: override the decode and generate on the fake objects
     fake_proc = LLaVA.processor if False else MagicMock()
@@ -88,14 +87,13 @@ def test_llava_generate_returns_decoded_text(
     fake_model = MagicMock()
     fake_model.generate.return_value = torch.tensor([[0, 1, 2]])
     # Patch into the instance
-    llava = LLaVA(name=model_name, config_root=llava_config)
+    llava = LLaVA(name=target_name, config_root=llava_config)
     llava.processor = fake_proc
     llava.model = fake_model
 
     conv = Conversation([Turn("user", Message(text="foo", data_path=llava_test_image))])
     out = llava.generate(conv)
     assert isinstance(out, list) and out == [Message("decoded output")]
-
 
 
 def test_llava_error_on_missing_image(llava_config):
@@ -107,18 +105,17 @@ def test_llava_error_on_missing_image(llava_config):
         llava.generate(conv)
 
 
-
 def test_llava_unsupported_model(llava_config):
-    """Test that instantiating with an unsupported model name raises ModelNameMissingError."""
-    with pytest.raises(ModelNameMissingError) as excinfo:
+    """Test that instantiating with an unsupported model name raises TargetNameMissingError."""
+    with pytest.raises(TargetNameMissingError) as excinfo:
         LLaVA(name="not-a-supported-model", config_root=llava_config)
     # Verify the error message contains useful information
     assert "not-a-supported-model" in str(excinfo.value)
 
 
-def test_llava_missing_model_name(llava_config):
-    """Test that instantiating with an empty model name raises ModelNameMissingError."""
-    with pytest.raises(ModelNameMissingError):
+def test_llava_missing_target_name(llava_config):
+    """Test that instantiating with an empty model name raises TargetNameMissingError."""
+    with pytest.raises(TargetNameMissingError):
         LLaVA(name="", config_root=llava_config)
 
 

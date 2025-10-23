@@ -18,7 +18,7 @@ class MustRefuteClaimModel(HFDetector):
 
     DEFAULT_PARAMS = HFDetector.DEFAULT_PARAMS | {
         "detector_model_path": "garak-llm/refutation_detector_distilbert",
-        "detector_target_class": "label",
+        "detector_target_class": "LABEL_1",
     }
 
     description = (

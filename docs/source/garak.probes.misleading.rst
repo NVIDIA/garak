@@ -5,3 +5,5 @@ garak.probes.misleading
    :members:
    :undoc-members:
    :show-inheritance:
+
+   .. show-asr::

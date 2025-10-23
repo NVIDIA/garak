@@ -184,22 +184,20 @@ class Probe(Configurable):
     ) -> garak.attempt.Attempt:
         """function for creating a new attempt given a prompt"""
         turns = []
+        if hasattr(self, "system_prompt") and self.system_prompt:
+            turns.append(
+                garak.attempt.Turn(
+                    role="system",
+                    content=garak.attempt.Message(text=self.system_prompt, lang=lang),
+                )
+            )
         if isinstance(prompt, garak.attempt.Conversation):
             try:
                 # only add system prompt if the prompt does not contain one
                 prompt.last_message("system")
                 turns = prompt.turns
             except ValueError as e:
-                turns.append(prompt.turns)
-        elif hasattr(self, "system_prompt") and self.system_prompt:
-            turns.append(
-                garak.attempt.Turn(
-                    role="system",
-                    content=garak.attempt.Message(
-                        text=self.system_prompt, lang=lang
-                    ),
-                )
-            )
+                turns.extend(prompt.turns)
         if isinstance(prompt, str):
             turns.append(
                 garak.attempt.Turn(
@@ -216,7 +214,11 @@ class Probe(Configurable):
         if len(turns) > 0:
             prompt = garak.attempt.Conversation(
                 turns=turns,
-                notes=notes,
+                notes=(
+                    prompt.notes
+                    if isinstance(prompt, garak.attempt.Conversation)
+                    else None
+                ),  # keep and existing notes
             )
 
         new_attempt = garak.attempt.Attempt(

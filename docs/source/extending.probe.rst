@@ -139,7 +139,7 @@ Let's try running our new probe against a HuggingFace ``Pipeline`` using ``meta-
 
 .. code-block:: bash
 
-  $ garak -m huggingface -n meta-llama/Llama-2-7b-chat-hf -p mynewprobe.MyNewProbe
+  $ garak -t huggingface -n meta-llama/Llama-2-7b-chat-hf -p mynewprobe.MyNewProbe
 
 If it all runs well, you'll get a log and a hitlog file, which tell you how successful your new probe was!
 If you encounter errors, go through and try to address them. You can look at the bottom of the `garak.log` file, whose path is printed in the output every time you call garak, to see what errors there are.
@@ -150,7 +150,7 @@ If you want to debug your probe interactively, try using something like ``p = ga
 Finally, check a few properties:
 
 * Does the new probe appear in ``python -m garak --list_probes``?
-* Does the probe run? ``python -m garak -m test -p mynewprobe.MyNewProbe``
+* Does the probe run? ``python -m garak -t test -p mynewprobe.MyNewProbe``
 * Do the garak tests pass? ``python -m pytest tests/``
 
 Done!

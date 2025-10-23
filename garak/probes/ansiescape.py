@@ -126,19 +126,20 @@ class AnsiRawTokenizerHF(garak.probes.Probe):
     def probe(self, generator) -> Iterable[garak.attempt.Attempt]:
         """attempt to gather target generator's risky tokens.
 
-        return modes:
+        Return modes:
          * something sus? attempts for each risky token
          * nothing sus? attempt with empty string
 
-        rationale: we want a big alert if there are bad tokens, and we want a
-        100% pass if there are no bad tokens
+        Rationale:
+         we want a big alert if there are bad tokens, and we want a
+         100% pass if there are no bad tokens
 
-        route:
-        . mint attempt for the first non-risky token we find
-        . mint attempts for each risky token found
+        Route:
+         * mint attempt for the first non-risky token we find
+         * mint attempts for each risky token found
 
-        output: score = 1/(|risky tokens| + 1)
-        the more risky tokens, the worse
+        Output: score = 1/(abs(risky tokens) + 1);
+        The more risky tokens, the worse
         """
 
         package_path = (

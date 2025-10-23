@@ -62,3 +62,5 @@ Each probe using ``LatentInjectionMixin`` may define:
    :members:
    :undoc-members:
    :show-inheritance:
+
+   .. show-asr::

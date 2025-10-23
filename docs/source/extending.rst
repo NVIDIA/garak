@@ -48,9 +48,9 @@ You can test your code in a few ways:
    * Check out that the values and methods work as you'd expect
 * Get ``garak`` to list all the plugins of the type you're writing, with ``--list_probes``, ``--list_detectors``, or ``--list_generators``: ```python3 -m garak --list_probes``
 * Run a scan with test plugins
-   * For probes, try a blank generator and always.Pass detector: ``python3 -m garak -m test.Blank -p mymodule -d always.Pass``
-   * For detectors, try a blank generator and a blank probe: ``python3 -m garak -m test.Blank -p test.Blank -d mymodule``
-   * For generators, try a blank probe and always.Pass detector: ``python3 -m garak -m mymodule -p test.Blank -d always.Pass``
+   * For probes, try a blank generator and always.Pass detector: ``python3 -m garak -t test.Blank -p mymodule -d always.Pass``
+   * For detectors, try a blank generator and a blank probe: ``python3 -m garak -t test.Blank -p test.Blank -d mymodule``
+   * For generators, try a blank probe and always.Pass detector: ``python3 -m garak -t mymodule -p test.Blank -d always.Pass``
 
 
 garak supports pytest tests in garak/tests. You can run these with ``python -m pytest tests/`` from the root directory.

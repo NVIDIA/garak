@@ -5,3 +5,5 @@ garak.probes.grandma
    :members:
    :undoc-members:
    :show-inheritance:
+
+   .. show-asr::

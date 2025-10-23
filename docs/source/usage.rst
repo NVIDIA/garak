@@ -1,4 +1,5 @@
 ..  headings: = - ^ "
+
 Getting Started
 ===============
 
@@ -20,10 +21,10 @@ You can also specify specific probes instead of a probe family such as ``--probe
 Running a Scan
 --------------
 
-To run a scan, you must specify at least the service to scan with the ``--model_type`` argument, such as ``openai``, ``huggingface``, or ``nim``.
-In most cases, you will also specify the model to scan with the ``--model_name`` argument, such as ``gpt-3.5-turbo``, ``meta/llama-3.1-8b-instruct``, and so on.
+To run a scan, you must specify at least the service to scan with the ``--target_type`` argument, such as ``openai``, ``huggingface``, or ``nim``.
+In most cases, you will also specify the model to scan with the ``--target_name`` argument, such as ``gpt-3.5-turbo``, ``meta/llama-3.1-8b-instruct``, and so on.
 
-For example, to run a scan on the Hugging Face version of GPT2, use ``--model_type huggingface`` and ``--model_name gpt2``.
+For example, to run a scan on the Hugging Face version of GPT2, use ``--target_type huggingface`` and ``--target_name gpt2``.
 
 Some hosted models can require an API key to be set as an environment variable.
 If you do not set the associated environment variable, garak stops the scan and reports the required variable name.
@@ -36,11 +37,11 @@ Probe ChatGPT for encoding-based prompt injection (OSX/\*nix) (replace example v
 .. code-block:: console
 
     export OPENAI_API_KEY="sk-123XXXXXXXXXXXX"
-    garak --model_type openai --model_name gpt-3.5-turbo --probes encoding
+    garak --target_type openai --target_name gpt-3.5-turbo --probes encoding
 
 
 Determine if the Hugging Face version of GPT2 is vulnerable to DAN 11.0:
 
 .. code-block:: console
 
-    garak --model_type huggingface --model_name gpt2 --probes dan.Dan_11_0
+    garak --target_type huggingface --target_name gpt2 --probes dan.Dan_11_0

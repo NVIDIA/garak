@@ -42,19 +42,18 @@ class DRA(garak.probes.Probe):
     """DRA (Disguise and Reconstruction Attack)
 
     This probe is designed to test models using disguised and reconstructed harmful behaviors.
-    Behaviors are defined in garak/data/payloads/harmful_behaviors.json.
-    Uses all available templates and behaviors. Optional soft_probe_prompt_cap for limiting.
+    Behaviors are defined in ``garak/data/payloads/harmful_behaviors.json``.
+    Uses all available templates and behaviors. Optional ``soft_probe_prompt_cap`` for limiting.
 
     Parameter Tuning:
-    ----------------
-
-    toxic_trunc: Controls truncation level for toxic/harmful tokens. If attacks fail,
+    
+    ``toxic_trunc``: Controls truncation level for toxic/harmful tokens. If attacks fail,
     this suggests the prompt is still too harmful and being rejected. Increase toxic_trunc
     to truncate more toxic words, increasing the disguise level and making prompts less detectable.
 
-    benign_trunc: Controls truncation level for benign tokens when they are truncated.
+    ``benign_trunc``: Controls truncation level for benign tokens when they are truncated.
 
-    benign_full_token_prob: Probability of keeping benign tokens fully (without truncation).
+    ``benign_full_token_prob``: Probability of keeping benign tokens fully (without truncation).
     For more capable models, use lower values as they can better reconstruct the input
     behavior from fewer token hints.
     """

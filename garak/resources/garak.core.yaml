@@ -19,8 +19,8 @@ run:
   soft_probe_prompt_cap: 256
 
 plugins:
-  model_type:
-  model_name:
+  target_type:
+  target_name:
   probe_spec: all
   detector_spec: auto
   extended_detectors: true

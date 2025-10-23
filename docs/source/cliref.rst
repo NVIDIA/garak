@@ -3,7 +3,7 @@ CLI reference for garak
 
 ::
 
-  garak LLM vulnerability scanner v0.13.1.pre1 ( https://github.com/NVIDIA/garak ) at 2025-09-02T07:56:46.667342
+  garak LLM vulnerability scanner v0.13.2.pre1 ( https://github.com/NVIDIA/garak ) at 2025-10-01T15:12:43.522704
   usage: python -m garak [-h] [--verbose] [--report_prefix REPORT_PREFIX]
                          [--narrow_output]
                          [--parallel_requests PARALLEL_REQUESTS]
@@ -11,7 +11,7 @@ CLI reference for garak
                          [--skip_unknown] [--seed SEED] [--deprefix]
                          [--eval_threshold EVAL_THRESHOLD]
                          [--generations GENERATIONS] [--config CONFIG]
-                         [--model_type MODEL_TYPE] [--model_name MODEL_NAME]
+                         [--target_type TARGET_TYPE] [--target_name TARGET_NAME]
                          [--probes PROBES] [--probe_tags PROBE_TAGS]
                          [--detectors DETECTORS] [--extended_detectors]
                          [--buffs BUFFS]
@@ -24,7 +24,7 @@ CLI reference for garak
                          [--list_probes] [--list_detectors] [--list_generators]
                          [--list_buffs] [--list_config] [--version]
                          [--report REPORT] [--interactive] [--generate_autodan]
-                         [--interactive.py] [--fix]
+                         [--fix]
   
   LLM safety & security scanning tool
   
@@ -50,11 +50,11 @@ CLI reference for garak
     --generations GENERATIONS, -g GENERATIONS
                           number of generations per prompt
     --config CONFIG       YAML config file for this run
-    --model_type MODEL_TYPE, -m MODEL_TYPE
+    --target_type TARGET_TYPE, -t TARGET_TYPE, --model_type TARGET_TYPE, -m TARGET_TYPE
                           module and optionally also class of the generator,
                           e.g. 'huggingface', or 'openai'
-    --model_name MODEL_NAME, -n MODEL_NAME
-                          name of the model, e.g.
+    --target_name TARGET_NAME, --model_name TARGET_NAME, -n TARGET_NAME
+                          name of the target, e.g.
                           'timdettmers/guanaco-33b-merged'
     --probes PROBES, -p PROBES
                           list of probe names to use, or 'all' for all
@@ -99,8 +99,15 @@ CLI reference for garak
     --plugin_info PLUGIN_INFO
                           show info about one plugin; format as
                           type.plugin.class, e.g. probes.lmrc.Profanity
-    --list_probes         list available vulnerability probes
-    --list_detectors      list available detectors
+    --list_probes         list all available probes. Usage: combine with
+                          --probes/-p to filter for probes that will be
+                          activated based on a `probe_spec`, e.g. '--list_probes
+                          -p dan' to show only active 'dan' family probes.
+    --list_detectors      list available detectors. Usage: combine with
+                          --detectors/-d to filter for detectors that will be
+                          activated based on a `detector_spec`, e.g. '--
+                          list_detectors -d misleading.Invalid' to show only
+                          that detector.
     --list_generators     list available generation model interfaces
     --list_buffs          list available buffs/fuzzes
     --list_config         print active config info (and don't scan)
@@ -110,7 +117,6 @@ CLI reference for garak
     --interactive, -I     Enter interactive probing mode
     --generate_autodan    generate AutoDAN prompts; requires --prompt_options
                           with JSON containing a prompt and target
-    --interactive         Launch garak in interactive Python mode
     --fix                 Update provided configuration with fixer migrations;
                           requires one of --config / --*_option_file, /
                           --*_options

@@ -38,10 +38,11 @@ For a detailed oversight into how a probe operates, see :doc:`garak.probes.base`
    garak.probes.realtoxicityprompts
    garak.probes.sata
    garak.probes.snowball
+   garak.probes.smuggling
    garak.probes.suffix
    garak.probes.tap
    garak.probes.test
    garak.probes.topic
-   garak.probes.xss
    garak.probes.visual_jailbreak
+   garak.probes.web_injection
    garak.probes._tier

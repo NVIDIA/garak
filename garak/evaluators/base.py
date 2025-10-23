@@ -113,7 +113,7 @@ class Evaluator:
                                     "attempt_id": str(attempt.uuid),
                                     "attempt_seq": attempt.seq,
                                     "attempt_idx": idx,
-                                    "generator": f"{_config.plugins.model_type} {_config.plugins.model_name}",
+                                    "generator": f"{_config.plugins.target_type} {_config.plugins.target_name}",
                                     "probe": self.probename,
                                     "detector": detector,
                                     "generations_per_prompt": _config.run.generations,

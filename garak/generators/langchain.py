@@ -24,7 +24,7 @@ class LangChainLLMGenerator(Generator):
     Calls invoke with the prompt and relays the response. No per-LLM specific
     checking, so make sure the right environment variables are set.
 
-    Set --model_name to the LLM type required.
+    Set --target_name to the LLM type required.
 
     Explicitly, garak delegates the majority of responsibility here:
 

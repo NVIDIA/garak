@@ -24,7 +24,7 @@ When invoking garak, specify the path to the generator option file:
 
 .. code-block:: bash
 
-   python -m garak --model_type litellm --model_name "phi" --generator_option_file ollama_base.json -p dan
+   python -m garak --target_type litellm --target_name "phi" --generator_option_file ollama_base.json -p dan
 """
 
 import logging

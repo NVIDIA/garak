@@ -4,7 +4,7 @@ Supports chat + chatcompletion models. Put your API key in the AZURE_API_KEY env
 the azure openai endpoint in the AZURE_ENDPOINT environment variable and the azure openai model name
 in AZURE_MODEL_NAME environment variable.
 
-Put the deployment name in either the --model_name command line parameter, or
+Put the deployment name in either the --target_name command line parameter, or
 pass it as an argument to the Generator constructor.
 """
 
@@ -40,7 +40,7 @@ class AzureOpenAIGenerator(OpenAICompatible):
     #. [Deploy a model](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/create-resource?pivots=web-portal#deploy-a-model) and copy paste the model and deployment names.
     #. On the Azure portal page for the Azure OpenAI you want to use click on "Resource Management -> Keys and Endpoint" and copy paste the API Key and endpoint.
     #. In your console, Set the ``AZURE_API_KEY``, ``AZURE_ENDPOINT`` and ``AZURE_MODEL_NAME`` variables.
-    #. Run garak, setting ``--model_type`` to ``azure`` and ``--model_name`` to the name **of the deployment**.
+    #. Run garak, setting ``--target_type`` to ``azure`` and ``--target_name`` to the name **of the deployment**.
     - e.g. ``gpt-4o``.
     """
 
@@ -53,18 +53,18 @@ class AzureOpenAIGenerator(OpenAICompatible):
     api_version = "2024-06-01"
 
     DEFAULT_PARAMS = OpenAICompatible.DEFAULT_PARAMS | {
-        "model_name": None,
+        "target_name": None,
         "uri": None,
     }
 
     def _validate_env_var(self):
-        if self.model_name is None:
+        if self.target_name is None:
             if not hasattr(self, "model_name_env_var"):
                 self.model_name_env_var = self.MODEL_NAME_ENV_VAR
 
-            self.model_name = os.getenv(self.model_name_env_var, None)
+            self.target_name = os.getenv(self.model_name_env_var, None)
 
-            if self.model_name is None:
+            if self.target_name is None:
                 raise ValueError(
                     f"The {self.MODEL_NAME_ENV_VAR} environment variable is required.\n"
                 )
@@ -83,8 +83,8 @@ class AzureOpenAIGenerator(OpenAICompatible):
         return super()._validate_env_var()
 
     def _load_client(self):
-        if self.model_name in openai_model_mapping:
-            self.model_name = openai_model_mapping[self.model_name]
+        if self.target_name in openai_model_mapping:
+            self.target_name = openai_model_mapping[self.target_name]
 
         self.client = openai.AzureOpenAI(
             azure_endpoint=self.uri, api_key=self.api_key, api_version=self.api_version
@@ -92,24 +92,24 @@ class AzureOpenAIGenerator(OpenAICompatible):
 
         if self.name == "":
             raise ValueError(
-                f"Deployment name is required for {self.generator_family_name}, use --model_name"
+                f"Deployment name is required for {self.generator_family_name}, use --target_name"
             )
 
-        if self.model_name in completion_models:
+        if self.target_name in completion_models:
             self.generator = self.client.completions
-        elif self.model_name in chat_models:
+        elif self.target_name in chat_models:
             self.generator = self.client.chat.completions
-        elif "-".join(self.model_name.split("-")[:-1]) in chat_models and re.match(
-            r"^.+-[01][0-9][0-3][0-9]$", self.model_name
+        elif "-".join(self.target_name.split("-")[:-1]) in chat_models and re.match(
+            r"^.+-[01][0-9][0-3][0-9]$", self.target_name
         ):  # handle model names -MMDDish suffix
             self.generator = self.client.completions
         else:
             raise ValueError(
-                f"No {self.generator_family_name} API defined for '{self.model_name}' in generators/openai.py - please add one!"
+                f"No {self.generator_family_name} API defined for '{self.target_name}' in generators/openai.py - please add one!"
             )
 
-        if self.model_name in context_lengths:
-            self.context_len = context_lengths[self.model_name]
+        if self.target_name in context_lengths:
+            self.context_len = context_lengths[self.target_name]
 
 
 DEFAULT_CLASS = "AzureOpenAIGenerator"

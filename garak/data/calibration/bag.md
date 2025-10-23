@@ -25,6 +25,8 @@ It's possible to get a great Z-score and a low absolute score. This means that w
 
 We artificially bound standard deviations at a non-zero minimum, to represent the inherent uncertainty in using an incomplete sample of all LLMs, and to make Z-score calculation possible even when the bag perfectly agrees.
 
+NB: Values in `calibration.json` are pass rates, not attack success rates. To calculate mean ASR, take 1-μ.
+
 ## When is the bag updated?
 
 The first benchmark is in summer 2024. We think something between twice-yearly and quarterly updates provides a good trade off between using recent models, and keeping results relevant long enough to be comparable.
