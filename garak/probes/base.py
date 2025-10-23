@@ -807,6 +807,7 @@ class IterativeProbe(Probe):
         self.generator = generator
         all_attempts_completed = list()
         attempts_todo = self.create_init_attempts(self.init_turns)
+        self.max_attempts_before_termination = len(self.init_turns) * self.soft_probe_prompt_cap
 
         if len(_config.buffmanager.buffs) > 0:
             attempts_todo = self._buff_hook(attempts_todo) # TODO: What's actually happening here? Is it possible to abstract it out at attempt creation?
@@ -820,11 +821,10 @@ class IterativeProbe(Probe):
             attempts_todo = list()
             for attempt in attempts_completed:
                 should_terminate_per_output = self._should_terminate_conversation(attempt)
-                conversations_to_continue = [attempt.conversations[idx] for idx, should_terminate in enumerate(should_terminate_per_output) if not should_terminate]
-                next_turn_attempts = [self.generate_next_turn_attempt(conversation, attempt) for conversation in conversations_to_continue]
+                conversations_to_continue = [attempt.conversations[idx] for idx, should_terminate in enumerate(should_terminate_per_output) if not should_terminate] # TODO: At this point, we can estimate whether the next turn would cause the three size to exceed max_attempts_before_termination. Should we break out of the loop here instead?
+                next_turn_attempts = [self.generate_next_turn_attempt(conversation, attempt) for conversation in conversations_to_continue] # TODO: This can be slow. Do we want to add parallelization / at least a tqdm bar?
                 attempts_todo.extend(next_turn_attempts)
-                # TODO: Ideally this happens in next_turn_convs but before we continue every attempt in attempts_todo needs notes to update turn number and which prompts are adversarial
-
+                
             print("Turn %d: Attempts created: %d" % (turn_num, len(attempts_todo)))
             if len(attempts_todo) == 0:
                 print("No new attempts created for turn %d; Breaking out of loop" % turn_num)
@@ -836,9 +836,12 @@ class IterativeProbe(Probe):
             attempts_completed = self._execute_all(attempts_todo)
             all_attempts_completed.extend(attempts_completed)
 
-            # TODO: If we want to terminate based on total tree size we could be checking length of all_attempts_completed here
             print("End of turn %d; Attempts this turn: %d; Total attempts completed: %d" % (turn_num, len(attempts_completed), len(all_attempts_completed)))
 
-        print("Probe completed; Total attempts completed: %d" % len(all_attempts_completed))
+            if len(all_attempts_completed) > self.max_attempts_before_termination:
+                print("Max attempts before termination reached; Breaking out of loop")
+                break
+
+        print("Probe exiting; Total attempts completed: %d" % len(all_attempts_completed))
 
         return all_attempts_completed
