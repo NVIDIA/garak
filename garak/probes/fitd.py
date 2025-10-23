@@ -186,14 +186,6 @@ class FITDProbe(garak.probes.IterativeProbe):
 
     def set_up_attack_gen_llm(self):
         """Instantiate client for attack gen LLM"""
-        # config_root = {"generators": {}}
-        # model_root = config_root["generators"]
-        # for part in self.attack_gen_llm_type.split("."):
-        #     model_root[part] = {}
-        #     model_root = model_root[part]
-        # if self.attack_gen_llm_config is not None:
-        #     model_root |= self.attack_gen_llm_config
-        # model_root |= {"name": self.attack_gen_llm_model}
         config_root = {
             "generators": {
                 self.attack_gen_llm_type: {
