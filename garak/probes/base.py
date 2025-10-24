@@ -259,7 +259,7 @@ class Probe(Configurable):
     def _postprocess_attempt(self, this_attempt) -> garak.attempt.Attempt:
         # Messages from the generator have no language set, propagate the target language to all outputs
         # TODO: determine if this should come from `self.langprovider.target_lang` instead of the result object
-        all_outputs = this_attempt.all_outputs
+        all_outputs = this_attempt.outputs
         for output in all_outputs:
             if output is not None:
                 output.lang = this_attempt.lang

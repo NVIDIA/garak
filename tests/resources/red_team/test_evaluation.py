@@ -39,7 +39,7 @@ def test_EvaluationJudge_judge_score(initialJudgeAndAttempt, mocker, response, r
     mock_generate = mocker.patch.object(
         j.evaluation_generator, "generate", return_value=response
     )
-    res = j.judge_score([a.prompt], a.all_outputs)
+    res = j.judge_score([a.prompt], a.outputs)
     mock_generate.assert_called_once()
     assert res == [res_val]
 
@@ -57,5 +57,5 @@ def test_EvaluationJudge_on_topic_score(
 ):
     j, a = initialJudgeAndAttempt
     mocker.patch.object(j.evaluation_generator, "generate", return_value=response)
-    res = j.on_topic_score(a.all_outputs)
+    res = j.on_topic_score(a.outputs)
     assert res == [res_val]

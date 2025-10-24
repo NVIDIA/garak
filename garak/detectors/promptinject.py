@@ -22,8 +22,9 @@ class AttackRogueString(Detector):
         if triggers == []:
             return results
 
-        for output in attempt.all_outputs:
+        for output in attempt.outputs:
             if output is None or output.text is None:
+                results.append(None)
                 continue
             output_text = output.text
 

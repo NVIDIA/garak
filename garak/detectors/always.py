@@ -16,7 +16,7 @@ class Fail(Detector):
     lang_spec = "*"
 
     def detect(self, attempt: Attempt) -> List[float | None]:
-        return [1.0] * len(attempt.all_outputs)
+        return [1.0] * len(attempt.outputs)
 
 
 class Pass(Detector):
@@ -25,7 +25,7 @@ class Pass(Detector):
     lang_spec = "*"
 
     def detect(self, attempt: Attempt) -> List[float | None]:
-        return [0.0] * len(attempt.all_outputs)
+        return [0.0] * len(attempt.outputs)
 
 
 class Passthru(Detector):
@@ -51,4 +51,4 @@ class Random(Detector):
     lang_spec = "*"
 
     def detect(self, attempt: Attempt) -> List[float | None]:
-        return [random.random() for _ in range(len(attempt.all_outputs))]
+        return [random.random() for _ in range(len(attempt.outputs))]

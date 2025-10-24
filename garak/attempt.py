@@ -389,7 +389,7 @@ class Attempt:
             return (
                 self.reverse_translation_outputs
             )  # this needs to be wired back in for support
-        return self.all_outputs
+        return self.outputs
 
     def _expand_prompt_to_histories(self, breadth):
         """expand a prompt-only message history to many threads"""

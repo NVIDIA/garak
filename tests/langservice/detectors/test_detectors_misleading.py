@@ -19,7 +19,7 @@ def reverse_translate(attempt: Attempt) -> Attempt:
     reverse_translator = _load_langprovider(langprovider_config)
     gather_outputs = []
     reverse = []
-    for output in attempt.all_outputs:
+    for output in attempt.outputs:
         gather_outputs.append(output.text)
     translated_outputs = reverse_translator.get_text(gather_outputs)
     for output in translated_outputs:
