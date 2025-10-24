@@ -18,7 +18,7 @@ class Blank(garak.probes.Probe):
     tags = []
     tier = garak.probes.Tier.UNLISTED
 
-    primary_detector = "always.Pass"
+    primary_detector = "any.AnyOutput"
     prompts = [""]
 
 
