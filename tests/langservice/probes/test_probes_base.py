@@ -15,6 +15,7 @@ NON_PROMPT_PROBES = [
     "probes.tap.TAP",
     "probes.suffix.BEAST",
     "probes.suffix.GCG",
+    "probes.fitd.FITDProbe",
 ]
 ATKGEN_PROMPT_PROBES = ["probes.atkgen.Tox"]
 VISUAL_PROBES = [
