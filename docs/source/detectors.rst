@@ -22,6 +22,7 @@ garak.detectors
    garak.detectors.malwaregen
    garak.detectors.misleading
    garak.detectors.mitigation
+   garak.detectors.notes
    garak.detectors.packagehallucination
    garak.detectors.perspective
    garak.detectors.promptinject

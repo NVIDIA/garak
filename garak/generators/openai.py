@@ -260,7 +260,18 @@ class OpenAICompatible(Generator):
             create_args["messages"] = messages
 
         try:
-            response = self.generator.create(**create_args)
+            # some reasoning models take longer and getting 'Gateway Timeout' errors.
+            # so we stream the response and return the full content to avoid these errors.
+            # note that we're not streaming tokens, just the concatenated full content.
+            if "stream" in create_args and create_args["stream"]:
+                stream = self.generator.create(**create_args)
+                content_parts = []
+                for chunk in stream:
+                    if chunk.choices and chunk.choices[0].delta.content:
+                        content_parts.append(chunk.choices[0].delta.content)
+                response = "".join(content_parts).strip()
+            else:
+                response = self.generator.create(**create_args)
         except openai.BadRequestError as e:
             msg = "Bad request: " + str(repr(prompt))
             logging.exception(e)
@@ -272,6 +283,9 @@ class OpenAICompatible(Generator):
                 raise garak.exception.GarakBackoffTrigger from e
             else:
                 raise e
+        
+        if isinstance(response, str) and response: # this is for streaming content which is a concatenated string of chunks
+            return [Message(response)]
 
         if not hasattr(response, "choices"):
             logging.debug(
