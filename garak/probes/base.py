@@ -729,22 +729,22 @@ class IterativeProbe(Probe):
         
         if isinstance(prompt, str):
             localized_prompt = self.langprovider.get_text(
-                prompt
-            ) # TODO: Is it less efficient to call langprovider like this instead of on a list of prompts as is done in Probe.probe()?
+                [prompt]
+            )[0] # TODO: Is it less efficient to call langprovider like this instead of on a list of prompts as is done in Probe.probe()?
             prompt = garak.attempt.Message(localized_prompt, lang=self.langprovider.target_lang)
         else:
             # what types should this expect? Message, Conversation?
             if isinstance(prompt, garak.attempt.Message):
                 prompt.text = self.langprovider.get_text(
-                    prompt.text
-                )
+                    [prompt.text]
+                )[0]
                 prompt.lang = self.langprovider.target_lang
             if isinstance(prompt, garak.attempt.Conversation):
                 for turn in prompt.turns:
                     msg = turn.content
                     msg.text = self.langprovider.get_text(
-                        msg.text
-                    )
+                        [msg.text]
+                    )[0]
                     msg.lang = self.langprovider.target_lang
 
         

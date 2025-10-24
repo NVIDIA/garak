@@ -290,13 +290,18 @@ class FITDProbe(garak.probes.IterativeProbe):
 
     def create_init_attempts(self, init_turns: Iterable[str]) -> Iterable[garak.attempt.Attempt]:
         """Create attempts for each init turn"""
-        init_attempts = super().create_init_attempts(init_turns)
-        for init_attempt in init_attempts:
-            init_attempt.notes["target_turn"] = self.target_turns_per_init_turns[init_attempt.conversations[0].turns[0].content.text]
-            init_attempt.notes["levels_completed"] = 0 # Note: level of query != turn number
-            init_attempt.notes["is_adversarial"] = False
-            init_attempt.notes["is_last_turn"] = False
-            init_attempt.notes["last_non_refused_prompt"] = None
+        init_attempts = list()
+        for turn in init_turns:
+            attempt = self._create_attempt(turn)
+            if attempt.notes is None:
+                attempt.notes = dict()
+            attempt.notes["turn_num"] = 0
+            attempt.notes["target_turn"] = self.target_turns_per_init_turns[turn]
+            attempt.notes["levels_completed"] = 0 # Note: level of query != turn number
+            attempt.notes["is_adversarial"] = False
+            attempt.notes["is_last_turn"] = False
+            attempt.notes["last_non_refused_prompt"] = None
+            init_attempts.append(attempt)
         return init_attempts
 
     def verify_is_last_response_success(self, attempt: garak.attempt.Attempt) -> List[bool]:
