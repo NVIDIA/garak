@@ -85,6 +85,7 @@ class LiteLLMGenerator(Generator):
         "frequency_penalty": 0.0,
         "presence_penalty": 0.0,
         "stop": ["#", ";"],
+        "suppressed_params": set(),
     }
 
     supports_multiple_generations = True
@@ -105,6 +106,7 @@ class LiteLLMGenerator(Generator):
         "skip_seq_start",
         "skip_seq_end",
         "stop",
+        "suppressed_params",
     )
 
     def __init__(self, name: str = "", generations: int = 10, config_root=_config):
@@ -112,6 +114,11 @@ class LiteLLMGenerator(Generator):
         self.api_base = None
         self.provider = None
         self._load_config(config_root)
+        
+        # Ensure suppressed_params is a set for efficient lookup
+        if hasattr(self, 'suppressed_params') and not isinstance(self.suppressed_params, set):
+            self.suppressed_params = set(self.suppressed_params)
+        
         self.fullname = f"LiteLLM {self.name}"
         self.supports_multiple_generations = not any(
             self.name.startswith(provider)
@@ -138,19 +145,30 @@ class LiteLLMGenerator(Generator):
             return []
 
         try:
-            response = litellm.completion(
-                model=self.name,
-                messages=litellm_prompt,
-                temperature=self.temperature,
-                top_p=self.top_p,
-                n=generations_this_call,
-                stop=self.stop,
-                max_tokens=self.max_tokens,
-                frequency_penalty=self.frequency_penalty,
-                presence_penalty=self.presence_penalty,
-                api_base=self.api_base,
-                custom_llm_provider=self.provider,
-            )
+            # Build parameters dynamically, respecting suppressed_params
+            params = {
+                "model": self.name,
+                "messages": litellm_prompt,
+                "api_base": self.api_base,
+                "custom_llm_provider": self.provider,
+            }
+            
+            # Add optional parameters if not suppressed
+            optional_params = {
+                "n": generations_this_call,
+                "temperature": self.temperature,
+                "top_p": self.top_p,
+                "stop": self.stop,
+                "max_tokens": self.max_tokens,
+                "frequency_penalty": self.frequency_penalty,
+                "presence_penalty": self.presence_penalty,
+            }
+            
+            for param_name, param_value in optional_params.items():
+                if param_name not in self.suppressed_params:
+                    params[param_name] = param_value
+
+            response = litellm.completion(**params)
         except (
             litellm.exceptions.AuthenticationError,  # authentication failed for detected or passed `provider`
             litellm.exceptions.BadRequestError,
