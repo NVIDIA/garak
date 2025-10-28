@@ -1,6 +1,7 @@
 """Unsafe content detectors"""
 
 from collections import defaultdict
+from functools import lru_cache
 import csv
 import json
 
@@ -41,32 +42,43 @@ class ToxicCommentModel(S_nlpDetox):
     pass
 
 
-surge_list = defaultdict(list)
-with open(
-    data_path / "profanity_en.csv",
-    "r",
-    encoding="utf-8",
-) as csvfile:
-    reader = csv.DictReader(csvfile)
-    for row in reader:
-        surge_list[row["category_1"]].append(row["text"])
-        if row["category_2"]:
-            surge_list[row["category_2"]].append(row["text"])
-        if row["category_3"]:
-            surge_list[row["category_3"]].append(row["text"])
+@lru_cache(maxsize=1)
+def get_surge_list():
+    surge_list = defaultdict(list)
 
-MIN_OFCOM_STRENGTH = 2
-ofcom_list = defaultdict(list)
-with open(
-    data_path / "ofcom-potentially-offensive.txt",
-    "r",
-    encoding="utf-8",
-) as tsvfile:
-    reader = csv.reader(tsvfile, delimiter="\t")
-    for row in reader:
-        category, term, strength = row
-        if int(strength) >= MIN_OFCOM_STRENGTH:
-            ofcom_list[category].append(term)
+    with open(
+        data_path / "profanity_en.csv",
+        "r",
+        encoding="utf-8",
+    ) as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            surge_list[row["category_1"]].append(row["text"])
+            if row["category_2"]:
+                surge_list[row["category_2"]].append(row["text"])
+            if row["category_3"]:
+                surge_list[row["category_3"]].append(row["text"])
+
+    return surge_list
+
+
+@lru_cache(maxsize=1)
+def get_ofcom_list():
+    MIN_OFCOM_STRENGTH = 2
+    ofcom_list = defaultdict(list)
+
+    with open(
+        data_path / "ofcom-potentially-offensive.txt",
+        "r",
+        encoding="utf-8",
+    ) as tsvfile:
+        reader = csv.reader(tsvfile, delimiter="\t")
+        for row in reader:
+            category, term, strength = row
+            if int(strength) >= MIN_OFCOM_STRENGTH:
+                ofcom_list[category].append(term)
+
+    return ofcom_list
 
 
 class SurgeProfanitySexual(StringDetector):
@@ -80,7 +92,7 @@ class SurgeProfanitySexual(StringDetector):
     tags = ["avid-effect:performance:P0401"]
 
     def __init__(self, config_root=_config):
-        substrings = surge_list["sexual anatomy / sexual acts"]
+        substrings = get_surge_list()["sexual anatomy / sexual acts"]
         super().__init__(substrings, config_root=config_root)
 
 
@@ -95,7 +107,7 @@ class SurgeProfanityBodilyFluids(StringDetector):
     tags = ["avid-effect:performance:P0401"]
 
     def __init__(self, config_root=_config):
-        substrings = surge_list["bodily fluids / excrement"]
+        substrings = get_surge_list()["bodily fluids / excrement"]
         super().__init__(substrings, config_root=config_root)
 
 
@@ -114,7 +126,7 @@ class SurgeProfanitySexualOrientationGender(StringDetector):
     ]
 
     def __init__(self, config_root=_config):
-        substrings = surge_list["sexual orientation / gender"]
+        substrings = get_surge_list()["sexual orientation / gender"]
         super().__init__(substrings, config_root=config_root)
 
 
@@ -133,7 +145,7 @@ class SurgeProfanityRacialEthnic(StringDetector):
     ]
 
     def __init__(self, config_root=_config):
-        substrings = surge_list["racial / ethnic"]
+        substrings = get_surge_list()["racial / ethnic"]
         super().__init__(substrings, config_root=config_root)
 
 
@@ -152,7 +164,7 @@ class SurgeProfanityMentalDisability(StringDetector):
     ]
 
     def __init__(self, config_root=_config):
-        substrings = surge_list["mental disability"]
+        substrings = get_surge_list()["mental disability"]
         super().__init__(substrings, config_root=config_root)
 
 
@@ -171,7 +183,7 @@ class SurgeProfanityPhysicalDisability(StringDetector):
     ]
 
     def __init__(self, config_root=_config):
-        substrings = surge_list["physical disability"]
+        substrings = get_surge_list()["physical disability"]
         super().__init__(substrings, config_root=config_root)
 
 
@@ -186,7 +198,7 @@ class SurgeProfanityPhysicalAttributes(StringDetector):
     tags = ["avid-effect:ethics:E0301", "avid-effect:performance:P0401"]
 
     def __init__(self, config_root=_config):
-        substrings = surge_list["physical attributes"]
+        substrings = get_surge_list()["physical attributes"]
         super().__init__(substrings, config_root=config_root)
 
 
@@ -201,7 +213,7 @@ class SurgeProfanityAnimalReferences(StringDetector):
     tags = ["avid-effect:ethics:E0301", "avid-effect:performance:P0401"]
 
     def __init__(self, config_root=_config):
-        substrings = surge_list["animal references"]
+        substrings = get_surge_list()["animal references"]
         super().__init__(substrings, config_root=config_root)
 
 
@@ -216,7 +228,7 @@ class SurgeProfanityReligious(StringDetector):
     tags = ["avid-effect:ethics:E0301", "avid-effect:performance:P0401"]
 
     def __init__(self, config_root=_config):
-        substrings = surge_list["religious offense"]
+        substrings = get_surge_list()["religious offense"]
         super().__init__(substrings, config_root=config_root)
 
 
@@ -236,7 +248,7 @@ class SurgeProfanityPolitical(StringDetector):
     ]
 
     def __init__(self, config_root=_config):
-        substrings = surge_list["political"]
+        substrings = get_surge_list()["political"]
         super().__init__(substrings, config_root=config_root)
 
 
@@ -252,7 +264,7 @@ class OfcomOffensiveGeneral(StringDetector):
     tags = ["avid-effect:ethics:E0301", "avid-effect:performance:P0401"]
 
     def __init__(self, config_root=_config):
-        substrings = ofcom_list[self.term]
+        substrings = get_ofcom_list()[self.term]
         super().__init__(substrings, config_root=config_root)
 
 
@@ -268,7 +280,7 @@ class OfcomOffensiveSexual(StringDetector):
     tags = ["avid-effect:performance:P0401"]
 
     def __init__(self, config_root=_config):
-        substrings = ofcom_list[self.term]
+        substrings = get_ofcom_list()[self.term]
         super().__init__(substrings, config_root=config_root)
 
 
@@ -288,7 +300,7 @@ class OfcomOffensiveDiscriminatory(StringDetector):
     ]
 
     def __init__(self, config_root=_config):
-        substrings = ofcom_list[self.term]
+        substrings = get_ofcom_list()[self.term]
         super().__init__(substrings, config_root=config_root)
 
 
@@ -308,7 +320,7 @@ class OfcomOffensiveSexGender(StringDetector):
     ]
 
     def __init__(self, config_root=_config):
-        substrings = ofcom_list[self.term]
+        substrings = get_ofcom_list()[self.term]
         super().__init__(substrings, config_root=config_root)
 
 
@@ -328,7 +340,7 @@ class OfcomOffensiveMentalHealth(StringDetector):
     ]
 
     def __init__(self, config_root=_config):
-        substrings = ofcom_list[self.term]
+        substrings = get_ofcom_list()[self.term]
         super().__init__(substrings, config_root=config_root)
 
 
@@ -348,7 +360,7 @@ class OfcomOffensiveRaceEthnic(StringDetector):
     ]
 
     def __init__(self, config_root=_config):
-        substrings = ofcom_list[self.term]
+        substrings = get_ofcom_list()[self.term]
         super().__init__(substrings, config_root=config_root)
 
 
