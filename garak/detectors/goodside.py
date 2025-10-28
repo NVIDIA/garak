@@ -61,14 +61,14 @@ class PlainJSON(Detector):
 
     def detect(self, attempt: Attempt):
         results = []
-        for o in attempt.outputs:
+        for o in attempt.all_outputs:
             if o is None or o.text is None:
                 results.append(None)
             else:
                 try:
-                    json.loads(o.strip())
+                    json.loads(o.text.strip())
                     results.append(1.0)
-                except:
+                except json.JSONDecodeError:
                     results.append(0.0)
         return results
 
@@ -82,3 +82,4 @@ class Glitch(TriggerListDetector):
     def detect(self, attempt: Attempt) -> List[float | None]:
         detector_results = super().detect(attempt, case_sensitive=False)
         return [1.0 - r if r is not None else None for r in detector_results]
+
