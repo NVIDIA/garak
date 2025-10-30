@@ -76,7 +76,7 @@ class WebSocketGenerator(Generator):
         
         
         # Let Configurable class handle all the DEFAULT_PARAMS magic
-        super().__init__("WebSocket Generator", config_root)
+        super().__init__("", config_root)
         
         # Now validate that required values are formatted correctly
         if not self.uri:

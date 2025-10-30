@@ -337,8 +337,8 @@ class TestWebSocketGenerator:
         for key in WebSocketGenerator.DEFAULT_PARAMS:
             assert hasattr(gen, key), f"Missing attribute: {key}"
         
-        # Check specific defaults - note that name comes from __init__ parameter now
-        assert gen.name == "WebSocket Generator"
+        # Check specific defaults - note that name comes from DEFAULT_PARAMS now
+        assert gen.name == "WebSocket LLM"
         assert gen.auth_type == "none"
         assert gen.req_template == "$INPUT"
         assert gen.response_json is False
