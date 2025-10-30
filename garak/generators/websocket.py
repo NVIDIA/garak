@@ -10,10 +10,10 @@ import time
 import base64
 import os
 import logging
-from typing import List, Union, Dict, Any, Optional
+from typing import List, Union, Dict, Any
 from urllib.parse import urlparse
 import websockets
-from websockets.exceptions import ConnectionClosed, WebSocketException
+from websockets.exceptions import ConnectionClosed
 
 from garak import _config
 from garak.attempt import Message, Conversation

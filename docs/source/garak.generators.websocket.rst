@@ -9,7 +9,7 @@ real-time bidirectional communication, similar to modern chat applications.
 Uses the following options from ``_config.plugins.generators["websocket"]["WebSocketGenerator"]``:
 
 * ``uri`` - the WebSocket URI (ws:// or wss://); can also be passed in --model_name
-* ``name`` - a short name for this service; defaults to "WebSocket LLM"
+* ``name`` - a short name for this service; defaults to "WebSocket Generator"
 * ``auth_type`` - authentication method: "none", "basic", "bearer", or "custom"
 * ``username`` - username for basic authentication
 * ``api_key`` - API key for bearer token auth or password for basic auth
@@ -17,10 +17,10 @@ Uses the following options from ``_config.plugins.generators["websocket"]["WebSo
 * ``req_template`` - string template where ``$INPUT`` is replaced by prompt, ``$KEY`` by API key, ``$CONVERSATION_ID`` by conversation ID
 * ``req_template_json_object`` - request template as Python object, serialized to JSON with placeholder replacements
 * ``headers`` - dict of additional WebSocket headers
-* ``response_json`` - is the response in JSON format? (bool)
-* ``response_json_field`` - which field contains the response text? Supports JSONPath (prefix with ``$``)
-* ``response_after_typing`` - wait for typing indicators to complete? (bool)
-* ``typing_indicator`` - string that indicates typing status; default "typing"
+* ``response_json`` - is the response in JSON format? Set to ``True`` if the WebSocket returns JSON responses that need parsing (bool, default: ``False``)
+* ``response_json_field`` - which field in the JSON response contains the actual text to extract? Supports simple field names like ``"text"`` or JSONPath notation like ``"$.data.message"`` for nested fields (str, default: ``"text"``)
+* ``response_after_typing`` - wait for typing indicators to complete before returning response? Set to ``True`` for services that send typing notifications, ``False`` to return the first message immediately (bool, default: ``True``)
+* ``typing_indicator`` - substring to detect in messages that indicates the service is still typing; messages containing this string are filtered out when ``response_after_typing`` is ``True`` (str, default: ``"typing"``)
 * ``request_timeout`` - seconds to wait for response; default 20
 * ``connection_timeout`` - seconds to wait for connection; default 10
 * ``max_response_length`` - maximum response length; default 10000
