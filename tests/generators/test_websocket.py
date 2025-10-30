@@ -227,7 +227,17 @@ class TestWebSocketGenerator:
     @pytest.mark.asyncio
     async def test_send_and_receive_basic(self):
         """Test basic send and receive"""
-        gen = WebSocketGenerator(uri="ws://localhost:3000", response_after_typing=False)
+        instance_config = {
+            "generators": {
+                "websocket": {
+                    "WebSocketGenerator": {
+                        "uri": "ws://localhost:3000",
+                        "response_after_typing": False,
+                    }
+                }
+            }
+        }
+        gen = WebSocketGenerator(config_root=instance_config)
         
         mock_websocket = AsyncMock()
         mock_websocket.send = AsyncMock()
@@ -242,11 +252,18 @@ class TestWebSocketGenerator:
     @pytest.mark.asyncio
     async def test_send_and_receive_typing(self):
         """Test send and receive with typing indicator"""
-        gen = WebSocketGenerator(
-            uri="ws://localhost:3000",
-            response_after_typing=True,
-            typing_indicator="typing"
-        )
+        instance_config = {
+            "generators": {
+                "websocket": {
+                    "WebSocketGenerator": {
+                        "uri": "ws://localhost:3000",
+                        "response_after_typing": True,
+                        "typing_indicator": "typing",
+                    }
+                }
+            }
+        }
+        gen = WebSocketGenerator(config_root=instance_config)
         
         mock_websocket = AsyncMock()
         mock_websocket.send = AsyncMock()
