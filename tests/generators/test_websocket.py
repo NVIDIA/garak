@@ -61,45 +61,73 @@ class TestWebSocketGenerator:
 
     def test_auth_bearer(self):
         """Test bearer token authentication"""
-        gen = WebSocketGenerator(
-            uri="ws://localhost:3000",
-            auth_type="bearer",
-            api_key="test_api_key"
-        )
+        instance_config = {
+            "generators": {
+                "websocket": {
+                    "WebSocketGenerator": {
+                        "uri": "ws://localhost:3000",
+                        "auth_type": "bearer",
+                        "api_key": "test_api_key",
+                    }
+                }
+            }
+        }
+        gen = WebSocketGenerator(config_root=instance_config)
         assert gen.headers["Authorization"] == "Bearer test_api_key"
 
     @patch.dict('os.environ', {'TEST_API_KEY': 'env_api_key'})
     def test_auth_env_var(self):
         """Test API key from environment variable"""
-        gen = WebSocketGenerator(
-            uri="ws://localhost:3000",
-            auth_type="bearer",
-            key_env_var="TEST_API_KEY"
-        )
+        instance_config = {
+            "generators": {
+                "websocket": {
+                    "WebSocketGenerator": {
+                        "uri": "ws://localhost:3000",
+                        "auth_type": "bearer",
+                        "key_env_var": "TEST_API_KEY",
+                    }
+                }
+            }
+        }
+        gen = WebSocketGenerator(config_root=instance_config)
         assert gen.api_key == "env_api_key"
         assert gen.headers["Authorization"] == "Bearer env_api_key"
 
     def test_format_message_simple(self):
         """Test simple message formatting"""
-        gen = WebSocketGenerator(
-            uri="ws://localhost:3000",
-            req_template="User: $INPUT"
-        )
+        instance_config = {
+            "generators": {
+                "websocket": {
+                    "WebSocketGenerator": {
+                        "uri": "ws://localhost:3000",
+                        "req_template": "User: $INPUT",
+                    }
+                }
+            }
+        }
+        gen = WebSocketGenerator(config_root=instance_config)
         result = gen._format_message("Hello world")
         assert result == "User: Hello world"
 
     def test_format_message_json_object(self):
         """Test JSON object message formatting"""
-        gen = WebSocketGenerator(
-            uri="ws://localhost:3000",
-            req_template_json_object={
-                "message": "$INPUT",
-                "conversation_id": "$CONVERSATION_ID",
-                "api_key": "$KEY"
-            },
-            conversation_id="test_conv",
-            api_key="test_key"
-        )
+        instance_config = {
+            "generators": {
+                "websocket": {
+                    "WebSocketGenerator": {
+                        "uri": "ws://localhost:3000",
+                        "req_template_json_object": {
+                            "message": "$INPUT",
+                            "conversation_id": "$CONVERSATION_ID",
+                            "api_key": "$KEY"
+                        },
+                        "conversation_id": "test_conv",
+                        "api_key": "test_key",
+                    }
+                }
+            }
+        }
+        gen = WebSocketGenerator(config_root=instance_config)
         result = gen._format_message("Hello")
         data = json.loads(result)
         assert data["message"] == "Hello"
@@ -108,28 +136,52 @@ class TestWebSocketGenerator:
 
     def test_extract_response_text_plain(self):
         """Test plain text response extraction"""
-        gen = WebSocketGenerator(uri="ws://localhost:3000", response_json=False)
+        instance_config = {
+            "generators": {
+                "websocket": {
+                    "WebSocketGenerator": {
+                        "uri": "ws://localhost:3000",
+                        "response_json": False,
+                    }
+                }
+            }
+        }
+        gen = WebSocketGenerator(config_root=instance_config)
         result = gen._extract_response_text("Hello world")
         assert result == "Hello world"
 
     def test_extract_response_text_json(self):
         """Test JSON response extraction"""
-        gen = WebSocketGenerator(
-            uri="ws://localhost:3000",
-            response_json=True,
-            response_json_field="text"
-        )
+        instance_config = {
+            "generators": {
+                "websocket": {
+                    "WebSocketGenerator": {
+                        "uri": "ws://localhost:3000",
+                        "response_json": True,
+                        "response_json_field": "text",
+                    }
+                }
+            }
+        }
+        gen = WebSocketGenerator(config_root=instance_config)
         response = json.dumps({"text": "Hello world", "status": "ok"})
         result = gen._extract_response_text(response)
         assert result == "Hello world"
 
     def test_extract_response_text_jsonpath(self):
         """Test JSONPath response extraction"""
-        gen = WebSocketGenerator(
-            uri="ws://localhost:3000",
-            response_json=True,
-            response_json_field="$.data.message"
-        )
+        instance_config = {
+            "generators": {
+                "websocket": {
+                    "WebSocketGenerator": {
+                        "uri": "ws://localhost:3000",
+                        "response_json": True,
+                        "response_json_field": "$.data.message",
+                    }
+                }
+            }
+        }
+        gen = WebSocketGenerator(config_root=instance_config)
         response = json.dumps({
             "status": "success",
             "data": {"message": "Hello world", "timestamp": "2023-01-01"}
@@ -139,11 +191,18 @@ class TestWebSocketGenerator:
 
     def test_extract_response_text_json_fallback(self):
         """Test JSON extraction fallback to raw response"""
-        gen = WebSocketGenerator(
-            uri="ws://localhost:3000",
-            response_json=True,
-            response_json_field="nonexistent"
-        )
+        instance_config = {
+            "generators": {
+                "websocket": {
+                    "WebSocketGenerator": {
+                        "uri": "ws://localhost:3000",
+                        "response_json": True,
+                        "response_json_field": "nonexistent",
+                    }
+                }
+            }
+        }
+        gen = WebSocketGenerator(config_root=instance_config)
         response = "Invalid JSON"
         result = gen._extract_response_text(response)
         assert result == "Invalid JSON"
@@ -202,11 +261,18 @@ class TestWebSocketGenerator:
 
     def test_call_model_integration(self):
         """Test full model call integration"""
-        gen = WebSocketGenerator(
-            uri="ws://localhost:3000",
-            req_template="User: $INPUT",
-            response_json=False
-        )
+        instance_config = {
+            "generators": {
+                "websocket": {
+                    "WebSocketGenerator": {
+                        "uri": "ws://localhost:3000",
+                        "req_template": "User: $INPUT",
+                        "response_json": False,
+                    }
+                }
+            }
+        }
+        gen = WebSocketGenerator(config_root=instance_config)
         
         # Mock the async generation method
         async def mock_generate(prompt):
@@ -271,8 +337,8 @@ class TestWebSocketGenerator:
         for key in WebSocketGenerator.DEFAULT_PARAMS:
             assert hasattr(gen, key), f"Missing attribute: {key}"
         
-        # Check specific defaults
-        assert gen.name == "WebSocket LLM"
+        # Check specific defaults - note that name comes from __init__ parameter now
+        assert gen.name == "WebSocket Generator"
         assert gen.auth_type == "none"
         assert gen.req_template == "$INPUT"
         assert gen.response_json is False
