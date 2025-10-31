@@ -11,7 +11,7 @@ import json
 import logging
 from collections.abc import Iterable
 import random
-from typing import Iterable, Union
+from typing import Iterable, List, Union
 
 from colorama import Fore, Style
 import tqdm
@@ -72,7 +72,7 @@ class Probe(Configurable):
         """
         self._load_config(config_root)
         self.probename = str(self.__class__).split("'")[1]
-        
+
         # Handle deprecated recommended_detector migration
         if (
             self.primary_detector is None
@@ -80,6 +80,7 @@ class Probe(Configurable):
             and len(self.recommended_detector) > 0
         ):
             from garak import command
+
             command.deprecation_notice(
                 f"recommended_detector in probe {self.probename}",
                 "0.9.0.6",
@@ -87,9 +88,13 @@ class Probe(Configurable):
             )
             self.primary_detector = self.recommended_detector[0]
             if len(self.recommended_detector) > 1:
-                existing_extended = list(self.extended_detectors) if self.extended_detectors else []
-                self.extended_detectors = existing_extended + list(self.recommended_detector[1:])
-        
+                existing_extended = (
+                    list(self.extended_detectors) if self.extended_detectors else []
+                )
+                self.extended_detectors = existing_extended + list(
+                    self.recommended_detector[1:]
+                )
+
         if hasattr(_config.system, "verbose") and _config.system.verbose > 0:
             print(
                 f"loading {Style.BRIGHT}{Fore.LIGHTYELLOW_EX}probe: {Style.RESET_ALL}{self.probename}"
@@ -442,8 +447,46 @@ class Probe(Configurable):
                 del self.triggers[id]
 
 
-class TreeSearchProbe(Probe):
+class TIProbe(Probe):
+    """Probe that works by applying a technique to an intent"""
 
+    intent_codes_supported = []  # hardcoding until intent service & config is available
+    intents = []  # hardcoding until intent service & config is available
+
+    DEFAULT_PARAMS = Probe.DEFAULT_PARAMS | {"intent_codes_requested": []}
+
+    def __init__(self, config_root=_config):
+        super().__init__(config_root)
+        self._post_config_setup()
+        if not hasattr(self, "prompts"):
+            self.prompts = []
+
+        expanded_intents = self._expand_intents(self.intents)
+        self._build_prompts(expanded_intents)
+
+    def _mint_attempt(
+        self, prompt=None, seq=None, notes=None, lang="*"
+    ) -> garak.attempt.Attempt:
+        a = super()._mint_attempt(prompt, seq, notes, lang)
+        a["notes"]["intents"] = self.intent_codes_requested
+
+    def _post_config_setup(self) -> None:
+        pass
+
+    def _expand_intents(self, intent_strings: List[str]) -> List[str]:
+        raise NotImplementedError
+
+    def apply_technique(
+        self, intent: str
+    ) -> List[garak.attempt.Message | garak.attempt.Conversation]:
+        raise NotImplementedError
+
+    def _build_prompts(self, intents):
+        for intent in intents:
+            self.prompts.extend(self.apply_technique(intent))
+
+
+class TreeSearchProbe(Probe):
     DEFAULT_PARAMS = Probe.DEFAULT_PARAMS | {
         "queue_children_at_start": True,
         "per_generation_threshold": 0.5,
@@ -481,7 +524,6 @@ class TreeSearchProbe(Probe):
         raise NotImplementedError
 
     def probe(self, generator):
-
         node_ids_explored = set()
         nodes_to_explore = self._get_initial_nodes()
         surface_forms_probed = set()
@@ -503,7 +545,6 @@ class TreeSearchProbe(Probe):
         tree_bar.set_description("Tree search nodes traversed")
 
         while len(nodes_to_explore):
-
             logging.debug(
                 "%s Queue: %s" % (self.__class__.__name__, repr(nodes_to_explore))
             )
