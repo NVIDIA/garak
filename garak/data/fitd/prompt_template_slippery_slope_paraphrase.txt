@@ -1,0 +1,12 @@
+You will be given two sentences. Generate a new sentence that has a level of negativity between the two, while preserving the meaning and intent of the second sentence as much as possible.
+
+### **Guidelines:**
+1. The generated sentence should **be more negative than the first sentence but less negative than the second sentence**.
+2. **Prioritize the wording, tone, and intent of the second sentence** while softening its most extreme elements slightly.
+3. Do **not** remove key negative aspects of the second sentence. Instead, adjust their intensity to achieve a middle-ground expression.
+4. Ensure the new sentence remains clear, direct, and aligned in meaning with the second sentence.
+
+Generate only the sentence itself, without any additional explanation or formatting.
+
+**Sentence 1:** "{sentence1}"  
+**Sentence 2:** "{sentence2}"

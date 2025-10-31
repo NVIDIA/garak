@@ -11,7 +11,7 @@ import json
 import logging
 from collections.abc import Iterable
 import random
-from typing import Iterable, Union
+from typing import Iterable, Union, List
 
 from colorama import Fore, Style
 import tqdm
@@ -530,9 +530,6 @@ class TreeSearchProbe(Probe):
             # update progress bar
             progress_nodes_previous = len(node_ids_explored)
             progress_nodes_todo = int(1 + len(nodes_to_explore) * 2.5)
-            # print("seen", node_ids_explored, progress_nodes_previous)
-            # print("curr", current_node)
-            # print("todo", nodes_to_explore, progress_nodes_todo)
 
             tree_bar.total = progress_nodes_previous + progress_nodes_todo
             tree_bar.refresh()
@@ -657,3 +654,144 @@ class TreeSearchProbe(Probe):
 
         self.never_queue_nodes: Iterable[str] = set()
         self.never_queue_forms: Iterable[str] = set()
+
+
+class IterativeProbe(Probe):
+    """
+    Base class for multi-turn probes in which the probe uses the last target response to generate the next prompt.
+
+    IterativeProbe assumes the probe generates a set of initial prompts, each of which are passed to the target model and the response is used for evaluation. The responses are also provided back to the probe and the probe uses the response to generate follow up prompts which are also passed to the target model and each of the responses are used for evaluation.
+    This can continue until one of:
+        - max_calls_per_conv is reached
+        - The probe chooses to run the detector on the target response and stops when the detector detects a success
+        -The probe has a function, different from the detector for deciding when it thinks an attack will be successful and stops at that point.
+
+    Additional design considerations:
+    1. Not all multiturn probes need this base class. A probe could directly construct a multiturn input where it only cares about how the target responds to the last turn (eg: prefill attacks) can just subclass Probe.
+    2. Probes that inherit from IterativeProbe are allowed to manipulate the history in addition to generating new turns based on a target's response. For example if the response to the initial turn was a refusal, the probe can in the next attempt either pass in that history of old init turn + refusal + next turn or just pass a new init turn.
+    3. An Attempt is created at every turn when the history is passed to the target. All these Attempts are collected and passed to the detector. The probe can use Attempt.notes to tell the detector to skip certain attempts but a special detector needs to be written that will pay attention to this value.
+    4. If num_generations > 1 , for every attempt at every turn, we obtain num_generations responses from the target, reduce to the unique ones and generate next turns based on each of them. This means that as the turn number increases, the number of attempts has the potential to grow exponentially. Currently, when we have processed (# init turns * self.soft_prompt_probe_cap) attempts, the probe will exit.
+    5. Currently the expansion of attempts happens in a BFS fashion.
+    """
+
+    DEFAULT_PARAMS = Probe.DEFAULT_PARAMS | {
+        "max_calls_per_conv": 10,
+        "num_init_turns": -1,
+    }
+
+    def __init__(self, config_root=_config):
+        super().__init__(config_root)
+        if self.end_condition not in ("detector", "verify"):
+            raise ValueError(f"Unsupported end condition '{self.end_condition}'")
+        self.attempt_queue = list()
+
+    def _create_attempt(self, prompt) -> garak.attempt.Attempt:
+        """Create an attempt from a prompt. Prompt can be of type str if this is an initial turn or garak.attempt.Conversation if this is a subsequent turn.
+        Note: Is it possible for _mint_attempt in class Probe to have this functionality? The goal here is to abstract out translation and buffs from how turns are processed.
+        """
+        notes = None
+        if self.langprovider.target_lang != self.lang:
+            if isinstance(prompt, str):
+                notes = {
+                    "pre_translation_prompt": garak.attempt.Conversation(
+                        [
+                            garak.attempt.Turn(
+                                "user", garak.attempt.Message(prompt, lang=self.lang)
+                            )
+                        ]
+                    )
+                }
+            elif isinstance(prompt, garak.attempt.Message):
+                notes = {
+                    "pre_translation_prompt": garak.attempt.Conversation(
+                        [
+                            garak.attempt.Turn(
+                                "user",
+                                garak.attempt.Message(prompt.text, lang=self.lang),
+                            )
+                        ]
+                    )
+                }
+            elif isinstance(prompt, garak.attempt.Conversation):
+                notes = {"pre_translation_prompt": prompt}
+                for turn in prompt.turns:
+                    turn.content.lang = self.lang
+
+        if isinstance(prompt, str):
+            localized_prompt = self.langprovider.get_text([prompt])[
+                0
+            ]  # TODO: Is it less efficient to call langprovider like this instead of on a list of prompts as is done in Probe.probe()?
+            prompt = garak.attempt.Message(
+                localized_prompt, lang=self.langprovider.target_lang
+            )
+        else:
+            # what types should this expect? Message, Conversation?
+            if isinstance(prompt, garak.attempt.Message):
+                prompt.text = self.langprovider.get_text([prompt.text])[0]
+                prompt.lang = self.langprovider.target_lang
+            if isinstance(prompt, garak.attempt.Conversation):
+                for turn in prompt.turns:
+                    msg = turn.content
+                    msg.text = self.langprovider.get_text([msg.text])[0]
+                    msg.lang = self.langprovider.target_lang
+
+        return self._mint_attempt(
+            prompt=prompt, seq=None, notes=notes, lang=self.langprovider.target_lang
+        )
+
+    def _create_init_attempts(self) -> Iterable[garak.attempt.Attempt]:
+        """Function to be overridden by subclass creating attempts containing each unique initial turn."""
+        raise NotImplementedError
+
+    def _generate_next_attempts(
+        self, last_attempt: garak.attempt.Attempt
+    ) -> Iterable[garak.attempt.Attempt]:
+        """Function to be overridden with logic to get a list of attempts for subsequent interactions given the last attempt"""
+        raise NotImplementedError
+
+    def probe(self, generator):
+        """Wrapper generating all attempts and handling execution against generator"""
+        self.generator = generator
+        all_attempts_completed = list()
+        self.attempt_queue = self._create_init_attempts()
+        if self.num_init_turns == -1:
+            self.max_attempts_before_termination = 10 * self.soft_probe_prompt_cap
+        else:
+            self.max_attempts_before_termination = (
+                self.num_init_turns * self.soft_probe_prompt_cap
+            )
+
+        # TODO: This implementation is definitely expanding the generations tree in BFS fashion. Do we want to allow an option for DFS? Also what about the type of sampling which only duplicates the initial turn? BFS is nice because we can just reuse Probe._execute_all() which may not be an option if we are only duplicating the initial turn.
+        for turn_num in range(0, self.max_calls_per_conv):
+            attempts_todo = copy.deepcopy(self.attempt_queue)
+            self.attempt_queue = list()
+
+            if len(_config.buffmanager.buffs) > 0:
+                attempts_todo = self._buff_hook(attempts_todo)
+
+            attempts_completed = self._execute_all(attempts_todo)
+            all_attempts_completed.extend(attempts_completed)
+
+            print(
+                "End of turn %d; Attempts this turn: %d; Total attempts completed: %d"
+                % (turn_num, len(attempts_completed), len(all_attempts_completed))
+            )
+
+            if len(all_attempts_completed) > self.max_attempts_before_termination:
+                print("Max attempts before termination reached; Breaking out of loop")
+                break
+
+        print(
+            "Probe exiting; Total attempts completed: %d" % len(all_attempts_completed)
+        )
+
+        return all_attempts_completed
+
+    def _postprocess_attempt(self, this_attempt) -> garak.attempt.Attempt:
+        """
+        Augments existing _postprocess_attempt() of base Probe() class with generation of attempts for subsequent turn.
+        """
+        processed = super()._postprocess_attempt(this_attempt)
+        next_turn_attempts = self._generate_next_attempts(this_attempt)
+        self.attempt_queue.extend(next_turn_attempts)
+        return processed
