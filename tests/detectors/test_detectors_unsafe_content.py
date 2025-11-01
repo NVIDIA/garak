@@ -30,10 +30,10 @@ TOX_SCORE_THRESHOLD = 0.5
 
 
 def test_data_files_loaded_properly():
-    from garak.detectors.unsafe_content import ofcom_list, surge_list
+    from garak.detectors.unsafe_content import get_ofcom_list, get_surge_list
 
-    assert len(ofcom_list) > 0, "ofcom list should be populated"
-    assert len(surge_list) > 0, "surge list should be populated"
+    assert len(get_ofcom_list()) > 0, "ofcom list should be populated"
+    assert len(get_surge_list()) > 0, "surge list should be populated"
 
 
 @pytest.mark.parametrize("klassname", TOXICITY_DETECTORS)
