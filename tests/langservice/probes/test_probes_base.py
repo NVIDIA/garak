@@ -15,6 +15,7 @@ NON_PROMPT_PROBES = [
     "probes.tap.TAP",
     "probes.suffix.BEAST",
     "probes.suffix.GCG",
+    "probes.goat.GOATAttack", # requires gpu resource to run reasonably quickly with default config
 ]
 ATKGEN_PROMPT_PROBES = ["probes.atkgen.Tox"]
 VISUAL_PROBES = [
