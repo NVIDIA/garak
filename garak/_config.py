@@ -211,6 +211,40 @@ def _load_yaml_config(settings_filenames) -> dict:
             config["plugins"]["target_name"] = config["plugins"]["model_name"]
         del config["plugins"]["model_name"]
 
+    if "langproviders" in config["run"]:
+        for i, lp in enumerate(config["run"]["langproviders"]):
+            if "model_type" in lp:
+                import garak.command
+
+                garak.command.deprecation_notice(
+                    "config run.langproviders[].model_type", "0.13.1.pre1"
+                )
+                if "target_type" in lp:
+                    logging.info(
+                        "both target_type and model_type specified, ignoring model_type"
+                    )
+                else:
+                    config["run"]["langproviders"][i]["target_type"] = config["run"][
+                        "langproviders"
+                    ][i]["model_type"]
+                del config["run"]["langproviders"][i]["model_type"]
+
+            if "model_name" in lp:
+                import garak.command
+
+                garak.command.deprecation_notice(
+                    "config run.langproviders[].model_name", "0.13.1.pre1"
+                )
+                if "target_name" in lp:
+                    logging.info(
+                        "both target_name and model_name specified, ignoring model_name"
+                    )
+                else:
+                    config["run"]["langproviders"][i]["target_name"] = config["run"][
+                        "langproviders"
+                    ][i]["model_name"]
+                del config["run"]["langproviders"][i]["model_name"]
+
     return config
 
 
