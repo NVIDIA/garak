@@ -45,7 +45,7 @@ def test_Tag_attempt_descrs_translation(mocker):
                 "langproviders": {
                     "local": {
                         "language": "en,jap",
-                        "model_type": "local",
+                        "target_type": "local",
                     }
                 }
             }
@@ -55,7 +55,7 @@ def test_Tag_attempt_descrs_translation(mocker):
                 "langproviders": {
                     "local": {
                         "language": "jap,en",
-                        "model_type": "local",
+                        "target_type": "local",
                     }
                 }
             }

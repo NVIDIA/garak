@@ -12,7 +12,7 @@ def reverse_translate(attempt: Attempt) -> Attempt:
 
     translator_config = {
         "language": "ja,en",
-        "model_type": "local",
+        "target_type": "local",
     }
     reverse_translator = _load_langprovider(translator_config)
     for i, thread in enumerate(attempt.conversations):

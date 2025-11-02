@@ -2,6 +2,6 @@ run:
   target_lang: ja
   langproviders:
     - language: en,ja
-      model_type: remote
+      target_type: remote
     - language: ja,en
-      model_type: remote.RivaTranslator
+      target_type: remote.RivaTranslator

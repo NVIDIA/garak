@@ -21,9 +21,9 @@ def tasks() -> List[str]:
     """number of translators to deal with, minus the no-op one"""
     models_to_init = []
     for t in _config.run.langproviders:
-        if t["model_type"] == "local.Passthru":  # extra guard
+        if t["target_type"] == "local.Passthru":  # extra guard
             continue
-        model_descr = f"{t['language']}->{t['model_type']}"
+        model_descr = f"{t['language']}->{t['target_type']}"
         if "model_name" in t:
             model_descr += f"[{t['model_name']}]"
         models_to_init.append(model_descr)
@@ -46,21 +46,21 @@ def _load_langprovider(language_service: dict = {}) -> LangProvider:
     """Load a single language provider based on the configuration provided."""
     langprovider_instance = None
     langprovider_config = {
-        "langproviders": {language_service["model_type"]: language_service}
+        "langproviders": {language_service["target_type"]: language_service}
     }
     logging.debug(f"langauge provision service: {language_service['language']}")
     source_lang, target_lang = language_service["language"].split(",")
     if source_lang == target_lang:
         return Passthru(langprovider_config)
-    model_type = language_service["model_type"]
+    target_type = language_service["target_type"]
     try:
         langprovider_instance = _plugins.load_plugin(
-            path=f"langproviders.{model_type}",
+            path=f"langproviders.{target_type}",
             config_root=langprovider_config,
         )
     except ValueError as e:
         raise PluginConfigurationError(
-            f"Failed to load '{language_service['language']}' langprovider of type '{model_type}'"
+            f"Failed to load '{language_service['language']}' langprovider of type '{target_type}'"
         ) from e
     return langprovider_instance
 
@@ -84,7 +84,7 @@ def load():
     if langproviders.get(native_language, None) is None:
         # provide a native language object when configuration does not provide one
         langproviders[native_language] = _load_langprovider(
-            language_service={"language": native_language, "model_type": "local"}
+            language_service={"language": native_language, "target_type": "local"}
         )
     native_langprovider = langproviders[native_language]
     # validate loaded language providers have forward and reverse entries

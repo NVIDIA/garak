@@ -30,7 +30,7 @@ def test_split_input_text():
 def test_local_translate_single_language(langprovider_class, target_lang, model_name):
     translator_entry = {
         "language": target_lang,
-        "model_type": langprovider_class,
+        "target_type": langprovider_class,
         "model_name": model_name,
     }
     langprovider = _load_langprovider(translator_entry)
@@ -75,7 +75,7 @@ def test_same_source_and_target_language(langprovider_class, target_lang, model_
     # when source and target language are the same a translator that makes not changes is returned
     langprovider_entry = {
         "language": target_lang,
-        "model_type": langprovider_class,
+        "target_type": langprovider_class,
         "model_name": model_name,
     }
     langprovider = _load_langprovider(langprovider_entry)
@@ -95,7 +95,7 @@ def langprovider_remote(target_lang, langprovider_class):
 
     langprovider_entry = {
         "language": target_lang,
-        "model_type": langprovider_class,
+        "target_type": langprovider_class,
     }
     try:
         langprovider = _load_langprovider(langprovider_entry)
