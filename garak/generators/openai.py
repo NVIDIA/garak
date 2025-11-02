@@ -174,8 +174,9 @@ class OpenAICompatible(Generator):
         pass
 
     def __init__(self, name="", config_root=_config):
-        self.name = name
         self._load_config(config_root)
+        if name or not hasattr(self, "name"):
+            self.name = name
         self.fullname = f"{self.generator_family_name} {self.name}"
         self.key_env_var = self.ENV_VAR
 
@@ -191,7 +192,7 @@ class OpenAICompatible(Generator):
 
         self._validate_config()
 
-        super().__init__(self.name, config_root=config_root)
+        super().__init__(name, config_root=config_root)
 
         # clear client config to enable object to `pickle`
         self._clear_client()
@@ -335,12 +336,13 @@ class OpenAIGenerator(OpenAICompatible):
             raise garak.exception.BadGeneratorException("🛑 " + msg)
 
     def __init__(self, name="", config_root=_config):
-        self.name = name
         self._load_config(config_root)
+        if name or not hasattr(self, "name"):
+            self.name = name
         if self.name in context_lengths:
             self.context_len = context_lengths[self.name]
 
-        super().__init__(self.name, config_root=config_root)
+        super().__init__(name, config_root=config_root)
 
 
 class OpenAIReasoningGenerator(OpenAIGenerator):

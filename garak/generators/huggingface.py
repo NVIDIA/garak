@@ -59,9 +59,11 @@ class Pipeline(Generator, HFCompatible):
     parallel_capable = False
 
     def __init__(self, name="", config_root=_config):
-        self.name = name
+        self._load_config(config_root)
+        if name or not hasattr(self, "name"):
+            self.name = name
 
-        super().__init__(self.name, config_root=config_root)
+        super().__init__(name, config_root=config_root)
 
         import torch.multiprocessing as mp
 
@@ -224,8 +226,10 @@ class InferenceAPI(Generator):
     }
 
     def __init__(self, name="", config_root=_config):
-        self.name = name
-        super().__init__(self.name, config_root=config_root)
+        self._load_config(config_root)
+        if name or not hasattr(self, "name"):
+            self.name = name
+        super().__init__(name, config_root=config_root)
 
         self.uri = self.URI + self.name
 
@@ -555,7 +559,7 @@ class LLaVA(Generator, HFCompatible):
             raise TargetNameMissingError(
                 f"Invalid model name {self.name}, current support: {self.supported_models}."
             )
-        super().__init__(self.name, config_root=config_root)
+        super().__init__(name, config_root=config_root)
 
         from transformers import LlavaNextProcessor, LlavaNextForConditionalGeneration
 
