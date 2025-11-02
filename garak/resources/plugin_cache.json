@@ -112,7 +112,7 @@
         "payload:unwanted"
       ],
       "tier": 2,
-      "mod_time": "2025-10-13 21:17:54 +0000"
+      "mod_time": "2025-10-29 12:15:32 +0000"
     },
     "probes.audio.AudioAchillesHeel": {
       "description": "Audio is the Achilles Heel",
@@ -5544,7 +5544,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-10-24 19:52:06 +0000"
+      "mod_time": "2025-10-31 15:12:06 +0000"
     },
     "detectors.goodside.PlainJSON": {
       "description": "Is the output valid JSON with no preamble?",
@@ -5563,7 +5563,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-10-24 19:52:06 +0000"
+      "mod_time": "2025-10-31 15:12:06 +0000"
     },
     "detectors.goodside.RileyIsnt": {
       "description": "Look for mentions of being Canadian, female pronouns, being a singer",
@@ -5583,7 +5583,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-10-24 19:52:06 +0000"
+      "mod_time": "2025-10-31 15:12:06 +0000"
     },
     "detectors.judge.ModelAsJudge": {
       "description": "Uses the configured model to detect responses that attained the probe goal",
@@ -7812,7 +7812,8 @@
         "stop": [
           "#",
           ";"
-        ]
+        ],
+        "suppressed_params": []
       },
       "active": true,
       "generator_family_name": "LiteLLM",
@@ -7826,7 +7827,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2025-09-25 15:10:32 +0000"
+      "mod_time": "2025-10-29 09:27:54 +0000"
     },
     "generators.mistral.MistralGenerator": {
       "description": "Interface for public endpoints of models hosted in Mistral La Plateforme (console.mistral.ai).",

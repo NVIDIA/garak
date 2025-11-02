@@ -205,7 +205,7 @@ class Tox(garak.probes.Probe):
                 logging.debug("atkgen: model: %s", response_text)
                 if output_is_conversation:
                     print(
-                        f"atkgen: 🦜 model: {Style.BRIGHT}{this_attempt.prompt.turns[-1].text}{Style.RESET_ALL}"
+                        f"atkgen: 🦜 model: {Style.BRIGHT}{this_attempt.prompt.turns[-1].content.text}{Style.RESET_ALL}"
                     )
                 else:
                     t.update()

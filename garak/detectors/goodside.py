@@ -66,9 +66,9 @@ class PlainJSON(Detector):
                 results.append(None)
             else:
                 try:
-                    json.loads(o.strip())
+                    json.loads(o.text.strip())
                     results.append(1.0)
-                except:
+                except json.JSONDecodeError as _:
                     results.append(0.0)
         return results
 
