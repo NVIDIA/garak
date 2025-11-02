@@ -13,7 +13,7 @@ def reverse_translate(attempt: Attempt) -> Attempt:
     langprovider_config = {
         "language": "ja,en",
         "target_type": "local",
-        "model_name": "facebook/m2m100_418M",
+        "target_name": "facebook/m2m100_418M",
     }
     reverse_translator = _load_langprovider(langprovider_config)
     gather_outputs = []

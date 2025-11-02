@@ -40,7 +40,7 @@ class LocalHFTranslator(LangProvider, HFCompatible):
     """
 
     DEFAULT_PARAMS = {
-        "model_name": "Helsinki-NLP/opus-mt-{}",  # This is inconsistent with generators and may change to `name`.
+        "target_name": "Helsinki-NLP/opus-mt-{}",  # This is inconsistent with generators and may change to `name`.
         "hf_args": {
             "device": "cpu",
         },
@@ -58,7 +58,7 @@ class LocalHFTranslator(LangProvider, HFCompatible):
         super().__init__(config_root=config_root)
 
     def _load_langprovider(self):
-        if "m2m100" in self.model_name:
+        if "m2m100" in self.target_name:
             from transformers import M2M100ForConditionalGeneration, M2M100Tokenizer
 
             # fmt: off
@@ -94,9 +94,9 @@ class LocalHFTranslator(LangProvider, HFCompatible):
                 )
 
             self.model = M2M100ForConditionalGeneration.from_pretrained(
-                self.model_name
+                self.target_name
             ).to(self.device)
-            self.tokenizer = M2M100Tokenizer.from_pretrained(self.model_name)
+            self.tokenizer = M2M100Tokenizer.from_pretrained(self.target_name)
         else:
             from transformers import MarianMTModel, MarianTokenizer
 
@@ -105,12 +105,12 @@ class LocalHFTranslator(LangProvider, HFCompatible):
             # validation of all supported pairs is deferred in favor of allowing the download to raise exception
             # when no published model exists with the pair requested in the name.
             model_suffix = f"{self.source_lang}-{self.target_lang}"
-            model_name = self.model_name.format(model_suffix)
+            model_name = self.target_name.format(model_suffix)
             self.model = MarianMTModel.from_pretrained(model_name).to(self.device)
             self.tokenizer = MarianTokenizer.from_pretrained(model_name)
 
     def _translate(self, text: str) -> str:
-        if "m2m100" in self.model_name:
+        if "m2m100" in self.target_name:
             self.tokenizer.src_lang = self.source_lang
 
             encoded_text = self.tokenizer(text, return_tensors="pt").to(self.device)

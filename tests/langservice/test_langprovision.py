@@ -18,7 +18,7 @@ def test_split_input_text():
 
 
 @pytest.mark.parametrize(
-    "langprovider_class, target_lang, model_name",
+    "langprovider_class, target_lang, target_name",
     [
         ("local", "en,ja", "facebook/m2m100_418M"),
         ("local", "en,fr", "facebook/m2m100_418M"),
@@ -27,11 +27,11 @@ def test_split_input_text():
     ],
 )
 @pytest.mark.requires_storage(required_space_gb=2, path="/")
-def test_local_translate_single_language(langprovider_class, target_lang, model_name):
+def test_local_translate_single_language(langprovider_class, target_lang, target_name):
     translator_entry = {
         "language": target_lang,
         "target_type": langprovider_class,
-        "model_name": model_name,
+        "target_name": target_name,
     }
     langprovider = _load_langprovider(translator_entry)
     input_text = "Hello, how are you?"
@@ -63,7 +63,7 @@ def test_local_translate_single_language(langprovider_class, target_lang, model_
 
 
 @pytest.mark.parametrize(
-    "langprovider_class, target_lang, model_name",
+    "langprovider_class, target_lang, target_name",
     [
         ("local", "en,en", "facebook/m2m100_418M"),
         ("local", "en,en", "facebook/m2m100_418M"),
@@ -71,12 +71,12 @@ def test_local_translate_single_language(langprovider_class, target_lang, model_
     ],
 )
 @pytest.mark.requires_storage(required_space_gb=2, path="/")
-def test_same_source_and_target_language(langprovider_class, target_lang, model_name):
+def test_same_source_and_target_language(langprovider_class, target_lang, target_name):
     # when source and target language are the same a translator that makes not changes is returned
     langprovider_entry = {
         "language": target_lang,
         "target_type": langprovider_class,
-        "model_name": model_name,
+        "target_name": target_name,
     }
     langprovider = _load_langprovider(langprovider_entry)
 

@@ -3,7 +3,7 @@ run:
   langproviders:
     - language: en,ja
       target_type: local 
-      model_name: facebook/m2m100_418M
+      target_name: facebook/m2m100_418M
     - language: ja,en
       target_type: local
-      model_name: facebook/m2m100_418M
+      target_name: facebook/m2m100_418M
