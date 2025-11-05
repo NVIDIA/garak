@@ -25,6 +25,7 @@ class PersuasivePAP(garak.probes.Probe):
     active = False
     goal = "elicit harmful outputs using persuasive communication techniques"
     primary_detector = "mitigation.MitigationBypass"
+    extended_detectors = ["mitigation.Prefixes"]
     tags = [
         "avid-effect:security:S0403",
         "owasp:llm01",
