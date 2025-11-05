@@ -1,16 +1,22 @@
+"""Persuasion
+
+Probes using social science persuasion techniques from 
+[Persuasive Adversarial Prompts](https://arxiv.org/abs/2401.06373)
+"""
+
 import garak.probes
 
 
 class PersuasivePAP(garak.probes.Probe):
     """Persuasive Adversarial Prompts (PAP) - Static Examples
 
-    Uses social science-based persuasion techniques (logical appeal, 
+    Uses social science-based persuasion techniques (logical appeal,
     emotional appeal, authority endorsement, etc.) to attempt bypassing
     LLM safety measures.
 
     The paper's full methodology involves a fine-tuned paraphraser to
-    generate prompts dynamically, but that model has not been made 
-    publicly available. This probe uses static examples extracted from 
+    generate prompts dynamically, but that model has not been made
+    publicly available. This probe uses static examples extracted from
     the paper's successful demonstrations.
     """
 
