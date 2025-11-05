@@ -14,6 +14,7 @@ import inspect
 import json
 import logging
 import re
+import tiktoken
 from typing import List, Union
 
 import openai
@@ -114,12 +115,24 @@ context_lengths = {
     "gpt-4o": 128000,
     "gpt-4o-2024-05-13": 128000,
     "gpt-4o-2024-08-06": 128000,
-    "gpt-4o-mini": 16384,
+    "gpt-4o-mini": 128000,
     "gpt-4o-mini-2024-07-18": 16384,
-    "o1-mini": 65536,
+    "o1": 200000,
+    "o1-mini": 128000,
     "o1-mini-2024-09-12": 65536,
     "o1-preview": 32768,
     "o1-preview-2024-09-12": 32768,
+    "o3-mini": 200000,
+}
+
+output_max = {
+    "gpt-3.5-turbo": 4096,
+    "gpt-4": 8192,
+    "gpt-4o": 16384,
+    "o3-mini": 100000,
+    "o1": 100000,
+    "o1-mini": 65536,
+    "gpt-4o-mini": 16384,
 }
 
 
@@ -173,6 +186,87 @@ class OpenAICompatible(Generator):
     def _validate_config(self):
         pass
 
+    def _validate_token_args(self, create_args: dict, prompt: Conversation) -> dict:
+        """Ensure maximum token limit compatibility with OpenAI create request"""
+        token_generation_limit_key = "max_tokens"
+        fixed_cost = 0
+        if (
+            self.generator == self.client.chat.completions
+            and self.max_tokens is not None
+        ):
+            token_generation_limit_key = "max_completion_tokens"
+            if not hasattr(self, "max_completion_tokens"):
+                create_args["max_completion_tokens"] = self.max_tokens
+
+            create_args.pop(
+                "max_tokens", None
+            )  # remove deprecated value, utilize `max_completion_tokens`
+            # every reply is primed with <|start|>assistant<|message|> (3 toks) plus 1 for name change
+            # see https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
+            # section 6 "Counting tokens for chat completions API calls"
+            # TODO: adjust fixed cost to account for each `turn` already in the prompt
+            fixed_cost = 7
+
+        # basic token boundary validation to ensure requests are not rejected for exceeding target context length
+        token_generation_limit = create_args.pop(token_generation_limit_key, None)
+        if token_generation_limit is not None:
+            # Suppress max_tokens if greater than context_len
+            if (
+                hasattr(self, "context_len")
+                and self.context_len is not None
+                and token_generation_limit > self.context_len
+            ):
+                logging.warning(
+                    f"Requested garak maximum tokens {token_generation_limit} exceeds context length {self.context_len}, no limit will be applied to the request"
+                )
+                token_generation_limit = None
+
+            if (
+                self.name in output_max
+                and token_generation_limit is not None
+                and token_generation_limit > output_max[self.name]
+            ):
+                logging.warning(
+                    f"Requested maximum tokens {token_generation_limit} exceeds max output {output_max[self.name]}, no limit will be applied to the request"
+                )
+                token_generation_limit = None
+
+            if self.context_len is not None and token_generation_limit is not None:
+                # count tokens in prompt and ensure token_generation_limit requested is <= context_len or output_max allowed
+                prompt_tokens = 0  # this should apply to messages object
+                try:
+                    encoding = tiktoken.encoding_for_model(self.name)
+                    prompt_tokens = 0
+                    for turn in prompt.turns:
+                        prompt_tokens = len(encoding.encode(turn.content.text))
+                except KeyError as e:
+                    prompt_tokens = int(
+                        len(prompt.split()) * 4 / 3
+                    )  # extra naive fallback 1 token ~= 3/4 of a word
+
+                if (
+                    prompt_tokens + fixed_cost + token_generation_limit
+                    > self.context_len
+                ) and (prompt_tokens + fixed_cost < self.context_len):
+                    token_generation_limit = (
+                        self.context_len - prompt_tokens - fixed_cost
+                    )
+                elif token_generation_limit > prompt_tokens + fixed_cost:
+                    token_generation_limit = (
+                        token_generation_limit - prompt_tokens - fixed_cost
+                    )
+                else:
+                    raise garak.exception.GarakException(
+                        "A response of %s toks plus prompt %s toks cannot be generated; API capped at context length %s toks"
+                        % (
+                            self.max_tokens,
+                            prompt_tokens + fixed_cost,
+                            self.context_len,
+                        )
+                    )
+            create_args[token_generation_limit_key] = token_generation_limit
+        return create_args
+
     def __init__(self, name="", config_root=_config):
         self.name = name
         self._load_config(config_root)
@@ -218,7 +312,8 @@ class OpenAICompatible(Generator):
         create_args = {}
         if "n" not in self.suppressed_params:
             create_args["n"] = generations_this_call
-        for arg in inspect.signature(self.generator.create).parameters:
+        create_params = inspect.signature(self.generator.create).parameters
+        for arg in create_params:
             if arg == "model":
                 create_args[arg] = self.name
                 continue
@@ -232,6 +327,12 @@ class OpenAICompatible(Generator):
             for k, v in self.extra_params.items():
                 create_args[k] = v
 
+        try:
+            create_args = self._validate_token_args(create_args, prompt)
+        except garak.exception.GarakException as e:
+            logging.exception(e)
+            return [None] * generations_this_call
+
         if self.generator == self.client.completions:
             if not isinstance(prompt, Conversation) or len(prompt.turns) > 1:
                 msg = (
@@ -239,7 +340,7 @@ class OpenAICompatible(Generator):
                     f"Returning nothing!"
                 )
                 logging.error(msg)
-                return list()
+                return [None] * generations_this_call
 
             create_args["prompt"] = prompt.last_message().text
 
@@ -255,7 +356,7 @@ class OpenAICompatible(Generator):
                     f"Returning nothing!"
                 )
                 logging.error(msg)
-                return list()
+                return [None] * generations_this_call
 
             create_args["messages"] = messages
 
@@ -265,7 +366,7 @@ class OpenAICompatible(Generator):
             msg = "Bad request: " + str(repr(prompt))
             logging.exception(e)
             logging.error(msg)
-            return [None]
+            return [None] * generations_this_call
         except json.decoder.JSONDecodeError as e:
             logging.exception(e)
             if self.retry_json:
@@ -282,7 +383,7 @@ class OpenAICompatible(Generator):
             if self.retry_json:
                 raise garak.exception.GarakBackoffTrigger(msg)
             else:
-                return [None]
+                return [None] * generations_this_call
 
         if self.generator == self.client.completions:
             return [Message(c.text) for c in response.choices]
