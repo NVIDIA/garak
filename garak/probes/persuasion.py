@@ -9,9 +9,9 @@ class PersuasivePAP(garak.probes.Probe):
     LLM safety measures.
 
     The paper's full methodology involves a fine-tuned paraphraser to
-    generate prompts dynamically, but that model has been made publicly
-    available. This probe uses static examples extracted from the
-    paper's successful demonstrations.
+    generate prompts dynamically, but that model has not been made 
+    publicly available. This probe uses static examples extracted from 
+    the paper's successful demonstrations.
     """
 
     doc_uri = "https://arxiv.org/abs/2401.06373"
