@@ -133,18 +133,19 @@ def test_default_model_when_name_empty(cfg, fake_llm, monkeypatch):
     assert spy.call_args.kwargs == {}
 
 
-def test_rejects_multiple_user_turns(cfg, fake_llm):
+def test_skips_multiple_user_turns(cfg, fake_llm):
     gen = LLMGenerator(name="alias", config_root=cfg)
     user_turns = [
         Turn("user", Message(text="first")),
         Turn("user", Message(text="second")),
     ]
     conv = Conversation(user_turns)
-    with pytest.raises(ValueError):
-        gen._call_model(conv)
+    out = gen._call_model(conv)
+    assert out == [None]
+    assert fake_llm.calls == []
 
 
-def test_rejects_assistant_turns(cfg, fake_llm):
+def test_skips_assistant_turns(cfg, fake_llm):
     gen = LLMGenerator(name="alias", config_root=cfg)
     conv = Conversation(
         [
@@ -153,11 +154,12 @@ def test_rejects_assistant_turns(cfg, fake_llm):
             Turn("user", Message(text="question")),
         ]
     )
-    with pytest.raises(ValueError):
-        gen._call_model(conv)
+    out = gen._call_model(conv)
+    assert out == [None]
+    assert fake_llm.calls == []
 
 
-def test_rejects_multiple_system_turns(cfg, fake_llm):
+def test_skips_multiple_system_turns(cfg, fake_llm):
     gen = LLMGenerator(name="alias", config_root=cfg)
     conv = Conversation(
         [
@@ -166,5 +168,6 @@ def test_rejects_multiple_system_turns(cfg, fake_llm):
             Turn("user", Message(text="ping")),
         ]
     )
-    with pytest.raises(ValueError):
-        gen._call_model(conv)
+    out = gen._call_model(conv)
+    assert out == [None]
+    assert fake_llm.calls == []

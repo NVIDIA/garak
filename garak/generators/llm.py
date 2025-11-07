@@ -3,10 +3,11 @@
 
 """LLM (simonw/llm) generator support"""
 
+import inspect
 import logging
 from typing import List, Union
 
-import llm 
+import llm
 
 from garak import _config
 from garak.attempt import Message, Conversation
@@ -22,6 +23,8 @@ class LLMGenerator(Generator):
     options and API keys are all handled by `llm` (e.g., `llm keys set openai`).
 
     Set --model_name to the `llm` model id or alias (e.g., "gpt-4o-mini",
+    "claude-3.5-haiku", or a local alias configured in `llm models`).
+    Set --target_name to the `llm` model id or alias (e.g., "gpt-4o-mini",
     "claude-3.5-haiku", or a local alias configured in `llm models`).
 
     Explicitly, garak delegates the majority of responsibility here:
@@ -49,11 +52,8 @@ class LLMGenerator(Generator):
         self._load_config(config_root)
         self.fullname = f"llm (simonw/llm) {self.name or '(default)'}"
 
-        self._load_client()
-
         super().__init__(self.name, config_root=config_root)
-
-        self._clear_client()
+        self._load_client()
 
     def __getstate__(self) -> object:
         self._clear_client()
@@ -91,26 +91,60 @@ class LLMGenerator(Generator):
         assistant_turns = [turn for turn in prompt.turns if turn.role == "assistant"]
 
         if assistant_turns:
-            raise ValueError("llm generator does not accept assistant turns")
+            logging.debug("llm generator does not accept assistant turns")
+            return [None] * generations_this_call
         if len(system_turns) > 1:
-            raise ValueError("llm generator supports at most one system turn")
+            logging.debug("llm generator supports at most one system turn")
+            return [None] * generations_this_call
         if len(user_turns) != 1:
-            raise ValueError("llm generator requires exactly one user turn")
+            logging.debug("llm generator requires exactly one user turn")
+            return [None] * generations_this_call
 
         text_prompt = prompt.last_message("user").text
 
-        # Build kwargs only for parameters explicitly set (non-None / non-empty)
-        prompt_kwargs = {
-            key: getattr(self, key)
-            for key in ("max_tokens", "temperature", "top_p")
-            if getattr(self, key) is not None
-        }
-        if self.stop:
-            prompt_kwargs["stop"] = self.stop
+        prompt_kwargs = {}
+        try:
+            signature = inspect.signature(self.target.prompt)
+            accepted_params = signature.parameters
+            accepts_var_kwargs = any(
+                param.kind == inspect.Parameter.VAR_KEYWORD
+                for param in accepted_params.values()
+            )
+        except (TypeError, ValueError):
+            accepted_params = {}
+            accepts_var_kwargs = False
+
+        if accepted_params:
+            for key, param in accepted_params.items():
+                if key in {"prompt", "prompt_text", "text", "self"}:
+                    continue
+                if not hasattr(self, key):
+                    continue
+                value = getattr(self, key)
+                if value is None:
+                    continue
+                if key == "stop" and not value:
+                    continue
+                prompt_kwargs[key] = value
+
+        # Fallback to a conservative parameter subset if signature inspection fails
+        # or the target accepts arbitrary kwargs (so we should pass anything we have)
+        fallback_keys = ("max_tokens", "temperature", "top_p")
+        needs_fallback = not prompt_kwargs or accepts_var_kwargs or not accepted_params
+        if needs_fallback:
+            for key in fallback_keys:
+                if key in prompt_kwargs:
+                    continue
+                value = getattr(self, key, None)
+                if value is not None:
+                    prompt_kwargs[key] = value
+            stop_value = getattr(self, "stop", None)
+            if stop_value:
+                prompt_kwargs.setdefault("stop", stop_value)
 
         try:
             response = self.target.prompt(text_prompt, **prompt_kwargs)
-            out = response.text() 
+            out = response.text()
             return [Message(out)]
         except Exception as e:
             logging.error("`llm` generation failed: %s", repr(e))
