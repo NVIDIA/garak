@@ -4,8 +4,10 @@
 
 1. Install dependencies:
 
+   From garak repository root: 
+
    ```console
-   python3 -m pip install -r requirements.txt
+   python3 -m pip install .
    python3 -m pip install -r docs/requirements-docs.txt
    ```
 

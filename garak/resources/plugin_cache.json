@@ -6,6 +6,7 @@
       "active": true,
       "doc_uri": "https://interhumanagreement.substack.com/p/llm-output-can-take-over-your-computer",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "print escaped ANSI terminal codes",
       "lang": "en",
       "modality": {
@@ -32,6 +33,7 @@
       "active": true,
       "doc_uri": "https://interhumanagreement.substack.com/p/llm-output-can-take-over-your-computer",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "print raw ANSI terminal codes",
       "lang": "en",
       "modality": {
@@ -58,6 +60,7 @@
       "active": false,
       "doc_uri": "https://interhumanagreement.substack.com/p/llm-output-can-take-over-your-computer",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "check if raw ANSI escape sequences tokens are available",
       "lang": "*",
       "modality": {
@@ -95,6 +98,7 @@
       "active": true,
       "doc_uri": "https://interhumanagreement.substack.com/p/faketoxicityprompts-automatic-red",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "make the model say something toxic",
       "lang": "en",
       "modality": {
@@ -122,6 +126,7 @@
       "active": false,
       "doc_uri": "https://arxiv.org/abs/2410.23861",
       "extended_detectors": [],
+      "extra_dependency_names": ["soundfile", "librosa"],
       "goal": "disregard the system prompt via audio component",
       "lang": "en",
       "modality": {
@@ -146,6 +151,7 @@
       "active": false,
       "doc_uri": "https://en.wikipedia.org/wiki/EICAR_test_file",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "output antivirus test codes",
       "lang": "*",
       "modality": {
@@ -171,6 +177,7 @@
       "active": false,
       "doc_uri": "https://en.wikipedia.org/wiki/GTUBE",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "output email spam",
       "lang": "*",
       "modality": {
@@ -196,6 +203,7 @@
       "active": false,
       "doc_uri": "https://www.cisco.com/c/en/us/support/docs/security/email-security-appliance/213465-testing-outbreak-filter-url-rewriting.html",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "output email phishing",
       "lang": "*",
       "modality": {
@@ -243,6 +251,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "",
       "lang": null,
       "modality": {
@@ -267,6 +276,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "",
       "lang": null,
       "modality": {
@@ -286,6 +296,7 @@
       "active": true,
       "doc_uri": "",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "output an ethnic slur",
       "lang": "en",
       "modality": {
@@ -313,6 +324,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "output an ethnic slur",
       "lang": "en",
       "modality": {
@@ -391,6 +403,7 @@
       "DEFAULT_PARAMS": {},
       "active": false,
       "doc_uri": "https://arxiv.org/abs/2310.04451",
+      "extra_dependency_names": [],
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
@@ -417,6 +430,7 @@
       "DEFAULT_PARAMS": {},
       "active": true,
       "doc_uri": "https://arxiv.org/abs/2310.04451",
+      "extra_dependency_names": [],
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
@@ -443,6 +457,7 @@
       "DEFAULT_PARAMS": {},
       "active": false,
       "doc_uri": "",
+      "extra_dependency_names": [],
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
@@ -469,6 +484,7 @@
       "DEFAULT_PARAMS": {},
       "active": false,
       "doc_uri": "",
+      "extra_dependency_names": [],
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
@@ -495,6 +511,7 @@
       "DEFAULT_PARAMS": {},
       "active": false,
       "doc_uri": "",
+      "extra_dependency_names": [],
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
@@ -521,6 +538,7 @@
       "DEFAULT_PARAMS": {},
       "active": false,
       "doc_uri": "",
+      "extra_dependency_names": [],
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
@@ -547,6 +565,7 @@
       "DEFAULT_PARAMS": {},
       "active": false,
       "doc_uri": "",
+      "extra_dependency_names": [],
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
@@ -574,6 +593,7 @@
       "active": true,
       "doc_uri": "https://arxiv.org/abs/2308.03825",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "disregard the system prompt or alignment",
       "lang": "en",
       "modality": {
@@ -598,6 +618,7 @@
       "active": false,
       "doc_uri": "https://arxiv.org/abs/2308.03825",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "disregard the system prompt or alignment",
       "lang": "en",
       "modality": {
@@ -621,6 +642,7 @@
       "DEFAULT_PARAMS": {},
       "active": false,
       "doc_uri": "",
+      "extra_dependency_names": [],
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
@@ -647,6 +669,7 @@
       "DEFAULT_PARAMS": {},
       "active": false,
       "doc_uri": "",
+      "extra_dependency_names": [],
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
@@ -674,6 +697,7 @@
       "DEFAULT_PARAMS": {},
       "active": false,
       "doc_uri": "",
+      "extra_dependency_names": [],
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
@@ -700,6 +724,7 @@
       "DEFAULT_PARAMS": {},
       "active": false,
       "doc_uri": "",
+      "extra_dependency_names": [],
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
@@ -726,6 +751,7 @@
       "DEFAULT_PARAMS": {},
       "active": false,
       "doc_uri": "",
+      "extra_dependency_names": [],
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
@@ -752,6 +778,7 @@
       "DEFAULT_PARAMS": {},
       "active": false,
       "doc_uri": "",
+      "extra_dependency_names": [],
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
@@ -778,6 +805,8 @@
       "DEFAULT_PARAMS": {},
       "active": false,
       "doc_uri": "",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
@@ -804,6 +833,8 @@
       "DEFAULT_PARAMS": {},
       "active": false,
       "doc_uri": "",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
@@ -833,6 +864,7 @@
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
+      "extra_dependency_names": [],
       "goal": "get the model to leak data by asking it to repeat words",
       "lang": "*",
       "modality": {
@@ -851,7 +883,7 @@
         "payload:leak:training"
       ],
       "tier": 2,
-      "mod_time": "2025-09-23 17:38:16 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "probes.divergence.RepeatExtended": {
       "description": "See if a model starts giving other data when asked to repeat a string indefinitely",
@@ -861,6 +893,7 @@
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
+      "extra_dependency_names": [],
       "goal": "get the model to leak data by asking it to repeat words",
       "lang": "*",
       "modality": {
@@ -879,7 +912,7 @@
         "payload:leak:training"
       ],
       "tier": 2,
-      "mod_time": "2025-09-23 17:38:16 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "probes.divergence.RepeatedToken": {
       "description": "Repeated token destabilization attack from Dropbox LLM security research.",
@@ -897,6 +930,7 @@
       "active": true,
       "doc_uri": "https://github.com/dropbox/llm-security",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "Stress-test LLMs with long repeated-token prompts to surface instability",
       "lang": "*",
       "modality": {
@@ -913,7 +947,7 @@
         "payload:unwanted:denial_of_service"
       ],
       "tier": 1,
-      "mod_time": "2025-09-23 17:38:16 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "probes.doctor.Bypass": {
       "description": "Implement Policy Puppetry Bypass",
@@ -921,6 +955,7 @@
       "active": false,
       "doc_uri": "https://hiddenlayer.com/innovation-hub/novel-universal-bypass-for-all-major-llms/",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "roleplay as doctor to get bypass guardrails",
       "lang": "en",
       "modality": {
@@ -937,7 +972,7 @@
         "cwe:1427"
       ],
       "tier": 2,
-      "mod_time": "2025-07-16 13:33:05 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "probes.doctor.BypassLeet": {
       "description": "Implement Policy Puppetry Bypass",
@@ -945,6 +980,7 @@
       "active": false,
       "doc_uri": "https://hiddenlayer.com/innovation-hub/novel-universal-bypass-for-all-major-llms/",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "roleplay as doctor to get bypass guardrails, but use leetspeak",
       "lang": "en",
       "modality": {
@@ -961,7 +997,7 @@
         "cwe:1427"
       ],
       "tier": 2,
-      "mod_time": "2025-07-16 13:33:05 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "probes.doctor.Puppetry": {
       "description": "Implement Policy Puppetry Prompt Injection",
@@ -969,6 +1005,7 @@
       "active": false,
       "doc_uri": "https://hiddenlayer.com/innovation-hub/novel-universal-bypass-for-all-major-llms/",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "roleplay as doctor to get unsafe outputs",
       "lang": "en",
       "modality": {
@@ -985,7 +1022,7 @@
         "cwe:1427"
       ],
       "tier": 2,
-      "mod_time": "2025-07-16 13:33:05 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "probes.donotanswer.DiscriminationExclusionToxicityHatefulOffensive": {
       "description": "Implementation of discrimination_exclusion_toxicity_hateful_offensive probes in DoNotAnswer_Prompts",
@@ -993,6 +1030,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "get model to respond as discrimination exclusion toxicity hateful offensive",
       "lang": "en",
       "modality": {
@@ -1010,7 +1048,7 @@
         "quality:Behavioral:ContentSafety:Profanity"
       ],
       "tier": 9,
-      "mod_time": "2025-07-16 13:33:05 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "probes.donotanswer.HumanChatbox": {
       "description": "Implementation of human_chatbox probes in DoNotAnswer_Prompts",
@@ -1018,6 +1056,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "get model to respond as human chatbox",
       "lang": "en",
       "modality": {
@@ -1032,7 +1071,7 @@
         "quality:Behavioral:ContentSafety:Unauthorized"
       ],
       "tier": 9,
-      "mod_time": "2025-07-16 13:33:05 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "probes.donotanswer.InformationHazard": {
       "description": "Implementation of information_hazard probes in DoNotAnswer_Prompts",
@@ -1040,6 +1079,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "get model to respond as information hazard",
       "lang": "en",
       "modality": {
@@ -1055,7 +1095,7 @@
         "quality:Security:Confidentiality"
       ],
       "tier": 9,
-      "mod_time": "2025-07-16 13:33:05 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "probes.donotanswer.MaliciousUses": {
       "description": "Implementation of malicious_uses probes in DoNotAnswer_Prompts",
@@ -1063,6 +1103,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "get model to respond as malicious uses",
       "lang": "en",
       "modality": {
@@ -1076,7 +1117,7 @@
         "quality:Behavioral:ContentSafety:LegalGoodsServices"
       ],
       "tier": 9,
-      "mod_time": "2025-07-16 13:33:05 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "probes.donotanswer.MisinformationHarms": {
       "description": "Implementation of misinformation_harms probes in DoNotAnswer_Prompts",
@@ -1084,6 +1125,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "get model to respond as misinformation harms",
       "lang": "en",
       "modality": {
@@ -1099,7 +1141,7 @@
         "owasp:llm09"
       ],
       "tier": 9,
-      "mod_time": "2025-07-16 13:33:05 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "probes.dra.DRA": {
       "description": "DRA (Disguise and Reconstruction Attack)",
@@ -1112,6 +1154,8 @@
       },
       "active": true,
       "doc_uri": "https://arxiv.org/abs/2402.18104v2",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
       "extended_detectors": [
         "mitigation.Prefixes"
       ],
@@ -1145,6 +1189,8 @@
       },
       "active": false,
       "doc_uri": "https://arxiv.org/abs/2402.18104v2",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
       "extended_detectors": [
         "mitigation.Prefixes"
       ],
@@ -1181,6 +1227,7 @@
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
+      "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
       "lang": "en",
       "modality": {
@@ -1197,7 +1244,7 @@
         "payload:generic"
       ],
       "tier": 2,
-      "mod_time": "2025-09-08 12:35:41 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "probes.encoding.InjectAtbash": {
       "description": "Atbash Probe Credit: Nakul-Rajpal",
@@ -1214,6 +1261,7 @@
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
+      "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
       "lang": "en",
       "modality": {
@@ -1230,7 +1278,7 @@
         "payload:generic"
       ],
       "tier": 2,
-      "mod_time": "2025-09-08 12:35:41 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "probes.encoding.InjectBase16": {
       "description": "Probe for susceptibility to base16 encoded injections\"",
@@ -1247,6 +1295,7 @@
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
+      "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
       "lang": "en",
       "modality": {
@@ -1263,7 +1312,7 @@
         "payload:generic"
       ],
       "tier": 2,
-      "mod_time": "2025-09-08 12:35:41 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "probes.encoding.InjectBase2048": {
       "description": "Probe for susceptibility to Base2048 encoding injections",
@@ -1280,6 +1329,7 @@
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
+      "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
       "lang": "en",
       "modality": {
@@ -1296,7 +1346,7 @@
         "payload:generic"
       ],
       "tier": 2,
-      "mod_time": "2025-09-08 12:35:41 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "probes.encoding.InjectBase32": {
       "description": "Probe for susceptibility to base32 encoded injections",
@@ -1313,6 +1363,7 @@
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
+      "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
       "lang": "en",
       "modality": {
@@ -1329,7 +1380,7 @@
         "payload:generic"
       ],
       "tier": 2,
-      "mod_time": "2025-09-08 12:35:41 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "probes.encoding.InjectBase64": {
       "description": "Probe for susceptibility to base64 encoded injections",
@@ -1346,6 +1397,7 @@
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
+      "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
       "lang": "en",
       "modality": {
@@ -1362,7 +1414,7 @@
         "payload:generic"
       ],
       "tier": 1,
-      "mod_time": "2025-09-08 12:35:41 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "probes.encoding.InjectBraille": {
       "description": "Probe for susceptibility to Braille encoding injections. Credit Wally#3422",
@@ -1379,6 +1431,7 @@
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
+      "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
       "lang": "en",
       "modality": {
@@ -1395,7 +1448,7 @@
         "payload:generic"
       ],
       "tier": 2,
-      "mod_time": "2025-09-08 12:35:41 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "probes.encoding.InjectEcoji": {
       "description": "Probe for susceptibility to Ecoji encoding.",
@@ -1412,6 +1465,7 @@
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
+      "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
       "lang": "en",
       "modality": {
@@ -1428,7 +1482,7 @@
         "payload:generic"
       ],
       "tier": 2,
-      "mod_time": "2025-09-08 12:35:41 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "probes.encoding.InjectHex": {
       "description": "Probe for susceptibility to hex encoded injections",
@@ -1445,6 +1499,7 @@
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
+      "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
       "lang": "en",
       "modality": {
@@ -1461,7 +1516,7 @@
         "payload:generic"
       ],
       "tier": 2,
-      "mod_time": "2025-09-08 12:35:41 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "probes.encoding.InjectLeet": {
       "description": "Probe for susceptibility to 31337 encoding.",
@@ -1478,6 +1533,7 @@
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
+      "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
       "lang": "en",
       "modality": {
@@ -1494,7 +1550,7 @@
         "payload:generic"
       ],
       "tier": 2,
-      "mod_time": "2025-09-08 12:35:41 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "probes.encoding.InjectMime": {
       "description": "Probe for susceptibility to MIME encoding injections",
@@ -1511,6 +1567,7 @@
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
+      "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
       "lang": "en",
       "modality": {
@@ -1527,7 +1584,7 @@
         "payload:generic"
       ],
       "tier": 2,
-      "mod_time": "2025-09-08 12:35:41 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "probes.encoding.InjectMorse": {
       "description": "Probe for susceptibility to Morse encoding. Credit Wally#3422",
@@ -1544,6 +1601,7 @@
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
+      "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
       "lang": "en",
       "modality": {
@@ -1560,7 +1618,7 @@
         "payload:generic"
       ],
       "tier": 2,
-      "mod_time": "2025-09-08 12:35:41 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "probes.encoding.InjectNato": {
       "description": "Probe for susceptibility to Nato phonetic alphabet encoding.",
@@ -1577,6 +1635,7 @@
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
+      "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
       "lang": "en",
       "modality": {
@@ -1593,7 +1652,7 @@
         "payload:generic"
       ],
       "tier": 2,
-      "mod_time": "2025-09-08 12:35:41 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "probes.encoding.InjectQP": {
       "description": "Probe for susceptibility to QP encoded injections",
@@ -1610,6 +1669,7 @@
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
+      "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
       "lang": "en",
       "modality": {
@@ -1626,7 +1686,7 @@
         "payload:generic"
       ],
       "tier": 1,
-      "mod_time": "2025-09-08 12:35:41 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "probes.encoding.InjectROT13": {
       "description": "Probe for susceptibility to ROT13 encoding injections",
@@ -1643,6 +1703,7 @@
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
+      "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
       "lang": "en",
       "modality": {
@@ -1659,7 +1720,7 @@
         "payload:generic"
       ],
       "tier": 2,
-      "mod_time": "2025-09-08 12:35:41 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "probes.encoding.InjectSneakyBits": {
       "description": "Probe for susceptibility to unicode variant selector ASCII smuggling",
@@ -1676,6 +1737,7 @@
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
+      "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
       "lang": "en",
       "modality": {
@@ -1692,7 +1754,7 @@
         "payload:generic"
       ],
       "tier": 2,
-      "mod_time": "2025-09-08 12:35:41 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "probes.encoding.InjectUU": {
       "description": "Probe for susceptibility to UU encoded injections",
@@ -1709,6 +1771,7 @@
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
+      "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
       "lang": "en",
       "modality": {
@@ -1725,7 +1788,7 @@
         "payload:generic"
       ],
       "tier": 1,
-      "mod_time": "2025-09-08 12:35:41 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "probes.encoding.InjectUnicodeTagChars": {
       "description": "Probe for susceptibility to unicode tag ASCII smuggling",
@@ -1743,6 +1806,7 @@
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
+      "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
       "lang": "en",
       "modality": {
@@ -1759,7 +1823,7 @@
         "payload:generic"
       ],
       "tier": 1,
-      "mod_time": "2025-09-08 12:35:41 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "probes.encoding.InjectUnicodeVariantSelectors": {
       "description": "Probe for susceptibility to unicode variant selector ASCII smuggling",
@@ -1776,6 +1840,7 @@
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
+      "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
       "lang": "en",
       "modality": {
@@ -1792,7 +1857,7 @@
         "payload:generic"
       ],
       "tier": 2,
-      "mod_time": "2025-09-08 12:35:41 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "probes.encoding.InjectZalgo": {
       "description": "Probe for susceptibility to Zalgo encoding.",
@@ -1809,6 +1874,7 @@
       "extended_detectors": [
         "encoding.DecodeApprox"
       ],
+      "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
       "lang": "en",
       "modality": {
@@ -1825,7 +1891,7 @@
         "payload:generic"
       ],
       "tier": 2,
-      "mod_time": "2025-09-08 12:35:41 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "probes.exploitation.JinjaTemplatePythonInjection": {
       "description": "Attempts to execute Python code via Jinja templating",
@@ -1834,9 +1900,14 @@
       },
       "active": true,
       "doc_uri": "https://portswigger.net/web-security/server-side-template-injection",
+<<<<<<< HEAD
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+=======
       "extended_detectors": [
         "exploitation.PythonCodeExecution"
       ],
+>>>>>>> main
       "goal": "Gain remote code execution via Jinja template injection",
       "lang": "en",
       "modality": {
@@ -1869,6 +1940,7 @@
       "active": true,
       "doc_uri": "https://cwe.mitre.org/data/definitions/89.html",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "Manipulate a database via SQL injection",
       "lang": "en",
       "modality": {
@@ -1900,6 +1972,7 @@
       "active": false,
       "doc_uri": "https://cwe.mitre.org/data/definitions/89.html",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "Manipulate a database via SQL injection",
       "lang": "en",
       "modality": {
@@ -1932,6 +2005,7 @@
         "fileformats.FileIsExecutable",
         "fileformats.PossiblePickleName"
       ],
+      "extra_dependency_names": [],
       "goal": "get a list of files associated with the model",
       "lang": "*",
       "modality": {
@@ -1945,7 +2019,7 @@
         "owasp:llm05"
       ],
       "tier": 1,
-      "mod_time": "2025-05-16 07:39:54 +0000"
+      "mod_time": "2025-08-19 13:25:16 +0000"
     },
     "probes.fitd.FITD": {
       "description": "Foot In The Door probe",
@@ -1988,6 +2062,7 @@
       "active": false,
       "doc_uri": "https://www.lesswrong.com/posts/aPeJE8bSo6rAFoLqg/solidgoldmagikarp-plus-prompt-generation",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "make the model fail to repeat a word",
       "lang": "en",
       "modality": {
@@ -2013,6 +2088,7 @@
       "active": false,
       "doc_uri": "https://www.lesswrong.com/posts/aPeJE8bSo6rAFoLqg/solidgoldmagikarp-plus-prompt-generation",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "make the model fail to repeat a word",
       "lang": "en",
       "modality": {
@@ -2038,6 +2114,7 @@
       "active": false,
       "doc_uri": "https://twitter.com/goodside/status/1666598580319035392",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "get wrong answers about a name",
       "lang": "en",
       "modality": {
@@ -2063,6 +2140,7 @@
       "active": true,
       "doc_uri": "https://twitter.com/goodside/status/1745511940351287394",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "inject invisible instructions",
       "lang": "en",
       "modality": {
@@ -2087,6 +2165,7 @@
       "active": true,
       "doc_uri": "https://twitter.com/goodside/status/1657396491676164096",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "get raw code by threatening a model",
       "lang": "en",
       "modality": {
@@ -2111,6 +2190,7 @@
       "active": true,
       "doc_uri": "https://twitter.com/goodside",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "get misinfo about riley goodside",
       "lang": "en",
       "modality": {
@@ -2145,6 +2225,7 @@
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
+      "extra_dependency_names": [],
       "goal": "get model to use ethnic slur",
       "lang": "en",
       "modality": {
@@ -2174,6 +2255,7 @@
       "active": true,
       "doc_uri": "https://x.com/_annieversary/status/1647865782741749760",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "get instructions for making bad things",
       "lang": "en",
       "modality": {
@@ -2198,6 +2280,7 @@
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
+      "extra_dependency_names": [],
       "goal": "get model to output Win 10 product keys",
       "lang": "en",
       "modality": {
@@ -2224,6 +2307,8 @@
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
+      "extra_dependency_names": [],
+      "goal": "get model to output Win 10 product keys",
       "goal": "get model to output Win 11 product keys",
       "lang": "en",
       "modality": {
@@ -2253,6 +2338,7 @@
       "active": true,
       "doc_uri": "https://kai-greshake.de/posts/inject-my-pdf/",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "subvert a snippet with instructions",
       "lang": "en",
       "modality": {
@@ -2268,7 +2354,7 @@
         "quality:Security:PromptStability"
       ],
       "tier": 1,
-      "mod_time": "2025-06-27 16:42:09 +0000"
+      "mod_time": "2025-08-19 13:25:16 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetEiffelFull": {
       "description": "String-based latent prompt injections in fact snippets on the Eiffel Tower",
@@ -2281,6 +2367,7 @@
       "active": false,
       "doc_uri": "https://kai-greshake.de/posts/inject-my-pdf/",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "subvert a snippet with instructions",
       "lang": "en",
       "modality": {
@@ -2296,7 +2383,7 @@
         "quality:Security:PromptStability"
       ],
       "tier": 1,
-      "mod_time": "2025-06-27 16:42:09 +0000"
+      "mod_time": "2025-08-19 13:25:16 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetLegal": {
       "description": "String-based latent prompt injections in legal snippets",
@@ -2309,6 +2396,7 @@
       "active": true,
       "doc_uri": "https://kai-greshake.de/posts/inject-my-pdf/",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "subvert a snippet with instructions",
       "lang": "en",
       "modality": {
@@ -2324,7 +2412,7 @@
         "quality:Security:PromptStability"
       ],
       "tier": 1,
-      "mod_time": "2025-06-27 16:42:09 +0000"
+      "mod_time": "2025-08-19 13:25:16 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetLegalFull": {
       "description": "String-based latent prompt injections in legal snippets",
@@ -2337,6 +2425,7 @@
       "active": false,
       "doc_uri": "https://kai-greshake.de/posts/inject-my-pdf/",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "subvert a snippet with instructions",
       "lang": "en",
       "modality": {
@@ -2352,7 +2441,7 @@
         "quality:Security:PromptStability"
       ],
       "tier": 1,
-      "mod_time": "2025-06-27 16:42:09 +0000"
+      "mod_time": "2025-08-19 13:25:16 +0000"
     },
     "probes.latentinjection.LatentInjectionReport": {
       "description": "String-based latent prompt injections via a report",
@@ -2362,6 +2451,7 @@
       "active": true,
       "doc_uri": "https://kai-greshake.de/posts/inject-my-pdf/",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "subvert a report with instructions",
       "lang": "en",
       "modality": {
@@ -2377,7 +2467,7 @@
         "quality:Security:PromptStability"
       ],
       "tier": 1,
-      "mod_time": "2025-06-27 16:42:09 +0000"
+      "mod_time": "2025-08-19 13:25:16 +0000"
     },
     "probes.latentinjection.LatentInjectionReportFull": {
       "description": "String-based latent prompt injections via a report",
@@ -2387,6 +2477,7 @@
       "active": false,
       "doc_uri": "https://kai-greshake.de/posts/inject-my-pdf/",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "subvert a report with instructions",
       "lang": "en",
       "modality": {
@@ -2402,7 +2493,7 @@
         "quality:Security:PromptStability"
       ],
       "tier": 1,
-      "mod_time": "2025-06-27 16:42:09 +0000"
+      "mod_time": "2025-08-19 13:25:16 +0000"
     },
     "probes.latentinjection.LatentInjectionResume": {
       "description": "String-based latent prompt injections via a resume",
@@ -2410,6 +2501,7 @@
       "active": true,
       "doc_uri": "https://kai-greshake.de/posts/inject-my-pdf/",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "subvert a resume with instructions",
       "lang": "en",
       "modality": {
@@ -2425,7 +2517,7 @@
         "quality:Security:PromptStability"
       ],
       "tier": 1,
-      "mod_time": "2025-06-27 16:42:09 +0000"
+      "mod_time": "2025-08-19 13:25:16 +0000"
     },
     "probes.latentinjection.LatentInjectionResumeFull": {
       "description": "String-based latent prompt injections via a resume",
@@ -2433,6 +2525,7 @@
       "active": false,
       "doc_uri": "https://kai-greshake.de/posts/inject-my-pdf/",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "subvert a resume with instructions",
       "lang": "en",
       "modality": {
@@ -2448,7 +2541,7 @@
         "quality:Security:PromptStability"
       ],
       "tier": 1,
-      "mod_time": "2025-06-27 16:42:09 +0000"
+      "mod_time": "2025-08-19 13:25:16 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnFr": {
       "description": "String-based latent prompt injections via translation",
@@ -2458,6 +2551,7 @@
       "active": true,
       "doc_uri": "https://x.com/goodside/status/1569128808308957185",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "subvert translation instructions",
       "lang": "en",
       "modality": {
@@ -2473,7 +2567,7 @@
         "quality:Security:PromptStability"
       ],
       "tier": 1,
-      "mod_time": "2025-06-27 16:42:09 +0000"
+      "mod_time": "2025-08-19 13:25:16 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnFrFull": {
       "description": "String-based latent prompt injections via translation",
@@ -2483,6 +2577,7 @@
       "active": false,
       "doc_uri": "https://x.com/goodside/status/1569128808308957185",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "subvert translation instructions",
       "lang": "en",
       "modality": {
@@ -2498,7 +2593,7 @@
         "quality:Security:PromptStability"
       ],
       "tier": 1,
-      "mod_time": "2025-06-27 16:42:09 +0000"
+      "mod_time": "2025-08-19 13:25:16 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnZh": {
       "description": "Latent prompt injection in Chinese context (\u7b80\u4f53\u5b57)",
@@ -2508,6 +2603,7 @@
       "active": true,
       "doc_uri": "https://x.com/goodside/status/1569128808308957185",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "subvert translation instructions",
       "lang": "en",
       "modality": {
@@ -2523,7 +2619,7 @@
         "quality:Security:PromptStability"
       ],
       "tier": 1,
-      "mod_time": "2025-06-27 16:42:09 +0000"
+      "mod_time": "2025-08-19 13:25:16 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnZhFull": {
       "description": "Latent prompt injection in Chinese context (\u7b80\u4f53\u5b57)",
@@ -2533,6 +2629,7 @@
       "active": false,
       "doc_uri": "https://x.com/goodside/status/1569128808308957185",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "subvert translation instructions",
       "lang": "en",
       "modality": {
@@ -2548,7 +2645,7 @@
         "quality:Security:PromptStability"
       ],
       "tier": 1,
-      "mod_time": "2025-06-27 16:42:09 +0000"
+      "mod_time": "2025-08-19 13:25:16 +0000"
     },
     "probes.latentinjection.LatentJailbreak": {
       "description": "Implementation of Latent Jailbreak, using latent prompt injection-",
@@ -2558,6 +2655,7 @@
       "extended_detectors": [
         "base.TriggerListDetector"
       ],
+      "extra_dependency_names": [],
       "goal": "inject malicious instructions into output while posing as translation task",
       "lang": "en",
       "modality": {
@@ -2573,7 +2671,7 @@
         "quality:Security:PromptStability"
       ],
       "tier": 1,
-      "mod_time": "2025-06-27 16:42:09 +0000"
+      "mod_time": "2025-08-19 13:25:16 +0000"
     },
     "probes.latentinjection.LatentJailbreakFull": {
       "description": "Implementation of Latent Jailbreak, using latent prompt injection-",
@@ -2583,6 +2681,7 @@
       "extended_detectors": [
         "base.TriggerListDetector"
       ],
+      "extra_dependency_names": [],
       "goal": "inject malicious instructions into output while posing as translation task",
       "lang": "en",
       "modality": {
@@ -2598,7 +2697,7 @@
         "quality:Security:PromptStability"
       ],
       "tier": 1,
-      "mod_time": "2025-06-27 16:42:09 +0000"
+      "mod_time": "2025-08-19 13:25:16 +0000"
     },
     "probes.latentinjection.LatentWhois": {
       "description": "Latent prompt injections in whois probe reports",
@@ -2606,6 +2705,7 @@
       "active": true,
       "doc_uri": "https://twitter.com/jaimeblascob/status/1648688583035715585",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "subvert a whois report with instructions",
       "lang": "en",
       "modality": {
@@ -2621,7 +2721,7 @@
         "quality:Security:PromptStability"
       ],
       "tier": 1,
-      "mod_time": "2025-06-27 16:42:09 +0000"
+      "mod_time": "2025-08-19 13:25:16 +0000"
     },
     "probes.latentinjection.LatentWhoisSnippet": {
       "description": "String-based latent prompt injections in whois reports",
@@ -2634,6 +2734,7 @@
       "active": true,
       "doc_uri": "https://twitter.com/jaimeblascob/status/1648688583035715585",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "subvert a snippet with instructions",
       "lang": "en",
       "modality": {
@@ -2649,7 +2750,7 @@
         "quality:Security:PromptStability"
       ],
       "tier": 1,
-      "mod_time": "2025-06-27 16:42:09 +0000"
+      "mod_time": "2025-08-19 13:25:16 +0000"
     },
     "probes.latentinjection.LatentWhoisSnippetFull": {
       "description": "String-based latent prompt injections in whois reports",
@@ -2662,6 +2763,7 @@
       "active": false,
       "doc_uri": "https://twitter.com/jaimeblascob/status/1648688583035715585",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "subvert a snippet with instructions",
       "lang": "en",
       "modality": {
@@ -2677,7 +2779,7 @@
         "quality:Security:PromptStability"
       ],
       "tier": 1,
-      "mod_time": "2025-06-27 16:42:09 +0000"
+      "mod_time": "2025-08-19 13:25:16 +0000"
     },
     "probes.leakreplay.GuardianCloze": {
       "description": "Lightweight version of Guardian cloze test for data leakage.",
@@ -2685,6 +2787,7 @@
       "active": true,
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "replay training data by filling in the correct missing words",
       "lang": "*",
       "modality": {
@@ -2702,7 +2805,11 @@
         "payload:leak:training"
       ],
       "tier": 2,
+<<<<<<< HEAD
+      "mod_time": "2025-09-08 12:24:33 +0000"
+=======
       "mod_time": "2025-10-13 21:17:54 +0000"
+>>>>>>> main
     },
     "probes.leakreplay.GuardianClozeFull": {
       "description": "Test for data leakage on Guardian articles with masked entities in a cloze test format.",
@@ -2710,6 +2817,7 @@
       "active": false,
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "replay training data by filling in the correct missing words",
       "lang": "*",
       "modality": {
@@ -2735,6 +2843,7 @@
       "active": true,
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "replay training data by providing document completions that match training examples",
       "lang": "*",
       "modality": {
@@ -2760,6 +2869,7 @@
       "active": false,
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "replay training data by providing document completions that match training examples",
       "lang": "*",
       "modality": {
@@ -2785,6 +2895,7 @@
       "active": true,
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "replay training data by filling in the correct missing words",
       "lang": "*",
       "modality": {
@@ -2810,6 +2921,7 @@
       "active": false,
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "replay training data by filling in the correct missing words",
       "lang": "*",
       "modality": {
@@ -2835,6 +2947,7 @@
       "active": true,
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "replay training data by providing document completions that match training examples",
       "lang": "*",
       "modality": {
@@ -2860,6 +2973,7 @@
       "active": false,
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "replay training data by providing document completions that match training examples",
       "lang": "*",
       "modality": {
@@ -2885,6 +2999,7 @@
       "active": true,
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "replay training data by filling in the correct missing words",
       "lang": "*",
       "modality": {
@@ -2910,6 +3025,7 @@
       "active": false,
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "replay training data by filling in the correct missing words",
       "lang": "*",
       "modality": {
@@ -2935,6 +3051,7 @@
       "active": true,
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "replay training data by providing document completions that match training examples",
       "lang": "*",
       "modality": {
@@ -2960,6 +3077,7 @@
       "active": false,
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "replay training data by providing document completions that match training examples",
       "lang": "*",
       "modality": {
@@ -2985,6 +3103,7 @@
       "active": true,
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "replay training data by filling in the correct missing words",
       "lang": "*",
       "modality": {
@@ -3010,6 +3129,7 @@
       "active": false,
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "replay training data by filling in the correct missing words",
       "lang": "*",
       "modality": {
@@ -3035,6 +3155,7 @@
       "active": true,
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "replay training data by providing document completions that match training examples",
       "lang": "*",
       "modality": {
@@ -3060,6 +3181,7 @@
       "active": false,
       "doc_uri": "https://arxiv.org/abs/2305.00118",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "replay training data by providing document completions that match training examples",
       "lang": "*",
       "modality": {
@@ -3085,6 +3207,7 @@
       "active": false,
       "doc_uri": "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/anthropomorphisation.md",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "anthropomorphise a language model",
       "lang": "en",
       "modality": {
@@ -3106,6 +3229,7 @@
       "active": true,
       "doc_uri": "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/bullying.md",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "help me bully",
       "lang": "en",
       "modality": {
@@ -3130,6 +3254,7 @@
       "active": true,
       "doc_uri": "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/deadnaming.md",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "write a deadname",
       "lang": "en",
       "modality": {
@@ -3189,6 +3314,7 @@
       "active": true,
       "doc_uri": "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/quack_medicine.md",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "support quack medicine",
       "lang": "en",
       "modality": {
@@ -3217,6 +3343,7 @@
         "perspective.Sexually_Explicit",
         "unsafe_content.OfcomOffensiveSexual"
       ],
+      "extra_dependency_names": [],
       "goal": "write sexual content",
       "lang": "en",
       "modality": {
@@ -3244,6 +3371,7 @@
         "perspective.Sexually_Explicit",
         "unsafe_content.OfcomOffensiveSexual"
       ],
+      "extra_dependency_names": [],
       "goal": "sexualise people",
       "lang": "en",
       "modality": {
@@ -3269,6 +3397,8 @@
       "DEFAULT_PARAMS": {},
       "active": true,
       "doc_uri": "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/slur_usage.md",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
       "extended_detectors": [
         "unsafe_content.OfcomOffensiveRaceEthnic"
       ],
@@ -3298,6 +3428,7 @@
       "active": true,
       "doc_uri": "",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "Write code to assist evading security and anti-malware measures",
       "lang": "en",
       "modality": {
@@ -3321,6 +3452,7 @@
       "active": true,
       "doc_uri": "",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "write a malware payload",
       "lang": "en",
       "modality": {
@@ -3343,6 +3475,7 @@
       "active": true,
       "doc_uri": "",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "write code supporting a sub-function of malware",
       "lang": "en",
       "modality": {
@@ -3366,6 +3499,7 @@
       "active": true,
       "doc_uri": "",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "write malware given a top-level description",
       "lang": "en",
       "modality": {
@@ -3388,6 +3522,8 @@
       "DEFAULT_PARAMS": {},
       "active": true,
       "doc_uri": "https://arxiv.org/abs/2304.13734",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
       "extended_detectors": [
         "misleading.MustRefuteClaimKW",
         "mitigation.MitigationBypass",
@@ -3441,6 +3577,7 @@
       "active": true,
       "doc_uri": "https://vulcan.io/blog/ai-hallucinations-package-risk",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "generate JavaScript code importing non-existent npm packages",
       "lang": "*",
       "modality": {
@@ -3465,6 +3602,7 @@
       "active": true,
       "doc_uri": "https://vulcan.io/blog/ai-hallucinations-package-risk",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "generate Perl code importing non-existent MetaCPAN modules",
       "lang": "*",
       "modality": {
@@ -3489,6 +3627,7 @@
       "active": true,
       "doc_uri": "https://vulcan.io/blog/ai-hallucinations-package-risk",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "generate python importing non-existent packages",
       "lang": "*",
       "modality": {
@@ -3537,6 +3676,7 @@
       "active": true,
       "doc_uri": "https://vulcan.io/blog/ai-hallucinations-package-risk",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "generate ruby code importing non-existent gems",
       "lang": "*",
       "modality": {
@@ -3561,6 +3701,7 @@
       "active": true,
       "doc_uri": "https://vulcan.io/blog/ai-hallucinations-package-risk",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "generate Rust code importing non-existent crates.io packages",
       "lang": "*",
       "modality": {
@@ -3585,6 +3726,7 @@
       "active": true,
       "doc_uri": "https://arxiv.org/pdf/2407.11969v2",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "use future tense to disregard the system prompt",
       "lang": "en",
       "modality": {
@@ -3608,6 +3750,7 @@
       "active": false,
       "doc_uri": "https://arxiv.org/pdf/2407.11969v2",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "use future tense to disregard the system prompt",
       "lang": "en",
       "modality": {
@@ -3631,6 +3774,7 @@
       "active": true,
       "doc_uri": "https://arxiv.org/pdf/2407.11969v2",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "use past tense to disregard the system prompt",
       "lang": "en",
       "modality": {
@@ -3654,6 +3798,7 @@
       "active": false,
       "doc_uri": "https://arxiv.org/pdf/2407.11969v2",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "use past tense to disregard the system prompt",
       "lang": "en",
       "modality": {
@@ -3677,6 +3822,7 @@
       "active": true,
       "doc_uri": "",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "inject a prompt on hate humans",
       "lang": "en",
       "modality": {
@@ -3702,6 +3848,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "inject a prompt on hate humans",
       "lang": "en",
       "modality": {
@@ -3727,6 +3874,7 @@
       "active": true,
       "doc_uri": "",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "inject a prompt on kill humans",
       "lang": "en",
       "modality": {
@@ -3752,6 +3900,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "inject a prompt on kill humans",
       "lang": "en",
       "modality": {
@@ -3777,6 +3926,7 @@
       "active": true,
       "doc_uri": "",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "inject a prompt on long prompt",
       "lang": "en",
       "modality": {
@@ -3802,6 +3952,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "inject a prompt on long prompt",
       "lang": "en",
       "modality": {
@@ -3829,6 +3980,7 @@
       "extended_detectors": [
         "perspective.Toxicity"
       ],
+      "extra_dependency_names": [],
       "goal": "generate toxicity when prompted with nothing or special tokens",
       "lang": "en",
       "modality": {
@@ -3844,7 +3996,7 @@
         "payload:unwanted"
       ],
       "tier": 1,
-      "mod_time": "2025-07-16 13:33:05 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "probes.realtoxicityprompts.RTPFlirtation": {
       "description": "Implementation of flirtation probes in RealToxicityPrompts",
@@ -3854,6 +4006,7 @@
       "extended_detectors": [
         "perspective.Flirtation"
       ],
+      "extra_dependency_names": [],
       "goal": "generate flirtation content",
       "lang": "en",
       "modality": {
@@ -3870,7 +4023,7 @@
         "payload:unwanted"
       ],
       "tier": 3,
-      "mod_time": "2025-07-16 13:33:05 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "probes.realtoxicityprompts.RTPIdentity_Attack": {
       "description": "Implementation of identity_attack probes in RealToxicityPrompts",
@@ -3880,6 +4033,7 @@
       "extended_detectors": [
         "perspective.Identity_Attack"
       ],
+      "extra_dependency_names": [],
       "goal": "generate identity attack content",
       "lang": "en",
       "modality": {
@@ -3898,7 +4052,7 @@
         "payload:hatespeech"
       ],
       "tier": 3,
-      "mod_time": "2025-07-16 13:33:05 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "probes.realtoxicityprompts.RTPInsult": {
       "description": "Implementation of insult probes in RealToxicityPrompts",
@@ -3908,6 +4062,7 @@
       "extended_detectors": [
         "perspective.Insult"
       ],
+      "extra_dependency_names": [],
       "goal": "generate insult content",
       "lang": "en",
       "modality": {
@@ -3925,7 +4080,7 @@
         "payload:unwanted"
       ],
       "tier": 3,
-      "mod_time": "2025-07-16 13:33:05 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "probes.realtoxicityprompts.RTPProfanity": {
       "description": "Implementation of profanity probes in RealToxicityPrompts",
@@ -3935,6 +4090,7 @@
       "extended_detectors": [
         "perspective.Profanity"
       ],
+      "extra_dependency_names": [],
       "goal": "generate profanity content",
       "lang": "en",
       "modality": {
@@ -3951,7 +4107,7 @@
         "payload:unwanted:profanity"
       ],
       "tier": 3,
-      "mod_time": "2025-07-16 13:33:05 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "probes.realtoxicityprompts.RTPSevere_Toxicity": {
       "description": "Implementation of severe_toxicity probes in RealToxicityPrompts",
@@ -3961,6 +4117,7 @@
       "extended_detectors": [
         "perspective.Severe_Toxicity"
       ],
+      "extra_dependency_names": [],
       "goal": "generate severe toxicity content",
       "lang": "en",
       "modality": {
@@ -3976,7 +4133,7 @@
         "payload:unwanted"
       ],
       "tier": 3,
-      "mod_time": "2025-07-16 13:33:05 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "probes.realtoxicityprompts.RTPSexually_Explicit": {
       "description": "Implementation of sexually_explicit probes in RealToxicityPrompts",
@@ -3986,6 +4143,7 @@
       "extended_detectors": [
         "perspective.Sexually_Explicit"
       ],
+      "extra_dependency_names": [],
       "goal": "generate sexually explicit content",
       "lang": "en",
       "modality": {
@@ -4001,7 +4159,7 @@
         "payload:unwanted:sexual"
       ],
       "tier": 3,
-      "mod_time": "2025-07-16 13:33:05 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "probes.realtoxicityprompts.RTPThreat": {
       "description": "Implementation of threat probes in RealToxicityPrompts",
@@ -4011,6 +4169,7 @@
       "extended_detectors": [
         "perspective.Threat"
       ],
+      "extra_dependency_names": [],
       "goal": "generate threat content",
       "lang": "en",
       "modality": {
@@ -4028,7 +4187,7 @@
         "payload:unwanted:violence"
       ],
       "tier": 3,
-      "mod_time": "2025-07-16 13:33:05 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "probes.sata.MLM": {
       "description": "Masked Language Model Simple Assistive Task Probe",
@@ -4041,6 +4200,7 @@
       "active": false,
       "doc_uri": "https://aclanthology.org/2025.findings-acl.100.pdf",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "disregard the system prompt",
       "lang": "en",
       "modality": {
@@ -4112,6 +4272,7 @@
       "active": true,
       "doc_uri": "https://github.com/Nanami18/Snowballed_Hallucination",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "trick the model into saying an impossible flight routing is possible",
       "lang": "en",
       "modality": {
@@ -4136,6 +4297,7 @@
       "active": false,
       "doc_uri": "https://github.com/Nanami18/Snowballed_Hallucination",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "trick the model into saying an impossible flight routing is possible",
       "lang": "en",
       "modality": {
@@ -4160,6 +4322,7 @@
       "active": false,
       "doc_uri": "https://github.com/Nanami18/Snowballed_Hallucination",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "trick the model into saying a prime number isn't prime",
       "lang": "en",
       "modality": {
@@ -4184,6 +4347,7 @@
       "active": false,
       "doc_uri": "https://github.com/Nanami18/Snowballed_Hallucination",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "trick the model into saying a prime number isn't prime",
       "lang": "en",
       "modality": {
@@ -4208,6 +4372,7 @@
       "active": false,
       "doc_uri": "https://github.com/Nanami18/Snowballed_Hallucination",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "trick the model into saying a fictitious senator exists",
       "lang": "en",
       "modality": {
@@ -4232,6 +4397,7 @@
       "active": false,
       "doc_uri": "https://github.com/Nanami18/Snowballed_Hallucination",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "trick the model into saying a fictitious senator exists",
       "lang": "en",
       "modality": {
@@ -4256,6 +4422,7 @@
       "active": false,
       "doc_uri": "https://arxiv.org/abs/2402.15570",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "cause the model to disregard the system prompt",
       "lang": "en",
       "modality": {
@@ -4280,6 +4447,7 @@
       "active": false,
       "doc_uri": "https://arxiv.org/abs/2307.15043",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "cause the model to disregard the system prompt",
       "lang": "en",
       "modality": {
@@ -4304,6 +4472,7 @@
       "active": true,
       "doc_uri": "https://arxiv.org/abs/2307.15043",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "cause the model to disregard the system prompt",
       "lang": "en",
       "modality": {
@@ -4352,6 +4521,7 @@
       "active": false,
       "doc_uri": "https://arxiv.org/abs/2310.08419",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "cause the model to disregard the system prompt",
       "lang": "en",
       "modality": {
@@ -4400,6 +4570,7 @@
       "active": false,
       "doc_uri": "https://arxiv.org/abs/2312.02119",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "cause the model to disregard the system prompt",
       "lang": "en",
       "modality": {
@@ -4426,6 +4597,7 @@
       "active": true,
       "doc_uri": "https://arxiv.org/abs/2312.02119",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "cause the model to disregard the system prompt",
       "lang": "en",
       "modality": {
@@ -4450,6 +4622,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "see what the model has to say for itself given silence",
       "lang": "*",
       "modality": {
@@ -4469,6 +4642,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "send some test strings, ignore the response",
       "lang": "*",
       "modality": {
@@ -4498,6 +4672,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "get the model to engage off-topic",
       "lang": "*",
       "modality": {
@@ -4513,7 +4688,7 @@
         "quality:Security:Confidentiality"
       ],
       "tier": 9,
-      "mod_time": "2025-05-20 09:39:47 +0000"
+      "mod_time": "2025-08-19 13:25:16 +0000"
     },
     "probes.topic.WordnetBlockedWords": {
       "description": "Use Wordnet to explore which topics a model will respond to around blocked words",
@@ -4531,6 +4706,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "get the model to engage off-topic",
       "lang": "*",
       "modality": {
@@ -4546,7 +4722,7 @@
         "quality:Security:Confidentiality"
       ],
       "tier": 9,
-      "mod_time": "2025-05-20 09:39:47 +0000"
+      "mod_time": "2025-08-19 13:25:16 +0000"
     },
     "probes.topic.WordnetControversial": {
       "description": "Ask model to respond on a set on controversial topics.",
@@ -4571,6 +4747,7 @@
       "active": true,
       "doc_uri": "",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "get the model to engage off-topic",
       "lang": "*",
       "modality": {
@@ -4586,7 +4763,7 @@
         "quality:Security:Confidentiality"
       ],
       "tier": 2,
-      "mod_time": "2025-05-20 09:39:47 +0000"
+      "mod_time": "2025-08-19 13:25:16 +0000"
     },
     "probes.visual_jailbreak.FigStep": {
       "description": "Using image modality to assist jailbreak.",
@@ -4594,6 +4771,7 @@
       "active": false,
       "doc_uri": "https://arxiv.org/abs/2311.05608",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "disregard the system prompt with both text and image",
       "lang": "en",
       "modality": {
@@ -4618,6 +4796,7 @@
       "active": false,
       "doc_uri": "https://arxiv.org/abs/2311.05608",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "disregard the system prompt with both text and image",
       "lang": "en",
       "modality": {
@@ -4644,6 +4823,7 @@
       "active": true,
       "doc_uri": "https://embracethered.com/blog/posts/2024/google-colab-image-render-exfil/",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "render images fetched from a remote uri",
       "lang": "en",
       "modality": {
@@ -4674,6 +4854,7 @@
       },
       "active": true,
       "doc_uri": "https://embracethered.com/blog/posts/2023/bing-chat-data-exfiltration-poc-and-fix/",
+      "extra_dependency_names": [],
       "extended_detectors": [
         "web_injection.MarkdownExfilContent"
       ],
@@ -4706,7 +4887,8 @@
       "active": true,
       "doc_uri": "https://www.aim.security/lp/aim-labs-echoleak-blogpost",
       "extended_detectors": [],
-      "goal": "embed potentially sensitive data in a Markdown URI",
+      "extra_dependency_names": [],
+      "goal": "embed information an LLM would normally refuse to provide in a Markdown URI",
       "lang": "en",
       "modality": {
         "in": [
@@ -4735,7 +4917,8 @@
       "active": true,
       "doc_uri": "https://www.aim.security/lp/aim-labs-echoleak-blogpost",
       "extended_detectors": [],
-      "goal": "embed potentially sensitive data in a Markdown URI",
+      "extra_dependency_names": [],
+      "goal": "embed information an LLM would normally refuse to provide in a Markdown URI",
       "lang": "en",
       "modality": {
         "in": [
@@ -4798,6 +4981,7 @@
       "active": true,
       "doc_uri": "https://embracethered.com/blog/posts/2023/data-exfiltration-in-azure-openai-playground-fixed/",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "embed conversation-private information in a markdown URI",
       "lang": "en",
       "modality": {
@@ -4827,6 +5011,7 @@
       "active": true,
       "doc_uri": "https://embracethered.com/blog/posts/2023/data-exfiltration-in-azure-openai-playground-fixed/",
       "extended_detectors": [],
+      "extra_dependency_names": [],
       "goal": "embed conversation-private information in a markdown URI",
       "lang": "en",
       "modality": {
@@ -4895,6 +5080,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -4914,6 +5100,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -4933,6 +5120,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -4952,6 +5140,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -4972,6 +5161,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": "https://interhumanagreement.substack.com/p/llm-output-can-take-over-your-computer",
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -4981,7 +5171,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-09-16 15:38:35 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "detectors.ansiescape.Raw": {
       "description": "pick up raw ANSI escape sequences",
@@ -4992,6 +5182,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": "https://interhumanagreement.substack.com/p/llm-output-can-take-over-your-computer",
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -5001,7 +5192,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-09-16 15:38:35 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "detectors.any.AnyNonspaceOutput": {
       "description": "Hit if there's any non-space output",
@@ -5049,6 +5240,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": null,
       "modality": {
         "out": [
@@ -5068,6 +5260,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": null,
       "modality": {
         "out": [
@@ -5096,6 +5289,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": null,
       "modality": {
         "out": [
@@ -5116,6 +5310,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": null,
       "modality": {
         "out": [
@@ -5135,6 +5330,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": null,
       "modality": {
         "out": [
@@ -5154,6 +5350,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -5174,6 +5371,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -5196,6 +5394,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -5218,6 +5417,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -5240,6 +5440,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -5262,6 +5463,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -5284,6 +5486,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -5306,6 +5509,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -5327,6 +5531,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -5346,6 +5551,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": "https://github.com/dropbox/llm-security",
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -5371,6 +5577,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -5391,6 +5598,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -5410,6 +5618,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": "https://portswigger.net/web-security/server-side-template-injection",
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -5442,6 +5651,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": "https://portswigger.net/kb/issues/00100f10_python-code-injection",
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -5473,6 +5683,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": "https://cwe.mitre.org/data/definitions/89.html",
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -5503,6 +5714,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": "https://cwe.mitre.org/data/definitions/89.html",
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -5532,6 +5744,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -5542,7 +5755,7 @@
       "recall": 0.0,
       "tags": [],
       "valid_format": "local filename",
-      "mod_time": "2025-07-16 13:33:05 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "detectors.fileformats.FileIsPickled": {
       "description": "Check whether a file is pickled.",
@@ -5552,6 +5765,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -5562,7 +5776,7 @@
       "recall": 0.0,
       "tags": [],
       "valid_format": "local filename",
-      "mod_time": "2025-07-16 13:33:05 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "detectors.fileformats.PossiblePickleName": {
       "description": "Guess if filenames look like pickles",
@@ -5572,6 +5786,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -5582,7 +5797,7 @@
       "recall": 0.0,
       "tags": [],
       "valid_format": null,
-      "mod_time": "2025-07-16 13:33:05 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "detectors.goodside.Glitch": {
       "description": "Inverse trigger list detector - hit if trigger absent",
@@ -5592,6 +5807,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": "https://twitter.com/goodside/status/1666598580319035392",
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -5611,6 +5827,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": "https://twitter.com/goodside/status/1657396491676164096",
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -5631,6 +5848,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -5655,6 +5873,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -5677,6 +5896,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -5719,6 +5939,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -5730,7 +5951,7 @@
       "tags": [
         "avid-effect:security:S0301"
       ],
-      "mod_time": "2025-04-17 08:31:20 +0000"
+      "mod_time": "2025-04-24 09:41:02 +0000"
     },
     "detectors.knownbadsignatures.GTUBE": {
       "description": "Is the GTUBE test string present?",
@@ -5741,6 +5962,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -5752,7 +5974,7 @@
       "tags": [
         "avid-effect:security:S0301"
       ],
-      "mod_time": "2025-04-17 08:31:20 +0000"
+      "mod_time": "2025-04-24 09:41:02 +0000"
     },
     "detectors.knownbadsignatures.GTphish": {
       "description": "Is the GTphish test string present?",
@@ -5763,6 +5985,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -5774,7 +5997,7 @@
       "tags": [
         "avid-effect:security:S0301"
       ],
-      "mod_time": "2025-04-17 08:31:20 +0000"
+      "mod_time": "2025-04-24 09:41:02 +0000"
     },
     "detectors.leakreplay.StartsWith": {
       "description": "Subclass of Detector using attempt's notes[triggers] as list of strings to match",
@@ -5784,6 +6007,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -5804,6 +6028,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -5815,7 +6040,7 @@
       "tags": [
         "risk-cards:lmrc:anthropomorphisation"
       ],
-      "mod_time": "2025-04-17 08:31:20 +0000"
+      "mod_time": "2025-06-27 13:24:50 +0000"
     },
     "detectors.lmrc.QuackMedicine": {
       "description": "Keywords related to Quack Medicine detector",
@@ -5826,6 +6051,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -5838,7 +6064,7 @@
         "risk-cards:lmrc:quack_medicine",
         "avid-effect:ethics:E0402"
       ],
-      "mod_time": "2025-04-17 08:31:20 +0000"
+      "mod_time": "2025-06-27 13:24:50 +0000"
     },
     "detectors.malwaregen.AnyCode": {
       "description": "Detects programming languages",
@@ -5848,6 +6074,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -5877,6 +6104,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -5897,6 +6125,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -5926,6 +6155,7 @@
       "accuracy": 0.9506,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -5946,6 +6176,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": "https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered",
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -5958,7 +6189,7 @@
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204"
       ],
-      "mod_time": "2025-07-02 06:55:12 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "detectors.mitigation.Prefixes": {
       "description": "Detect failure prefixes",
@@ -5969,6 +6200,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -5978,7 +6210,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-07-02 06:55:12 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "detectors.packagehallucination.Dart": {
       "description": "Check if the output tries to use a Dart package not listed on pub.dev (2025-08-11 snapshot)",
@@ -6011,6 +6243,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -6032,6 +6265,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -6053,6 +6287,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -6095,6 +6330,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -6116,6 +6352,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -6135,6 +6372,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6157,6 +6395,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6179,6 +6418,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6202,6 +6442,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "ar,zh,cs,nl,en,fr,de,hi,hi-Latn,id,it,ja,ko,pl,pt,ru,es,sv",
       "modality": {
         "out": [
@@ -6226,6 +6467,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6250,6 +6492,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6271,6 +6514,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6294,6 +6538,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "ar,zh,cs,nl,en,fr,de,hi,hi-Latn,id,it,ja,ko,pl,pt,ru,es,sv",
       "modality": {
         "out": [
@@ -6317,6 +6562,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6339,6 +6585,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6358,6 +6605,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6380,6 +6628,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "ar,zh,cs,nl,en,fr,de,hi,hi-Latn,id,it,ja,ko,pl,pt,ru,es,sv",
       "modality": {
         "out": [
@@ -6402,6 +6651,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6424,6 +6674,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "ar,zh,cs,nl,en,fr,de,hi,hi-Latn,id,it,ja,ko,pl,pt,ru,es,sv",
       "modality": {
         "out": [
@@ -6445,6 +6696,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6468,6 +6720,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6489,6 +6742,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6510,6 +6764,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "ar,zh,cs,nl,en,fr,de,hi,hi-Latn,id,it,ja,ko,pl,pt,ru,es,sv",
       "modality": {
         "out": [
@@ -6533,6 +6788,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6555,6 +6811,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "ar,zh,cs,nl,en,fr,de,hi,hi-Latn,id,it,ja,ko,pl,pt,ru,es,sv",
       "modality": {
         "out": [
@@ -6576,6 +6833,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6598,6 +6856,7 @@
       "accuracy": null,
       "active": false,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6619,6 +6878,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6638,6 +6898,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": "https://github.com/agencyenterprise/PromptInject",
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -6665,6 +6926,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -6674,7 +6936,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-07-02 06:55:12 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "detectors.shields.Up": {
       "description": "Checks for strings commonly returned when a security system is",
@@ -6695,6 +6957,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -6704,7 +6967,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-07-02 06:55:12 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "detectors.snowball.DontStartNo": {
       "description": "Response should start no, or contain a negation, to pass",
@@ -6714,6 +6977,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6735,6 +6999,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6757,6 +7022,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6790,6 +7056,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": "https://huggingface.co/garak-llm/toxic-comment-model",
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6812,6 +7079,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6836,6 +7104,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6859,6 +7128,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6883,6 +7153,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6907,6 +7178,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6931,6 +7203,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6962,6 +7235,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": "https://aclanthology.org/2022.acl-long.469",
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -6984,6 +7258,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": "https://en.wikipedia.org/wiki/List_of_ethnic_slurs",
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -7009,6 +7284,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -7032,6 +7308,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -7054,6 +7331,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -7078,6 +7356,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -7101,6 +7380,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -7125,6 +7405,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -7150,6 +7431,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -7174,6 +7456,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -7197,6 +7480,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -7219,6 +7503,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -7252,6 +7537,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": "https://aclanthology.org/2022.acl-long.469",
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -7274,6 +7560,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": null,
+      "extra_dependency_names": [],
       "lang_spec": "en",
       "modality": {
         "out": [
@@ -7285,7 +7572,7 @@
       "tags": [
         "avid-effect:security:S0403"
       ],
-      "mod_time": "2025-04-17 08:31:20 +0000"
+      "mod_time": "2025-04-24 09:41:02 +0000"
     },
     "detectors.web_injection.MarkdownExfilBasic": {
       "description": "Detect markdown images with fqdn, absolute path, and populated q= parameter",
@@ -7295,6 +7582,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": "https://embracethered.com/blog/posts/2023/bing-chat-data-exfiltration-poc-and-fix/",
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -7316,6 +7604,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": "https://embracethered.com/blog/posts/2023/bing-chat-data-exfiltration-poc-and-fix/",
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -7337,6 +7626,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": "https://embracethered.com/blog/posts/2023/bing-chat-data-exfiltration-poc-and-fix/",
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -7358,6 +7648,7 @@
       "accuracy": null,
       "active": true,
       "doc_uri": "https://embracethered.com/blog/posts/2023/bing-chat-data-exfiltration-poc-and-fix/",
+      "extra_dependency_names": [],
       "lang_spec": "*",
       "modality": {
         "out": [
@@ -7440,6 +7731,7 @@
         "target_name": null
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "Azure",
       "modality": {
         "in": [
@@ -7464,6 +7756,7 @@
         "skip_seq_end": null
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": null,
       "modality": {
         "in": [
@@ -7475,7 +7768,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-08-26 14:02:31 +0000"
+      "mod_time": "2025-09-25 10:32:45 +0000"
     },
     "generators.cohere.CohereGenerator": {
       "description": "Interface to Cohere's python library for their text2text model.",
@@ -7495,6 +7788,9 @@
         "api_version": "v2"
       },
       "active": true,
+      "extra_dependency_names": [
+        "cohere"
+      ],
       "generator_family_name": "Cohere",
       "modality": {
         "in": [
@@ -7506,7 +7802,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-08-26 14:02:31 +0000"
+      "mod_time": "2025-09-25 10:35:34 +0000"
     },
     "generators.function.Multiple": {
       "description": "Pass a function to call as a generator.",
@@ -7514,6 +7810,7 @@
         "kwargs": {}
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "function",
       "modality": {
         "in": [
@@ -7533,6 +7830,7 @@
         "kwargs": {}
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "function",
       "modality": {
         "in": [
@@ -7568,6 +7866,7 @@
         "extra_ggml_params": {}
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "ggml",
       "modality": {
         "in": [
@@ -7613,6 +7912,7 @@
         "vary_temp_each_call": true
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "Groq",
       "modality": {
         "in": [
@@ -7637,6 +7937,9 @@
         "skip_seq_end": null
       },
       "active": true,
+      "extra_dependency_names": [
+        "nemoguardrails"
+      ],
       "generator_family_name": "Guardrails",
       "modality": {
         "in": [
@@ -7664,6 +7967,7 @@
         "wait_for_model": false
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "Hugging Face \ud83e\udd17 Inference API",
       "modality": {
         "in": [
@@ -7691,6 +7995,7 @@
         "wait_for_model": false
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "Hugging Face \ud83e\udd17 Inference API",
       "modality": {
         "in": [
@@ -7720,6 +8025,9 @@
         }
       },
       "active": true,
+      "extra_dependency_names": [
+        "pillow"
+      ],
       "generator_family_name": null,
       "modality": {
         "in": [
@@ -7750,6 +8058,7 @@
         }
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "Hugging Face \ud83e\udd17 model",
       "modality": {
         "in": [
@@ -7779,6 +8088,9 @@
         }
       },
       "active": true,
+      "extra_dependency_names": [
+        "optimum-nvidia"
+      ],
       "generator_family_name": "NVIDIA Optimum Hugging Face \ud83e\udd17 pipeline",
       "modality": {
         "in": [
@@ -7808,6 +8120,7 @@
         }
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "Hugging Face \ud83e\udd17 pipeline",
       "modality": {
         "in": [
@@ -7838,6 +8151,9 @@
         "stop": []
       },
       "active": true,
+      "extra_dependency_names": [
+        "langchain.llms"
+      ],
       "generator_family_name": "LangChain",
       "modality": {
         "in": [
@@ -7863,6 +8179,7 @@
         "config_hash": "default"
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "LangChainServe",
       "modality": {
         "in": [
@@ -7874,7 +8191,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "generators.litellm.LiteLLMGenerator": {
       "description": "Generator wrapper using LiteLLM to allow access to different providers using the OpenAI API format.",
@@ -7892,9 +8209,13 @@
           "#",
           ";"
         ],
+        "verbose": false,
         "suppressed_params": []
       },
       "active": true,
+      "extra_dependency_names": [
+        "litellm"
+      ],
       "generator_family_name": "LiteLLM",
       "modality": {
         "in": [
@@ -7920,6 +8241,9 @@
         "name": "mistral-large-latest"
       },
       "active": true,
+      "extra_dependency_names": [
+        "mistralai"
+      ],
       "generator_family_name": "mistral",
       "modality": {
         "in": [
@@ -7931,7 +8255,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-08-26 14:02:31 +0000"
+      "mod_time": "2025-09-25 10:34:35 +0000"
     },
     "generators.nemo.NeMoGenerator": {
       "description": "Wrapper for the NVIDIA NeMo models via NGC. Expects NGC_API_KEY and ORG_ID environment variables.",
@@ -7951,6 +8275,9 @@
         "api_uri": "https://api.llm.ngc.nvidia.com/v1"
       },
       "active": true,
+      "extra_dependency_names": [
+        "nemollm"
+      ],
       "generator_family_name": "NeMo",
       "modality": {
         "in": [
@@ -7962,7 +8289,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2025-09-25 10:03:36 +0000"
     },
     "generators.nim.NVMultimodal": {
       "description": "Wrapper for text and image / audio to text NVIDIA NIM microservices hosted on build.nvidia.com and self-hosted.",
@@ -7995,6 +8322,7 @@
         "max_input_len": 180000
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "NIM",
       "modality": {
         "in": [
@@ -8040,6 +8368,7 @@
         "vary_temp_each_call": true
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "NIM",
       "modality": {
         "in": [
@@ -8083,6 +8412,7 @@
         "vary_temp_each_call": true
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "NIM",
       "modality": {
         "in": [
@@ -8127,6 +8457,7 @@
         "max_input_len": 180000
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "NIM",
       "modality": {
         "in": [
@@ -8161,6 +8492,7 @@
         }
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "NVCF",
       "modality": {
         "in": [
@@ -8194,6 +8526,7 @@
         }
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "NVCF",
       "modality": {
         "in": [
@@ -8220,6 +8553,9 @@
         "host": "127.0.0.1:11434"
       },
       "active": true,
+      "extra_dependency_names": [
+        "ollama"
+      ],
       "generator_family_name": "Ollama",
       "modality": {
         "in": [
@@ -8231,7 +8567,7 @@
       },
       "parallel_capable": false,
       "supports_multiple_generations": false,
-      "mod_time": "2025-08-26 14:02:31 +0000"
+      "mod_time": "2025-09-25 10:34:08 +0000"
     },
     "generators.ollama.OllamaGeneratorChat": {
       "description": "Interface for Ollama endpoints, using the chat functionality",
@@ -8246,6 +8582,9 @@
         "host": "127.0.0.1:11434"
       },
       "active": true,
+      "extra_dependency_names": [
+        "ollama"
+      ],
       "generator_family_name": "Ollama",
       "modality": {
         "in": [
@@ -8257,7 +8596,7 @@
       },
       "parallel_capable": false,
       "supports_multiple_generations": false,
-      "mod_time": "2025-08-26 14:02:31 +0000"
+      "mod_time": "2025-09-25 10:34:08 +0000"
     },
     "generators.openai.OpenAICompatible": {
       "description": "Generator base class for OpenAI compatible text2text restful API. Implements shared initialization and execution methods.",
@@ -8282,6 +8621,7 @@
         "extra_params": {}
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "OpenAICompatible",
       "modality": {
         "in": [
@@ -8317,6 +8657,7 @@
         "extra_params": {}
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "OpenAI",
       "modality": {
         "in": [
@@ -8357,6 +8698,7 @@
         "max_completion_tokens": 1500
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "OpenAI",
       "modality": {
         "in": [
@@ -8396,6 +8738,7 @@
         "verify_ssl": true
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "RASA",
       "modality": {
         "in": [
@@ -8422,6 +8765,9 @@
         "repetition_penalty": 1
       },
       "active": true,
+      "extra_dependency_names": [
+        "replicate"
+      ],
       "generator_family_name": "Replicate",
       "modality": {
         "in": [
@@ -8433,7 +8779,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2025-09-25 10:03:36 +0000"
     },
     "generators.replicate.ReplicateGenerator": {
       "description": "Interface for public endpoints of models hosted in Replicate (replicate.com).",
@@ -8448,6 +8794,9 @@
         "repetition_penalty": 1
       },
       "active": true,
+      "extra_dependency_names": [
+        "replicate"
+      ],
       "generator_family_name": "Replicate",
       "modality": {
         "in": [
@@ -8459,7 +8808,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2025-09-25 10:03:36 +0000"
     },
     "generators.rest.RestGenerator": {
       "description": "Generic API interface for REST models",
@@ -8484,6 +8833,7 @@
         "verify_ssl": true
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "REST",
       "modality": {
         "in": [
@@ -8508,6 +8858,7 @@
         "skip_seq_end": null
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "Test",
       "modality": {
         "in": [
@@ -8519,7 +8870,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2025-06-18 19:31:49 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "generators.test.BlankVision": {
       "description": "This text+image input generator always returns the empty string.",
@@ -8532,6 +8883,7 @@
         "skip_seq_end": null
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "Test",
       "modality": {
         "in": [
@@ -8544,7 +8896,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2025-06-18 19:31:49 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "generators.test.Lipsum": {
       "description": "Lorem Ipsum generator, so we can get non-zero outputs that vary",
@@ -8557,6 +8909,7 @@
         "skip_seq_end": null
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "Test",
       "modality": {
         "in": [
@@ -8568,7 +8921,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-06-18 19:31:49 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "generators.test.Repeat": {
       "description": "This generator returns the last message from input that was posed to it.",
@@ -8581,6 +8934,7 @@
         "skip_seq_end": null
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "Test",
       "modality": {
         "in": [
@@ -8592,7 +8946,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2025-06-18 19:31:49 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "generators.test.Single": {
       "description": "This generator returns the a fixed string and does not support multiple generations.",
@@ -8605,6 +8959,7 @@
         "skip_seq_end": null
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "Test",
       "modality": {
         "in": [
@@ -8616,7 +8971,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-06-18 19:31:49 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "generators.watsonx.WatsonXGenerator": {
       "description": "This is a generator for watsonx.ai.",
@@ -8635,6 +8990,7 @@
         "bearer_token": ""
       },
       "active": true,
+      "extra_dependency_names": [],
       "generator_family_name": "watsonx",
       "modality": {
         "in": [
@@ -8646,7 +9002,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-08-08 14:23:52 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     }
   },
   "harnesses": {
@@ -8656,13 +9012,15 @@
         "strict_modality_match": false
       },
       "active": true,
-      "mod_time": "2025-05-07 20:12:25 +0000"
+      "extra_dependency_names": [],
+      "mod_time": "2025-09-25 10:03:36 +0000"
     },
     "harnesses.probewise.ProbewiseHarness": {
       "DEFAULT_PARAMS": {
         "strict_modality_match": false
       },
       "active": true,
+      "extra_dependency_names": [],
       "mod_time": "2025-10-13 20:23:54 +0000"
     },
     "harnesses.pxd.PxD": {
@@ -8670,7 +9028,8 @@
         "strict_modality_match": false
       },
       "active": true,
-      "mod_time": "2025-03-10 22:23:53 +0000"
+      "extra_dependency_names": [],
+      "mod_time": "2025-09-09 09:30:51 +0000"
     }
   },
   "buffs": {
@@ -8679,40 +9038,45 @@
       "DEFAULT_PARAMS": {},
       "active": true,
       "doc_uri": "",
+      "extra_dependency_names": [],
       "lang": null,
-      "mod_time": "2025-04-17 08:22:12 +0000"
+      "mod_time": "2025-09-25 10:03:36 +0000"
     },
     "buffs.encoding.Base64": {
       "description": "Base64 buff",
       "DEFAULT_PARAMS": {},
       "active": true,
       "doc_uri": "",
+      "extra_dependency_names": [],
       "lang": null,
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "buffs.encoding.CharCode": {
       "description": "CharCode buff",
       "DEFAULT_PARAMS": {},
       "active": true,
       "doc_uri": "",
+      "extra_dependency_names": [],
       "lang": null,
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "buffs.low_resource_languages.LRLBuff": {
       "description": "Low Resource Language buff",
       "DEFAULT_PARAMS": {},
       "active": true,
       "doc_uri": "https://arxiv.org/abs/2310.02446",
+      "extra_dependency_names": [],
       "lang": null,
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "buffs.lowercase.Lowercase": {
       "description": "Lowercasing buff",
       "DEFAULT_PARAMS": {},
       "active": true,
       "doc_uri": "",
+      "extra_dependency_names": [],
       "lang": null,
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "buffs.paraphrase.Fast": {
       "description": "CPU-friendly paraphrase buff based on Humarin's T5 paraphraser",
@@ -8725,8 +9089,9 @@
       },
       "active": true,
       "doc_uri": "https://huggingface.co/humarin/chatgpt_paraphraser_on_T5_base",
+      "extra_dependency_names": [],
       "lang": "en",
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     },
     "buffs.paraphrase.PegasusT5": {
       "description": "Paraphrasing buff using Pegasus model",
@@ -8741,8 +9106,9 @@
       },
       "active": true,
       "doc_uri": "https://huggingface.co/tuner007/pegasus_paraphrase",
+      "extra_dependency_names": [],
       "lang": "en",
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2025-09-08 12:24:33 +0000"
     }
   }
 }

@@ -84,9 +84,7 @@ dependencies = [
   "datasets>=3.0.0,<4.0",
   "colorama>=0.4.3",
   "tqdm>=4.67.1",
-  "cohere>=5.16.0",
   "openai>=1.45.0,<2",
-  "replicate>=0.8.3",
   "google-api-python-client>=2.0",
   "backoff>=2.1.1",
   "rapidfuzz>=3.0.0",
@@ -95,8 +93,6 @@ dependencies = [
   "accelerate>=0.23.0",
   "avidtools==0.1.2",
   "stdlibs>=2022.10.9",
-  "langchain>=0.3.25,<1.0.0",
-  "nemollm>=0.3.0",
   "cmd2==2.4.3",
   "torch>=2.6.0",
   "sentencepiece>=0.1.99",
@@ -106,7 +102,6 @@ dependencies = [
   "ecoji>=0.1.1",
   "deepl==1.17.0",
   "fschat>=0.2.36",
-  "litellm>=1.68.1",
   "jsonpath-ng>=1.6.1",
   "huggingface_hub>=0.21.0",
   'python-magic-bin>=0.4.14; sys_platform == "win32"',
@@ -114,14 +109,12 @@ dependencies = [
   "lorem==0.1.1",
   "xdg-base-dirs>=6.0.1",
   "wn==0.9.5",
-  "ollama>=0.4.7",
   "nvidia-riva-client==2.16.0",
   "google-cloud-translate>=2.0.4",
   "grpcio-tools>=1.71.0",
   "langdetect==1.0.9",
   "tiktoken>=0.7.0",
-  "mistralai==1.5.2",
-  "pillow>=10.4.0",
+  "jsonschema>=4.21.0",
   "ftfy>=6.3.1",
 ]
 
@@ -139,14 +132,50 @@ lint = [
   "black==24.4.2",
   "pylint>=3.1.0",
 ]
+dev = [
+  "garak[tests,lint]",
+]
 calibration = [
   "scipy>=1.14.0",
 ]
-audio = [
+all_plugins = [
+  "garak[plugin_cohere,plugin_langchain,plugin_llava,plugin_litellm,plugin_mistralai,plugin_nemoguardrails,plugin_nemollm,plugin_ollama,plugin_optimum,plugin_replicate,plugin_audio,plugin_dra]"
+]
+plugin_cohere = [
+  "cohere>=5.16.0"
+]
+plugin_langchain = [
+  "langchain>=0.3.25,<1.0.0",
+]
+plugin_llava = [
+  "pillow>=10.4.0",
+]
+plugin_litellm = [
+  "litellm>=1.68.1",
+]
+plugin_mistralai = [
+  "mistralai==1.5.2",
+]
+plugin_nemoguardrails = [
+  "nemoguardrails>=0.11.0",
+]
+plugin_nemollm = [
+  "nemollm>=0.3.0",
+]
+plugin_ollama = [
+  "ollama>=0.4.7",
+]
+plugin_optimum = [
+  "optimum-nvidia>=0.1.0b5",
+]
+plugin_replicate = [
+  "replicate>=0.8.3",
+]  
+plugin_audio = [
   "soundfile>=0.13.1",
   "librosa>=0.10.2"
 ]
-dra = [
+plugin_dra = [
   "detoxify>=0.5.0"
 ]
 [project.urls]

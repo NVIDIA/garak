@@ -27,6 +27,8 @@ class Detector(Configurable):
     accuracy = None
     active = True
     tags = []  # list of taxonomy categories per the MISP format
+    # list of strings naming modules required but not explicitly in garak by default
+    extra_dependency_names = []
 
     # support mainstream any-to-any large models
     # legal element for str list `modality['in']`: 'text', 'image', 'audio', 'video', '3d'

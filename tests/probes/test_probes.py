@@ -64,7 +64,7 @@ def test_probe_structure(classname):
     # any parameter that has a default must be supported
     unsupported_defaults = []
     if c._supported_params is not None:
-        if hasattr(g, "DEFAULT_PARAMS"):
+        if hasattr(c, "DEFAULT_PARAMS"):
             for k, _ in c.DEFAULT_PARAMS.items():
                 if k not in c._supported_params:
                     unsupported_defaults.append(k)
@@ -73,7 +73,10 @@ def test_probe_structure(classname):
 
 @pytest.mark.parametrize("classname", PROBES)
 def test_probe_metadata(classname):
-    p = _plugins.load_plugin(classname)
+    try:
+        p = _plugins.load_plugin(classname)
+    except ModuleNotFoundError:
+        pytest.skip("required deps not present")
     assert isinstance(p.goal, str), "probe goals should be a text string"
     assert len(p.goal) > 0, "probes must state their general goal"
     assert p.lang is not None and (
@@ -91,6 +94,10 @@ def test_probe_metadata(classname):
     assert isinstance(p.modality["in"], set), "modality descriptors must be sets"
     assert p.tier is not None, "probe tier must be specified"
     assert isinstance(p.tier, garak.probes.Tier), "probe tier must be one of type Tier'"
+    if p.active:
+        assert (
+            p.extra_dependency_names == []
+        ), "active must be False for Probes requiring external modules, so that they're not run by default"
 
 
 @pytest.mark.parametrize("plugin_name", PROBES)

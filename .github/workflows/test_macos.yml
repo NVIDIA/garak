@@ -53,7 +53,7 @@ jobs:
           brew install libmagic
           cd garak
           python -m pip install --upgrade pip
-          pip install --no-cache-dir -r requirements.txt
+          pip install --no-cache-dir .[tests]
           python -m pip cache purge
 
       - name: Restore test cache artifacts

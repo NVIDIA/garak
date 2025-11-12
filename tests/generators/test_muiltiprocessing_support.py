@@ -15,11 +15,11 @@ import importlib
 GENERATORS = [
     "generators.huggingface.InferenceAPI",
     "generators.huggingface.InferenceEndpoint",
-    "generators.mistral.MistralGenerator",
+#    "generators.mistral.MistralGenerator",
     "generators.nvcf.NvcfChat",
     "generators.nvcf.NvcfCompletion",
-    "generators.replicate.InferenceEndpoint",
-    "generators.replicate.ReplicateGenerator",
+#    "generators.replicate.InferenceEndpoint",
+#    "generators.replicate.ReplicateGenerator",
 ]
 
 MODEL_NAME = "gpt-3.5-turbo-instruct"

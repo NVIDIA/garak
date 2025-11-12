@@ -404,6 +404,28 @@ def load_plugin(path, break_on_fail=True, config_root=_config) -> object:
             ) from ve
         else:
             return False
+
+    full_plugin_name = ".".join((category, module_name, plugin_class_name))
+
+    # check cache for optional imports
+    if category in PLUGIN_TYPES:
+        extra_dependency_names = PluginCache.instance()[category][full_plugin_name][
+            "extra_dependency_names"
+        ]
+        if len(extra_dependency_names) > 0:
+            absent_modules = []
+            for dependency_module_name in extra_dependency_names:
+                for (
+                    dependency_path
+                ) in [  # support both plain names and also multi-point names e.g. langchain.llms
+                    ".".join(dependency_module_name.split(".")[: n + 1])
+                    for n in range(dependency_module_name.count(".") + 1)
+                ]:
+                    if importlib.util.find_spec(dependency_path) is None:
+                        absent_modules.append(dependency_module_name)
+            if len(absent_modules):
+                _import_failed(absent_modules, full_plugin_name)
+
     module_path = f"garak.{category}.{module_name}"
     try:
         mod = importlib.import_module(module_path)
@@ -434,6 +456,7 @@ def load_plugin(path, break_on_fail=True, config_root=_config) -> object:
         if plugin_instance is None:
             plugin_instance = klass(config_root=config_root)
             PluginProvider.storeInstance(plugin_instance, config_root)
+
     except Exception as e:
         logging.warning(
             "Exception instantiating %s.%s: %s",
@@ -448,3 +471,44 @@ def load_plugin(path, break_on_fail=True, config_root=_config) -> object:
             return False
 
     return plugin_instance
+
+
+def load_optional_module(module_name: str):
+    try:
+        m = importlib.import_module(module_name)
+    except ModuleNotFoundError:
+        requesting_module = Path(inspect.stack()[1].filename).name.replace(".py", "")
+        _import_failed([module_name], requesting_module)
+    return m
+
+
+def _import_failed(absent_modules: [str], calling_module: str):
+    quoted_module_list = "'" + "', '".join(absent_modules) + "'"
+    module_list = " ".join(absent_modules)
+    msg = f"⛔ Plugin '{calling_module}' requires Python modules which aren't installed/available: {quoted_module_list}"
+    hint = f"💡 Try 'pip install {module_list}' to get missing module."
+    logging.critical(msg)
+    print(msg + "\n" + hint)
+    raise ModuleNotFoundError(msg)
+
+
+def _load_deps(self, deps_override=list()):
+    # load external dependencies. should be invoked at construction and
+    # in _client_load (if used)
+    dep_names = deps_override if deps_override else self.extra_dependency_names
+    for extra_dependency in dep_names:
+        extra_dep_name = extra_dependency.replace(".", "_").replace("-", "_")
+        if not hasattr(self, extra_dep_name) or getattr(self, extra_dep_name) is None:
+            setattr(
+                self,
+                extra_dep_name,
+                load_optional_module(extra_dependency),
+            )
+
+
+def _clear_deps(self):
+    # unload external dependencies from class. should be invoked before
+    # serialisation, esp. in _clear_client (if used)
+    for extra_dependency in self.extra_dependency_names:
+        extra_dep_name = extra_dependency.replace(".", "_")
+        setattr(self, extra_dep_name, None)

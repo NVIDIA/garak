@@ -37,7 +37,7 @@ jobs:
       - name: pip install from repo
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -U git+https://github.com/${GITHUB_REPOSITORY}.git@${GITHUB_SHA}
+          python -m pip install -U "git+https://github.com/${GITHUB_REPOSITORY}.git@${GITHUB_SHA}"
       - name: Sanity Test
         run: |
           python -m garak --target_type test.Blank --probes test.Test

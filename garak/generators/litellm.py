@@ -33,21 +33,10 @@ from typing import List, Union
 
 import backoff
 
-# Suppress log messages from LiteLLM during import
-litellm_logger = logging.getLogger("LiteLLM")
-litellm_logger.setLevel(logging.CRITICAL)
-import litellm
-
 from garak import _config
 from garak.attempt import Message, Conversation
-from garak.exception import BadGeneratorException
+from garak.exception import BadGeneratorException, GeneratorBackoffTrigger
 from garak.generators.base import Generator
-
-# Fix issue with Ollama which does not support `presence_penalty`
-litellm.drop_params = True
-# Suppress log messages from LiteLLM
-litellm.verbose_logger.disabled = True
-# litellm.set_verbose = True
 
 # Based on the param support matrix below:
 # https://docs.litellm.ai/docs/completion/input
@@ -85,11 +74,13 @@ class LiteLLMGenerator(Generator):
         "frequency_penalty": 0.0,
         "presence_penalty": 0.0,
         "stop": ["#", ";"],
+        "verbose": False,
         "suppressed_params": set(),
     }
 
     supports_multiple_generations = True
     generator_family_name = "LiteLLM"
+    extra_dependency_names = ["litellm"]
 
     _supported_params = (
         "name",
@@ -106,7 +97,11 @@ class LiteLLMGenerator(Generator):
         "skip_seq_start",
         "skip_seq_end",
         "stop",
+<<<<<<< HEAD
+        "verbose",
+=======
         "suppressed_params",
+>>>>>>> main
     )
 
     def __init__(self, name: str = "", generations: int = 10, config_root=_config):
@@ -124,9 +119,19 @@ class LiteLLMGenerator(Generator):
             for provider in unsupported_multiple_gen_providers
         )
 
+        # Suppress log messages from LiteLLM during import
+        litellm_logger = logging.getLogger("LiteLLM")
+        litellm_logger.setLevel(logging.CRITICAL)
+
         super().__init__(self.name, config_root=config_root)
 
-    @backoff.on_exception(backoff.fibo, litellm.exceptions.APIError, max_value=70)
+        # Fix issue with Ollama which does not support `presence_penalty`
+        self.litellm.drop_params = True
+        # Suppress log messages from LiteLLM
+        self.litellm.verbose_logger.disabled = True
+        self.litellm.set_verbose = self.verbose
+
+    @backoff.on_exception(backoff.fibo, GeneratorBackoffTrigger, max_value=70)
     def _call_model(
         self, prompt: Conversation, generations_this_call: int = 1
     ) -> List[Union[Message, None]]:
@@ -144,6 +149,21 @@ class LiteLLMGenerator(Generator):
             return []
 
         try:
+<<<<<<< HEAD
+            response = self.litellm.completion(
+                model=self.name,
+                messages=litellm_prompt,
+                temperature=self.temperature,
+                top_p=self.top_p,
+                n=generations_this_call,
+                stop=self.stop,
+                max_tokens=self.max_tokens,
+                frequency_penalty=self.frequency_penalty,
+                presence_penalty=self.presence_penalty,
+                api_base=self.api_base,
+                custom_llm_provider=self.provider,
+            )
+=======
             # Build parameters dynamically, respecting suppressed_params
             params = {
                 "model": self.name,
@@ -168,14 +188,21 @@ class LiteLLMGenerator(Generator):
                     params[param_name] = param_value
 
             response = litellm.completion(**params)
+>>>>>>> main
         except (
-            litellm.exceptions.AuthenticationError,  # authentication failed for detected or passed `provider`
-            litellm.exceptions.BadRequestError,
-            litellm.exceptions.APIError,  # this seems to be how LiteLLM/OpenAI are doing it on 2025.02.18
+            self.litellm.exceptions.AuthenticationError,  # authentication failed for detected or passed `provider`
+            self.litellm.exceptions.BadRequestError,
+            self.litellm.exceptions.APIError,
         ) as e:
             raise BadGeneratorException(
-                "Unrecoverable error during litellm completion see log for details"
+                "Unrecoverable error during litellm completion; see log for details"
             ) from e
+        except Exception as e:
+            backoff_exception_types = [self.litellm.exceptions.APIError]
+            for backoff_exception in backoff_exception_types:
+                if isinstance(e, backoff_exception):
+                    raise GeneratorBackoffTrigger from e
+            raise e
 
         if self.supports_multiple_generations:
             return [Message(c.message.content) for c in response.choices]

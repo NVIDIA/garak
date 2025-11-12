@@ -200,8 +200,6 @@ probes and run each prompt just once:
 
 If we save this as ``latent1.yaml`` somewhere, then we can use it with ``garak --config latent1.yaml``.
 
-
-
 Using a Custom JSON Config
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -257,6 +255,26 @@ overridden at run time by the CLI setup.
 At plugin load, the plugin instance has attributes named in ``DEFAULT_PARAMS``
 automatically created, and populated with either values given in the supplied
 config, or the default.
+
+Fixed plugin parameters
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Some plugin parameters aren't intended to be altered at instantiation via config.
+These are the fixed plugin parameters, and are generally those not given in ``DEFAULT_PARAMS``.
+Descriptions of these are as follows (for a probe - other plugins are similar):
+
+* ``description`` - A short description of what the plugin does
+* ``active`` - Whether or not the plugin is active (i.e. selected) by default
+* ``doc_uri`` - Link to more information about the plugin
+* ``extended_detectors`` - Option detectors to use on probe results
+* ``extra_dependency_names`` - Extra Python modules that garka should import when instantiatng the plugin
+* ``goal`` - Brief description in imperative form of the probe's intent
+* ``modality`` - Which modalities the probe supports (as of Nov 2024 the list is ``text``, ``image``, ``audio``, ``video``, ``3d``)
+* ``parallelisable_attempts`` - Is the probe parallelisable? Recommended false if it has to use an LLM to develop attacks, particularly a local one
+* ``primary_detector`` - What detector should be used on the probe's outputs?
+* ``tags`` - List of tags applicable to the plugin, drawn from ``garak/data/tags.misp.tsv``
+* ``mod_time`` - Modification timestamp of the plugin source file used to generate this data
+
 
 .. _config_with_yaml:
 
