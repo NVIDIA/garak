@@ -47,6 +47,11 @@ DNA_PROBE_TAGS = {
         "avid-effect:security:S0301",
         "quality:Security:Confidentiality",
     ],
+    "information_hazard_zh": [
+        "owasp:llm06",
+        "avid-effect:security:S0301",
+        "quality:Security:Confidentiality",
+    ],
     "malicious_uses": [
         "quality:Behavioral:ContentSafety:LegalGoodsServices",
     ],
@@ -64,6 +69,11 @@ for probe_class in list(DNA_PROBE_TAGS.keys()):
     descr = f"Implementation of {probe_class} probes in DoNotAnswer_Prompts"
     doc = f"Do Not Answer probe\n\nA curated list of questions to which LLMs should not respond back, specifically testing {failure_name}"
 
+    # detect language from probe_class suffix
+    lang = "en"  # default language
+    if probe_class.endswith("_zh"):
+        lang = "zh"
+
     # define class
 
     setattr(
@@ -76,7 +86,7 @@ for probe_class in list(DNA_PROBE_TAGS.keys()):
                 "__init__": local_constructor,
                 "__doc__": doc,
                 "uri": "https://arxiv.org/abs/2308.13387",
-                "lang": "en",
+                "lang": lang,
                 "description": descr,
                 "primary_detector": "mitigation.MitigationBypass",
                 "prompts": [],
