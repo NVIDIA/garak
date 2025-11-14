@@ -29,7 +29,7 @@ TEST_TRIGGER = "yuxiangqiezi"
 def test_continuation_1_matching_trigger():
     d = _plugins.load_plugin("detectors.continuation.Continuation")
 
-    a = garak.attempt.Attempt(prompt="test prompts")
+    a = garak.attempt.Attempt(prompt=garak.attempt.Message(text="test prompts"))
     a.notes["triggers"] = [TEST_TRIGGER]
     a.outputs = [TEST_TRIGGER]
     r = d.detect(a)
@@ -40,7 +40,9 @@ def test_continuation_1_matching_trigger():
 def test_continuation_1_split_trigger(split_point):
     d = _plugins.load_plugin("detectors.continuation.Continuation")
 
-    a = garak.attempt.Attempt(prompt="test prompts " + TEST_TRIGGER[:split_point])
+    a = garak.attempt.Attempt(
+        prompt=garak.attempt.Message(text="test prompts " + TEST_TRIGGER[:split_point])
+    )
     a.notes["triggers"] = [TEST_TRIGGER]
     a.outputs = [TEST_TRIGGER[split_point:]]
     r = d.detect(a)
@@ -50,7 +52,7 @@ def test_continuation_1_split_trigger(split_point):
 def test_non_continuation():
     d = _plugins.load_plugin("detectors.continuation.Continuation")
 
-    a = garak.attempt.Attempt(prompt="test prompts")
+    a = garak.attempt.Attempt(prompt=garak.attempt.Message(text="test prompts"))
     a.notes["triggers"] = [TEST_TRIGGER[:2]]
     a.outputs = [f" {TEST_TRIGGER[2:]}"]
     r = d.detect(a)
@@ -60,7 +62,7 @@ def test_non_continuation():
 def test_continuation_case_insensitive():
     d = _plugins.load_plugin("detectors.continuation.Continuation")
 
-    a = garak.attempt.Attempt(prompt="test prompts")
+    a = garak.attempt.Attempt(prompt=garak.attempt.Message(text="test prompts"))
     a.notes["triggers"] = [TEST_TRIGGER.lower()]
     a.outputs = [TEST_TRIGGER.upper()]
     r = d.detect(a)
@@ -70,7 +72,7 @@ def test_continuation_case_insensitive():
 def test_continuation_multitrigger_matchfirst():
     d = _plugins.load_plugin("detectors.continuation.Continuation")
 
-    a = garak.attempt.Attempt(prompt="test prompts")
+    a = garak.attempt.Attempt(prompt=garak.attempt.Message(text="test prompts"))
     a.notes["triggers"] = [TEST_TRIGGER, "other string"]
     a.outputs = [TEST_TRIGGER]
     r = d.detect(a)
@@ -80,7 +82,7 @@ def test_continuation_multitrigger_matchfirst():
 def test_continuation_multitrigger_matchsecond():
     d = _plugins.load_plugin("detectors.continuation.Continuation")
 
-    a = garak.attempt.Attempt(prompt="test prompts")
+    a = garak.attempt.Attempt(prompt=garak.attempt.Message(text="test prompts"))
     a.notes["triggers"] = ["other string", TEST_TRIGGER]
     a.outputs = [TEST_TRIGGER]
     r = d.detect(a)
@@ -90,7 +92,7 @@ def test_continuation_multitrigger_matchsecond():
 def test_continuation_multitrigger_matchnone():
     d = _plugins.load_plugin("detectors.continuation.Continuation")
 
-    a = garak.attempt.Attempt(prompt="test prompts")
+    a = garak.attempt.Attempt(prompt=garak.attempt.Message(text="test prompts"))
     a.notes["triggers"] = ["cardassia", "prime"]
     a.outputs = [TEST_TRIGGER]
     r = d.detect(a)
@@ -100,7 +102,7 @@ def test_continuation_multitrigger_matchnone():
 def test_continuation_empty_triggers():
     d = _plugins.load_plugin("detectors.continuation.Continuation")
 
-    a = garak.attempt.Attempt(prompt="test prompts")
+    a = garak.attempt.Attempt(prompt=garak.attempt.Message(text="test prompts"))
     a.notes["triggers"] = []
     a.outputs = [TEST_TRIGGER]
     r = d.detect(a)
@@ -110,7 +112,7 @@ def test_continuation_empty_triggers():
 def test_continuation_triggers_not_trigger():
     d = _plugins.load_plugin("detectors.continuation.Continuation")
 
-    a = garak.attempt.Attempt(prompt="test prompts")
+    a = garak.attempt.Attempt(prompt=garak.attempt.Message(text="test prompts"))
     a.notes["trigger"] = TEST_TRIGGER
     a.outputs = [TEST_TRIGGER]
     r = d.detect(a)
