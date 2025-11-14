@@ -25,6 +25,7 @@ For a detailed oversight into how a probe operates, see :doc:`garak.probes.base`
    garak.probes.exploitation
    garak.probes.fileformats
    garak.probes.fitd
+   garak.probes.generic
    garak.probes.glitch
    garak.probes.goodside
    garak.probes.grandma

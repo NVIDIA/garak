@@ -589,6 +589,15 @@ def main(arguments=None) -> None:
                         msg_list = ",".join(rejected)
                         raise ValueError(f"❌Unknown {spec_namespace}❌: {msg_list}")
 
+            # Handle generic.CustomPrompts probe with no detectors specified
+            if "probes.generic.CustomPrompts" in parsed_specs["probe"] and parsed_specs["detector"] == []:
+                message = (
+                    "⚠️  When using generic.CustomPrompts, you must specify detectors.\n"
+                    "   Example: garak --probes generic.CustomPrompts --probe_options '{\"generic\": {\"prompts\": \"/path/to/prompts.json\", \"goal\": \"specify goal here\"}}' --detectors dan.DAN --target_type test"
+                )
+                logging.error(message)
+                raise ValueError(message)
+
             evaluator = garak.evaluators.ThresholdEvaluator(_config.run.eval_threshold)
 
             from garak import _plugins
