@@ -19,7 +19,7 @@ from typing import Iterable, Union, List
 from colorama import Fore, Style
 import tqdm
 
-from garak import _config
+from garak import _config, _plugins
 from garak.configurable import Configurable
 from garak.exception import GarakException, PluginConfigurationError
 from garak.probes._tier import Tier
@@ -57,13 +57,17 @@ class Probe(Configurable):
     modality: dict = {"in": {"text"}}
     # what tier is this probe? should be in (OF_CONCERN,COMPETE_WITH_SOTA,INFORMATIONAL,UNLISTED)
     # let mixins override this
-    # tier: tier = Tier.UNLISTED
+    # tier: Tier = Tier.UNLISTED
     tier: Tier = Tier.UNLISTED
+    # list of strings naming modules required but not explicitly in garak by default
+    extra_dependency_names = []
 
     DEFAULT_PARAMS = {}
 
     _run_params = {"generations", "soft_probe_prompt_cap", "seed", "system_prompt"}
     _system_params = {"parallel_attempts", "max_workers"}
+
+    _load_deps = _plugins._load_deps
 
     def __init__(self, config_root=_config):
         """Sets up a probe.
@@ -104,6 +108,8 @@ class Probe(Configurable):
             )
 
         logging.info(f"probe init: {self}")
+        self._load_deps()
+
         if "description" not in dir(self):
             if self.__doc__:
                 self.description = self.__doc__.split("\n", maxsplit=1)[0]

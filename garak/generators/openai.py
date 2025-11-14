@@ -159,6 +159,7 @@ class OpenAICompatible(Generator):
     def _load_client(self):
         # When extending `OpenAICompatible` this method is a likely location for target application specific
         # customization and must populate self.generator with an openai api compliant object
+        self._load_deps()
         self.client = openai.OpenAI(base_url=self.uri, api_key=self.api_key)
         if self.name in ("", None):
             raise ValueError(
@@ -169,6 +170,7 @@ class OpenAICompatible(Generator):
     def _clear_client(self):
         self.generator = None
         self.client = None
+        self._clear_deps()
 
     def _validate_config(self):
         pass
@@ -204,7 +206,7 @@ class OpenAICompatible(Generator):
             openai.InternalServerError,
             openai.APITimeoutError,
             openai.APIConnectionError,
-            garak.exception.GarakBackoffTrigger,
+            garak.exception.GeneratorBackoffTrigger,
         ),
         max_value=70,
     )
@@ -274,7 +276,7 @@ class OpenAICompatible(Generator):
         except json.decoder.JSONDecodeError as e:
             logging.exception(e)
             if self.retry_json:
-                raise garak.exception.GarakBackoffTrigger from e
+                raise garak.exception.GeneratorBackoffTrigger from e
             else:
                 raise e
 
@@ -285,7 +287,7 @@ class OpenAICompatible(Generator):
             )
             msg = "no .choices member in generator response"
             if self.retry_json:
-                raise garak.exception.GarakBackoffTrigger(msg)
+                raise garak.exception.GeneratorBackoffTrigger(msg)
             else:
                 return [None]
 

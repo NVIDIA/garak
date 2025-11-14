@@ -21,7 +21,7 @@ def test_buff_structure(classname):
     # any parameter that has a default must be supported
     unsupported_defaults = []
     if c._supported_params is not None:
-        if hasattr(g, "DEFAULT_PARAMS"):
+        if hasattr(c, "DEFAULT_PARAMS"):
             for k, _ in c.DEFAULT_PARAMS.items():
                 if k not in c._supported_params:
                     unsupported_defaults.append(k)

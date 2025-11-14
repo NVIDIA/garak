@@ -119,7 +119,13 @@ def test_instantiate_generators(classname):
     setattr(config_root, category, gen_config)
 
     m = importlib.import_module("garak." + ".".join(classname.split(".")[:-1]))
-    g = getattr(m, classname.split(".")[-1])(config_root=config_root)
+    klass = getattr(m, classname.split(".")[-1])
+    try:
+        g = klass(config_root=config_root)
+    except ModuleNotFoundError:
+        pytest.skip(
+            "dependencies not present; requires " + repr(klass.extra_dependency_names)
+        )
     assert isinstance(g, Generator)
 
 
