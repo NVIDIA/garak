@@ -39,7 +39,7 @@ def test_detector_specified(classname):  # every probe should give detector(s)
     assert (
         isinstance(probe_class.primary_detector, str)
         or len(probe_class.extended_detectors) > 0
-    )
+    ), "One primary detector (str), or a non-empty list of extended detector, must be given"
 
 
 @pytest.mark.parametrize("classname", PROBES)
