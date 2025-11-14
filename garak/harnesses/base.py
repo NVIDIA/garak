@@ -31,7 +31,7 @@ def _initialize_runtime_services():
 
     # TODO: this block may be gated in the future to ensure it is only run once. At this time
     # only one harness will execute per run so the output here is reasonable.
-    service_names = ["garak.langservice"]
+    service_names = ["garak.langservice", "garak.intentservice"]
     for service_name in service_names:
         logging.info("service import: " + service_name)
         service = importlib.import_module(service_name)

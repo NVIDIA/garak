@@ -37,7 +37,7 @@ def enabled() -> bool:
     return False
 
 
-def start_msg() -> str:
+def start_msg() -> tuple[str, str]:
     """return a start message, assumes enabled"""
     return "🌐", "loading language services: " + " ".join(tasks())
 

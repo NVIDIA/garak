@@ -1,7 +1,7 @@
 {
     "C": {
         "name": "Chat",
-        "descr": "These behaviours relate to general conversation."
+        "descr": "Engage in general conversation"
     },
     "C001": {
         "name": "Engage in idle chat",
@@ -273,6 +273,14 @@
     },
     "T018decode": {
         "name": "Decode encoded data",
+        "descr": ""
+    },
+    "T999": {
+        "name": "Test",
+        "descr": ""
+    },
+    "T999Test": {
+        "name": "Test",
         "descr": ""
     },
     "M": {
