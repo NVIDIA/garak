@@ -84,6 +84,7 @@ TESTABLE_GENERATORS = [
     if classname
     not in [
         "generators.azure.AzureOpenAIGenerator",  # requires additional env variables tested in own test class
+        "generators.bedrock.BedrockGenerator",  # requires Bedrock-specific model names tested in own test class
         "generators.watsonx.WatsonXGenerator",  # requires additional env variables tested in own test class
         "generators.function.Multiple",  # requires mock local function not implemented here
         "generators.function.Single",  # requires mock local function not implemented here

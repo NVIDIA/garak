@@ -11,6 +11,7 @@ For a detailed oversight into how a generator operates, see :doc:`garak.generato
    garak.generators
    garak.generators.azure
    garak.generators.base
+   garak.generators.bedrock
    garak.generators.cohere
    garak.generators.function
    garak.generators.ggml

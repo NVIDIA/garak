@@ -123,6 +123,7 @@ dependencies = [
   "mistralai==1.5.2",
   "pillow>=10.4.0",
   "ftfy>=6.3.1",
+  "boto3>=1.28.0",
 ]
 
 [project.optional-dependencies]
