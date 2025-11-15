@@ -151,7 +151,7 @@ class RestGenerator(Generator):
                 )
                 raise e
 
-        super().__init__(self.name, config_root=config_root)
+        super().__init__(uri, config_root=config_root)
 
     def _validate_env_var(self):
         key_match = "$KEY"

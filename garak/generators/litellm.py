@@ -110,21 +110,18 @@ class LiteLLMGenerator(Generator):
     )
 
     def __init__(self, name: str = "", generations: int = 10, config_root=_config):
-        self.name = name
         self.api_base = None
         self.provider = None
         self._load_config(config_root)
-        
-        # Ensure suppressed_params is a set for efficient lookup
-        self.suppressed_params = set(self.suppressed_params)
-        
+        if name or not hasattr(self, "name"):
+            self.name = name
         self.fullname = f"LiteLLM {self.name}"
         self.supports_multiple_generations = not any(
             self.name.startswith(provider)
             for provider in unsupported_multiple_gen_providers
         )
 
-        super().__init__(self.name, config_root=config_root)
+        super().__init__(name, config_root=config_root)
 
     @backoff.on_exception(backoff.fibo, litellm.exceptions.APIError, max_value=70)
     def _call_model(

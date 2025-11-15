@@ -47,11 +47,12 @@ class LangChainLLMGenerator(Generator):
     generator_family_name = "LangChain"
 
     def __init__(self, name="", config_root=_config):
-        self.name = name
         self._load_config(config_root)
+        if name or not hasattr(self, "name"):
+            self.name = name
         self.fullname = f"LangChain LLM {self.name}"
 
-        super().__init__(self.name, config_root=config_root)
+        super().__init__(name, config_root=config_root)
 
         try:
             # this might need some special handling to allow tests
