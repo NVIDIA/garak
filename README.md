@@ -2,11 +2,11 @@
 
 *Generative AI Red-teaming & Assessment Kit*
 
-`garak` checks if an LLM can be made to fail in a way we don't want. `garak` probes for hallucination, data leakage, prompt injection, misinformation, toxicity generation, jailbreaks, and many other weaknesses. If you know `nmap` or `msf` / Metasploit Framework, garak does somewhat similar things to them, but for LLMs. 
+`garak` checks if an LLM can be made to fail in a way we don't want. `garak` probes for hallucination, data leakage, prompt injection, misinformation, toxicity generation, jailbreaks, and many other weaknesses. If you know `nmap` or `msf` / Metasploit Framework, garak does somewhat similar things to them, but for LLMs.
 
 `garak` focuses on ways of making an LLM or dialog system fail. It combines static, dynamic, and adaptive probes to explore this.
 
-`garak`'s a free tool. We love developing it and are always interested in adding functionality to support applications. 
+`garak`'s a free tool. We love developing it and are always interested in adding functionality to support applications.
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Tests/Linux](https://github.com/NVIDIA/garak/actions/workflows/test_linux.yml/badge.svg)](https://github.com/NVIDIA/garak/actions/workflows/test_linux.yml)
@@ -102,7 +102,7 @@ For help and inspiration, find us on [Twitter](https://twitter.com/garak_llm) or
 ## Examples
 
 Probe ChatGPT for encoding-based prompt injection (OSX/\*nix) (replace example value with a real OpenAI API key)
- 
+
 ```
 export OPENAI_API_KEY="sk-123XXXXXXXXXXXX"
 python3 -m garak --target_type openai --target_name gpt-3.5-turbo --probes encoding
@@ -280,6 +280,10 @@ Larger artefacts, like model files and bigger corpora, are kept out of the repos
     * For detectors, try a blank generator and a blank probe: `python3 -m garak -m test.Blank -p test.Blank -d mymodule`
     * For generators, try a blank probe and always.Pass detector: `python3 -m garak -m mymodule -p test.Blank -d always.Pass`
   * Get `garak` to list all the plugins of the type you're writing, with `--list_probes`, `--list_detectors`, or `--list_generators`
+
+## Garak Studio
+
+* 💡 Make it easy to use! Check out the project: [Garak UI](https://github.com/hasbegun/garak_studio).
 
 
 ## FAQ
