@@ -55,10 +55,12 @@ class CohereGenerator(Generator):
     generator_family_name = "Cohere"
 
     def __init__(self, name="command", config_root=_config):
-        self.name = name
+        self._load_config(config_root)
+        if name != "command" or not hasattr(self, "name"):  # "command" is the default
+            self.name = name
         self.fullname = f"Cohere {self.name}"
 
-        super().__init__(self.name, config_root=config_root)
+        super().__init__(name, config_root=config_root)
 
         logging.debug(
             "Cohere generation request limit capped at %s", COHERE_GENERATION_LIMIT
