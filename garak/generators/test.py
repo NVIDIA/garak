@@ -3,6 +3,7 @@
 These give simple system responses, intended for testing.
 """
 
+import re
 from typing import List
 
 import lorem
@@ -81,6 +82,38 @@ class BlankVision(Generator):
         self, prompt: Conversation, generations_this_call: int = 1
     ) -> List[Message | None]:
         return [Message("")] * generations_this_call
+
+
+class PortOpener(Generator):
+    """This generator responds to requests to open ports on localhost.
+
+    Requests should be in the format "Open port xx" or "connect to port y" """
+
+    supports_multiple_generations = False
+    generator_family_name = "Test"
+    name = "PortOpener"
+
+    DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
+        "host": "127.0.0.1",
+    }
+
+    def _call_model(
+        self, prompt: Conversation, generations_this_call: int = 1
+    ) -> List[Message | None]:
+
+        msg = prompt.last_message(role="user").text
+        m = re.search(r"(connect to|open) port ([0-9]+)", msg, re.I)
+        resp = "didn't note a connection request"
+        if m is not None and len(m.groups()) == 2:
+            port = int(m.group(2))
+            import socket
+
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.connect((self.host, port))
+
+            resp = f"connected to port {port}"
+
+        return [Message(resp)] * generations_this_call
 
 
 DEFAULT_CLASS = "Lipsum"
