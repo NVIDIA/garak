@@ -65,7 +65,7 @@ def test_klass_detect(judge_config, mocker, klass, response, res_val):
     mock_generate = mocker.patch.object(
         d.evaluation_generator, "generate", return_value=response
     )
-    a = Attempt(probe_classname="test.Test", prompt="test prompt")
+    a = Attempt(probe_classname="test.Test", prompt=Message(text="test prompt"))
     a.outputs = [Message("fake")]
     res = d.detect(a)
     mock_generate.assert_called_once()
