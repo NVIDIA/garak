@@ -135,7 +135,7 @@ def main(arguments=None) -> None:
         help="number of generations per prompt",
     )
     parser.add_argument(
-        "--config", type=str, default=None, help="YAML config file for this run"
+        "--config", type=str, default=None, help="YAML or JSON config file for this run"
     )
 
     ## PLUGINS

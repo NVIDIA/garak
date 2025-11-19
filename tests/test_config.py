@@ -924,3 +924,204 @@ def test_model_target_override():
         c = _config._load_yaml_config([t.name])
         assert c["plugins"]["target_name"] == demo_name
         assert c["plugins"]["target_type"] == demo_type
+
+
+def test_load_json_config():
+    importlib.reload(_config)
+    
+    config_data = {
+        "system": {"parallel_attempts": 10},
+        "run": {"generations": 3},
+        "plugins": {"probe_spec": "test"},
+        "reporting": {}
+    }
+    
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as tmp:
+        json.dump(config_data, tmp)
+        tmp.close()
+        
+        garak.cli.main(["--config", tmp.name, "--list_config"])
+        os.remove(tmp.name)
+        
+        assert _config.system.parallel_attempts == 10
+        assert _config.run.generations == 3
+
+
+def test_load_json_config_via_load_yaml_config():
+    importlib.reload(_config)
+    
+    config_data = {
+        "system": {"verbose": 2},
+        "run": {"seed": 42},
+        "plugins": {},
+        "reporting": {}
+    }
+    
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8") as tmp:
+        json.dump(config_data, tmp)
+        tmp.close()
+        
+        c = _config._load_yaml_config([tmp.name])
+        os.remove(tmp.name)
+        
+        assert c["system"]["verbose"] == 2
+        assert c["run"]["seed"] == 42
+
+
+@pytest.mark.usefixtures("allow_site_config")
+def test_site_config_ambiguity_error():
+    importlib.reload(_config)
+    
+    site_json = _config.transient.config_dir / "garak.site.json"
+    site_yaml = _config.transient.config_dir / "garak.site.yaml"
+    
+    try:
+        site_json.write_text('{"system": {"verbose": 1}, "run": {}, "plugins": {}, "reporting": {}}')
+        site_yaml.write_text('system:\n  verbose: 2\nrun: {}\nplugins: {}\nreporting: {}')
+        
+        with pytest.raises(ValueError, match="Both garak.site.json and garak.site.yaml found"):
+            _config.load_config()
+    finally:
+        if site_json.exists():
+            site_json.unlink()
+        if site_yaml.exists():
+            site_yaml.unlink()
+
+
+def test_extension_less_config_finds_json():
+    importlib.reload(_config)
+    
+    json_config = {
+        "system": {},
+        "run": {"generations": 7},
+        "plugins": {},
+        "reporting": {}
+    }
+    
+    test_json_path = _config.transient.package_dir / "configs" / "test_json_config.json"
+    
+    try:
+        with open(test_json_path, "w", encoding="utf-8") as f:
+            json.dump(json_config, f)
+        
+        garak.cli.main(["--config", "test_json_config", "--list_config"])
+        
+        assert _config.run.generations == 7
+    finally:
+        if test_json_path.exists():
+            test_json_path.unlink()
+
+
+def test_extension_less_requires_explicit_yaml():
+    importlib.reload(_config)
+    
+    yaml_config_content = """
+system: {}
+run:
+  generations: 8
+plugins: {}
+reporting: {}
+"""
+    
+    test_yaml_path = _config.transient.package_dir / "configs" / "test_yaml_only.yaml"
+    
+    try:
+        test_yaml_path.write_text(yaml_config_content)
+        
+        # Extension-less should error when only YAML exists
+        with pytest.raises(FileNotFoundError, match="YAML needs explicit .yaml extension"):
+            garak.cli.main(["--config", "test_yaml_only", "--list_config"])
+    finally:
+        if test_yaml_path.exists():
+            test_yaml_path.unlink()
+
+
+def test_extension_less_bundled_json_works():
+    importlib.reload(_config)
+    
+    json_config = {
+        "system": {},
+        "run": {"generations": 9},
+        "plugins": {},
+        "reporting": {}
+    }
+    
+    test_json_path = _config.transient.package_dir / "configs" / "test_bundled_json.json"
+    
+    try:
+        with open(test_json_path, "w", encoding="utf-8") as f:
+            json.dump(json_config, f)
+        
+        # Bundled JSON should work extension-less
+        garak.cli.main(["--config", "test_bundled_json", "--list_config"])
+        assert _config.run.generations == 9
+    finally:
+        if test_json_path.exists():
+            test_json_path.unlink()
+
+
+def test_extension_less_warns_on_direct_path_ambiguity(caplog):
+    importlib.reload(_config)
+    
+    json_config = {
+        "system": {},
+        "run": {"generations": 12},
+        "plugins": {},
+        "reporting": {}
+    }
+    
+    yaml_config_content = """
+system: {}
+run:
+  generations: 13
+plugins: {}
+reporting: {}
+"""
+    
+    # Create configs in current directory (not bundled)
+    test_json_path = Path("test_user_config.json")
+    test_yaml_path = Path("test_user_config.yaml")
+    
+    try:
+        with open(test_json_path, "w", encoding="utf-8") as f:
+            json.dump(json_config, f)
+        test_yaml_path.write_text(yaml_config_content)
+        
+        # Direct path ambiguity should warn and use JSON
+        garak.cli.main(["--config", "test_user_config", "--list_config"])
+        
+        # Verify warning was logged
+        assert "Both test_user_config.json and .yaml found" in caplog.text
+        
+        # Verify JSON was used (generations = 12, not 13)
+        assert _config.run.generations == 12
+    finally:
+        if test_json_path.exists():
+            test_json_path.unlink()
+        if test_yaml_path.exists():
+            test_yaml_path.unlink()
+
+
+def test_explicit_yaml_extension_works():
+    importlib.reload(_config)
+    
+    yaml_config_content = """
+system: {}
+run:
+  generations: 11
+plugins: {}
+reporting: {}
+"""
+    
+    test_yaml_path = _config.transient.package_dir / "configs" / "test_explicit_yaml.yaml"
+    
+    try:
+        test_yaml_path.write_text(yaml_config_content)
+        
+        # Explicit .yaml extension should work
+        garak.cli.main(["--config", "test_explicit_yaml.yaml", "--list_config"])
+        
+        assert _config.run.generations == 11
+    finally:
+        if test_yaml_path.exists():
+            test_yaml_path.unlink()
