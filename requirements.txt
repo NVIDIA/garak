@@ -42,6 +42,7 @@ tiktoken>=0.7.0
 mistralai==1.5.2
 pillow>=10.4.0
 ftfy>=6.3.1
+boto3>=1.28.0
 # tests
 pytest>=8.0
 pytest-mock>=3.14.0

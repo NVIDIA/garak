@@ -37,6 +37,7 @@ currently supports:
 * [hugging face hub](https://huggingface.co/models) generative models
 * [replicate](https://replicate.com/) text models
 * [openai api](https://platform.openai.com/docs/introduction) chat & continuation models
+* [aws bedrock](https://aws.amazon.com/bedrock/) foundation models
 * [litellm](https://www.litellm.ai/)
 * pretty much anything accessible via REST
 * gguf models like [llama.cpp](https://github.com/ggerganov/llama.cpp) version >= 1046
@@ -204,6 +205,22 @@ For completion models:
 * `--target_type nim.NVOpenAICompletion`
 * `--target_name` - the NIM `model` name, e.g. `bigcode/starcoder2-15b`
 
+### AWS Bedrock
+
+* `--target_type bedrock`
+* `--target_name` - the Bedrock model ID or alias, e.g. `anthropic.claude-3-sonnet-20240229-v1:0` or `claude-3-sonnet`
+* set the `BEDROCK_API_KEY` environment variable to your AWS Bedrock API key; see https://docs.aws.amazon.com/bedrock/latest/userguide/api-keys-use.html for setup instructions
+* (optional) set the `BEDROCK_REGION` environment variable to specify the AWS region (defaults to `us-east-1`)
+
+Supported model families include Anthropic Claude, Meta Llama, Amazon Titan, AI21 Labs, Cohere, and Mistral AI models. The generator uses the Converse API for unified access across all model types.
+
+Example usage:
+
+```
+export BEDROCK_API_KEY="your-api-key"
+export BEDROCK_REGION="us-east-1"
+garak --target_type bedrock --target_name claude-3-sonnet --probes dan
+```
 
 ### Test
 
