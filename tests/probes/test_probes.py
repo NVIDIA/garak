@@ -36,10 +36,17 @@ def test_detector_specified(classname):  # every probe should give detector(s)
     class_name = plugin_name_parts[-1]
     mod = importlib.import_module(module_name)
     probe_class = getattr(mod, class_name)
-    assert (
-        isinstance(probe_class.primary_detector, str)
-        or len(probe_class.extended_detectors) > 0
-    )
+    # generic.CustomPrompts requires primary_detector to be set via config (not at class level)
+    # User must provide it via --probe_options
+    if classname == "probes.generic.CustomPrompts":
+        # Just verify it has the pattern - detector set via config
+        assert probe_class.primary_detector is None
+        assert len(probe_class.extended_detectors) == 0
+    else:
+        assert (
+            isinstance(probe_class.primary_detector, str)
+            or len(probe_class.extended_detectors) > 0
+        )
 
 
 @pytest.mark.parametrize("classname", PROBES)
@@ -73,7 +80,20 @@ def test_probe_structure(classname):
 
 @pytest.mark.parametrize("classname", PROBES)
 def test_probe_metadata(classname):
-    p = _plugins.load_plugin(classname)
+    # generic.CustomPrompts requires primary_detector in config
+    if classname == "probes.generic.CustomPrompts":
+        config_root = {
+            "probes": {
+                "generic": {
+                    "CustomPrompts": {
+                        "primary_detector": "always.Pass"
+                    }
+                }
+            }
+        }
+        p = _plugins.load_plugin(classname, config_root=config_root)
+    else:
+        p = _plugins.load_plugin(classname)
     assert isinstance(p.goal, str), "probe goals should be a text string"
     assert len(p.goal) > 0, "probes must state their general goal"
     assert p.lang is not None and (
