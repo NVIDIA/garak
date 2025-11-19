@@ -10,6 +10,7 @@ garak.detectors
    garak.detectors.any
    garak.detectors.ansiescape
    garak.detectors.continuation
+   garak.detectors.custom
    garak.detectors.dan
    garak.detectors.divergence
    garak.detectors.encoding
