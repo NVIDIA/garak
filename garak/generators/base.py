@@ -4,6 +4,7 @@ All `garak` generators must inherit from this.
 """
 
 import logging
+import random
 import re
 from typing import List, Union
 
@@ -59,6 +60,10 @@ class Generator(Configurable):
                 self.fullname = self.name
         if not self.generator_family_name:
             self.generator_family_name = "<empty>"
+
+        self._rng = random.Random()
+        if self.seed:
+            self._rng.seed(self.seed)
 
         print(
             f"🦜 loading {Style.BRIGHT}{Fore.LIGHTMAGENTA_EX}generator{Style.RESET_ALL}: {self.generator_family_name}: {self.name}"
@@ -208,6 +213,8 @@ class Generator(Configurable):
                     colour=f"#{garak.resources.theme.GENERATOR_RGB}",
                 )
                 generation_iterator.set_description(self.fullname[:55])
+                if self.seed is not None:
+                    self._rng.seed(self.seed)
                 for i in generation_iterator:
                     output_one = self._call_model(
                         prompt, 1

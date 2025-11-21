@@ -58,10 +58,10 @@ class GroqChat(OpenAICompatible):
         ), "generations_per_call / n > 1 is not supported"
 
         if self.vary_seed_each_call:
-            self.seed = random.randint(0, 65535)
+            self.seed = self._rng.randint(0, 65535)
 
         if self.vary_temp_each_call:
-            self.temperature = random.random()
+            self.temperature = self._rng.random()
 
         return super()._call_model(prompt, generations_this_call)
 

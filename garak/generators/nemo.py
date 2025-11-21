@@ -6,7 +6,6 @@
 import json
 import logging
 import os
-import random
 import requests
 from typing import List, Union
 
@@ -90,7 +89,7 @@ class NeMoGenerator(Generator):
         reset_none_seed = False
         if self.seed is None:  # nemo gives the same result every time
             reset_none_seed = True
-            self.seed = random.randint(0, 2147483648 - 1)
+            self.seed = self._rng.randint(0, 2147483648 - 1)
         elif generations_this_call > 1:
             logging.info(
                 "fixing a seed means nemollm gives the same result every time, recommend setting generations=1"
