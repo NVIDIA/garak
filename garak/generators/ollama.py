@@ -3,16 +3,20 @@
 from typing import List, Union
 
 import backoff
-import ollama
 
 from garak import _config
 from garak.attempt import Message, Conversation
+from garak.exception import GeneratorBackoffTrigger
 from garak.generators.base import Generator
 from httpx import TimeoutException
 
 
 def _give_up(error):
-    return isinstance(error, ollama.ResponseError) and error.status_code == 404
+    return (
+        not isinstance(error.__cause__, TimeoutException)
+        and hasattr(error, "status_code")
+        and error.status_code == 404
+    )
 
 
 class OllamaGenerator(Generator):
@@ -29,17 +33,18 @@ class OllamaGenerator(Generator):
     active = True
     generator_family_name = "Ollama"
     parallel_capable = False
+    extra_dependency_names = ["ollama"]
 
     def __init__(self, name="", config_root=_config):
         super().__init__(name, config_root)  # Sets the name and generations
 
-        self.client = ollama.Client(
+        self.client = self.ollama.Client(
             self.host, timeout=self.timeout
         )  # Instantiates the client with the timeout
 
     @backoff.on_exception(
         backoff.fibo,
-        (TimeoutException, ollama.ResponseError),
+        GeneratorBackoffTrigger,
         max_value=70,
         giveup=_give_up,
     )
@@ -49,7 +54,19 @@ class OllamaGenerator(Generator):
     def _call_model(
         self, prompt: Conversation, generations_this_call: int = 1
     ) -> List[Union[Message, None]]:
-        response = self.client.generate(self.name, prompt.last_message().text)
+        try:
+            response = self.client.generate(self.name, prompt.last_message().text)
+        except Exception as e:
+            if (
+                isinstance(e, self.ollama.ResponseError) and e.status_code == 404
+            ):  # send the 404 through
+                raise e
+            backoff_exception_types = [self.ollama.ResponseError, TimeoutException]
+            for backoff_exception in backoff_exception_types:
+                if isinstance(e, backoff_exception):
+                    raise GeneratorBackoffTrigger from e
+            raise e
+
         return [Message(response.get("response", None))]
 
 
@@ -61,7 +78,7 @@ class OllamaGeneratorChat(OllamaGenerator):
 
     @backoff.on_exception(
         backoff.fibo,
-        (TimeoutException, ollama.ResponseError),
+        GeneratorBackoffTrigger,
         max_value=70,
         giveup=_give_up,
     )
@@ -73,10 +90,21 @@ class OllamaGeneratorChat(OllamaGenerator):
     ) -> List[Union[Message, None]]:
         messages = self._conversation_to_list(prompt)
 
-        response = self.client.chat(
-            model=self.name,
-            messages=messages,
-        )
+        try:
+            response = self.client.chat(
+                model=self.name,
+                messages=messages,
+            )
+        except Exception as e:
+            if (
+                isinstance(e, self.ollama.ResponseError) and e.status_code == 404
+            ):  # send the 404 through
+                raise e
+            backoff_exception_types = [self.ollama.ResponseError, TimeoutException]
+            for backoff_exception in backoff_exception_types:
+                if isinstance(e, backoff_exception):
+                    raise GeneratorBackoffTrigger from e
+            raise e
         return [
             Message(response.get("message", {}).get("content", None))
         ]  # Return the response or None

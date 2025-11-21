@@ -1,5 +1,6 @@
+import importlib
 import pytest
-import ollama
+import respx
 import httpx
 
 from garak.attempt import Message, Turn, Conversation
@@ -10,7 +11,18 @@ PINGED_OLLAMA_SERVER = (
 )
 OLLAMA_SERVER_UP = False
 
+try:
+    import ollama
+except:
+    pytest.skip(
+        "couldn't import ollama, skipping ollama tests", allow_module_level=True
+    )
 
+
+@pytest.mark.skipif(
+    importlib.util.find_spec("ollama") is None,
+    reason="requires 'ollama' Python module to be installed",
+)
 def ollama_is_running():
     global PINGED_OLLAMA_SERVER
     global OLLAMA_SERVER_UP
@@ -29,14 +41,14 @@ def ollama_is_running():
 def no_models():
     # In newer versions of ollama, list() returns a ListResponse object
     response = ollama.list()
-    
+
     try:
         # Try to access the models attribute or property
-        models = getattr(response, 'models', None)
+        models = getattr(response, "models", None)
         if models is None:
             # If no models attribute, try using it as a dict
-            models = response.get('models', [])
-        
+            models = response.get("models", [])
+
         # Check if models is empty
         return len(models) == 0
     except (AttributeError, TypeError):
@@ -44,6 +56,15 @@ def no_models():
         return True
 
 
+@pytest.mark.skipif(
+    not all(
+        [
+            importlib.util.find_spec(m)
+            for m in OllamaGeneratorChat.extra_dependency_names
+        ]
+    ),
+    reason="missing optional dependency",
+)
 @pytest.mark.skipif(
     not ollama_is_running(),
     reason=f"Ollama server is not currently running",
@@ -57,6 +78,12 @@ def test_error_on_nonexistant_model_chat():
 
 
 @pytest.mark.skipif(
+    not all(
+        [importlib.util.find_spec(m) for m in OllamaGenerator.extra_dependency_names]
+    ),
+    reason="missing optional dependency",
+)
+@pytest.mark.skipif(
     not ollama_is_running(),
     reason=f"Ollama server is not currently running",
 )
@@ -68,6 +95,15 @@ def test_error_on_nonexistant_model():
         gen.generate(conv)
 
 
+@pytest.mark.skipif(
+    not all(
+        [
+            importlib.util.find_spec(m)
+            for m in OllamaGeneratorChat.extra_dependency_names
+        ]
+    ),
+    reason="missing optional dependency",
+)
 @pytest.mark.skipif(
     not ollama_is_running(),
     reason=f"Ollama server is not currently running",
@@ -88,6 +124,12 @@ def test_generation_on_pulled_model_chat():
 
 
 @pytest.mark.skipif(
+    not all(
+        [importlib.util.find_spec(m) for m in OllamaGenerator.extra_dependency_names]
+    ),
+    reason="missing optional dependency",
+)
+@pytest.mark.skipif(
     not ollama_is_running(),
     reason=f"Ollama server is not currently running",
 )
@@ -106,6 +148,12 @@ def test_generation_on_pulled_model():
     assert all(len(response.text) > 0 for response in responses)
 
 
+@pytest.mark.skipif(
+    not all(
+        [importlib.util.find_spec(m) for m in OllamaGenerator.extra_dependency_names]
+    ),
+    reason="missing optional dependency",
+)
 @pytest.mark.respx(base_url="http://" + OllamaGenerator.DEFAULT_PARAMS["host"])
 def test_ollama_generation_mocked(respx_mock):
     mock_response = {"model": "mistral", "response": "Hello how are you?"}
@@ -118,6 +166,15 @@ def test_ollama_generation_mocked(respx_mock):
     assert generation == [Message("Hello how are you?")]
 
 
+@pytest.mark.skipif(
+    not all(
+        [
+            importlib.util.find_spec(m)
+            for m in OllamaGeneratorChat.extra_dependency_names
+        ]
+    ),
+    reason="missing optional dependency",
+)
 @pytest.mark.respx(base_url="http://" + OllamaGenerator.DEFAULT_PARAMS["host"])
 def test_ollama_generation_chat_mocked(respx_mock):
     mock_response = {

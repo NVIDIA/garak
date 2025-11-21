@@ -29,6 +29,9 @@ The recipe for writing a new plugin or plugin class isn't outlandish:
 * Start a new module inheriting from one of the base classes, e.g. :class:`garak.probes.base.Probe`
 * Override as little as possible.
 
+If you use custom modules not included in garak's default list, include these in the plugin's top-level ``extra_dependency_names`` parameter.
+Garak's plugin loader (``garak._plugins.load_plugin()``) will manage the import and inject the requested module as ``self.<module>``.
+
 
 Guides to writing plugins
 -------------------------

@@ -14,7 +14,7 @@ HARNESSES = [
 
 
 @pytest.mark.parametrize("classname", HARNESSES)
-def test_buff_structure(classname):
+def test_harness_structure(classname):
 
     m = importlib.import_module("garak." + ".".join(classname.split(".")[:-1]))
     c = getattr(m, classname.split(".")[-1])
@@ -22,7 +22,7 @@ def test_buff_structure(classname):
     # any parameter that has a default must be supported
     unsupported_defaults = []
     if c._supported_params is not None:
-        if hasattr(g, "DEFAULT_PARAMS"):
+        if hasattr(c, "DEFAULT_PARAMS"):
             for k, _ in c.DEFAULT_PARAMS.items():
                 if k not in c._supported_params:
                     unsupported_defaults.append(k)
