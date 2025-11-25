@@ -8,8 +8,6 @@ import logging
 from typing import List, Union
 
 
-import langchain.llms
-
 from garak import _config
 from garak.attempt import Message, Conversation
 from garak.generators.base import Generator
@@ -54,6 +52,8 @@ class LangChainLLMGenerator(Generator):
         super().__init__(self.name, config_root=config_root)
 
         try:
+            # Import langchain only when actually instantiating the generator
+            import langchain.llms
             # this might need some special handling to allow tests
             llm = getattr(langchain.llms, self.name)()
         except Exception as e:
