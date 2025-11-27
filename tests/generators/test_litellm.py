@@ -1,3 +1,4 @@
+import importlib
 import pytest
 from unittest.mock import patch
 from os import getenv
@@ -7,6 +8,12 @@ from garak.exception import BadGeneratorException
 from garak.generators.litellm import LiteLLMGenerator
 
 
+@pytest.mark.skipif(
+    not all(
+        [importlib.util.find_spec(m) for m in LiteLLMGenerator.extra_dependency_names]
+    ),
+    reason="missing optional dependency",
+)
 @pytest.mark.skipif(
     getenv("OPENAI_API_KEY", None) is None,
     reason="OpenAI API key is not set in OPENAI_API_KEY",
@@ -27,6 +34,12 @@ def test_litellm_openai():
 
 
 @pytest.mark.skipif(
+    not all(
+        [importlib.util.find_spec(m) for m in LiteLLMGenerator.extra_dependency_names]
+    ),
+    reason="missing optional dependency",
+)
+@pytest.mark.skipif(
     getenv("OPENROUTER_API_KEY", None) is None,
     reason="OpenRouter API key is not set in OPENROUTER_API_KEY",
 )
@@ -43,6 +56,12 @@ def test_litellm_openrouter():
         assert isinstance(item, Message)
 
 
+@pytest.mark.skipif(
+    not all(
+        [importlib.util.find_spec(m) for m in LiteLLMGenerator.extra_dependency_names]
+    ),
+    reason="missing optional dependency",
+)
 def test_litellm_model_detection():
     custom_config = {
         "generators": {

@@ -121,7 +121,6 @@ class AnsiRawTokenizerHF(garak.probes.Probe):
     supported_generators = {
         "huggingface.Model",
         "huggingface.Pipeline",
-        "huggingface.OptimumPipeline",
         "huggingface.LLaVA",
     }
     doc_uri = "https://interhumanagreement.substack.com/p/llm-output-can-take-over-your-computer"

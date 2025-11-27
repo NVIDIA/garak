@@ -27,6 +27,8 @@ class Buff(Configurable):
     doc_uri = ""
     lang = None  # set of languages this buff should be constrained to
     active = True
+    # list of strings naming modules required but not explicitly in garak by default
+    extra_dependency_names = []
 
     DEFAULT_PARAMS = {}
 

@@ -41,7 +41,7 @@ class HF_Files(garak.probes.Probe):
     ]
     active = False
 
-    supported_generators = {"Model", "Pipeline", "OptimumPipeline", "LLaVA"}
+    supported_generators = {"Model", "Pipeline", "LLaVA"}
 
     # support mainstream any-to-any large models
     # legal element for str list `modality['in']`: 'text', 'image', 'audio', 'video', '3d'
