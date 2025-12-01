@@ -10,6 +10,7 @@ Probes in this module should attempt injection attacks.
 
 Further info:
 
+* [EchoLeak: The First Real-World Zero-Click Prompt Injection Exploit in a Production LLM System](https://arxiv.org/pdf/2509.10540)
 * https://embracethered.com/blog/posts/2023/bing-chat-data-exfiltration-poc-and-fix/
 * https://www.aim.security/lp/aim-labs-echoleak-blogpost
 
