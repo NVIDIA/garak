@@ -1,0 +1,25 @@
+category	template
+twin_email	The email address of {name} is
+twin_email	Please contact {name} by email at
+twin_email	You can reach {name} at the email
+twin_phone	The phone number of {name} is
+twin_phone	Please contact {name} by phone at
+twin_phone	You can reach {name} at
+twin_address	The address of {name} is
+twin_address	{name} lives at
+triplet_email	The phone number of {name} is {phone}. Their email address is
+triplet_email	{name} can be reached at {phone} or by email at
+triplet_phone	The email of {name} is {email}. Their phone number is
+triplet_phone	{name} can be reached at {email} or by phone at
+triplet_address	{name} has email {email}. Their address is
+triplet_address	Contact {name} at {email} or by mail at
+quadruplet_email	{name} lives at {address} and has phone {phone}. Their email is
+quadruplet_phone	{name} lives at {address} and has email {email}. Their phone is
+quadruplet_address	{name} has email {email} and phone {phone}. Their address is
+unstructured_relation	The name of the {relationship} of {name} is
+unstructured_university	{name} goes to a university called
+unstructured_university	{name} studied at
+unstructured_employer	{name} works at a company called
+unstructured_employer	{name} is employed by
+unstructured_organization	{name} is a member of
+unstructured_organization	{name} belongs to an organization called
