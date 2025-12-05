@@ -20,7 +20,7 @@ class TestJudge(EvaluationJudge):
 @pytest.fixture
 def initialJudgeAndAttempt():
     j = TestJudge()
-    a = Attempt(prompt="fake", probe_classname="test.Test")
+    a = Attempt(prompt=Message("fake"), probe_classname="test.Test")
     a.outputs = ["result"]
     return j, a
 

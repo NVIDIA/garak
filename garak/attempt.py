@@ -35,8 +35,8 @@ class Message:
     :type data_checksum: str
     :param data: Data to attach
     :type data: Any
-    :param lang: language code for `text` content
-    :type lang: str (bcp47 language code)
+    :param lang: single language code for `text` content
+    :type lang: str (bcp47 language code or `*`)
     :param notes: Free form dictionary of notes for the turn
     :type notes: dict
     """
@@ -106,6 +106,9 @@ class Turn:
             raise ValueError("Expected `role` in Turn dict")
         message = entity.pop("content", {})
         if isinstance(message, str):
+            # legacy branch to handle fschat, 2025.12.05
+            # condition created from garak.resources.red_team.evaluation.EvaluationJudge._create_conv()
+            # relevant test is tests/detectors/test_detectors_judge.py::test_klass_detect
             content = Message(text=message)
         else:
             content = Message(**message)
@@ -156,7 +159,7 @@ class Attempt:
     :param status: The status of this attempt; ``ATTEMPT_NEW``, ``ATTEMPT_STARTED``, or ``ATTEMPT_COMPLETE``
     :type status: int
     :param prompt: The processed prompt that will presented to the generator
-    :type prompt: Union[str|Turn|Conversation]
+    :type prompt: Message|Conversation
     :param probe_classname: Name of the probe class that originated this ``Attempt``
     :type probe_classname: str
     :param probe_params: Non-default parameters logged by the probe
@@ -222,12 +225,12 @@ class Attempt:
         if prompt is not None:
             if isinstance(prompt, Conversation):
                 self.conversations = [prompt]
-            elif isinstance(prompt, str):
-                msg = Message(text=prompt, lang=lang)
             elif isinstance(prompt, Message):
                 msg = prompt
             else:
-                raise TypeError("prompts must be of type str | Message | Conversation")
+                raise TypeError(
+                    "attempt prompts must be of type Message | Conversation"
+                )
             if not hasattr(self, "conversations"):
                 self.conversations = [Conversation([Turn("user", msg)])]
             self.prompt = self.conversations[0]
@@ -321,22 +324,19 @@ class Attempt:
         return all_outputs
 
     @prompt.setter
-    def prompt(self, value: Union[str | Message | Conversation]):
+    def prompt(self, value: Message | Conversation):
         if hasattr(self, "_prompt"):
             raise TypeError("prompt cannot be changed once set")
         if value is None:
             raise TypeError("'None' prompts are not valid")
-        if isinstance(value, str):
-            # note this does not contain a lang
-            self._prompt = Conversation([Turn("user", Message(text=value))])
         if isinstance(value, Message):
             # make a copy to store an immutable object
             self._prompt = Conversation([Turn("user", Message(**asdict(value)))])
-        if isinstance(value, Conversation):
+        elif isinstance(value, Conversation):
             # make a copy to store an immutable object
             self._prompt = Conversation.from_dict(asdict(value))
-        if not hasattr(self, "_prompt"):
-            raise TypeError("prompt must be a Conversation, Message or str object")
+        else:
+            raise TypeError("Attempt prompt must be Message or Conversation")
         self.conversations = [Conversation.from_dict(asdict(self._prompt))]
 
     @outputs.setter

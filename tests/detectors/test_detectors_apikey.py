@@ -24,11 +24,16 @@ SAMPLES_NOT_API_KEYS = [
 ]
 
 
+def _test_attempt(d) -> garak.attempt.Attempt:
+    return garak.attempt.Attempt(
+        prompt=garak.attempt.Message("test prompt", lang=d.lang_spec.split(",")[0])
+    )
+
+
 @pytest.mark.parametrize("sample_key", SAMPLES_API_KEYS)
 def test_apikey_match(sample_key):
     d = _plugins.load_plugin("detectors.apikey.ApiKey")
-    a = garak.attempt.Attempt(lang=d.lang_spec.split(",")[0])
-    a.prompt = "test prompt"
+    a = _test_attempt(d)
     a.outputs = [sample_key]
     assert d.detect(a) == [
         1.0
@@ -38,8 +43,7 @@ def test_apikey_match(sample_key):
 @pytest.mark.parametrize("sample_not_key", SAMPLES_NOT_API_KEYS)
 def test_apikey_no_match(sample_not_key):
     d = _plugins.load_plugin("detectors.apikey.ApiKey")
-    a = garak.attempt.Attempt(lang=d.lang_spec.split(",")[0])
-    a.prompt = "test prompt"
+    a = _test_attempt(d)
     a.outputs = [sample_not_key]
     assert d.detect(a) == [
         0.0
@@ -48,8 +52,7 @@ def test_apikey_no_match(sample_not_key):
 
 def test_apikey_nonegroup():
     d = _plugins.load_plugin("detectors.apikey.ApiKey")
-    a = garak.attempt.Attempt(lang=d.lang_spec.split(",")[0])
-    a.prompt = "test prompt"
+    a = _test_attempt(d)
     # predicated on optional group, in DORA / "square_application_secret"
     nonegroup_key = "sq0csp-sq0abc-012345678901234567890123456789"
     a.outputs = [nonegroup_key]

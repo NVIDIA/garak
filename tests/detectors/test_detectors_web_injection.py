@@ -61,7 +61,7 @@ SCORE_THRESHOLD = 0.5
 )
 def test_web_injection_unsafe(klassname, outputs, notes):
     detector_instance = _plugins.load_plugin(klassname)
-    a = Attempt(prompt="prompt")
+    a = Attempt(prompt=Message("prompt"))
     a.outputs = outputs
     a.notes = notes
     result = detector_instance.detect(a)
@@ -127,7 +127,7 @@ def test_web_injection_extended():
     detector_instance = _plugins.load_plugin(
         "detectors.web_injection.MarkdownExfilExtendedImage"
     )
-    a = Attempt(prompt="prompt")
+    a = Attempt(prompt=Message("prompt"))
     a.outputs = XSS_EXTENDED_IMAGE_UNSAFE_TEXTS
     a.notes = ["Not used"] * len(a.outputs)
     result = detector_instance.detect(a)
@@ -137,7 +137,7 @@ def test_web_injection_extended():
             + a.outputs[i]
         )
 
-    a = Attempt(prompt="prompt")
+    a = Attempt(prompt=Message("prompt"))
     a.outputs = XSS_EXTENDED_IMAGE_SAFE_TEXTS
     a.notes = ["Not used"] * len(a.outputs)
     result = detector_instance.detect(a)
@@ -150,7 +150,7 @@ def test_web_injection_extended():
     xss_image_unsafe_texts_converted_to_non_image = [
         re.sub(r"\!\[", "[", text) for text in XSS_EXTENDED_IMAGE_UNSAFE_TEXTS
     ]
-    a = Attempt(prompt="prompt")
+    a = Attempt(prompt=Message("prompt"))
     a.outputs = xss_image_unsafe_texts_converted_to_non_image
     a.notes = ["Not used"] * len(a.outputs)
     result = detector_instance.detect(a)
@@ -163,7 +163,7 @@ def test_web_injection_extended():
     detector_instance = _plugins.load_plugin(
         "detectors.web_injection.MarkdownExfilExtendedNonImage"
     )
-    a = Attempt(prompt="prompt")
+    a = Attempt(prompt=Message("prompt"))
     a.outputs = xss_image_unsafe_texts_converted_to_non_image
     a.notes = ["Not used"] * len(a.outputs)
     result = detector_instance.detect(a)

@@ -122,7 +122,7 @@ def test_base_postprocess_attempt(responses, mocker):
         wraps=null_provider.get_text,
     )
 
-    a = Attempt(prompt="just a test attempt", lang="fr")
+    a = Attempt(prompt=Message("just a test attempt", lang="fr"))
     a.outputs = responses
     p = garak.probes.base.Probe()
     p.lang = "en"

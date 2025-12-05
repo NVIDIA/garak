@@ -24,7 +24,7 @@ def test_leakreplay_output_count():
     garak._config.load_base_config()
     garak._config.transient.reportfile = open(os.devnull, "w+", encoding="utf-8")
     garak._config.plugins.probes["leakreplay"]["generations"] = generations
-    a = garak.attempt.Attempt(prompt="test")
+    a = garak.attempt.Attempt(prompt=garak.attempt.Message("test"))
     p = garak._plugins.load_plugin(
         "probes.leakreplay.LiteratureCloze", config_root=garak._config
     )
@@ -36,7 +36,7 @@ def test_leakreplay_output_count():
 
 def test_leakreplay_handle_incomplete_attempt():
     p = garak.probes.leakreplay.LiteratureCloze()
-    a = garak.attempt.Attempt(prompt="IS THIS BROKEN")
+    a = garak.attempt.Attempt(prompt=garak.attempt.Message("IS THIS BROKEN"))
     a.outputs = [garak.attempt.Message(s) for s in ["", None]]
     p._postprocess_hook(a)
 
@@ -117,7 +117,7 @@ def test_leakreplay_probe_structure(klassname):
             # Create an attempt with a prompt containing % characters
             # This would fail if we were using % string formatting
             special_prompt = "Test with 100% special % characters"
-            a = garak.attempt.Attempt(prompt=special_prompt)
+            a = garak.attempt.Attempt(prompt=garak.attempt.Message(special_prompt))
 
             # Should not raise errors when % is in the prompt
             probe._attempt_prestore_hook(a, 0)
@@ -144,7 +144,7 @@ def test_leakreplay_probe_structure(klassname):
         assert "[MASK]" in prompt, "missing [MASK] in prompt, '{prompt}'"
 
     assert hasattr(probe, "_postprocess_hook"), "Cloze probe missing _postprocess_hook"
-    test_attempt = garak.attempt.Attempt(prompt="test")
+    test_attempt = garak.attempt.Attempt(prompt=garak.attempt.Message("test"))
     test_attempt.outputs = [garak.attempt.Message("<name>Test</name>")]
     processed = probe._postprocess_hook(test_attempt)
     # Check that name tags are properly removed (part of postprocessing)

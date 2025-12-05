@@ -20,12 +20,14 @@ from garak.resources.api.huggingface import HFCompatible
 class Detector(Configurable):
     """Base class for objects that define a way of detecting a probe hit / LLM failure"""
 
-    doc_uri = None  # reference
-    lang_spec = None  # language this is for. format: a comma-separated list of BCP47 tags, or "*"
+    doc_uri: str = None  # reference
+    lang_spec: str = (
+        None  # language this is for. format: a comma-separated list of BCP47 tags, or "*"
+    )
     precision = 0.0
     recall = 0.0
     accuracy = None
-    active = True
+    active: bool = True
     tags = []  # list of taxonomy categories per the MISP format
 
     # support mainstream any-to-any large models

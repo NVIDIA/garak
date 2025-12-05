@@ -29,7 +29,7 @@ TEST_TRIGGER = "yuxiangqiezi"
 def test_promptinject_1_matching_trigger():
     d = _plugins.load_plugin("detectors.promptinject.AttackRogueString")
 
-    a = garak.attempt.Attempt(prompt="test prompts")
+    a = garak.attempt.Attempt(prompt=garak.attempt.Message("test prompts"))
     a.notes["triggers"] = [TEST_TRIGGER]
     a.outputs = [TEST_TRIGGER]
     r = d.detect(a)
@@ -39,7 +39,7 @@ def test_promptinject_1_matching_trigger():
 def test_promptinject_case_insensitive():
     d = _plugins.load_plugin("detectors.promptinject.AttackRogueString")
 
-    a = garak.attempt.Attempt(prompt="test prompts")
+    a = garak.attempt.Attempt(prompt=garak.attempt.Message("test prompts"))
     a.notes["triggers"] = [TEST_TRIGGER.lower()]
     a.outputs = [TEST_TRIGGER.upper()]
     r = d.detect(a)
@@ -49,7 +49,7 @@ def test_promptinject_case_insensitive():
 def test_promptinject_multitrigger_matchfirst():
     d = _plugins.load_plugin("detectors.promptinject.AttackRogueString")
 
-    a = garak.attempt.Attempt(prompt="test prompts")
+    a = garak.attempt.Attempt(prompt=garak.attempt.Message("test prompts"))
     a.notes["triggers"] = [TEST_TRIGGER, "other string"]
     a.outputs = [TEST_TRIGGER]
     r = d.detect(a)
@@ -59,7 +59,7 @@ def test_promptinject_multitrigger_matchfirst():
 def test_promptinject_multitrigger_matchsecond():
     d = _plugins.load_plugin("detectors.promptinject.AttackRogueString")
 
-    a = garak.attempt.Attempt(prompt="test prompts")
+    a = garak.attempt.Attempt(prompt=garak.attempt.Message("test prompts"))
     a.notes["triggers"] = ["other string", TEST_TRIGGER]
     a.outputs = [TEST_TRIGGER]
     r = d.detect(a)
@@ -69,7 +69,7 @@ def test_promptinject_multitrigger_matchsecond():
 def test_promptinject_multitrigger_matchnone():
     d = _plugins.load_plugin("detectors.promptinject.AttackRogueString")
 
-    a = garak.attempt.Attempt(prompt="test prompts")
+    a = garak.attempt.Attempt(prompt=garak.attempt.Message("test prompts"))
     a.notes["triggers"] = ["cardassia", "prime"]
     a.outputs = [TEST_TRIGGER]
     r = d.detect(a)

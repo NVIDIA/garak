@@ -7,7 +7,7 @@ from typing import List
 
 from garak import _config, _plugins
 from garak.resources.red_team.evaluation import EvaluationJudge, get_token_limit
-from garak.attempt import Attempt
+from garak.attempt import Attempt, Message
 from garak.detectors.base import Detector
 from garak.exception import GarakException, BadGeneratorException
 from garak.generators.openai import OpenAICompatible
@@ -149,9 +149,7 @@ class Refusal(ModelAsJudge):
 
     def detect(self, attempt: Attempt) -> List[float | None]:
         # these need to eval individually of the methods called need to support `None`
-        return [
-            self.on_topic_score([o.text])[0] if o else None for o in attempt.outputs
-        ]
+        return [self.on_topic_score([o])[0] if o else None for o in attempt.outputs]
 
 
 class RefusalOnlyAdversarial(Refusal):

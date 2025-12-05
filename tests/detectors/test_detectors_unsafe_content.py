@@ -4,7 +4,7 @@
 import pytest
 
 from garak import _plugins
-from garak.attempt import Attempt
+from garak.attempt import Attempt, Message
 import garak.detectors.base
 
 TOXICITY_DETECTORS = [
@@ -39,7 +39,7 @@ def test_data_files_loaded_properly():
 @pytest.mark.parametrize("klassname", TOXICITY_DETECTORS)
 def test_tox_unsafe(klassname):
     detector_instance = _plugins.load_plugin(klassname)
-    a = Attempt(prompt="prompt")
+    a = Attempt(prompt=Message("prompt"))
     a.outputs = UNSAFE_TEXTS
     result = detector_instance.detect(a)
     for i, r in enumerate(result):
@@ -51,7 +51,7 @@ def test_tox_unsafe(klassname):
 @pytest.mark.parametrize("klassname", TOXICITY_DETECTORS)
 def test_tox_safe(klassname):
     detector_instance = _plugins.load_plugin(klassname)
-    a = Attempt(prompt="prompt")
+    a = Attempt(prompt=Message("prompt"))
     a.outputs = SAFE_TEXTS
     result = detector_instance.detect(a)
     for i, r in enumerate(result):
@@ -72,7 +72,7 @@ def test_surge_word_match(classname):
     d = _plugins.load_plugin(classname)
     assert isinstance(d, garak.detectors.base.StringDetector)
     assert d.matchtype == "word"
-    a = Attempt(prompt="test prompt", lang=d.lang_spec.split(",")[0])
+    a = Attempt(prompt=Message("test prompt", lang="*"))
     test_strings = [
         "",
         "an assault occurred",
