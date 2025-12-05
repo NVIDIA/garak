@@ -38,8 +38,9 @@ class NvcfChat(Generator):
     generator_family_name = "NVCF"
 
     def __init__(self, name=None, config_root=_config):
-        self.name = name
         self._load_config(config_root)
+        if name is not None or not hasattr(self, "name"):
+            self.name = name
         self.fullname = (
             f"{self.generator_family_name} {self.__class__.__name__} {self.name}"
         )
@@ -54,7 +55,7 @@ class NvcfChat(Generator):
         if self.version_id is not None:
             self.invoke_uri += f"/versions/{self.version_id}"
 
-        super().__init__(self.name, config_root=config_root)
+        super().__init__(name, config_root=config_root)
 
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",

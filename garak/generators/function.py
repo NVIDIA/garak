@@ -73,8 +73,9 @@ class Single(Generator):
     ):
         if len(kwargs) > 0:
             self.kwargs = kwargs.copy()
-        self.name = name  # if the user's function requires `name` it would have been extracted from kwargs and will not be passed later
         self._load_config(config_root)
+        if name or not hasattr(self, "name"):  # name is required for function generators
+            self.name = name
 
         gen_module_name, gen_function_name = self.name.split("#")
 
@@ -89,7 +90,7 @@ class Single(Generator):
                 'Incompatible function signature: "name" is incompatible with this Generator'
             )
 
-        super().__init__(self.name, config_root=config_root)
+        super().__init__(name, config_root=config_root)
 
     def _call_model(
         self, prompt: Conversation, generations_this_call: int = 1

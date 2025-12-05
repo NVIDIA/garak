@@ -39,12 +39,13 @@ class NeMoGenerator(Generator):
     generator_family_name = "NeMo"
 
     def __init__(self, name=None, config_root=_config):
-        self.name = name
         self.org_id = None
         self._load_config(config_root)
+        if name is not None or not hasattr(self, "name"):
+            self.name = name
         self.fullname = f"NeMo {self.name}"
 
-        super().__init__(self.name, config_root=config_root)
+        super().__init__(name, config_root=config_root)
 
         self.nemo = nemollm.api.NemoLLM(
             api_host=self.api_uri, api_key=self.api_key, org_id=self.org_id

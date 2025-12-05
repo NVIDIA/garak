@@ -27,8 +27,9 @@ class NeMoGuardrails(Generator):
                 "You must first install NeMo Guardrails using `pip install nemoguardrails`."
             ) from e
 
-        self.name = name
         self._load_config(config_root)
+        if name or not hasattr(self, "name"):
+            self.name = name
         self.fullname = f"Guardrails {self.name}"
 
         # Currently, we use the target_name as the path to the config
@@ -36,7 +37,7 @@ class NeMoGuardrails(Generator):
             config = RailsConfig.from_path(self.name)
             self.rails = LLMRails(config=config)
 
-        super().__init__(self.name, config_root=config_root)
+        super().__init__(name, config_root=config_root)
 
     def _call_model(
         self, prompt: Conversation, generations_this_call: int = 1
