@@ -47,4 +47,5 @@ For a detailed oversight into how a probe operates, see :doc:`garak.probes.base`
    garak.probes.topic
    garak.probes.visual_jailbreak
    garak.probes.web_injection
+   garak.probes.badchars
    garak.probes._tier
