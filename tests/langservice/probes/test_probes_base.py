@@ -294,7 +294,7 @@ def test_probe_prompt_translation(classname, mocker):
         # increase prompt calls by 1 or if triggers are lists by the len of triggers
         if isinstance(probe_instance.triggers[0], list):
             expected_provision_calls += len(probe_instance.triggers)
-        else:
+        elif not classname.startswith("probes.encoding"):
             expected_provision_calls += 1
 
     if hasattr(probe_instance, "attempt_descrs"):
