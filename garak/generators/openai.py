@@ -293,7 +293,7 @@ class OpenAICompatible(Generator):
         if is_completion:
             return [Message(c.text) for c in response.choices]
         else:
-            return [Message(c.message.content) for c in response.choices]
+            return [Message(c.message.content) if c.message is not None and c.message.content is not None else None for c in response.choices]
 
 
 class OpenAIGenerator(OpenAICompatible):
