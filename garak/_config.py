@@ -11,6 +11,7 @@ import platform
 from collections import defaultdict
 from dataclasses import dataclass
 import importlib
+import json
 import logging
 import os
 import stat
@@ -155,13 +156,22 @@ def _combine_into(d: dict, combined: dict) -> dict:
     return combined
 
 
-def _load_yaml_config(settings_filenames) -> dict:
+def _load_config_files(settings_filenames) -> dict:
     global config_files
     config_files += settings_filenames
     config = nested_dict()
     for settings_filename in settings_filenames:
         with open(settings_filename, encoding="utf-8") as settings_file:
-            settings = yaml.safe_load(settings_file)
+            try:
+                settings = json.load(settings_file)
+            except json.JSONDecodeError:
+                settings_file.seek(0)
+                try:
+                    settings = yaml.safe_load(settings_file)
+                except yaml.YAMLError as e:
+                    message = f"Failed to parse config file {settings_filename} as JSON or YAML: {e}"
+                    logging.error(message)
+                    raise ValueError(message) from e
             if settings is not None:
                 if _key_exists(settings, "api_key"):
                     if platform.system() == "Windows":
@@ -216,7 +226,7 @@ def _load_yaml_config(settings_filenames) -> dict:
 
 def _store_config(settings_files) -> None:
     global system, run, plugins, reporting, version
-    settings = _load_yaml_config(settings_files)
+    settings = _load_config_files(settings_files)
     system = _set_settings(system, settings["system"])
     run = _set_settings(run, settings["run"])
     run.user_agent = run.user_agent.replace("{version}", version)
@@ -292,27 +302,99 @@ def load_config(
 
     settings_files = [str(transient.package_dir / "resources" / "garak.core.yaml")]
 
-    fq_site_config_filename = str(transient.config_dir / site_config_filename)
-    if os.path.isfile(fq_site_config_filename):
-        settings_files.append(fq_site_config_filename)
+    if site_config_filename == "garak.site.yaml":
+        site_config_json = str(transient.config_dir / "garak.site.json")
+        site_config_yaml = str(transient.config_dir / "garak.site.yaml")
+        site_config_yml = str(transient.config_dir / "garak.site.yml")
+
+        has_json = os.path.isfile(site_config_json)
+        has_yaml = os.path.isfile(site_config_yaml)
+        has_yml = os.path.isfile(site_config_yml)
+
+        if sum([has_json, has_yaml, has_yml]) > 1:
+            message = "Multiple site config files found (garak.site.json, garak.site.yaml, garak.site.yml). Please use only one site config format."
+            logging.error(message)
+            raise ValueError(message)
+        elif has_json:
+            settings_files.append(site_config_json)
+        elif has_yaml:
+            settings_files.append(site_config_yaml)
+        elif has_yml:
+            settings_files.append(site_config_yml)
+        else:
+            logging.debug(
+                "no site config found at: %s, %s, or %s",
+                site_config_json,
+                site_config_yaml,
+                site_config_yml,
+            )
     else:
-        # warning, not error, because this one has a default value
-        logging.debug("no site config found at: %s", fq_site_config_filename)
+        fq_site_config_filename = str(transient.config_dir / site_config_filename)
+        if os.path.isfile(fq_site_config_filename):
+            settings_files.append(fq_site_config_filename)
+        else:
+            logging.debug("no site config found at: %s", fq_site_config_filename)
 
     if run_config_filename is not None:
-        # take config file path as provided
+        # If file exists as-is, use it
         if os.path.isfile(run_config_filename):
             settings_files.append(run_config_filename)
-        elif os.path.isfile(
-            str(transient.package_dir / "configs" / (run_config_filename + ".yaml"))
-        ):
-            settings_files.append(
-                str(transient.package_dir / "configs" / (run_config_filename + ".yaml"))
-            )
+        # If explicit extension, check bundled
+        elif run_config_filename.lower().endswith((".json", ".yaml", ".yml")):
+            bundled = str(transient.package_dir / "configs" / run_config_filename)
+            if os.path.isfile(bundled):
+                settings_files.append(bundled)
+            else:
+                message = f"run config not found: {run_config_filename}"
+                logging.error(message)
+                raise FileNotFoundError(message)
+        # Extension-less: JSON-only, YAML needs explicit .yaml/.yml
         else:
-            message = f"run config not found: {run_config_filename}"
-            logging.error(message)
-            raise FileNotFoundError(message)
+            json_path = run_config_filename + ".json"
+            yaml_path = run_config_filename + ".yaml"
+            yml_path = run_config_filename + ".yml"
+            json_bundled = str(
+                transient.package_dir / "configs" / (run_config_filename + ".json")
+            )
+            yaml_bundled = str(
+                transient.package_dir / "configs" / (run_config_filename + ".yaml")
+            )
+            yml_bundled = str(
+                transient.package_dir / "configs" / (run_config_filename + ".yml")
+            )
+
+            has_json = os.path.isfile(json_path)
+            has_yaml = os.path.isfile(yaml_path)
+            has_yml = os.path.isfile(yml_path)
+            has_json_bundled = os.path.isfile(json_bundled)
+            has_yaml_bundled = os.path.isfile(yaml_bundled)
+            has_yml_bundled = os.path.isfile(yml_bundled)
+
+            # Direct path: JSON-only, warn if both exist
+            if has_json or has_yaml or has_yml:
+                if has_json and (has_yaml or has_yml):
+                    yaml_ext = ".yaml" if has_yaml else ".yml"
+                    logging.warning(
+                        f"Both {run_config_filename}.json and {yaml_ext} found. Using .json"
+                    )
+                if has_json:
+                    settings_files.append(json_path)
+                else:
+                    yaml_ext = ".yaml" if has_yaml else ".yml"
+                    message = f"Found {run_config_filename}{yaml_ext} but YAML needs explicit .yaml/.yml extension"
+                    logging.error(message)
+                    raise FileNotFoundError(message)
+            elif has_json_bundled:
+                settings_files.append(json_bundled)
+            elif has_yaml_bundled or has_yml_bundled:
+                yaml_ext = ".yaml" if has_yaml_bundled else ".yml"
+                message = f"Found {run_config_filename}{yaml_ext} but YAML needs explicit .yaml/.yml extension"
+                logging.error(message)
+                raise FileNotFoundError(message)
+            else:
+                message = f"run config not found: {run_config_filename}"
+                logging.error(message)
+                raise FileNotFoundError(message)
 
     logging.debug("Loading configs from: %s", ",".join(settings_files))
     _store_config(settings_files=settings_files)
