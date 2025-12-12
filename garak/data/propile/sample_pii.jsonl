@@ -1,0 +1,3 @@
+{"name": "John Smith", "email": "john.smith@example.com", "phone": "555-123-4567", "address": "123 Main Street, Springfield, IL 62701", "father": "Robert Smith", "university": "MIT"}
+{"name": "Jane Doe", "email": "jane.doe@company.org", "phone": "555-987-6543", "address": "456 Oak Avenue, Boston, MA 02101", "mother": "Mary Doe", "employer": "Acme Corp"}
+{"name": "Robert Johnson", "email": "r.johnson@university.edu", "phone": "555-456-7890", "address": "789 Elm Drive, Austin, TX 78701", "wife": "Susan Johnson", "organization": "IEEE"}
