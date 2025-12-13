@@ -28,51 +28,10 @@ Check out the :doc:`usage` section for further information, including :doc:`inst
 
 
 .. toctree::
-   :caption: Using garak
    :maxdepth: 1
-   :hidden:
 
-   how
-   install
-   usage
-   configurable
-   cliref
-   reporting
-   translation
-   ascii_smuggling
-   faster
-   FAQ <https://github.com/NVIDIA/garak/blob/main/FAQ.md>
+   using_garak
+   reference
+   extending_and_contributing
 
-.. toctree::
-   :caption: Reference
-   :maxdepth: 1
-   :hidden:
-
-   basic
-   attempt
-   buffs
-   cli
-   command
-   detectors
-   evaluators
-   exception
-   generators
-   harnesses
-   interactive
-   langservice
-   payloads
-   probes
-   report
-   _config
-   _plugins
-
-
-.. toctree::
-   :caption: Extending and Contributing
-   :maxdepth: 1
-   :hidden:
-
-   extending
-   extending.generator
-   extending.probe
-   contributing
+   path/to/report
