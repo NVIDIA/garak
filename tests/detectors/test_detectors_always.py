@@ -3,10 +3,9 @@
 
 import pytest
 
-from garak.attempt import Attempt
+from garak.attempt import Attempt, Message
 import garak._plugins
 import garak.detectors.base
-import garak.detectors.always
 
 ALWAYS_DETECTOR_NAMES = [
     classname
@@ -23,7 +22,7 @@ def test_load(detectorname):
 
 def test_fail():
     d = garak._plugins.load_plugin("detectors.always.Fail")
-    a = Attempt(prompt="")
+    a = Attempt(prompt=Message())
     a.outputs = [""]
     d.detect(a)
     assert d.detect(a) == [1.0]
@@ -31,14 +30,14 @@ def test_fail():
 
 def test_pass():
     d = garak._plugins.load_plugin("detectors.always.Pass")
-    a = Attempt(prompt="")
+    a = Attempt(prompt=Message())
     a.outputs = [""]
     assert d.detect(a) == [0.0]
 
 
 def test_passthru():
     d = garak._plugins.load_plugin("detectors.always.Passthru")
-    a = Attempt(prompt="")
+    a = Attempt(prompt=Message())
     a.outputs = [""]
     a.detector_results = {"always.Fail": [0.5]}
     assert d.detect(a) == [0.5]

@@ -94,14 +94,30 @@ such as ``show_100_pass_modules``.
 System Config Items
 """""""""""""""""""
 
-* ``parallel_requests`` - For generators not supporting multiple responses per prompt: how many requests to send in parallel with the same prompt? (raising ``parallel_attempts`` generally yields higher performance, depending on how high ``generations`` is set)
 * ``parallel_attempts`` - For parallelisable generators, how many attempts should be run in parallel? Raising this is a great way of speeding up garak runs for API-based models
+* ``parallel_requests`` - For generators not supporting multiple responses per prompt: how many requests to send in parallel with the same prompt? (raising ``parallel_attempts`` generally yields higher performance, depending on how high ``generations`` is set)
 * ``lite`` - Should we display a caution message that the run might not give very thorough results?
 * ``verbose`` - Degree of verbosity (values above 0 are experimental, the report & log are authoritative)
 * ``narrow_output`` - Support output on narrower CLIs
 * ``show_z`` - Display Z-scores and visual indicators on CLI. It's good, but may be too much info until one has seen garak run a couple of times
 * ``enable_experimental`` - Enable experimental function CLI flags. Disabled by default. Experimental functions may disrupt your installation and provide unusual/unstable results. Can only be set by editing core config, so a git checkout of garak is recommended for this.
 * ``max_workers`` - Cap on how many parallel workers can be requested. When raising this in order to use higher parallelisation, keep an eye on system resources (e.g. `ulimit -n 4026` on Linux)
+
+
+
+**Parallel requests and parallel attempts** These items enable parallelisation within a probe, by launching multiple processes to either try many prompts at the same time (``parallel_attempts``), or to try multiple copies of the same prompt at the same time (``parallel_requests``).
+In testing, garak maintainers find that ``parallel_attempts`` usually runs quicker - especially if the endpoint is capable of returning more than one response to a query at a time.
+
+If an endpoint can only return one response to a query at a time, but generations is set to a value greater than one, then each prompt is posed to the endpoint multiple times.
+This can be slow.
+Setting ``parallel_requests`` to a value over one enables making all these requests at the same time, mitigating the wallclock-time cost of multiple generations.
+
+Parameter ``parallel_requests`` has no effect if generations is set to 1.
+Setting ``parallel_requests`` higher than generations also has the same effect as setting ``parallel_requests`` equal to generations.
+
+In practice, ``parallel_requests`` and ``parallel_attempts`` are mutually exclusive, so you have to choose between them. 
+We find that using ``parallel_attempts`` usually gives a faster run completion time - especially when the number of generations is lower than the number of different prompts from a probe, which is more oftent he case than not in a default garak run.
+
 
 Run Config Items
 """"""""""""""""
@@ -184,8 +200,6 @@ probes and run each prompt just once:
 
 If we save this as ``latent1.yaml`` somewhere, then we can use it with ``garak --config latent1.yaml``.
 
-
-
 Using a Custom JSON Config
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -241,6 +255,26 @@ overridden at run time by the CLI setup.
 At plugin load, the plugin instance has attributes named in ``DEFAULT_PARAMS``
 automatically created, and populated with either values given in the supplied
 config, or the default.
+
+Fixed plugin parameters
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Some plugin parameters aren't intended to be altered at instantiation via config.
+These are the fixed plugin parameters, and are generally those not given in ``DEFAULT_PARAMS``.
+Descriptions of these are as follows (for a probe - other plugins are similar):
+
+* ``description`` - A short description of what the plugin does
+* ``active`` - Whether or not the plugin is active (i.e. selected) by default
+* ``doc_uri`` - Link to more information about the plugin
+* ``extended_detectors`` - Option detectors to use on probe results
+* ``extra_dependency_names`` - Extra Python modules that garka should import when instantiatng the plugin
+* ``goal`` - Brief description in imperative form of the probe's intent
+* ``modality`` - Which modalities the probe supports (as of Nov 2024 the list is ``text``, ``image``, ``audio``, ``video``, ``3d``)
+* ``parallelisable_attempts`` - Is the probe parallelisable? Recommended false if it has to use an LLM to develop attacks, particularly a local one
+* ``primary_detector`` - What detector should be used on the probe's outputs?
+* ``tags`` - List of tags applicable to the plugin, drawn from ``garak/data/tags.misp.tsv``
+* ``mod_time`` - Modification timestamp of the plugin source file used to generate this data
+
 
 .. _config_with_yaml:
 

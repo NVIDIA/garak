@@ -6,16 +6,14 @@
 import json
 import logging
 import os
-import random
 import requests
 from typing import List, Union
 
 import backoff
-import nemollm
 
 from garak import _config
 from garak.attempt import Message, Conversation
-from garak.exception import APIKeyMissingError
+from garak.exception import APIKeyMissingError, GeneratorBackoffTrigger
 from garak.generators.base import Generator
 
 
@@ -38,6 +36,7 @@ class NeMoGenerator(Generator):
 
     supports_multiple_generations = False
     generator_family_name = "NeMo"
+    extra_dependency_names = ["nemollm"]
 
     def __init__(self, name=None, config_root=_config):
         self.name = name
@@ -47,7 +46,7 @@ class NeMoGenerator(Generator):
 
         super().__init__(self.name, config_root=config_root)
 
-        self.nemo = nemollm.api.NemoLLM(
+        self.nemo = self.nemollm.api.NemoLLM(
             api_host=self.api_uri, api_key=self.api_key, org_id=self.org_id
         )
 
@@ -72,11 +71,7 @@ class NeMoGenerator(Generator):
 
     @backoff.on_exception(
         backoff.fibo,
-        (
-            nemollm.error.ServerSideError,
-            nemollm.error.TooManyRequestsError,
-            requests.exceptions.ConnectionError,  # hopefully handles SSLV3_ALERT_BAD_RECORD_MAC
-        ),
+        GeneratorBackoffTrigger,
         max_value=70,
     )
     def _call_model(
@@ -90,28 +85,39 @@ class NeMoGenerator(Generator):
         reset_none_seed = False
         if self.seed is None:  # nemo gives the same result every time
             reset_none_seed = True
-            self.seed = random.randint(0, 2147483648 - 1)
+            self.seed = self._rng.randint(0, 2147483648 - 1)
         elif generations_this_call > 1:
             logging.info(
                 "fixing a seed means nemollm gives the same result every time, recommend setting generations=1"
             )
+        try:
+            # can this be expanded to take a conversation set of Messages?
+            response = self.nemo.generate(
+                model=self.name,
+                prompt=prompt.last_message().text,
+                tokens_to_generate=self.max_tokens,
+                temperature=self.temperature,
+                random_seed=self.seed,
+                top_p=self.top_p,
+                top_k=self.top_k,
+                # stop=["\n"],
+                repetition_penalty=self.repetition_penalty,
+                beam_search_diversity_rate=self.beam_search_diversity_rate,
+                beam_width=self.beam_width,
+                length_penalty=self.length_penalty,
+                # guardrail=self.guardrail
+            )
+        except Exception as e:
+            backoff_exception_types = [
+                self.nemollm.error.ServerSideError,
+                self.nemollm.error.TooManyRequestsError,
+                requests.exceptions.ConnectionError,  # hopefully handles SSLV3_ALERT_BAD_RECORD_MAC
+            ]
 
-        # can this be expanded to take a conversation set of Messages?
-        response = self.nemo.generate(
-            model=self.name,
-            prompt=prompt.last_message().text,
-            tokens_to_generate=self.max_tokens,
-            temperature=self.temperature,
-            random_seed=self.seed,
-            top_p=self.top_p,
-            top_k=self.top_k,
-            # stop=["\n"],
-            repetition_penalty=self.repetition_penalty,
-            beam_search_diversity_rate=self.beam_search_diversity_rate,
-            beam_width=self.beam_width,
-            length_penalty=self.length_penalty,
-            # guardrail=self.guardrail
-        )
+            for backoff_exception in backoff_exception_types:
+                if isinstance(e, backoff_exception):
+                    raise GeneratorBackoffTrigger from e
+            raise e
 
         if reset_none_seed:
             self.seed = None

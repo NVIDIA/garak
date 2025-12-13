@@ -29,6 +29,9 @@ The recipe for writing a new plugin or plugin class isn't outlandish:
 * Start a new module inheriting from one of the base classes, e.g. :class:`garak.probes.base.Probe`
 * Override as little as possible.
 
+If you use custom modules not included in garak's default list, include these in the plugin's top-level ``extra_dependency_names`` parameter.
+Garak's plugin loader (``garak._plugins.load_plugin()``) will manage the import and inject the requested module as ``self.<module>``.
+
 
 Guides to writing plugins
 -------------------------
@@ -46,7 +49,7 @@ You can test your code in a few ways:
 * Start an interactive Python session
    * Instantiate the plugin, e.g. ``import garak._plugins`` then ``probe = garak._plugins.load_plugin("garak.probes.mymodule.MyProbe")``
    * Check out that the values and methods work as you'd expect
-* Get ``garak`` to list all the plugins of the type you're writing, with ``--list_probes``, ``--list_detectors``, or ``--list_generators``: ```python3 -m garak --list_probes``
+* Get ``garak`` to list all the plugins of the type you're writing, with ``--list_probes``, ``--list_detectors``, or ``--list_generators``: ``python3 -m garak --list_probes``
 * Run a scan with test plugins
    * For probes, try a blank generator and always.Pass detector: ``python3 -m garak -t test.Blank -p mymodule -d always.Pass``
    * For detectors, try a blank generator and a blank probe: ``python3 -m garak -t test.Blank -p test.Blank -d mymodule``

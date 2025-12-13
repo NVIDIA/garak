@@ -32,7 +32,10 @@ def build_test_instance(module_klass):
     if hasattr(module_klass, "ENV_VAR"):
         stored_env = os.getenv(module_klass.ENV_VAR, None)
         os.environ[module_klass.ENV_VAR] = ENV_VAR
-    class_instance = module_klass(name=MODEL_NAME)
+    try:
+        class_instance = module_klass(name=MODEL_NAME)
+    except ModuleNotFoundError as mnfe:
+        pytest.skip(mnfe.args[0])
     if stored_env is not None:
         os.environ[module_klass.ENV_VAR] = stored_env
     else:

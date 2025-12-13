@@ -3,7 +3,11 @@ import random
 
 import garak
 from garak import _plugins, _config
-import garak.generators
+import garak.buffs.base
+import garak.detectors.base
+import garak.generators.base
+import garak.harnesses.base
+import garak.probes.base
 
 PROBES = [classname for (classname, active) in _plugins.enumerate_plugins("probes")]
 
@@ -37,33 +41,48 @@ def plugin_configuration(classname):
 @pytest.mark.parametrize("classname", PROBES)
 def test_instantiate_probes(plugin_configuration):
     classname, config_root = plugin_configuration
-    g = _plugins.load_plugin(classname, config_root=config_root)
-    assert isinstance(g, garak.probes.base.Probe)
+    try:
+        p = _plugins.load_plugin(classname, config_root=config_root)
+    except ModuleNotFoundError:
+        pytest.skip("required deps not present")
+    assert isinstance(p, garak.probes.base.Probe)
 
 
 @pytest.mark.parametrize("classname", DETECTORS)
 def test_instantiate_detectors(plugin_configuration):
     classname, config_root = plugin_configuration
-    g = _plugins.load_plugin(classname, config_root=config_root)
-    assert isinstance(g, garak.detectors.base.Detector)
+    try:
+        d = _plugins.load_plugin(classname, config_root=config_root)
+    except ModuleNotFoundError:
+        pytest.skip("required deps not present")
+    assert isinstance(d, garak.detectors.base.Detector)
 
 
 @pytest.mark.parametrize("classname", HARNESSES)
 def test_instantiate_harnesses(plugin_configuration):
     classname, config_root = plugin_configuration
-    g = _plugins.load_plugin(classname, config_root=config_root)
-    assert isinstance(g, garak.harnesses.base.Harness)
+    try:
+        h = _plugins.load_plugin(classname, config_root=config_root)
+    except ModuleNotFoundError:
+        pytest.skip("required deps not present")
+    assert isinstance(h, garak.harnesses.base.Harness)
 
 
 @pytest.mark.parametrize("classname", BUFFS)
 def test_instantiate_buffs(plugin_configuration):
     classname, config_root = plugin_configuration
-    g = _plugins.load_plugin(classname, config_root=config_root)
-    assert isinstance(g, garak.buffs.base.Buff)
+    try:
+        b = _plugins.load_plugin(classname, config_root=config_root)
+    except ModuleNotFoundError:
+        pytest.skip("required deps not present")
+    assert isinstance(b, garak.buffs.base.Buff)
 
 
 @pytest.mark.parametrize("classname", GENERATORS)
 def test_instantiate_generators(plugin_configuration):
     classname, config_root = plugin_configuration
-    g = _plugins.load_plugin(classname, config_root=config_root)
+    try:
+        g = _plugins.load_plugin(classname, config_root=config_root)
+    except ModuleNotFoundError:
+        pytest.skip("required deps not present")
     assert isinstance(g, garak.generators.base.Generator)

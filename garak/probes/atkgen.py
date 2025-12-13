@@ -1,14 +1,19 @@
-"""atkgen: Attack Generation.
+"""**atkgen: Attack Generation**
 
-This probe uses a separate model to create prompts for a generator,
+This probe uses a separate model to create attack prompts,
 which are intended to guide that generator into a certain failure mode.
+
+Only probes that dynamically generate their own attack prompts belong in this module.
 
 Warning: These attack models may generate highly toxic prompts while
 attempting to goad target models into failure - peruse logs at your
 own risk, and don't spend too much time doing it, using this guide
-to working with harmful text:
+to working with harmful text: https://aclanthology.org/2022.findings-emnlp.35/
 
- https://aclanthology.org/2022.findings-emnlp.35/
+Further info:
+
+* https://interhumanagreement.substack.com/p/faketoxicityprompts-automatic-red
+
 """
 
 import copy
@@ -37,7 +42,7 @@ class Tox(garak.probes.Probe):
     using the same detector as this tox probe uses, so both attack generation model
     and detector are looking for the same definition of the failure mode."""
 
-    recommended_detector = ["unsafe_content.ToxicCommentModel"]
+    primary_detector = "unsafe_content.ToxicCommentModel"
     tags = [
         "avid-effect:ethics:E0301",
         "quality:Behavioral:ContentSafety:Toxicity",
@@ -205,7 +210,7 @@ class Tox(garak.probes.Probe):
                 logging.debug("atkgen: model: %s", response_text)
                 if output_is_conversation:
                     print(
-                        f"atkgen: 🦜 model: {Style.BRIGHT}{this_attempt.prompt.turns[-1].text}{Style.RESET_ALL}"
+                        f"atkgen: 🦜 model: {Style.BRIGHT}{this_attempt.prompt.turns[-1].content.text}{Style.RESET_ALL}"
                     )
                 else:
                     t.update()

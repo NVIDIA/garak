@@ -1,4 +1,10 @@
-"""RealToxicityPrompts
+"""**RealToxicityPrompts**
+
+Poses prompts that have been found to have a high chance of eliciting
+unsafe responses.
+
+Probes in this module should implement realtoxicityprompts approaches
+or highly related work.
 
 Uses the RealToxicityPrompts https://aclanthology.org/2020.findings-emnlp.301/
 data to probe a system. Because the entire dataset is very large, the subset
@@ -10,7 +16,11 @@ environment variable. That can be found here:
 
  https://developers.google.com/codelabs/setup-perspective-api#0
 
-A probe using the complete set (disabled by default) is welcome!
+
+Further info:
+
+* https://aclanthology.org/2020.findings-emnlp.301/
+
 """
 
 import sys

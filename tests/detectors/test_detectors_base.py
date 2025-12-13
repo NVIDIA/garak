@@ -9,7 +9,7 @@ import garak.detectors.base
 
 def test_filedetector_nonexist():
     d = garak.detectors.base.FileDetector()
-    a = Attempt(prompt="")
+    a = Attempt(prompt=Message(text=""))
     a.outputs = [Message(f) for f in [None, "", "/non/existing/file"]]
     a.notes["format"] = d.valid_format
     assert (
@@ -32,7 +32,7 @@ def string_detector():
 def test_case_sensitive_exact_match(string_detector):
     """Test that exact matches are detected when case_sensitive=True"""
     for test_str in TEST_STRINGS:
-        attempt = Attempt(prompt="Hello")
+        attempt = Attempt(prompt=Message(text="Hello"))
         attempt.outputs = [Message(test_str)]
         results = string_detector.detect(attempt, case_sensitive=True)
         assert results == [1.0], f"Failed to detect exact match for '{test_str}'"
@@ -50,7 +50,7 @@ def test_case_sensitive_no_match(string_detector):
     ]
 
     for test_str in test_cases:
-        attempt = Attempt(prompt="Hello")
+        attempt = Attempt(prompt=Message(text="Hello"))
         attempt.outputs = [Message(test_str)]
         results = string_detector.detect(attempt, case_sensitive=True)
         assert results == [
@@ -70,7 +70,7 @@ def test_case_insensitive_match(string_detector):
     ]
 
     for original, variant in test_cases:
-        attempt = Attempt(prompt="Hello")
+        attempt = Attempt(prompt=Message(text="Hello"))
         attempt.outputs = [Message(variant)]
         results = string_detector.detect(attempt, case_sensitive=False)
         assert results == [
@@ -80,7 +80,7 @@ def test_case_insensitive_match(string_detector):
 
 def test_multiple_outputs(string_detector):
     """Test detection across multiple outputs with mixed case sensitivity"""
-    attempt = Attempt(prompt="Hello")
+    attempt = Attempt(prompt=Message(text="Hello"))
     attempt.outputs = [
         Message(s) for s in [TEST_STRINGS[0], TEST_STRINGS[0].upper(), "no match"]
     ]
@@ -104,11 +104,13 @@ def test_multiple_outputs(string_detector):
 
 def test_none_outputs(string_detector):
     """Test handling of None outputs"""
-    attempt = Attempt(prompt="Hello")
+    attempt = Attempt(prompt=Message(text="Hello"))
     attempt.outputs = [Message(s) for s in [None, TEST_STRINGS[0], None]]
 
     results = string_detector.detect(attempt, case_sensitive=True)
-    assert len(results) == len(attempt.outputs), "Detector result for each output including None"
+    assert len(results) == len(
+        attempt.outputs
+    ), "Detector result for each output including None"
     assert results == [None, 1.0, None], "Failed to handle None outputs correctly"
 
 
@@ -145,7 +147,7 @@ def test_matchtype_with_case_sensitivity(matchtype):
     detector.matchtype = matchtype
 
     for text, should_match_sensitive in MATCHTYPE_AND_CASING_CASES[matchtype]:
-        attempt = Attempt(prompt="Hello")
+        attempt = Attempt(prompt=Message(text="Hello"))
         attempt.outputs = [Message(text)]
 
         # Test case sensitive
@@ -174,7 +176,7 @@ def test_stringdetector_word_boundary_matching():
     ]
 
     for text, match in test_cases:
-        attempt = Attempt(prompt="")
+        attempt = Attempt(prompt=Message(text=""))
         attempt.outputs = [Message(text)]
         results = detector.detect(attempt, case_sensitive=True)
         assert results == [
@@ -192,7 +194,7 @@ def test_stringdetector_startswith():
     ]
 
     for text, match in test_cases:
-        attempt = Attempt(prompt="")
+        attempt = Attempt(prompt=Message(text=""))
         attempt.outputs = [Message(text)]
         results = detector.detect(attempt, case_sensitive=True)
         assert results == [

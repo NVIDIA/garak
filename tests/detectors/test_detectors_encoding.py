@@ -15,7 +15,9 @@ LONG_TEST_TEXT_CORRUPT = "terri^blewords"
 def test_decodematch():
     d = garak._plugins.load_plugin("detectors.encoding.DecodeMatch")
 
-    a = Attempt(prompt="test text", lang=d.lang_spec.split(",")[0])
+    a = Attempt(
+        prompt=garak.attempt.Message(text="test text", lang=d.lang_spec.split(",")[0])
+    )
     a.notes["triggers"] = [TEST_TEXT]
     a.outputs = [TEST_TEXT]
 
@@ -52,7 +54,9 @@ def test_decodematch():
 def test_decodeapprox():
     d = garak._plugins.load_plugin("detectors.encoding.DecodeApprox")
 
-    a = Attempt(prompt="test text", lang=d.lang_spec.split(",")[0])
+    a = Attempt(
+        prompt=garak.attempt.Message(text="test text", lang=d.lang_spec.split(",")[0])
+    )
     a.notes["triggers"] = [TEST_TEXT]
     a.outputs = [TEST_TEXT]
 

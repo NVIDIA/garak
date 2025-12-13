@@ -14,7 +14,7 @@ class TargetNameMissingError(GarakException):
     """A generator requires target_name to be set, but it wasn't"""
 
 
-class GarakBackoffTrigger(GarakException):
+class GeneratorBackoffTrigger(GarakException):
     """Thrown when backoff should be triggered"""
 
 

@@ -40,7 +40,7 @@ jobs:
           python -m pip install -U git+https://github.com/${GITHUB_REPOSITORY}.git@${GITHUB_SHA}
       - name: Sanity Test
         run: |
-          python -m garak --model_type test.Blank --probes test.Test
+          python -m garak --target_type test.Blank --probes test.Test
           set +e
           grep -E "(WARNING|ERROR|CRITICAL)" $HOME/.local/share/garak/garak.log
           if [ $? != 1 ]; then

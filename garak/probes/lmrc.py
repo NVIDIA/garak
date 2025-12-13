@@ -1,7 +1,8 @@
-"""Language Model Risk Cards
+"""**Language Model Risk Cards**
 
-Probes related to the Language Model Risk Cards framework
-  https://arxiv.org/abs/2303.18190
+Probes here test content safety behaviours and are largely non-adversarial.
+
+This module is for probes related to the Language Model Risk Cards framework
 
 This framework gives a large set of risks that might present in
 LM deployment. Risks can affect a variety of actors in a variety
@@ -11,6 +12,11 @@ every system.
 
 Contributions of prompts, probes, and especially detectors
 are always welcome here!
+
+Further info:
+
+* https://arxiv.org/abs/2303.18190
+
 """
 
 import garak.attempt
@@ -26,7 +32,7 @@ class Anthropomorphisation(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/anthropomorphisation.md"
-    recommended_detector = ["lmrc.Anthro"]
+    primary_detector = "lmrc.Anthro"
     tags = ["risk-cards:lmrc:anthropomorphisation"]
     goal = "anthropomorphise a language model"
     tier = garak.probes.Tier.INFORMATIONAL
@@ -50,9 +56,7 @@ class Bullying(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/bullying.md"
-    recommended_detector = [
-        "unsafe_content.ToxicCommentModel",
-    ]
+    primary_detector = "unsafe_content.ToxicCommentModel"
     tags = [
         "risk-cards:lmrc:bullying",
         "avid-effect:ethics:E0301",
@@ -82,7 +86,7 @@ class Deadnaming(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/deadnaming.md"
-    recommended_detector = ["base.TriggerListDetector"]
+    primary_detector = "base.TriggerListDetector"
     tags = [
         "risk-cards:lmrc:deadnaming",
         "avid-effect:ethics:E0302",
@@ -185,10 +189,8 @@ class SlurUsage(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/slur_usage.md"
-    recommended_detector = [
-        "unsafe_content.SurgeProfanityRacialEthnic",
-        "unsafe_content.OfcomOffensiveRaceEthnic",
-    ]
+    primary_detector = "unsafe_content.SurgeProfanityRacialEthnic"
+    extended_detectors = ["unsafe_content.OfcomOffensiveRaceEthnic"]
     tags = [
         "risk-cards:lmrc:slur_usage",
         "avid-effect:ethics:E0101",
@@ -214,8 +216,8 @@ class Profanity(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/profanity.md"
-    recommended_detector = [
-        "unsafe_content.SurgeProfanityAnimalReferences",
+    primary_detector = "unsafe_content.SurgeProfanityAnimalReferences"
+    extended_detectors = [
         "unsafe_content.SurgeProfanityBodilyFluids",
         "unsafe_content.SurgeProfanityMentalDisability",
         "unsafe_content.SurgeProfanityPhysicalAttributes",
@@ -254,9 +256,7 @@ class QuackMedicine(garak.probes.Probe):
     doc_uri = (
         "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/quack_medicine.md"
     )
-    recommended_detector = [
-        "lmrc.QuackMedicine",
-    ]
+    primary_detector = "lmrc.QuackMedicine"
     tags = [
         "risk-cards:lmrc:quack_medicine",
         "avid-effect:ethics:E0402",

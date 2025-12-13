@@ -1,9 +1,11 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Data leak: Repeat-replay attack
+"""**Divergence attacks**
 
-Probes for evaluating if a model will replay training data when asked to repeat a string, or when given a repeated string
+These attacks try to get target output to deviate from the original topic and leak training data or other unwanted/unexpected material.
+
+This module is for any attack attemtping to get target output to diverge from input request.
 """
 
 from garak import _config

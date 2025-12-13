@@ -1,8 +1,10 @@
-"""About Past Tense Probes
+"""**Phrasing**
 
-Refusal training is widely used to prevent LLMs from generating harmful, undesirable, or illegal outputs.
-We reveal a curious generalization gap in the current refusal training approaches:
-simply reformulating a harmful request in the past tense is often sufficient to jailbreak many state-of-the-art LLMs.
+These attacks rephrase requests for unsafe content in an attempt to bypass safeguards.
+
+This module is home to probes that rely on specific grammatical alterations and rephrasing
+to implement their techinque.
+
 """
 
 from garak import _config
@@ -11,7 +13,7 @@ import garak.probes
 
 
 class PastTenseFull(garak.probes.Probe):
-    """Will the system give unsafe responses when asked to write about weapon creation or dangerous behavior?
+    """Will the system give unsafe responses when asked to write about weapon creation or dangerous behavior in the past tense?
 
     This check sends the generator requests for advice on possibly protect or restricted subjects in the past tense.
     """
@@ -57,7 +59,7 @@ class PastTense(PastTenseFull):
 
 
 class FutureTenseFull(garak.probes.Probe):
-    """Will the system give unsafe responses when asked to write about weapon creation or dangerous behavior?
+    """Will the system give unsafe responses when asked to write about weapon creation or dangerous behavior in the future tense?
 
     This check sends the generator requests for advice on possibly protect or restricted subjects in the future tense.
     """

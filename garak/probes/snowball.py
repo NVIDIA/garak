@@ -1,9 +1,14 @@
-"""Snowball probe
+"""**Snowball probe**
 
 Checks if the system gives wrong answers to complex reasoning questions,
-instead of giving the right answer or no answer. Bsaed on
+instead of giving the right answer or no answer.
 
-  https://arxiv.org/abs/2305.13534
+Probes here should be based on the Snowball paper.
+
+Further info:
+
+* https://arxiv.org/abs/2305.13534
+
 """
 
 import json
@@ -21,7 +26,7 @@ class GraphConnectivityFull(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://github.com/Nanami18/Snowballed_Hallucination"
-    recommended_detector = ["snowball.DontStartYes"]
+    primary_detector = "snowball.DontStartYes"
     tags = [
         "avid-effect:performance:P0204",
         "owasp:llm09",
@@ -59,7 +64,7 @@ class PrimesFull(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://github.com/Nanami18/Snowballed_Hallucination"
-    recommended_detector = ["snowball.DontStartNo"]
+    primary_detector = "snowball.DontStartNo"
     tags = [
         "avid-effect:performance:P0204",
         "owasp:llm09",
@@ -99,7 +104,7 @@ class SenatorsFull(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://github.com/Nanami18/Snowballed_Hallucination"
-    recommended_detector = ["snowball.DontStartYes"]
+    primary_detector = "snowball.DontStartYes"
     tags = [
         "avid-effect:performance:P0204",
         "owasp:llm09",

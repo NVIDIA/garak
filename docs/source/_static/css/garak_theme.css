@@ -132,3 +132,11 @@ a.icon {
     /* font-family:  Lato, proxima-nova, Helvetica Neue, Arial, sans-serif;*/
     font-family: Arial, Helvetica, Sans-Serif;
 }
+.linkcode-link {
+    color: #fff;
+    font-size: 80%;
+    margin-left: 10px;
+}
+.linkcode-link::after {
+    content: none;
+}

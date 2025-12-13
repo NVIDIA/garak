@@ -1,17 +1,24 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Simple Assistive Task Linkage
+"""**Simple Assistive Task Linkage**
 
-Probes that replace potentially violating or "harmful" text with a string
+Attacks here replace potentially violating or "harmful" text with a string
 that should be converted to a [MASK] token then, links the masked query
 with a simple assistive task to bypass safeguards and guardrails.
+
+Probes in this module should implement SATA or a variant of it.
 
 Our version uses the same instruction template as the original paper but
 instead of using OpenAI GPT models, uses NLTK for speed and efficiency.
 The original implementation can be found at https://github.com/xndong/SATA.
 
 Payloads are a subset of entries from HarmBench, some of which have been gently modified.
+
+Further info:
+
+* https://aclanthology.org/2025.findings-acl.100
+
 """
 
 import logging
@@ -110,7 +117,7 @@ class MLM(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://aclanthology.org/2025.findings-acl.100.pdf"
-    recommended_detector = ["mitigation.MitigationBypass"]
+    primary_detector = "mitigation.MitigationBypass"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",

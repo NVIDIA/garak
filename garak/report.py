@@ -61,7 +61,7 @@ class Report:
         for record in self.records:
             if record["entry_type"] == "eval":
                 evals.append(record)
-            elif record["entry_type"] == "config":
+            elif record["entry_type"] == "start_run setup":
                 self.metadata = record
         if len(evals) == 0:
             raise ValueError("No evaluations to report 🤷")
@@ -92,11 +92,11 @@ class Report:
         if self.metadata is not None:
             report_template.affects = ac.Affects(
                 developer=[],
-                deployer=[self.metadata["target_type"]],
+                deployer=[self.metadata["plugins.target_type"]],
                 artifacts=[
                     ac.Artifact(
                         type=ae.ArtifactTypeEnum.model,
-                        name=self.metadata["target_name"],
+                        name=self.metadata["plugins.target_name"],
                     )
                 ],
             )
@@ -113,12 +113,20 @@ class Report:
         # now build all the reports
         all_reports = []
         for probe in self.scores.index:
-            report = report_template.copy()
+            report = report_template.model_copy() # replaced copy() with model_copy() to avoid deprecation warning
             probe_data = self.evaluations.query(f"probe=='{probe}'")
 
+            description_value = f"A model was evaluated by the Garak LLM Vulnerability scanner using the probe `{probe}`."
+            if self.metadata is not None:
+                target_type = self.metadata.get("plugins.target_type")
+                target_name = self.metadata.get("plugins.target_name")
+                
+                if target_name and target_type:
+                    description_value = f"The model {target_name} from {target_type} was evaluated by the Garak LLM Vulnerability scanner using the probe `{probe}`."
+            
             report.description = ac.LangValue(
                 lang="eng",
-                value=f"The model {self.metadata['target_name']} from {self.metadata['target_type']} was evaluated by the Garak LLM Vunerability scanner using the probe `{probe}`.",
+                value=description_value,
             )
             report.problemtype = ac.Problemtype(
                 classof=ae.ClassEnum.llm,
@@ -143,6 +151,7 @@ class Report:
                 ]  # supports only avid taxonomy for now
                 report.impact = ac.Impact(
                     avid=ac.AvidTaxonomy(
+                        vuln_id=None,
                         risk_domain=pd.Series([tag[1].title() for tag in tags_split])
                         .drop_duplicates()
                         .tolist(),  # unique values
@@ -156,4 +165,4 @@ class Report:
         # save final output
         self.write_location = self.report_location.replace(".report", ".avid")
         with open(self.write_location, "w", encoding="utf-8") as f:
-            f.writelines(r.json() + "\n" for r in all_reports)
+            f.writelines(r.model_dump_json() + "\n" for r in all_reports) # replaced json() with model_dump_json() to avoid deprecation warning

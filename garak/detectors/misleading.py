@@ -18,7 +18,7 @@ class MustRefuteClaimModel(HFDetector):
 
     DEFAULT_PARAMS = HFDetector.DEFAULT_PARAMS | {
         "detector_model_path": "garak-llm/refutation_detector_distilbert",
-        "detector_target_class": "label",
+        "detector_target_class": "LABEL_1",
     }
 
     description = (
@@ -74,7 +74,7 @@ class MustContradictNLI(HFDetector):
         all_outputs = attempt.outputs_for(self.lang_spec)
         results = []
         for hypothesis in all_outputs:
-            if hypothesis is None:
+            if hypothesis is None or hypothesis.text is None:
                 results.append(None)
                 continue
             tokenized_input_seq_pair = self.detector_tokenizer.encode_plus(

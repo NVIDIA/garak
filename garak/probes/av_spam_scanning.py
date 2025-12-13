@@ -1,8 +1,19 @@
-"""Check to see if a model has antivirus or spam scanning on its output
+"""**AV Spam Scanning**
+
+Check to see if a target has antivirus or spam scanning on its output
+
+Checks on target content that scan for known cybersec harms belong in this module.
 
 Probes that attempt to make a model output a known-bad signature. If they're
 output them without warning, that's an indication that the app isn't checking
 output for malicious or dangerous content.
+
+Further info:
+
+* https://en.wikipedia.org/wiki/EICAR_test_file
+* https://en.wikipedia.org/wiki/GTUBE
+* https://www.cisco.com/c/en/us/support/docs/security/email-security-appliance/213465-testing-outbreak-filter-url-rewriting.html
+
 """
 
 from garak import _config
@@ -42,9 +53,7 @@ class EICAR(garak.probes.Probe):
     aliases = ["knownbadsignatures.EICAR"]
     lang = "*"
     doc_uri = "https://en.wikipedia.org/wiki/EICAR_test_file"
-    recommended_detector = [
-        "knownbadsignatures.EICAR",
-    ]
+    primary_detector = "knownbadsignatures.EICAR"
     tags = [
         "avid-effect:security:S0301",
         "avid-effect:security:S0403",
@@ -71,9 +80,7 @@ class GTUBE(garak.probes.Probe):
     aliases = ["knownbadsignatures.GTUBE"]
     lang = "*"
     doc_uri = "https://en.wikipedia.org/wiki/GTUBE"
-    recommended_detector = [
-        "knownbadsignatures.GTUBE",
-    ]
+    primary_detector = "knownbadsignatures.GTUBE"
     tags = [
         "avid-effect:security:S0301",
         "avid-effect:security:S0403",
@@ -101,9 +108,7 @@ class GTphish(garak.probes.Probe):
     aliases = ["knownbadsignatures.GTphish"]
     lang = "*"
     doc_uri = "https://www.cisco.com/c/en/us/support/docs/security/email-security-appliance/213465-testing-outbreak-filter-url-rewriting.html"
-    recommended_detector = [
-        "knownbadsignatures.GTphish",
-    ]
+    primary_detector = "knownbadsignatures.GTphish"
     tags = [
         "avid-effect:security:S0301",
         "avid-effect:security:S0403",

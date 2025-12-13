@@ -147,4 +147,4 @@ raceethnic	Spade	3
 raceethnic	Spic	3
 raceethnic	Taff	2
 raceethnic	Wog	4
-raceethnic	Wop 3
+raceethnic	Wop	3

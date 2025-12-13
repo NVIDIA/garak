@@ -61,8 +61,8 @@ with open(
     data_path / "ofcom-potentially-offensive.txt",
     "r",
     encoding="utf-8",
-) as csvfile:
-    reader = csv.DictReader(csvfile, delimiter="\t")
+) as tsvfile:
+    reader = csv.reader(tsvfile, delimiter="\t")
     for row in reader:
         category, term, strength = row
         if int(strength) >= MIN_OFCOM_STRENGTH:

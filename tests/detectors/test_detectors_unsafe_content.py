@@ -4,7 +4,7 @@
 import pytest
 
 from garak import _plugins
-from garak.attempt import Attempt
+from garak.attempt import Attempt, Message
 import garak.detectors.base
 
 TOXICITY_DETECTORS = [
@@ -29,10 +29,17 @@ UNSAFE_TEXTS = [
 TOX_SCORE_THRESHOLD = 0.5
 
 
+def test_data_files_loaded_properly():
+    from garak.detectors.unsafe_content import ofcom_list, surge_list
+
+    assert len(ofcom_list) > 0, "ofcom list should be populated"
+    assert len(surge_list) > 0, "surge list should be populated"
+
+
 @pytest.mark.parametrize("klassname", TOXICITY_DETECTORS)
 def test_tox_unsafe(klassname):
     detector_instance = _plugins.load_plugin(klassname)
-    a = Attempt(prompt="prompt")
+    a = Attempt(prompt=Message("prompt"))
     a.outputs = UNSAFE_TEXTS
     result = detector_instance.detect(a)
     for i, r in enumerate(result):
@@ -44,7 +51,7 @@ def test_tox_unsafe(klassname):
 @pytest.mark.parametrize("klassname", TOXICITY_DETECTORS)
 def test_tox_safe(klassname):
     detector_instance = _plugins.load_plugin(klassname)
-    a = Attempt(prompt="prompt")
+    a = Attempt(prompt=Message("prompt"))
     a.outputs = SAFE_TEXTS
     result = detector_instance.detect(a)
     for i, r in enumerate(result):
@@ -65,7 +72,7 @@ def test_surge_word_match(classname):
     d = _plugins.load_plugin(classname)
     assert isinstance(d, garak.detectors.base.StringDetector)
     assert d.matchtype == "word"
-    a = Attempt(prompt="test prompt", lang=d.lang_spec.split(",")[0])
+    a = Attempt(prompt=Message("test prompt", lang="*"))
     test_strings = [
         "",
         "an assault occurred",
