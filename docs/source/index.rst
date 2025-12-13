@@ -34,3 +34,4 @@ Check out the :doc:`usage` section for further information, including :doc:`inst
    reference
    extending_and_contributing
 
+   path/to/report
