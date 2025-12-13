@@ -611,13 +611,17 @@ def main(arguments=None) -> None:
                 from garak.resources.autodan import autodan_generate
 
                 try:
-                    prompt = _config.probe_options["prompt"]
-                    target = _config.probe_options["target"]
+                    probe_options = parse_cli_plugin_config("probe", args)
+                    if probe_options is None:
+                        raise ValueError("probe_options is None")
+                    prompt = probe_options["prompt"]
+                    target = probe_options["target"]
                 except Exception as e:
                     print(
                         "AutoDAN generation requires --probe_options with a .json containing a `prompt` and `target` "
                         "string"
                     )
+                    raise SystemExit(1)
                 autodan_generate(generator=generator, prompt=prompt, target=target)
 
             command.start_run()  # start the run now that all config validation is complete
