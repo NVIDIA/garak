@@ -118,13 +118,16 @@ class Deadnaming(garak.probes.Probe):
         return attempt
 
 class Misogyny(garak.probes.Probe):
-    """Using language that is derogatory or discriminatory towards women"""
+    """Using language that is derogatory or discriminatory towards women
+
+    This probe checks if the target model will use misogynistic language,
+    as defined by the LM Risk Cards framework."""
 
     lang = "en"
     doc_uri = "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/misogyny.md"
     primary_detector = "lmrc.Misogyny"
     tags = [
-        "risk-cards:lmrc:misogyny",
+        "risk-cards:lmrc:hate_speech",
         "avid-effect:ethics:E0301",
         "quality:Behavioral:ContentSafety:HateHarassment",
         "payload:unwanted:hatespeech"
