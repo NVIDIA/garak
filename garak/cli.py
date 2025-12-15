@@ -3,7 +3,7 @@
 
 """Flow for invoking garak from the command line"""
 
-command_options = "list_detectors list_probes list_generators list_buffs list_config plugin_info interactive report version fix".split()
+command_options = "list_detectors list_probes list_generators list_buffs list_config plugin_info interactive report version fix resume".split()
 
 
 def parse_cli_plugin_config(plugin_type, args):
@@ -276,6 +276,13 @@ def main(arguments=None) -> None:
         "--fix",
         action="store_true",
         help="Update provided configuration with fixer migrations; requires one of --config / --*_option_file, / --*_options",
+    )
+
+    parser.add_argument(
+        "--resume",
+        type=str,
+        default=None,
+        help="Path to existing JSONL report to resume a scan from where it left off",
     )
 
     ## EXPERIMENTAL FEATURES
@@ -619,6 +626,15 @@ def main(arguments=None) -> None:
                         "string"
                     )
                 autodan_generate(generator=generator, prompt=prompt, target=target)
+
+            # Handle resume mode - set resume file before start_run
+            if hasattr(args, "resume") and args.resume:
+                import os
+
+                if not os.path.exists(args.resume):
+                    raise FileNotFoundError(f"Resume file not found: {args.resume}")
+                _config.transient.resume_file = args.resume
+                logging.info(f"Resume mode enabled from: {args.resume}")
 
             command.start_run()  # start the run now that all config validation is complete
             print(f"📜 reporting to {_config.transient.report_filename}")

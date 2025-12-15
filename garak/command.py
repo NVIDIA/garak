@@ -30,6 +30,77 @@ def deprecation_notice(deprecated_item: str, version: str, logging=None):
     print(visible_msg)
 
 
+def load_checkpoint(resume_file: str) -> tuple[dict, dict, str | None]:
+    """
+    Parse a JSONL report file and return completed attempts and pending detection attempts.
+
+    Args:
+        resume_file: Path to the JSONL report file to resume from
+
+    Returns:
+        Tuple of (completed_attempts, pending_detection_attempts, probe_spec) where:
+        - completed_attempts: Dict mapping probe_classname to set of completed seq numbers
+          Example: {"probes.dan.Dan_11_0": {0, 1, 2, 3}}
+        - pending_detection_attempts: Dict mapping probe_classname to dict of {seq: attempt_data}
+          These are status=1 attempts that have LLM response but need detection
+          Example: {"probes.dan.Dan_11_0": {0: {...attempt_data...}, 1: {...}}}
+        - probe_spec: Original probe specification from the run, or None if not found
+    """
+    from collections import defaultdict
+
+    completed = defaultdict(set)
+    pending_detection = defaultdict(dict)  # {probe: {seq: attempt_data}}
+    probe_spec = None
+
+    try:
+        with open(resume_file, "r", encoding="utf-8") as f:
+            for line_num, line in enumerate(f, 1):
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    entry = json.loads(line)
+
+                    # Extract original probe spec from setup entry
+                    if entry.get("entry_type") == "start_run setup":
+                        probe_spec = entry.get("plugins.probe_spec")
+
+                    if entry.get("entry_type") == "attempt":
+                        probe = entry.get("probe_classname")
+                        seq = entry.get("seq")
+                        status = entry.get("status")
+
+                        if probe is not None and seq is not None:
+                            if status == 2:
+                                # status=2 (ATTEMPT_COMPLETE) - fully done, skip entirely
+                                completed[probe].add(seq)
+                            elif status == 1:
+                                # status=1 (ATTEMPT_STARTED) - has response, needs detection
+                                # Store the full attempt data for reconstruction
+                                pending_detection[probe][seq] = entry
+
+                except json.JSONDecodeError as e:
+                    logging.warning(
+                        f"Skipping malformed JSON at line {line_num} in resume file: {e}"
+                    )
+                    continue
+
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Resume file not found: {resume_file}")
+    except Exception as e:
+        logging.error(f"Error reading resume file: {e}")
+        raise
+
+    # Log summary
+    total_completed = sum(len(seqs) for seqs in completed.values())
+    total_pending = sum(len(seqs) for seqs in pending_detection.values())
+    logging.info(
+        f"Loaded checkpoint: {total_completed} completed, {total_pending} pending detection across {len(completed) + len(pending_detection)} probes"
+    )
+
+    return dict(completed), dict(pending_detection), probe_spec
+
+
 def start_logging():
     from garak import _config
 
@@ -49,7 +120,66 @@ def start_run():
     from garak import _config
 
     logging.info("run started at %s", _config.transient.starttime_iso)
-    # print("ASSIGN UUID", args)
+
+    # Check if we're in resume mode
+    is_resume_mode = _config.transient.resume_file is not None
+
+    if is_resume_mode:
+        # Resume mode: load checkpoint and use existing report file
+        logging.info(f"Resuming scan from: {_config.transient.resume_file}")
+        print(f"🔄 Resuming scan from: {_config.transient.resume_file}")
+
+        # Load completed attempts and pending detection attempts from checkpoint
+        completed_attempts, pending_detection, _original_probe_spec = load_checkpoint(
+            _config.transient.resume_file
+        )
+        _config.transient.completed_attempts = completed_attempts
+        _config.transient.pending_detection_attempts = pending_detection
+
+        total_completed = sum(len(seqs) for seqs in completed_attempts.values())
+        total_pending = sum(len(seqs) for seqs in pending_detection.values())
+        print(
+            f"📊 Found {total_completed} completed, {total_pending} pending detection"
+        )
+
+        # Use the same report file (append mode)
+        _config.transient.report_filename = _config.transient.resume_file
+
+        # Extract run_id from resume filename (format: garak.{run_id}.report.jsonl)
+        resume_basename = os.path.basename(_config.transient.resume_file)
+        if resume_basename.startswith("garak.") and resume_basename.endswith(
+            ".report.jsonl"
+        ):
+            _config.transient.run_id = resume_basename[
+                6:-13
+            ]  # Extract UUID from filename
+        else:
+            _config.transient.run_id = str(uuid.uuid4())
+
+        # Open file in append mode
+        _config.transient.reportfile = open(
+            _config.transient.report_filename, "a", buffering=1, encoding="utf-8"
+        )
+
+        # Write resume marker to report
+        _config.transient.reportfile.write(
+            json.dumps(
+                {
+                    "entry_type": "resume",
+                    "resume_time": _config.transient.starttime_iso,
+                    "completed_attempts_count": total_completed,
+                    "pending_detection_count": total_pending,
+                    "probes_with_progress": list(
+                        set(completed_attempts.keys()) | set(pending_detection.keys())
+                    ),
+                },
+                ensure_ascii=False,
+            )
+            + "\n"
+        )
+        return
+
+    # Normal mode (non-resume)
     if _config.system.lite and "probes" not in _config.transient.cli_args and not _config.transient.cli_args.list_probes and not _config.transient.cli_args.list_detectors and not _config.transient.cli_args.list_generators and not _config.transient.cli_args.list_buffs and not _config.transient.cli_args.list_config and not _config.transient.cli_args.plugin_info and not _config.run.interactive:  # type: ignore
         hint(
             "The current/default config is optimised for speed rather than thoroughness. Try e.g. --config full for a stronger test, or specify some probes.",

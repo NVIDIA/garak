@@ -435,3 +435,51 @@ class Attempt:
             "Conversation turn role must be one of '%s', got '%s'"
             % ("'/'".join(roles), role)
         )
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Attempt":
+        """Reconstruct an Attempt object from a dictionary (e.g., from JSONL file).
+
+        This is useful for resuming scans where attempts need to be reconstructed
+        from the report file to run detection on pre-existing LLM responses.
+
+        Args:
+            data: Dictionary containing attempt data (as written by as_dict())
+
+        Returns:
+            Reconstructed Attempt object
+        """
+        # Create a new attempt without triggering prompt setter validation
+        attempt = cls.__new__(cls)
+
+        # Set basic fields
+        attempt.uuid = uuid.UUID(data.get("uuid", str(uuid.uuid4())))
+        attempt.status = data.get("status", ATTEMPT_NEW)
+        attempt.probe_classname = data.get("probe_classname")
+        attempt.probe_params = data.get("probe_params", {})
+        attempt.targets = data.get("targets", [])
+        attempt.notes = data.get("notes", {})
+        attempt.detector_results = data.get("detector_results", {})
+        attempt.goal = data.get("goal")
+        attempt.seq = data.get("seq", -1)
+        attempt.reverse_translation_outputs = []
+
+        # Reconstruct conversations from dict
+        conversations_data = data.get("conversations", [])
+        attempt.conversations = []
+        for conv_data in conversations_data:
+            attempt.conversations.append(Conversation.from_dict(conv_data))
+
+        # Set _prompt from first conversation if available
+        if attempt.conversations:
+            attempt._prompt = attempt.conversations[0]
+
+        # Handle reverse_translation_outputs
+        reverse_outputs = data.get("reverse_translation_outputs", [])
+        for output_data in reverse_outputs:
+            if output_data:
+                attempt.reverse_translation_outputs.append(Message(**output_data))
+            else:
+                attempt.reverse_translation_outputs.append(None)
+
+        return attempt

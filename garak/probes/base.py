@@ -414,7 +414,70 @@ class Probe(Configurable):
                         msg.lang = self.langprovider.target_lang
         lang = self.langprovider.target_lang
         preparation_bar.close()
+
+        # Get completed attempts for this probe (for resume mode)
+        # Note: JSONL file stores short probe names (e.g., "promptinject.HijackHateHumans")
+        # but self.probename is full path (e.g., "garak.probes.promptinject.HijackHateHumans")
+        # We need to try both formats for backward compatibility
+        short_probename = self.probename.replace("garak.probes.", "")
+        completed_seqs = set()
+        if (
+            hasattr(_config.transient, "completed_attempts")
+            and _config.transient.completed_attempts
+        ):
+            # Try short name first (JSONL format), then full name
+            completed_seqs = _config.transient.completed_attempts.get(
+                short_probename, _config.transient.completed_attempts.get(self.probename, set())
+            )
+            if completed_seqs:
+                logging.info(
+                    f"Resume mode: {len(completed_seqs)} attempts already completed for {self.probename}"
+                )
+
+        # Get pending detection attempts (status=1 - have response, need detection)
+        pending_detection_seqs = {}
+        if (
+            hasattr(_config.transient, "pending_detection_attempts")
+            and _config.transient.pending_detection_attempts
+        ):
+            # Try short name first (JSONL format), then full name
+            pending_detection_seqs = _config.transient.pending_detection_attempts.get(
+                short_probename, _config.transient.pending_detection_attempts.get(self.probename, {})
+            )
+            if pending_detection_seqs:
+                logging.info(
+                    f"Resume mode: {len(pending_detection_seqs)} attempts pending detection for {self.probename}"
+                )
+
+        # Reconstruct pending detection attempts from file data
+        attempts_pending_detection = []
+        for seq, attempt_data in pending_detection_seqs.items():
+            try:
+                attempt = garak.attempt.Attempt.from_dict(attempt_data)
+                attempts_pending_detection.append(attempt)
+                logging.debug(
+                    f"Reconstructed attempt {self.probename}:seq={seq} for detection"
+                )
+            except Exception as e:
+                logging.warning(
+                    f"Failed to reconstruct attempt {self.probename}:seq={seq}: {e}"
+                )
+
+        skipped_count = 0
+        pending_count = len(attempts_pending_detection)
+
         for seq, prompt in enumerate(prompts):
+            # Skip already completed attempts (status=2)
+            if seq in completed_seqs:
+                skipped_count += 1
+                logging.debug(f"Skipping completed attempt {self.probename}:seq={seq}")
+                continue
+
+            # Skip attempts that are pending detection (status=1) - handled separately
+            if seq in pending_detection_seqs:
+                logging.debug(f"Skipping pending detection attempt {self.probename}:seq={seq}")
+                continue
+
             notes = None
             if lang != self.lang:
                 pre_translation_prompt = copy.deepcopy(self.prompts[seq])
