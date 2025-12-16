@@ -52,6 +52,7 @@ def main(arguments=None) -> None:
 
     import garak.command as command
     import logging
+    import os
     import re
     from colorama import Fore, Style
 
@@ -629,10 +630,12 @@ def main(arguments=None) -> None:
 
             # Handle resume mode - set resume file before start_run
             if hasattr(args, "resume") and args.resume:
-                import os
-
                 if not os.path.exists(args.resume):
                     raise FileNotFoundError(f"Resume file not found: {args.resume}")
+                if not args.resume.endswith(".report.jsonl"):
+                    raise ValueError(
+                        f"Resume file must be a .report.jsonl file: {args.resume}"
+                    )
                 _config.transient.resume_file = args.resume
                 logging.info(f"Resume mode enabled from: {args.resume}")
 

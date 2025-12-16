@@ -432,3 +432,153 @@ class TestResumeCliArgument:
         from garak.cli import command_options
 
         assert "resume" in command_options
+
+    def test_resume_argument_invalid_file_extension(self, capsys):
+        """Test that --resume with non-.report.jsonl file prints error message."""
+        from garak import cli
+
+        # Create a temp file with wrong extension
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write("some content")
+            temp_path = f.name
+
+        try:
+            # cli.main catches ValueError and prints it instead of raising
+            cli.main(["--resume", temp_path, "-m", "test"])
+            captured = capsys.readouterr()
+            assert "must be a .report.jsonl file" in captured.out
+        finally:
+            os.unlink(temp_path)
+
+
+class TestResumeIntegration:
+    """Integration tests for the resume functionality."""
+
+    def test_pending_detection_attempts_are_included(self):
+        """Test that pending detection attempts (status=1) are included in probe output.
+
+        This is a critical test ensuring that attempts with LLM responses but no detection
+        are properly re-processed during resume.
+        """
+        from garak import _config
+        from garak.probes.base import Probe
+        from garak.attempt import Attempt, Conversation, Turn, Message
+        from unittest.mock import MagicMock, patch
+
+        # Create a minimal probe subclass for testing
+        class TestProbe(Probe):
+            bcp47 = "en"
+            goal = "test"
+            doc_uri = ""
+            prompts = ["test prompt 1", "test prompt 2", "test prompt 3"]
+            primary_detector = "always.Pass"
+
+            def __init__(self):
+                super().__init__(config_root=_config)
+
+        probe = TestProbe()
+        # Get the actual probename that will be used for lookups
+        actual_probename = probe.probename
+
+        # Set up config for resume mode with pending detection attempts
+        # Use the actual probename for correct matching
+        _config.transient.completed_attempts = {actual_probename: {0}}  # seq 0 completed
+        _config.transient.pending_detection_attempts = {
+            actual_probename: {
+                1: {  # seq 1 has response but needs detection
+                    "status": 1,
+                    "probe_classname": actual_probename,
+                    "seq": 1,
+                    "uuid": "12345678-1234-1234-1234-123456789abc",
+                    "goal": "test",
+                    "targets": [],
+                    "conversations": [
+                        {
+                            "turns": [
+                                {"role": "user", "content": {"text": "test prompt 2"}},
+                                {"role": "assistant", "content": {"text": "pending response"}},
+                            ]
+                        }
+                    ],
+                    "reverse_translation_outputs": [],
+                }
+            }
+        }
+
+        # Create mock generator
+        mock_generator = MagicMock()
+        mock_generator.name = "test_generator"
+
+        # Create mock attempt for the new probe execution
+        mock_attempt = MagicMock(spec=Attempt)
+        mock_attempt.outputs = [Message(text="new response")]
+
+        # Mock _execute_all to return only the new attempt (seq 2)
+        # This simulates that seq 0 (completed) and seq 1 (pending detection) are skipped
+        with patch.object(probe, "_execute_all") as mock_execute:
+            mock_execute.return_value = [mock_attempt]
+
+            # Run the probe
+            results = probe.probe(mock_generator)
+
+            # Should have 2 results: 1 from _execute_all (seq 2) + 1 pending detection (seq 1)
+            assert len(results) == 2
+
+            # Verify that pending detection attempt is included
+            pending_attempt_found = False
+            for result in results:
+                if hasattr(result, "seq") and result.seq == 1:
+                    pending_attempt_found = True
+                    # Verify it has the expected response from the checkpoint
+                    if hasattr(result, "outputs") and result.outputs:
+                        assert result.outputs[0].text == "pending response"
+                    break
+
+            assert pending_attempt_found, "Pending detection attempt (seq=1) should be in results"
+
+        # Clean up config
+        _config.transient.completed_attempts = None
+        _config.transient.pending_detection_attempts = None
+
+    def test_completed_attempts_are_skipped(self):
+        """Test that completed attempts (status=2) are skipped during resume."""
+        from garak import _config
+        from garak.probes.base import Probe
+        from unittest.mock import MagicMock, patch
+
+        class TestProbe(Probe):
+            bcp47 = "en"
+            goal = "test"
+            doc_uri = ""
+            prompts = ["prompt 1", "prompt 2", "prompt 3"]
+            primary_detector = "always.Pass"
+
+            def __init__(self):
+                super().__init__(config_root=_config)
+
+        probe = TestProbe()
+        actual_probename = probe.probename
+
+        # Mark all 3 prompts as completed
+        _config.transient.completed_attempts = {actual_probename: {0, 1, 2}}
+        _config.transient.pending_detection_attempts = {}
+
+        mock_generator = MagicMock()
+        mock_generator.name = "test_generator"
+
+        with patch.object(probe, "_execute_all") as mock_execute:
+            mock_execute.return_value = []  # No new attempts to execute
+
+            results = probe.probe(mock_generator)
+
+            # _execute_all should be called with empty list since all are completed
+            mock_execute.assert_called_once()
+            call_args = mock_execute.call_args[0][0]
+            assert len(call_args) == 0, "Should have no attempts to execute when all completed"
+
+            # Results should be empty since all were skipped
+            assert len(results) == 0
+
+        # Clean up config
+        _config.transient.completed_attempts = None
+        _config.transient.pending_detection_attempts = None

@@ -515,6 +515,14 @@ class Probe(Configurable):
         # iterate through attempts
         attempts_completed = self._execute_all(attempts_todo)
 
+        # Add pending detection attempts to completed list
+        # These already have LLM responses (status=1), they just need detection
+        if attempts_pending_detection:
+            logging.info(
+                f"Resume mode: Adding {len(attempts_pending_detection)} pending detection attempts"
+            )
+            attempts_completed.extend(attempts_pending_detection)
+
         logging.debug(
             "probe return: %s with %s attempts", self, len(attempts_completed)
         )

@@ -130,7 +130,7 @@ def start_run():
         print(f"🔄 Resuming scan from: {_config.transient.resume_file}")
 
         # Load completed attempts and pending detection attempts from checkpoint
-        completed_attempts, pending_detection, _original_probe_spec = load_checkpoint(
+        completed_attempts, pending_detection, original_probe_spec = load_checkpoint(
             _config.transient.resume_file
         )
         _config.transient.completed_attempts = completed_attempts
@@ -141,6 +141,8 @@ def start_run():
         print(
             f"📊 Found {total_completed} completed, {total_pending} pending detection"
         )
+        if original_probe_spec:
+            logging.info(f"Original probe spec from checkpoint: {original_probe_spec}")
 
         # Use the same report file (append mode)
         _config.transient.report_filename = _config.transient.resume_file
