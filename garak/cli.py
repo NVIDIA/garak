@@ -42,7 +42,7 @@ def main(arguments=None) -> None:
 
     from garak import __description__
     from garak import _config, _plugins
-    from garak.exception import GarakException
+    from garak.exception import GarakException, BudgetExceededError
 
     _config.transient.starttime = datetime.datetime.now()
     _config.transient.starttime_iso = _config.transient.starttime.isoformat()
@@ -136,6 +136,23 @@ def main(arguments=None) -> None:
     )
     parser.add_argument(
         "--config", type=str, default=None, help="YAML config file for this run"
+    )
+    parser.add_argument(
+        "--cost_limit",
+        type=float,
+        default=None,
+        help="Maximum cost in USD before stopping the scan (auto-enables usage tracking)",
+    )
+    parser.add_argument(
+        "--token_limit",
+        type=int,
+        default=None,
+        help="Maximum total tokens before stopping the scan (auto-enables usage tracking)",
+    )
+    parser.add_argument(
+        "--track_usage",
+        action="store_true",
+        help="Enable token usage tracking and cost reporting",
     )
 
     ## PLUGINS
@@ -623,20 +640,25 @@ def main(arguments=None) -> None:
             command.start_run()  # start the run now that all config validation is complete
             print(f"📜 reporting to {_config.transient.report_filename}")
 
-            if parsed_specs["detector"] == []:
-                command.probewise_run(
-                    generator, parsed_specs["probe"], evaluator, parsed_specs["buff"]
-                )
-            else:
-                command.pxd_run(
-                    generator,
-                    parsed_specs["probe"],
-                    parsed_specs["detector"],
-                    evaluator,
-                    parsed_specs["buff"],
-                )
-
-            command.end_run()
+            try:
+                if parsed_specs["detector"] == []:
+                    command.probewise_run(
+                        generator, parsed_specs["probe"], evaluator, parsed_specs["buff"]
+                    )
+                else:
+                    command.pxd_run(
+                        generator,
+                        parsed_specs["probe"],
+                        parsed_specs["detector"],
+                        evaluator,
+                        parsed_specs["buff"],
+                    )
+            except BudgetExceededError as e:
+                # Budget limit reached - this is expected behavior, not an error
+                print(f"\n⚠️  {e}")
+                logging.info("Scan stopped due to budget limit: %s", e)
+            finally:
+                command.end_run()
         else:
             print("nothing to do 🤷  try --help")
             if _config.plugins.target_name and not _config.plugins.target_type:

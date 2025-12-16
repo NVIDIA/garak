@@ -129,6 +129,26 @@ def end_run():
     from garak import _config
 
     logging.info("run complete, ending")
+
+    # Write token usage summary if budget tracking was enabled
+    if hasattr(_config.transient, "budget_manager") and _config.transient.budget_manager:
+        budget_manager = _config.transient.budget_manager
+        usage_summary = budget_manager.get_summary()
+
+        # Write usage summary to report
+        usage_entry = {
+            "entry_type": "usage_summary",
+            **usage_summary,
+        }
+        _config.transient.reportfile.write(
+            json.dumps(usage_entry, ensure_ascii=False) + "\n"
+        )
+
+        # Print usage summary to console
+        print()
+        print(budget_manager.format_summary())
+        print()
+
     end_object = {
         "entry_type": "completion",
         "end_time": datetime.datetime.now().isoformat(),

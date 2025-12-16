@@ -6,7 +6,7 @@ All `garak` generators must inherit from this.
 import logging
 import random
 import re
-from typing import List, Union
+from typing import List, Union, TYPE_CHECKING
 
 from colorama import Fore, Style
 import tqdm
@@ -16,6 +16,9 @@ from garak.attempt import Message, Conversation
 from garak.configurable import Configurable
 from garak.exception import GarakException
 import garak.resources.theme
+
+if TYPE_CHECKING:
+    from garak.budget import TokenUsage
 
 
 class Generator(Configurable):
@@ -31,7 +34,10 @@ class Generator(Configurable):
         "skip_seq_end": None,
     }
 
-    _run_params = {"deprefix", "seed"}
+    # Storage for last API call's token usage (set by subclasses)
+    _last_usage: "TokenUsage | None" = None
+
+    _run_params = {"deprefix", "seed", "track_usage"}
     _system_params = {"parallel_requests", "max_workers"}
 
     active = True
@@ -107,6 +113,72 @@ class Generator(Configurable):
     def _post_generate_hook(
         self, outputs: List[Message | None]
     ) -> List[Message | None]:
+        """Post-process outputs after generation.
+
+        If usage tracking is enabled and _last_usage is set:
+        1. Updates shared multiprocessing state for budget enforcement
+        2. Checks budget limits and marks exceeded if over limit
+        3. Attaches the token usage info to each output message's notes
+
+        This runs in worker processes during parallel execution, so we use
+        shared multiprocessing state rather than the BudgetManager instance
+        (which only exists in the main process).
+        """
+        # Attach usage data to outputs if tracking is enabled
+        if getattr(self, "track_usage", False) and self._last_usage is not None:
+            from dataclasses import asdict
+            from garak.budget import (
+                update_shared_usage,
+                mark_budget_exceeded,
+                get_shared_usage,
+                get_budget_limits,
+                get_model_pricing,
+            )
+
+            usage_dict = asdict(self._last_usage)
+
+            # Get budget limits from shared state (works in worker processes)
+            token_limit, cost_limit = get_budget_limits()
+
+            if token_limit is not None or cost_limit is not None:
+                # Calculate cost using actual model pricing passed to workers
+                # Pricing is per 1M tokens, we convert to cents for integer storage
+                input_price, output_price = get_model_pricing()
+                cost_usd = (
+                    (self._last_usage.prompt_tokens / 1_000_000) * input_price +
+                    (self._last_usage.completion_tokens / 1_000_000) * output_price
+                )
+                # Convert to cents (integer) for shared state
+                estimated_cost_cents = max(1, int(cost_usd * 100))
+
+                # Update shared counters with prompt/completion breakdown
+                update_shared_usage(
+                    self._last_usage.total_tokens,
+                    estimated_cost_cents,
+                    self._last_usage.prompt_tokens,
+                    self._last_usage.completion_tokens,
+                )
+
+                # Check if we've exceeded limits
+                total_tokens, total_cost, _, _, _ = get_shared_usage()
+
+                if token_limit is not None and total_tokens > token_limit:
+                    mark_budget_exceeded()
+                    # Don't raise here - just mark the flag
+                    # The probe's _execute_all will check is_budget_exceeded() and stop cleanly
+                    # This allows completed attempts to still be evaluated
+
+                if cost_limit is not None and total_cost > cost_limit:
+                    mark_budget_exceeded()
+                    # Don't raise here - just mark the flag
+
+            for output in outputs:
+                if output is not None and hasattr(output, "notes"):
+                    if output.notes is None:
+                        output.notes = {}
+                    output.notes["token_usage"] = usage_dict
+            # Clear after attaching to avoid double-counting
+            self._last_usage = None
         return outputs
 
     def _prune_skip_sequences(

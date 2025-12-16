@@ -150,6 +150,20 @@ class NvcfChat(Generator):
         else:
             response_body = response.json()
 
+            # Capture token usage if tracking is enabled
+            # NVCF returns OpenAI-compatible usage structure
+            if getattr(self, "track_usage", False) and "usage" in response_body:
+                from garak.budget import TokenUsage
+
+                usage = response_body["usage"]
+                self._last_usage = TokenUsage(
+                    prompt_tokens=usage.get("prompt_tokens", 0) or 0,
+                    completion_tokens=usage.get("completion_tokens", 0) or 0,
+                    total_tokens=usage.get("total_tokens", 0) or 0,
+                    model=self.name,
+                    estimated=False,
+                )
+
             return [Message(r) for r in self._extract_text_output(response_body)]
 
 

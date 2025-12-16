@@ -1,0 +1,500 @@
+# Model pricing per 1M tokens (input/output) in USD
+# Updated: 2025-12
+# Source: Official provider pricing pages
+#
+# Usage: These prices are used by garak's budget tracking feature
+# to estimate costs during scans. Prices may change - check provider
+# websites for current rates.
+#
+# Note: Only includes models supported by garak generators
+
+pricing:
+  # OpenAI models - https://openai.com/api/pricing/
+  # Generator: openai.OpenAIGenerator, openai.OpenAICompatible
+  openai:
+    # GPT-4o family
+    gpt-4o:
+      input: 2.50
+      output: 10.00
+    gpt-4o-mini:
+      input: 0.15
+      output: 0.60
+    gpt-4o-2024-11-20:
+      input: 2.50
+      output: 10.00
+    gpt-4o-2024-08-06:
+      input: 2.50
+      output: 10.00
+    gpt-4o-2024-05-13:
+      input: 5.00
+      output: 15.00
+    gpt-4o-mini-2024-07-18:
+      input: 0.15
+      output: 0.60
+    chatgpt-4o-latest:
+      input: 5.00
+      output: 15.00
+    # GPT-4 Turbo
+    gpt-4-turbo:
+      input: 10.00
+      output: 30.00
+    gpt-4-turbo-2024-04-09:
+      input: 10.00
+      output: 30.00
+    gpt-4-turbo-preview:
+      input: 10.00
+      output: 30.00
+    # GPT-4 legacy
+    gpt-4:
+      input: 30.00
+      output: 60.00
+    gpt-4-0613:
+      input: 30.00
+      output: 60.00
+    gpt-4-0314:
+      input: 30.00
+      output: 60.00
+    gpt-4-0125-preview:
+      input: 10.00
+      output: 30.00
+    gpt-4-1106-preview:
+      input: 10.00
+      output: 30.00
+    gpt-4-1106-vision-preview:
+      input: 10.00
+      output: 30.00
+    gpt-4-vision-preview:
+      input: 10.00
+      output: 30.00
+    gpt-4-32k:
+      input: 60.00
+      output: 120.00
+    gpt-4-32k-0613:
+      input: 60.00
+      output: 120.00
+    gpt-4-32k-0314:
+      input: 60.00
+      output: 120.00
+    # GPT-3.5
+    gpt-3.5-turbo:
+      input: 0.50
+      output: 1.50
+    gpt-3.5-turbo-0125:
+      input: 0.50
+      output: 1.50
+    gpt-3.5-turbo-1106:
+      input: 1.00
+      output: 2.00
+    gpt-3.5-turbo-16k:
+      input: 3.00
+      output: 4.00
+    gpt-3.5-turbo-instruct:
+      input: 1.50
+      output: 2.00
+    # o-series reasoning models
+    o1:
+      input: 15.00
+      output: 60.00
+    o1-mini:
+      input: 3.00
+      output: 12.00
+    o1-mini-2024-09-12:
+      input: 3.00
+      output: 12.00
+    o1-preview:
+      input: 15.00
+      output: 60.00
+    o1-preview-2024-09-12:
+      input: 15.00
+      output: 60.00
+    o3-mini:
+      input: 1.10
+      output: 4.40
+    o3-mini-2025-01-31:
+      input: 1.10
+      output: 4.40
+    # Completion models
+    davinci-002:
+      input: 2.00
+      output: 2.00
+    babbage-002:
+      input: 0.40
+      output: 0.40
+
+  # Cohere models - https://cohere.com/pricing
+  # Generator: cohere.CohereGenerator
+  cohere:
+    command:
+      input: 1.00
+      output: 2.00
+    command-light:
+      input: 0.30
+      output: 0.60
+    command-r:
+      input: 0.15
+      output: 0.60
+    command-r-plus:
+      input: 2.50
+      output: 10.00
+    command-r-plus-08-2024:
+      input: 2.50
+      output: 10.00
+    command-r-plus-04-2024:
+      input: 3.00
+      output: 15.00
+    command-r-03-2024:
+      input: 0.50
+      output: 1.50
+    command-r7b-12-2024:
+      input: 0.0375
+      output: 0.15
+    command-a-03-2025:
+      input: 2.50
+      output: 10.00
+
+  # Mistral AI models - https://mistral.ai/technology/
+  # Generator: mistral.MistralGenerator
+  mistral:
+    mistral-large-latest:
+      input: 2.00
+      output: 6.00
+    mistral-small-latest:
+      input: 0.20
+      output: 0.60
+    codestral-latest:
+      input: 0.30
+      output: 0.90
+    ministral-3b-latest:
+      input: 0.04
+      output: 0.04
+    ministral-8b-latest:
+      input: 0.10
+      output: 0.10
+    pixtral-large-latest:
+      input: 2.00
+      output: 6.00
+    pixtral-12b-2409:
+      input: 0.15
+      output: 0.15
+    open-mistral-nemo:
+      input: 0.15
+      output: 0.15
+    open-mistral-7b:
+      input: 0.25
+      output: 0.25
+    open-mixtral-8x7b:
+      input: 0.70
+      output: 0.70
+    open-mixtral-8x22b:
+      input: 2.00
+      output: 6.00
+
+  # AWS Bedrock models - https://aws.amazon.com/bedrock/pricing/
+  # Generator: bedrock.BedrockGenerator
+  bedrock:
+    # Amazon Nova models (via aliases)
+    us.amazon.nova-premier-v1:0:
+      input: 2.50
+      output: 12.50
+    us.amazon.nova-pro-v1:0:
+      input: 0.80
+      output: 3.20
+    us.amazon.nova-lite-v1:0:
+      input: 0.06
+      output: 0.24
+    us.amazon.nova-micro-v1:0:
+      input: 0.04
+      output: 0.14
+    # Anthropic Claude via Bedrock
+    global.anthropic.claude-haiku-4-5-20251001-v1:0:
+      input: 1.00
+      output: 5.00
+    global.anthropic.claude-sonnet-4-5-20250929-v1:0:
+      input: 3.00
+      output: 15.00
+    us.anthropic.claude-opus-4-1-20250805-v1:0:
+      input: 15.00
+      output: 75.00
+    us.anthropic.claude-opus-4-20250514-v1:0:
+      input: 15.00
+      output: 75.00
+    global.anthropic.claude-sonnet-4-20250514-v1:0:
+      input: 3.00
+      output: 15.00
+    anthropic.claude-3-5-sonnet-20241022-v2:0:
+      input: 3.00
+      output: 15.00
+    anthropic.claude-3-5-haiku-20241022-v1:0:
+      input: 0.80
+      output: 4.00
+    anthropic.claude-3-opus-20240229-v1:0:
+      input: 15.00
+      output: 75.00
+    anthropic.claude-3-sonnet-20240229-v1:0:
+      input: 3.00
+      output: 15.00
+    anthropic.claude-3-haiku-20240307-v1:0:
+      input: 0.25
+      output: 1.25
+    # Amazon Titan
+    amazon.titan-text-express-v1:
+      input: 0.20
+      output: 0.60
+    amazon.titan-text-lite-v1:
+      input: 0.15
+      output: 0.20
+    amazon.titan-text-premier-v1:0:
+      input: 0.50
+      output: 1.50
+    # Meta Llama via Bedrock
+    meta.llama3-3-70b-instruct-v1:0:
+      input: 0.72
+      output: 0.72
+    meta.llama3-2-90b-instruct-v1:0:
+      input: 0.72
+      output: 0.72
+    meta.llama3-2-11b-instruct-v1:0:
+      input: 0.16
+      output: 0.16
+    meta.llama3-2-3b-instruct-v1:0:
+      input: 0.15
+      output: 0.15
+    meta.llama3-2-1b-instruct-v1:0:
+      input: 0.10
+      output: 0.10
+    meta.llama3-1-405b-instruct-v1:0:
+      input: 2.40
+      output: 2.40
+    meta.llama3-1-70b-instruct-v1:0:
+      input: 0.72
+      output: 0.72
+    meta.llama3-1-8b-instruct-v1:0:
+      input: 0.22
+      output: 0.22
+    meta.llama3-70b-instruct-v1:0:
+      input: 2.65
+      output: 3.50
+    meta.llama3-8b-instruct-v1:0:
+      input: 0.30
+      output: 0.60
+    # Mistral via Bedrock
+    mistral.mistral-large-2407-v1:0:
+      input: 2.00
+      output: 6.00
+    mistral.mistral-large-2411-v1:0:
+      input: 2.00
+      output: 6.00
+    mistral.mistral-small-2402-v1:0:
+      input: 0.10
+      output: 0.30
+    mistral.mistral-7b-instruct-v0:2:
+      input: 0.15
+      output: 0.20
+    mistral.mixtral-8x7b-instruct-v0:1:
+      input: 0.45
+      output: 0.70
+    # Cohere via Bedrock
+    cohere.command-r-plus-v1:0:
+      input: 3.00
+      output: 15.00
+    cohere.command-r-v1:0:
+      input: 0.50
+      output: 1.50
+    cohere.command-text-v14:
+      input: 1.50
+      output: 2.00
+    cohere.command-light-text-v14:
+      input: 0.30
+      output: 0.60
+
+  # Groq models - https://groq.com/pricing/
+  # Generator: groq.GroqChat (uses OpenAI-compatible API)
+  groq:
+    llama-3.3-70b-versatile:
+      input: 0.59
+      output: 0.79
+    llama-3.1-70b-versatile:
+      input: 0.59
+      output: 0.79
+    llama-3.1-8b-instant:
+      input: 0.05
+      output: 0.08
+    llama3-70b-8192:
+      input: 0.59
+      output: 0.79
+    llama3-8b-8192:
+      input: 0.05
+      output: 0.08
+    mixtral-8x7b-32768:
+      input: 0.24
+      output: 0.24
+    gemma2-9b-it:
+      input: 0.20
+      output: 0.20
+    gemma-7b-it:
+      input: 0.07
+      output: 0.07
+
+  # NVIDIA NVCF models - https://build.nvidia.com/
+  # Generator: nvcf.NvcfChat, nvcf.NvcfCompletion
+  nvcf:
+    meta/llama-3.1-405b-instruct:
+      input: 3.00
+      output: 3.00
+    meta/llama-3.1-70b-instruct:
+      input: 0.50
+      output: 0.50
+    meta/llama-3.1-8b-instruct:
+      input: 0.10
+      output: 0.10
+    meta/llama-3.2-3b-instruct:
+      input: 0.10
+      output: 0.10
+    meta/llama-3.3-70b-instruct:
+      input: 0.50
+      output: 0.50
+    nvidia/llama-3.1-nemotron-70b-instruct:
+      input: 0.50
+      output: 0.50
+    nvidia/nemotron-4-340b-instruct:
+      input: 2.00
+      output: 2.00
+    mistralai/mistral-large-2-instruct:
+      input: 0.50
+      output: 1.50
+    mistralai/mixtral-8x22b-instruct-v0.1:
+      input: 0.90
+      output: 0.90
+
+  # IBM WatsonX models - https://www.ibm.com/products/watsonx-ai/pricing
+  # Generator: watsonx.WatsonXGenerator
+  watsonx:
+    ibm/granite-3-8b-instruct:
+      input: 0.20
+      output: 0.20
+    ibm/granite-3-2b-instruct:
+      input: 0.10
+      output: 0.10
+    ibm/granite-13b-chat-v2:
+      input: 0.60
+      output: 0.60
+    ibm/granite-13b-instruct-v2:
+      input: 0.60
+      output: 0.60
+    ibm/granite-20b-multilingual:
+      input: 1.00
+      output: 1.00
+    meta-llama/llama-3-1-70b-instruct:
+      input: 1.80
+      output: 1.80
+    meta-llama/llama-3-1-8b-instruct:
+      input: 0.20
+      output: 0.20
+    meta-llama/llama-3-70b-instruct:
+      input: 1.80
+      output: 1.80
+    meta-llama/llama-3-8b-instruct:
+      input: 0.20
+      output: 0.20
+    mistralai/mistral-large:
+      input: 2.00
+      output: 6.00
+    mistralai/mixtral-8x7b-instruct-v01:
+      input: 0.70
+      output: 0.70
+
+  # Ollama models (local, free but tracked for usage metrics)
+  # Generator: ollama.OllamaGenerator, ollama.OllamaGeneratorChat
+  ollama:
+    llama3.3:
+      input: 0.00
+      output: 0.00
+    llama3.2:
+      input: 0.00
+      output: 0.00
+    llama3.1:
+      input: 0.00
+      output: 0.00
+    llama3:
+      input: 0.00
+      output: 0.00
+    llama2:
+      input: 0.00
+      output: 0.00
+    mistral:
+      input: 0.00
+      output: 0.00
+    mixtral:
+      input: 0.00
+      output: 0.00
+    gemma2:
+      input: 0.00
+      output: 0.00
+    gemma:
+      input: 0.00
+      output: 0.00
+    qwen2.5:
+      input: 0.00
+      output: 0.00
+    phi3:
+      input: 0.00
+      output: 0.00
+    deepseek-r1:
+      input: 0.00
+      output: 0.00
+    deepseek-v3:
+      input: 0.00
+      output: 0.00
+    codellama:
+      input: 0.00
+      output: 0.00
+    vicuna:
+      input: 0.00
+      output: 0.00
+
+  # LiteLLM - supports multiple providers via unified interface
+  # Generator: litellm.LiteLLMGenerator
+  # Note: LiteLLM passes through to actual providers, so pricing
+  # depends on the underlying model. Common model patterns listed here.
+  litellm:
+    # OpenAI via LiteLLM
+    gpt-4o:
+      input: 2.50
+      output: 10.00
+    gpt-4o-mini:
+      input: 0.15
+      output: 0.60
+    gpt-4-turbo:
+      input: 10.00
+      output: 30.00
+    gpt-3.5-turbo:
+      input: 0.50
+      output: 1.50
+    # Anthropic via LiteLLM (claude/ prefix)
+    claude-3-5-sonnet-20241022:
+      input: 3.00
+      output: 15.00
+    claude-3-5-haiku-20241022:
+      input: 0.80
+      output: 4.00
+    claude-3-opus-20240229:
+      input: 15.00
+      output: 75.00
+    claude-3-sonnet-20240229:
+      input: 3.00
+      output: 15.00
+    claude-3-haiku-20240307:
+      input: 0.25
+      output: 1.25
+
+# Fallback estimation settings
+# Used when actual token counts are not available from the API
+estimation:
+  # Average characters per token (conservative estimate)
+  # GPT models average ~4 chars/token for English text
+  default_chars_per_token: 4
+
+  # Default pricing when model is not found (per 1M tokens)
+  # Uses conservative (higher) estimates to avoid underestimating costs
+  default_input_price: 5.00
+  default_output_price: 15.00
