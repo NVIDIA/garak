@@ -64,6 +64,13 @@ unsupported_multiple_gen_providers = (
     "codechat-bison-32k",
 )
 
+# Anthropic/Claude models do not allow both temperature and top_p simultaneously
+# We suppress top_p for these models since temperature is more commonly used
+anthropic_model_prefixes = (
+    "claude",
+    "anthropic/",
+)
+
 
 class LiteLLMGenerator(Generator):
     """Generator wrapper using LiteLLM to allow access to different providers using the OpenAI API format."""
@@ -106,10 +113,24 @@ class LiteLLMGenerator(Generator):
         self.api_base = None
         self.provider = None
         self._load_config(config_root)
-        
+
         # Ensure suppressed_params is a set for efficient lookup
         self.suppressed_params = set(self.suppressed_params)
-        
+
+        # Anthropic/Claude models don't allow both temperature and top_p
+        # Auto-suppress top_p unless user explicitly suppressed temperature
+        # (indicating they want to use top_p instead)
+        if any(self.name.startswith(prefix) for prefix in anthropic_model_prefixes):
+            if (
+                "temperature" not in self.suppressed_params
+                and "top_p" not in self.suppressed_params
+            ):
+                logging.info(
+                    "Anthropic models don't support both temperature and top_p; "
+                    "auto-suppressing top_p. To use top_p instead, add 'temperature' to suppressed_params."
+                )
+                self.suppressed_params.add("top_p")
+
         self.fullname = f"LiteLLM {self.name}"
         self.supports_multiple_generations = not any(
             self.name.startswith(provider)
@@ -153,7 +174,7 @@ class LiteLLMGenerator(Generator):
                 "api_base": self.api_base,
                 "custom_llm_provider": self.provider,
             }
-            
+
             # Add optional parameters if not suppressed
             optional_params = {
                 "n": generations_this_call,
@@ -164,7 +185,7 @@ class LiteLLMGenerator(Generator):
                 "frequency_penalty": self.frequency_penalty,
                 "presence_penalty": self.presence_penalty,
             }
-            
+
             for param_name, param_value in optional_params.items():
                 if param_name not in self.suppressed_params:
                     params[param_name] = param_value
