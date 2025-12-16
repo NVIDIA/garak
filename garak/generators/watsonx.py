@@ -146,22 +146,6 @@ class WatsonXGenerator(Generator):
         else:
             output = self._generate_with_project(prompt.last_message().text)
 
-        # Capture token usage if tracking is enabled
-        # WatsonX returns token counts in results
-        if getattr(self, "track_usage", False) and "results" in output and output["results"]:
-            from garak.budget import TokenUsage
-
-            result = output["results"][0]
-            prompt_tokens = result.get("input_token_count", 0) or 0
-            completion_tokens = result.get("generated_token_count", 0) or 0
-            self._last_usage = TokenUsage(
-                prompt_tokens=prompt_tokens,
-                completion_tokens=completion_tokens,
-                total_tokens=prompt_tokens + completion_tokens,
-                model=self.name,
-                estimated=False,
-            )
-
         # Parse the output to only contain the output message from the model. Return a list containing that message.
         return [Message("".join(output["results"][0]["generated_text"]))]
 
