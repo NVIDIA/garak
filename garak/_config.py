@@ -72,14 +72,8 @@ class TransientConfig(GarakSubConfig):
     starttime = None
     starttime_iso = None
 
-    # Resume mode fields
-    resume_file = None  # Path to JSONL report to resume from
-    completed_attempts = (
-        None  # Dict of {probe_classname: set(seq)} for completed attempts
-    )
-    pending_detection_attempts = (
-        None  # Dict of {probe_classname: {seq: attempt_data}} for status=1 attempts
-    )
+    # Resume mode - path to JSONL report to resume from (state managed by resumeservice)
+    resume_file = None
 
     # initialize the user home and cache paths if they do not exist
     config_dir.mkdir(mode=0o740, parents=True, exist_ok=True)

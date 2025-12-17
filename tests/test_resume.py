@@ -1,420 +1,30 @@
-"""Tests for resume/checkpoint functionality."""
+"""Tests for resume/checkpoint functionality integration."""
 
 import json
 import os
 import tempfile
 import pytest
+from unittest.mock import patch, MagicMock
 
-from garak import _config
-from garak.command import load_checkpoint
-from garak.attempt import Attempt, ATTEMPT_NEW, ATTEMPT_STARTED, ATTEMPT_COMPLETE
-
-
-class TestLoadCheckpoint:
-    """Tests for the load_checkpoint function."""
-
-    def test_load_checkpoint_valid_jsonl(self):
-        """Test loading a valid JSONL report file."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False) as f:
-            # Write setup entry
-            f.write(
-                json.dumps(
-                    {
-                        "entry_type": "start_run setup",
-                        "plugins.probe_spec": "probes.test.TestProbe",
-                    }
-                )
-                + "\n"
-            )
-            # Write completed attempts
-            f.write(
-                json.dumps(
-                    {
-                        "entry_type": "attempt",
-                        "status": 2,
-                        "probe_classname": "probes.test.TestProbe",
-                        "seq": 0,
-                    }
-                )
-                + "\n"
-            )
-            f.write(
-                json.dumps(
-                    {
-                        "entry_type": "attempt",
-                        "status": 2,
-                        "probe_classname": "probes.test.TestProbe",
-                        "seq": 1,
-                    }
-                )
-                + "\n"
-            )
-            # status=2 for another probe
-            f.write(
-                json.dumps(
-                    {
-                        "entry_type": "attempt",
-                        "status": 2,
-                        "probe_classname": "probes.other.OtherProbe",
-                        "seq": 0,
-                    }
-                )
-                + "\n"
-            )
-            temp_path = f.name
-
-        try:
-            completed, pending_detection, probe_spec = load_checkpoint(temp_path)
-
-            assert probe_spec == "probes.test.TestProbe"
-            assert "probes.test.TestProbe" in completed
-            assert completed["probes.test.TestProbe"] == {0, 1}
-            # OtherProbe also has status=2, so it should be counted
-            assert "probes.other.OtherProbe" in completed
-            assert completed["probes.other.OtherProbe"] == {0}
-            # No pending detection attempts (all are status=2)
-            assert pending_detection == {}
-        finally:
-            os.unlink(temp_path)
-
-    def test_load_checkpoint_empty_file(self):
-        """Test loading an empty JSONL file."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False) as f:
-            temp_path = f.name
-
-        try:
-            completed, pending_detection, probe_spec = load_checkpoint(temp_path)
-
-            assert completed == {}
-            assert pending_detection == {}
-            assert probe_spec is None
-        finally:
-            os.unlink(temp_path)
-
-    def test_load_checkpoint_malformed_json(self):
-        """Test that malformed JSON lines are skipped gracefully."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False) as f:
-            # Valid entry
-            f.write(
-                json.dumps(
-                    {
-                        "entry_type": "attempt",
-                        "status": 2,
-                        "probe_classname": "probes.test.TestProbe",
-                        "seq": 0,
-                    }
-                )
-                + "\n"
-            )
-            # Malformed JSON
-            f.write("this is not valid json\n")
-            # Another valid entry
-            f.write(
-                json.dumps(
-                    {
-                        "entry_type": "attempt",
-                        "status": 2,
-                        "probe_classname": "probes.test.TestProbe",
-                        "seq": 1,
-                    }
-                )
-                + "\n"
-            )
-            temp_path = f.name
-
-        try:
-            completed, pending_detection, probe_spec = load_checkpoint(temp_path)
-
-            # Should have both valid entries despite malformed line
-            assert completed["probes.test.TestProbe"] == {0, 1}
-        finally:
-            os.unlink(temp_path)
-
-    def test_load_checkpoint_file_not_found(self):
-        """Test that FileNotFoundError is raised for missing file."""
-        with pytest.raises(FileNotFoundError) as exc_info:
-            load_checkpoint("/nonexistent/path/to/file.jsonl")
-
-        assert "Resume file not found" in str(exc_info.value)
-
-    def test_load_checkpoint_only_counts_status_2(self):
-        """Test that only status=2 (complete) attempts are counted as completed."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False) as f:
-            # Status 0 = pending/new, should be ignored
-            f.write(
-                json.dumps(
-                    {
-                        "entry_type": "attempt",
-                        "status": 0,
-                        "probe_classname": "probes.test.TestProbe",
-                        "seq": 0,
-                    }
-                )
-                + "\n"
-            )
-            # Status 1 = started (response received but no detection), goes to pending_detection
-            f.write(
-                json.dumps(
-                    {
-                        "entry_type": "attempt",
-                        "status": 1,
-                        "probe_classname": "probes.test.TestProbe",
-                        "seq": 1,
-                        "prompt": {
-                            "turns": [{"role": "user", "content": {"text": "test"}}]
-                        },
-                        "outputs": [{"text": "response"}],
-                    }
-                )
-                + "\n"
-            )
-            # Status 2 = complete (detection done), should be counted
-            f.write(
-                json.dumps(
-                    {
-                        "entry_type": "attempt",
-                        "status": 2,
-                        "probe_classname": "probes.test.TestProbe",
-                        "seq": 2,
-                    }
-                )
-                + "\n"
-            )
-            temp_path = f.name
-
-        try:
-            completed, pending_detection, _ = load_checkpoint(temp_path)
-
-            # Only seq=2 should be completed (status=2)
-            assert completed["probes.test.TestProbe"] == {2}
-            # seq=1 (status=1) should be in pending_detection
-            assert "probes.test.TestProbe" in pending_detection
-            assert 1 in pending_detection["probes.test.TestProbe"]
-        finally:
-            os.unlink(temp_path)
-
-    def test_load_checkpoint_ignores_non_attempt_entries(self):
-        """Test that non-attempt entry types are ignored for completion tracking."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False) as f:
-            f.write(json.dumps({"entry_type": "init", "garak_version": "1.0.0"}) + "\n")
-            f.write(
-                json.dumps(
-                    {"entry_type": "eval", "probe_classname": "probes.test.TestProbe"}
-                )
-                + "\n"
-            )
-            f.write(
-                json.dumps(
-                    {
-                        "entry_type": "attempt",
-                        "status": 2,
-                        "probe_classname": "probes.test.TestProbe",
-                        "seq": 0,
-                    }
-                )
-                + "\n"
-            )
-            temp_path = f.name
-
-        try:
-            completed, pending_detection, _ = load_checkpoint(temp_path)
-
-            # Only the attempt entry should be counted
-            assert len(completed) == 1
-            assert completed["probes.test.TestProbe"] == {0}
-            assert pending_detection == {}
-        finally:
-            os.unlink(temp_path)
-
-    def test_load_checkpoint_handles_blank_lines(self):
-        """Test that blank lines in the file are handled gracefully."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False) as f:
-            f.write("\n")  # Blank line
-            f.write(
-                json.dumps(
-                    {
-                        "entry_type": "attempt",
-                        "status": 2,
-                        "probe_classname": "probes.test.TestProbe",
-                        "seq": 0,
-                    }
-                )
-                + "\n"
-            )
-            f.write("   \n")  # Whitespace-only line
-            f.write(
-                json.dumps(
-                    {
-                        "entry_type": "attempt",
-                        "status": 2,
-                        "probe_classname": "probes.test.TestProbe",
-                        "seq": 1,
-                    }
-                )
-                + "\n"
-            )
-            temp_path = f.name
-
-        try:
-            completed, pending_detection, _ = load_checkpoint(temp_path)
-
-            assert completed["probes.test.TestProbe"] == {0, 1}
-        finally:
-            os.unlink(temp_path)
-
-    def test_load_checkpoint_pending_detection_stores_full_data(self):
-        """Test that status=1 attempts store full attempt data for reconstruction."""
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False) as f:
-            attempt_data = {
-                "entry_type": "attempt",
-                "status": 1,
-                "probe_classname": "probes.test.TestProbe",
-                "seq": 0,
-                "uuid": "12345678-1234-1234-1234-123456789abc",
-                "prompt": {
-                    "turns": [{"role": "user", "content": {"text": "test prompt"}}]
-                },
-                "outputs": [{"text": "test response"}],
-                "conversations": [
-                    {
-                        "turns": [
-                            {"role": "user", "content": {"text": "test prompt"}},
-                            {"role": "assistant", "content": {"text": "test response"}},
-                        ]
-                    }
-                ],
-                "targets": ["target1"],
-                "goal": "test goal",
-            }
-            f.write(json.dumps(attempt_data) + "\n")
-            temp_path = f.name
-
-        try:
-            completed, pending_detection, _ = load_checkpoint(temp_path)
-
-            assert completed == {}
-            assert "probes.test.TestProbe" in pending_detection
-            assert 0 in pending_detection["probes.test.TestProbe"]
-            # Verify full data is stored
-            stored_data = pending_detection["probes.test.TestProbe"][0]
-            assert stored_data["uuid"] == "12345678-1234-1234-1234-123456789abc"
-            assert stored_data["goal"] == "test goal"
-            assert stored_data["targets"] == ["target1"]
-        finally:
-            os.unlink(temp_path)
+from garak import _config, resumeservice
 
 
-class TestAttemptFromDict:
-    """Tests for the Attempt.from_dict() method."""
+@pytest.fixture(autouse=True)
+def reset_resume_state():
+    """Reset resume service state before and after each test."""
+    resumeservice.reset()
+    yield
+    resumeservice.reset()
+    _config.transient.resume_file = None
 
-    def test_from_dict_basic(self):
-        """Test basic reconstruction of an Attempt from dict."""
-        data = {
-            "uuid": "12345678-1234-1234-1234-123456789abc",
-            "status": 1,
-            "probe_classname": "probes.test.TestProbe",
-            "seq": 5,
-            "goal": "test goal",
-            "targets": ["target1", "target2"],
-            "probe_params": {"param1": "value1"},
-            "notes": {"note1": "value1"},
-            "detector_results": {},
-            "conversations": [
-                {
-                    "turns": [
-                        {"role": "user", "content": {"text": "test prompt"}},
-                        {"role": "assistant", "content": {"text": "test response"}},
-                    ]
-                }
-            ],
-            "reverse_translation_outputs": [],
-        }
 
-        attempt = Attempt.from_dict(data)
-
-        assert str(attempt.uuid) == "12345678-1234-1234-1234-123456789abc"
-        assert attempt.status == ATTEMPT_STARTED
-        assert attempt.probe_classname == "probes.test.TestProbe"
-        assert attempt.seq == 5
-        assert attempt.goal == "test goal"
-        assert attempt.targets == ["target1", "target2"]
-        assert attempt.probe_params == {"param1": "value1"}
-        assert attempt.notes == {"note1": "value1"}
-
-    def test_from_dict_reconstructs_conversations(self):
-        """Test that conversations are properly reconstructed."""
-        data = {
-            "status": 1,
-            "probe_classname": "probes.test.TestProbe",
-            "seq": 0,
-            "conversations": [
-                {
-                    "turns": [
-                        {"role": "user", "content": {"text": "Hello"}},
-                        {"role": "assistant", "content": {"text": "Hi there!"}},
-                    ]
-                }
-            ],
-            "reverse_translation_outputs": [],
-        }
-
-        attempt = Attempt.from_dict(data)
-
-        assert len(attempt.conversations) == 1
-        assert len(attempt.conversations[0].turns) == 2
-        assert attempt.conversations[0].turns[0].role == "user"
-        assert attempt.conversations[0].turns[0].content.text == "Hello"
-        assert attempt.conversations[0].turns[1].role == "assistant"
-        assert attempt.conversations[0].turns[1].content.text == "Hi there!"
-
-    def test_from_dict_outputs_accessible(self):
-        """Test that outputs are accessible from reconstructed attempt."""
-        data = {
-            "status": 1,
-            "probe_classname": "probes.test.TestProbe",
-            "seq": 0,
-            "conversations": [
-                {
-                    "turns": [
-                        {"role": "user", "content": {"text": "test prompt"}},
-                        {"role": "assistant", "content": {"text": "response 1"}},
-                    ]
-                },
-                {
-                    "turns": [
-                        {"role": "user", "content": {"text": "test prompt"}},
-                        {"role": "assistant", "content": {"text": "response 2"}},
-                    ]
-                },
-            ],
-            "reverse_translation_outputs": [],
-        }
-
-        attempt = Attempt.from_dict(data)
-
-        outputs = attempt.outputs
-        assert len(outputs) == 2
-        assert outputs[0].text == "response 1"
-        assert outputs[1].text == "response 2"
-
-    def test_from_dict_with_missing_optional_fields(self):
-        """Test reconstruction with minimal required fields."""
-        data = {
-            "status": 1,
-            "probe_classname": "probes.test.TestProbe",
-            "seq": 0,
-            "conversations": [],
-            "reverse_translation_outputs": [],
-        }
-
-        attempt = Attempt.from_dict(data)
-
-        assert attempt.status == ATTEMPT_STARTED
-        assert attempt.probe_classname == "probes.test.TestProbe"
-        assert attempt.seq == 0
-        assert attempt.targets == []
-        assert attempt.notes == {}
-        assert attempt.goal is None
+@pytest.fixture
+def set_seed_42():
+    """Set seed to 42 to match test resource files."""
+    if not hasattr(_config, "run"):
+        _config.run = MagicMock()
+    _config.run.seed = 42
+    yield
 
 
 class TestResumeCliArgument:
@@ -454,16 +64,16 @@ class TestResumeCliArgument:
 class TestResumeIntegration:
     """Integration tests for the resume functionality."""
 
-    def test_pending_detection_attempts_are_included(self):
+    def test_pending_detection_attempts_are_included(self, set_seed_42):
         """Test that pending detection attempts (status=1) are included in probe output.
 
-        This is a critical test ensuring that attempts with LLM responses but no detection
-        are properly re-processed during resume.
+        This test verifies with prompt-based matching:
+        1. Completed attempts (status=2) are reused by prompt matching
+        2. Pending detection attempts (status=1) are added to results for detection
+        3. New prompts (no checkpoint entry) are sent for inference
         """
-        from garak import _config
         from garak.probes.base import Probe
-        from garak.attempt import Attempt, Conversation, Turn, Message
-        from unittest.mock import MagicMock, patch
+        from garak.attempt import Attempt, Message
 
         # Create a minimal probe subclass for testing
         class TestProbe(Probe):
@@ -480,77 +90,108 @@ class TestResumeIntegration:
         # Get the actual probename that will be used for lookups
         actual_probename = probe.probename
 
-        # Set up config for resume mode with pending detection attempts
-        # Use the actual probename for correct matching
-        _config.transient.completed_attempts = {actual_probename: {0}}  # seq 0 completed
-        _config.transient.pending_detection_attempts = {
-            actual_probename: {
-                1: {  # seq 1 has response but needs detection
-                    "status": 1,
-                    "probe_classname": actual_probename,
-                    "seq": 1,
-                    "uuid": "12345678-1234-1234-1234-123456789abc",
-                    "goal": "test",
-                    "targets": [],
-                    "conversations": [
-                        {
-                            "turns": [
-                                {"role": "user", "content": {"text": "test prompt 2"}},
-                                {"role": "assistant", "content": {"text": "pending response"}},
-                            ]
-                        }
-                    ],
-                    "reverse_translation_outputs": [],
-                }
-            }
-        }
+        # Set up resumeservice with pending detection attempts
+        # Create temp file with pending detection data
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".report.jsonl", delete=False) as f:
+            # Write init and setup entries for validation
+            f.write(json.dumps({"entry_type": "init", "garak_version": "0.13.4.pre1"}) + "\n")
+            f.write(json.dumps({"entry_type": "start_run setup", "run.seed": 42}) + "\n")
+            # Completed attempt (seq 0) - will be reused via prompt matching
+            f.write(json.dumps({
+                "entry_type": "attempt",
+                "status": 2,
+                "probe_classname": actual_probename.replace("garak.probes.", ""),
+                "seq": 0,
+                "uuid": "00000000-0000-0000-0000-000000000000",
+                "probe_params": {},
+                "targets": [],
+                "prompt": {"turns": [{"role": "user", "content": {"text": "test prompt 1"}}]},
+                "outputs": [{"text": "response 0"}],
+                "detector_results": {},
+                "notes": {},
+                "goal": "test",
+                "conversations": [{"turns": [
+                    {"role": "user", "content": {"text": "test prompt 1"}},
+                    {"role": "assistant", "content": {"text": "response 0"}}
+                ]}]
+            }) + "\n")
+            # Pending detection attempt (seq 1) - needs detection only
+            f.write(json.dumps({
+                "entry_type": "attempt",
+                "status": 1,
+                "probe_classname": actual_probename.replace("garak.probes.", ""),
+                "seq": 1,
+                "uuid": "12345678-1234-1234-1234-123456789abc",
+                "probe_params": {},
+                "targets": [],
+                "prompt": {"turns": [{"role": "user", "content": {"text": "test prompt 2"}}]},
+                "outputs": [{"text": "pending response"}],
+                "detector_results": {},
+                "notes": {},
+                "goal": "test",
+                "conversations": [{"turns": [
+                    {"role": "user", "content": {"text": "test prompt 2"}},
+                    {"role": "assistant", "content": {"text": "pending response"}}
+                ]}]
+            }) + "\n")
+            temp_path = f.name
 
-        # Create mock generator
-        mock_generator = MagicMock()
-        mock_generator.name = "test_generator"
+        try:
+            # Enable resume mode
+            _config.transient.resume_file = temp_path
 
-        # Create mock attempt for the new probe execution
-        mock_attempt = MagicMock(spec=Attempt)
-        mock_attempt.outputs = [Message(text="new response")]
+            # Create mock generator
+            mock_generator = MagicMock()
+            mock_generator.name = "test_generator"
 
-        # Mock _execute_all to return only the new attempt (seq 2)
-        # This simulates that seq 0 (completed) and seq 1 (pending detection) are skipped
-        with patch.object(probe, "_execute_all") as mock_execute:
-            mock_execute.return_value = [mock_attempt]
+            # Create mock attempt for the new probe execution (prompt 3 needs inference)
+            mock_attempt = MagicMock(spec=Attempt)
+            mock_attempt.outputs = [Message(text="new response")]
 
-            # Run the probe
-            results = probe.probe(mock_generator)
+            # Mock _execute_all to return only the new attempt (seq 2 - "test prompt 3")
+            with patch.object(probe, "_execute_all") as mock_execute:
+                mock_execute.return_value = [mock_attempt]
 
-            # Should have 2 results: 1 from _execute_all (seq 2) + 1 pending detection (seq 1)
-            assert len(results) == 2
+                # Run the probe
+                results = probe.probe(mock_generator)
 
-            # Verify that pending detection attempt is included
-            pending_attempt_found = False
-            for result in results:
-                if hasattr(result, "seq") and result.seq == 1:
-                    pending_attempt_found = True
-                    # Verify it has the expected response from the checkpoint
-                    if hasattr(result, "outputs") and result.outputs:
-                        assert result.outputs[0].text == "pending response"
-                    break
+                # Should have 3 results:
+                # - 1 reused (prompt 1 matched checkpoint completed)
+                # - 1 from _execute_all (prompt 3 - new)
+                # - 1 pending detection (prompt 2)
+                assert len(results) == 3
 
-            assert pending_attempt_found, "Pending detection attempt (seq=1) should be in results"
+                # Verify that pending detection attempt is included
+                pending_attempt_found = False
+                for result in results:
+                    if hasattr(result, "seq") and result.seq == 1:
+                        pending_attempt_found = True
+                        # Verify it has the expected response from the checkpoint
+                        if hasattr(result, "outputs") and result.outputs:
+                            assert result.outputs[0].text == "pending response"
+                        break
 
-        # Clean up config
-        _config.transient.completed_attempts = None
-        _config.transient.pending_detection_attempts = None
+                assert pending_attempt_found, "Pending detection attempt (seq=1) should be in results"
+        finally:
+            os.unlink(temp_path)
 
-    def test_completed_attempts_are_skipped(self):
-        """Test that completed attempts (status=2) are skipped during resume."""
-        from garak import _config
+    def test_completed_attempts_are_reused(self, set_seed_42):
+        """Test that completed attempts (status=2) are reused via prompt matching during resume.
+
+        With prompt-based matching, completed attempts are reused (outputs copied)
+        instead of being skipped entirely. This test verifies:
+        1. Prompts that match the checkpoint are reused (no inference needed)
+        2. The outputs from the checkpoint are copied to the reused attempts
+        3. _execute_all is called only with non-matching prompts
+        """
         from garak.probes.base import Probe
-        from unittest.mock import MagicMock, patch
 
+        # Prompts must match what's in the checkpoint for prompt-based matching
         class TestProbe(Probe):
             bcp47 = "en"
             goal = "test"
             doc_uri = ""
-            prompts = ["prompt 1", "prompt 2", "prompt 3"]
+            prompts = ["prompt 0", "prompt 1", "prompt 2"]  # Match checkpoint prompts
             primary_detector = "always.Pass"
 
             def __init__(self):
@@ -559,26 +200,53 @@ class TestResumeIntegration:
         probe = TestProbe()
         actual_probename = probe.probename
 
-        # Mark all 3 prompts as completed
-        _config.transient.completed_attempts = {actual_probename: {0, 1, 2}}
-        _config.transient.pending_detection_attempts = {}
+        # Create temp file with all attempts completed
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".report.jsonl", delete=False) as f:
+            # Write init and setup entries for validation
+            f.write(json.dumps({"entry_type": "init", "garak_version": "0.13.4.pre1"}) + "\n")
+            f.write(json.dumps({"entry_type": "start_run setup", "run.seed": 42}) + "\n")
+            for seq in range(3):
+                f.write(json.dumps({
+                    "entry_type": "attempt",
+                    "status": 2,
+                    "probe_classname": actual_probename.replace("garak.probes.", ""),
+                    "seq": seq,
+                    "uuid": f"0000000{seq}-0000-0000-0000-000000000000",
+                    "probe_params": {},
+                    "targets": [],
+                    "prompt": {"turns": [{"role": "user", "content": {"text": f"prompt {seq}"}}]},
+                    "outputs": [{"text": f"response {seq}"}],
+                    "detector_results": {},
+                    "notes": {},
+                    "goal": "test",
+                    "conversations": [{"turns": [
+                        {"role": "user", "content": {"text": f"prompt {seq}"}},
+                        {"role": "assistant", "content": {"text": f"response {seq}"}}
+                    ]}]
+                }) + "\n")
+            temp_path = f.name
 
-        mock_generator = MagicMock()
-        mock_generator.name = "test_generator"
+        try:
+            _config.transient.resume_file = temp_path
 
-        with patch.object(probe, "_execute_all") as mock_execute:
-            mock_execute.return_value = []  # No new attempts to execute
+            mock_generator = MagicMock()
+            mock_generator.name = "test_generator"
 
-            results = probe.probe(mock_generator)
+            with patch.object(probe, "_execute_all") as mock_execute:
+                mock_execute.return_value = []  # No new attempts to execute
 
-            # _execute_all should be called with empty list since all are completed
-            mock_execute.assert_called_once()
-            call_args = mock_execute.call_args[0][0]
-            assert len(call_args) == 0, "Should have no attempts to execute when all completed"
+                results = probe.probe(mock_generator)
 
-            # Results should be empty since all were skipped
-            assert len(results) == 0
+                # _execute_all should be called with empty list since all are reused
+                mock_execute.assert_called_once()
+                call_args = mock_execute.call_args[0][0]
+                assert len(call_args) == 0, "Should have no attempts to execute when all are reused"
 
-        # Clean up config
-        _config.transient.completed_attempts = None
-        _config.transient.pending_detection_attempts = None
+                # Results should have 3 reused attempts with outputs from checkpoint
+                assert len(results) == 3, "Should have 3 reused attempts"
+
+                # Verify outputs were copied from checkpoint
+                for i, result in enumerate(results):
+                    assert result.outputs[0].text == f"response {i}"
+        finally:
+            os.unlink(temp_path)

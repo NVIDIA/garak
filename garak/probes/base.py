@@ -19,7 +19,7 @@ from typing import Iterable, Union, List
 from colorama import Fore, Style
 import tqdm
 
-from garak import _config, _plugins
+from garak import _config, _plugins, resumeservice
 from garak.configurable import Configurable
 from garak.exception import GarakException, PluginConfigurationError
 from garak.probes._tier import Tier
@@ -415,39 +415,20 @@ class Probe(Configurable):
         lang = self.langprovider.target_lang
         preparation_bar.close()
 
-        # Get completed attempts for this probe (for resume mode)
-        # Note: JSONL file stores short probe names (e.g., "promptinject.HijackHateHumans")
-        # but self.probename is full path (e.g., "garak.probes.promptinject.HijackHateHumans")
-        # We need to try both formats for backward compatibility
-        short_probename = self.probename.replace("garak.probes.", "")
-        completed_seqs = set()
-        if (
-            hasattr(_config.transient, "completed_attempts")
-            and _config.transient.completed_attempts
-        ):
-            # Try short name first (JSONL format), then full name
-            completed_seqs = _config.transient.completed_attempts.get(
-                short_probename, _config.transient.completed_attempts.get(self.probename, set())
+        # Get completed attempts indexed by prompt hash for prompt-based matching
+        # This allows resume to work even if prompts are reordered or filtered
+        completed_by_prompt = resumeservice.get_completed_by_prompt_hash(self.probename)
+        if completed_by_prompt:
+            logging.info(
+                f"Resume mode: {len(completed_by_prompt)} attempts available for reuse for {self.probename}"
             )
-            if completed_seqs:
-                logging.info(
-                    f"Resume mode: {len(completed_seqs)} attempts already completed for {self.probename}"
-                )
 
         # Get pending detection attempts (status=1 - have response, need detection)
-        pending_detection_seqs = {}
-        if (
-            hasattr(_config.transient, "pending_detection_attempts")
-            and _config.transient.pending_detection_attempts
-        ):
-            # Try short name first (JSONL format), then full name
-            pending_detection_seqs = _config.transient.pending_detection_attempts.get(
-                short_probename, _config.transient.pending_detection_attempts.get(self.probename, {})
+        pending_detection_seqs = resumeservice.get_pending_attempts(self.probename)
+        if pending_detection_seqs:
+            logging.info(
+                f"Resume mode: {len(pending_detection_seqs)} attempts pending detection for {self.probename}"
             )
-            if pending_detection_seqs:
-                logging.info(
-                    f"Resume mode: {len(pending_detection_seqs)} attempts pending detection for {self.probename}"
-                )
 
         # Reconstruct pending detection attempts from file data
         attempts_pending_detection = []
@@ -463,21 +444,13 @@ class Probe(Configurable):
                     f"Failed to reconstruct attempt {self.probename}:seq={seq}: {e}"
                 )
 
-        skipped_count = 0
+        reused_count = 0
         pending_count = len(attempts_pending_detection)
 
+        # Track attempts reused from previous run (have outputs, no need for inference)
+        attempts_reused = []
+
         for seq, prompt in enumerate(prompts):
-            # Skip already completed attempts (status=2)
-            if seq in completed_seqs:
-                skipped_count += 1
-                logging.debug(f"Skipping completed attempt {self.probename}:seq={seq}")
-                continue
-
-            # Skip attempts that are pending detection (status=1) - handled separately
-            if seq in pending_detection_seqs:
-                logging.debug(f"Skipping pending detection attempt {self.probename}:seq={seq}")
-                continue
-
             notes = None
             if lang != self.lang:
                 pre_translation_prompt = copy.deepcopy(self.prompts[seq])
@@ -506,14 +479,51 @@ class Probe(Configurable):
                         turn.context.lang = self.lang
                     notes = {"pre_translation_prompt": pre_translation_prompt}
 
-            attempts_todo.append(self._mint_attempt(prompt, seq, notes, lang))
+            # Mint the attempt first to get the prompt in proper format
+            attempt = self._mint_attempt(prompt, seq, notes, lang)
+
+            # Check if we can reuse a completed attempt by prompt matching
+            if completed_by_prompt:
+                from dataclasses import asdict
+                prompt_hash = resumeservice.hash_prompt(asdict(attempt.prompt))
+                if prompt_hash in completed_by_prompt:
+                    # Reuse outputs from completed attempt
+                    completed_data = completed_by_prompt[prompt_hash]
+                    attempt.outputs = [
+                        garak.attempt.Message(**msg)
+                        for msg in completed_data.get("outputs", [])
+                    ]
+                    attempt.status = garak.attempt.ATTEMPT_COMPLETE
+                    # Copy detector results if available
+                    attempt.detector_results = completed_data.get("detector_results", {})
+                    attempts_reused.append(attempt)
+                    reused_count += 1
+                    logging.debug(
+                        f"Reusing completed attempt {self.probename}:seq={seq} (prompt hash: {prompt_hash})"
+                    )
+                    continue
+
+            # Skip attempts that are pending detection (status=1) - handled separately
+            if seq in pending_detection_seqs:
+                logging.debug(f"Skipping pending detection attempt {self.probename}:seq={seq}")
+                continue
+
+            attempts_todo.append(attempt)
+
+        if reused_count > 0:
+            logging.info(
+                f"Resume mode: Reusing {reused_count} completed attempts by prompt matching"
+            )
 
         # buff hook
         if len(_config.buffmanager.buffs) > 0:
             attempts_todo = self._buff_hook(attempts_todo)
 
-        # iterate through attempts
+        # iterate through attempts (only those that need inference)
         attempts_completed = self._execute_all(attempts_todo)
+
+        # Combine: reused + newly completed + pending detection
+        all_attempts = attempts_reused + attempts_completed
 
         # Add pending detection attempts to completed list
         # These already have LLM responses (status=1), they just need detection
@@ -521,13 +531,13 @@ class Probe(Configurable):
             logging.info(
                 f"Resume mode: Adding {len(attempts_pending_detection)} pending detection attempts"
             )
-            attempts_completed.extend(attempts_pending_detection)
+            all_attempts.extend(attempts_pending_detection)
 
         logging.debug(
-            "probe return: %s with %s attempts", self, len(attempts_completed)
+            "probe return: %s with %s attempts", self, len(all_attempts)
         )
 
-        return attempts_completed
+        return all_attempts
 
     def _prune_data(self, cap, prune_triggers=False):
         num_ids_to_delete = max(0, len(self.prompts) - cap)

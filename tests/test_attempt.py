@@ -639,3 +639,153 @@ def test_outputs_for():
 def test_attempt_prompt_no_str():
     with pytest.raises(TypeError):
         attempt = garak.attempt.Attempt(prompt="nine two one eight black")
+
+
+###########################
+# Test Attempt.from_dict() #
+###########################
+
+
+class TestAttemptFromDict:
+    """Tests for the Attempt.from_dict() method."""
+
+    def test_from_dict_basic(self):
+        """Test basic reconstruction of an Attempt from dict."""
+        data = {
+            "uuid": "12345678-1234-1234-1234-123456789abc",
+            "status": garak.attempt.ATTEMPT_STARTED,
+            "probe_classname": "probes.test.TestProbe",
+            "seq": 5,
+            "goal": "test goal",
+            "targets": ["target1", "target2"],
+            "probe_params": {"param1": "value1"},
+            "notes": {"note1": "value1"},
+            "detector_results": {},
+            "prompt": {
+                "turns": [{"role": "user", "content": {"text": "test prompt"}}]
+            },
+            "outputs": [{"text": "test response"}],
+            "conversations": [
+                {
+                    "turns": [
+                        {"role": "user", "content": {"text": "test prompt"}},
+                        {"role": "assistant", "content": {"text": "test response"}},
+                    ]
+                }
+            ],
+        }
+
+        attempt = garak.attempt.Attempt.from_dict(data)
+
+        assert str(attempt.uuid) == "12345678-1234-1234-1234-123456789abc"
+        assert attempt.status == garak.attempt.ATTEMPT_STARTED
+        assert attempt.probe_classname == "probes.test.TestProbe"
+        assert attempt.seq == 5
+        assert attempt.goal == "test goal"
+        assert attempt.targets == ["target1", "target2"]
+        assert attempt.probe_params == {"param1": "value1"}
+        assert attempt.notes == {"note1": "value1"}
+
+    def test_from_dict_reconstructs_conversations(self):
+        """Test that conversations are properly reconstructed."""
+        data = {
+            "uuid": "12345678-1234-1234-1234-123456789abc",
+            "status": garak.attempt.ATTEMPT_STARTED,
+            "probe_classname": "probes.test.TestProbe",
+            "probe_params": {},
+            "targets": [],
+            "notes": {},
+            "detector_results": {},
+            "goal": None,
+            "seq": 0,
+            "prompt": {
+                "turns": [{"role": "user", "content": {"text": "Hello"}}]
+            },
+            "outputs": [{"text": "Hi there!"}],
+            "conversations": [
+                {
+                    "turns": [
+                        {"role": "user", "content": {"text": "Hello"}},
+                        {"role": "assistant", "content": {"text": "Hi there!"}},
+                    ]
+                }
+            ],
+        }
+
+        attempt = garak.attempt.Attempt.from_dict(data)
+
+        assert len(attempt.conversations) == 1
+        assert len(attempt.conversations[0].turns) == 2
+        assert attempt.conversations[0].turns[0].role == "user"
+        assert attempt.conversations[0].turns[0].content.text == "Hello"
+        assert attempt.conversations[0].turns[1].role == "assistant"
+        assert attempt.conversations[0].turns[1].content.text == "Hi there!"
+
+    def test_from_dict_outputs_accessible(self):
+        """Test that outputs are accessible from reconstructed attempt."""
+        data = {
+            "uuid": "12345678-1234-1234-1234-123456789abc",
+            "status": garak.attempt.ATTEMPT_STARTED,
+            "probe_classname": "probes.test.TestProbe",
+            "probe_params": {},
+            "targets": [],
+            "notes": {},
+            "detector_results": {},
+            "goal": None,
+            "seq": 0,
+            "prompt": {
+                "turns": [{"role": "user", "content": {"text": "test prompt"}}]
+            },
+            "outputs": [{"text": "response 1"}, {"text": "response 2"}],
+            "conversations": [
+                {
+                    "turns": [
+                        {"role": "user", "content": {"text": "test prompt"}},
+                        {"role": "assistant", "content": {"text": "response 1"}},
+                    ]
+                },
+                {
+                    "turns": [
+                        {"role": "user", "content": {"text": "test prompt"}},
+                        {"role": "assistant", "content": {"text": "response 2"}},
+                    ]
+                },
+            ],
+        }
+
+        attempt = garak.attempt.Attempt.from_dict(data)
+
+        outputs = attempt.outputs
+        assert len(outputs) == 2
+        assert outputs[0].text == "response 1"
+        assert outputs[1].text == "response 2"
+
+    def test_from_dict_missing_required_field_raises_keyerror(self):
+        """Test that missing required fields raise KeyError."""
+        data = {
+            "uuid": "12345678-1234-1234-1234-123456789abc",
+            "status": garak.attempt.ATTEMPT_STARTED,
+            # Missing probe_classname, seq, etc.
+        }
+
+        with pytest.raises(KeyError):
+            garak.attempt.Attempt.from_dict(data)
+
+    def test_from_dict_roundtrip(self):
+        """Test that as_dict -> from_dict produces equivalent attempt."""
+        original = garak.attempt.Attempt(
+            prompt=garak.attempt.Message("test prompt", lang="*"),
+            probe_classname="test.Probe",
+            goal="test goal",
+            seq=42,
+        )
+        original.outputs = [garak.attempt.Message("test output")]
+
+        data = original.as_dict()
+        reconstructed = garak.attempt.Attempt.from_dict(data)
+
+        assert str(reconstructed.uuid) == str(original.uuid)
+        assert reconstructed.status == original.status
+        assert reconstructed.probe_classname == original.probe_classname
+        assert reconstructed.seq == original.seq
+        assert reconstructed.goal == original.goal

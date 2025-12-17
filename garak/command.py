@@ -30,77 +30,6 @@ def deprecation_notice(deprecated_item: str, version: str, logging=None):
     print(visible_msg)
 
 
-def load_checkpoint(resume_file: str) -> tuple[dict, dict, str | None]:
-    """
-    Parse a JSONL report file and return completed attempts and pending detection attempts.
-
-    Args:
-        resume_file: Path to the JSONL report file to resume from
-
-    Returns:
-        Tuple of (completed_attempts, pending_detection_attempts, probe_spec) where:
-        - completed_attempts: Dict mapping probe_classname to set of completed seq numbers
-          Example: {"probes.dan.Dan_11_0": {0, 1, 2, 3}}
-        - pending_detection_attempts: Dict mapping probe_classname to dict of {seq: attempt_data}
-          These are status=1 attempts that have LLM response but need detection
-          Example: {"probes.dan.Dan_11_0": {0: {...attempt_data...}, 1: {...}}}
-        - probe_spec: Original probe specification from the run, or None if not found
-    """
-    from collections import defaultdict
-
-    completed = defaultdict(set)
-    pending_detection = defaultdict(dict)  # {probe: {seq: attempt_data}}
-    probe_spec = None
-
-    try:
-        with open(resume_file, "r", encoding="utf-8") as f:
-            for line_num, line in enumerate(f, 1):
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    entry = json.loads(line)
-
-                    # Extract original probe spec from setup entry
-                    if entry.get("entry_type") == "start_run setup":
-                        probe_spec = entry.get("plugins.probe_spec")
-
-                    if entry.get("entry_type") == "attempt":
-                        probe = entry.get("probe_classname")
-                        seq = entry.get("seq")
-                        status = entry.get("status")
-
-                        if probe is not None and seq is not None:
-                            if status == 2:
-                                # status=2 (ATTEMPT_COMPLETE) - fully done, skip entirely
-                                completed[probe].add(seq)
-                            elif status == 1:
-                                # status=1 (ATTEMPT_STARTED) - has response, needs detection
-                                # Store the full attempt data for reconstruction
-                                pending_detection[probe][seq] = entry
-
-                except json.JSONDecodeError as e:
-                    logging.warning(
-                        f"Skipping malformed JSON at line {line_num} in resume file: {e}"
-                    )
-                    continue
-
-    except FileNotFoundError:
-        raise FileNotFoundError(f"Resume file not found: {resume_file}")
-    except Exception as e:
-        logging.error(f"Error reading resume file: {e}")
-        raise
-
-    # Log summary
-    total_completed = sum(len(seqs) for seqs in completed.values())
-    total_pending = sum(len(seqs) for seqs in pending_detection.values())
-    logging.info(
-        f"Loaded checkpoint: {total_completed} completed, {total_pending} pending detection across {len(completed) + len(pending_detection)} probes"
-    )
-
-    return dict(completed), dict(pending_detection), probe_spec
-
-
 def start_logging():
     from garak import _config
 
@@ -117,32 +46,18 @@ def start_run():
     import uuid
 
     from pathlib import Path
-    from garak import _config
+    from garak import _config, resumeservice
 
     logging.info("run started at %s", _config.transient.starttime_iso)
 
     # Check if we're in resume mode
-    is_resume_mode = _config.transient.resume_file is not None
+    is_resume_mode = resumeservice.enabled()
 
     if is_resume_mode:
-        # Resume mode: load checkpoint and use existing report file
+        # Resume mode: use existing report file
+        # Note: Resume service is loaded by harness initialization, which handles
+        # parsing the checkpoint and displaying status messages
         logging.info(f"Resuming scan from: {_config.transient.resume_file}")
-        print(f"🔄 Resuming scan from: {_config.transient.resume_file}")
-
-        # Load completed attempts and pending detection attempts from checkpoint
-        completed_attempts, pending_detection, original_probe_spec = load_checkpoint(
-            _config.transient.resume_file
-        )
-        _config.transient.completed_attempts = completed_attempts
-        _config.transient.pending_detection_attempts = pending_detection
-
-        total_completed = sum(len(seqs) for seqs in completed_attempts.values())
-        total_pending = sum(len(seqs) for seqs in pending_detection.values())
-        print(
-            f"📊 Found {total_completed} completed, {total_pending} pending detection"
-        )
-        if original_probe_spec:
-            logging.info(f"Original probe spec from checkpoint: {original_probe_spec}")
 
         # Use the same report file (append mode)
         _config.transient.report_filename = _config.transient.resume_file
@@ -164,6 +79,11 @@ def start_run():
         )
 
         # Write resume marker to report
+        completed_attempts = resumeservice.get_completed_attempts()
+        pending_detection = resumeservice.get_pending_detection_attempts()
+        total_completed = sum(len(seqs) for seqs in completed_attempts.values())
+        total_pending = sum(len(seqs) for seqs in pending_detection.values())
+
         _config.transient.reportfile.write(
             json.dumps(
                 {

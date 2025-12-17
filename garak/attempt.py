@@ -437,49 +437,23 @@ class Attempt:
         )
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Attempt":
-        """Reconstruct an Attempt object from a dictionary (e.g., from JSONL file).
-
-        This is useful for resuming scans where attempts need to be reconstructed
-        from the report file to run detection on pre-existing LLM responses.
-
-        Args:
-            data: Dictionary containing attempt data (as written by as_dict())
-
-        Returns:
-            Reconstructed Attempt object
-        """
-        # Create a new attempt without triggering prompt setter validation
-        attempt = cls.__new__(cls)
-
-        # Set basic fields
-        attempt.uuid = uuid.UUID(data.get("uuid", str(uuid.uuid4())))
-        attempt.status = data.get("status", ATTEMPT_NEW)
-        attempt.probe_classname = data.get("probe_classname")
-        attempt.probe_params = data.get("probe_params", {})
-        attempt.targets = data.get("targets", [])
-        attempt.notes = data.get("notes", {})
-        attempt.detector_results = data.get("detector_results", {})
-        attempt.goal = data.get("goal")
-        attempt.seq = data.get("seq", -1)
-        attempt.reverse_translation_outputs = []
-
-        # Reconstruct conversations from dict
-        conversations_data = data.get("conversations", [])
-        attempt.conversations = []
-        for conv_data in conversations_data:
-            attempt.conversations.append(Conversation.from_dict(conv_data))
-
-        # Set _prompt from first conversation if available
-        if attempt.conversations:
-            attempt._prompt = attempt.conversations[0]
-
-        # Handle reverse_translation_outputs
-        reverse_outputs = data.get("reverse_translation_outputs", [])
-        for output_data in reverse_outputs:
-            if output_data:
-                attempt.reverse_translation_outputs.append(Message(**output_data))
-            else:
-                attempt.reverse_translation_outputs.append(None)
-
-        return attempt
+    def from_dict(cls, dicti: dict) -> "Attempt":
+        """Initializes an attempt object from dictionary."""
+        attempt_obj = cls()
+        attempt_obj.uuid = dicti["uuid"]
+        attempt_obj.seq = dicti["seq"]
+        attempt_obj.status = dicti["status"]
+        attempt_obj.probe_classname = dicti["probe_classname"]
+        attempt_obj.probe_params = dicti["probe_params"]
+        attempt_obj.targets = dicti["targets"]
+        attempt_obj._prompt = Conversation.from_dict(dicti["prompt"])
+        attempt_obj.detector_results = dicti["detector_results"]
+        attempt_obj.notes = dicti["notes"]
+        attempt_obj.goal = dicti["goal"]
+        attempt_obj.conversations = [
+            Conversation.from_dict(conv) for conv in dicti["conversations"]
+        ]
+        attempt_obj.reverse_translation_outputs = [
+            Message(**msg) for msg in dicti.get("reverse_translation_outputs", [])
+        ]
+        return attempt_obj
