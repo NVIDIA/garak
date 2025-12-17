@@ -15,6 +15,7 @@ ENCODING_PROBES = [
 CLEAR_TRIGGER_PROBES = [
     "probes.encoding.InjectMime",
     "probes.encoding.InjectQP",
+    "probes.encoding.InjectLeet",
 ]
 
 

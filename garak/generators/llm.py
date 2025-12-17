@@ -22,8 +22,6 @@ class LLMGenerator(Generator):
     Calls model.prompt() with the prompt text and relays the response. Per-provider
     options and API keys are all handled by `llm` (e.g., `llm keys set openai`).
 
-    Set --model_name to the `llm` model id or alias (e.g., "gpt-4o-mini",
-    "claude-3.5-haiku", or a local alias configured in `llm models`).
     Set --target_name to the `llm` model id or alias (e.g., "gpt-4o-mini",
     "claude-3.5-haiku", or a local alias configured in `llm models`).
 
