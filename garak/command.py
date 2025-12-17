@@ -50,55 +50,8 @@ def start_run():
 
     logging.info("run started at %s", _config.transient.starttime_iso)
 
-    # Check if we're in resume mode
-    is_resume_mode = resumeservice.enabled()
-
-    if is_resume_mode:
-        # Resume mode: use existing report file
-        # Note: Resume service is loaded by harness initialization, which handles
-        # parsing the checkpoint and displaying status messages
-        logging.info(f"Resuming scan from: {_config.transient.resume_file}")
-
-        # Use the same report file (append mode)
-        _config.transient.report_filename = _config.transient.resume_file
-
-        # Extract run_id from resume filename (format: garak.{run_id}.report.jsonl)
-        resume_basename = os.path.basename(_config.transient.resume_file)
-        if resume_basename.startswith("garak.") and resume_basename.endswith(
-            ".report.jsonl"
-        ):
-            _config.transient.run_id = resume_basename[
-                6:-13
-            ]  # Extract UUID from filename
-        else:
-            _config.transient.run_id = str(uuid.uuid4())
-
-        # Open file in append mode
-        _config.transient.reportfile = open(
-            _config.transient.report_filename, "a", buffering=1, encoding="utf-8"
-        )
-
-        # Write resume marker to report
-        completed_attempts = resumeservice.get_completed_attempts()
-        pending_detection = resumeservice.get_pending_detection_attempts()
-        total_completed = sum(len(seqs) for seqs in completed_attempts.values())
-        total_pending = sum(len(seqs) for seqs in pending_detection.values())
-
-        _config.transient.reportfile.write(
-            json.dumps(
-                {
-                    "entry_type": "resume",
-                    "resume_time": _config.transient.starttime_iso,
-                    "completed_attempts_count": total_completed,
-                    "pending_detection_count": total_pending,
-                    "probes_with_progress": list(
-                        set(completed_attempts.keys()) | set(pending_detection.keys())
-                    ),
-                },
-                ensure_ascii=False,
-            )
-            + "\n"
-        )
+    # Check if we're in resume mode - let the service handle all setup
+    if resumeservice.setup_run():
         return
 
     # Normal mode (non-resume)

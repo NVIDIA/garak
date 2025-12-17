@@ -10,6 +10,8 @@ allowing scans to be resumed from where they left off.
 import hashlib
 import json
 import logging
+import os
+import uuid
 from collections import defaultdict
 from typing import Dict, Optional, Set, Tuple
 
@@ -364,6 +366,68 @@ def reset() -> None:
     """Reset resume state (primarily for testing)."""
     global _resume_state
     _resume_state = None
+
+
+def setup_run() -> bool:
+    """Set up run for resume mode.
+
+    This function handles all resume mode run setup responsibilities:
+    - Sets the report filename to the resume file
+    - Extracts run_id from the resume filename
+    - Opens the report file in append mode
+    - Writes a resume marker entry
+
+    Returns:
+        True if resume mode setup was performed, False if not in resume mode.
+    """
+    if not enabled():
+        return False
+
+    # Load checkpoint data
+    load()
+
+    logging.info(f"Resuming scan from: {_config.transient.resume_file}")
+
+    # Use the same report file (append mode)
+    _config.transient.report_filename = _config.transient.resume_file
+
+    # Extract run_id from resume filename (format: garak.{run_id}.report.jsonl)
+    resume_basename = os.path.basename(_config.transient.resume_file)
+    if resume_basename.startswith("garak.") and resume_basename.endswith(
+        ".report.jsonl"
+    ):
+        _config.transient.run_id = resume_basename[6:-13]  # Extract UUID from filename
+    else:
+        _config.transient.run_id = str(uuid.uuid4())
+
+    # Open file in append mode
+    _config.transient.reportfile = open(
+        _config.transient.report_filename, "a", buffering=1, encoding="utf-8"
+    )
+
+    # Write resume marker to report
+    completed_attempts = get_completed_attempts()
+    pending_detection = get_pending_detection_attempts()
+    total_completed = sum(len(seqs) for seqs in completed_attempts.values())
+    total_pending = sum(len(seqs) for seqs in pending_detection.values())
+
+    _config.transient.reportfile.write(
+        json.dumps(
+            {
+                "entry_type": "resume",
+                "resume_time": _config.transient.starttime_iso,
+                "completed_attempts_count": total_completed,
+                "pending_detection_count": total_pending,
+                "probes_with_progress": list(
+                    set(completed_attempts.keys()) | set(pending_detection.keys())
+                ),
+            },
+            ensure_ascii=False,
+        )
+        + "\n"
+    )
+
+    return True
 
 
 # Prompt-based matching functions
