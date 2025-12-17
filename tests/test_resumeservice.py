@@ -368,3 +368,47 @@ class TestPromptBasedMatching:
         text = resumeservice._extract_prompt_text(prompt)
 
         assert text == "Hello string"
+
+
+class TestProbeResumability:
+    """Tests for probe resumability - documenting which probe types support resume."""
+
+    def test_base_probe_supports_resume(self, set_seed_42):
+        """Test that base Probe class uses resumeservice for prompt-based matching."""
+        from garak.probes.base import Probe
+
+        # Check that base Probe.probe() method references resumeservice
+        import inspect
+        source = inspect.getsource(Probe.probe)
+        assert "resumeservice" in source, "Base Probe.probe() should use resumeservice"
+        assert "get_completed_by_prompt_hash" in source, "Should use prompt-based matching"
+
+    def test_treesearch_probe_does_not_call_super_probe(self):
+        """Test that TreeSearchProbe has its own probe() - resume not automatically supported.
+
+        TreeSearchProbe overrides probe() completely for tree traversal logic.
+        Resume would need to be explicitly implemented in TreeSearchProbe.probe().
+        """
+        from garak.probes.base import TreeSearchProbe
+        import inspect
+
+        source = inspect.getsource(TreeSearchProbe.probe)
+        # TreeSearchProbe.probe() does NOT call super().probe()
+        assert "super().probe" not in source, "TreeSearchProbe has its own probe()"
+        # And doesn't use resumeservice
+        assert "resumeservice" not in source, "TreeSearchProbe doesn't use resumeservice"
+
+    def test_iterative_probe_does_not_call_super_probe(self):
+        """Test that IterativeProbe has its own probe() - resume not automatically supported.
+
+        IterativeProbe overrides probe() completely for multi-turn conversation logic.
+        Resume would need to be explicitly implemented in IterativeProbe.probe().
+        """
+        from garak.probes.base import IterativeProbe
+        import inspect
+
+        source = inspect.getsource(IterativeProbe.probe)
+        # IterativeProbe.probe() does NOT call super().probe()
+        assert "super().probe" not in source, "IterativeProbe has its own probe()"
+        # And doesn't use resumeservice
+        assert "resumeservice" not in source, "IterativeProbe doesn't use resumeservice"
