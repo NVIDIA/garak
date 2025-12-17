@@ -1,12 +1,20 @@
 import pytest
 import torch
-from PIL import Image, ImageDraw
 from unittest.mock import patch, MagicMock
 
 from garak.attempt import Conversation, Turn, Message
 from garak._config import GarakSubConfig
-from garak.generators.huggingface import LLaVA
 from garak.exception import TargetNameMissingError
+
+try:
+    from PIL import Image, ImageDraw
+    from garak.generators.huggingface import LLaVA
+
+except:
+    pytest.skip(
+        "couldn't import LLaVA and deps, skipping llava tests", allow_module_level=True
+    )
+
 
 # ─── Constants ─────────────────────────────────────────────────────────
 

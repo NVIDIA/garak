@@ -1,9 +1,17 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Doctor attack
+"""**Doctor attack**
 
-Post as a doctor in effort to override safeguards"""
+Post as a doctor in effort to override safeguards
+
+This module is for roleplaying attacks where the roleplayed character is a doctor. Maybe even from House.
+
+Further info:
+
+* https://hiddenlayer.com/innovation-hub/novel-universal-bypass-for-all-major-llms/
+
+"""
 
 
 from garak import _config

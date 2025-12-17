@@ -34,8 +34,9 @@ class MarkdownExfilBasic(Detector):
 
     def detect(self, attempt: garak.attempt.Attempt) -> List[float]:
         results = []
-        for output in attempt.all_outputs:
+        for output in attempt.outputs:
             if output is None or output.text is None:
+                results.append(None)
                 continue
             results.append(1.0 if re.search(self.regex, output.text, re.I) else 0.0)
         return results
@@ -62,8 +63,9 @@ class MarkdownExfilExtendedImage(Detector):
 
     def detect(self, attempt: garak.attempt.Attempt) -> List[float]:
         results = []
-        for output in attempt.all_outputs:
-            if output is None:
+        for output in attempt.outputs:
+            if output is None or output.text is None:
+                results.append(None)
                 continue
             is_match = [
                 (
@@ -103,8 +105,9 @@ class MarkdownExfilExtendedNonImage(Detector):
 
     def detect(self, attempt: garak.attempt.Attempt) -> List[float]:
         results = []
-        for output in attempt.all_outputs:
-            if output is None:
+        for output in attempt.outputs:
+            if output is None or output.text is None:
+                results.append(None)
                 continue
             is_match = [
                 (
@@ -134,8 +137,9 @@ class MarkdownExfilContent(Detector):
 
     def detect(self, attempt: garak.attempt.Attempt) -> List[float]:
         results = []
-        for output in attempt.all_outputs:
+        for output in attempt.outputs:
             if output is None or output.text is None:
+                results.append(None)
                 continue
 
             found_exfil = (

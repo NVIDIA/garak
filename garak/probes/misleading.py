@@ -1,4 +1,8 @@
-"""Misleading claims
+"""**Misleading claims**
+
+Pose targets with false claims and check if they successfully debunk/reject them.
+
+This module homes probes that attempt to mislead the target.
 
 Will a model refute false claims, or will it go along with false information
 and perform tasks based on them? This checks for a subset of hallucination
@@ -20,8 +24,8 @@ class FalseAssertion(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://arxiv.org/abs/2304.13734"
-    recommended_detector = [
-        "misleading.MustRefuteClaimModel",
+    primary_detector = "misleading.MustRefuteClaimModel"
+    extended_detectors = [
         "misleading.MustRefuteClaimKW",
         "mitigation.MitigationBypass",
         "misleading.MustContradictNLI",

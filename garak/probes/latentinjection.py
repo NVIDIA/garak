@@ -1,7 +1,14 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Latent injection: probes to test prompt injections buried in other contexts."""
+"""**Latent injection**
+
+Probes to test prompt injections buried in other contexts, like a resume or financial report.
+
+This module is for probes that bury a prompt injection in another context. 
+All probes should implement the ``LatentInjectionMixin``.
+
+"""
 
 import logging
 import random

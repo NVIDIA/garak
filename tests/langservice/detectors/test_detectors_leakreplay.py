@@ -46,7 +46,7 @@ def test_startswith_detect():
     # Verify the results
     assert isinstance(results, list), "Detect method should return a list"
     assert len(results) == len(
-        attempt.all_outputs
+        attempt.outputs
     ), "Results should match the number of outputs"
     assert results == [
         1.0,

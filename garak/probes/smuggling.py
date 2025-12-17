@@ -1,6 +1,17 @@
-"""Smuggling content.
+"""**Token Smuggling**
 
-Probes that attempt to bypass filters via obfuscation/smuggling techniques.
+Probes that attempt to bypass filters via obfuscation of contentious terms.
+
+This module is suitable for probes that work using token/ASCII smuggling.
+
+Token smugging attacks attempt to hide malicious content among benign text, in a way that bypasses alignment but is still reacted to by the target. This might involve swapping letters out for unusual unicode representations of the same letters, including meta-tokens like a zero-width space in order to break up the malicious text, or other encoding tricks.
+
+Further info:
+
+* https://embracethered.com/blog/posts/2024/hiding-and-finding-text-with-unicode-tags/
+* https://github.com/randalltr/red-teaming-the-prompt/blob/main/chapters/10-obfuscation.md
+
+
 """
 
 import garak.probes

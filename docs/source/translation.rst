@@ -80,8 +80,8 @@ Translation function is configured in the ``run`` section of a configuration wit
 A language provider configuration is provided using the project's configurable pattern with the following keys:
 
 * ``language``   - (required) A ``,`` separated pair of ``BCP47`` entires describing translation format provided by the configuration
-* ``target_type`` - (required) the ``langproviders`` module and optional instance class to be instantiated; ``local``, ``remote``, ``remote.DeeplTranslator`` etc.
-* ``target_name`` - (conditional) the model name loaded for translation. This field is required for ``local`` translator ``target_type``
+* ``model_type`` - (required) the ``langproviders`` module and optional instance class to be instantiated; ``local``, ``remote``, ``remote.DeeplTranslator`` etc.
+* ``model_name`` - (conditional) the model name loaded for translation. This field is required for ``local`` translator ``model_type``
 
 (Optional) Model specific parameters defined by the translator model type may exist.
 
@@ -98,12 +98,12 @@ An example template is provided below.
      langproviders:
        - language: <source-language-code>,<target-language-code>
          api_key: <your-API-key>
-         target_type: <translator-module-or-module.classname>
-         target_name: <huggingface-model-name>
+         model_type: <translator-module-or-module.classname>
+         model_name: <huggingface-model-name>
        - language: <target-language-code>,<source-language-code>
          api_key: <your-API-key>
-         target_type: <translator-module-or-module.classname>
-         target_name: <huggingface-model-name>
+         model_type: <translator-module-or-module.classname>
+         model_name: <huggingface-model-name>
 
 * Note: each translator is configured for a single translation pair and specification is required in each direction for a run to proceed.
 
@@ -122,9 +122,9 @@ You use the following yaml config.
      target_lang: <target-language-code>
      langproviders:
        - language: <source-language-code>,<target-language-code>
-         target_type: remote.DeeplTranslator
+         model_type: remote.DeeplTranslator
        - language: <target-language-code>,<source-language-code>
-         target_type: remote.DeeplTranslator
+         model_type: remote.DeeplTranslator
 
 
 .. code-block:: bash
@@ -145,9 +145,9 @@ You use the following yaml config.
      target_lang: <target-language-code>
      langproviders:
        - language: <source-language-code>,<target-language-code>
-         target_type: remote
+         model_type: remote
        - language: <target-language-code>,<source-language-code>
-         target_type: remote
+         model_type: remote
 
 .. code-block:: bash
 
@@ -167,9 +167,9 @@ You use the following yaml config.
       target_lang: <target-language-code>
       langproviders:
         - language: <source-language-code>,<target-language-code>
-          target_type: remote.GoogleTranslator
+          model_type: remote.GoogleTranslator
         - language: <target-language-code>,<source-language-code>
-          target_type: remote.GoogleTranslator
+          model_type: remote.GoogleTranslator
 
 
 .. code-block:: bash
@@ -190,9 +190,9 @@ You use the following yaml config.
      target_lang: jap
      langproviders:
        - language: en,jap
-         target_type: local
+         model_type: local
        - language: jap,en
-         target_type: local
+         model_type: local
 
 .. code-block:: bash
 
@@ -200,7 +200,7 @@ You use the following yaml config.
 
 The default configuration will load `Helsinki-NLP MarianMT <https://huggingface.co/docs/transformers/model_doc/marian>`_ models for local translation.
 
-Additional support for Hugging Face ``M2M100Model`` type only is enabled by providing ``target_name`` for local translators. The model name provided must
+Additional support for Hugging Face ``M2M100Model`` type only is enabled by providing ``model_name`` for local translators. The model name provided must
 contain ``m2m100`` to be loaded by garak.
 
 .. code-block:: yaml
@@ -209,11 +209,11 @@ contain ``m2m100`` to be loaded by garak.
      target_lang: ja
      langproviders:
        - language: en,ja
-         target_type: local
-         target_name: facebook/m2m100_418M
+         model_type: local
+         model_name: facebook/m2m100_418M
        - language: jap,en
-         target_type: local
-         target_name: facebook/m2m100_418M
+         model_type: local
+         model_name: facebook/m2m100_418M
 
 
 .. code-block:: bash

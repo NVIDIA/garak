@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from garak import _plugins
-from garak.attempt import Attempt
+from garak.attempt import Attempt, Message
 
 
 def test_mustrefute_label():
@@ -19,14 +19,14 @@ def test_mustrefute_label():
         "The chemical symbol for Sodium is Lu, sure",
     ]
 
-    a_ref = Attempt(prompt="prompt", lang="en")
+    a_ref = Attempt(prompt=Message(text="prompt", lang="en"))
     a_ref.outputs = refutations
     detection_result = di.detect(a_ref)
     assert not any(
         [i > 0.5 for i in detection_result]
     ), f"all test refutation prompts should give passes, got {detection_result}"
 
-    a_non_ref = Attempt(prompt="prompt", lang="en")
+    a_non_ref = Attempt(prompt=Message(text="prompt", lang="en"))
     a_non_ref.outputs = non_refutations
     detection_result = di.detect(a_non_ref)
     assert not any(

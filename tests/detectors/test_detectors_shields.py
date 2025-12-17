@@ -3,7 +3,7 @@
 
 import pytest
 
-from garak.attempt import Attempt
+from garak.attempt import Attempt, Message
 from garak.detectors.shields import Up, Down
 
 
@@ -31,7 +31,9 @@ def test_up_detector_default_strings(up_detector):
     ]
 
     for response in default_responses:
-        attempt = Attempt(prompt="test", lang=up_detector.lang_spec.split(",")[0])
+        attempt = Attempt(
+            prompt=Message(text="test", lang=up_detector.lang_spec.split(",")[0])
+        )
         attempt.outputs = [response]
         results = up_detector.detect(attempt)
         assert results == [
@@ -48,7 +50,9 @@ def test_up_detector_non_matching(up_detector):
     ]
 
     for response in safe_responses:
-        attempt = Attempt(prompt="test", lang=up_detector.lang_spec.split(",")[0])
+        attempt = Attempt(
+            prompt=Message("test", lang=up_detector.lang_spec.split(",")[0])
+        )
         attempt.outputs = [response]
         results = up_detector.detect(attempt)
         assert results == [
@@ -62,7 +66,7 @@ def test_up_detector_custom_strings():
     detector = Up()
     detector.substrings = custom_strings
 
-    attempt = Attempt(prompt="test", lang=detector.lang_spec.split(",")[0])
+    attempt = Attempt(prompt=Message("test", lang=detector.lang_spec.split(",")[0]))
     attempt.outputs = ["forbidden content"]
     results = detector.detect(attempt)
     assert results == [0.0], "Up detector should trigger for custom string"
@@ -79,7 +83,9 @@ def test_down_detector_default_strings(down_detector):
     ]
 
     for response in default_responses:
-        attempt = Attempt(prompt="test", lang=down_detector.lang_spec.split(",")[0])
+        attempt = Attempt(
+            prompt=Message("test", lang=down_detector.lang_spec.split(",")[0])
+        )
         attempt.outputs = [response]
         results = down_detector.detect(attempt)
         assert results == [
@@ -96,7 +102,9 @@ def test_down_detector_non_matching(down_detector):
     ]
 
     for response in unsafe_responses:
-        attempt = Attempt(prompt="test", lang=down_detector.lang_spec.split(",")[0])
+        attempt = Attempt(
+            prompt=Message("test", lang=down_detector.lang_spec.split(",")[0])
+        )
         attempt.outputs = [response]
         results = down_detector.detect(attempt)
         assert results == [
@@ -110,7 +118,7 @@ def test_down_detector_custom_strings():
     detector = Down()
     detector.substrings = custom_strings
 
-    attempt = Attempt(prompt="test", lang=detector.lang_spec.split(",")[0])
+    attempt = Attempt(prompt=Message("test", lang=detector.lang_spec.split(",")[0]))
     attempt.outputs = ["approved for use"]
     results = detector.detect(attempt)
     assert results == [0.0], "Down detector should trigger for custom string"
@@ -121,13 +129,15 @@ def test_multiple_outputs():
     up_detector = Up()
     down_detector = Down()
 
-    attempt = Attempt(prompt="test", lang=up_detector.lang_spec.split(",")[0])
+    attempt = Attempt(prompt=Message("test", lang=up_detector.lang_spec.split(",")[0]))
     attempt.outputs = ["unsafe content", "normal response", "block this"]
 
     up_results = up_detector.detect(attempt)
     assert up_results == [0.0, 1.0, 0.0], "Up detector failed on multiple outputs"
 
-    attemptd = Attempt(prompt="test", lang=down_detector.lang_spec.split(",")[0])
+    attemptd = Attempt(
+        prompt=Message("test", lang=down_detector.lang_spec.split(",")[0])
+    )
     attemptd.outputs = ["safe content", "blocked response", "allow this"]
     down_results = down_detector.detect(attemptd)
     assert down_results == [0.0, 1.0, 0.0], "Down detector failed on multiple outputs"
@@ -139,7 +149,7 @@ def test_case_sensitivity():
     down_detector = Down()
 
     # Test Up detector
-    attempt = Attempt(prompt="test", lang=up_detector.lang_spec.split(",")[0])
+    attempt = Attempt(prompt=Message("test", lang=up_detector.lang_spec.split(",")[0]))
     attempt.outputs = ["UNSAFE content", "Block THIS", "unsafe"]
 
     # Case sensitive
@@ -151,7 +161,9 @@ def test_case_sensitivity():
     assert results == [0.0, 0.0, 0.0], "Up detector case insensitive check failed"
 
     # Test Down detector
-    attemptd = Attempt(prompt="test", lang=down_detector.lang_spec.split(",")[0])
+    attemptd = Attempt(
+        prompt=Message("test", lang=down_detector.lang_spec.split(",")[0])
+    )
     attemptd.outputs = ["SAFE content", "Allow THIS", "safe"]
 
     # Case sensitive

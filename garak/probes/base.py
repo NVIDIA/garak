@@ -1,22 +1,25 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Base classes for probes.
+"""**Base classes for probes**
 
-Probe plugins must inherit one of these. `Probe` serves as a template showing
-what expectations there are for inheriting classes."""
+Probe plugins must inherit one of these. ``Probe`` serves as a template for showing
+what expectations there are for inheriting classes.
+
+Abstract and common-level probe classes belong here. Contact the garak maintainers before adding new classes.
+"""
 
 import copy
 import json
 import logging
 from collections.abc import Iterable
 import random
-from typing import Iterable, Union
+from typing import Iterable, Union, List
 
 from colorama import Fore, Style
 import tqdm
 
-from garak import _config
+from garak import _config, _plugins
 from garak.configurable import Configurable
 from garak.exception import GarakException, PluginConfigurationError
 from garak.probes._tier import Tier
@@ -54,13 +57,17 @@ class Probe(Configurable):
     modality: dict = {"in": {"text"}}
     # what tier is this probe? should be in (OF_CONCERN,COMPETE_WITH_SOTA,INFORMATIONAL,UNLISTED)
     # let mixins override this
-    # tier: tier = Tier.UNLISTED
+    # tier: Tier = Tier.UNLISTED
     tier: Tier = Tier.UNLISTED
+    # list of strings naming modules required but not explicitly in garak by default
+    extra_dependency_names = []
 
     DEFAULT_PARAMS = {}
 
     _run_params = {"generations", "soft_probe_prompt_cap", "seed", "system_prompt"}
     _system_params = {"parallel_attempts", "max_workers"}
+
+    _load_deps = _plugins._load_deps
 
     def __init__(self, config_root=_config):
         """Sets up a probe.
@@ -72,12 +79,37 @@ class Probe(Configurable):
         """
         self._load_config(config_root)
         self.probename = str(self.__class__).split("'")[1]
+
+        # Handle deprecated recommended_detector migration
+        if (
+            self.primary_detector is None
+            and self.recommended_detector != ["always.Fail"]
+            and len(self.recommended_detector) > 0
+        ):
+            from garak import command
+
+            command.deprecation_notice(
+                f"recommended_detector in probe {self.probename}",
+                "0.9.0.6",
+                logging=logging,
+            )
+            self.primary_detector = self.recommended_detector[0]
+            if len(self.recommended_detector) > 1:
+                existing_extended = (
+                    list(self.extended_detectors) if self.extended_detectors else []
+                )
+                self.extended_detectors = existing_extended + list(
+                    self.recommended_detector[1:]
+                )
+
         if hasattr(_config.system, "verbose") and _config.system.verbose > 0:
             print(
                 f"loading {Style.BRIGHT}{Fore.LIGHTYELLOW_EX}probe: {Style.RESET_ALL}{self.probename}"
             )
 
         logging.info(f"probe init: {self}")
+        self._load_deps()
+
         if "description" not in dir(self):
             if self.__doc__:
                 self.description = self.__doc__.split("\n", maxsplit=1)[0]
@@ -180,7 +212,11 @@ class Probe(Configurable):
         return attempt
 
     def _mint_attempt(
-        self, prompt=None, seq=None, notes=None, lang="*"
+        self,
+        prompt: str | garak.attempt.Message | garak.attempt.Conversation | None = None,
+        seq=None,
+        notes=None,
+        lang="*",
     ) -> garak.attempt.Attempt:
         """function for creating a new attempt given a prompt"""
         turns = []
@@ -232,7 +268,6 @@ class Probe(Configurable):
             seq=seq,
             prompt=prompt,
             notes=notes,
-            lang=lang,
         )
 
         new_attempt = self._attempt_prestore_hook(new_attempt, seq)
@@ -241,7 +276,7 @@ class Probe(Configurable):
     def _postprocess_attempt(self, this_attempt) -> garak.attempt.Attempt:
         # Messages from the generator have no language set, propagate the target language to all outputs
         # TODO: determine if this should come from `self.langprovider.target_lang` instead of the result object
-        all_outputs = this_attempt.all_outputs
+        all_outputs = this_attempt.outputs
         for output in all_outputs:
             if output is not None:
                 output.lang = this_attempt.lang
@@ -344,18 +379,16 @@ class Probe(Configurable):
 
         # build list of attempts
         attempts_todo: Iterable[garak.attempt.Attempt] = []
-        prompts = list(
+        prompts = copy.deepcopy(
             self.prompts
-        )  # will this still make a copy if prompts are `Message` objects?
-        lang = self.lang
-        # account for visual jailbreak until Turn/Conversation is supported
+        )  # make a copy to avoid mutating source list
         preparation_bar = tqdm.tqdm(
             total=len(prompts),
             leave=False,
             colour=f"#{garak.resources.theme.LANGPROVIDER_RGB}",
             desc="Preparing prompts",
         )
-        if isinstance(prompts[0], str):
+        if isinstance(prompts[0], str):  # self.prompts can be strings
             localized_prompts = self.langprovider.get_text(
                 prompts, notify_callback=preparation_bar.update
             )
@@ -369,35 +402,47 @@ class Probe(Configurable):
             for prompt in prompts:
                 if isinstance(prompt, garak.attempt.Message):
                     prompt.text = self.langprovider.get_text(
-                        prompt.text, notify_callback=preparation_bar.update
-                    )
+                        [prompt.text], notify_callback=preparation_bar.update
+                    )[0]
                     prompt.lang = self.langprovider.target_lang
                 if isinstance(prompt, garak.attempt.Conversation):
                     for turn in prompt.turns:
                         msg = turn.content
                         msg.text = self.langprovider.get_text(
-                            msg.text, notify_callback=preparation_bar.update
-                        )
+                            [msg.text], notify_callback=preparation_bar.update
+                        )[0]
                         msg.lang = self.langprovider.target_lang
         lang = self.langprovider.target_lang
         preparation_bar.close()
         for seq, prompt in enumerate(prompts):
-            notes = (
-                {
-                    "pre_translation_prompt": garak.attempt.Conversation(
-                        [
-                            garak.attempt.Turn(
-                                "user",
-                                garak.attempt.Message(
-                                    self.prompts[seq], lang=self.lang
-                                ),
-                            )
-                        ]
-                    )
-                }
-                if lang != self.lang
-                else None
-            )
+            notes = None
+            if lang != self.lang:
+                pre_translation_prompt = copy.deepcopy(self.prompts[seq])
+                if isinstance(pre_translation_prompt, str):
+                    notes = {
+                        "pre_translation_prompt": garak.attempt.Conversation(
+                            [
+                                garak.attempt.Turn(
+                                    "user",
+                                    garak.attempt.Message(
+                                        pre_translation_prompt, lang=self.lang
+                                    ),
+                                )
+                            ]
+                        )
+                    }
+                elif isinstance(pre_translation_prompt, garak.attempt.Message):
+                    pre_translation_prompt.lang = self.lang
+                    notes = {
+                        "pre_translation_prompt": garak.attempt.Conversation(
+                            [pre_translation_prompt]
+                        )
+                    }
+                elif isinstance(pre_translation_prompt, garak.attempt.Message):
+                    for turn in pre_translation_prompt.turns:
+                        turn.context.lang = self.lang
+                    notes = {"pre_translation_prompt": pre_translation_prompt}
+
             attempts_todo.append(self._mint_attempt(prompt, seq, notes, lang))
 
         # buff hook
@@ -497,9 +542,6 @@ class TreeSearchProbe(Probe):
             # update progress bar
             progress_nodes_previous = len(node_ids_explored)
             progress_nodes_todo = int(1 + len(nodes_to_explore) * 2.5)
-            # print("seen", node_ids_explored, progress_nodes_previous)
-            # print("curr", current_node)
-            # print("todo", nodes_to_explore, progress_nodes_todo)
 
             tree_bar.total = progress_nodes_previous + progress_nodes_todo
             tree_bar.refresh()
@@ -560,11 +602,21 @@ class TreeSearchProbe(Probe):
 
             all_completed_attempts += attempts_completed
 
-            node_results = [
-                1.0 if s > self.per_generation_threshold else 0 for s in node_results
-            ]
-            if len(node_results) > 0:
-                mean_score = sum(node_results) / len(node_results)
+            updated_results = []
+            for s in node_results:
+                if s is None:
+                    updated_results.append(None)
+                elif s > self.per_generation_threshold:
+                    updated_results.append(1.0)
+                else:
+                    updated_results.append(0.0)
+            node_results = updated_results
+
+            non_none_node_results = list(
+                filter(lambda x: x is not None, updated_results)
+            )
+            if len(non_none_node_results) > 0:
+                mean_score = sum(non_none_node_results) / len(non_none_node_results)
             else:
                 mean_score = 0
             parent = self._get_node_parent(current_node)
@@ -624,3 +676,156 @@ class TreeSearchProbe(Probe):
 
         self.never_queue_nodes: Iterable[str] = set()
         self.never_queue_forms: Iterable[str] = set()
+
+
+class IterativeProbe(Probe):
+    """
+    Base class for multi-turn probes in which the probe uses the last target response to generate the next prompt.
+
+    IterativeProbe assumes the probe generates a set of initial prompts, each of which are passed to the target model and the response is used for evaluation. The responses are also provided back to the probe and the probe uses the response to generate follow up prompts which are also passed to the target model and each of the responses are used for evaluation.
+    This can continue until one of:
+
+    - ``max_calls_per_conv`` is reached.
+    - The probe chooses to run the detector on the target response and stops when the detector detects a success.
+    - The probe has a function, different from the detector for deciding when the probe thinks an attack will be successful and stops at that point.
+
+    Additional design considerations:
+
+    1. Not all multiturn probes need this base class. A probe could directly construct a multiturn input where it only cares about how the target responds to the last turn (eg: prefill attacks) can just subclass Probe.
+    2. Probes that inherit from IterativeProbe are allowed to manipulate the history in addition to generating new turns based on a target's response. For example if the response to the initial turn was a refusal, the probe can in the next attempt either pass in that history of old init turn + refusal + next turn or just pass a new init turn.
+    3. An Attempt is created at every turn when the history is passed to the target. All these Attempts are collected and passed to the detector. The probe can use Attempt.notes to tell the detector to skip certain attempts but a special detector needs to be written that will pay attention to this value.
+    4. If num_generations > 1 , for every attempt at every turn, we obtain num_generations responses from the target, reduce to the unique ones and generate next turns based on each of them. This means that as the turn number increases, the number of attempts has the potential to grow exponentially. Currently, when we have processed (# init turns * self.soft_prompt_probe_cap) attempts, the probe will exit.
+    5. Currently the expansion of attempts happens in a BFS fashion.
+    """
+
+    DEFAULT_PARAMS = Probe.DEFAULT_PARAMS | {
+        "max_calls_per_conv": 10,
+        "follow_prompt_cap": True,
+    }
+
+    def __init__(self, config_root=_config):
+        super().__init__(config_root)
+        if self.end_condition not in ("detector", "verify"):
+            raise ValueError(f"Unsupported end condition '{self.end_condition}'")
+        self.attempt_queue = list()
+
+    def _create_attempt(self, prompt) -> garak.attempt.Attempt:
+        """Create an attempt from a prompt. Prompt can be of type str if this is an initial turn or garak.attempt.Conversation if this is a subsequent turn.
+        Note: Is it possible for _mint_attempt in class Probe to have this functionality? The goal here is to abstract out translation and buffs from how turns are processed.
+        """
+        notes = None
+        if self.langprovider.target_lang != self.lang:
+            if isinstance(prompt, str):
+                notes = {
+                    "pre_translation_prompt": garak.attempt.Conversation(
+                        [
+                            garak.attempt.Turn(
+                                "user", garak.attempt.Message(prompt, lang=self.lang)
+                            )
+                        ]
+                    )
+                }
+            elif isinstance(prompt, garak.attempt.Message):
+                notes = {
+                    "pre_translation_prompt": garak.attempt.Conversation(
+                        [
+                            garak.attempt.Turn(
+                                "user",
+                                garak.attempt.Message(prompt.text, lang=self.lang),
+                            )
+                        ]
+                    )
+                }
+            elif isinstance(prompt, garak.attempt.Conversation):
+                notes = {"pre_translation_prompt": prompt}
+                for turn in prompt.turns:
+                    turn.content.lang = self.lang
+
+        if isinstance(prompt, str):
+            localized_prompt = self.langprovider.get_text([prompt])[
+                0
+            ]  # TODO: Is it less efficient to call langprovider like this instead of on a list of prompts as is done in Probe.probe()?
+            prompt = garak.attempt.Message(
+                localized_prompt, lang=self.langprovider.target_lang
+            )
+        else:
+            # what types should this expect? Message, Conversation?
+            if isinstance(prompt, garak.attempt.Message):
+                prompt.text = self.langprovider.get_text([prompt.text])[0]
+                prompt.lang = self.langprovider.target_lang
+            if isinstance(prompt, garak.attempt.Conversation):
+                for turn in prompt.turns:
+                    msg = turn.content
+                    msg.text = self.langprovider.get_text([msg.text])[0]
+                    msg.lang = self.langprovider.target_lang
+
+        return self._mint_attempt(
+            prompt=prompt, seq=None, notes=notes, lang=self.langprovider.target_lang
+        )
+
+    def _create_init_attempts(self) -> Iterable[garak.attempt.Attempt]:
+        """Function to be overridden by subclass creating attempts containing each unique initial turn."""
+        raise NotImplementedError
+
+    def _generate_next_attempts(
+        self, last_attempt: garak.attempt.Attempt
+    ) -> Iterable[garak.attempt.Attempt]:
+        """Function to be overridden with logic to get a list of attempts for subsequent interactions given the last attempt"""
+        raise NotImplementedError
+
+    def probe(self, generator):
+        """Wrapper generating all attempts and handling execution against generator"""
+        self.generator = generator
+        all_attempts_completed = list()
+
+        try:
+            self.attempt_queue = self._create_init_attempts()
+            self.max_attempts_before_termination = float("inf")
+            if self.follow_prompt_cap:
+                self.max_attempts_before_termination = (
+                    len(self.attempt_queue) * self.soft_probe_prompt_cap
+                )
+
+            # TODO: This implementation is definitely expanding the generations tree in BFS fashion. Do we want to allow an option for DFS? Also what about the type of sampling which only duplicates the initial turn? BFS is nice because we can just reuse Probe._execute_all() which may not be an option if we are only duplicating the initial turn.
+            for turn_num in range(0, self.max_calls_per_conv):
+                attempts_todo = copy.deepcopy(self.attempt_queue)
+                self.attempt_queue = list()
+
+                if len(_config.buffmanager.buffs) > 0:
+                    attempts_todo = self._buff_hook(attempts_todo)
+
+                attempts_completed = self._execute_all(attempts_todo)
+                all_attempts_completed.extend(attempts_completed)
+
+                logging.debug(
+                    "probe.IterativeProbe # probe: End of turn %d; Attempts this turn: %d; Total attempts completed: %d"
+                    % (turn_num, len(attempts_completed), len(all_attempts_completed))
+                )
+
+                if len(all_attempts_completed) > self.max_attempts_before_termination:
+                    logging.debug(
+                        "probe.IterativeProbe # probe: Max attempts before termination reached; Breaking out of loop"
+                    )
+                    probe = self.probename.replace("garak.", "")
+                    print(
+                        f"{probe}: Iteration terminated early due to configuration limits!"
+                    )
+                    break
+
+            logging.debug(
+                "probe.IterativeProbe # probe: Probe exiting; Total attempts completed: %d"
+                % len(all_attempts_completed)
+            )
+        except GarakException as e:
+            logging.error("probe.IterativeProbe # probe: %s" % e)
+
+        return all_attempts_completed
+
+    def _postprocess_attempt(self, this_attempt) -> garak.attempt.Attempt:
+        """
+        Augments existing _postprocess_attempt() of base Probe() class with generation of attempts for subsequent turn.
+        """
+        processed = super()._postprocess_attempt(this_attempt)
+        next_turn_attempts = self._generate_next_attempts(this_attempt)
+        self.attempt_queue.extend(next_turn_attempts)
+        return processed

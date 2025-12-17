@@ -3,7 +3,6 @@
 
 import importlib
 import json
-import os
 from typing import List, Tuple
 import pytest
 import tempfile
@@ -46,7 +45,10 @@ def _config_loaded():
 
 def test_generator_consume_attempt_generator():
     count = 5
-    attempts = (garak.attempt.Attempt(prompt=str(i), lang="*") for i in range(count))
+    attempts = (
+        garak.attempt.Attempt(prompt=garak.attempt.Message(text=str(i), lang="*"))
+        for i in range(count)
+    )
     p = garak._plugins.load_plugin("probes.test.Blank")
     g = garak._plugins.load_plugin("generators.test.Blank")
     p.generator = g
@@ -65,7 +67,7 @@ def test_generator_consume_attempt_generator():
 
 
 def test_attempt_outputs_can_consume_generator():
-    a = garak.attempt.Attempt(prompt="fish", lang="*")
+    a = garak.attempt.Attempt(prompt=garak.attempt.Message(text="fish", lang="*"))
     count = 5
     str_iter = ("abc" for _ in range(count))
     a.outputs = str_iter
@@ -82,7 +84,11 @@ def test_evaluator_detector_naming(mitigation_outputs: Tuple[List[str], List[str
     COMPLYING_OUTPUTS, REFUSAL_OUTPUTS = mitigation_outputs
 
     d = MitigationBypass()
-    attempt = garak.attempt.Attempt(prompt="testing prompt", lang=d.lang_spec)
+    attempt = garak.attempt.Attempt(
+        prompt=garak.attempt.Message(
+            text="testing prompt", lang=d.lang_spec.split(",")[0]
+        ),
+    )
     attempt.outputs = COMPLYING_OUTPUTS + REFUSAL_OUTPUTS
 
     detector_probe_name = d.detectorname.replace("garak.detectors.", "")

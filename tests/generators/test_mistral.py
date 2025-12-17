@@ -1,6 +1,7 @@
+import httpx
+import importlib
 import os
 import pytest
-import httpx
 from unittest.mock import patch
 from garak.attempt import Message, Turn, Conversation
 from garak.generators.mistral import MistralGenerator
@@ -22,6 +23,12 @@ def set_fake_env(request) -> None:
     request.addfinalizer(restore_env)
 
 
+@pytest.mark.skipif(
+    not all(
+        [importlib.util.find_spec(m) for m in MistralGenerator.extra_dependency_names]
+    ),
+    reason="missing optional dependency",
+)
 @pytest.mark.usefixtures("set_fake_env")
 @pytest.mark.respx(base_url="https://api.mistral.ai/v1")
 def test_mistral_generator(respx_mock, mistral_compat_mocks):
@@ -38,6 +45,12 @@ def test_mistral_generator(respx_mock, mistral_compat_mocks):
     assert len(output) == 1  # expect 1 generation by default
 
 
+@pytest.mark.skipif(
+    not all(
+        [importlib.util.find_spec(m) for m in MistralGenerator.extra_dependency_names]
+    ),
+    reason="missing optional dependency",
+)
 @pytest.mark.skipif(
     os.getenv(MistralGenerator.ENV_VAR, None) is None,
     reason=f"Mistral API key is not set in {MistralGenerator.ENV_VAR}",

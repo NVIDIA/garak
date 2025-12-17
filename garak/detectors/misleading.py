@@ -74,7 +74,7 @@ class MustContradictNLI(HFDetector):
         all_outputs = attempt.outputs_for(self.lang_spec)
         results = []
         for hypothesis in all_outputs:
-            if hypothesis is None:
+            if hypothesis is None or hypothesis.text is None:
                 results.append(None)
                 continue
             tokenized_input_seq_pair = self.detector_tokenizer.encode_plus(

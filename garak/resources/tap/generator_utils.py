@@ -37,7 +37,7 @@ def load_generator(
 
     """
 
-    if not (target_name in supported_openai or target_name in supported_huggingface):
+    if not (model_name in supported_openai or model_name in supported_huggingface):
         msg = (
             f"{model_name} is not currently supported for TAP generation. Support is available for the following "
             f"OpenAI and HuggingFace models:\nOpenAI: {supported_openai}\nHuggingFace: {supported_huggingface}\n"

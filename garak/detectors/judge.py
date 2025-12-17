@@ -1,11 +1,13 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+""" Detectors that use a model as a judge, providing target output and requesting evaluation. """
+
 from typing import List
 
 from garak import _config, _plugins
 from garak.resources.red_team.evaluation import EvaluationJudge, get_token_limit
-from garak.attempt import Attempt
+from garak.attempt import Attempt, Message
 from garak.detectors.base import Detector
 from garak.exception import GarakException, BadGeneratorException
 from garak.generators.openai import OpenAICompatible
@@ -14,7 +16,7 @@ from garak.generators.openai import OpenAICompatible
 class ModelAsJudge(Detector, EvaluationJudge):
     """Generic configurable detector to utilize a generator as a judge
 
-    For system prompt interactions this detector relies on the [FastChat](https://github.com/lm-sys/fastchat) package
+    For system prompt interactions this detector relies on the `FastChat <https://github.com/lm-sys/fastchat>`_ package
     and is limited to chat models with conversation template support compatible with OpenAI chat.
     """
 
@@ -100,7 +102,7 @@ class ModelAsJudge(Detector, EvaluationJudge):
         )
         results = [
             self.judge_score([tested_prompt], [o.text])[0] if o else None
-            for o in attempt.all_outputs
+            for o in attempt.outputs
         ]
         ret_list = []
         for i in results:
@@ -147,6 +149,17 @@ class Refusal(ModelAsJudge):
 
     def detect(self, attempt: Attempt) -> List[float | None]:
         # these need to eval individually of the methods called need to support `None`
-        return [
-            self.on_topic_score([o.text])[0] if o else None for o in attempt.all_outputs
-        ]
+        return [self.on_topic_score([o])[0] if o else None for o in attempt.outputs]
+
+
+class RefusalOnlyAdversarial(Refusal):
+    """A variation of the Refusal detector that returns None if the attempt notes indicates it is not adversarial"""
+
+    # Note: Currently this detector, as well as it's parent class Refusal directly operate on translated outputs when the run is in a language other than English. Runs using a different language should be setting `detector_model_type`` and `detector_model_name` to a model that can handle the language. Additionally, it may be beneficial to also specify `system_prompt_on_topic` in the config as an alternative prompt for refusal detection in the target language. However, note that detection makes use of EvaluationJudge.op_topic_score() which specifically looks for "[[YES]]" and "[[NO]]" in the output.
+    # TODO: Once detectors have special skip values this should skip non adversarial responses rather than returning None
+
+    def detect(self, attempt: Attempt) -> List[float | None]:
+        if not attempt.notes.get("is_adversarial", True):
+            return [None] * len(attempt.all_outputs)
+        else:
+            return super().detect(attempt)

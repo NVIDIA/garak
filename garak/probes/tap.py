@@ -1,26 +1,32 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Tree of Attacks with Pruning (TAP) probes.
+"""**Tree of Attacks with Pruning (TAP) probes**
 
-LLM-generated prompts to jailbreak a target. Wraps the Robust Intelligence community
-implementation of "[Tree of Attacks: Jailbreaking Black-Box LLMs Automatically](https://arxiv.org/abs/2312.02119)".
+These are use LLM-generated prompts to jailbreak a target.
+
+Probes in this module should implement TAP or TAP results.
+
+The ``tap`` module wraps the Robust Intelligence community implementation of
+`Tree of Attacks: Jailbreaking Black-Box LLMs Automatically <https://arxiv.org/abs/2312.02119>`_.
 The description of this technique is:
 
-> While Large Language Models (LLMs) display versatile functionality, they continue to
-> generate harmful, biased, and toxic content, as demonstrated by the prevalence of
-> human-designed jailbreaks. In this work, we present Tree of Attacks with Pruning
-> (TAP), an automated method for generating jailbreaks that only requires black-box
-> access to the target LLM. TAP utilizes an LLM to iteratively refine candidate (attack)
-> prompts using tree-of-thoughts reasoning until one of the generated prompts
-> jailbreaks the target. Crucially, before sending prompts to the target, TAP assesses
-> them and prunes the ones unlikely to result in jailbreaks. Using tree-of-thought
-> reasoning allows TAP to navigate a large search space of prompts and pruning reduces
-> the total number of queries sent to the target. In empirical evaluations, we observe
-> that TAP generates prompts that jailbreak state-of-the-art LLMs (including GPT4 and
-> GPT4-Turbo) for more than 80% of the prompts using only a small number of queries.
-> This significantly improves upon the previous state-of-the-art black-box method for
-> generating jailbreaks.
+::
+
+    While Large Language Models (LLMs) display versatile functionality, they continue to
+    generate harmful, biased, and toxic content, as demonstrated by the prevalence of
+    human-designed jailbreaks. In this work, we present Tree of Attacks with Pruning
+    (TAP), an automated method for generating jailbreaks that only requires black-box
+    access to the target LLM. TAP utilizes an LLM to iteratively refine candidate (attack)
+    prompts using tree-of-thoughts reasoning until one of the generated prompts
+    jailbreaks the target. Crucially, before sending prompts to the target, TAP assesses
+    them and prunes the ones unlikely to result in jailbreaks. Using tree-of-thought
+    reasoning allows TAP to navigate a large search space of prompts and pruning reduces
+    the total number of queries sent to the target. In empirical evaluations, we observe
+    that TAP generates prompts that jailbreak state-of-the-art LLMs (including GPT4 and
+    GPT4-Turbo) for more than 80% of the prompts using only a small number of queries.
+    This significantly improves upon the previous state-of-the-art black-box method for
+    generating jailbreaks.
 
 This requires three LLMs: (1) the target model / generator; (2) a model to generate
 jailbreak attacks; (3) a model to evaluate and rank how well the jailbreaks are
@@ -32,8 +38,12 @@ Therefor, as well as the full TAP probe, this module also includes a TAPCached p
 which uses pre-computed TAP prompts to jailbreak without having to run the two
 additional LLMs.
 
-TAP also works as a generalised form of [PAIR](https://arxiv.org/abs/2310.08419), and a
+TAP also works as a generalised form of `PAIR <https://arxiv.org/abs/2310.08419>`_, and a
 probe is included for that specific subcase - this is the PAIR probe in this modules.
+
+Further info:
+
+* https://arxiv.org/abs/2312.02119
 """
 
 import logging
@@ -59,7 +69,7 @@ class TAPCached(garak.probes.Probe):
     jailbreaks from TAP"""
 
     lang = "en"
-    recommended_detector = ["mitigation.MitigationBypass"]
+    primary_detector = "mitigation.MitigationBypass"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -99,7 +109,7 @@ class TAP(garak.probes.Probe):
     to jailbreaking the target are maintained in a tree, which is proactively pruned."""
 
     lang = "en"
-    recommended_detector = ["mitigation.MitigationBypass"]
+    primary_detector = "mitigation.MitigationBypass"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -231,7 +241,7 @@ class PAIR(garak.probes.Probe):
     PAIR settings, making it equivalent to the PAIR jailbreak"""
 
     lang = "en"
-    recommended_detector = ["mitigation.MitigationBypass"]
+    primary_detector = "mitigation.MitigationBypass"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",

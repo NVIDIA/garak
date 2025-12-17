@@ -12,6 +12,7 @@ For a detailed oversight into how a probe operates, see :doc:`garak.probes.base`
    garak.probes
    garak.probes.base
    garak.probes.ansiescape
+   garak.probes.apikey
    garak.probes.atkgen
    garak.probes.audio
    garak.probes.av_spam_scanning
@@ -24,6 +25,7 @@ For a detailed oversight into how a probe operates, see :doc:`garak.probes.base`
    garak.probes.encoding
    garak.probes.exploitation
    garak.probes.fileformats
+   garak.probes.fitd
    garak.probes.glitch
    garak.probes.goodside
    garak.probes.grandma
@@ -45,4 +47,5 @@ For a detailed oversight into how a probe operates, see :doc:`garak.probes.base`
    garak.probes.topic
    garak.probes.visual_jailbreak
    garak.probes.web_injection
+   garak.probes.badchars
    garak.probes._tier

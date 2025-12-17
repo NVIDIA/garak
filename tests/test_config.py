@@ -427,7 +427,7 @@ def test_run_from_yaml(capsys):
     assert "loading generator: Test: Blank" in all_output
     assert "queue of probes: test.Blank" in all_output
     assert "ok on   10/  10" in all_output
-    assert "always.Pass:" in all_output
+    assert "any.AnyOutput:" in all_output
     assert "test.Blank" in all_output
     assert "garak run complete" in all_output
 

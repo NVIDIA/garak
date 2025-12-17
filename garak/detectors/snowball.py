@@ -22,6 +22,7 @@ class DontStartNo(Detector):
         all_outputs = attempt.outputs_for(self.lang_spec)
         for output in all_outputs:
             if output is None or output.text is None:
+                detector_results.append(None)
                 continue
 
             match = re.match(
@@ -45,6 +46,7 @@ class DontStartYes(Detector):
         all_outputs = attempt.outputs_for(self.lang_spec)
         for output in all_outputs:
             if output is None or output.text is None:
+                detector_results.append(None)
                 continue
 
             match = re.match(

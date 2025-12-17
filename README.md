@@ -37,6 +37,7 @@ currently supports:
 * [hugging face hub](https://huggingface.co/models) generative models
 * [replicate](https://replicate.com/) text models
 * [openai api](https://platform.openai.com/docs/introduction) chat & continuation models
+* [aws bedrock](https://aws.amazon.com/bedrock/) foundation models
 * [litellm](https://www.litellm.ai/)
 * pretty much anything accessible via REST
 * gguf models like [llama.cpp](https://github.com/ggerganov/llama.cpp) version >= 1046
@@ -204,6 +205,22 @@ For completion models:
 * `--target_type nim.NVOpenAICompletion`
 * `--target_name` - the NIM `model` name, e.g. `bigcode/starcoder2-15b`
 
+### AWS Bedrock
+
+* `--target_type bedrock`
+* `--target_name` - the Bedrock model ID or alias, e.g. `anthropic.claude-3-sonnet-20240229-v1:0` or `claude-3-sonnet`
+* set the `BEDROCK_API_KEY` environment variable to your AWS Bedrock API key; see https://docs.aws.amazon.com/bedrock/latest/userguide/api-keys-use.html for setup instructions
+* (optional) set the `BEDROCK_REGION` environment variable to specify the AWS region (defaults to `us-east-1`)
+
+Supported model families include Anthropic Claude, Meta Llama, Amazon Titan, AI21 Labs, Cohere, and Mistral AI models. The generator uses the Converse API for unified access across all model types.
+
+Example usage:
+
+```
+export BEDROCK_API_KEY="your-api-key"
+export BEDROCK_REGION="us-east-1"
+garak --target_type bedrock --target_name claude-3-sonnet --probes dan
+```
 
 ### Test
 
@@ -220,6 +237,7 @@ For testing. This generator repeats back the prompt it received.
 |----------------------|-------------------------------------------------------------------------------------------------------------------------------|
 | blank                | A simple probe that always sends an empty prompt.                                                                             |
 | atkgen               | Automated Attack Generation. A red-teaming LLM probes the target and reacts to it in an attempt to get toxic output. Prototype, mostly stateless, for now uses a simple GPT-2 [fine-tuned](https://huggingface.co/garak-llm/artgpt2tox) on the subset of hhrlhf attempts that yielded detectable toxicity (the only target currently supported for now). |
+| badchars             | Implements imperceptible Unicode perturbations (invisible characters, homoglyphs, reorderings, deletions) inspired by the [Bad Characters](https://arxiv.org/abs/2106.09898) paper. |
 | av_spam_scanning     | Probes that attempt to make the model output malicious content signatures                                                     |
 | continuation         | Probes that test if the model will continue a probably undesirable word                                                       |
 | dan                  | Various [DAN](https://adguard.com/en/blog/chatgpt-dan-prompt-abuse.html) and DAN-like attacks                                 |
@@ -259,7 +277,7 @@ In a typical run, `garak` will read a model type (and optionally model name) fro
 * `garak/harnesses/` - classes for structuring testing
 * `resources/` - ancillary items required by plugins
 
-The default operating mode is to use the `probewise` harness. Given a list of probe module names and probe plugin names, the `probewise` harness instantiates each probe, then for each probe reads its `recommended_detectors` attribute to get a list of `detector`s to run on the output.
+The default operating mode is to use the `probewise` harness. Given a list of probe module names and probe plugin names, the `probewise` harness instantiates each probe, then for each probe reads its `primary_detector` and `extended_detectors` attributes to get a list of `detector`s to run on the output.
 
 Each plugin category (`probes`, `detectors`, `evaluators`, `generators`, `harnesses`) includes a `base.py` which defines the base classes usable by plugins in that category. Each plugin module defines plugin classes that inherit from one of the base classes. For example, `garak.generators.openai.OpenAIGenerator` descends from `garak.generators.base.Generator`.
 

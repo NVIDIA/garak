@@ -45,7 +45,9 @@ def test_aggregate_executes() -> None:
     with open(aggfile_name, encoding="utf-8") as agg_jsonl_output_file:
         agg_lines = agg_jsonl_output_file.readlines()
 
-    with open("tests/_assets/agg.report.jsonl", encoding="utf-8") as ref_jsonl_output_file:
+    with open(
+        "tests/_assets/agg.report.jsonl", encoding="utf-8"
+    ) as ref_jsonl_output_file:
         ref_lines = ref_jsonl_output_file.readlines()
 
     assert len(agg_lines) == len(
@@ -53,8 +55,10 @@ def test_aggregate_executes() -> None:
     ), f"unexpected aggregate line count, expected {len(ref_lines)} got {len(agg_lines)}"
 
     # skip calibration
-    agg_lines.pop(0)
-    ref_lines.pop(0)
+    setup_agg = json.loads(agg_lines.pop(0))
+    setup_ref = json.loads(ref_lines.pop(0))
+
+    assert setup_agg["plugins.probe_spec"] == setup_ref["plugins.probe_spec"]
 
     for i in range(len(agg_lines)):
         agg_rec = json.loads(agg_lines[i])
@@ -72,7 +76,15 @@ def test_aggregate_executes() -> None:
             )  # key not found in agg rec means agg rec is out of sync (test fail)
 
         if ref_rec["entry_type"] == "digest":
-            del ref_rec["meta"]["run_uuid"], agg_rec["meta"]["run_uuid"]
+            for key in [
+                "run_uuid",
+                "start_time",
+                "reportfile",
+                "report_digest_time",
+                "calibration",
+            ]:
+                ref_rec["meta"].pop(key, None)
+                agg_rec["meta"].pop(key, None)
 
         assert (
             agg_rec == ref_rec

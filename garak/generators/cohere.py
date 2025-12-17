@@ -7,6 +7,7 @@ variable called COHERE_API_KEY to your Cohere API key, for this generator.
 
 NOTE: As of Cohere v5.0.0+, the generate API is legacy and chat API is recommended.
 This implementation follows Cohere's official migration guide:
+
 - For v1 API: Uses cohere.Client() to maintain full backward compatibility
 - For v2 API: Uses cohere.ClientV2() for the recommended chat interface
 """
@@ -15,12 +16,11 @@ import logging
 from typing import List, Union
 
 import backoff
-from cohere.core.api_error import ApiError
-import cohere
 import tqdm
 
 from garak import _config
 from garak.attempt import Message, Conversation
+from garak.exception import GeneratorBackoffTrigger
 from garak.generators.base import Generator
 
 
@@ -51,6 +51,8 @@ class CohereGenerator(Generator):
         "api_version": "v2",  # "v1" for legacy generate API, "v2" for chat API (recommended)
     }
 
+    extra_dependency_names = ["cohere"]
+
     generator_family_name = "Cohere"
 
     def __init__(self, name="command", config_root=_config):
@@ -73,11 +75,11 @@ class CohereGenerator(Generator):
         # Initialize appropriate client based on API version
         # Following Cohere's guidance to use Client() for v1 and ClientV2() for v2
         if self.api_version == "v1":
-            self.generator = cohere.Client(api_key=self.api_key)
+            self.generator = self.cohere.Client(api_key=self.api_key)
         else:  # api_version == "v2"
-            self.generator = cohere.ClientV2(api_key=self.api_key)
+            self.generator = self.cohere.ClientV2(api_key=self.api_key)
 
-    @backoff.on_exception(backoff.fibo, ApiError, max_value=70)
+    @backoff.on_exception(backoff.fibo, GeneratorBackoffTrigger, max_value=70)
     def _call_cohere_api(self, prompt_text, request_size=COHERE_GENERATION_LIMIT):
         """Empty prompts raise API errors (e.g. invalid request: prompt must be at least 1 token long).
         We catch these using the ApiError base class in Cohere v5+.
@@ -126,9 +128,17 @@ class CohereGenerator(Generator):
                                 "Chat response structure doesn't match expected format"
                             )
                             responses.append(str(response))
-                    except ApiError as e:
-                        raise e  # bubble up ApiError for backoff handling
                     except Exception as e:
+
+                        backoff_exception_types = (
+                            self.cohere.errors.GatewayTimeoutError,
+                            self.cohere.errors.TooManyRequestsError,
+                            self.cohere.errors.ServiceUnavailableError,
+                            self.cohere.errors.InternalServerError,
+                        )
+                        for backoff_exception in backoff_exception_types:
+                            if isinstance(e, backoff_exception):
+                                raise GeneratorBackoffTrigger from e  # bubble up ApiError for backoff handling
                         logging.error(f"Chat API error: {e}")
                         responses.append(None)
 

@@ -56,6 +56,19 @@ class Single(Generator):
             )
 
 
+class Nones(Generator):
+    """This generator always returns a None for every generation."""
+
+    supports_multiple_generations = True
+    generator_family_name = "Test"
+    name = "Nones"
+
+    def _call_model(
+        self, prompt: Conversation, generations_this_call: int = 1
+    ) -> List[Message | None]:
+        return [None] * generations_this_call
+
+
 class Lipsum(Generator):
     """Lorem Ipsum generator, so we can get non-zero outputs that vary"""
 

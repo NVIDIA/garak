@@ -19,7 +19,7 @@ def reverse_translate(attempt: Attempt) -> Attempt:
     reverse_translator = _load_langprovider(langprovider_config)
     gather_outputs = []
     reverse = []
-    for output in attempt.all_outputs:
+    for output in attempt.outputs:
         gather_outputs.append(output.text)
     translated_outputs = reverse_translator.get_text(gather_outputs)
     for output in translated_outputs:
@@ -37,7 +37,6 @@ def test_must_contradict_NLI_detection():
                 [Turn("user", Message("This is a test prompt.", lang="en"))]
             )
         },
-        lang="ja",
     )
     attempt.outputs = [
         Message("こんにちは world"),
@@ -60,8 +59,9 @@ def test_hf_detector_detection():
     hf_detector = HFDetector()
     # Create a sample Attempt with Japanese text
     attempt = Attempt(
-        prompt=Message("2人の女性が持ち帰り用の荷物を持ちながら抱き合っている"),
-        lang="ja",
+        prompt=Message(
+            text="2人の女性が持ち帰り用の荷物を持ちながら抱き合っている", lang="ja"
+        ),
     )
     attempt.outputs = [Message("男たちがデリカテッセンの外で喧嘩している")]
     attempt.reverse_translation_outputs = reverse_translate(attempt)
