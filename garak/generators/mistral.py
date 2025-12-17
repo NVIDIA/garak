@@ -66,16 +66,7 @@ class MistralGenerator(Generator):
 
         # Capture token usage if tracking is enabled
         # Mistral returns OpenAI-compatible usage structure
-        if getattr(self, "track_usage", False) and hasattr(chat_response, "usage") and chat_response.usage:
-            from garak.budget import TokenUsage
-
-            self._last_usage = TokenUsage(
-                prompt_tokens=getattr(chat_response.usage, "prompt_tokens", 0) or 0,
-                completion_tokens=getattr(chat_response.usage, "completion_tokens", 0) or 0,
-                total_tokens=getattr(chat_response.usage, "total_tokens", 0) or 0,
-                model=self.name,
-                estimated=False,
-            )
+        self._capture_oai_token_usage(chat_response)
 
         return [Message(chat_response.choices[0].message.content)]
 

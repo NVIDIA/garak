@@ -295,16 +295,7 @@ class OpenAICompatible(Generator):
                 return [None]
 
         # Capture token usage if tracking is enabled
-        if getattr(self, "track_usage", False) and hasattr(response, "usage") and response.usage:
-            from garak.budget import TokenUsage
-
-            self._last_usage = TokenUsage(
-                prompt_tokens=getattr(response.usage, "prompt_tokens", 0) or 0,
-                completion_tokens=getattr(response.usage, "completion_tokens", 0) or 0,
-                total_tokens=getattr(response.usage, "total_tokens", 0) or 0,
-                model=self.name,
-                estimated=False,
-            )
+        self._capture_oai_token_usage(response)
 
         if is_completion:
             return [Message(c.text) for c in response.choices]

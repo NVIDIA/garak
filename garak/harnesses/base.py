@@ -65,13 +65,14 @@ class Harness(Configurable):
         _initialize_runtime_services()
 
         # Initialize budget manager if usage tracking or limits are configured
+        # Note: track_usage is auto-enabled by CLI when cost/token limits are set
         self.budget_manager = None
         if hasattr(_config, "run"):
             track_usage = getattr(_config.run, "track_usage", False)
             cost_limit = getattr(_config.run, "cost_limit", None)
             token_limit = getattr(_config.run, "token_limit", None)
 
-            if track_usage or cost_limit or token_limit:
+            if track_usage:
                 from garak.budget import BudgetManager
 
                 self.budget_manager = BudgetManager(
@@ -82,8 +83,6 @@ class Harness(Configurable):
                 # Pass model name for accurate cost calculation in workers
                 model_name = getattr(_config.plugins, "target_name", None)
                 self.budget_manager.init_shared_state(model=model_name)
-                # Store in transient config for access by command.py reporting
-                _config.transient.budget_manager = self.budget_manager
                 logging.info(
                     "Budget tracking enabled: cost_limit=%s, token_limit=%s",
                     cost_limit,
@@ -254,10 +253,10 @@ class Harness(Configurable):
             # Check if budget was exceeded during this probe
             # If so, stop processing more probes but let this one complete evaluation
             from garak.budget import is_budget_exceeded, get_shared_usage
-            if is_budget_exceeded():
-                shared_tokens, _, _, _, _ = get_shared_usage()
-                token_limit = getattr(getattr(_config, "run", None), "token_limit", None)
-                cost_limit = getattr(getattr(_config, "run", None), "cost_limit", None)
+            if is_budget_exceeded() and self.budget_manager:
+                shared_tokens, shared_cost, _, _, _ = get_shared_usage()
+                token_limit = self.budget_manager.token_limit
+                cost_limit = self.budget_manager.cost_limit
                 if token_limit and shared_tokens > token_limit:
                     logging.info("Budget exceeded after probe evaluation, stopping")
                     from garak.exception import BudgetExceededError
@@ -266,12 +265,13 @@ class Harness(Configurable):
                         f"Token limit exceeded: {shared_tokens:,} tokens used, "
                         f"limit is {token_limit:,} tokens"
                     )
-                if cost_limit:
+                if cost_limit and shared_cost > cost_limit:
                     logging.info("Cost limit exceeded after probe evaluation, stopping")
                     from garak.exception import BudgetExceededError
                     self._end_run_hook()
                     raise BudgetExceededError(
-                        f"Cost limit exceeded"
+                        f"Cost limit exceeded: ${shared_cost:.4f} spent, "
+                        f"limit is ${cost_limit:.2f}"
                     )
 
         self._end_run_hook()

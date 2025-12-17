@@ -42,7 +42,7 @@ def main(arguments=None) -> None:
 
     from garak import __description__
     from garak import _config, _plugins
-    from garak.exception import GarakException, BudgetExceededError
+    from garak.exception import GarakException
 
     _config.transient.starttime = datetime.datetime.now()
     _config.transient.starttime_iso = _config.transient.starttime.isoformat()
@@ -428,6 +428,13 @@ def main(arguments=None) -> None:
             _config.run.seed
         )  # setting seed persists across re-imports of random
 
+    # Auto-enable usage tracking if cost or token limits are set
+    # This must happen before the generator is loaded so it picks up the setting
+    if getattr(_config.run, "cost_limit", None) or getattr(
+        _config.run, "token_limit", None
+    ):
+        _config.run.track_usage = True
+
     # startup
     import sys
     import json
@@ -640,25 +647,27 @@ def main(arguments=None) -> None:
             command.start_run()  # start the run now that all config validation is complete
             print(f"📜 reporting to {_config.transient.report_filename}")
 
+            budget_manager = None
+            budget_error = None
             try:
                 if parsed_specs["detector"] == []:
-                    command.probewise_run(
+                    budget_manager, budget_error = command.probewise_run(
                         generator, parsed_specs["probe"], evaluator, parsed_specs["buff"]
                     )
                 else:
-                    command.pxd_run(
+                    budget_manager, budget_error = command.pxd_run(
                         generator,
                         parsed_specs["probe"],
                         parsed_specs["detector"],
                         evaluator,
                         parsed_specs["buff"],
                     )
-            except BudgetExceededError as e:
-                # Budget limit reached - this is expected behavior, not an error
-                print(f"\n⚠️  {e}")
-                logging.info("Scan stopped due to budget limit: %s", e)
             finally:
-                command.end_run()
+                # Handle budget exceeded if it occurred
+                if budget_error is not None:
+                    command.handle_budget_exceeded(budget_error)
+
+                command.end_run(budget_manager=budget_manager)
         else:
             print("nothing to do 🤷  try --help")
             if _config.plugins.target_name and not _config.plugins.target_type:

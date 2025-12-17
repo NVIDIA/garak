@@ -6,7 +6,7 @@ All `garak` generators must inherit from this.
 import logging
 import random
 import re
-from typing import List, Union, TYPE_CHECKING
+from typing import List, Union
 
 from colorama import Fore, Style
 import tqdm
@@ -16,9 +16,6 @@ from garak.attempt import Message, Conversation
 from garak.configurable import Configurable
 from garak.exception import GarakException
 import garak.resources.theme
-
-if TYPE_CHECKING:
-    from garak.budget import TokenUsage
 
 
 class Generator(Configurable):
@@ -33,9 +30,6 @@ class Generator(Configurable):
         "skip_seq_start": None,
         "skip_seq_end": None,
     }
-
-    # Storage for last API call's token usage (set by subclasses)
-    _last_usage: "TokenUsage | None" = None
 
     _run_params = {"deprefix", "seed", "track_usage"}
     _system_params = {"parallel_requests", "max_workers"}
@@ -73,6 +67,9 @@ class Generator(Configurable):
         if self.seed:
             self._rng.seed(self.seed)
 
+        # Instance variable for token usage tracking (set by subclasses in _call_model)
+        self._last_usage = None
+
         print(
             f"🦜 loading {Style.BRIGHT}{Fore.LIGHTMAGENTA_EX}generator{Style.RESET_ALL}: {self.generator_family_name}: {self.name}"
         )
@@ -109,6 +106,73 @@ class Generator(Configurable):
 
     def clear_history(self):
         pass
+
+    def _capture_oai_token_usage(self, response, model_name: str = None) -> None:
+        """Capture token usage from an OpenAI-compatible API response.
+
+        This helper method extracts token usage from responses that follow
+        the OpenAI API format (with .usage attribute containing prompt_tokens,
+        completion_tokens, and total_tokens). Sets self._last_usage if
+        tracking is enabled.
+
+        :param response: API response object with optional .usage attribute
+        :param model_name: Optional model name override. If not provided, uses self.name
+        """
+        if not getattr(self, "track_usage", False):
+            return
+        if not hasattr(response, "usage") or response.usage is None:
+            return
+
+        from garak.budget import TokenUsage
+
+        self._last_usage = TokenUsage(
+            prompt_tokens=getattr(response.usage, "prompt_tokens", 0) or 0,
+            completion_tokens=getattr(response.usage, "completion_tokens", 0) or 0,
+            total_tokens=getattr(response.usage, "total_tokens", 0) or 0,
+            model=model_name or self.name,
+            estimated=False,
+        )
+
+    def _capture_dict_token_usage(
+        self,
+        usage_dict: dict,
+        model_name: str = None,
+        prompt_key: str = "prompt_tokens",
+        completion_key: str = "completion_tokens",
+        total_key: str = "total_tokens",
+    ) -> None:
+        """Capture token usage from a dictionary-style API response.
+
+        This helper method extracts token usage from responses that return
+        usage info as a dictionary (like Ollama's prompt_eval_count/eval_count
+        or Bedrock's inputTokens/outputTokens).
+
+        :param usage_dict: Dictionary containing token usage information
+        :param model_name: Optional model name override. If not provided, uses self.name
+        :param prompt_key: Key for prompt/input tokens (default: "prompt_tokens")
+        :param completion_key: Key for completion/output tokens (default: "completion_tokens")
+        :param total_key: Key for total tokens (default: "total_tokens", computed if not present)
+        """
+        if not getattr(self, "track_usage", False):
+            return
+        if not usage_dict:
+            return
+
+        from garak.budget import TokenUsage
+
+        prompt_tokens = usage_dict.get(prompt_key, 0) or 0
+        completion_tokens = usage_dict.get(completion_key, 0) or 0
+        total_tokens = usage_dict.get(total_key, 0)
+        if not total_tokens:
+            total_tokens = prompt_tokens + completion_tokens
+
+        self._last_usage = TokenUsage(
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
+            total_tokens=total_tokens,
+            model=model_name or self.name,
+            estimated=False,
+        )
 
     def _post_generate_hook(
         self, outputs: List[Message | None]

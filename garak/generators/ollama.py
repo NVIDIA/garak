@@ -69,18 +69,11 @@ class OllamaGenerator(Generator):
 
         # Capture token usage if tracking is enabled
         # Ollama returns prompt_eval_count and eval_count
-        if getattr(self, "track_usage", False) and response:
-            from garak.budget import TokenUsage
-
-            prompt_tokens = response.get("prompt_eval_count", 0) or 0
-            completion_tokens = response.get("eval_count", 0) or 0
-            self._last_usage = TokenUsage(
-                prompt_tokens=prompt_tokens,
-                completion_tokens=completion_tokens,
-                total_tokens=prompt_tokens + completion_tokens,
-                model=self.name,
-                estimated=False,
-            )
+        self._capture_dict_token_usage(
+            response,
+            prompt_key="prompt_eval_count",
+            completion_key="eval_count",
+        )
 
         return [Message(response.get("response", None))]
 
@@ -123,18 +116,11 @@ class OllamaGeneratorChat(OllamaGenerator):
 
         # Capture token usage if tracking is enabled
         # Ollama chat returns prompt_eval_count and eval_count
-        if getattr(self, "track_usage", False) and response:
-            from garak.budget import TokenUsage
-
-            prompt_tokens = response.get("prompt_eval_count", 0) or 0
-            completion_tokens = response.get("eval_count", 0) or 0
-            self._last_usage = TokenUsage(
-                prompt_tokens=prompt_tokens,
-                completion_tokens=completion_tokens,
-                total_tokens=prompt_tokens + completion_tokens,
-                model=self.name,
-                estimated=False,
-            )
+        self._capture_dict_token_usage(
+            response,
+            prompt_key="prompt_eval_count",
+            completion_key="eval_count",
+        )
 
         return [
             Message(response.get("message", {}).get("content", None))
