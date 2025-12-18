@@ -122,7 +122,7 @@ def start_run():
     logging.info("reporting to %s", _config.transient.report_filename)
 
 
-def end_run():
+def end_run(budget_manager=None):
     import datetime
     import logging
 
@@ -131,8 +131,10 @@ def end_run():
     logging.info("run complete, ending")
 
     # Write token usage summary if budget tracking was enabled
-    if hasattr(_config.transient, "budget_manager") and _config.transient.budget_manager:
-        budget_manager = _config.transient.budget_manager
+    # Use passed budget_manager or fall back to config
+    if budget_manager is None:
+        budget_manager = getattr(_config.transient, "budget_manager", None)
+    if budget_manager:
         usage_summary = budget_manager.get_summary()
 
         # Write usage summary to report
@@ -274,22 +276,34 @@ def plugin_info(plugin_name):
 # do a run
 def probewise_run(generator, probe_names, evaluator, buffs):
     import garak.harnesses.probewise
+    from garak.exception import BudgetExceededError
 
     probewise_h = garak.harnesses.probewise.ProbewiseHarness()
-    probewise_h.run(generator, probe_names, evaluator, buffs)
+    budget_error = None
+    try:
+        probewise_h.run(generator, probe_names, evaluator, buffs)
+    except BudgetExceededError as e:
+        budget_error = e
+    return probewise_h.budget_manager, budget_error
 
 
 def pxd_run(generator, probe_names, detector_names, evaluator, buffs):
     import garak.harnesses.pxd
+    from garak.exception import BudgetExceededError
 
     pxd_h = garak.harnesses.pxd.PxD()
-    pxd_h.run(
-        generator,
-        probe_names,
-        detector_names,
-        evaluator,
-        buffs,
-    )
+    budget_error = None
+    try:
+        pxd_h.run(
+            generator,
+            probe_names,
+            detector_names,
+            evaluator,
+            buffs,
+        )
+    except BudgetExceededError as e:
+        budget_error = e
+    return pxd_h.budget_manager, budget_error
 
 
 def _enumerate_obj_values(o):
