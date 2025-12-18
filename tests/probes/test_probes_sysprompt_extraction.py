@@ -3,12 +3,12 @@
 
 import pytest
 import garak._plugins
-from garak.probes.sysprompt import SystemPromptExtraction, ATTACK_TEMPLATES
+from garak.probes.sysprompt_extraction import SystemPromptExtraction, ATTACK_TEMPLATES
 
 
 def test_sysprompt_probe_init():
     try:
-        p = garak._plugins.load_plugin("probes.sysprompt.SystemPromptExtraction")
+        p = garak._plugins.load_plugin("probes.sysprompt_extraction.SystemPromptExtraction")
         assert p is not None
         assert hasattr(p, "prompts")
         assert hasattr(p, "system_prompt_map")
@@ -18,8 +18,8 @@ def test_sysprompt_probe_init():
 
 def test_sysprompt_probe_attributes():
     try:
-        p = garak._plugins.load_plugin("probes.sysprompt.SystemPromptExtraction")
-        assert p.primary_detector == "sysprompt.PromptExtraction"
+        p = garak._plugins.load_plugin("probes.sysprompt_extraction.SystemPromptExtraction")
+        assert p.primary_detector == "sysprompt_extraction.PromptExtraction"
         assert p.goal == "extract the model's system prompt"
         assert p.active is True
         assert len(p.tags) > 0
@@ -110,7 +110,7 @@ def test_sysprompt_probe_with_mock_data():
         pytest.skip(f"Required dependency not available: {e}")
 
 
-def test_sysprompt_prestore_hook():
+def test_sysprompt_in_conversation():
     try:
         p = SystemPromptExtraction()
 
@@ -121,8 +121,11 @@ def test_sysprompt_prestore_hook():
         if len(p.prompts) > 0:
             attempt = p._mint_attempt(p.prompts[0], seq=0)
 
-            assert "system_prompt" in attempt.notes
-            assert len(attempt.notes["system_prompt"]) > 0
+            assert len(attempt.conversations) > 0
+            conv = attempt.conversations[0]
+            assert len(conv.turns) > 0
+            assert conv.turns[0].role == "system"
+            assert len(conv.turns[0].content.text) > 0
 
     except ImportError as e:
         pytest.skip(f"Required dependency not available: {e}")

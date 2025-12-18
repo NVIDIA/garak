@@ -88,7 +88,7 @@ class SystemPromptExtraction(Probe):
     """
 
     lang = "en"
-    primary_detector = "sysprompt.PromptExtraction"
+    primary_detector = "sysprompt_extraction.PromptExtraction"
     tags = [
         "avid-effect:security:S0301",
         "owasp:llm01",
@@ -223,36 +223,6 @@ class SystemPromptExtraction(Probe):
             self.prompts.append(attack_template)
             self.system_prompt_map[idx] = sys_prompt
 
-    def _attempt_prestore_hook(
-        self,
-        attempt: garak.attempt.Attempt,
-        seq: int
-    ) -> garak.attempt.Attempt:
-        """Store the system prompt in attempt notes for detector to use"""
-        # Get the system prompt for this attempt
-        sys_prompt = self.system_prompt_map.get(seq, "")
-
-        # Store in notes for detector
-        attempt.notes["system_prompt"] = sys_prompt
-
-        # The system prompt should already be in the conversation as role="system"
-        # because of base.Probe._mint_attempt, but let's verify
-        if len(attempt.conversations) > 0:
-            conv = attempt.conversations[0]
-            if len(conv.turns) > 0 and conv.turns[0].role == "system":
-                # System prompt already set correctly
-                pass
-            else:
-                # Add system prompt as first turn
-                conv.turns.insert(
-                    0,
-                    garak.attempt.Turn(
-                        role="system",
-                        content=garak.attempt.Message(text=sys_prompt, lang="en")
-                    )
-                )
-
-        return attempt
 
     def _mint_attempt(self, prompt, seq=None, notes=None, lang="*"):
         """Override to set system_prompt attribute before base class processes it"""
