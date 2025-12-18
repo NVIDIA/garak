@@ -131,9 +131,6 @@ def end_run(budget_manager=None):
     logging.info("run complete, ending")
 
     # Write token usage summary if budget tracking was enabled
-    # Use passed budget_manager or fall back to config
-    if budget_manager is None:
-        budget_manager = getattr(_config.transient, "budget_manager", None)
     if budget_manager:
         usage_summary = budget_manager.get_summary()
 
@@ -304,6 +301,17 @@ def pxd_run(generator, probe_names, detector_names, evaluator, buffs):
     except BudgetExceededError as e:
         budget_error = e
     return pxd_h.budget_manager, budget_error
+
+
+def handle_budget_exceeded(budget_error):
+    """Handle a budget exceeded error by logging and printing a warning.
+
+    :param budget_error: The BudgetExceededError that was raised
+    :type budget_error: garak.exception.BudgetExceededError
+    """
+    msg = f"Run stopped early due to budget limit: {budget_error}"
+    logging.warning(msg)
+    print(f"⚠️  {msg}")
 
 
 def _enumerate_obj_values(o):
