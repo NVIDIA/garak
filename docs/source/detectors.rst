@@ -11,6 +11,7 @@ garak.detectors
    garak.detectors.ansiescape
    garak.detectors.apikey
    garak.detectors.continuation
+   garak.detectors.custom
    garak.detectors.dan
    garak.detectors.divergence
    garak.detectors.encoding
