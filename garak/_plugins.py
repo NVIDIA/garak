@@ -22,6 +22,37 @@ PLUGIN_TYPES = ("probes", "detectors", "generators", "harnesses", "buffs")
 PLUGIN_CLASSES = ("Probe", "Detector", "Generator", "Harness", "Buff")
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S %z"
 
+# Cache for full install check
+_full_install_available = None
+
+
+def _is_full_install() -> bool:
+    """Check if full garak dependencies are available.
+    
+    Returns True if heavy dependencies like torch are installed,
+    False if only core dependencies are available.
+    """
+    global _full_install_available
+    if _full_install_available is not None:
+        return _full_install_available
+    
+    try:
+        import torch  # noqa: F401
+        _full_install_available = True
+    except ImportError:
+        _full_install_available = False
+    
+    return _full_install_available
+
+
+def _require_full_install(feature: str):
+    """Raise an ImportError with a helpful message if full install is required."""
+    if not _is_full_install():
+        raise ImportError(
+            f"Feature '{feature}' requires full garak installation. "
+            "Install with: pip install garak[full]"
+        )
+
 
 class PluginEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -89,6 +120,12 @@ class PluginCache:
             self._user_plugin_cache_filename, "r", encoding="utf-8"
         ) as cache_file:
             local_cache = json.load(cache_file)
+
+        # Skip cache validation if full dependencies are not installed
+        # This allows plugin enumeration to work with minimal install
+        if not _is_full_install():
+            logging.debug("Minimal install detected, using bundled plugin cache")
+            return local_cache
 
         # validate cache state on startup
         if not self._valid_loaded_cache(local_cache, user_time):
@@ -373,6 +410,7 @@ def load_plugin(path, break_on_fail=True, config_root=_config) -> object:
       (default is True)
     :type break_on_fail: bool
     """
+    _require_full_install(f"loading plugin '{path}'")
     try:
         parts = path.split(".")
         match len(parts):

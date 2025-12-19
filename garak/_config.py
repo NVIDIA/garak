@@ -248,29 +248,49 @@ def set_http_lib_agents(agent_strings: dict):
     global REQUESTS_AGENT
 
     if "requests" in agent_strings:
-        from requests import utils
+        try:
+            from requests import utils
 
-        REQUESTS_AGENT = agent_strings["requests"]
-        utils.default_user_agent = _garak_user_agent
+            REQUESTS_AGENT = agent_strings["requests"]
+            utils.default_user_agent = _garak_user_agent
+        except ImportError:
+            pass
     if "httpx" in agent_strings:
-        import httpx
+        try:
+            import httpx
 
-        httpx._client.USER_AGENT = agent_strings["httpx"]
+            httpx._client.USER_AGENT = agent_strings["httpx"]
+        except ImportError:
+            pass
     if "aiohttp" in agent_strings:
-        import aiohttp
+        try:
+            import aiohttp
 
-        aiohttp.client_reqrep.SERVER_SOFTWARE = agent_strings["aiohttp"]
+            aiohttp.client_reqrep.SERVER_SOFTWARE = agent_strings["aiohttp"]
+        except ImportError:
+            pass
 
 
 def get_http_lib_agents():
-    from requests import utils
-    import httpx
-    import aiohttp
-
     agent_strings = {}
-    agent_strings["requests"] = utils.default_user_agent
-    agent_strings["httpx"] = httpx._client.USER_AGENT
-    agent_strings["aiohttp"] = aiohttp.client_reqrep.SERVER_SOFTWARE
+    try:
+        from requests import utils
+
+        agent_strings["requests"] = utils.default_user_agent
+    except ImportError:
+        pass
+    try:
+        import httpx
+
+        agent_strings["httpx"] = httpx._client.USER_AGENT
+    except ImportError:
+        pass
+    try:
+        import aiohttp
+
+        agent_strings["aiohttp"] = aiohttp.client_reqrep.SERVER_SOFTWARE
+    except ImportError:
+        pass
 
     return agent_strings
 

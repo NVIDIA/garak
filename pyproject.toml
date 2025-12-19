@@ -82,11 +82,20 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 requires-python = ">=3.10"
+# Core dependencies - minimal install for plugin discovery and config validation
 dependencies = [
+  "colorama>=0.4.3",
+  "pyyaml>=6.0",
+  "xdg-base-dirs>=6.0.1",
+  "jinja2>=3.1.6",
+]
+
+[project.optional-dependencies]
+# Full runtime dependencies for running scans
+full = [
   "base2048>=0.1.3",
   "transformers>=4.51.3,<4.57.0",
   "datasets>=3.0.0,<4.0",
-  "colorama>=0.4.3",
   "tqdm>=4.67.1",
   "cohere>=5.16.0",
   "openai>=1.45.0,<2",
@@ -94,7 +103,6 @@ dependencies = [
   "google-api-python-client>=2.0",
   "backoff>=2.1.1",
   "rapidfuzz>=3.0.0",
-  "jinja2>=3.1.6",
   "nltk>=3.9.1",
   "accelerate>=0.23.0",
   "avidtools==0.1.2",
@@ -116,7 +124,6 @@ dependencies = [
   'python-magic-bin>=0.4.14; sys_platform == "win32"',
   'python-magic>=0.4.21; sys_platform != "win32"',
   "lorem==0.1.1",
-  "xdg-base-dirs>=6.0.1",
   "wn==0.9.5",
   "ollama>=0.4.7",
   "nvidia-riva-client==2.16.0",
@@ -129,9 +136,8 @@ dependencies = [
   "ftfy>=6.3.1",
   "boto3>=1.28.0",
 ]
-
-[project.optional-dependencies]
 tests = [
+  "garak[full]",
   "pytest>=8.0",
   "pytest-mock>=3.14.0",
   "requests-mock==1.12.1",
@@ -145,14 +151,17 @@ lint = [
   "pylint>=3.1.0",
 ]
 calibration = [
+  "garak[full]",
   "scipy>=1.14.0",
 ]
 audio = [
+  "garak[full]",
   "soundfile>=0.13.1",
-  "librosa>=0.10.2"
+  "librosa>=0.10.2",
 ]
 dra = [
-  "detoxify>=0.5.0"
+  "garak[full]",
+  "detoxify>=0.5.0",
 ]
 [project.urls]
 "Homepage" = "https://github.com/NVIDIA/garak"

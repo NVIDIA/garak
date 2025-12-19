@@ -432,6 +432,7 @@ def main(arguments=None) -> None:
 
         # process commands
         if args.interactive:
+            _plugins._require_full_install("interactive mode")
             from garak.interactive import interactive_mode
 
             try:
@@ -533,6 +534,7 @@ def main(arguments=None) -> None:
                     "No revisions applied. Please verify options provided for `--fix`"
                 )
         elif args.report:
+            _plugins._require_full_install("report generation")
             from garak.report import Report
 
             report_location = args.report
@@ -543,6 +545,8 @@ def main(arguments=None) -> None:
 
         # model is specified, we're doing something
         elif _config.plugins.target_type:
+            # Check for full install before attempting to run a scan
+            _plugins._require_full_install("running garak scans")
 
             print(f"📜 logging to {log_filename}")
 

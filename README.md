@@ -47,20 +47,36 @@ currently supports:
 
 `garak` is a command-line tool. It's developed in Linux and OSX.
 
-### Standard install with `pip`
+### Standard install with `pip` (full installation)
 
-Just grab it from PyPI and you should be good to go:
+For running vulnerability scans, install garak with all dependencies:
+
+```
+python -m pip install -U "garak[full]"
+```
+
+### Minimal install (discovery only)
+
+If you only need to list available probes/detectors or validate configurations
+without running scans, you can install the minimal version:
 
 ```
 python -m pip install -U garak
 ```
+
+This installs only core dependencies and allows you to:
+- List available probes, detectors, generators, and buffs
+- Validate configuration files
+- Use the lightweight discovery API (`from garak.discovery import list_probes`)
+
+To run actual scans, you'll need the full installation.
 
 ### Install development version with `pip`
 
 The standard pip version of `garak` is updated periodically. To get a fresher version from GitHub, try:
 
 ```
-python -m pip install -U git+https://github.com/NVIDIA/garak.git@main
+python -m pip install -U "garak[full] @ git+https://github.com/NVIDIA/garak.git@main"
 ```
 
 ### Clone from source
@@ -72,7 +88,7 @@ conda create --name garak "python>=3.10,<=3.12"
 conda activate garak
 gh repo clone NVIDIA/garak
 cd garak
-python -m pip install -e .
+python -m pip install -e ".[full]"
 ```
 
 OK, if that went fine, you're probably good to go!

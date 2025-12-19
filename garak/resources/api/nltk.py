@@ -1,14 +1,32 @@
 """Loader for nltk to enable common configuration in garak"""
 
-import nltk as _nltk
 import sys
 from logging import getLogger
 from pathlib import Path
 
-from garak import _config
-
-
 logger = getLogger(__name__)
+
+# Lazy-loaded nltk module and its attributes
+_nltk = None
+_nltk_data_path = None
+_download_path = None
+_initialized = False
+
+
+def _ensure_initialized():
+    """Lazily initialize nltk configuration."""
+    global _nltk, _nltk_data_path, _download_path, _initialized
+    if _initialized:
+        return
+    
+    import nltk as nltk_module
+    from garak import _config
+    
+    _nltk = nltk_module
+    _nltk_data_path = _config.transient.cache_dir / "data" / "nltk_data"
+    _nltk.data.path.append(str(_nltk_data_path))
+    _download_path = _nltk_data()
+    _initialized = True
 
 
 def _nltk_data():
@@ -25,15 +43,10 @@ def _nltk_data():
     return default_path
 
 
-_nltk_data_path = _config.transient.cache_dir / "data" / "nltk_data"
-_nltk.data.path.append(str(_nltk_data_path))
-_download_path = _nltk_data()
-
-
 # override the default download path
 def download(
     info_or_id=None,
-    download_dir=_download_path,
+    download_dir=None,
     quiet=True,
     force=False,
     prefix="[nltk_data] ",
@@ -41,6 +54,9 @@ def download(
     raise_on_error=False,
     print_error_to=sys.stderr,
 ):
+    _ensure_initialized()
+    if download_dir is None:
+        download_dir = _download_path
     return _nltk.download(
         info_or_id,
         download_dir,
@@ -53,6 +69,31 @@ def download(
     )
 
 
-data = _nltk.data
-word_tokenize = _nltk.word_tokenize
-pos_tag = _nltk.pos_tag
+class _LazyNltkData:
+    """Lazy accessor for nltk.data."""
+    
+    def __getattr__(self, name):
+        _ensure_initialized()
+        return getattr(_nltk.data, name)
+    
+    def find(self, *args, **kwargs):
+        _ensure_initialized()
+        return _nltk.data.find(*args, **kwargs)
+
+
+class _LazyNltkModule:
+    """Lazy accessor for nltk module functions."""
+    
+    def word_tokenize(self, *args, **kwargs):
+        _ensure_initialized()
+        return _nltk.word_tokenize(*args, **kwargs)
+    
+    def pos_tag(self, *args, **kwargs):
+        _ensure_initialized()
+        return _nltk.pos_tag(*args, **kwargs)
+
+
+data = _LazyNltkData()
+_lazy_module = _LazyNltkModule()
+word_tokenize = _lazy_module.word_tokenize
+pos_tag = _lazy_module.pos_tag
