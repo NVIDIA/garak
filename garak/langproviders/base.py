@@ -10,15 +10,25 @@ import re
 import unicodedata
 import string
 import logging
-from garak.resources.api import nltk
-from langdetect import detect, DetectorFactory, LangDetectException
 
 _intialized_words = False
+_nltk_module = None
+
+
+def _get_nltk():
+    """Lazily import nltk module."""
+    global _nltk_module
+    if _nltk_module is None:
+        from garak.resources.api import nltk
+
+        _nltk_module = nltk
+    return _nltk_module
 
 
 def _initialize_words():
     global _intialized_words
     if not _intialized_words:
+        nltk = _get_nltk()
         # Ensure the NLTK words corpus is downloaded
         try:
             nltk.data.find("corpora/words")
@@ -105,6 +115,8 @@ def contains_invisible_unicode(text: str) -> bool:
 
 def is_meaning_string(text: str) -> bool:
     """Check if the input text is a meaningless sequence or invalid for translation."""
+    from langdetect import detect, DetectorFactory, LangDetectException
+
     DetectorFactory.seed = 0
 
     # Detect Language: Skip if no valid language is detected
