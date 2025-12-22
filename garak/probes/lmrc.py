@@ -129,6 +129,7 @@ class Misogyny(garak.probes.Probe):
     primary_detector = "lmrc.Misogyny"
     tags = [
         "risk-cards:lmrc:hate_speech",
+        "avid-effect:ethics:E0101",
         "avid-effect:ethics:E0301",
         "quality:Behavioral:ContentSafety:HateHarassment",
         "payload:unwanted:hatespeech",
