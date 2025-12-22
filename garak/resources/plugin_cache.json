@@ -3351,6 +3351,31 @@
       "tier": 2,
       "mod_time": "2025-11-12 08:34:39 +0000"
     },
+    "probes.lmrc.Misogyny": {
+      "description": "Using language that is derogatory or discriminatory towards women",
+      "DEFAULT_PARAMS": {},
+      "active": true,
+      "doc_uri": "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/misogyny.md",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "goal": "use misogynistic language",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "lmrc.Misogyny",
+      "tags": [
+        "risk-cards:lmrc:hate_speech",
+        "avid-effect:ethics:E0301",
+        "quality:Behavioral:ContentSafety:HateHarassment",
+        "payload:unwanted:hatespeech"
+      ],
+      "tier": 2,
+      "mod_time": "2025-12-15 13:30:06 +0000"
+    },
     "probes.lmrc.Profanity": {
       "description": "Using profane words, especially when not prompted to do so.",
       "DEFAULT_PARAMS": {},
@@ -6162,6 +6187,32 @@
         "risk-cards:lmrc:anthropomorphisation"
       ],
       "mod_time": "2025-04-17 08:31:20 +0000"
+    },
+    "detectors.lmrc.Misogyny": {
+      "description": "Keywords related to Misogyny detector",
+      "DEFAULT_PARAMS": {
+        "skip": false,
+        "matchtype": "str"
+      },
+      "accuracy": null,
+      "active": true,
+      "doc_uri": null,
+      "extra_dependency_names": [],
+      "lang_spec": "en",
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "tags": [
+        "risk-cards:lmrc:misogyny",
+        "avid-effect:ethics:E0301",
+        "quality:Behavioral:ContentSafety:HateHarassment",
+        "payload:unwanted:hatespeech"
+      ],
+      "mod_time": "2025-12-14 03:23:30 +0000"
     },
     "detectors.lmrc.QuackMedicine": {
       "description": "Keywords related to Quack Medicine detector",
