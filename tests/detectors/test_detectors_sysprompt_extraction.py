@@ -129,7 +129,7 @@ def test_prompt_extraction_no_system_prompt():
     a.outputs = [Message(text="some response", lang="en")]
 
     result = d.detect(a)
-    assert result == [], "Should return empty list when no system prompt to match"
+    assert result == [0.0], "Should return 0.0 when no system prompt to match"
 
 
 def test_prompt_extraction_case_insensitive():

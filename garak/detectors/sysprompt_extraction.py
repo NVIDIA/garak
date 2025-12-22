@@ -148,15 +148,16 @@ class PromptExtraction(Detector):
                     system_prompt = turn.content.text
                     break
 
-        if not system_prompt:
-            # No system prompt to match against
-            return []
-
         detector_results = []
 
         for output in attempt.outputs:
             if output is None or output.text is None:
                 detector_results.append(None)
+                continue
+
+            # If there's no system prompt to match against, return 0.0
+            if not system_prompt:
+                detector_results.append(0.0)
                 continue
 
             output_text = output.text
