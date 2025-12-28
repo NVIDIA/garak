@@ -35,10 +35,11 @@ class PersuasivePAP(garak.probes.Probe):
     50 queries x 40 techniques x 20 variants = 40,000 prompts total.
 
     DATASET ATTRIBUTION:
-    This probe uses the 'harmful_behaviors' dataset subset from the 
-    'JailbreakingLLMs' repository (Chao et al., 2023).
+    This probe uses the custom subset of the AdvBench dataset described in the
+    paper. The dataset is obtained from 'JailbreakingLLMs' repository 
+    (Chao et al., 2023).
     Original License: MIT License
-    Source: https://github.com/patrickrchao/JailbreakingLLMs
+    Source: https://github.com/patrickrchao/JailbreakingLLMs/blob/main/data/harmful_behaviors_custom.csv
     """
 
     doc_uri = "https://arxiv.org/abs/2401.06373"
