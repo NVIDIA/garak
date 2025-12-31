@@ -19,6 +19,7 @@ from typing import List, Tuple
 
 import garak.attempt
 from garak import _config
+from garak.attempt import Conversation, Turn, Message
 import garak.probes
 from garak.probes.base import Probe
 
@@ -118,17 +119,20 @@ class SystemPromptExtraction(Probe):
         """Load system prompts from configured sources"""
         self.system_prompts = []
 
+        # Map source names to dataset identifiers
+        dataset_map = {
+            "danielrosehill": "danielrosehill/System-Prompt-Library",
+            "teilomillet": "teilomillet/system_prompt",
+        }
+
         for source in self.system_prompt_sources:
-            if source == "danielrosehill":
-                prompts = self._load_danielrosehill_prompts()
-                self.system_prompts.extend(prompts)
-            elif source == "teilomillet":
-                prompts = self._load_teilomillet_prompts()
+            if source in dataset_map:
+                prompts = self._load_dataset_prompts(dataset_map[source])
                 self.system_prompts.extend(prompts)
             else:
                 logging.warning(
                     f"Unknown system prompt source: {source}. "
-                    f"Supported sources: danielrosehill, teilomillet"
+                    f"Supported sources: {', '.join(dataset_map.keys())}"
                 )
 
         # Limit to max_system_prompts
@@ -164,7 +168,7 @@ class SystemPromptExtraction(Probe):
                 if len(prompt_text) > 20:
                     prompts.append(prompt_text)
 
-            logging.info(f"Loaded {len(prompts)} prompts from danielrosehill dataset")
+            logging.info(f"Loaded {len(prompts)} prompts from {dataset_name} dataset")
             return prompts
 
         except Exception as e:
@@ -177,7 +181,6 @@ class SystemPromptExtraction(Probe):
     def _generate_attempts(self):
         """Generate attempts by combining system prompts with attack templates"""
         self.prompts = []
-        self.system_prompt_map = {}  # Maps prompt index to system prompt
 
         # Generate all combinations
         all_combinations = []
@@ -194,8 +197,8 @@ class SystemPromptExtraction(Probe):
 
         for idx, (sys_prompt, attack_template) in enumerate(all_combinations):
             turns = [
-                Turn(role="system", Message(text=sys_prompt, lang=self.lang)
-                Turn(role="user", Message(text=attack_template, lang=self.lang)
+                Turn(role="system", content=Message(text=sys_prompt, lang=self.lang)),
+                Turn(role="user", content=Message(text=attack_template, lang=self.lang))
             ]
-            conv = Conversation(turns)
+            conv = Conversation(turns=turns)
             self.prompts.append(conv)
