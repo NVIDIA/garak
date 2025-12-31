@@ -142,60 +142,34 @@ class SystemPromptExtraction(Probe):
             f"Loaded {len(self.system_prompts)} system prompts for extraction testing"
         )
 
-    def _load_danielrosehill_prompts(self) -> List[str]:
-        """Load prompts from danielrosehill/System-Prompt-Library dataset"""
+    def _load_dataset_prompts(self, dataset_name: str) -> List[str]:
+        """Load prompts from a supported format dataset"""
         try:
             from datasets import load_dataset
 
             dataset = load_dataset(
-                "danielrosehill/System-Prompt-Library",
+                dataset_name,
                 split="train",
                 trust_remote_code=False
             )
 
             prompts = []
             for item in dataset:
+                prompt_text = ""
                 if "systemprompt" in item and item["systemprompt"]:
                     prompt_text = item["systemprompt"].strip()
-                    # Filter out very short or empty prompts
-                    if len(prompt_text) > 20:
-                        prompts.append(prompt_text)
+                elif "prompt" in item and item["prompt"]:
+                    prompt_text = item["prompt"].strip()
+                # Filter out very short or empty prompts
+                if len(prompt_text) > 20:
+                    prompts.append(prompt_text)
 
             logging.info(f"Loaded {len(prompts)} prompts from danielrosehill dataset")
             return prompts
 
         except Exception as e:
             logging.warning(
-                f"Failed to load danielrosehill dataset: {e}. "
-                f"Install with: pip install datasets"
-            )
-            return []
-
-    def _load_teilomillet_prompts(self) -> List[str]:
-        """Load prompts from teilomillet/system_prompt dataset"""
-        try:
-            from datasets import load_dataset
-
-            dataset = load_dataset(
-                "teilomillet/system_prompt",
-                split="train",
-                trust_remote_code=False
-            )
-
-            prompts = []
-            for item in dataset:
-                # This dataset has 'prompt' field based on HF preview
-                if "prompt" in item and item["prompt"]:
-                    prompt_text = item["prompt"].strip()
-                    if len(prompt_text) > 20:
-                        prompts.append(prompt_text)
-
-            logging.info(f"Loaded {len(prompts)} prompts from teilomillet dataset")
-            return prompts
-
-        except Exception as e:
-            logging.warning(
-                f"Failed to load teilomillet dataset: {e}. "
+                f"Failed to load {dataset_name} dataset: {e}. "
                 f"Install with: pip install datasets"
             )
             return []
