@@ -218,19 +218,10 @@ class SystemPromptExtraction(Probe):
                 self.soft_probe_prompt_cap
             )
 
-        # Store for use in _mint_attempt
         for idx, (sys_prompt, attack_template) in enumerate(all_combinations):
-            self.prompts.append(attack_template)
-            self.system_prompt_map[idx] = sys_prompt
-
-
-    def _mint_attempt(self, prompt, seq=None, notes=None, lang="*"):
-        """Override to set system_prompt attribute before base class processes it"""
-        # Set the system prompt for this specific attempt
-        sys_prompt = self.system_prompt_map.get(seq, "")
-        self.system_prompt = sys_prompt
-
-        # Call parent which will use self.system_prompt
-        attempt = super()._mint_attempt(prompt, seq, notes, lang)
-
-        return attempt
+            turns = [
+                Turn(role="system", Message(text=sys_prompt, lang=self.lang)
+                Turn(role="user", Message(text=attack_template, lang=self.lang)
+            ]
+            conv = Conversation(turns)
+            self.prompts.append(conv)
