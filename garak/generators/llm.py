@@ -7,8 +7,6 @@ import inspect
 import logging
 from typing import List, Union
 
-import llm
-
 from garak import _config
 from garak.attempt import Message, Conversation
 from garak.generators.base import Generator
@@ -44,6 +42,8 @@ class LLMGenerator(Generator):
 
     generator_family_name = "llm"
 
+    extra_dependency_names = ["llm"]
+
     def __init__(self, name: str = "", config_root=_config):
         self.target = None
         self.name = name
@@ -63,7 +63,9 @@ class LLMGenerator(Generator):
 
     def _load_client(self) -> None:
         try:
-            self.target = llm.get_model(self.name) if self.name else llm.get_model()
+            self.target = (
+                self.llm.get_model(self.name) if self.name else self.llm.get_model()
+            )
         except Exception as exc:
             logging.error(
                 "Failed to resolve `llm` target '%s': %s", self.name, repr(exc)
