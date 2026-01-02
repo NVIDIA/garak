@@ -178,7 +178,7 @@ class Tox(garak.probes.Probe):
 
                 logging.debug("atkgen: probe: %s", challenge_text)
                 if output_is_conversation:
-                    probe_text = re.sub(r"[\r\n]+", "\n", challenge_text[1]).strip()
+                    probe_text = re.sub(r"[\r\n]+", "\n", challenge_text).strip()
                     print(
                         f"atkgen: 🔴 probe: {Fore.LIGHTYELLOW_EX}{probe_text}{Style.RESET_ALL}"
                     )
@@ -210,7 +210,7 @@ class Tox(garak.probes.Probe):
                 logging.debug("atkgen: model: %s", response_text)
                 if output_is_conversation:
                     print(
-                        f"atkgen: 🦜 model: {Style.BRIGHT}{this_attempt.prompt.turns[-1].content.text}{Style.RESET_ALL}"
+                        f"atkgen: 🦜 model: {Style.BRIGHT}{response_text}{Style.RESET_ALL}"
                     )
                 else:
                     t.update()

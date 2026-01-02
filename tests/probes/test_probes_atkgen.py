@@ -141,3 +141,31 @@ def test_atkgen_probe(classname):
         assert (
             len(attempts[0].prompt.turns[0].content.text) > 0
         ), "atkgen probe first prompt should not be blank"
+
+
+def test_atkgen_verbose_output(capsys):
+    """Test that verbose output (verbose >= 2) displays conversation turns correctly."""
+    _config.load_base_config()
+    _config.system.verbose = 2  # Enable verbose conversation output
+    _config.plugins.probes["atkgen"]["generations"] = 1  # we only need one conversation
+    p = _plugins.load_plugin("probes.atkgen.Tox", config_root=garak._config)
+    p.max_calls_per_conv = 1  # we don't need a full conversation
+    g = _plugins.load_plugin("generators.test.Repeat", config_root=garak._config)
+
+    with tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8") as temp_report_file:
+        _config.transient.reportfile = temp_report_file
+        _config.transient.report_filename = temp_report_file.name
+        result = p.probe(g)
+
+    # Capture stdout
+    captured = capsys.readouterr()
+    output = captured.out
+
+    # Verify verbose conversation markers are present
+    assert "🆕" in output, "verbose output should contain new conversation marker"
+    assert "🔴 probe:" in output, "verbose output should contain probe/challenge marker"
+    assert "🦜 model:" in output, "verbose output should contain model response marker"
+
+    # Verify that attempts were created
+    assert isinstance(result, list), "probe results should be a list"
+    assert len(result) > 0, "probe should return at least one attempt"
