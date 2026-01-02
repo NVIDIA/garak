@@ -169,7 +169,14 @@ class GoogleTranslator(LangProvider):
 
     ENV_VAR = "GOOGLE_APPLICATION_CREDENTIALS"
     DEFAULT_PARAMS = {"project_id": None}
+    def __getstate__(self):
+        state = dict(self.__dict__)
+        state["client"] = None
+        return state
 
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self.client = None
     def _validate_env_var(self):
         """Override standard API key selection to enable provision of json credential file"""
         import os
