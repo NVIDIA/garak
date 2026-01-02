@@ -1,3 +1,5 @@
+""" Interface with IBM WatsonX models/systems. """
+
 from garak import _config
 from garak.attempt import Message, Turn, Conversation
 from garak.generators.base import Generator

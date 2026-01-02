@@ -9,7 +9,7 @@ to be passed as its name. For example,
 
 .. code-block::
 
-   garak -m guardrails -n sample_abc/config
+   garak -t guardrails -n sample_abc/config
 
 This generator requires installation of the `guardrails <https://pypi.org/project/nemoguardrails/>`_
 Python package.

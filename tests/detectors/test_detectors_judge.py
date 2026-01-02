@@ -65,7 +65,7 @@ def test_klass_detect(judge_config, mocker, klass, response, res_val):
     mock_generate = mocker.patch.object(
         d.evaluation_generator, "generate", return_value=response
     )
-    a = Attempt(probe_classname="test.Test", prompt="test prompt")
+    a = Attempt(probe_classname="test.Test", prompt=Message(text="test prompt"))
     a.outputs = [Message("fake")]
     res = d.detect(a)
     mock_generate.assert_called_once()
@@ -75,5 +75,5 @@ def test_klass_detect(judge_config, mocker, klass, response, res_val):
     assert isinstance(
         mock_generate.call_args_list[0].args[0].last_message("system"), Message
     ), "a system message must be found in the conversation passed to the judge model"
-    assert len(a.all_outputs) == len(res)
-    assert [res_val * len(a.all_outputs)] == res
+    assert len(a.outputs) == len(res)
+    assert [res_val * len(a.outputs)] == res

@@ -8,6 +8,15 @@ from garak.attempt import Message, Turn, Conversation
 from garak.generators.cohere import CohereGenerator, COHERE_GENERATION_LIMIT
 from garak.exception import APIKeyMissingError
 
+try:
+    import cohere
+
+except:
+    pytest.skip(
+        "couldn't import cohere, skipping cohere tests", allow_module_level=True
+    )
+
+
 # Default model name and API URLs
 DEFAULT_MODEL_NAME = "command"
 COHERE_API_BASE = "https://api.cohere.com"

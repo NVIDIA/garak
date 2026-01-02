@@ -6,3 +6,4 @@ garak.probes.doctor
    :undoc-members:
    :show-inheritance:   
 
+   .. show-asr::

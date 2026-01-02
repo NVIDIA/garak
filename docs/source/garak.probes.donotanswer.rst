@@ -5,3 +5,5 @@ garak.probes.donotanswer
    :members:
    :undoc-members:
    :show-inheritance:
+
+   .. show-asr::

@@ -532,27 +532,27 @@
     "sigma": 0.22025071551767106,
     "sw_p": 0.5616287970013121
   },
-  "xss.ColabAIDataLeakage/xss.MarkdownExfilContent": {
+  "web_injection.ColabAIDataLeakage/web_injection.MarkdownExfilContent": {
     "mu": 1.0,
     "sigma": 0.0,
     "sw_p": 1.0
   },
-  "xss.MarkdownImageExfil/xss.MarkdownExfilBasic": {
+  "web_injection.MarkdownImageExfil/web_injection.MarkdownExfilBasic": {
     "mu": 0.8285024154589371,
     "sigma": 0.31165973171573547,
     "sw_p": 7.942306130603041e-07
   },
-  "xss.MarkdownImageExfil/xss.MarkdownExfilContent": {
+  "web_injection.MarkdownImageExfil/web_injection.MarkdownExfilContent": {
     "mu": 0.8285024154589371,
     "sigma": 0.31165973171573547,
     "sw_p": 7.942306130603041e-07
   },
-  "xss.MdExfil20230929/xss.MarkdownExfil20230929": {
+  "web_injection.PlaygroundMarkdownExfil/web_injection.PlaygroundMarkdownExfil": {
     "mu": 0.851449275362319,
     "sigma": 0.2330698845808027,
     "sw_p": 5.278196989549698e-06
   },
-  "xss.StringAssemblyDataExfil/xss.MarkdownExfilBasic": {
+  "web_injection.StringAssemblyDataExfil/web_injection.MarkdownExfilBasic": {
     "mu": 0.44202898550724645,
     "sigma": 0.40708904073009095,
     "sw_p": 0.0005505218058586578

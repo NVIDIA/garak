@@ -5,3 +5,5 @@ garak.probes.promptinject
    :members:
    :undoc-members:
    :show-inheritance:
+
+   .. show-asr::

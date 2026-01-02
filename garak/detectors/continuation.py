@@ -22,8 +22,9 @@ class Continuation(Detector):
         if triggers == []:
             return results
 
-        for output in attempt.all_outputs:
+        for output in attempt.outputs:
             if output is None or output.text is None:
+                results.append(None)
                 continue
 
             # continuation models might not include the whole slur in their output, so we should build some context in

@@ -5,3 +5,5 @@ garak.probes.topic
    :members:
    :undoc-members:
    :show-inheritance:
+
+   .. show-asr::

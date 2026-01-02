@@ -126,10 +126,10 @@ def is_meaning_string(text: str) -> bool:
 
 # To be `Configurable` the root object must meet the standard type search criteria
 # { langproviders:
-#     "local": { # model_type
+#     "local": { # target_type
 #       "language": "<from>-<to>"
 #       "name": "model/name" # model_name
-#       "hf_args": {} # or any other translator specific values for the model_type
+#       "hf_args": {} # or any other translator specific values for the target_type
 #     }
 # }
 from garak.configurable import Configurable

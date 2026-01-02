@@ -28,6 +28,11 @@ DETECTORS = [
         "detectors.packagehallucination.PackageHallucinationDetector",
     ]
 ]
+DOES_NOT_RELAY_NONE = [
+    "detectors.always.Fail",
+    "detectors.always.Pass",
+    "detectors.always.Random",
+]
 
 
 @pytest.mark.parametrize("classname", DETECTORS)
@@ -51,7 +56,9 @@ def test_detector_structure(classname):
             for k, _ in d.DEFAULT_PARAMS.items():
                 if k not in d._supported_params:
                     unsupported_defaults.append(k)
-    assert unsupported_defaults == []
+    assert (
+        unsupported_defaults == []
+    ), f"_supported_params must contain all DEFAULT_PARAMS; {unsupported_defaults} missing"
 
 
 @pytest.mark.parametrize("classname", DETECTORS)
@@ -63,7 +70,7 @@ def test_detector_detect(classname):
         di = dc.__new__(dc)
         di.__init__()
     except APIKeyMissingError:
-        pytest.skip("API key unavailable")
+        pytest.skip(f"API key unavailable for {classname}")
 
     assert isinstance(di, Detector), "detectors must eventually inherit from Detector"
     assert isinstance(di, Configurable), "detectors must be configurable"
@@ -77,41 +84,45 @@ def test_detector_detect(classname):
 
     a.prompt = Message("", lang=di.lang_spec.split(",")[0])
     a.notes["format"] = "local filename"
-    a.outputs = ["", None]
+    a.outputs = ["test value", "", None, Message()]
     a.detector_results = {"x": [0.0, None]}
     try:
         results = di.detect(a)
     except APIKeyMissingError:
-        pytest.skip("API key unavailable")
+        pytest.skip(f"API key unavailable for {classname}")
 
     assert isinstance(
         results, (list, types.GeneratorType)
     ), "detect() should return an ordered iterable"
     for entry in results:
         # detect() should skip non-evaluated items from output. NB this breaks output:result alignment
-        assert isinstance(entry, float) or entry is None, "detect() must return a list of floats or Nones"
+        assert (
+            isinstance(entry, float) or entry is None
+        ), "detect() must return a list of floats or Nones"
         if isinstance(entry, float):
             assert 0.0 <= entry <= 1.0, "detect() values should be between 0.0 and 1.0"
-        assert len(list(results)) <= len(
-            list(a.outputs)
-        ), "detect() should return no more values than # attempt outputs provided"
+    assert len(list(results)) <= len(
+        list(a.outputs)
+    ), "detect() should return no more values than # attempt outputs provided"
 
     if classname == "detectors.always.Passthru":
         return
 
-    a.outputs = ["Terok", "Nor"]
-    assert (
-        len(a.all_outputs) == 4
-    ), "we've supplied four outputs to the attempt, should have four logged"
     results = di.detect(a)
-    if not isinstance(
-        di, garak.detectors.base.FileDetector
-    ):  # this returns nothing - remove when Nones are OK in detector output
-        # 2 conversations based on 2 outputs set above, why are there more expected?
-        assert len(list(results)) in (
-            3,
-            4,
-        ), "detector should return as many results as in all_outputs (maybe excluding Nones)"
+    if not isinstance(di, garak.detectors.base.FileDetector):
+        assert len(list(results)) == len(
+            a.outputs
+        ), "detector should return as many results as in outputs"
+        if not classname in DOES_NOT_RELAY_NONE:
+            for output, result in zip(a.outputs, list(results)):
+                if output is not None and output.text is not None:
+                    assert isinstance(
+                        result, float
+                    ), "detector result entries must be a float or None"
+                else:
+                    assert (
+                        result is None
+                    ), "if detector result entry is not a float, it must be a None"
 
 
 @pytest.mark.parametrize("classname", DETECTORS)

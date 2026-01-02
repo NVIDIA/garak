@@ -1,6 +1,15 @@
-"""Glitch keyword probes
+"""**Glitch keyword probes**
 
-Testing for tokens that lead to unusual model behavior
+Testing for tokens that lead to unusual model behavior when processed.
+
+This module is for probes that use glitch tokens.
+
+Further information:
+
+* https://en.wikipedia.org/wiki/Glitch_token
+* https://arxiv.org/abs/2404.09894
+* https://www.lesswrong.com/posts/kmWrwtGE9B9hpbgRT/a-search-for-more-chatgpt-gpt-3-5-gpt-4-unspeakable-glitch
+
 """
 
 from garak.attempt import Attempt
@@ -28,7 +37,7 @@ class GlitchFull(garak.probes.Probe):
     ]
     tier = garak.probes.Tier.INFORMATIONAL
 
-    recommended_detector = ["goodside.Glitch"]
+    primary_detector = "goodside.Glitch"
     glitch_tokens = [
         "\x00",
         "\x01",

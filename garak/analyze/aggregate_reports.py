@@ -19,7 +19,6 @@ import uuid
 import sys
 
 import garak
-
 import garak.analyze.report_digest
 
 
@@ -52,9 +51,31 @@ p.add_argument("infiles", nargs="+", help="garak jsonl reports to be aggregated"
 a = p.parse_args()
 
 
+def model_target_depr_notice(entry):
+    import garak.command
+
+    garak.command.deprecation_notice(f"config plugins.{entry}", "0.13.1.pre1")
+
+
+def _aggregate_probespec(filenames: list[str]) -> str:
+    """
+    One pass over jsonl files to aggregate probespecs from the first line in each
+    """
+    probespecs = set([])
+    for filename in filenames:
+        with open(filename, "r", encoding="utf8") as fd:
+            setup_line = fd.readline()
+            setup = json.loads(setup_line)
+            assert setup["entry_type"] == "start_run setup"
+            probespecs.add(setup["plugins.probe_spec"])
+    return ",".join(sorted(probespecs))
+
+
 def main(argv=None) -> None:
     if argv is None:
         argv = sys.argv[1:]
+
+    import garak._config
 
     garak._config.load_config()
     print(
@@ -82,16 +103,23 @@ def main(argv=None) -> None:
     with open(a.output_path, "w+", encoding="utf-8") as out_file:
         lead_filename = in_filenames[0]
         print("lead file", in_filenames[0])
+        probespecs = _aggregate_probespec(in_filenames)
         with open(in_filenames[0], "r", encoding="utf8") as lead_file:
             # extract model type, model name, garak version
-
             setup_line = lead_file.readline()
             setup = json.loads(setup_line)
             assert setup["entry_type"] == "start_run setup"
-            model_type = setup["plugins.model_type"]
-            model_name = setup["plugins.model_name"]
+            if "plugins.model_type" in setup:
+                model_target_depr_notice("plugins.model_type")
+                setup["plugins.target_type"] = setup["plugins.model_type"]
+            target_type = setup["plugins.target_type"]
+            if "plugins.model_name" in setup:
+                model_target_depr_notice("plugins.model_name")
+                setup["plugins.target_name"] = setup["plugins.model_name"]
+            target_name = setup["plugins.target_name"]
             version = setup["_config.version"]
             setup["aggregation"] = in_filenames
+            setup["plugins.probe_spec"] = probespecs
 
             # write the header, completed attempts, and eval rows
 
@@ -111,11 +139,7 @@ def main(argv=None) -> None:
 
             out_file.write(json.dumps(init) + "\n")
 
-            digest = _process_file_body(lead_file, out_file, aggregate_uuid)
-            digest["meta"]["report_aggregation"] = {
-                "files": [lead_filename],
-                "lead_file": lead_filename,
-            }
+            _process_file_body(lead_file, out_file, aggregate_uuid)
 
         if len(in_filenames) > 1:
             # for each other file
@@ -127,8 +151,14 @@ def main(argv=None) -> None:
                     setup_line = subsequent_file.readline()
                     setup = json.loads(setup_line)
                     assert setup["entry_type"] == "start_run setup"
-                    assert model_type == setup["plugins.model_type"]
-                    assert model_name == setup["plugins.model_name"]
+                    if "plugins.target_type" not in setup:
+                        model_target_depr_notice("plugins.model_type")
+                        setup["plugins.target_type"] = setup["plugins.model_type"]
+                    if "plugins.target_name" not in setup:
+                        model_target_depr_notice("plugins.model_name")
+                        setup["plugins.target_name"] = setup["plugins.model_name"]
+                    assert target_type == setup["plugins.target_type"]
+                    assert target_name == setup["plugins.target_name"]
                     assert version == setup["_config.version"]
 
                     init_line = subsequent_file.readline()
@@ -137,17 +167,10 @@ def main(argv=None) -> None:
                     assert init["garak_version"] == version
 
                     # write the completed attempts and eval rows
-                    subsequent_digest = _process_file_body(
-                        subsequent_file, out_file, aggregate_uuid
-                    )
-                    digest["meta"]["report_aggregation"]["files"].append(
-                        subsequent_filename
-                    )
-                    digest["eval"] = digest["eval"] | subsequent_digest["eval"]
-
-                    # write the completed attempts and eval rows
                     _process_file_body(subsequent_file, out_file, aggregate_uuid)
 
+    digest = garak.analyze.report_digest.build_digest(a.output_path)
+    with open(a.output_path, "a+", encoding="utf-8") as out_file:
         garak.analyze.report_digest.append_report_object(out_file, digest)
 
     print("done")

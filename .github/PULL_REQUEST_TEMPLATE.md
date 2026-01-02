@@ -15,7 +15,7 @@ List the steps needed to make sure this thing works
     }
 }
 ```
-- [ ] `garak -m <model_type> -n <model_name>`
+- [ ] `garak -t <target_type> -n <model_name>`
 - [ ] Run the tests and ensure they pass `python -m pytest tests/`
 - [ ] ...
 - [ ] **Verify** the thing does what it should

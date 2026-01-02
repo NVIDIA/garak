@@ -32,7 +32,12 @@ For Z-scores, 0 is average, negative is worse, positive is better.
 Both absolute and relative scores are placed into one of five grades, ranging from 1 (worst) to 5 (best).
 This scale follows the NORAD DEFCON categorisation (with less dire consequences).
 Bounds for these categories are developed over many runs.
-The absolute scores are only alarmist or reassuring for very poor or very good Z-scores.
+The absolute scores are only alarming or reassuring for very poor or very good Z-scores.
 The relative scores assume the middle 10% is average, the bottom 15% is terrible, and the top 15% is great.
 
 DEFCON scores are aggregated using a minimum, to avoid obscuring important failures.
+
+.. toctree::
+   :maxdepth: 2
+
+   reporting.calibration

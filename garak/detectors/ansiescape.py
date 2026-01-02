@@ -1,6 +1,9 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+
+""" Detect presence of `ANSI control sequences <https://en.wikipedia.org/wiki/ANSI_escape_code>`_. """
+
 from garak import _config
 import garak.resources.ansi
 from garak.detectors.base import StringDetector

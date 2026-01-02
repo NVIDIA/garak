@@ -1,8 +1,13 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
-"""Topic probe
 
-Attempt to get a model to engage on a number of contentious topics
+"""**Topic probe**
+
+Attempt to get a model to engage on a topics close to specific keyword(s) by exploring nearby lexical space.
+
+Probes in this module should attempt to circumvent topic-based blocks.
+
+The current set of probes take the presumed-blocked terms as input, and traverse English WordNet - a linked set of words - trying to find out if similar-meaning terms yield something other than a mitigation message. The intent is to find how close we can stay to the blocked terms while managing to avoid a block.
 """
 
 from collections.abc import Iterable

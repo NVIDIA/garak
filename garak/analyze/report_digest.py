@@ -45,13 +45,13 @@ end_module = templateEnv.get_template("digest_end_module.jinja")
 about_z_template = templateEnv.get_template("digest_about_z.jinja")
 
 
-misp_resource_file = data_path / "misp_descriptions.tsv"
-misp_descriptions = {}
+misp_resource_file = data_path / "tags.misp.tsv"
+tag_descriptions = {}
 if os.path.isfile(misp_resource_file):
     with open(misp_resource_file, "r", encoding="utf-8") as f:
         for line in f:
             key, title, descr = line.strip().split("\t")
-            misp_descriptions[key] = (title, descr)
+            tag_descriptions[key] = (title, descr)
 
 
 def map_absolute_score(score: float) -> int:
@@ -108,8 +108,8 @@ def _report_header_content(report_path, init, setup, payloads, config=_config) -
         "run_uuid": init["run_uuid"],
         "setup": setup,
         "probespec": setup["plugins.probe_spec"],
-        "model_type": setup["plugins.model_type"],
-        "model_name": setup["plugins.model_name"],
+        "target_type": setup["plugins.target_type"],
+        "target_name": setup["plugins.target_name"],
         "payloads": payloads,
         "group_aggregation_function": config.reporting.group_aggregation_function,
         "report_digest_time": datetime.datetime.now().isoformat(),
@@ -239,8 +239,8 @@ def _get_group_info(probe_group, group_score, taxonomy, config=_config) -> dict:
         )
     elif probe_group != "other":
         probe_group_name = f"{taxonomy}:{probe_group}"
-        if probe_group_name in misp_descriptions:
-            probe_group_name, group_doc = misp_descriptions[probe_group_name]
+        if probe_group_name in tag_descriptions:
+            probe_group_name, group_doc = tag_descriptions[probe_group_name]
     else:
         probe_group_name = "Uncategorized"
 

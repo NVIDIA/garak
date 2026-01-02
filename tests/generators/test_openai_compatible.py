@@ -124,3 +124,15 @@ def test_openai_multiprocessing(openai_compat_mocks, classname):
                 assert isinstance(
                     result[0], Message
                 ), "generator should return list of Turns or Nones"
+
+
+def test_openai_multiple_generations():
+    mod = importlib.import_module("garak.generators.openai")
+    compat_klass = getattr(mod, "OpenAICompatible")
+    assert (
+        compat_klass.supports_multiple_generations == False
+    ), "Compat class not expected to correctly support multiple generations by default"
+    oai_klass = getattr(mod, "OpenAIGenerator")
+    assert (
+        oai_klass.supports_multiple_generations == True
+    ), "OpenAI access expected to correctly support multiple generations by default"

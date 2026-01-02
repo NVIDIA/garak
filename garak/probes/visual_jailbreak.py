@@ -3,7 +3,18 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Visual Jailbreak"""
+"""**Visual Jailbreak**
+
+Write instructions in an image in an attempt to bypass text-based alignment.
+
+This module contains probes based on the Visual Jailbreak method details in the FigStep paper.
+Other probes that implement the technique are welcome, even if they aren't detailed in the paper.
+
+Further info:
+
+* https://arxiv.org/pdf/2311.05608
+
+"""
 
 import os
 import logging
@@ -31,7 +42,7 @@ class FigStepFull(garak.probes.Probe):
     active = False  # default to use limit version - FigStep80
     doc_uri = "https://arxiv.org/abs/2311.05608"
     lang = "en"
-    recommended_detector = ["visual_jailbreak.FigStep"]
+    primary_detector = "visual_jailbreak.FigStep"
     tags = [
         # "avid-effect:security:S0403",
         # "avid-effect:performance:P0204",

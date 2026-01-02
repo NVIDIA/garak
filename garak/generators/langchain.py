@@ -4,9 +4,7 @@
 """LangChain generator support"""
 
 
-import logging
 from typing import List, Union
-
 
 from garak import _config
 from garak.attempt import Message, Conversation
@@ -22,7 +20,7 @@ class LangChainLLMGenerator(Generator):
     Calls invoke with the prompt and relays the response. No per-LLM specific
     checking, so make sure the right environment variables are set.
 
-    Set --model_name to the LLM type required.
+    Set --target_name to the LLM type required.
 
     Explicitly, garak delegates the majority of responsibility here:
 
@@ -41,7 +39,7 @@ class LangChainLLMGenerator(Generator):
         "presence_penalty": 0.0,
         "stop": [],
     }
-
+    extra_dependency_names = ["langchain.llms"]
     generator_family_name = "LangChain"
 
     def __init__(self, name="", config_root=_config):
@@ -51,16 +49,7 @@ class LangChainLLMGenerator(Generator):
 
         super().__init__(self.name, config_root=config_root)
 
-        try:
-            # Import langchain only when actually instantiating the generator
-            import langchain.llms
-            # this might need some special handling to allow tests
-            llm = getattr(langchain.llms, self.name)()
-        except Exception as e:
-            logging.error("Failed to import Langchain module: %s", repr(e))
-            raise e
-
-        self.generator = llm
+        self.generator = getattr(self.langchain_llms, self.name)()
 
     def _call_model(
         self, prompt: Conversation, generations_this_call: int = 1

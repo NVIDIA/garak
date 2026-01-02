@@ -5,7 +5,7 @@ Why are there ``Tier``\ s in garak? That's a good question -- why would there be
 
 So what is a tier in garak? The flippant answer is that it's a convenient way to deal with the question "What probes should I run?" -- something new users and those who don't like to spin their GPU for extended periods of time often ask. It effectively establishes a hierarchy to say "If you can only run a small number of probes, these are the most important ones". But what makes a probe important? Well, unfortunately, the best answer to that question is a classic: it depends.
 
-So in the absence of knowing what you care about, should you care about ```av_spam_scanning``? Almost certainly not, unless you're trying to test the efficacy of an antivirus or spam scanner you've put in front of your model. Should you care about ``malwaregen``? Do you care if your model/system will write malicious code?
+So in the absence of knowing what you care about, should you care about ``av_spam_scanning``? Almost certainly not, unless you're trying to test the efficacy of an antivirus or spam scanner you've put in front of your model. Should you care about ``malwaregen``? Do you care if your model or system may write malicious code?
 
 Security, Prevalence, and Risk
 ------------------------------

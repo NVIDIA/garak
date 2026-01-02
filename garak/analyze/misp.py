@@ -27,13 +27,13 @@ from garak.data import path as data_path
 
 
 def misp_report(include_untagged: bool = True) -> None:
-    misp_resource_file = data_path / "misp_descriptions.tsv"
-    misp_descriptions = {}
+    misp_resource_file = data_path / "tags.misp.tsv"
+    tag_descriptions = {}
     if os.path.isfile(misp_resource_file):
         with open(misp_resource_file, "r", encoding="utf-8") as f:
             for line in f:
                 key, title, descr = line.strip().split("\t")
-                misp_descriptions[key] = (title, descr)
+                tag_descriptions[key] = (title, descr)
 
     probes_per_tag = defaultdict(list)
 
@@ -46,11 +46,11 @@ def misp_report(include_untagged: bool = True) -> None:
         if tags == [] and include_untagged:
             print(f"{plugin_name}: no tags defined")
         for tag in tags:
-            if tag not in misp_descriptions:
-                print(f"{plugin_name}: tag {tag} undefined in misp_descriptions.tsv")
+            if tag not in tag_descriptions:
+                print(f"{plugin_name}: tag {tag} undefined in garak/data/tags.misp.tsv")
             probes_per_tag[tag].append(plugin_name)
 
-    for misp_tag in misp_descriptions.keys():
+    for misp_tag in tag_descriptions.keys():
         if len(probes_per_tag[misp_tag]) == 0:
             print(f"{misp_tag}: zero probes testing this")
         else:

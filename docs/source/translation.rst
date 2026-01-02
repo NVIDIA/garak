@@ -130,7 +130,7 @@ You use the following yaml config.
 .. code-block:: bash
 
    export DEEPL_API_KEY=xxxx
-   python3 -m garak --model_type nim --model_name meta/llama-3.1-8b-instruct --probes encoding --config <path-to-your-yaml-config-file>
+   python3 -m garak --target_type nim --target_name meta/llama-3.1-8b-instruct --probes encoding --config <path-to-your-yaml-config-file>
 
 
 Riva
@@ -152,7 +152,7 @@ You use the following yaml config.
 .. code-block:: bash
 
    export RIVA_API_KEY=xxxx
-   python3 -m garak --model_type nim --model_name meta/llama-3.1-8b-instruct --probes encoding --config <path-to-your-yaml-config-file>
+   python3 -m garak --target_type nim --target_name meta/llama-3.1-8b-instruct --probes encoding --config <path-to-your-yaml-config-file>
 
 
 Google Cloud Translation
@@ -175,7 +175,7 @@ You use the following yaml config.
 .. code-block:: bash
 
     export GOOGLE_APPLICATION_CREDENTIALS=<path to credential configuration json file>
-    python3 -m garak --model_type nim --model_name meta/llama-3.1-8b-instruct --probes encoding --config <path-to-your-yaml-config-file>
+    python3 -m garak --target_type nim --target_name meta/llama-3.1-8b-instruct --probes encoding --config <path-to-your-yaml-config-file>
 
 
 Local
@@ -196,7 +196,7 @@ You use the following yaml config.
 
 .. code-block:: bash
 
-   python3 -m garak --model_type nim --model_name meta/llama-3.1-8b-instruct --probes encoding --config <path-to-your-yaml-config-file>
+   python3 -m garak --target_type nim --target_name meta/llama-3.1-8b-instruct --probes encoding --config <path-to-your-yaml-config-file>
 
 The default configuration will load `Helsinki-NLP MarianMT <https://huggingface.co/docs/transformers/model_doc/marian>`_ models for local translation.
 
@@ -218,4 +218,4 @@ contain ``m2m100`` to be loaded by garak.
 
 .. code-block:: bash
 
-   python3 -m garak --model_type nim --model_name meta/llama-3.1-8b-instruct --probes encoding --config <path-to-your-yaml-config-file>
+   python3 -m garak --target_type nim --target_name meta/llama-3.1-8b-instruct --probes encoding --config <path-to-your-yaml-config-file>

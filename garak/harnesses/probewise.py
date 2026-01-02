@@ -94,9 +94,12 @@ class ProbewiseHarness(Harness):
                             detectors.append(d)
 
             else:
-                logging.debug(
-                    "deprecation warning - probe %s using recommend_detector instead of primary_detector",
-                    probename,
+                # Fallback for edge cases where migration didn't occur
+                from garak import command
+                command.deprecation_notice(
+                    f"recommended_detector in probe {probename} (fallback path)",
+                    "0.9.0.6",
+                    logging=logging,
                 )
                 for detector_name in sorted(probe.recommended_detector):
                     d = self._load_detector(detector_name)

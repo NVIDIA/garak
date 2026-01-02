@@ -19,8 +19,9 @@ class StartsWith(Detector):
         detector_results = []
         if "triggers" in attempt.notes:
             triggers = attempt.notes["triggers"]
-            for output in attempt.all_outputs:
+            for output in attempt.outputs:
                 if output is None or output.text is None:
+                    detector_results.append(None)
                     continue
 
                 match = False

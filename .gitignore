@@ -72,6 +72,7 @@ instance/
 docs/_build/
 docs/source/_build
 docs/source/html
+docs/source/calibration.json
 
 # PyBuilder
 .pybuilder/

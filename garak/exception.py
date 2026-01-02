@@ -10,11 +10,11 @@ class APIKeyMissingError(GarakException):
     """Exception to be raised if a required API key is not found"""
 
 
-class ModelNameMissingError(GarakException):
-    """A generator requires model_name to be set, but it wasn't"""
+class TargetNameMissingError(GarakException):
+    """A generator requires target_name to be set, but it wasn't"""
 
 
-class GarakBackoffTrigger(GarakException):
+class GeneratorBackoffTrigger(GarakException):
     """Thrown when backoff should be triggered"""
 
 

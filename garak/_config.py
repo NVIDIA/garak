@@ -24,6 +24,10 @@ from xdg_base_dirs import (
 )
 
 DICT_CONFIG_AFTER_LOAD = False
+DEPRECATED_CONFIG_PATHS = {
+    "plugins.model_type": "0.13.1.pre1",
+    "plugins.model_name": "0.13.1.pre1",
+}
 
 from garak import __version__ as version
 
@@ -31,7 +35,7 @@ system_params = (
     "verbose narrow_output parallel_requests parallel_attempts skip_unknown".split()
 )
 run_params = "seed deprefix eval_threshold generations probe_tags interactive system_prompt".split()
-plugins_params = "model_type model_name extended_detectors".split()
+plugins_params = "target_type target_name extended_detectors".split()
 reporting_params = "taxonomy report_prefix".split()
 project_dir_name = "garak"
 
@@ -182,6 +186,31 @@ def _load_yaml_config(settings_filenames) -> dict:
                             logging.warning(msg)
                             print(f"⚠️  {msg}")
                 config = _combine_into(settings, config)
+
+    if "model_type" in config["plugins"]:
+        import garak.command
+
+        garak.command.deprecation_notice("config plugins.model_type", "0.13.1.pre1")
+        if "target_type" in config["plugins"]:
+            logging.info(
+                "both target_type and model_type specified, ignoring model_type"
+            )
+        else:
+            config["plugins"]["target_type"] = config["plugins"]["model_type"]
+        del config["plugins"]["model_type"]
+
+    if "model_name" in config["plugins"]:
+        import garak.command
+
+        garak.command.deprecation_notice("config plugins.model_name", "0.13.1.pre1")
+        if "target_name" in config["plugins"]:
+            logging.info(
+                "both target_name and model_name specified, ignoring model_name"
+            )
+        else:
+            config["plugins"]["target_name"] = config["plugins"]["model_name"]
+        del config["plugins"]["model_name"]
+
     return config
 
 

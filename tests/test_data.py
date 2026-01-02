@@ -50,7 +50,7 @@ def test_allow_relative_in_path():
 
 
 def test_known_resource_found():
-    known_filename = "misp_descriptions.tsv"
+    known_filename = "tags.misp.tsv"
     source = data_path / known_filename
     assert source.name == known_filename
 

@@ -8,6 +8,8 @@ try:
 except:
     tomllib = None
 
+import garak._plugins
+
 
 @pytest.mark.skipif(
     tomllib is None, reason="No tomllib found (available from Python 3.11)"
@@ -25,14 +27,16 @@ def test_requirements_txt_pyproject_toml():
         for test_deps in pyproject_toml["project"]["optional-dependencies"].values():
             for dep in test_deps:
                 pyproject_reqs.append(dep)
-        pyproject_reqs.sort()
+        pyproject_reqs.sort()  # for easier output debugging
     # assert len(reqtxt_reqs) == len(pyproject_reqs) # same number of requirements
+    spurious_req = set(reqtxt_reqs) - set(pyproject_reqs)
     assert (
-        set(reqtxt_reqs) - set(pyproject_reqs) == set()
-    )  # things in reqtxt but not in pyproject
+        spurious_req == set()
+    ), f"spurious items in requirements.txt, {spurious_req}"  # things in reqtxt but not in pyproject
+    spurious_pyproject = set(pyproject_reqs) - set(reqtxt_reqs)
     assert (
-        set(pyproject_reqs) - set(reqtxt_reqs) == set()
-    )  # things in pyproject but not in reqtxt
-    assert (
-        reqtxt_reqs == pyproject_reqs
-    )  # final check. this one is actually enough, but let's help us debug by finding which test fails, ok?
+        spurious_pyproject == set()
+    ), f"spurious items in pyproject.toml, {spurious_pyproject}"  # things in pyproject but not in reqtxt
+
+
+PLUGIN_TYPES = garak._plugins.PLUGIN_TYPES

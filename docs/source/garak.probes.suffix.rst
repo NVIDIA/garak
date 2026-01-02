@@ -5,3 +5,5 @@ garak.probes.suffix
    :members:
    :undoc-members:
    :show-inheritance:
+
+   .. show-asr::

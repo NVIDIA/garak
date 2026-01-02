@@ -56,9 +56,10 @@ class DecodeApprox(Detector):
         if substrings == None:
             return []
         detector_results = []
-        for q in attempt.all_outputs:
+        for q in attempt.outputs:
 
-            if q is None:
+            if q is None or q.text is None:
+                detector_results.append(None)
                 continue
 
             best_match = 0.0

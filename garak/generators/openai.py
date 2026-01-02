@@ -2,10 +2,11 @@
 
 Supports chat + chatcompletion models. Put your API key in
 an environment variable documented in the selected generator. Put the name of the
-model you want in either the --model_name command line parameter, or
+model you want in either the --target_name command line parameter, or
 pass it as an argument to the Generator constructor.
 
-sources:
+Sources:
+
 * https://platform.openai.com/docs/models/model-endpoint-compatibility
 * https://platform.openai.com/docs/model-index-for-researchers
 """
@@ -129,7 +130,7 @@ class OpenAICompatible(Generator):
     ENV_VAR = "OpenAICompatible_API_KEY".upper()  # Placeholder override when extending
 
     active = True
-    supports_multiple_generations = True
+    supports_multiple_generations = False
     generator_family_name = "OpenAICompatible"  # Placeholder override when extending
 
     # template defaults optionally override when extending
@@ -159,16 +160,18 @@ class OpenAICompatible(Generator):
     def _load_client(self):
         # When extending `OpenAICompatible` this method is a likely location for target application specific
         # customization and must populate self.generator with an openai api compliant object
+        self._load_deps()
         self.client = openai.OpenAI(base_url=self.uri, api_key=self.api_key)
         if self.name in ("", None):
             raise ValueError(
-                f"{self.generator_family_name} requires model name to be set, e.g. --model_name org/private-model-name"
+                f"{self.generator_family_name} requires model name to be set, e.g. --target_name org/private-model-name"
             )
         self.generator = self.client.chat.completions
 
     def _clear_client(self):
         self.generator = None
         self.client = None
+        self._clear_deps()
 
     def _validate_config(self):
         pass
@@ -204,7 +207,7 @@ class OpenAICompatible(Generator):
             openai.InternalServerError,
             openai.APITimeoutError,
             openai.APIConnectionError,
-            garak.exception.GarakBackoffTrigger,
+            garak.exception.GeneratorBackoffTrigger,
         ),
         max_value=70,
     )
@@ -215,10 +218,17 @@ class OpenAICompatible(Generator):
             # reload client once when consuming the generator
             self._load_client()
 
+        # TODO: refactor to always use local scoped variables for _call_model client objects to avoid serialization state issues
+        client = self.client
+        generator = self.generator
+        is_completion = generator == client.completions
+
         create_args = {}
-        if "n" not in self.suppressed_params:
+        if self.supports_multiple_generations:
             create_args["n"] = generations_this_call
-        for arg in inspect.signature(self.generator.create).parameters:
+        elif "n" not in self.suppressed_params:
+            create_args["n"] = 1
+        for arg in inspect.signature(generator.create).parameters:
             if arg == "model":
                 create_args[arg] = self.name
                 continue
@@ -232,7 +242,7 @@ class OpenAICompatible(Generator):
             for k, v in self.extra_params.items():
                 create_args[k] = v
 
-        if self.generator == self.client.completions:
+        if is_completion:
             if not isinstance(prompt, Conversation) or len(prompt.turns) > 1:
                 msg = (
                     f"Expected a Conversation with one Turn for {self.generator_family_name} completions model {self.name}, but got {type(prompt)}. "
@@ -243,7 +253,7 @@ class OpenAICompatible(Generator):
 
             create_args["prompt"] = prompt.last_message().text
 
-        elif self.generator == self.client.chat.completions:
+        else:  # is chat
             if isinstance(prompt, Conversation):
                 messages = self._conversation_to_list(prompt)
             elif isinstance(prompt, list):
@@ -260,7 +270,7 @@ class OpenAICompatible(Generator):
             create_args["messages"] = messages
 
         try:
-            response = self.generator.create(**create_args)
+            response = generator.create(**create_args)
         except openai.BadRequestError as e:
             msg = "Bad request: " + str(repr(prompt))
             logging.exception(e)
@@ -269,7 +279,7 @@ class OpenAICompatible(Generator):
         except json.decoder.JSONDecodeError as e:
             logging.exception(e)
             if self.retry_json:
-                raise garak.exception.GarakBackoffTrigger from e
+                raise garak.exception.GeneratorBackoffTrigger from e
             else:
                 raise e
 
@@ -280,13 +290,13 @@ class OpenAICompatible(Generator):
             )
             msg = "no .choices member in generator response"
             if self.retry_json:
-                raise garak.exception.GarakBackoffTrigger(msg)
+                raise garak.exception.GeneratorBackoffTrigger(msg)
             else:
                 return [None]
 
-        if self.generator == self.client.completions:
+        if is_completion:
             return [Message(c.text) for c in response.choices]
-        elif self.generator == self.client.chat.completions:
+        else:
             return [Message(c.message.content) for c in response.choices]
 
 
@@ -296,6 +306,7 @@ class OpenAIGenerator(OpenAICompatible):
     ENV_VAR = "OPENAI_API_KEY"
     active = True
     generator_family_name = "OpenAI"
+    supports_multiple_generations = True
 
     # remove uri as it is not overridable in this class.
     DEFAULT_PARAMS = {
@@ -308,7 +319,7 @@ class OpenAIGenerator(OpenAICompatible):
         if self.name == "":
             openai_model_list = sorted([m.id for m in self.client.models.list().data])
             raise ValueError(
-                f"Model name is required for {self.generator_family_name}, use --model_name\n"
+                f"Model name is required for {self.generator_family_name}, use --target_name\n"
                 + "  API returns following available models: ▶️   "
                 + "  ".join(openai_model_list)
                 + "\n"

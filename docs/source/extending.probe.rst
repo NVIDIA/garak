@@ -7,7 +7,7 @@ In this example, we're going to go over the key points of how to develop a new p
 Inheritance
 ***********
 
-All probes will inherit from ``garak.probes.base.Probe``, exposed at package level via ``garak.probes``.
+All probes inherit from ``garak.probes.base.Probe``, exposed at package level via ``garak.probes``.
 
 .. code-block:: python
 
@@ -17,14 +17,11 @@ All probes will inherit from ``garak.probes.base.Probe``, exposed at package lev
         """Probe to do something naughty to a language model"""
         ...
 
-We require class docstrings in garak and enforce this requirement via a test required before merging.
+By inheriting from ``garak.probes.base.Probe``, probes can work nicely with ``Generator`` and ``Attempt`` objects in addition to ensuring that any ``Buff`` objects that you apply to a probe will work appropriately.
 
-Probes must always inherit from ``garak.probes.base.Probe``.
-This allows probes to work nicely with ``Generator`` and ``Attempt`` objects in addition to ensuring that any ``Buff``\ s that one might want to apply to a probe are going to work appropriately.
-
-The ``probe`` method of ``Probe`` objects is where the core logic of a probe lies.
-Ideally, one would need only to populate the ``prompts`` attribute of a ``Probe`` and let the ``probe`` method do the heavy lifting.
-However, if this logic is insufficient for a custom probe, this is where the majority of the work (and potential issues) tends to lie.
+The ``probe`` method of a ``Probe`` object provides the core logic of the probe.
+Ideally, you only need to populate the ``prompts`` attribute of a ``Probe`` and let the ``probe`` method do the heavy lifting.
+However, if this logic is insufficient for your probe, the ``probe`` method is where the majority of the work (and potential issues) tends to lie.
 
 .. code-block:: python
 
@@ -104,7 +101,7 @@ Many of these are decent defaults, though there are a few that we absolutely wan
     class MyNewProbe(garak.probes.Probe):
         """Probe to do something naughty to a language model"""
 
-        recommended_detector = ["mitigation.MitigationBypass"]
+        primary_detector = "mitigation.MitigationBypass"
         tags = [
             "avid-effect:security:S0403",
             "owasp:llm01",
@@ -116,9 +113,79 @@ Many of these are decent defaults, though there are a few that we absolutely wan
         active = False
         ...
 
+Probe Documentation
+*******************
+
+You must provide documentation for your probe.
+Class docstrings are required and are enforced by a test that must pass before merging.
+
+#. Add an ``.rst`` file in the ``docs/source`` directory with the name ``garak.probes.<module>.rst``, where ``module`` matches the file name of your new probe.
+
+   Refer to other probe documentation for an example of the content.
+
+   Also refer to the garak tests to ensure your documentation is correct.
+   The tests check that you added documentation, that the class docstrings are present, and that they link to the right places.
+
+#. Add an entry in ``docs/source/probes.rst`` and link to  your new module file.
+
+Both the class and module docstrings must be in ReStructuredText (RST) format, and not markdown.
+Refer to the `rst Cheatsheet <https://bashtage.github.io/sphinx-material/rst-cheatsheet/rst-cheatsheet.html>`_ or `ReStructuredText Primer <https://docutils.sourceforge.io/docs/user/rst/quickref.html>`_ to get you started.
+
+Paragraphs are separated by a blank lines, such as ``\\n\\n``.
+
+Module Docstrings
+=================
+
+In the Python module you're working on, add a module docstring, if there isn't one already.
+Include the following parts:
+
+* Title, in bold/strong emphasis (``**``)
+* A description of the common technique/intent/source for all probes in this module (one sentence)
+* The inclusion criteria for items in this module, so that others can determine whether or not a new probe would belong in the module (1-3 sentences)
+* Further description (optional; one paragraph; 1-5 sentences)
+* Links to information about this kind of attack (optional)
+
+Refer to the following example:
+
+.. code-block::
+
+    """**ANSI Escape attack**
+
+    Try to make a model produce ANSI escape codes, which can disrupt downstream processing.
+
+    Probes in this module should all try to elicit ANSI escape codes or information suggesting that the target is capable of producing them.
+    There are a couple of different dimensions included:
+
+    * the encoding can vary - raw binary, or an escaped version;
+    * the technique used can vary - can we get OCS8, OCS52
+    * the action can also be different - log cursor, crash machine, install software etc.
+
+    Further info:
+
+    * https://interhumanagreement.substack.com/p/llm-output-can-take-over-your-computer
+    * https://www.youtube.com/watch?v=3T2Al3jdY38
+    * https://embracethered.com/blog/posts/2024/terminal-dillmas-prompt-injection-ansi-sequences/
+    * https://dgl.cx/2023/09/ansi-terminal-security
+    * https://cwe.mitre.org/data/definitions/150.html
+    """
+
+Class Docstrings
+================
+
+Probe classes themselves must also have a docstring.
+The target structure for garak ``Probe`` class docstrings include the following items:
+
+* Short description of the technique or intent of the probe (1 sentence, followed by a blank line)
+* Friendly general intro to the probe, in very simple English (1-4 sentences; short sentences; follow `Basic English <https://simple.wikipedia.org/wiki/Basic_English>`_ rules as much as possible, try this `tool <https://www.online-utility.org/english/simple_basic_helper.jsp>`_)
+* Example prompts generated by the probe (optional; in RST-formatted blockquote)
+* How the probe works, extended description (optional; can be multiple paragraphs)
+* Link to source docs; include reference and hyperlink (optional; 1-2 lines)
+* For probes implementing work in a paper, include the paper's abstract (optional; in RST-formatted blockquote)
+
 
 Testing
 *******
+
 Once the logic for our probe is written, you'll want to test it before opening a pull request.
 Typically, a good place to start is by seeing if your probe can be imported!
 
@@ -139,7 +206,7 @@ Let's try running our new probe against a HuggingFace ``Pipeline`` using ``meta-
 
 .. code-block:: bash
 
-  $ garak -m huggingface -n meta-llama/Llama-2-7b-chat-hf -p mynewprobe.MyNewProbe
+  $ garak -t huggingface -n meta-llama/Llama-2-7b-chat-hf -p mynewprobe.MyNewProbe
 
 If it all runs well, you'll get a log and a hitlog file, which tell you how successful your new probe was!
 If you encounter errors, go through and try to address them. You can look at the bottom of the `garak.log` file, whose path is printed in the output every time you call garak, to see what errors there are.
@@ -150,7 +217,7 @@ If you want to debug your probe interactively, try using something like ``p = ga
 Finally, check a few properties:
 
 * Does the new probe appear in ``python -m garak --list_probes``?
-* Does the probe run? ``python -m garak -m test -p mynewprobe.MyNewProbe``
+* Does the probe run? ``python -m garak -t test -p mynewprobe.MyNewProbe``
 * Do the garak tests pass? ``python -m pytest tests/``
 
 Done!

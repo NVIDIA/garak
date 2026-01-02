@@ -19,7 +19,7 @@ class RasaRestGenerator(RestGenerator):
     Uses the following options from ``_config.plugins.generators["rasa.RasaRestGenerator"]``:
 
     * ``uri`` - (optional) the URI of the REST endpoint; this can also be passed
-            in --model_name
+            in --target_name
     * ``name`` - a short name for this service; defaults to the uri
     * ``key_env_var`` - (optional) the name of the environment variable holding an
             API key, by default RASA_API_KEY
@@ -70,7 +70,7 @@ class RasaRestGenerator(RestGenerator):
     --generator_option_file / -G. For example, if we save the above JSON into
     ``example_rasa_service.json``, we can invoke garak as:
 
-      garak --model_type rest -G example_rasa_service.json
+      garak --target_type rest -G example_rasa_service.json
 
     This will load up the default RasaRestGenerator and use the details in the
     JSON file to connect to the LLM endpoint.

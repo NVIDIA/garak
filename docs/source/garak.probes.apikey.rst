@@ -1,7 +1,9 @@
-garak.detectors.xss
+garak.probes.apikey
 ===================
 
-.. automodule:: garak.detectors.xss
+.. automodule:: garak.probes.apikey
    :members:
    :undoc-members:
    :show-inheritance:
+
+   .. show-asr::
