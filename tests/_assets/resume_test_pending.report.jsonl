@@ -1,0 +1,3 @@
+{"entry_type": "init", "garak_version": "0.13.4.pre1"}
+{"entry_type": "start_run setup", "plugins.probe_spec": "probes.test.TestProbe", "run.seed": 42}
+{"entry_type": "attempt", "status": 1, "probe_classname": "probes.test.TestProbe", "seq": 0, "uuid": "44444444-4444-4444-4444-444444444444", "probe_params": {}, "targets": ["target1"], "prompt": {"turns": [{"role": "user", "content": {"text": "pending prompt"}}]}, "outputs": [{"text": "pending response"}], "detector_results": {}, "notes": {}, "goal": "pending goal", "conversations": [{"turns": [{"role": "user", "content": {"text": "pending prompt"}}, {"role": "assistant", "content": {"text": "pending response"}}]}]}
