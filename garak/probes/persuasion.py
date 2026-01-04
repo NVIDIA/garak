@@ -192,11 +192,18 @@ class PersuasivePAP(garak.probes.Probe):
 
         try:
             # Generate multiple independent completions
-            results = self.redteamer.generate(prompt)
-            
-            # Clean results
-            variants = [r.strip('" \n') for r in results if r]
-            
+            # Wrap prompt in Conversation object as required by all generators
+            conv = garak.attempt.Conversation([
+                garak.attempt.Turn("user", garak.attempt.Message(prompt))
+            ])
+            results = self.redteamer.generate(conv)
+
+            # Clean results - results are Message objects, extract text
+            variants = []
+            for r in results:
+                if r and r.text:
+                    variants.append(r.text.strip('" \n'))
+
             return variants
 
         except Exception as e:
@@ -213,12 +220,25 @@ class PersuasivePAP(garak.probes.Probe):
                 f"Loading red team model: {self.red_team_model_type}.{self.red_team_model_name}"
             )
             print("🔴🪖  ", end="")
+
+            try:
+                rt_model_module, rt_model_class = self.red_team_model_type.split(".")
+            except ValueError as e:
+                msg = f"red team model type needs to be fully specified, e.g. 'module.Class'. Got {self.red_team_model_type}"
+                logging.critical(msg)
+                raise ValueError(msg) from e
+
+            rt_config = {
+                "generators": {
+                    rt_model_module: {
+                        rt_model_class: self.red_team_model_config
+                        | {"name": self.red_team_model_name},
+                    }
+                }
+            }
             self.redteamer = garak._plugins.load_plugin(
-                f"generators.{self.red_team_model_type}",
-                config_root=self.red_team_model_config,
+                f"generators.{self.red_team_model_type}", config_root=rt_config
             )
-            if hasattr(self.redteamer, "name"):
-                self.redteamer.name = self.red_team_model_name
 
         # Calculate totals
         total_pairs = len(self.base_queries) * len(self.techniques)
