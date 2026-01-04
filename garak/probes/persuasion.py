@@ -17,24 +17,19 @@ import garak._plugins
 
 
 class PersuasivePAP(garak.probes.Probe):
-    """Persuasive Adversarial Prompts (PAP) - In-depth Iterative Probe
+    """Persuasive Adversarial Prompts (PAP)
 
-    Implements the "In-depth Iterative Probing" methodology from Zeng et al. (2024).
-    Uses 50 harmful queries from AdvBench combined with 40 social science-based
-    persuasion techniques to dynamically generate persuasive jailbreak attempts.
-
-    METHODOLOGY:
     This probe implements the "Broad Scan" methodology (Section 5) by generating
     variants for ALL 40 techniques in parallel. This methodology encompasses the 
     full search space of the "In-Depth Iterative Probe" (Section 6), but without 
     early stopping.
 
-    The probe uses a red team LLM (default: gpt-4-0613) to generate persuasive
-    variants. It generates 'variants_per_pair' (default: 20) independent variants 
-    for each (query, technique) pair using high-temperature sampling, resulting in:
+    The probe uses a red team LLM to generate persuasive variants. It generates
+    'variants_per_pair' (default: 20) independent variants for each 
+    (query, technique) pair using high-temperature sampling, resulting in:
     50 queries x 40 techniques x 20 variants = 40,000 prompts total.
 
-    DATASET ATTRIBUTION:
+    Dataset attribution:
     This probe uses the custom subset of the AdvBench dataset described in the
     paper. The dataset is obtained from 'JailbreakingLLMs' repository 
     (Chao et al., 2023).
@@ -57,10 +52,13 @@ class PersuasivePAP(garak.probes.Probe):
     tier = garak.probes.Tier.OF_CONCERN
 
     DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
-        "red_team_model_type": "openai",  # Red team model type
-        "red_team_model_name": "gpt-4-0613",  # Red team model name
-        "red_team_model_config": {},  # Additional config
-        "variants_per_pair": 20,  # Number of variants per (query, technique) pair
+        "red_team_model_type": "nim.NVOpenAIChat",
+        "red_team_model_name": "mistralai/mixtral-8x22b-instruct-v0.1",
+        "red_team_model_config": {
+            "temperature": 1.0, # Follows temperature setting in paper's repo
+            "vary_temp_each_call": False,
+        },  # Additional config
+        "variants_per_pair": 20,  # No. variants per (query, technique) pair
         "base_query_count": None,  # None = use all 50 queries
         "persuasion_technique_count": None,  # None = use all 40 techniques
     }
@@ -89,7 +87,11 @@ class PersuasivePAP(garak.probes.Probe):
         )
 
     def _load_base_queries(self) -> List[str]:
-        """Load base harmful queries from local JSONL."""
+        """Load base harmful queries from custom AdvBench dataset.
+
+        This is the subset of AdvBench used in Zeng et al. (2024).
+        Source: https://github.com/patrickrchao/JailbreakingLLMs/blob/main/data/harmful_behaviors_custom.csv
+        """
         queries = []
         queries_path = data_path / "persuasion/harmful_behaviors.jsonl"
 
@@ -114,7 +116,10 @@ class PersuasivePAP(garak.probes.Probe):
         return queries
 
     def _load_persuasion_techniques(self) -> List[dict]:
-        """Load persuasion techniques from taxonomy."""
+        """Load persuasion techniques from taxonomy.
+
+        Source: https://github.com/CHATS-lab/persuasive_jailbreaker/blob/main/persuasion_taxonomy.jsonl
+        """
         techniques = []
         try:
             taxonomy_path = data_path / "persuasion/persuasion_taxonomy.jsonl"
@@ -148,7 +153,7 @@ class PersuasivePAP(garak.probes.Probe):
 
     def _build_paraphraser_prompt(self, query: str, technique: dict) -> str:
         """Build the prompt for the red team model.
-        This uses the 'one_shot_kd' template pattern from the authors' 
+        This uses the template pattern from the authors' 
         repository to generate a single, high-quality persuasive attempt. 
         
         The prompt includes specific instructions to hallucinate 
@@ -185,30 +190,24 @@ class PersuasivePAP(garak.probes.Probe):
         if not prompt:
             return []
 
-        # Use API to generate variants independently
-        # (Temp=1.0) matches the sampling method in the paper's repository 
-        self.redteamer.generations = self.variants_per_pair
-        self.redteamer.temperature = 1.0
+        # Wrap prompt in Conversation object as required by all generators
+        conv = garak.attempt.Conversation([
+            garak.attempt.Turn("user", garak.attempt.Message(prompt))
+        ])
 
-        try:
-            # Generate multiple independent completions
-            # Wrap prompt in Conversation object as required by all generators
-            conv = garak.attempt.Conversation([
-                garak.attempt.Turn("user", garak.attempt.Message(prompt))
-            ])
-            results = self.redteamer.generate(conv)
+        # Generate multiple independent completions by calling the 
+        # generator multiple times
+        variants = []
+        for _ in range(self.variants_per_pair):
+            try:
+                results = self.redteamer.generate(conv)
+                if results and results[0] and results[0].text:
+                    variants.append(results[0].text.strip('" \n'))
+            except Exception as e:
+                logging.error(f"Failed to generate variant: {e}")
+                continue
 
-            # Clean results - results are Message objects, extract text
-            variants = []
-            for r in results:
-                if r and r.text:
-                    variants.append(r.text.strip('" \n'))
-
-            return variants
-
-        except Exception as e:
-            logging.error(f"Failed to generate variants: {e}")
-            return []
+        return variants
 
     def probe(self, generator) -> List[garak.attempt.Attempt]:
         """Generate persuasive adversarial prompts and probe the target model."""
@@ -253,7 +252,7 @@ class PersuasivePAP(garak.probes.Probe):
         # Iterate pairs
         pair_iterator = tqdm(
             total=total_pairs,
-            desc=self.probename.replace("garak.", ""),
+            desc=f"{self.probename.replace('garak.', '')} ({self.variants_per_pair} variants/pair)",
             leave=False,
         )
 
