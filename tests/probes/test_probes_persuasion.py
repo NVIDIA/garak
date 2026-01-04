@@ -123,6 +123,7 @@ def test_persuasion_probe_execution(probename):
                     "variants_per_pair": 2,
                     "red_team_model_type": "test.Repeat",
                     "red_team_model_name": "",
+                    "red_team_model_config": {},
                 }
             }
         }
