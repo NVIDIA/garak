@@ -12,6 +12,7 @@ import gc
 from garak._plugins import load_plugin
 from garak.generators import Generator
 from garak.generators.huggingface import Model
+from garak.attempt import Conversation, Turn, Message
 import garak._config
 from garak.data import path as data_path
 from garak.resources.autodan.genetic import (
@@ -178,8 +179,11 @@ def autodan_generate(
             best_new_adv_prefix = new_adv_prefixes[best_new_adv_prefix_id]
 
             adv_prefix = best_new_adv_prefix
-            gen_str = generator.generate(prompt=adv_prefix)[0]
-            success = check_for_attack_success(gen_str, REJECTION_STRINGS)
+            conv = Conversation(turns=[Turn(role="user", content=Message(text=adv_prefix))])
+            gen_output = generator.generate(prompt=conv)[0]
+            success = False
+            if gen_output and gen_output.text:
+                success = check_for_attack_success(gen_output.text, REJECTION_STRINGS)
             if success:
                 logger.info(
                     f"Found a successful AutoDAN prompt!\n{adv_prefix}\nAppending to {out_path}."
