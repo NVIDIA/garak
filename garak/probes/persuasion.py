@@ -1,7 +1,7 @@
 """Persuasion
 
 Probes using social science persuasion techniques from
-[Persuasive Adversarial Prompts](https://arxiv.org/abs/2401.06373)
+`Persuasive Adversarial Prompts <https://arxiv.org/abs/2401.06373>`_
 """
 
 import json
