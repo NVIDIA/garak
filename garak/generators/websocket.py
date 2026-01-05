@@ -339,11 +339,7 @@ class WebSocketGenerator(Generator):
                 return [None] * min(generations_this_call, 1)
             
             # Extract text from simple, single-turn conversation
-            if hasattr(prompt, 'turns') and prompt.turns:
-                prompt_text = prompt.turns[-1].text
-            else:
-                # Fallback for simple string prompts
-                prompt_text = str(prompt)
+            prompt_text = prompt.last_message().text
             
             # Run async generation in event loop
             loop = asyncio.new_event_loop()
