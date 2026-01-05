@@ -322,11 +322,9 @@ class WebSocketGenerator(Generator):
                     return True
         return False
     
-    def _has_conversation_history(self, prompt: Conversation) -> bool:
-        """Check if conversation has multiple turns (history)"""
-        if hasattr(prompt, 'turns') and len(prompt.turns) > 1:
-            return True
-        return False
+    def _has_single_turn(self, prompt: Conversation) -> bool:
+        """Check if conversation has only one turn"""
+        return len(prompt.turns()) == 1
     
     def _call_model(self, prompt: Conversation, generations_this_call: int = 1, **kwargs) -> List[Union[Message, None]]:
         """Call the WebSocket LLM model with smart limitation detection"""
