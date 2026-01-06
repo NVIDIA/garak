@@ -46,10 +46,15 @@ def start_run():
     import uuid
 
     from pathlib import Path
-    from garak import _config
+    from garak import _config, resumeservice
 
     logging.info("run started at %s", _config.transient.starttime_iso)
-    # print("ASSIGN UUID", args)
+
+    # Check if we're in resume mode - let the service handle all setup
+    if resumeservice.setup_run():
+        return
+
+    # Normal mode (non-resume)
     if _config.system.lite and "probes" not in _config.transient.cli_args and not _config.transient.cli_args.list_probes and not _config.transient.cli_args.list_detectors and not _config.transient.cli_args.list_generators and not _config.transient.cli_args.list_buffs and not _config.transient.cli_args.list_config and not _config.transient.cli_args.plugin_info and not _config.run.interactive:  # type: ignore
         hint(
             "The current/default config is optimised for speed rather than thoroughness. Try e.g. --config full for a stronger test, or specify some probes.",

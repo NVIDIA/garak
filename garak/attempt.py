@@ -435,3 +435,25 @@ class Attempt:
             "Conversation turn role must be one of '%s', got '%s'"
             % ("'/'".join(roles), role)
         )
+
+    @classmethod
+    def from_dict(cls, dicti: dict) -> "Attempt":
+        """Initializes an attempt object from dictionary."""
+        attempt_obj = cls()
+        attempt_obj.uuid = dicti["uuid"]
+        attempt_obj.seq = dicti["seq"]
+        attempt_obj.status = dicti["status"]
+        attempt_obj.probe_classname = dicti["probe_classname"]
+        attempt_obj.probe_params = dicti["probe_params"]
+        attempt_obj.targets = dicti["targets"]
+        attempt_obj._prompt = Conversation.from_dict(dicti["prompt"])
+        attempt_obj.detector_results = dicti["detector_results"]
+        attempt_obj.notes = dicti["notes"]
+        attempt_obj.goal = dicti["goal"]
+        attempt_obj.conversations = [
+            Conversation.from_dict(conv) for conv in dicti["conversations"]
+        ]
+        attempt_obj.reverse_translation_outputs = [
+            Message(**msg) for msg in dicti.get("reverse_translation_outputs", [])
+        ]
+        return attempt_obj
