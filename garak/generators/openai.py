@@ -294,6 +294,9 @@ class OpenAICompatible(Generator):
             else:
                 return [None]
 
+        # Capture token usage if tracking is enabled
+        self._capture_oai_token_usage(response)
+
         if is_completion:
             return [Message(c.text) for c in response.choices]
         else:
