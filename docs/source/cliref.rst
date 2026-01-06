@@ -23,8 +23,7 @@ CLI reference for garak
                          [--taxonomy TAXONOMY] [--plugin_info PLUGIN_INFO]
                          [--list_probes] [--list_detectors] [--list_generators]
                          [--list_buffs] [--list_config] [--version]
-                         [--report REPORT] [--interactive] [--generate_autodan]
-                         [--fix]
+                         [--report REPORT] [--interactive] [--fix]
   
   LLM safety & security scanning tool
   
@@ -115,8 +114,6 @@ CLI reference for garak
     --report REPORT, -r REPORT
                           process garak report into a list of AVID reports
     --interactive, -I     Enter interactive probing mode
-    --generate_autodan    generate AutoDAN prompts; requires --prompt_options
-                          with JSON containing a prompt and target
     --fix                 Update provided configuration with fixer migrations;
                           requires one of --config / --*_option_file, /
                           --*_options
