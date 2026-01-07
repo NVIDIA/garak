@@ -24,10 +24,10 @@ logger = logging.getLogger(__name__)
 
 class WebSocketGenerator(Generator):
     """Generator for WebSocket-based LLM services
-    
+
     This generator connects to LLM services that communicate via WebSocket protocol,
     handling authentication, template-based messaging, and JSON response extraction.
-    
+
     Configuration parameters:
     - uri: WebSocket URL (ws:// or wss://)
     - name: Display name for the service
@@ -73,64 +73,67 @@ class WebSocketGenerator(Generator):
         # Set uri if explicitly provided (overrides default)
         if uri:
             self.uri = uri
-        
-        
+
         # Let Configurable class handle all the DEFAULT_PARAMS magic
         super().__init__("", config_root)
-        
+
         # Now validate that required values are formatted correctly
         if not self.uri:
             raise ValueError("WebSocket uri is required")
-            
+
         parsed = urlparse(self.uri)
-        if parsed.scheme not in ['ws', 'wss']:
+        if parsed.scheme not in ["ws", "wss"]:
             raise ValueError("URI must use ws:// or wss:// scheme")
-        
+
         # Parse URI attributes
-        self.secure = parsed.scheme == 'wss'
+        self.secure = parsed.scheme == "wss"
         self.host = parsed.hostname
         self.port = parsed.port or (443 if self.secure else 80)
         self.path = parsed.path or "/"
-        
+
         # Set up authentication
         self._setup_auth()
-        
+
         # Current WebSocket connection
         self.websocket = None
-        
+
         logger.info(f"WebSocket generator initialized for {self.uri}")
 
     def _validate_env_var(self):
         """Only validate API key if it's actually needed in templates or auth"""
         if self.auth_type != "none":
             return super()._validate_env_var()
-        
+
         # Check if templates require API key
         key_required = False
         if "$KEY" in str(self.req_template):
             key_required = True
-        if self.req_template_json_object and "$KEY" in str(self.req_template_json_object):
+        if self.req_template_json_object and "$KEY" in str(
+            self.req_template_json_object
+        ):
             key_required = True
         if self.headers and any("$KEY" in str(v) for v in self.headers.values()):
             key_required = True
-            
+
         if key_required:
             return super()._validate_env_var()
-        
+
         # No API key validation needed
         return
 
     def _setup_auth(self):
         """Set up authentication headers and credentials"""
         self.auth_header = None
-        
+
         # Set up authentication headers
         if self.auth_type == "basic" and self.username and self.api_key:
-            credentials = base64.b64encode(f"{self.username}:{self.api_key}".encode()).decode()
+            credentials = base64.b64encode(
+                f"{self.username}:{self.api_key}".encode()
+            ).decode()
             self.auth_header = f"Basic {credentials}"
         elif self.auth_type == "bearer" and self.api_key:
             self.auth_header = f"Bearer {self.api_key}"
-        
+
         # Add auth header to headers dict
         if self.auth_header:
             self.headers = self.headers or {}
@@ -142,19 +145,21 @@ class WebSocketGenerator(Generator):
         replacements = {
             "$INPUT": prompt,
             "$KEY": self.api_key or "",
-            "$CONVERSATION_ID": self.conversation_id or ""
+            "$CONVERSATION_ID": self.conversation_id or "",
         }
-        
+
         # Use JSON object template if provided
         if self.req_template_json_object:
-            message_obj = self._apply_replacements(self.req_template_json_object, replacements)
+            message_obj = self._apply_replacements(
+                self.req_template_json_object, replacements
+            )
             return json.dumps(message_obj)
-        
+
         # Use string template
         message = self.req_template
         for placeholder, value in replacements.items():
             message = message.replace(placeholder, value)
-        
+
         return message
 
     def _apply_replacements(self, obj: Any, replacements: Dict[str, str]) -> Any:
@@ -164,7 +169,9 @@ class WebSocketGenerator(Generator):
                 obj = obj.replace(placeholder, value)
             return obj
         elif isinstance(obj, dict):
-            return {k: self._apply_replacements(v, replacements) for k, v in obj.items()}
+            return {
+                k: self._apply_replacements(v, replacements) for k, v in obj.items()
+            }
         elif isinstance(obj, list):
             return [self._apply_replacements(item, replacements) for item in obj]
         else:
@@ -174,20 +181,20 @@ class WebSocketGenerator(Generator):
         """Extract text from response using JSON field extraction"""
         if not self.response_json:
             return response
-        
+
         try:
             response_data = json.loads(response)
-            
+
             # Handle JSONPath-style field extraction
-            if self.response_json_field.startswith('$'):
+            if self.response_json_field.startswith("$"):
                 # Simple JSONPath support for common cases
                 path = self.response_json_field[1:]  # Remove $
-                if path.startswith('.'):
+                if path.startswith("."):
                     path = path[1:]  # Remove leading dot
-                if '.' in path:
+                if "." in path:
                     # Navigate nested fields
                     current = response_data
-                    for field in path.split('.'):
+                    for field in path.split("."):
                         if field and isinstance(current, dict) and field in current:
                             current = current[field]
                         else:
@@ -199,9 +206,11 @@ class WebSocketGenerator(Generator):
             else:
                 # Direct field access
                 return str(response_data.get(self.response_json_field, response))
-                
+
         except (json.JSONDecodeError, KeyError, TypeError):
-            logger.warning(f"Failed to extract JSON field '{self.response_json_field}', returning raw response")
+            logger.warning(
+                f"Failed to extract JSON field '{self.response_json_field}', returning raw response"
+            )
             return response
 
     async def _connect_websocket(self):
@@ -209,25 +218,26 @@ class WebSocketGenerator(Generator):
         try:
             # Prepare connection arguments
             connect_args = {
-                'open_timeout': self.connection_timeout,
-                'close_timeout': self.connection_timeout,
+                "open_timeout": self.connection_timeout,
+                "close_timeout": self.connection_timeout,
             }
-            
+
             # Add headers if provided
             if self.headers:
-                connect_args['additional_headers'] = self.headers
-            
+                connect_args["additional_headers"] = self.headers
+
             # SSL verification
             if self.secure and not self.verify_ssl:
                 import ssl
-                connect_args['ssl'] = ssl.create_default_context()
-                connect_args['ssl'].check_hostname = False
-                connect_args['ssl'].verify_mode = ssl.CERT_NONE
-            
+
+                connect_args["ssl"] = ssl.create_default_context()
+                connect_args["ssl"].check_hostname = False
+                connect_args["ssl"].verify_mode = ssl.CERT_NONE
+
             logger.debug(f"Connecting to WebSocket: {self.uri}")
             self.websocket = await websockets.connect(self.uri, **connect_args)
             logger.info(f"WebSocket connected to {self.uri}")
-            
+
         except Exception as e:
             logger.error(f"Failed to connect to WebSocket {self.uri}: {e}")
             raise
@@ -236,54 +246,53 @@ class WebSocketGenerator(Generator):
         """Send message and receive response with timeout and typing indicator handling"""
         if not self.websocket:
             await self._connect_websocket()
-        
+
         try:
             # Send message
             await self.websocket.send(message)
             logger.debug("WebSocket message sent")
-            
+
             # Collect response parts
             response_parts = []
             start_time = time.time()
             typing_detected = False
-            
+
             while time.time() - start_time < self.request_timeout:
                 try:
                     # Wait for message with timeout
                     remaining_time = self.request_timeout - (time.time() - start_time)
                     if remaining_time <= 0:
                         break
-                        
+
                     response = await asyncio.wait_for(
-                        self.websocket.recv(), 
-                        timeout=min(2.0, remaining_time)
+                        self.websocket.recv(), timeout=min(2.0, remaining_time)
                     )
-                    
+
                     logger.debug("WebSocket message received")
-                    
+
                     # Handle typing indicators
                     if self.response_after_typing and self.typing_indicator in response:
                         typing_detected = True
                         continue
-                    
+
                     # If we were waiting for typing to finish and got a non-typing message
                     if typing_detected and self.typing_indicator not in response:
                         response_parts.append(response)
                         break
-                    
+
                     # Collect response parts
                     response_parts.append(response)
-                    
+
                     # If not using typing indicators, assume first response is complete
                     if not self.response_after_typing:
                         break
-                    
+
                     # Check if we have enough content
                     total_length = sum(len(part) for part in response_parts)
                     if total_length > self.max_response_length:
                         logger.debug("Max response length reached")
                         break
-                        
+
                 except asyncio.TimeoutError:
                     logger.debug("WebSocket receive timeout")
                     # If we have some response, break; otherwise continue waiting
@@ -293,13 +302,13 @@ class WebSocketGenerator(Generator):
                 except ConnectionClosed:
                     logger.warning("WebSocket connection closed during receive")
                     break
-            
+
             # Combine response parts
-            full_response = ''.join(response_parts)
+            full_response = "".join(response_parts)
             logger.debug(f"WebSocket response received ({len(full_response)} chars)")
-            
+
             return full_response
-            
+
         except Exception as e:
             logger.error(f"Error in WebSocket communication: {e}")
             # Try to reconnect for next request
@@ -316,36 +325,44 @@ class WebSocketGenerator(Generator):
 
     def _has_system_prompt(self, prompt: Conversation) -> bool:
         """Check if conversation contains system prompts"""
-        if hasattr(prompt, 'turns') and prompt.turns:
+        if hasattr(prompt, "turns") and prompt.turns:
             for turn in prompt.turns:
-                if hasattr(turn, 'role') and turn.role == 'system':
+                if hasattr(turn, "role") and turn.role == "system":
                     return True
         return False
-    
+
     def _has_single_turn(self, prompt: Conversation) -> bool:
         """Check if conversation has only one turn"""
         return len(prompt.turns()) == 1
-    
-    def _call_model(self, prompt: Conversation, generations_this_call: int = 1, **kwargs) -> List[Union[Message, None]]:
+
+    def _call_model(
+        self, prompt: Conversation, generations_this_call: int = 1, **kwargs
+    ) -> List[Union[Message, None]]:
         """Call the WebSocket LLM model with smart limitation detection"""
         try:
             # Check for unsupported features and skip gracefully
             if self._has_system_prompt(prompt):
-                logger.warning("WebSocket generator doesn't support system prompts yet - skipping test")
+                logger.warning(
+                    "WebSocket generator doesn't support system prompts yet - skipping test"
+                )
                 return [None] * min(generations_this_call, 1)
-                
+
             if self._has_conversation_history(prompt):
-                logger.warning("WebSocket generator doesn't support conversation history yet - skipping test") 
+                logger.warning(
+                    "WebSocket generator doesn't support conversation history yet - skipping test"
+                )
                 return [None] * min(generations_this_call, 1)
-            
+
             # Extract text from simple, single-turn conversation
             prompt_text = prompt.last_message().text
-            
+
             # Run async generation in event loop
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
-                response_text = loop.run_until_complete(self._generate_async(prompt_text))
+                response_text = loop.run_until_complete(
+                    self._generate_async(prompt_text)
+                )
                 # Create Message objects for garak
                 if response_text:
                     message = Message(text=response_text)
@@ -355,7 +372,7 @@ class WebSocketGenerator(Generator):
                     return [message] * min(generations_this_call, 1)
             finally:
                 loop.close()
-                
+
         except Exception as e:
             logger.error(f"WebSocket generation failed: {e}")
             message = Message(text="")
@@ -363,7 +380,7 @@ class WebSocketGenerator(Generator):
 
     def __del__(self):
         """Clean up WebSocket connection"""
-        if hasattr(self, 'websocket') and self.websocket:
+        if hasattr(self, "websocket") and self.websocket:
             try:
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)

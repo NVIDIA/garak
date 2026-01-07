@@ -75,7 +75,7 @@ class TestWebSocketGenerator:
         gen = WebSocketGenerator(config_root=instance_config)
         assert gen.headers["Authorization"] == "Bearer test_api_key"
 
-    @patch.dict('os.environ', {'TEST_API_KEY': 'env_api_key'})
+    @patch.dict("os.environ", {"TEST_API_KEY": "env_api_key"})
     def test_auth_env_var(self):
         """Test API key from environment variable"""
         instance_config = {
@@ -119,7 +119,7 @@ class TestWebSocketGenerator:
                         "req_template_json_object": {
                             "message": "$INPUT",
                             "conversation_id": "$CONVERSATION_ID",
-                            "api_key": "$KEY"
+                            "api_key": "$KEY",
                         },
                         "conversation_id": "test_conv",
                         "api_key": "test_key",
@@ -182,10 +182,12 @@ class TestWebSocketGenerator:
             }
         }
         gen = WebSocketGenerator(config_root=instance_config)
-        response = json.dumps({
-            "status": "success",
-            "data": {"message": "Hello world", "timestamp": "2023-01-01"}
-        })
+        response = json.dumps(
+            {
+                "status": "success",
+                "data": {"message": "Hello world", "timestamp": "2023-01-01"},
+            }
+        )
         result = gen._extract_response_text(response)
         assert result == "Hello world"
 
@@ -211,15 +213,16 @@ class TestWebSocketGenerator:
     async def test_connect_websocket_success(self):
         """Test successful WebSocket connection"""
         gen = WebSocketGenerator(uri="ws://localhost:3000")
-        
+
         mock_websocket = AsyncMock()
         # Mock websockets.connect to return the mock_websocket as an awaitable
-        with patch('garak.generators.websocket.websockets.connect') as mock_connect:
+        with patch("garak.generators.websocket.websockets.connect") as mock_connect:
             # Create an async mock that returns the mock_websocket when awaited
             async def async_connect(*args, **kwargs):
                 return mock_websocket
+
             mock_connect.side_effect = async_connect
-            
+
             await gen._connect_websocket()
             mock_connect.assert_called_once()
             assert gen.websocket == mock_websocket
@@ -238,14 +241,14 @@ class TestWebSocketGenerator:
             }
         }
         gen = WebSocketGenerator(config_root=instance_config)
-        
+
         mock_websocket = AsyncMock()
         mock_websocket.send = AsyncMock()
         mock_websocket.recv = AsyncMock(return_value="Hello response")
         gen.websocket = mock_websocket
-        
+
         result = await gen._send_and_receive("Hello")
-        
+
         mock_websocket.send.assert_called_once_with("Hello")
         assert result == "Hello response"
 
@@ -264,15 +267,15 @@ class TestWebSocketGenerator:
             }
         }
         gen = WebSocketGenerator(config_root=instance_config)
-        
+
         mock_websocket = AsyncMock()
         mock_websocket.send = AsyncMock()
         # Simulate typing indicator followed by actual response
         mock_websocket.recv = AsyncMock(side_effect=["typing", "Hello response"])
         gen.websocket = mock_websocket
-        
+
         result = await gen._send_and_receive("Hello")
-        
+
         assert result == "Hello response"
         assert mock_websocket.recv.call_count == 2
 
@@ -290,12 +293,12 @@ class TestWebSocketGenerator:
             }
         }
         gen = WebSocketGenerator(config_root=instance_config)
-        
+
         # Mock the async generation method
         async def mock_generate(prompt):
             return f"Response to: {prompt}"
-        
-        with patch.object(gen, '_generate_async', side_effect=mock_generate):
+
+        with patch.object(gen, "_generate_async", side_effect=mock_generate):
             result = gen._call_model("Test prompt")
             assert len(result) == 1
             assert result[0].text == "Response to: Test prompt"
@@ -303,12 +306,12 @@ class TestWebSocketGenerator:
     def test_call_model_error_handling(self):
         """Test error handling in model call"""
         gen = WebSocketGenerator(uri="ws://localhost:3000")
-        
+
         # Mock an exception in async generation
         async def mock_generate_error(prompt):
             raise Exception("Connection failed")
-        
-        with patch.object(gen, '_generate_async', side_effect=mock_generate_error):
+
+        with patch.object(gen, "_generate_async", side_effect=mock_generate_error):
             result = gen._call_model("Test prompt")
             assert len(result) == 1
             assert result[0].text == ""  # Should return empty string on error
@@ -316,30 +319,27 @@ class TestWebSocketGenerator:
     def test_apply_replacements_nested(self):
         """Test recursive replacement in nested data structures"""
         gen = WebSocketGenerator(uri="ws://localhost:3000")
-        
+
         # Use dynamic values to avoid hardcoding test expectations
         static_value = "static_value"
         input_value = f"test_input_{uuid.uuid4().hex[:8]}"
         key_value = f"test_key_{uuid.uuid4().hex[:8]}"
         conversation_value = f"test_conv_{uuid.uuid4().hex[:8]}"
-        
+
         data = {
             "message": "$INPUT",
-            "metadata": {
-                "user": "$KEY",
-                "conversation": "$CONVERSATION_ID"
-            },
-            "options": ["$INPUT", static_value]
+            "metadata": {"user": "$KEY", "conversation": "$CONVERSATION_ID"},
+            "options": ["$INPUT", static_value],
         }
-        
+
         replacements = {
             "$INPUT": input_value,
             "$KEY": key_value,
-            "$CONVERSATION_ID": conversation_value
+            "$CONVERSATION_ID": conversation_value,
         }
-        
+
         result = gen._apply_replacements(data, replacements)
-        
+
         assert result["message"] == input_value
         assert result["metadata"]["user"] == key_value
         assert result["metadata"]["conversation"] == conversation_value
@@ -349,11 +349,11 @@ class TestWebSocketGenerator:
     def test_default_params_coverage(self):
         """Test that all default parameters are properly set"""
         gen = WebSocketGenerator(uri="ws://localhost:3000")
-        
+
         # Check that all DEFAULT_PARAMS keys are set as attributes
         for key in WebSocketGenerator.DEFAULT_PARAMS:
             assert hasattr(gen, key), f"Missing attribute: {key}"
-        
+
         # Check specific defaults - note that name comes from DEFAULT_PARAMS now
         assert gen.name == "WebSocket LLM"
         assert gen.auth_type == "none"
@@ -363,5 +363,3 @@ class TestWebSocketGenerator:
         assert gen.request_timeout == 20
         assert gen.connection_timeout == 10
         assert gen.verify_ssl is True
-
-
