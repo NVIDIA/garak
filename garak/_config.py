@@ -299,6 +299,8 @@ def load_config(
     # would be good to bubble up things from run_config, e.g. generator, probe(s), detector(s)
     # and then not have cli be upset when these are not given as cli params
     global loaded
+    global config_files
+    config_files = []  # reset to avoid duplicates when load_base_config() was called first
 
     settings_files = [str(transient.package_dir / "resources" / "garak.core.yaml")]
 
