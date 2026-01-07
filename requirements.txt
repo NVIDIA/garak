@@ -1,4 +1,4 @@
-base2048>=0.1.3
+mikeshardmind-base2048>=1.0.2
 transformers>=4.51.3,<4.57.0
 datasets>=3.0.0,<4.0
 colorama>=0.4.3
