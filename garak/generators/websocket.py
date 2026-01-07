@@ -8,7 +8,6 @@ import asyncio
 import json
 import time
 import base64
-import os
 import logging
 from typing import List, Union, Dict, Any
 from urllib.parse import urlparse
@@ -85,11 +84,8 @@ class WebSocketGenerator(Generator):
         if parsed.scheme not in ["ws", "wss"]:
             raise ValueError("URI must use ws:// or wss:// scheme")
 
-        # Parse URI attributes
+        # Extract URI security attribute
         self.secure = parsed.scheme == "wss"
-        self.host = parsed.hostname
-        self.port = parsed.port or (443 if self.secure else 80)
-        self.path = parsed.path or "/"
 
         # Set up authentication
         self._setup_auth()
@@ -333,7 +329,7 @@ class WebSocketGenerator(Generator):
 
     def _has_single_turn(self, prompt: Conversation) -> bool:
         """Check if conversation has only one turn"""
-        return len(prompt.turns()) == 1
+        return len(prompt.turns) == 1
 
     def _call_model(
         self, prompt: Conversation, generations_this_call: int = 1, **kwargs
@@ -347,7 +343,7 @@ class WebSocketGenerator(Generator):
                 )
                 return [None] * min(generations_this_call, 1)
 
-            if self._has_conversation_history(prompt):
+            if not self._has_single_turn(prompt):
                 logger.warning(
                     "WebSocket generator doesn't support conversation history yet - skipping test"
                 )

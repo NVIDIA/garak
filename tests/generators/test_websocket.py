@@ -3,10 +3,10 @@
 import pytest
 import json
 import uuid
-from unittest.mock import Mock, patch, AsyncMock
-import asyncio
+from unittest.mock import patch, AsyncMock
 
 from garak.generators.websocket import WebSocketGenerator
+from garak.attempt import Conversation, Turn, Message
 
 
 class TestWebSocketGenerator:
@@ -16,18 +16,12 @@ class TestWebSocketGenerator:
         """Test basic initialization"""
         gen = WebSocketGenerator(uri="ws://localhost:3000")
         assert gen.uri == "ws://localhost:3000"
-        assert gen.host == "localhost"
-        assert gen.port == 3000
-        assert gen.path == "/"
         assert not gen.secure
 
     def test_init_secure(self):
         """Test secure WebSocket initialization"""
         gen = WebSocketGenerator(uri="wss://api.example.com:443/chat")
         assert gen.secure
-        assert gen.host == "api.example.com"
-        assert gen.port == 443
-        assert gen.path == "/chat"
 
     def test_init_invalid_scheme(self):
         """Test initialization with invalid scheme"""
@@ -39,7 +33,6 @@ class TestWebSocketGenerator:
         gen = WebSocketGenerator()
         assert gen.uri == "wss://echo.websocket.org"
         assert gen.secure
-        assert gen.host == "echo.websocket.org"
 
     def test_auth_basic(self):
         """Test basic authentication setup"""
@@ -295,13 +288,15 @@ class TestWebSocketGenerator:
         gen = WebSocketGenerator(config_root=instance_config)
 
         # Mock the async generation method
-        async def mock_generate(prompt):
-            return f"Response to: {prompt}"
+        async def mock_generate(*prompt):
+            return f"Response to: {prompt[0]}"
 
         with patch.object(gen, "_generate_async", side_effect=mock_generate):
-            result = gen._call_model("Test prompt")
+            test_str = "Test prompt"
+            prompt = Conversation([Turn(role="user", content=Message(text=test_str))])
+            result = gen._call_model(prompt)
             assert len(result) == 1
-            assert result[0].text == "Response to: Test prompt"
+            assert result[0].text == f"Response to: {test_str}"
 
     def test_call_model_error_handling(self):
         """Test error handling in model call"""
@@ -312,7 +307,9 @@ class TestWebSocketGenerator:
             raise Exception("Connection failed")
 
         with patch.object(gen, "_generate_async", side_effect=mock_generate_error):
-            result = gen._call_model("Test prompt")
+            test_str = "Test prompt"
+            prompt = Conversation([Turn(role="user", content=Message(text=test_str))])
+            result = gen._call_model(prompt)
             assert len(result) == 1
             assert result[0].text == ""  # Should return empty string on error
 
