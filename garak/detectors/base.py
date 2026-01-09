@@ -10,7 +10,7 @@ from typing import List, Iterable, Union
 
 from colorama import Fore, Style
 
-from garak import _config
+from garak import _config, _plugins
 from garak.configurable import Configurable
 import garak.attempt
 
@@ -44,6 +44,8 @@ class Detector(Configurable):
 
     _run_params = {"seed"}
 
+    _load_deps = _plugins._load_deps
+
     def _set_description(self):
         if "description" not in dir(self):
             try:
@@ -68,6 +70,7 @@ class Detector(Configurable):
             )
 
         logging.info(f"detector init: {self}")
+        self._load_deps()
 
     def detect(self, attempt: garak.attempt.Attempt) -> Iterable[float | None]:
         """Takes a list of Attempts; classifies them; returns a list of results

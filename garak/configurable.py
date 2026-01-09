@@ -10,7 +10,28 @@ from garak.exception import APIKeyMissingError
 
 
 class Configurable:
+    extra_dependency_names = []
+
     _supported_params = None  # override to provide a list of supported values
+    _unsafe_attributes = []
+
+    # avoid attempt to pickle the unsafe attributes
+    def __getstate__(self) -> object:
+        data = dict(self.__dict__)
+        for attribute in self._unsafe_attributes:
+            data[attribute] = None
+        for extra_dependency in self.extra_dependency_names:
+            extra_dep_name = extra_dependency.replace(".", "_").replace("-", "_")
+            data[extra_dep_name] = None
+        return data
+
+    # restore the unsafe attributes
+    def __setstate__(self, d) -> object:
+        self.__dict__.update(d)
+        if hasattr(self, "_load_deps"):
+            self._load_deps()
+        if hasattr(self, "_load_unsafe"):
+            self._load_unsafe()
 
     def _load_config(self, config_root=_config):
         if hasattr(self, "_instance_configured"):

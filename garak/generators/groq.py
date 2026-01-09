@@ -39,8 +39,7 @@ class GroqChat(OpenAICompatible):
     supports_multiple_generations = False
     generator_family_name = "Groq"
 
-    def _load_client(self):
-        self._load_deps()
+    def _load_unsafe(self):
         self.client = openai.OpenAI(base_url=self.uri, api_key=self.api_key)
         if self.name in ("", None):
             raise ValueError(

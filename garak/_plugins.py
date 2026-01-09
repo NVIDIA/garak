@@ -482,12 +482,7 @@ def _load_deps(plugin_instance: Configurable, deps_override=list()):
                     importlib.import_module(extra_dependency),
                 )
             except ModuleNotFoundError as e:
-                _import_failed(plugin_instance.extra_dependency_names, plugin_instance.__class__.__name__)
-
-
-def _clear_deps(plugin_instance: Configurable):
-    # unload external dependencies from class. should be invoked before
-    # serialisation, esp. in _clear_client (if used)
-    for extra_dependency in plugin_instance.extra_dependency_names:
-        extra_dep_name = extra_dependency.replace(".", "_").replace("-", "_")
-        setattr(plugin_instance, extra_dep_name, None)
+                _import_failed(
+                    plugin_instance.extra_dependency_names,
+                    plugin_instance.__class__.__name__,
+                )

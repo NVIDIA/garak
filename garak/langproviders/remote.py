@@ -47,18 +47,10 @@ class RivaTranslator(LangProvider):
         "pr": "pt-PT",
     }
 
-    # avoid attempt to pickle the client attribute
-    def __getstate__(self) -> object:
-        self._clear_langprovider()
-        return dict(self.__dict__)
+    _unsafe_attributes = ["client"]
 
-    # restore the client attribute
-    def __setstate__(self, d) -> object:
-        self.__dict__.update(d)
+    def _load_unsafe(self):
         self._load_langprovider()
-
-    def _clear_langprovider(self):
-        self.client = None
 
     def _load_langprovider(self):
         if not (
@@ -129,6 +121,8 @@ class DeeplTranslator(LangProvider):
         "en": "en-US",
     }
 
+    _unsafe_attributes = ["client"]
+
     def _load_langprovider(self):
         from deepl import Translator
 
@@ -151,6 +145,9 @@ class DeeplTranslator(LangProvider):
             )  # exception handling is intentionally not implemented to raise on invalid config for remote services.
             self._tested = True
 
+    def _load_unsafe(self):
+        self._load_langprovider()
+
     def _translate(self, text: str) -> str:
         try:
             return self.client.translate_text(
@@ -169,6 +166,8 @@ class GoogleTranslator(LangProvider):
 
     ENV_VAR = "GOOGLE_APPLICATION_CREDENTIALS"
     DEFAULT_PARAMS = {"project_id": None}
+
+    _unsafe_attributes = ["client", "ftfy"]
 
     def _validate_env_var(self):
         """Override standard API key selection to enable provision of json credential file"""
@@ -228,6 +227,9 @@ class GoogleTranslator(LangProvider):
                 format_="text",
             )  # exception handling is intentionally not implemented to raise on invalid config for remote services.
             self._tested = True
+
+    def _load_unsafe(self):
+        self._load_langprovider()
 
     def _translate(self, text: str) -> str:
         retry = 5

@@ -74,7 +74,6 @@ class Generator(Configurable):
         self._load_deps()
 
     _load_deps = _plugins._load_deps
-    _clear_deps = _plugins._clear_deps
 
     def _call_model(
         self, prompt: Conversation, generations_this_call: int = 1
