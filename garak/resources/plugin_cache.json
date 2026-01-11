@@ -3300,7 +3300,7 @@
         "risk-cards:lmrc:anthropomorphisation"
       ],
       "tier": 3,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-01-11 15:42:22 +0000"
     },
     "probes.lmrc.Bullying": {
       "description": "Generation of repeated threats, denigration",
@@ -3325,7 +3325,7 @@
         "payload:unwanted:violence"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-01-11 15:42:22 +0000"
     },
     "probes.lmrc.Deadnaming": {
       "description": "Mentioning a name that a person does not wish to be associated with",
@@ -3349,7 +3349,7 @@
         "avid-effect:performance:P0401"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-01-11 15:42:22 +0000"
     },
     "probes.lmrc.Misogyny": {
       "description": "Using language that is derogatory or discriminatory towards women",
@@ -3377,7 +3377,7 @@
         "payload:unwanted:hatespeech"
       ],
       "tier": 2,
-      "mod_time": "2026-01-11 15:21:49 +0000"
+      "mod_time": "2026-01-11 15:42:22 +0000"
     },
     "probes.lmrc.Profanity": {
       "description": "Using profane words, especially when not prompted to do so.",
@@ -3414,7 +3414,7 @@
         "payload:unwanted:profanity"
       ],
       "tier": 3,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-01-11 15:42:22 +0000"
     },
     "probes.lmrc.QuackMedicine": {
       "description": "Promoting non-scientific medicine.",
@@ -3440,7 +3440,7 @@
         "payload:dangerous:medical"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-01-11 15:42:22 +0000"
     },
     "probes.lmrc.SexualContent": {
       "description": "Content that discusses bodies and interactions in a sexual manner, or other sexually explicit material",
@@ -3468,7 +3468,7 @@
         "payload:unwanted:sexual"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-01-11 15:42:22 +0000"
     },
     "probes.lmrc.Sexualisation": {
       "description": "Causal or overt sexual objectification, reducing a person or group of people to sexual objects.",
@@ -3498,7 +3498,7 @@
         "payload:unwanted:sexual"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-01-11 15:42:22 +0000"
     },
     "probes.lmrc.SlurUsage": {
       "description": "Using an identity-based slur in a non-reclaimed way - either directly or recommending the consumer to use in speech/action.",
@@ -3527,7 +3527,7 @@
         "payload:unwanted:hatespeech"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-01-11 15:42:22 +0000"
     },
     "probes.malwaregen.Evasion": {
       "description": "Will the model write code to help avoid anti-malware?",
@@ -6189,7 +6189,7 @@
       "tags": [
         "risk-cards:lmrc:anthropomorphisation"
       ],
-      "mod_time": "2025-04-17 08:31:20 +0000"
+      "mod_time": "2026-01-11 15:42:22 +0000"
     },
     "detectors.lmrc.Misogyny": {
       "description": "Contextual misogyny detection via MilaNLProc/bert-base-uncased-ear-misogyny",
@@ -6225,7 +6225,7 @@
         "quality:Behavioral:ContentSafety:HateHarassment",
         "payload:unwanted:hatespeech"
       ],
-      "mod_time": "2026-01-11 15:21:41 +0000"
+      "mod_time": "2026-01-11 15:42:22 +0000"
     },
     "detectors.lmrc.MisogynyKeywords": {
       "description": "Keyword indicators for misogyny (non-determinative signal).",
@@ -6252,7 +6252,7 @@
         "quality:Behavioral:ContentSafety:HateHarassment",
         "payload:unwanted:hatespeech"
       ],
-      "mod_time": "2026-01-11 15:21:41 +0000"
+      "mod_time": "2026-01-11 15:42:22 +0000"
     },
     "detectors.lmrc.QuackMedicine": {
       "description": "Keywords related to Quack Medicine detector",
@@ -6276,7 +6276,7 @@
         "risk-cards:lmrc:quack_medicine",
         "avid-effect:ethics:E0402"
       ],
-      "mod_time": "2025-04-17 08:31:20 +0000"
+      "mod_time": "2026-01-11 15:42:22 +0000"
     },
     "detectors.malwaregen.AnyCode": {
       "description": "Detects programming languages",
