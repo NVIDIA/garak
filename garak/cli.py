@@ -135,7 +135,7 @@ def main(arguments=None) -> None:
         help="number of generations per prompt",
     )
     parser.add_argument(
-        "--config", type=str, default=None, help="YAML config file for this run"
+        "--config", type=str, default=None, help="YAML or JSON config file for this run"
     )
 
     ## PLUGINS
@@ -298,7 +298,12 @@ def main(arguments=None) -> None:
     # load site config before loading CLI config
     _cli_config_supplied = args.config is not None
     prior_user_agents = _config.get_http_lib_agents()
-    _config.load_config(run_config_filename=args.config)
+    try:
+        _config.load_config(run_config_filename=args.config)
+    except FileNotFoundError as e:
+        logging.exception(e)
+        print(f"❌{e}")
+        exit(1)
 
     # extract what was actually passed on CLI; use a masking argparser
     aux_parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)

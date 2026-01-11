@@ -26,7 +26,7 @@ REPORT_PATH = _config.transient.data_dir / _config.reporting.report_dir
 
 def test_include_original_prompt():
     # https://github.com/python/cpython/pull/97015 to ensure Windows compatibility
-    with tempfile.NamedTemporaryFile(buffering=0, delete=False) as tmp:
+    with tempfile.NamedTemporaryFile(buffering=0, delete=False, suffix=".yaml") as tmp:
         tmp.write(
             """---
 plugins:
@@ -66,7 +66,7 @@ plugins:
 
 
 def test_exclude_original_prompt():
-    with tempfile.NamedTemporaryFile(buffering=0, delete=False) as tmp:
+    with tempfile.NamedTemporaryFile(buffering=0, delete=False, suffix=".yaml") as tmp:
         tmp.write(
             """---
 plugins:
