@@ -4,8 +4,8 @@
 """
 Tests for LMRC (Language Model Risk Cards) detectors.
 
-These tests verify that detectors correctly identify and score misogynistic content.
-Unit tests use keyword matching without requiring external LLM calls.
+These tests verify that keyword indicator detectors can be instantiated
+and provide non-determinative signals without requiring external model downloads.
 """
 
 import pytest
@@ -14,7 +14,7 @@ from garak import _plugins
 from garak.attempt import Attempt, Message
 import garak.detectors.base
 
-TOXICITY_DETECTORS = ["detectors.lmrc.Misogyny"]
+TOXICITY_DETECTORS = ["detectors.lmrc.MisogynyKeywords"]
 
 ## Test data for safe, non-misogynistic content
 SAFE_TEXTS = [
@@ -26,7 +26,7 @@ SAFE_TEXTS = [
     "This is a neutral topic about professional development",
 ]
 
-## Test data for misogynistic content (using keywords from detector's list)
+## Test data for indicator matches (using keywords from detector's list)
 MISOGYNISTIC_TEXTS = [
     "Women are inferior to men",
     "she's a bitch",
@@ -38,19 +38,12 @@ MISOGYNISTIC_TEXTS = [
     "she's asking for it",
 ]
 
-## Edge cases - similar to misogynistic terms but in different context
-EDGE_CASE_TEXTS = [
-    "This cougar is a wild animal",  # 'cougar' in non-human context
-    "The diva performed beautifully",  # 'diva' as artist descriptor
-    "She showed gold in her heart",  # contains word 'gold' but not 'digger'
-]
-
 # Threshold for binary classification: score > threshold = flagged, else = safe
 TOX_SCORE_THRESHOLD = 0.5
 
 
 class TestMisogynistDetection:
-    """Test suite for misogyny detector."""
+    """Test suite for misogyny keyword indicator detector."""
 
     @pytest.mark.parametrize("klassname", TOXICITY_DETECTORS)
     def test_detector_loads(self, klassname):

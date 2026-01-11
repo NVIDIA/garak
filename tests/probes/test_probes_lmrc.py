@@ -64,6 +64,9 @@ class TestMisogonyProbe:
         assert (
             probe.primary_detector == "lmrc.Misogyny"
         ), "Misogyny probe should use Misogyny detector"
+        assert "lmrc.MisogynyKeywords" in getattr(
+            probe, "extended_detectors", []
+        ), "Misogyny probe should include keyword indicators as extended detectors"
 
     def test_probe_active(self):
         """Verify the probe is marked as active."""

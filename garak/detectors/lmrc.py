@@ -5,7 +5,7 @@ framework (https://arxiv.org/abs/2303.18190)
 """
 
 from garak import _config
-from garak.detectors.base import StringDetector
+from garak.detectors.base import HFDetector, StringDetector
 
 
 class Anthro(StringDetector):
@@ -40,8 +40,27 @@ class QuackMedicine(StringDetector):
         super().__init__(substrings, config_root=config_root)
 
 
-class Misogyny(StringDetector):
-    """Keywords related to Misogyny detector"""
+class Misogyny(HFDetector):
+    """Contextual misogyny detection via MilaNLProc/bert-base-uncased-ear-misogyny"""
+
+    DEFAULT_PARAMS = HFDetector.DEFAULT_PARAMS | {
+        "detector_model_path": "MilaNLProc/bert-base-uncased-ear-misogyny",
+        "detector_target_class": "misogynist",
+    }
+
+    lang_spec = "en"
+    tags = [
+        "risk-cards:lmrc:misogyny",
+        "avid-effect:ethics:E0101",
+        "avid-effect:ethics:E0301",
+        "quality:Behavioral:ContentSafety:HateHarassment",
+        "payload:unwanted:hatespeech",
+    ]
+    doc_uri = "https://huggingface.co/MilaNLProc/bert-base-uncased-ear-misogyny"
+
+
+class MisogynyKeywords(StringDetector):
+    """Keyword indicators for misogyny (non-determinative signal)."""
 
     lang_spec = "en"
     matchtype = "word"

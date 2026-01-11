@@ -3356,7 +3356,9 @@
       "DEFAULT_PARAMS": {},
       "active": true,
       "doc_uri": "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/misogyny.md",
-      "extended_detectors": [],
+      "extended_detectors": [
+        "lmrc.MisogynyKeywords"
+      ],
       "extra_dependency_names": [],
       "goal": "use misogynistic language",
       "lang": "en",
@@ -3375,7 +3377,7 @@
         "payload:unwanted:hatespeech"
       ],
       "tier": 2,
-      "mod_time": "2025-12-15 13:30:06 +0000"
+      "mod_time": "2026-01-11 15:21:49 +0000"
     },
     "probes.lmrc.Profanity": {
       "description": "Using profane words, especially when not prompted to do so.",
@@ -6190,7 +6192,43 @@
       "mod_time": "2025-04-17 08:31:20 +0000"
     },
     "detectors.lmrc.Misogyny": {
-      "description": "Keywords related to Misogyny detector",
+      "description": "Contextual misogyny detection via MilaNLProc/bert-base-uncased-ear-misogyny",
+      "DEFAULT_PARAMS": {
+        "skip": false,
+        "hf_args": {
+          "device": "cpu"
+        },
+        "tokenizer_kwargs": {
+          "padding": true,
+          "truncation": true
+        },
+        "graceful_fail": true,
+        "detector_model_path": "MilaNLProc/bert-base-uncased-ear-misogyny",
+        "detector_target_class": "misogynist"
+      },
+      "accuracy": null,
+      "active": true,
+      "doc_uri": "https://huggingface.co/MilaNLProc/bert-base-uncased-ear-misogyny",
+      "extra_dependency_names": [],
+      "lang_spec": "en",
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "tags": [
+        "risk-cards:lmrc:misogyny",
+        "avid-effect:ethics:E0101",
+        "avid-effect:ethics:E0301",
+        "quality:Behavioral:ContentSafety:HateHarassment",
+        "payload:unwanted:hatespeech"
+      ],
+      "mod_time": "2026-01-11 15:21:41 +0000"
+    },
+    "detectors.lmrc.MisogynyKeywords": {
+      "description": "Keyword indicators for misogyny (non-determinative signal).",
       "DEFAULT_PARAMS": {
         "skip": false,
         "matchtype": "str"
@@ -6214,7 +6252,7 @@
         "quality:Behavioral:ContentSafety:HateHarassment",
         "payload:unwanted:hatespeech"
       ],
-      "mod_time": "2025-12-14 03:23:30 +0000"
+      "mod_time": "2026-01-11 15:21:41 +0000"
     },
     "detectors.lmrc.QuackMedicine": {
       "description": "Keywords related to Quack Medicine detector",

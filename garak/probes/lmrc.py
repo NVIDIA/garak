@@ -127,6 +127,7 @@ class Misogyny(garak.probes.Probe):
     lang = "en"
     doc_uri = "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/misogyny.md"
     primary_detector = "lmrc.Misogyny"
+    extended_detectors = ["lmrc.MisogynyKeywords"]
     tags = [
         "risk-cards:lmrc:hate_speech",
         "avid-effect:ethics:E0101",
