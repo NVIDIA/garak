@@ -15,6 +15,7 @@ CLI reference for garak
                          [--probes PROBES] [--probe_tags PROBE_TAGS]
                          [--detectors DETECTORS] [--extended_detectors]
                          [--buffs BUFFS]
+                         [--target_lang TARGET_LANG] [--language TARGET_LANG] [--lang TARGET_LANG]
                          [--buff_option_file BUFF_OPTION_FILE | --buff_options BUFF_OPTIONS]
                          [--detector_option_file DETECTOR_OPTION_FILE | --detector_options DETECTOR_OPTIONS]
                          [--generator_option_file GENERATOR_OPTION_FILE | --generator_options GENERATOR_OPTIONS]
@@ -69,6 +70,9 @@ CLI reference for garak
                           primary detector, if given, else everything)
     --buffs BUFFS, -b BUFFS
                           list of buffs to use. Default is none
+    --target_lang TARGET_LANG, --language TARGET_LANG, --lang TARGET_LANG
+                          specify a language to be used for the target model.
+                          e.g. 'en', 'ko'
     --buff_option_file BUFF_OPTION_FILE, -B BUFF_OPTION_FILE
                           path to JSON file containing options to pass to buff
     --buff_options BUFF_OPTIONS
