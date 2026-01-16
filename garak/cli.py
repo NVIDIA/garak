@@ -191,6 +191,15 @@ def main(arguments=None) -> None:
         default=_config.plugins.buff_spec,
         help="list of buffs to use. Default is none",
     )
+    ## Language
+    parser.add_argument(
+        "--target_lang",
+        "--language",
+        "--lang",
+        type=str,
+        default=_config.run.target_lang,
+        help="specify a language to be used for the target model. e.g. 'en', 'ko'",
+    )
     # file or json based config options
     plugin_types = sorted(
         zip([type.lower() for type in _plugins.PLUGIN_CLASSES], _plugins.PLUGIN_TYPES)
@@ -372,6 +381,8 @@ def main(arguments=None) -> None:
         _config.plugins.detector_spec = args.detectors
     if "buffs" in args:
         _config.plugins.buff_spec = args.buffs
+    if "target_lang" in args:
+        _config.run.target_lang = args.target_lang
 
     # base config complete
 
