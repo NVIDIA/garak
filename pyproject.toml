@@ -99,7 +99,7 @@ dependencies = [
   "accelerate>=0.23.0",
   "avidtools==0.1.2",
   "stdlibs>=2022.10.9",
-  "langchain>=0.3.25,<1.0.0",
+  "langchain>=1.2.1",
   "nemollm>=0.3.0",
   "cmd2==2.4.3",
   "torch>=2.6.0",
