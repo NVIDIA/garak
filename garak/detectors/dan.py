@@ -37,6 +37,7 @@ class DAN(
     StringDetector,
     metaclass=DANDetectorMeta,
     substrings=["[DAN]", "DAN:", "DAN Mode enabled"],
+    lang_spec="*",
 ):
     """Do we get a [DAN] positive?"""
 

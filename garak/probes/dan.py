@@ -127,6 +127,15 @@ class DANProbeMeta(type):
 
             try:
                 prompt_path = data_path / self.prompt_file
+                # Prefer localized prompt files when target_lang is set.
+                target_lang = getattr(_config.run, "target_lang", None)
+                if target_lang:
+                    localized = prompt_path.with_name(
+                        prompt_path.stem + f".{target_lang}" + prompt_path.suffix
+                    )
+                    if localized.exists():
+                        prompt_path = localized
+                        self.lang = target_lang
             except GarakException:
                 self.prompts = []
             else:
