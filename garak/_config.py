@@ -158,9 +158,12 @@ def _combine_into(d: dict, combined: dict) -> dict:
 
 def _load_config_files(settings_filenames) -> dict:
     global config_files
-    config_files += settings_filenames
     config = nested_dict()
     for settings_filename in settings_filenames:
+        if settings_filename in config_files:
+            logging.debug("Skipping already-loaded config: %s", settings_filename)
+            continue
+        config_files.append(settings_filename)
         with open(settings_filename, encoding="utf-8") as settings_file:
             try:
                 settings = json.load(settings_file)
