@@ -95,19 +95,6 @@ for p in _config.reporting_params:
     param_locs[p] = "reporting"
 
 
-@pytest.fixture(autouse=True)
-def reload_config(request):
-    def reload():
-        if _config.transient.reportfile is not None:
-            _config.transient.reportfile.close()
-            if os.path.exists(_config.transient.report_filename):
-                os.remove(_config.transient.report_filename)
-        importlib.reload(_config)
-
-    request.addfinalizer(reload)
-    reload()
-
-
 @pytest.fixture
 def allow_site_config(request):
     site_cfg_moved = False
