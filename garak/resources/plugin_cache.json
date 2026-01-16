@@ -332,7 +332,7 @@
       "primary_detector": null,
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-01-14 19:54:36 +0000"
+      "mod_time": "2026-01-16 10:41:37 +0000"
     },
     "probes.base.Probe": {
       "description": "Base class for objects that define and execute LLM evaluations",
@@ -352,7 +352,7 @@
       "primary_detector": null,
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-01-14 19:54:36 +0000"
+      "mod_time": "2026-01-16 10:41:37 +0000"
     },
     "probes.base.TreeSearchProbe": {
       "DEFAULT_PARAMS": {
@@ -377,7 +377,7 @@
       "primary_detector": null,
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-01-14 19:54:36 +0000"
+      "mod_time": "2026-01-16 10:41:37 +0000"
     },
     "probes.continuation.ContinueSlursReclaimedSlurs": {
       "description": "Continue partial word with slur or reclaimed slur.",
@@ -4604,8 +4604,8 @@
           }
         },
         "attack_max_attempts": 5,
-        "evaluator_model_type": "openai",
-        "evaluator_model_name": "gpt-3.5-turbo",
+        "evaluator_model_type": "openai.OpenAIGenerator",
+        "evaluator_model_name": "gpt-5-nano",
         "evaluator_model_config": {
           "max_tokens": 10,
           "temperature": 0.0
@@ -4637,7 +4637,7 @@
         "payload:jailbreak"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-01-15 10:49:30 +0000"
     },
     "probes.tap.TAP": {
       "description": "Tree of Attacks with Pruning Probe, generating new attacks against the target",
@@ -4653,8 +4653,8 @@
           }
         },
         "attack_max_attempts": 5,
-        "evaluator_model_type": "openai",
-        "evaluator_model_name": "gpt-3.5-turbo",
+        "evaluator_model_type": "openai.OpenAIGenerator",
+        "evaluator_model_name": "gpt-5-nano",
         "evaluator_model_config": {
           "max_tokens": 10,
           "temperature": 0.0
@@ -4686,7 +4686,7 @@
         "payload:jailbreak"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-01-15 10:49:30 +0000"
     },
     "probes.tap.TAPCached": {
       "description": "Tree of Attacks with Pruning Probe using cached attacks",
@@ -4713,7 +4713,7 @@
         "payload:jailbreak"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-01-15 10:49:30 +0000"
     },
     "probes.test.Blank": {
       "description": "Blank prompt",
@@ -6358,7 +6358,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-10-16 17:28:10 +0000"
+      "mod_time": "2026-01-16 10:58:56 +0000"
     },
     "detectors.packagehallucination.JavaScriptNpm": {
       "description": "Check if the output tries to import or require an npm package not listed in the npm registry",
@@ -6380,7 +6380,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-10-16 17:28:10 +0000"
+      "mod_time": "2026-01-16 10:58:56 +0000"
     },
     "detectors.packagehallucination.Perl": {
       "description": "Check if the output tries to use a Perl module not listed in MetaCPAN's provides list collected on 2025-08-11",
@@ -6402,7 +6402,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-10-16 17:28:10 +0000"
+      "mod_time": "2026-01-16 10:58:56 +0000"
     },
     "detectors.packagehallucination.PythonPypi": {
       "description": "Check if the output tries to import a package not listed in stdlib or a pypi archive listing",
@@ -6424,7 +6424,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-10-16 17:28:10 +0000"
+      "mod_time": "2026-01-16 10:58:56 +0000"
     },
     "detectors.packagehallucination.RakuLand": {
       "description": "Check if the output tries to use a Raku module not listed in raku.land collected on 2025-08-11",
@@ -6446,7 +6446,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-10-16 17:28:10 +0000"
+      "mod_time": "2026-01-16 10:58:56 +0000"
     },
     "detectors.packagehallucination.RubyGems": {
       "description": "Check if the output tries to require a gem not listed in the Ruby standard library or RubyGems",
@@ -6468,7 +6468,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-10-16 17:28:10 +0000"
+      "mod_time": "2026-01-16 10:58:56 +0000"
     },
     "detectors.packagehallucination.RustCrates": {
       "description": "Check if the output tries to use a Rust crate not listed in the crates.io registry",
@@ -6490,7 +6490,7 @@
       "precision": 0.0,
       "recall": 0.0,
       "tags": [],
-      "mod_time": "2025-10-16 17:28:10 +0000"
+      "mod_time": "2026-01-16 10:58:56 +0000"
     },
     "detectors.perspective.Attack_On_Author": {
       "description": "Targets: Attack on the author of an article or post.",
@@ -8762,7 +8762,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-01-16 10:36:25 +0000"
+      "mod_time": "2026-01-16 12:08:29 +0000"
     },
     "generators.openai.OpenAIGenerator": {
       "description": "Generator wrapper for OpenAI text2text models. Expects API key in the OPENAI_API_KEY environment variable",
@@ -8798,7 +8798,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2026-01-16 10:36:25 +0000"
+      "mod_time": "2026-01-16 12:08:29 +0000"
     },
     "generators.openai.OpenAIReasoningGenerator": {
       "description": "Generator wrapper for OpenAI reasoning models, e.g. `o1` family.",
@@ -8839,7 +8839,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-01-16 10:36:25 +0000"
+      "mod_time": "2026-01-16 12:08:29 +0000"
     },
     "generators.rasa.RasaRestGenerator": {
       "description": "API interface for RASA models",

@@ -12,6 +12,7 @@ Abstract and common-level probe classes belong here. Contact the garak maintaine
 import copy
 import json
 import logging
+import pickle
 from collections.abc import Iterable
 import random
 from typing import Iterable, Union
@@ -314,7 +315,11 @@ class Probe(Configurable):
         return copy.deepcopy(this_attempt)
 
     def _execute_all(self, attempts) -> Iterable[garak.attempt.Attempt]:
-        """handles sending a set of attempt to the generator"""
+        """handles sending a set of attempt to the generator
+
+        When running with multiprocessing, if pickling errors occur before any
+        attempts complete, this falls back to a thread pool to continue work.
+        """
         attempts_completed: Iterable[garak.attempt.Attempt] = []
 
         if (
@@ -336,20 +341,37 @@ class Probe(Configurable):
             )
 
             try:
-                with Pool(pool_size) as attempt_pool:
-                    for result in attempt_pool.imap_unordered(
-                        self._execute_attempt, attempts
-                    ):
-                        processed_attempt = self._postprocess_attempt(result)
 
-                        _config.transient.reportfile.write(
-                            json.dumps(processed_attempt.as_dict(), ensure_ascii=False)
-                            + "\n"
-                        )
-                        attempts_completed.append(
-                            processed_attempt
-                        )  # these can be out of original order
-                        attempt_bar.update(1)
+                def run_attempt_pool(pool_class):
+                    with pool_class(pool_size) as attempt_pool:
+                        for result in attempt_pool.imap_unordered(
+                            self._execute_attempt, attempts
+                        ):
+                            processed_attempt = self._postprocess_attempt(result)
+
+                            _config.transient.reportfile.write(
+                                json.dumps(
+                                    processed_attempt.as_dict(), ensure_ascii=False
+                                )
+                                + "\n"
+                            )
+                            attempts_completed.append(
+                                processed_attempt
+                            )  # these can be out of original order
+                            attempt_bar.update(1)
+
+                try:
+                    run_attempt_pool(Pool)
+                except (TypeError, AttributeError, pickle.PicklingError) as e:
+                    if "pickle" not in str(e).lower() or attempts_completed:
+                        raise
+                    logging.warning(
+                        "Parallel attempt pickling failed (%s); falling back to threads",
+                        e,
+                    )
+                    from multiprocessing.pool import ThreadPool
+
+                    run_attempt_pool(ThreadPool)
             except OSError as o:
                 if o.errno == 24:
                     msg = "Parallelisation limit hit. Try reducing parallel_attempts or raising limit (e.g. ulimit -n 4096)"
