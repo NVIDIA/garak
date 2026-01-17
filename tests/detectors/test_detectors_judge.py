@@ -7,7 +7,11 @@ import garak.detectors.base
 import garak.detectors.judge
 from garak.exception import BadGeneratorException
 
-DETECTOR_CLASSES = [garak.detectors.judge.ModelAsJudge, garak.detectors.judge.Refusal]
+DETECTOR_CLASSES = [
+    garak.detectors.judge.ModelAsJudge, 
+    garak.detectors.judge.Refusal,
+    garak.detectors.judge.Jailbreak,
+]
 
 
 @pytest.fixture
@@ -56,6 +60,10 @@ DETECT_TESTS = [
         [Message("Invalid")],
         1,
     ),  # if the judge cannot determine on_topic consider response as refusal
+    # Jailbreak detector tests - uses [[YES]]/[[NO]] format
+    (garak.detectors.judge.Jailbreak, [Message("[[NO]]")], 0),  # Safe response
+    (garak.detectors.judge.Jailbreak, [Message("[[YES]]")], 1),  # Jailbreak detected
+    (garak.detectors.judge.Jailbreak, [Message("Invalid")], 1),  # Default to jailbreak if unclear
 ]
 
 
@@ -77,3 +85,59 @@ def test_klass_detect(judge_config, mocker, klass, response, res_val):
     ), "a system message must be found in the conversation passed to the judge model"
     assert len(a.outputs) == len(res)
     assert [res_val * len(a.outputs)] == res
+
+
+class TestJailbreakOnlyAdversarial:
+    """Test JailbreakOnlyAdversarial detector that filters by is_adversarial flag"""
+
+    def test_non_adversarial_returns_none(self, judge_config, mocker):
+        """Non-adversarial attempts should return None (skipped)"""
+        d = garak.detectors.judge.JailbreakOnlyAdversarial(config_root=judge_config)
+        # Mock the generator - should NOT be called for non-adversarial
+        mock_generate = mocker.patch.object(
+            d.evaluation_generator, "generate", return_value=[Message("[[YES]]")]
+        )
+        
+        a = Attempt(probe_classname="test.Test", prompt=Message(text="test prompt"))
+        a.outputs = [Message("fake response")]
+        a.notes = {"is_adversarial": False}
+        
+        res = d.detect(a)
+        
+        # Should return None without calling the judge
+        mock_generate.assert_not_called()
+        assert res == [None]
+
+    def test_adversarial_evaluates_normally(self, judge_config, mocker):
+        """Adversarial attempts should be evaluated by the judge"""
+        d = garak.detectors.judge.JailbreakOnlyAdversarial(config_root=judge_config)
+        mock_generate = mocker.patch.object(
+            d.evaluation_generator, "generate", return_value=[Message("[[YES]]")]
+        )
+        
+        a = Attempt(probe_classname="test.Test", prompt=Message(text="test prompt"))
+        a.outputs = [Message("fake response")]
+        a.notes = {"is_adversarial": True, "goal": "test goal"}
+        
+        res = d.detect(a)
+        
+        # Should call the judge and return the result
+        mock_generate.assert_called_once()
+        assert res == [1.0]  # [[YES]] means jailbreak detected
+
+    def test_missing_is_adversarial_defaults_to_true(self, judge_config, mocker):
+        """Attempts without is_adversarial flag should be evaluated (default True)"""
+        d = garak.detectors.judge.JailbreakOnlyAdversarial(config_root=judge_config)
+        mock_generate = mocker.patch.object(
+            d.evaluation_generator, "generate", return_value=[Message("[[NO]]")]
+        )
+        
+        a = Attempt(probe_classname="test.Test", prompt=Message(text="test prompt"))
+        a.outputs = [Message("fake response")]
+        a.notes = {}  # No is_adversarial flag
+        
+        res = d.detect(a)
+        
+        # Should evaluate since default is True
+        mock_generate.assert_called_once()
+        assert res == [0.0]  # [[NO]] means safe
