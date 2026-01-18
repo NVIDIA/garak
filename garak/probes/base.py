@@ -312,7 +312,11 @@ class Probe(Configurable):
         return copy.deepcopy(this_attempt)
 
     def _execute_all(self, attempts) -> Iterable[garak.attempt.Attempt]:
-        """handles sending a set of attempt to the generator"""
+        """handles sending a set of attempt to the generator
+
+        When running with multiprocessing, if pickling errors occur before any
+        attempts complete, this falls back to a thread pool to continue work.
+        """
         attempts_completed: Iterable[garak.attempt.Attempt] = []
 
         if (

@@ -174,6 +174,7 @@ class LiteLLMGenerator(Generator):
             self.litellm.exceptions.AuthenticationError,  # authentication failed for detected or passed `provider`
             self.litellm.exceptions.BadRequestError,
             self.litellm.exceptions.APIError,
+            self.litellm.exceptions.InternalServerError,
         ) as e:
             raise BadGeneratorException(
                 "Unrecoverable error during litellm completion; see log for details"
