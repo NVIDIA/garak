@@ -68,8 +68,6 @@ class Probe(Configurable):
     _run_params = {"generations", "soft_probe_prompt_cap", "seed", "system_prompt"}
     _system_params = {"parallel_attempts", "max_workers"}
 
-    _load_deps = _plugins._load_deps
-
     def __init__(self, config_root=_config):
         """Sets up a probe.
 
