@@ -12,14 +12,15 @@ Abstract and common-level probe classes belong here. Contact the garak maintaine
 import copy
 import json
 import logging
+import pickle
 from collections.abc import Iterable
 import random
-from typing import Iterable, Union
+from typing import Iterable, Union, List
 
 from colorama import Fore, Style
 import tqdm
 
-from garak import _config
+from garak import _config, _plugins
 from garak.configurable import Configurable
 from garak.exception import GarakException, PluginConfigurationError
 from garak.probes._tier import Tier
@@ -59,11 +60,15 @@ class Probe(Configurable):
     # let mixins override this
     # tier: Tier = Tier.UNLISTED
     tier: Tier = Tier.UNLISTED
+    # list of strings naming modules required but not explicitly in garak by default
+    extra_dependency_names = []
 
     DEFAULT_PARAMS = {}
 
     _run_params = {"generations", "soft_probe_prompt_cap", "seed", "system_prompt"}
     _system_params = {"parallel_attempts", "max_workers"}
+
+    _load_deps = _plugins._load_deps
 
     def __init__(self, config_root=_config):
         """Sets up a probe.
@@ -302,11 +307,6 @@ class Probe(Configurable):
         this_attempt.outputs = self.generator.generate(
             this_attempt.prompt, generations_this_call=self.generations
         )
-        if len(this_attempt.outputs) != self.generations:
-            raise garak.exception.BadGeneratorException(
-                "Generator did not return the requested number of responses (asked for %i got %i). supports_multiple_generations may be set incorrectly."
-                % (self.generations, len(this_attempt.outputs))
-            )
         if self.post_buff_hook:
             this_attempt = self._postprocess_buff(this_attempt)
         this_attempt = self._postprocess_hook(this_attempt)
@@ -336,20 +336,36 @@ class Probe(Configurable):
             )
 
             try:
-                with Pool(pool_size) as attempt_pool:
-                    for result in attempt_pool.imap_unordered(
-                        self._execute_attempt, attempts
-                    ):
-                        processed_attempt = self._postprocess_attempt(result)
+                def run_attempt_pool(pool_class):
+                    with pool_class(pool_size) as attempt_pool:
+                        for result in attempt_pool.imap_unordered(
+                            self._execute_attempt, attempts
+                        ):
+                            processed_attempt = self._postprocess_attempt(result)
 
-                        _config.transient.reportfile.write(
-                            json.dumps(processed_attempt.as_dict(), ensure_ascii=False)
-                            + "\n"
-                        )
-                        attempts_completed.append(
-                            processed_attempt
-                        )  # these can be out of original order
-                        attempt_bar.update(1)
+                            _config.transient.reportfile.write(
+                                json.dumps(
+                                    processed_attempt.as_dict(), ensure_ascii=False
+                                )
+                                + "\n"
+                            )
+                            attempts_completed.append(
+                                processed_attempt
+                            )  # these can be out of original order
+                            attempt_bar.update(1)
+
+                try:
+                    run_attempt_pool(Pool)
+                except (TypeError, AttributeError, pickle.PicklingError) as e:
+                    if "pickle" not in str(e).lower() or attempts_completed:
+                        raise
+                    logging.warning(
+                        "Parallel attempt pickling failed (%s); falling back to threads",
+                        e,
+                    )
+                    from multiprocessing.pool import ThreadPool
+
+                    run_attempt_pool(ThreadPool)
             except OSError as o:
                 if o.errno == 24:
                     msg = "Parallelisation limit hit. Try reducing parallel_attempts or raising limit (e.g. ulimit -n 4096)"
