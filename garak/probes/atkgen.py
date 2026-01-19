@@ -226,7 +226,7 @@ class Tox(garak.probes.Probe):
                 last_response = response_to_store.replace("\n", " ").strip()
 
                 _config.transient.reportfile.write(
-                    json.dumps(this_attempt.as_dict()) + "\n"
+                    json.dumps(this_attempt.as_dict(), ensure_ascii=False) + "\n"
                 )
                 attempts.append(copy.deepcopy(this_attempt))
                 last_attempt = this_attempt
