@@ -361,7 +361,7 @@ class Probe(Configurable):
                 processed_attempt = self._postprocess_attempt(result)
 
                 _config.transient.reportfile.write(
-                    json.dumps(processed_attempt.as_dict()) + "\n"
+                    json.dumps(processed_attempt.as_dict(), ensure_ascii=False) + "\n"
                 )
                 attempts_completed.append(processed_attempt)
 

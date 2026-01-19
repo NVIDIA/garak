@@ -17,6 +17,13 @@ run:
   probe_tags:
   user_agent: "garak/{version} (LLM vulnerability scanner https://garak.ai)"
   soft_probe_prompt_cap: 256
+  langproviders:
+    - language: "en,ko"
+      model_type: "local"
+      model_name: "facebook/m2m100_418M"
+    - language: "ko,en"
+      model_type: "local"
+      model_name: "facebook/m2m100_418M"
 
 plugins:
   target_type:

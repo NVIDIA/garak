@@ -273,10 +273,17 @@ class Attempt:
             "conversations": [
                 asdict(conversation) for conversation in self.conversations
             ],
-            "reverse_translation_outputs": [
-                asdict(output) if output else None
-                for output in self.reverse_translation_outputs
-            ],
+            "reverse_translation_outputs": (
+                [
+                    asdict(output) if output else None
+                    for output in self.reverse_translation_outputs
+                ]
+                if all(
+                    output is None or output.lang == self.lang
+                    for output in self.reverse_translation_outputs
+                )
+                else []
+            ),
         }
 
     @property
