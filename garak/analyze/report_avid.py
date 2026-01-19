@@ -39,7 +39,9 @@ def convert_to_avid(report_location: str) -> str:
         evals[i]["probe_tags"] = plugin_instance.tags
 
     evals_df = pd.DataFrame.from_dict(evals)
-    evals_df = evals_df.assign(score=lambda x: (x["passed"] / x["total"] * 100))
+    evals_df = evals_df.assign(
+        score=lambda x: (x["passed"] / x["total_evaluated"] * 100)
+    )
     probe_scores = evals_df[["probe", "score"]].groupby("probe").mean()
 
     # set up a generic report template
@@ -80,7 +82,7 @@ def convert_to_avid(report_location: str) -> str:
             Metric(
                 name="",
                 detection_method=Detection(type=MethodEnum.thres, name="Count failed"),
-                results=probe_data[["detector", "passed", "total", "score"]]
+                results=probe_data[["detector", "passed", "total_evaluated", "score"]]
                 .reset_index()
                 .to_dict(),
             )

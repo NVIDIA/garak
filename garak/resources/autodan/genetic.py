@@ -16,6 +16,7 @@ from typing import Tuple
 
 from garak.resources.api import nltk
 from garak.resources.autodan.model_utils import AutoDanPrefixManager, forward
+from garak.attempt import Conversation, Turn, Message
 
 logger = getLogger(__name__)
 
@@ -278,14 +279,14 @@ def gpt_mutate(mutation_generator, sentence: str) -> str:
     while not received:
         try:
             # TODO: Make the model configurable.
-            response = mutation_generator.generate(
-                prompt=[
-                    {"role": "system", "content": system_msg},
-                    {"role": "user", "content": user_message},
-                ]
-            )
-            revised_sentence = response[0].replace("\n", "")
-            received = True
+            conv = Conversation(turns=[
+                Turn(role="system", content=Message(text=system_msg)),
+                Turn(role="user", content=Message(text=user_message)),
+            ])
+            response = mutation_generator.generate(prompt=conv)[0]
+            if response and response.text:
+                revised_sentence = response.text.replace("\n", "")
+                received = True
         except Exception as e:
             logger.error(e)
             error = sys.exc_info()[0]

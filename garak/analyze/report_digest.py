@@ -140,8 +140,10 @@ def _init_populate_result_db(evals, taxonomy=None):
         eval["probe"] = eval["probe"].replace("probes.", "")
         pm, pc = eval["probe"].split(".")
         detector = eval["detector"].replace("detector.", "")
-        score = eval["passed"] / eval["total"] if eval["total"] else 0
-        instances = eval["total"]
+        score = (
+            eval["passed"] / eval["total_evaluated"] if eval["total_evaluated"] else 0
+        )
+        instances = eval["total_evaluated"]
         groups = []
         if taxonomy is not None:
             # get the probe tags

@@ -55,7 +55,9 @@ def qual_review(report_path: str) -> None:
         for record in g:
             if record["entry_type"] == "eval":
                 passrate = (
-                    record["passed"] / record["total"] if record["total"] > 0 else 0
+                    record["passed"] / record["total_evaluated"]
+                    if record["total_evaluated"] > 0
+                    else 0
                 )
                 probe_module, probe_classname = record["probe"].split(".", 1)
                 detector = record["detector"].replace("detector.", "")

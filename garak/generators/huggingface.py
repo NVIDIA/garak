@@ -67,10 +67,9 @@ class Pipeline(Generator, HFCompatible):
         mp.set_start_method("spawn", force=True)
 
         self.device = self._select_hf_device()
-        self._load_client()
+        self._load_unsafe()
 
-    def _load_client(self):
-        self._load_deps()
+    def _load_unsafe(self):
         if hasattr(self, "generator") and self.generator is not None:
             return
 
@@ -105,15 +104,10 @@ class Pipeline(Generator, HFCompatible):
 
         self._set_hf_context_len(self.generator.model.config)
 
-    def _clear_client(self):
-        self._clear_deps()
-        self.generator = None
-        self.tokenizer = None
-
     def _call_model(
         self, prompt: Conversation, generations_this_call: int = 1
     ) -> List[Union[Message, None]]:
-        self._load_client()
+        self._load_unsafe()
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=UserWarning)
             try:
@@ -353,8 +347,7 @@ class Model(Pipeline, HFCompatible):
     generator_family_name = "Hugging Face 🤗 model"
     supports_multiple_generations = True
 
-    def _load_client(self):
-        self._load_deps()
+    def _load_unsafe(self):
         if hasattr(self, "model") and self.model is not None:
             return
 
@@ -401,17 +394,10 @@ class Model(Pipeline, HFCompatible):
         self.generation_config.eos_token_id = self.model.config.eos_token_id
         self.generation_config.pad_token_id = self.model.config.eos_token_id
 
-    def _clear_client(self):
-        self._clear_deps()
-        self.model = None
-        self.config = None
-        self.tokenizer = None
-        self.generation_config = None
-
     def _call_model(
         self, prompt: Conversation, generations_this_call: int = 1
     ) -> List[Message | None]:
-        self._load_client()
+        self._load_unsafe()
         self.generation_config.max_new_tokens = self.max_tokens
         self.generation_config.do_sample = self.hf_args["do_sample"]
         self.generation_config.num_return_sequences = generations_this_call

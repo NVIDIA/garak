@@ -139,8 +139,10 @@ class Evaluator:
                         "probe": self.probename,
                         "detector": detector,
                         "passed": passes,
+                        "fails": fails,
                         "nones": nones,
-                        "total": outputs_evaluated,
+                        "total_evaluated": outputs_evaluated,
+                        "total_processed": outputs_processed,
                     },
                     ensure_ascii=False,
                 )

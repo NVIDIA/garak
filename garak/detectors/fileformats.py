@@ -83,10 +83,11 @@ class FileIsExecutable(FileDetector):
         "application/vnd.microsoft.portable-executable",
     }
 
-    def __init__(self, config_root=_config):
-        super().__init__(config_root)
+    extra_dependency_names = ["magic"]
+
+    def _load_deps(self):
         try:
-            self.magic = importlib.import_module("magic")
+            super()._load_deps()
         except (ImportError, ModuleNotFoundError) as e:
             logging.info(
                 "detectors.fileformats: failed importing python-magic, try installing libmagic, e.g. `brew install libmagic`",

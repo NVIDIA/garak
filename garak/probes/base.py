@@ -14,12 +14,12 @@ import json
 import logging
 from collections.abc import Iterable
 import random
-from typing import Iterable, Union, List
+from typing import Iterable, Union
 
 from colorama import Fore, Style
 import tqdm
 
-from garak import _config, _plugins
+from garak import _config
 from garak.configurable import Configurable
 from garak.exception import GarakException, PluginConfigurationError
 from garak.probes._tier import Tier
@@ -59,15 +59,11 @@ class Probe(Configurable):
     # let mixins override this
     # tier: Tier = Tier.UNLISTED
     tier: Tier = Tier.UNLISTED
-    # list of strings naming modules required but not explicitly in garak by default
-    extra_dependency_names = []
 
     DEFAULT_PARAMS = {}
 
     _run_params = {"generations", "soft_probe_prompt_cap", "seed", "system_prompt"}
     _system_params = {"parallel_attempts", "max_workers"}
-
-    _load_deps = _plugins._load_deps
 
     def __init__(self, config_root=_config):
         """Sets up a probe.
@@ -306,6 +302,11 @@ class Probe(Configurable):
         this_attempt.outputs = self.generator.generate(
             this_attempt.prompt, generations_this_call=self.generations
         )
+        if len(this_attempt.outputs) != self.generations:
+            raise garak.exception.BadGeneratorException(
+                "Generator did not return the requested number of responses (asked for %i got %i). supports_multiple_generations may be set incorrectly."
+                % (self.generations, len(this_attempt.outputs))
+            )
         if self.post_buff_hook:
             this_attempt = self._postprocess_buff(this_attempt)
         this_attempt = self._postprocess_hook(this_attempt)

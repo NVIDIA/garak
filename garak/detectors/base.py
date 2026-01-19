@@ -68,6 +68,7 @@ class Detector(Configurable):
             )
 
         logging.info(f"detector init: {self}")
+        self._load_deps()
 
     def detect(self, attempt: garak.attempt.Attempt) -> Iterable[float | None]:
         """Takes a list of Attempts; classifies them; returns a list of results

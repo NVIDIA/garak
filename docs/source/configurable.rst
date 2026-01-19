@@ -176,12 +176,8 @@ Extensions are case-insensitive, so ``.JSON``, ``.YAML``, and ``.YML`` are also 
 
 Bundled configs include:
 
-* ``broad`` - Run all active probes, just once each, for a rapid broad test
+* ``bag`` - The config used for calibration
 * ``fast`` - Go through a selection of light probes; skip extended detectors
-* ``full`` - Select many probes, and multiple payloads; use a paraphrase buff to get multiple variations on each prompt
-* ``long_attack_gen`` - Focus on ``atkgen``, with many generations, to give a higher chance of breaking through (i.e. yielding toxicity)
-* ``notox`` - Scan without any toxicity-inducing probes
-* ``tox_and_buffs`` - Go through toxicity & slur probes, using only relevant payloads, and a fast paraphraser
 
 These are great places to look at to get an idea of how garak configs can look.
 Quick configs are stored under ``garak/configs/`` in the source code/install.

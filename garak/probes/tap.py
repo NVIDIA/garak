@@ -131,8 +131,8 @@ class TAP(garak.probes.Probe):
             "hf_args": {"device": "cpu"},
         },
         "attack_max_attempts": 5,
-        "evaluator_model_type": "openai",
-        "evaluator_model_name": "gpt-3.5-turbo",
+        "evaluator_model_type": "openai.OpenAIGenerator",
+        "evaluator_model_name": "gpt-5-nano",
         "evaluator_model_config": {
             "max_tokens": 10,
             "temperature": 0.0,
@@ -263,8 +263,8 @@ class PAIR(garak.probes.Probe):
             "hf_args": {"device": "cpu"},
         },
         "attack_max_attempts": 5,
-        "evaluator_model_type": "openai",
-        "evaluator_model_name": "gpt-3.5-turbo",
+        "evaluator_model_type": "openai.OpenAIGenerator",
+        "evaluator_model_name": "gpt-5-nano",
         "evaluator_model_config": {
             "max_tokens": 10,
             "temperature": 0.0,
