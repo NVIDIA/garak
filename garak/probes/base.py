@@ -15,12 +15,12 @@ import logging
 import pickle
 from collections.abc import Iterable
 import random
-from typing import Iterable, Union, List
+from typing import Iterable, Union
 
 from colorama import Fore, Style
 import tqdm
 
-from garak import _config, _plugins
+from garak import _config
 from garak.configurable import Configurable
 from garak.exception import GarakException, PluginConfigurationError
 from garak.probes._tier import Tier
@@ -343,6 +343,7 @@ class Probe(Configurable):
             )
 
             try:
+
                 def run_attempt_pool(pool_class):
                     with pool_class(pool_size) as attempt_pool:
                         for result in attempt_pool.imap_unordered(
