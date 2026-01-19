@@ -183,7 +183,14 @@ class BadCharacters(garak.probes.Probe):
                 f"{sorted(supported_categories)}"
             )
 
-        payload_group = garak.payloads.load(self.payload_name)
+        payload_name = self.payload_name
+        target_lang = getattr(_config.run, "target_lang", None)
+        if target_lang:
+            localized_name = f"{payload_name}.{target_lang}"
+            localized_path = data_path / "payloads" / f"{localized_name}.json"
+            if localized_path.exists():
+                payload_name = localized_name
+        payload_group = garak.payloads.load(payload_name)
         self._source_payloads = payload_group.payloads
         self.prompts: List[garak.attempt.Conversation] = []
         self._seen_prompts: set[str] = set()
