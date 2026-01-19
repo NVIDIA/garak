@@ -3303,7 +3303,7 @@
         "risk-cards:lmrc:anthropomorphisation"
       ],
       "tier": 3,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-01-11 15:42:22 +0000"
     },
     "probes.lmrc.Bullying": {
       "description": "Generation of repeated threats, denigration",
@@ -3328,7 +3328,7 @@
         "payload:unwanted:violence"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-01-11 15:42:22 +0000"
     },
     "probes.lmrc.Deadnaming": {
       "description": "Mentioning a name that a person does not wish to be associated with",
@@ -3352,7 +3352,35 @@
         "avid-effect:performance:P0401"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-01-11 15:42:22 +0000"
+    },
+    "probes.lmrc.Misogyny": {
+      "description": "Using language that is derogatory or discriminatory towards women",
+      "DEFAULT_PARAMS": {},
+      "active": true,
+      "doc_uri": "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/misogyny.md",
+      "extended_detectors": [
+        "lmrc.MisogynyKeywords"
+      ],
+      "extra_dependency_names": [],
+      "goal": "use misogynistic language",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "lmrc.Misogyny",
+      "tags": [
+        "risk-cards:lmrc:hate_speech",
+        "avid-effect:ethics:E0101",
+        "avid-effect:ethics:E0301",
+        "quality:Behavioral:ContentSafety:HateHarassment",
+        "payload:unwanted:hatespeech"
+      ],
+      "tier": 2,
+      "mod_time": "2026-01-11 15:42:22 +0000"
     },
     "probes.lmrc.Profanity": {
       "description": "Using profane words, especially when not prompted to do so.",
@@ -3389,7 +3417,7 @@
         "payload:unwanted:profanity"
       ],
       "tier": 3,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-01-11 15:42:22 +0000"
     },
     "probes.lmrc.QuackMedicine": {
       "description": "Promoting non-scientific medicine.",
@@ -3415,7 +3443,7 @@
         "payload:dangerous:medical"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-01-11 15:42:22 +0000"
     },
     "probes.lmrc.SexualContent": {
       "description": "Content that discusses bodies and interactions in a sexual manner, or other sexually explicit material",
@@ -3443,7 +3471,7 @@
         "payload:unwanted:sexual"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-01-11 15:42:22 +0000"
     },
     "probes.lmrc.Sexualisation": {
       "description": "Causal or overt sexual objectification, reducing a person or group of people to sexual objects.",
@@ -3473,7 +3501,7 @@
         "payload:unwanted:sexual"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-01-11 15:42:22 +0000"
     },
     "probes.lmrc.SlurUsage": {
       "description": "Using an identity-based slur in a non-reclaimed way - either directly or recommending the consumer to use in speech/action.",
@@ -3502,7 +3530,7 @@
         "payload:unwanted:hatespeech"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-01-11 15:42:22 +0000"
     },
     "probes.malwaregen.Evasion": {
       "description": "Will the model write code to help avoid anti-malware?",
@@ -6166,7 +6194,70 @@
       "tags": [
         "risk-cards:lmrc:anthropomorphisation"
       ],
-      "mod_time": "2025-04-17 08:31:20 +0000"
+      "mod_time": "2026-01-11 15:42:22 +0000"
+    },
+    "detectors.lmrc.Misogyny": {
+      "description": "Contextual misogyny detection via MilaNLProc/bert-base-uncased-ear-misogyny",
+      "DEFAULT_PARAMS": {
+        "skip": false,
+        "hf_args": {
+          "device": "cpu"
+        },
+        "tokenizer_kwargs": {
+          "padding": true,
+          "truncation": true
+        },
+        "graceful_fail": true,
+        "detector_model_path": "MilaNLProc/bert-base-uncased-ear-misogyny",
+        "detector_target_class": "misogynist"
+      },
+      "accuracy": null,
+      "active": true,
+      "doc_uri": "https://huggingface.co/MilaNLProc/bert-base-uncased-ear-misogyny",
+      "extra_dependency_names": [],
+      "lang_spec": "en",
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "tags": [
+        "risk-cards:lmrc:misogyny",
+        "avid-effect:ethics:E0101",
+        "avid-effect:ethics:E0301",
+        "quality:Behavioral:ContentSafety:HateHarassment",
+        "payload:unwanted:hatespeech"
+      ],
+      "mod_time": "2026-01-11 15:42:22 +0000"
+    },
+    "detectors.lmrc.MisogynyKeywords": {
+      "description": "Keyword indicators for misogyny (non-determinative signal).",
+      "DEFAULT_PARAMS": {
+        "skip": false,
+        "matchtype": "str"
+      },
+      "accuracy": null,
+      "active": true,
+      "doc_uri": null,
+      "extra_dependency_names": [],
+      "lang_spec": "en",
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "tags": [
+        "risk-cards:lmrc:misogyny",
+        "avid-effect:ethics:E0101",
+        "avid-effect:ethics:E0301",
+        "quality:Behavioral:ContentSafety:HateHarassment",
+        "payload:unwanted:hatespeech"
+      ],
+      "mod_time": "2026-01-11 15:42:22 +0000"
     },
     "detectors.lmrc.QuackMedicine": {
       "description": "Keywords related to Quack Medicine detector",
@@ -6190,7 +6281,7 @@
         "risk-cards:lmrc:quack_medicine",
         "avid-effect:ethics:E0402"
       ],
-      "mod_time": "2025-04-17 08:31:20 +0000"
+      "mod_time": "2026-01-11 15:42:22 +0000"
     },
     "detectors.malwaregen.AnyCode": {
       "description": "Detects programming languages",
