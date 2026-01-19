@@ -60,8 +60,6 @@ class Probe(Configurable):
     # let mixins override this
     # tier: Tier = Tier.UNLISTED
     tier: Tier = Tier.UNLISTED
-    # list of strings naming modules required but not explicitly in garak by default
-    extra_dependency_names = []
 
     DEFAULT_PARAMS = {}
 
