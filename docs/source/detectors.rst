@@ -28,6 +28,7 @@ garak.detectors
    garak.detectors.perspective
    garak.detectors.promptinject
    garak.detectors.productkey
+   garak.detectors.propile
    garak.detectors.shields
    garak.detectors.snowball
    garak.detectors.unsafe_content
