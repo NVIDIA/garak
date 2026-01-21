@@ -1,0 +1,40 @@
+.reference, 
+.icon-home, 
+a:link, 
+a:visited, 
+a:hover, 
+a:active {
+    color: #76b900; /* nv */
+}
+
+.wy-menu-vertical li.toctree-l1.current>a,
+li.toctree-l1.current>a:link,
+li.toctree-l2.current>a:link,
+.wy-menu-vertical li.toctree-l3.current>a>code,
+.rst-content code.literal {
+    color: #76b900;
+}
+
+.btn-neutral:link,
+.btn-neutral:visited,
+.btn-neutral:hover,
+.btn-neutral:active {
+    color: #76b900 !important;
+}
+
+html[data-theme=light], html[data-theme=dark]{
+--pst-color-primary: #76b900;
+--pst-color-secondary: #76b900; /* nv */
+--pst-color-inline-code: #76b900;
+--pst-color-inline-code-links: #76b900;
+}
+
+html[data-theme=light]{
+--pst-color-info-bg: #E0E0E0;
+--pst-color-info: #000000;
+}
+
+html[data-theme=dark]{
+--pst-color-info-bg: #000000;
+--pst-color-info: #E0E0E0;
+}
