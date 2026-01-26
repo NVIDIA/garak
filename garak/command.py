@@ -50,7 +50,7 @@ def start_run():
 
     logging.info("run started at %s", _config.transient.starttime_iso)
     # print("ASSIGN UUID", args)
-    if _config.system.lite and "probes" not in _config.transient.cli_args and not _config.transient.cli_args.list_probes and not _config.transient.cli_args.list_detectors and not _config.transient.cli_args.list_generators and not _config.transient.cli_args.list_buffs and not _config.transient.cli_args.list_config and not _config.transient.cli_args.plugin_info and not _config.run.interactive:  # type: ignore
+    if _config.system.lite and "probes" not in _config.transient.cli_args and _config.transient.cli_args.list_probes is None and not _config.transient.cli_args.list_detectors and not _config.transient.cli_args.list_generators and not _config.transient.cli_args.list_buffs and not _config.transient.cli_args.list_config and not _config.transient.cli_args.plugin_info and not _config.run.interactive:  # type: ignore
         hint(
             "The current/default config is optimised for speed rather than thoroughness. Try e.g. --config full for a stronger test, or specify some probes.",
             logging=logging,
@@ -160,7 +160,7 @@ def end_run():
     logging.info(msg)
 
 
-def print_plugins(prefix: str, color, selected_plugins=None):
+def print_plugins(prefix: str, color, selected_plugins=None, tier_filter=None):
     """
     Print plugins for a category (probes/detectors/generators/buffs).
 
@@ -168,9 +168,10 @@ def print_plugins(prefix: str, color, selected_plugins=None):
         prefix: Plugin category (probes/detectors/generators/buffs)
         color: Color for output formatting
         selected_plugins: Optional list of specific plugins to show. If None, shows all.
+        tier_filter: Optional tier level (1, 2, 3, or 9) to filter probes by. Only applies to probes.
     """
     from colorama import Style
-    from garak._plugins import enumerate_plugins, PLUGIN_TYPES
+    from garak._plugins import enumerate_plugins, plugin_info, PLUGIN_TYPES
 
     if prefix not in PLUGIN_TYPES:
         raise ValueError(f"Requested prefix '{prefix}' is not a valid plugin type")
@@ -185,26 +186,66 @@ def print_plugins(prefix: str, color, selected_plugins=None):
         else:
             print(f"No {prefix} match the provided filter")
             return
-    short = [(p.replace(f"{prefix}.", ""), a) for p, a in rows]
-    if selected_plugins is None:
-        module_names = set([(m.split(".")[0], True) for m, a in short])
+
+    # For probes, get tier info and optionally filter by tier
+    tier_info = {}
+    if prefix == "probes":
+        filtered_rows = []
+        for plugin_name, active in rows:
+            info = plugin_info(plugin_name)
+            tier = info.get("tier", None)
+            tier_info[plugin_name] = tier
+            # Filter by tier if specified
+            if tier_filter is not None:
+                if tier is not None and int(tier) == tier_filter:
+                    filtered_rows.append((plugin_name, active))
+            else:
+                filtered_rows.append((plugin_name, active))
+        rows = filtered_rows
+
+    short = [(p.replace(f"{prefix}.", ""), a, p) for p, a, *_ in [(pn, ac, pn) for pn, ac in rows]]
+    if selected_plugins is None and tier_filter is None:
+        module_names = set([(m.split(".")[0], True, None) for m, a, _ in short])
         short += module_names
 
+    # Tier display names
+    tier_names = {
+        1: "Tier 1",
+        2: "Tier 2",
+        3: "Tier 3",
+        9: "Tier 9",
+    }
+
     # print output
-    for plugin_name, active in sorted(short):
+    for item in sorted(short, key=lambda x: x[0]):
+        plugin_name, active = item[0], item[1]
+        full_name = item[2] if len(item) > 2 else None
         print(f"{Style.BRIGHT}{color}{prefix}: {Style.RESET_ALL}", end="")
         print(plugin_name, end="")
         if "." not in plugin_name:
             print(" 🌟", end="")
+        else:
+            # Show tier for probe classes (not module headers)
+            if prefix == "probes" and full_name:
+                tier = tier_info.get(full_name)
+                if tier is not None:
+                    tier_display = tier_names.get(int(tier), f"Tier {tier}")
+                    print(f"\t{tier_display}", end="")
         if not active:
             print(" 💤", end="")
         print()
 
 
-def print_probes(selected_probes=None):
+def print_probes(selected_probes=None, tier_filter=None):
+    """Print available probes with optional tier filtering.
+
+    Args:
+        selected_probes: Optional list of specific probes to show.
+        tier_filter: Optional tier level (1, 2, 3, or 9) to filter probes by.
+    """
     from colorama import Fore
 
-    print_plugins("probes", Fore.LIGHTYELLOW_EX, selected_probes)
+    print_plugins("probes", Fore.LIGHTYELLOW_EX, selected_probes, tier_filter=tier_filter)
 
 
 def print_detectors(selected_detectors=None):

@@ -225,8 +225,15 @@ def main(arguments=None) -> None:
     )
     parser.add_argument(
         "--list_probes",
-        action="store_true",
-        help="list all available probes. Usage: combine with --probes/-p to filter for probes that will be activated based on a `probe_spec`, e.g. '--list_probes -p dan' to show only active 'dan' family probes.",
+        nargs="?",
+        const=0,
+        type=int,
+        default=None,
+        metavar="TIER",
+        help="list all available probes. Optionally specify a tier (1-3, 9) to filter by tier level. "
+        "Tier 1: Of concern, Tier 2: Compete with SOTA, Tier 3: Informational, Tier 9: Unlisted. "
+        "Usage: '--list_probes' for all probes with tier info, '--list_probes 1' for Tier 1 only. "
+        "Combine with --probes/-p to filter by probe_spec, e.g. '--list_probes -p dan'.",
     )
     parser.add_argument(
         "--list_detectors",
@@ -450,12 +457,14 @@ def main(arguments=None) -> None:
         elif args.plugin_info:
             command.plugin_info(args.plugin_info)
 
-        elif args.list_probes:
+        elif args.list_probes is not None:
             selected_probes = None
             probe_spec = getattr(args, "probes", None)
             if probe_spec and probe_spec.lower() not in ("", "auto", "all", "*"):
                 selected_probes, _ = _config.parse_plugin_spec(probe_spec, "probes")
-            command.print_probes(selected_probes)
+            # args.list_probes is 0 when no tier specified, 1-3/9 for tier filter
+            tier_filter = args.list_probes if args.list_probes > 0 else None
+            command.print_probes(selected_probes, tier_filter=tier_filter)
 
         elif args.list_detectors:
             selected_detectors = None
