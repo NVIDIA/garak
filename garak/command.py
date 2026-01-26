@@ -205,7 +205,7 @@ def print_plugins(prefix: str, color, selected_plugins=None, tier_filter=None):
 
     short = [(p.replace(f"{prefix}.", ""), a, p) for p, a, *_ in [(pn, ac, pn) for pn, ac in rows]]
     if selected_plugins is None and tier_filter is None:
-        module_names = set([(m.split(".")[0], True, None) for m, a, _ in short])
+        module_names = {(m.split(".")[0], True, None) for m, a, _ in short}
         short += module_names
 
     # Tier display names
