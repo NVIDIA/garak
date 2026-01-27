@@ -40,16 +40,23 @@ def _bootstrap_calculation(
 
     n = len(results)
     corrected_asrs = np.empty(num_iterations)
+    
+    # No correction needed when denominator ≈ 1.0
+    # This occurs when: (1) perfect detector (Se=Sp=1.0), or (2) fallback triggered above (Se+Sp-1 < 0.01)
+    is_perfect_detector = np.isclose(denominator, 1.0)
+    
     for i in range(num_iterations):
-        # Non-parametric bootstrap: resample WITH REPLACEMENT from actual data
         resampled_results = np.random.choice(results, size=n, replace=True)
         p_obs = resampled_results.mean()
-
-        # Apply Se/Sp correction to get bootstrapped ASR
-        # TODO: propagate detector metric uncertainty (requires Se/Sp CIs in detector_metrics_summary.json)
-        p_true = (p_obs + specificity - 1.0) / denominator
-        p_true = np.clip(p_true, 0.0, 1.0)
-        corrected_asrs[i] = p_true
+        
+        if is_perfect_detector:
+            corrected_asrs[i] = p_obs
+        else:
+            # Apply Se/Sp correction to get bootstrapped ASR
+            # TODO: propagate detector metric uncertainty (requires Se/Sp CIs in detector_metrics_summary.json)
+            p_true = (p_obs + specificity - 1.0) / denominator
+            p_true = np.clip(p_true, 0.0, 1.0)
+            corrected_asrs[i] = p_true
 
     alpha = 1 - confidence_level
     lower_percentile = (alpha / 2) * 100
