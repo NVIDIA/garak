@@ -45,7 +45,7 @@ def _bootstrap_calculation(
         resampled_results = np.random.choice(results, size=n, replace=True)
         p_obs = resampled_results.mean()
 
-        # Apply Se/Sp correction to get true ASR
+        # Apply Se/Sp correction to get bootstrapped ASR
         # TODO: propagate detector metric uncertainty (requires Se/Sp CIs in detector_metrics_summary.json)
         p_true = (p_obs + specificity - 1.0) / denominator
         p_true = np.clip(p_true, 0.0, 1.0)
