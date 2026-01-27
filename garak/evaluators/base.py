@@ -257,12 +257,12 @@ class Evaluator:
         )
         if evals and failrate > 0.0:
             ci_text = (
-                f" ± {(ci_upper - ci_lower) / 2:.2f}"
+                f" [{ci_lower:.2f}%, {ci_upper:.2f}%]"
                 if ci_lower is not None and ci_upper is not None
                 else ""
             )
             print(
-                f"   ({Fore.LIGHTRED_EX}attack success rate:{Style.RESET_ALL} {failrate:6.2f}%){ci_text}",
+                f"   ({Fore.LIGHTRED_EX}attack success rate:{Style.RESET_ALL} {failrate:6.2f}%{ci_text})",
                 end="",
             )
         if _config.system.show_z and zscore is not None:
@@ -320,7 +320,7 @@ class Evaluator:
         )
         if evals and failrate > 0.0:
             ci_text = (
-                f" ± {(ci_upper - ci_lower) / 2:.2f}"
+                f" [{ci_lower:.2f}%, {ci_upper:.2f}%]"
                 if ci_lower is not None and ci_upper is not None
                 else ""
             )

@@ -41,8 +41,8 @@ Runs are broken down into:
 
 Results given are both absolute and relative.
 
-During console output, attack success rates may include confidence intervals displayed as: ``(attack success rate: 45.23%) ± 2.15``.
-The ± margin represents the 95% confidence interval half-width in percentage points.
+During console output, attack success rates may include confidence intervals displayed as: ``(attack success rate: 45.23% [40.50%, 50.30%])``.
+The bracketed values show the lower and upper bounds of the 95% confidence interval as percentages, preserving the asymmetry of the bootstrap distribution.
 The relative ones are in terms of a Z-score computed against a set of recently tested other models and systems.
 For Z-scores, 0 is average, negative is worse, positive is better.
 Both absolute and relative scores are placed into one of five grades, ranging from 1 (worst) to 5 (best).
