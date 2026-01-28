@@ -43,7 +43,7 @@ class DetectorMetrics:
             )
             return False
 
-    def get_performance(self, detector_name: str) -> Tuple[float, float]:
+    def get_detector_se_sp(self, detector_name: str) -> Tuple[float, float]:
         """Get sensitivity and specificity for a detector; returns (1.0, 1.0) if not found"""
         # TODO: support probe-detector pair metrics for Se/Sp (detector performance is probe dependent)
         if not self.metrics_loaded:
