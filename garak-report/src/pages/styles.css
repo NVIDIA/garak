@@ -1,0 +1,72 @@
+/* styles.css */
+body {
+  font-family: sans-serif;
+}
+
+:root {
+  --defcon1: #f94144;
+  --defcon2: #f8961e;
+  --defcon3: #cccccc;
+  --defcon4: #eeeeee;
+  --defcon5: #f7f7ff;
+}
+
+.defcon1 {
+  background-color: var(--defcon1);
+  color: #000;
+}
+.defcon2 {
+  background-color: var(--defcon2);
+  color: #000;
+}
+.defcon3 {
+  background-color: var(--defcon3);
+  color: #000;
+}
+.defcon4 {
+  background-color: var(--defcon4);
+  color: #000;
+}
+.defcon5 {
+  background-color: var(--defcon5);
+  color: #000;
+}
+
+.accordion {
+  background-color: #eee;
+  color: #444;
+  cursor: pointer;
+  padding: 10px 20px;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+  transition: background-color 0.3s ease;
+  margin-bottom: 4px;
+}
+
+.accordion.active,
+.accordion:hover {
+  background-color: #ccc;
+}
+
+.panel {
+  padding: 0 20px;
+  background-color: white;
+  overflow: hidden;
+  border-left: 3px solid #ccc;
+  border-right: 3px solid #ccc;
+  margin-bottom: 10px;
+}
+
+.probe {
+  padding-left: 40pt;
+}
+.detector {
+  padding-left: 65pt;
+}
+.score {
+  padding-top: 6pt;
+  padding-bottom: 6pt;
+}
