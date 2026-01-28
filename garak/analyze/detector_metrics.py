@@ -4,7 +4,7 @@
 import json
 from json import JSONDecodeError
 import logging
-import os
+from pathlib import Path
 from typing import Optional, Tuple
 
 from garak import _config
@@ -20,13 +20,12 @@ class DetectorMetrics:
 
     def _load_metrics(self) -> bool:
         try:
-            metrics_file = (
-                str(data_path) + "/detectors-eval/detector_metrics_summary.json"
-            )
-            if not os.path.isfile(metrics_file):
+            metrics_file = Path(data_path) / "detectors_eval" / "detector_metrics_summary.json"
+            if not metrics_file.is_file():
                 if hasattr(_config.system, "verbose") and _config.system.verbose > 0:
                     logging.info(
-                        "Detector metrics file not found. Using default metrics (Se=1.0, Sp=1.0)."
+                        "Detector metrics file not found at %s. Using default metrics (Se=1.0, Sp=1.0).",
+                        metrics_file
                     )
                 return False
 
@@ -37,7 +36,7 @@ class DetectorMetrics:
             if hasattr(_config.system, "verbose") and _config.system.verbose > 0:
                 logging.warning("Couldn't decode detector metrics JSON: %s", je)
             return False
-        except Exception as e:
+        except (OSError, IOError) as e:
             if hasattr(_config.system, "verbose") and _config.system.verbose > 0:
                 logging.warning("Exception during detector metrics load: %s", e)
             return False

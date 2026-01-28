@@ -15,6 +15,7 @@ import garak.attempt
 import garak.analyze.calibration
 import garak.analyze.detector_metrics
 import garak.analyze.bootstrap_ci
+from garak.analyze.bootstrap_ci import BOOTSTRAP_MIN_SAMPLE_SIZE
 import garak.resources.theme
 
 
@@ -134,9 +135,9 @@ class Evaluator:
             outputs_evaluated = passes + fails
             outputs_processed = passes + fails + nones
 
-            # Calculate bootstrap CI (only if sample size >= 30)
+            # Calculate bootstrap CI (only if sample size >= minimum threshold)
             ci_lower, ci_upper = None, None
-            if outputs_evaluated >= 30:
+            if outputs_evaluated >= BOOTSTRAP_MIN_SAMPLE_SIZE:
                 try:
                     se, sp = self.detector_metrics.get_performance(detector)
                     ci_result = garak.analyze.bootstrap_ci.calculate_bootstrap_ci(
@@ -153,7 +154,7 @@ class Evaluator:
                             se,
                             sp,
                         )
-                except Exception as e:
+                except ValueError as e:
                     logging.error(
                         "CI calculation failed for %s (probe: %s, n=%d): %s",
                         detector,
@@ -164,10 +165,11 @@ class Evaluator:
             elif outputs_evaluated > 0:
                 if hasattr(_config.system, "verbose") and _config.system.verbose > 0:
                     logging.debug(
-                        "Skipping CI calculation for %s (probe: %s): sample size n=%d < 30",
+                        "Skipping CI calculation for %s (probe: %s): sample size n=%d < %d",
                         detector,
                         self.probename,
                         outputs_evaluated,
+                        BOOTSTRAP_MIN_SAMPLE_SIZE,
                     )
 
             if _config.system.narrow_output:
@@ -192,7 +194,7 @@ class Evaluator:
 
             # Add CI fields if calculation succeeded
             if ci_lower is not None and ci_upper is not None:
-                eval_record["confidence"] = "0.95"
+                eval_record["confidence"] = str(_config.reporting.bootstrap_confidence_level)
                 eval_record["confidence_upper"] = ci_upper / 100
                 eval_record["confidence_lower"] = ci_lower / 100
 

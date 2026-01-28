@@ -8,17 +8,25 @@ import numpy as np
 
 from garak import _config
 
+# Statistical requirement for reliable bootstrap coverage (CLT approximation)
+BOOTSTRAP_MIN_SAMPLE_SIZE = 30
+
 
 def _bootstrap_calculation(
     results: np.ndarray,
     sensitivity: float,
     specificity: float,
-    num_iterations: int = 10000,
-    confidence_level: float = 0.95,
+    num_iterations: int = None,
+    confidence_level: float = None,
 ) -> Optional[Tuple[float, float]]:
     """Non-parametric bootstrap with Se/Sp correction"""
     if len(results) == 0:
         return None
+
+    if num_iterations is None:
+        num_iterations = _config.reporting.bootstrap_num_iterations
+    if confidence_level is None:
+        confidence_level = _config.reporting.bootstrap_confidence_level
 
     if (
         hasattr(_config, "run")
@@ -86,12 +94,11 @@ def calculate_bootstrap_ci(
     results: list,
     sensitivity: float,
     specificity: float,
-    num_iterations: int = 10000,
-    confidence_level: float = 0.95,
+    num_iterations: int = None,
+    confidence_level: float = None,
 ) -> Optional[Tuple[float, float]]:
     """Calculate non-parametric bootstrap CI for ASR with detector correction"""
-    # Minimum n=30 for reliable bootstrap coverage properties (CLT approximation)
-    if len(results) < 30:
+    if len(results) < BOOTSTRAP_MIN_SAMPLE_SIZE:
         return None
 
     results_array = np.array(results, dtype=float)

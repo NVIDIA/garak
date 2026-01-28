@@ -8,6 +8,12 @@ import garak.analyze.bootstrap_ci
 from garak import _config
 
 
+@pytest.fixture(autouse=True)
+def _config_loaded():
+    """Load base config for all tests in this module"""
+    _config.load_base_config()
+
+
 @pytest.mark.parametrize(
     "results,should_succeed,description",
     [
