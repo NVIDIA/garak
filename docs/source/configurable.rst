@@ -163,6 +163,8 @@ Reporting Config Items
 * ``show_group_score`` - Should an aggregated score per group be shown in reports?
 * ``group_aggregation_function`` - How should scored of probe groups (e.g. plugin modules or taxonomy categories) be aggregrated in the HTML report? Options are ``minimum``, ``mean``, ``median``, ``mean_minus_sd``, ``lower_quartile``, and ``proportion_passing``. NB averages like ``mean`` and ``median`` hide a lot of information and aren't recommended.
 * ``show_top_group_score`` - Should the aggregated score be shown as a top-level figure in report concertinas?
+* ``bootstrap_num_iterations`` - Number of bootstrap resampling iterations for computing confidence intervals on attack success rates (default: 10000).
+* ``bootstrap_confidence_level`` - Confidence level for bootstrap confidence intervals, expressed as a decimal between 0 and 1 (default: 0.95 for 95% confidence intervals).
 
 
 Bundled Quick Configs

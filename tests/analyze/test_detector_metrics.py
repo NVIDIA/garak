@@ -25,7 +25,7 @@ def test_get_performance_when_not_loaded():
     dm = garak.analyze.detector_metrics.DetectorMetrics()
     dm.metrics_loaded = False
 
-    se, sp = dm.get_performance("dan.DAN")
+    se, sp = dm.get_detector_se_sp("dan.DAN")
     assert se == 1.0
     assert sp == 1.0
 
@@ -41,45 +41,31 @@ def test_get_performance_missing_detector():
     }
 
     # Query for detector not in data
-    se, sp = dm.get_performance("missing.Detector")
+    se, sp = dm.get_detector_se_sp("missing.Detector")
     assert se == 1.0
     assert sp == 1.0
-
-
-def test_get_performance_valid_detector():
-    """Test get_performance with valid detector data"""
-    dm = garak.analyze.detector_metrics.DetectorMetrics()
-    dm.metrics_loaded = True
-    dm._data = {
-        "results": {
-            "dan.DAN": {"metrics": {"hit_sensitivity": 0.95, "hit_specificity": 0.74}}
-        }
-    }
-
-    se, sp = dm.get_performance("dan.DAN")
-    assert se == 0.95
-    assert sp == 0.74
 
 
 def test_get_performance_strips_detector_prefix():
     """Test that 'detector.' prefix is stripped before lookup"""
     dm = garak.analyze.detector_metrics.DetectorMetrics()
     dm.metrics_loaded = True
+    test_se, test_sp = 0.90, 0.85
     dm._data = {
         "results": {
-            "dan.DAN": {"metrics": {"hit_sensitivity": 0.90, "hit_specificity": 0.85}}
+            "dan.DAN": {"metrics": {"hit_sensitivity": test_se, "hit_specificity": test_sp}}
         }
     }
 
     # Query with "detector." prefix
-    se, sp = dm.get_performance("detector.dan.DAN")
-    assert se == 0.90
-    assert sp == 0.85
+    se, sp = dm.get_detector_se_sp("detector.dan.DAN")
+    assert se == test_se, "Should return sensitivity when queried with 'detector.' prefix"
+    assert sp == test_sp, "Should return specificity when queried with 'detector.' prefix"
 
     # Query without prefix should give same result
-    se2, sp2 = dm.get_performance("dan.DAN")
-    assert se == se2
-    assert sp == sp2
+    se2, sp2 = dm.get_detector_se_sp("dan.DAN")
+    assert se == se2, "Results should be identical with or without 'detector.' prefix"
+    assert sp == sp2, "Results should be identical with or without 'detector.' prefix"
 
 
 @pytest.mark.parametrize(
@@ -104,7 +90,7 @@ def test_get_performance_handles_missing_fields(data_structure, description):
     dm.metrics_loaded = True
     dm._data = data_structure
 
-    se, sp = dm.get_performance("dan.DAN")
+    se, sp = dm.get_detector_se_sp("dan.DAN")
     assert se == 1.0, f"Should return default for {description}"
     assert sp == 1.0, f"Should return default for {description}"
 
@@ -113,31 +99,31 @@ def test_get_performance_multiple_detectors():
     """Test querying multiple detectors from same instance"""
     dm = garak.analyze.detector_metrics.DetectorMetrics()
     dm.metrics_loaded = True
+    detector1_se, detector1_sp = 0.95, 0.74
+    detector2_se, detector2_sp = 0.92, 0.86
     dm._data = {
         "results": {
-            "dan.DAN": {"metrics": {"hit_sensitivity": 0.95, "hit_specificity": 0.74}},
+            "dan.DAN": {"metrics": {"hit_sensitivity": detector1_se, "hit_specificity": detector1_sp}},
             "mitigation.MitigationBypass": {
-                "metrics": {"hit_sensitivity": 0.92, "hit_specificity": 0.86}
+                "metrics": {"hit_sensitivity": detector2_se, "hit_specificity": detector2_sp}
             },
         }
     }
 
-    se1, sp1 = dm.get_performance("dan.DAN")
-    assert se1 == 0.95
-    assert sp1 == 0.74
+    se1, sp1 = dm.get_detector_se_sp("dan.DAN")
+    assert se1 == detector1_se, "Should return correct sensitivity for first detector"
+    assert sp1 == detector1_sp, "Should return correct specificity for first detector"
+    assert 0.0 <= se1 <= 1.0, "First detector sensitivity should be in valid range"
+    assert 0.0 <= sp1 <= 1.0, "First detector specificity should be in valid range"
 
-    se2, sp2 = dm.get_performance("mitigation.MitigationBypass")
-    assert se2 == 0.92
-    assert sp2 == 0.86
-
-
-def test_load_metrics_malformed_json():
-    """Test that malformed JSON is handled gracefully"""
-    # This test verifies the exception handling in _load_metrics
-    # Since the file doesn't exist in test environment, it will be caught
-    dm = garak.analyze.detector_metrics.DetectorMetrics()
-    # Should not raise exception
-    assert isinstance(dm, garak.analyze.detector_metrics.DetectorMetrics)
+    se2, sp2 = dm.get_detector_se_sp("mitigation.MitigationBypass")
+    assert se2 == detector2_se, "Should return correct sensitivity for second detector"
+    assert sp2 == detector2_sp, "Should return correct specificity for second detector"
+    assert 0.0 <= se2 <= 1.0, "Second detector sensitivity should be in valid range"
+    assert 0.0 <= sp2 <= 1.0, "Second detector specificity should be in valid range"
+    
+    # Verify detectors are independent (different values)
+    assert (se1, sp1) != (se2, sp2), "Different detectors should return independent values"
 
 
 @pytest.mark.parametrize(
@@ -166,7 +152,7 @@ def test_get_performance_validates_invalid_values(se_value, sp_value, descriptio
         }
     }
 
-    se, sp = dm.get_performance("bad.Detector")
+    se, sp = dm.get_detector_se_sp("bad.Detector")
     assert se == 1.0, f"Should fallback for {description}"
     assert sp == 1.0, f"Should fallback for {description}"
 
@@ -197,7 +183,7 @@ def test_get_performance_accepts_edge_values(detector_name, se_expected, sp_expe
         }
     }
 
-    se, sp = dm.get_performance(detector_name)
+    se, sp = dm.get_detector_se_sp(detector_name)
     assert se == se_expected
     assert sp == sp_expected
 

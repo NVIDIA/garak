@@ -139,7 +139,7 @@ class Evaluator:
             ci_lower, ci_upper = None, None
             if outputs_evaluated >= BOOTSTRAP_MIN_SAMPLE_SIZE:
                 try:
-                    se, sp = self.detector_metrics.get_performance(detector)
+                    se, sp = self.detector_metrics.get_detector_se_sp(detector)
                     ci_result = garak.analyze.bootstrap_ci.calculate_bootstrap_ci(
                         results=individual_results, sensitivity=se, specificity=sp
                     )
