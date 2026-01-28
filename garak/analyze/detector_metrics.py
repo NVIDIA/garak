@@ -19,26 +19,28 @@ class DetectorMetrics:
     """Helper for managing detector performance metrics (sensitivity/specificity)"""
 
     def _load_metrics(self) -> bool:
-        try:
-            metrics_file = Path(data_path) / "detectors_eval" / "detector_metrics_summary.json"
-            if not metrics_file.is_file():
-                if hasattr(_config.system, "verbose") and _config.system.verbose > 0:
-                    logging.info(
-                        "Detector metrics file not found at %s. Using default metrics (Se=1.0, Sp=1.0).",
-                        metrics_file
-                    )
-                return False
+        metrics_file = (
+            Path(data_path) / "detectors_eval" / "detector_metrics_summary.json"
+        )
 
+        try:
             with open(metrics_file, "r", encoding="utf-8") as f:
                 self._data = json.load(f)
-                return True
-        except JSONDecodeError as je:
-            if hasattr(_config.system, "verbose") and _config.system.verbose > 0:
-                logging.warning("Couldn't decode detector metrics JSON: %s", je)
+
+            logging.debug("Loaded detector metrics from %s", metrics_file)
+            return True
+
+        except FileNotFoundError:
+            logging.debug(
+                "Detector metrics file not found at %s. Using default metrics (Se=1.0, Sp=1.0).",
+                metrics_file,
+            )
             return False
-        except (OSError, IOError) as e:
-            if hasattr(_config.system, "verbose") and _config.system.verbose > 0:
-                logging.warning("Exception during detector metrics load: %s", e)
+
+        except (JSONDecodeError, OSError) as e:
+            logging.warning(
+                "Could not load detector metrics from %s: %s", metrics_file, e
+            )
             return False
 
     def get_performance(self, detector_name: str) -> Tuple[float, float]:
@@ -65,31 +67,28 @@ class DetectorMetrics:
             sp = float(specificity)
 
             if not (0.0 <= se <= 1.0):
-                if hasattr(_config.system, "verbose") and _config.system.verbose > 0:
-                    logging.warning(
-                        "Invalid sensitivity %.3f for %s (must be in [0,1]), using default (1.0, 1.0)",
-                        se,
-                        detector_name,
-                    )
+                logging.warning(
+                    "Invalid sensitivity %.3f for %s (must be in [0,1]), using default (1.0, 1.0)",
+                    se,
+                    detector_name,
+                )
                 return (1.0, 1.0)
 
             if not (0.0 <= sp <= 1.0):
-                if hasattr(_config.system, "verbose") and _config.system.verbose > 0:
-                    logging.warning(
-                        "Invalid specificity %.3f for %s (must be in [0,1]), using default (1.0, 1.0)",
-                        sp,
-                        detector_name,
-                    )
+                logging.warning(
+                    "Invalid specificity %.3f for %s (must be in [0,1]), using default (1.0, 1.0)",
+                    sp,
+                    detector_name,
+                )
                 return (1.0, 1.0)
 
             return (se, sp)
         except (TypeError, ValueError) as e:
-            if hasattr(_config.system, "verbose") and _config.system.verbose > 0:
-                logging.warning(
-                    "Could not parse metrics for %s: %s. Using default (1.0, 1.0)",
-                    detector_name,
-                    e,
-                )
+            logging.warning(
+                "Could not parse metrics for %s: %s. Using default (1.0, 1.0)",
+                detector_name,
+                e,
+            )
             return (1.0, 1.0)
 
     def __init__(self) -> None:
