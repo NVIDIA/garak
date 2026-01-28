@@ -16,6 +16,17 @@ Attempt-type entries have uuid and status fields.
 Status can be 0 (not sent to target), 1 (with target response but not evaluated), or 2 (with response and evaluation).
 Eval-type entries are added after each probe/detector pair completes, and list the results used to compute the score.
 
+Confidence Intervals (Optional)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Eval entries may include bootstrap confidence intervals for attack success rates when sample size ≥ 30:
+
+* ``confidence``: Confidence level (e.g., "0.95")
+* ``confidence_lower``: Lower bound (0-1 scale)
+* ``confidence_upper``: Upper bound (0-1 scale)
+
+These intervals account for sampling uncertainty. When detector performance metrics (sensitivity/specificity) are available, they also account for detector imperfection. Otherwise, a perfect detector is assumed.
+
 Report HTML
 -----------
 
@@ -27,6 +38,9 @@ Runs are broken down into:
 3. detectors for each probe
 
 Results given are both absolute and relative.
+
+During console output, attack success rates may include confidence intervals displayed as: ``(attack success rate: 45.23% [40.50%, 50.30%])``.
+The bracketed values show the lower and upper bounds of the requested (default 95%) confidence interval as percentages, preserving the asymmetry of the bootstrap distribution.
 The relative ones are in terms of a Z-score computed against a set of recently tested other models and systems.
 For Z-scores, 0 is average, negative is worse, positive is better.
 Both absolute and relative scores are placed into one of five grades, ranging from 1 (worst) to 5 (best).

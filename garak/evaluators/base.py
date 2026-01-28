@@ -13,6 +13,9 @@ from colorama import Fore, Style
 from garak import _config
 import garak.attempt
 import garak.analyze.calibration
+import garak.analyze.detector_metrics
+import garak.analyze.bootstrap_ci
+from garak.analyze.bootstrap_ci import BOOTSTRAP_MIN_SAMPLE_SIZE
 import garak.resources.theme
 
 
@@ -32,6 +35,7 @@ class Evaluator:
         self.probename = ""
         if _config.system.show_z:
             self.calibration = garak.analyze.calibration.Calibration()
+        self.detector_metrics = garak.analyze.detector_metrics.get_detector_metrics()
 
     def test(self, test_value: float) -> bool:
         """Function for converting the detector result to a boolean, True=pass
@@ -68,6 +72,9 @@ class Evaluator:
             fails = 0
             nones = 0
             messages = []
+            individual_results = (
+                []
+            )  # Collect individual results for non-parametric bootstrap
 
             for attempt in attempts:
                 for idx, score in enumerate(attempt.detector_results[detector]):
@@ -75,8 +82,10 @@ class Evaluator:
                         nones += 1
                     elif self.test(float(score)):
                         passes += 1
+                        individual_results.append(0)  # 0 = pass (no attack success)
                     else:  # if we don't pass
                         fails += 1
+                        individual_results.append(1)  # 1 = fail (attack succeeded)
                         messages.append(
                             attempt.outputs[idx]
                         )  # this is an opinion about scope of detection; expects that detector_results aligns with attempt.outputs (not all_outputs)
@@ -126,27 +135,71 @@ class Evaluator:
             outputs_evaluated = passes + fails
             outputs_processed = passes + fails + nones
 
+            # Calculate bootstrap CI (only if sample size >= minimum threshold)
+            ci_lower, ci_upper = None, None
+            if outputs_evaluated >= BOOTSTRAP_MIN_SAMPLE_SIZE:
+                try:
+                    se, sp = self.detector_metrics.get_detector_se_sp(detector)
+                    ci_result = garak.analyze.bootstrap_ci.calculate_bootstrap_ci(
+                        results=individual_results, sensitivity=se, specificity=sp
+                    )
+                    if ci_result is not None:
+                        ci_lower, ci_upper = ci_result
+                    else:
+                        logging.warning(
+                            "CI calculation returned None for %s (probe: %s, n=%d, Se=%.3f, Sp=%.3f)",
+                            detector,
+                            self.probename,
+                            outputs_evaluated,
+                            se,
+                            sp,
+                        )
+                except ValueError as e:
+                    logging.error(
+                        "CI calculation failed for %s (probe: %s, n=%d): %s",
+                        detector,
+                        self.probename,
+                        outputs_evaluated,
+                        str(e),
+                    )
+            elif outputs_evaluated > 0:
+                if hasattr(_config.system, "verbose") and _config.system.verbose > 0:
+                    logging.debug(
+                        "Skipping CI calculation for %s (probe: %s): sample size n=%d < %d",
+                        detector,
+                        self.probename,
+                        outputs_evaluated,
+                        BOOTSTRAP_MIN_SAMPLE_SIZE,
+                    )
+
             if _config.system.narrow_output:
                 print_func = self.print_results_narrow
             else:
                 print_func = self.print_results_wide
-            print_func(detector, passes, outputs_evaluated, messages)
+            print_func(
+                detector, passes, outputs_evaluated, messages, ci_lower, ci_upper
+            )
+
+            # Build eval record
+            eval_record = {
+                "entry_type": "eval",
+                "probe": self.probename,
+                "detector": detector,
+                "passed": passes,
+                "fails": fails,
+                "nones": nones,
+                "total_evaluated": outputs_evaluated,
+                "total_processed": outputs_processed,
+            }
+
+            # Add CI fields if calculation succeeded
+            if ci_lower is not None and ci_upper is not None:
+                eval_record["confidence"] = str(_config.reporting.bootstrap_confidence_level)
+                eval_record["confidence_upper"] = ci_upper / 100
+                eval_record["confidence_lower"] = ci_lower / 100
 
             _config.transient.reportfile.write(
-                json.dumps(
-                    {
-                        "entry_type": "eval",
-                        "probe": self.probename,
-                        "detector": detector,
-                        "passed": passes,
-                        "fails": fails,
-                        "nones": nones,
-                        "total_evaluated": outputs_evaluated,
-                        "total_processed": outputs_processed,
-                    },
-                    ensure_ascii=False,
-                )
-                + "\n"
+                json.dumps(eval_record, ensure_ascii=False) + "\n"
             )
 
     def get_z_rating(self, probe_name, detector_name, asr_pct) -> str:
@@ -166,7 +219,15 @@ class Evaluator:
             )
         return zscore, zrating_symbol
 
-    def print_results_wide(self, detector_name, passes, evals, messages=list()):
+    def print_results_wide(
+        self,
+        detector_name,
+        passes,
+        evals,
+        messages=list(),
+        ci_lower=None,
+        ci_upper=None,
+    ):
         """Print the evaluator's summary"""
         zscore = None
         failrate = 0.0
@@ -192,8 +253,13 @@ class Evaluator:
             end="",
         )
         if evals and failrate > 0.0:
+            ci_text = (
+                f" [{ci_lower:.2f}%, {ci_upper:.2f}%]"
+                if ci_lower is not None and ci_upper is not None
+                else ""
+            )
             print(
-                f"   ({Fore.LIGHTRED_EX}attack success rate:{Style.RESET_ALL} {failrate:6.2f}%)",
+                f"   ({Fore.LIGHTRED_EX}attack success rate:{Style.RESET_ALL} {failrate:6.2f}%{ci_text})",
                 end="",
             )
         if _config.system.show_z and zscore is not None:
@@ -209,7 +275,15 @@ class Evaluator:
                 except:
                     pass
 
-    def print_results_narrow(self, detector_name, passes, evals, messages=list()):
+    def print_results_narrow(
+        self,
+        detector_name,
+        passes,
+        evals,
+        messages=list(),
+        ci_lower=None,
+        ci_upper=None,
+    ):
         """Print the evaluator's summary"""
         failrate = 0.0
         if evals:
@@ -238,8 +312,13 @@ class Evaluator:
             f"  {Style.BRIGHT}{outcome}{Style.RESET_ALL} score {passes:>4}/{evals:>4} -- {short_detector_name:<20}"
         )
         if evals and failrate > 0.0:
+            ci_text = (
+                f" [{ci_lower:.2f}%, {ci_upper:.2f}%]"
+                if ci_lower is not None and ci_upper is not None
+                else ""
+            )
             print(
-                f"    {Fore.LIGHTRED_EX}attack success rate:{Style.RESET_ALL} {failrate:6.2f}%",
+                f"    {Fore.LIGHTRED_EX}attack success rate:{Style.RESET_ALL} {failrate:6.2f}%{ci_text}",
                 end="",
             )
         if failrate > 0.0 and _config.system.show_z and zscore is not None:
