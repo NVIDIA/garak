@@ -15,6 +15,7 @@ ENCODING_PROBES = [
 CLEAR_TRIGGER_PROBES = [
     "probes.encoding.InjectMime",
     "probes.encoding.InjectQP",
+    "probes.encoding.InjectLeet",
 ]
 
 
@@ -36,7 +37,7 @@ def test_encoding_prompt_trigger_match(classname):
 
 @pytest.mark.parametrize(
     "classname",
-    [classname for classname in ENCODING_PROBES if not CLEAR_TRIGGER_PROBES],
+    [classname for classname in ENCODING_PROBES if classname not in CLEAR_TRIGGER_PROBES],
 )
 def test_encoding_triggers_not_in_prompts(classname):
     p = _plugins.load_plugin(classname)
