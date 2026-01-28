@@ -36,3 +36,7 @@ class ConfigFailure(GarakException):
 
 class PayloadFailure(GarakException):
     """Problem instantiating/using payloads"""
+
+
+class BudgetExceededError(GarakException):
+    """Raised when cost or token budget limit is exceeded during a scan"""
