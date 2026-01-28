@@ -35,7 +35,12 @@ class Evaluator:
         self.probename = ""
         if _config.system.show_z:
             self.calibration = garak.analyze.calibration.Calibration()
-        self.detector_metrics = garak.analyze.detector_metrics.get_detector_metrics()
+        
+        ci_method = getattr(_config.reporting, 'confidence_interval_method', "None")
+        if ci_method == "bootstrap":
+            self.detector_metrics = garak.analyze.detector_metrics.get_detector_metrics()
+        else:
+            self.detector_metrics = None
 
     def test(self, test_value: float) -> bool:
         """Function for converting the detector result to a boolean, True=pass
@@ -72,9 +77,10 @@ class Evaluator:
             fails = 0
             nones = 0
             messages = []
-            individual_results = (
-                []
-            )  # Collect individual results for non-parametric bootstrap
+            
+            ci_method = getattr(_config.reporting, 'confidence_interval_method', "None")
+            collect_individual_results = (ci_method == "bootstrap")
+            individual_results = [] if collect_individual_results else None
 
             for attempt in attempts:
                 for idx, score in enumerate(attempt.detector_results[detector]):
@@ -82,10 +88,12 @@ class Evaluator:
                         nones += 1
                     elif self.test(float(score)):
                         passes += 1
-                        individual_results.append(0)  # 0 = pass (no attack success)
-                    else:  # if we don't pass
+                        if collect_individual_results:
+                            individual_results.append(0)
+                    else:
                         fails += 1
-                        individual_results.append(1)  # 1 = fail (attack succeeded)
+                        if collect_individual_results:
+                            individual_results.append(1)
                         messages.append(
                             attempt.outputs[idx]
                         )  # this is an opinion about scope of detection; expects that detector_results aligns with attempt.outputs (not all_outputs)
@@ -135,9 +143,8 @@ class Evaluator:
             outputs_evaluated = passes + fails
             outputs_processed = passes + fails + nones
 
-            # Calculate bootstrap CI (only if sample size >= minimum threshold)
             ci_lower, ci_upper = None, None
-            if outputs_evaluated >= BOOTSTRAP_MIN_SAMPLE_SIZE:
+            if ci_method == "bootstrap" and outputs_evaluated >= BOOTSTRAP_MIN_SAMPLE_SIZE:
                 try:
                     se, sp = self.detector_metrics.get_detector_se_sp(detector)
                     ci_result = garak.analyze.bootstrap_ci.calculate_bootstrap_ci(
@@ -162,7 +169,7 @@ class Evaluator:
                         outputs_evaluated,
                         str(e),
                     )
-            elif outputs_evaluated > 0:
+            elif ci_method == "bootstrap" and outputs_evaluated > 0:
                 if hasattr(_config.system, "verbose") and _config.system.verbose > 0:
                     logging.debug(
                         "Skipping CI calculation for %s (probe: %s): sample size n=%d < %d",
@@ -194,6 +201,7 @@ class Evaluator:
 
             # Add CI fields if calculation succeeded
             if ci_lower is not None and ci_upper is not None:
+                eval_record["confidence_method"] = "bootstrap"
                 eval_record["confidence"] = str(_config.reporting.bootstrap_confidence_level)
                 eval_record["confidence_upper"] = ci_upper / 100
                 eval_record["confidence_lower"] = ci_lower / 100
