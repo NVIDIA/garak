@@ -109,7 +109,6 @@ dependencies = [
   "zalgolib>=0.2.2",
   "ecoji>=0.1.1",
   "deepl==1.17.0",
-  "fschat>=0.2.36",
   "litellm>=1.68.1",
   "jsonpath-ng>=1.6.1",
   "huggingface_hub>=0.21.0",
