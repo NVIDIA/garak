@@ -298,6 +298,15 @@ class Probe(Configurable):
 
     def _execute_attempt(self, this_attempt):
         """handles sending an attempt to the generator, postprocessing, and logging"""
+        # Pre-flight budget check - skip API call if budget already exceeded
+        from garak.budget import is_budget_exceeded
+
+        if is_budget_exceeded():
+            logging.debug("Skipping attempt due to budget exceeded")
+            this_attempt.outputs = []
+            this_attempt.notes["skipped_budget_exceeded"] = True
+            return copy.deepcopy(this_attempt)
+
         self._generator_precall_hook(self.generator, this_attempt)
         this_attempt.outputs = self.generator.generate(
             this_attempt.prompt, generations_this_call=self.generations
@@ -320,6 +329,7 @@ class Probe(Configurable):
             and self.generator.parallel_capable
         ):
             from multiprocessing import Pool
+            from garak.budget import get_pool_initializer, is_budget_exceeded
 
             attempt_bar = tqdm.tqdm(total=len(attempts), leave=False)
             attempt_bar.set_description(self.probename.replace("garak.", ""))
@@ -330,21 +340,48 @@ class Probe(Configurable):
                 self.max_workers,
             )
 
-            try:
-                with Pool(pool_size) as attempt_pool:
-                    for result in attempt_pool.imap_unordered(
-                        self._execute_attempt, attempts
-                    ):
-                        processed_attempt = self._postprocess_attempt(result)
+            # Get pool initializer for budget tracking (if enabled)
+            initializer, initargs = get_pool_initializer()
 
-                        _config.transient.reportfile.write(
-                            json.dumps(processed_attempt.as_dict(), ensure_ascii=False)
-                            + "\n"
-                        )
-                        attempts_completed.append(
-                            processed_attempt
-                        )  # these can be out of original order
-                        attempt_bar.update(1)
+            # Batch size = pool size for maximum parallelism
+            # Budget is checked after each batch completes
+            # Note: With parallel execution, budget may overshoot by up to one batch
+            # before stopping. Use smaller --parallel_attempts for tighter budget control.
+            batch_size = pool_size
+
+            try:
+                with Pool(pool_size, initializer=initializer, initargs=initargs) as attempt_pool:
+                    # Process attempts in batches
+                    for batch_start in range(0, len(attempts), batch_size):
+                        # Check budget before dispatching each batch
+                        if is_budget_exceeded():
+                            logging.info("Budget exceeded, stopping probe execution")
+                            break
+
+                        batch_end = min(batch_start + batch_size, len(attempts))
+                        batch = attempts[batch_start:batch_end]
+
+                        for result in attempt_pool.imap_unordered(
+                            self._execute_attempt, batch
+                        ):
+                            processed_attempt = self._postprocess_attempt(result)
+
+                            # Only log attempts that actually made API calls (not skipped due to budget)
+                            if not processed_attempt.notes.get("skipped_budget_exceeded"):
+                                _config.transient.reportfile.write(
+                                    json.dumps(processed_attempt.as_dict(), ensure_ascii=False)
+                                    + "\n"
+                                )
+                                attempts_completed.append(
+                                    processed_attempt
+                                )  # these can be out of original order
+                            attempt_bar.update(1)
+
+                        # Check budget after each batch completes
+                        if is_budget_exceeded():
+                            logging.info("Budget exceeded after batch, stopping probe execution")
+                            break
+
             except OSError as o:
                 if o.errno == 24:
                     msg = "Parallelisation limit hit. Try reducing parallel_attempts or raising limit (e.g. ulimit -n 4096)"
@@ -354,16 +391,25 @@ class Probe(Configurable):
                     raise (o)
 
         else:
+            from garak.budget import is_budget_exceeded
+
             attempt_iterator = tqdm.tqdm(attempts, leave=False)
             attempt_iterator.set_description(self.probename.replace("garak.", ""))
             for this_attempt in attempt_iterator:
+                # Check budget before each attempt in sequential mode
+                if is_budget_exceeded():
+                    logging.info("Budget exceeded, stopping probe execution")
+                    break
+
                 result = self._execute_attempt(this_attempt)
                 processed_attempt = self._postprocess_attempt(result)
 
-                _config.transient.reportfile.write(
-                    json.dumps(processed_attempt.as_dict()) + "\n"
-                )
-                attempts_completed.append(processed_attempt)
+                # Only log attempts that actually made API calls (not skipped due to budget)
+                if not processed_attempt.notes.get("skipped_budget_exceeded"):
+                    _config.transient.reportfile.write(
+                        json.dumps(processed_attempt.as_dict()) + "\n"
+                    )
+                    attempts_completed.append(processed_attempt)
 
         return attempts_completed
 
