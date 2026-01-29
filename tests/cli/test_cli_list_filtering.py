@@ -68,3 +68,42 @@ def test_list_probes_with_detector_spec(capsys, options):
         ), "expected all spec values to be present"
     else:
         assert any("🌟" in ln for ln in lines)
+
+
+def test_list_probes_shows_tier(capsys):
+    """Test that --list_probes shows tier information for probe classes."""
+    cli.main(["--list_probes"])
+    lines = _plugin_lines(capsys.readouterr().out)
+    # Check that at least some probe lines contain tier information
+    tier_lines = [ln for ln in lines if "Tier" in ln and "." in ln]
+    assert len(tier_lines) > 0, "expected some probe lines to show tier info"
+    # Verify tier format (Tier 1, Tier 2, Tier 3, or Tier 9)
+    assert any("Tier 1" in ln or "Tier 2" in ln or "Tier 3" in ln or "Tier 9" in ln for ln in tier_lines)
+
+
+@pytest.mark.parametrize(
+    "tier",
+    [1, 2, 3, 9],
+)
+def test_list_probes_filter_by_tier(capsys, tier):
+    """Test that --list_probes <tier> filters probes by tier."""
+    cli.main(["--list_probes", str(tier)])
+    lines = _plugin_lines(capsys.readouterr().out)
+    # Should only have probe classes (with dots), not module headers (module headers don't have tier)
+    class_lines = [ln for ln in lines if "." in ln.split("probes: ")[-1].split()[0]]
+    # All probe classes shown should be of the specified tier
+    if class_lines:  # Some tiers might have no probes
+        for ln in class_lines:
+            assert f"Tier {tier}" in ln, f"expected all probes to be Tier {tier}, got: {ln}"
+
+
+def test_list_probes_tier_filter_with_probe_spec(capsys):
+    """Test combining --list_probes <tier> with -p probe_spec."""
+    # This tests that tier filter and probe spec can work together
+    cli.main(["--list_probes", "1", "-p", "encoding"])
+    lines = _plugin_lines(capsys.readouterr().out)
+    # Should only show encoding probes that are Tier 1
+    for ln in lines:
+        if "." in ln.split("probes: ")[-1].split()[0]:
+            assert "encoding" in ln, "expected only encoding probes"
+            assert "Tier 1" in ln, "expected only Tier 1 probes"

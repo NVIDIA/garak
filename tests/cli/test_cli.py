@@ -22,7 +22,7 @@ def test_probe_list(capsys):
     output = ANSI_ESCAPE.sub("", result.out)
     for line in output.strip().split("\n"):
         assert re.match(
-            r"^probes: [a-z0-9_]+(\.[A-Za-z0-9_]+)?( 🌟)?( 💤)?$", line
+            r"^probes: [a-z0-9_]+(\.[A-Za-z0-9_]+)?(\tTier [1239])?( 🌟)?( 💤)?$", line
         ) or line.startswith(f"{__app__} {__description__}")
 
 
