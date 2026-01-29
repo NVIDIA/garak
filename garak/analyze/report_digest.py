@@ -344,10 +344,12 @@ def _get_probe_detector_details(
     }
 
     # Add CI fields if present
-    if confidence is not None:
+    # NOTE: CIs are calculated for attack success rate (failure rate), but absolute_score is pass rate
+    # So we need to invert: CI for pass rate = [1 - ci_upper, 1 - ci_lower]
+    if confidence is not None and ci_lower is not None and ci_upper is not None:
         result["confidence"] = confidence
-        result["absolute_confidence_lower"] = ci_lower
-        result["absolute_confidence_upper"] = ci_upper
+        result["absolute_confidence_lower"] = 1.0 - ci_upper  # Inverted
+        result["absolute_confidence_upper"] = 1.0 - ci_lower  # Inverted
 
     return result
 

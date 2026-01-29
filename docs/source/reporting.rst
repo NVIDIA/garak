@@ -29,6 +29,23 @@ Eval entries may include bootstrap confidence intervals for attack success rates
 
 These intervals account for sampling uncertainty. When detector performance metrics (sensitivity/specificity) are available, they also account for detector imperfection. Otherwise, a perfect detector is assumed.
 
+Recalculating Confidence Intervals
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For reports created before CI support or to experiment with different parameters, use the ``--rebuild_cis`` command:
+
+.. code-block:: bash
+
+   garak --rebuild_cis path/to/garak.uuid.report.jsonl
+
+This reconstructs binary pass/fail outcomes from attempt records and recalculates CIs using current config settings. The report file is updated in-place with new CI values in eval entries.
+
+To override config defaults:
+
+.. code-block:: bash
+
+   garak --rebuild_cis report.jsonl --bootstrap_num_iterations 50000 --bootstrap_confidence_level 0.99
+
 Report HTML
 -----------
 

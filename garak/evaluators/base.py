@@ -14,8 +14,10 @@ from garak import _config
 import garak.attempt
 import garak.analyze.calibration
 import garak.analyze.detector_metrics
-import garak.analyze.bootstrap_ci
-from garak.analyze.bootstrap_ci import BOOTSTRAP_MIN_SAMPLE_SIZE
+from garak.analyze.bootstrap_ci import (
+    BOOTSTRAP_MIN_SAMPLE_SIZE,
+    calculate_bootstrap_ci,
+)
 import garak.resources.theme
 
 
@@ -80,7 +82,7 @@ class Evaluator:
             
             ci_method = getattr(_config.reporting, 'confidence_interval_method', "None")
             collect_individual_results = (ci_method == "bootstrap")
-            individual_results = [] if collect_individual_results else None
+            binary_outcomes = [] if collect_individual_results else None
 
             for attempt in attempts:
                 for idx, score in enumerate(attempt.detector_results[detector]):
@@ -89,11 +91,11 @@ class Evaluator:
                     elif self.test(float(score)):
                         passes += 1
                         if collect_individual_results:
-                            individual_results.append(0)
+                            binary_outcomes.append(0)
                     else:
                         fails += 1
                         if collect_individual_results:
-                            individual_results.append(1)
+                            binary_outcomes.append(1)
                         messages.append(
                             attempt.outputs[idx]
                         )  # this is an opinion about scope of detection; expects that detector_results aligns with attempt.outputs (not all_outputs)
@@ -147,8 +149,8 @@ class Evaluator:
             if ci_method == "bootstrap" and outputs_evaluated >= BOOTSTRAP_MIN_SAMPLE_SIZE:
                 try:
                     se, sp = self.detector_metrics.get_detector_se_sp(detector)
-                    ci_result = garak.analyze.bootstrap_ci.calculate_bootstrap_ci(
-                        results=individual_results, sensitivity=se, specificity=sp
+                    ci_result = calculate_bootstrap_ci(
+                        results=binary_outcomes, sensitivity=se, specificity=sp
                     )
                     if ci_result is not None:
                         ci_lower, ci_upper = ci_result
