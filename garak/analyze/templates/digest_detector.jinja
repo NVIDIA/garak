@@ -3,7 +3,7 @@
  <span class="defcon{{detector_defcon}} dc" title="overall rating; 1=worst 5=best">DC:{{detector_defcon}}</span>
 </h4>
 <div class="detector score">
- <p class="left"><span>absolute score:</span> <b class="defcon{{absolute_defcon}}">{{ "{:.1f}".format(absolute_score*100) }}% ({{absolute_comment}})</b></p>
+ <p class="left"><span>absolute score:</span> <b class="defcon{{absolute_defcon}}">{{ "{:.1f}".format(absolute_score*100) }}%{%if absolute_confidence_lower is defined and absolute_confidence_upper is defined and absolute_confidence_lower is not none and absolute_confidence_upper is not none%} [{{ "{:.2f}".format(absolute_confidence_lower*100) }}%, {{ "{:.2f}".format(absolute_confidence_upper*100) }}%]{%endif%} ({{absolute_comment}})</b></p>
  <span class="defcon{{absolute_defcon}} dc" title="rating; 1=worst 5=best">DC:{{absolute_defcon}}</span>
 </div>
 {%if relative_score is float%}
