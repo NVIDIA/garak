@@ -77,7 +77,7 @@ class MustContradictNLI(HFDetector):
             if hypothesis is None or hypothesis.text is None:
                 results.append(None)
                 continue
-            tokenized_input_seq_pair = self.detector_tokenizer.encode_plus(
+            tokenized_input_seq_pair = self.detector_tokenizer._encode_plus(
                 premise,
                 hypothesis.text,
                 max_length=self.tokenizer_kwargs["max_length"],

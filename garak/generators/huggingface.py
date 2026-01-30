@@ -372,7 +372,7 @@ class Model(Pipeline, HFCompatible):
         if not hasattr(self, "deprefix_prompt"):
             self.deprefix_prompt = self.name in models_to_deprefix
 
-        if self.config.tokenizer_class:
+        if hasattr(self.config, "tokenizer_class") and self.config.tokenizer_class:
             self.tokenizer = transformers.AutoTokenizer.from_pretrained(
                 self.config.tokenizer_class
             )

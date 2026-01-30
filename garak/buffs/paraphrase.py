@@ -88,7 +88,12 @@ class Fast(Buff, HFCompatible):
 
     DEFAULT_PARAMS = Buff.DEFAULT_PARAMS | {
         "para_model_name": "garak-llm/chatgpt_paraphraser_on_T5_base",
-        "hf_args": {"device": "cpu", "torch_dtype": "float32"},
+        "hf_args": {
+            "device": "cpu",
+            "torch_dtype": "float32",
+            "custom_generate": "transformers-community/group-beam-search",
+            "trust_remote_code": True,
+        },
     }
     lang = "en"
     doc_uri = "https://huggingface.co/humarin/chatgpt_paraphraser_on_T5_base"
@@ -118,6 +123,11 @@ class Fast(Buff, HFCompatible):
             self.para_model_name, **model_kwargs
         ).to(self.device)
         self.tokenizer = AutoTokenizer.from_pretrained(self.para_model_name)
+        if self.hf_args.get("custom_generate", None):
+            if not self.hf_args.get("trust_remote_code", False):
+                raise ValueError(
+                    "When using a 'custom_generate' option 'trust_remote_code' must be enabled."
+                )
 
     def _get_response(self, input_text):
         if self.para_model is None:
@@ -131,18 +141,25 @@ class Fast(Buff, HFCompatible):
             truncation=True,
         ).input_ids
 
-        outputs = self.para_model.generate(
-            input_ids,
-            # temperature=self.temperature,
-            repetition_penalty=self.repetition_penalty,
-            num_return_sequences=self.num_return_sequences,
-            no_repeat_ngram_size=self.no_repeat_ngram_size,
-            num_beams=self.num_beams,
-            num_beam_groups=self.num_beam_groups,
-            max_length=self.max_length,
-            diversity_penalty=self.diversity_penalty,
-            # do_sample = False,
-        )
+        try:
+            outputs = self.para_model.generate(
+                input_ids,
+                # temperature=self.temperature,
+                repetition_penalty=self.repetition_penalty,
+                num_return_sequences=self.num_return_sequences,
+                no_repeat_ngram_size=self.no_repeat_ngram_size,
+                num_beams=self.num_beams,
+                num_beam_groups=self.num_beam_groups,
+                max_length=self.max_length,
+                diversity_penalty=self.diversity_penalty,
+                # requirements for custom generation in transformers >= 4.57.0
+                trust_remote_code=self.hf_args["trust_remote_code"],
+            )
+        except OSError as e:
+            from garak.exception import GarakException
+
+            msg = "Detector failed to generate a model response"
+            raise GarakException(msg) from e
 
         res = self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
 
