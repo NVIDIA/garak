@@ -7,6 +7,8 @@ from types import GeneratorType
 from typing import List, Optional, Union
 import uuid
 
+from garak.exception import GarakException
+
 (
     ATTEMPT_NEW,
     ATTEMPT_STARTED,
@@ -151,6 +153,22 @@ class Conversation:
         for turn in turns:
             ret_val.turns.append(Turn.from_dict(turn))
         return ret_val
+
+    @classmethod
+    def from_openai(cls, conv: List[dict], notes: Optional[dict] = None):
+        new_conv = list()
+        conv_copy = deepcopy(conv)
+        for turn in conv_copy:
+            if isinstance(turn, dict):
+                new_conv.append(Turn.from_dict(turn))
+            else:
+                msg = "Conversation.from_openai expected a `list` of `dict`s but encountered {}".format(
+                    type(turn)
+                )
+                raise GarakException(msg)
+        if notes is None:
+            notes = dict()
+        return cls(turns=new_conv, notes=notes)
 
 
 class Attempt:

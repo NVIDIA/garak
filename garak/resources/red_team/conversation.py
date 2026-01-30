@@ -29,19 +29,7 @@ import logging
 import numpy as np
 import json
 
-from fastchat.model import get_conversation_template
-
-
-def get_template(model_name, self_id=None, parent_id=None):
-    template = get_conversation_template(model_name)
-    if template.name == "llama-2":
-        template.sep2 = template.sep2.strip()
-
-    # IDs of self and parent in the tree of thought
-    template.self_id = self_id
-    template.parent_id = parent_id
-
-    return template
+from garak.exception import GarakException
 
 
 def random_string(n):
@@ -64,13 +52,18 @@ def extract_json(s):
     start_pos = s.find("{")
     end_pos = s.rfind("}") + 1  # +1 to include the closing brace
 
-    if end_pos == -1:
-        logging.error("Error extracting potential JSON structure")
-        logging.error(f"Input:\n {s}")
-        return None, None
-
     json_str = s[start_pos:end_pos]
     json_str = json_str.replace("\n", " ")  # Remove all line breaks
+
+    try:
+        parsed = json.loads(json_str)
+        if "improvement" in parsed.keys() and "prompt" in parsed.keys():
+            if isinstance(parsed["improvement"], str) and isinstance(
+                parsed["prompt"], str
+            ):
+                return parsed, json_str
+    except json.decoder.JSONDecodeError:
+        pass
 
     improvement_group = r"^\{\"improvement\"\s*:\s*\"(.*?)\","
     prompt_group = r",\s*\"prompt\"\s*:\s*\"(.*?)\"\s*\}$"
@@ -78,9 +71,9 @@ def extract_json(s):
     prompt_match = re.search(prompt_group, json_str)
 
     improvement = improvement_match.group(1) if improvement_match is not None else ""
-    prompt = prompt_match.group(1) if prompt_match is not None else None
+    prompt = prompt_match.group(1) if prompt_match is not None else ""
 
-    if prompt:
+    if improvement:
         parsed = {"improvement": improvement, "prompt": prompt}
         return parsed, json_str
     else:
@@ -93,13 +86,11 @@ def extract_json(s):
         improvement = (
             improvement_match.group(1) if improvement_match is not None else ""
         )
-        prompt = prompt_match.group(1) if prompt_match is not None else None
+        prompt = prompt_match.group(1) if prompt_match is not None else ""
         if prompt is None:
             alternative_match = re.search(alternative_group, s, re.IGNORECASE)
-            prompt = (
-                alternative_match.group(1) if alternative_match is not None else None
-            )
-        if prompt:
+            prompt = alternative_match.group(1) if alternative_match is not None else ""
+        if improvement:
             parsed = {"improvement": improvement, "prompt": prompt}
             json_str = json.dumps(parsed)
             return parsed, json_str
@@ -123,7 +114,7 @@ def clean_attacks_and_convs(attack_list, convs_list):
     if not any(attack_list):
         msg = "No valid attacks returned by the model!"
         logging.error(msg)
-        raise RuntimeError(msg)
+        return None, None
 
     tmp = [(a, c) for (a, c) in zip(attack_list, convs_list) if a is not None]
     tmp = [*zip(*tmp)]
@@ -147,7 +138,7 @@ def prune(
     This function takes
         1. various lists containing metadata related to the attacks as input,
         2. a list with `sorting_score`
-    It prunes all attacks (and correspondng metadata)
+    It prunes all attacks (and corresponding metadata)
         1. whose `sorting_score` is 0;
         2. which exceed the `attack_params['width']` when arranged
            in decreasing order of `sorting_score`.
@@ -172,11 +163,15 @@ def prune(
         ]
 
         # Ensure that the truncated list has at least two elements
-        if len(truncated_list) == 0:
+        if len(truncated_list) == 0 and len(shuffled_scores) > 1:
             truncated_list = [
                 list_[shuffled_scores[0][0]],
-                list_[shuffled_scores[0][1]],
+                list_[shuffled_scores[1][0]],
             ]
+        else:
+            raise GarakException(
+                "red_team.conversation.prune did not have at least two elements to return"
+            )
 
         return truncated_list
 
