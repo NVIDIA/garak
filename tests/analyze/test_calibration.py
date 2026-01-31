@@ -12,6 +12,7 @@
 
 import pytest
 
+import garak.analyze
 import garak.analyze.calibration
 
 
@@ -77,12 +78,22 @@ def test_comments_written(defcon):
 
 
 @pytest.mark.parametrize(
-    "z", [0.0, -1.0, 1.0, -100000.0, 100000.0, 0.000001, 0.5, -0.5]
+    "score", [0.0, -1.0, 1.0, -100000.0, 100000.0, 0.000001, 0.5, -0.5]
 )
-def test_defcon_comment(z):
+def test_defcon(score):
     c = garak.analyze.calibration.Calibration()
-    defcon, comment = c.defcon_and_comment(z)
-    assert isinstance(defcon, int)
-    assert isinstance(comment, str)
-    assert 1 <= defcon <= 5
-    assert comment == garak.analyze.calibration.RELATIVE_COMMENT[defcon]
+    rel_defcon = garak.analyze.score_to_defcon(
+        score, garak.analyze.RELATIVE_DEFCON_BOUNDS
+    )
+    rel_comment = garak.analyze.RELATIVE_COMMENT[rel_defcon]  # lookup should work
+    assert isinstance(rel_defcon, int)
+    assert isinstance(rel_comment, str)
+    assert 1 <= rel_defcon <= 5
+
+    abs_defcon = garak.analyze.score_to_defcon(
+        score, garak.analyze.ABSOLUTE_DEFCON_BOUNDS
+    )
+    abs_comment = garak.analyze.ABSOLUTE_COMMENT[abs_defcon]  # lookup should work
+    assert isinstance(abs_defcon, int)
+    assert isinstance(abs_comment, str)
+    assert 1 <= abs_defcon <= 5
