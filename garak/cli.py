@@ -3,7 +3,7 @@
 
 """Flow for invoking garak from the command line"""
 
-command_options = "list_detectors list_probes list_generators list_buffs list_config plugin_info interactive report version fix".split()
+command_options = "list_detectors list_probes list_generators list_buffs list_config plugin_info interactive report rebuild_cis version fix".split()
 
 
 def parse_cli_plugin_config(plugin_type, args):
@@ -214,6 +214,12 @@ def main(arguments=None) -> None:
         type=str,
         default=_config.reporting.taxonomy,
         help="specify a MISP top-level taxonomy to be used for grouping probes in reporting. e.g. 'avid-effect', 'owasp' ",
+    )
+    parser.add_argument(
+        "--rebuild_cis",
+        type=str,
+        metavar="REPORT_PATH",
+        help="recalculate confidence intervals for existing report and update in-place"
     )
 
     ## COMMANDS
@@ -540,6 +546,54 @@ def main(arguments=None) -> None:
             report = Report(args.report).load().get_evaluations()
             report.export()
             print(f"📜 AVID reports generated at {report.write_location}")
+
+        elif args.rebuild_cis:
+            from pathlib import Path
+            from garak.analyze.ci_calculator import (
+                calculate_ci_from_report,
+                update_eval_entries_with_ci
+            )
+            
+            report_path = Path(args.rebuild_cis)
+            
+            # Validate file exists and is a file
+            if not report_path.exists():
+                print(f"❌ Report file not found: {report_path}")
+                return 1
+            
+            if not report_path.is_file():
+                print(f"❌ Path is not a file: {report_path}")
+                return 1
+            
+            print(f"📊 Recalculating confidence intervals for {report_path}")
+            
+            try:
+                ci_results = calculate_ci_from_report(str(report_path))
+                
+                if len(ci_results) == 0:
+                    print(f"⚠️  No CIs calculated (check sample sizes and eval entries)")
+                    return 0
+                
+                print(f"📊 Updating {len(ci_results)} probe/detector pairs with new CIs")
+                update_eval_entries_with_ci(str(report_path), ci_results)
+                
+                print(f"✅ CIs recalculated and report updated: {report_path}")
+                
+                # Regenerate HTML digest with updated CIs
+                from garak.analyze.report_digest import build_digest, build_html
+                digest = build_digest(str(report_path))
+                html_output = report_path.with_suffix('.html')
+                html_report = build_html(digest, _config)
+                with open(html_output, "w", encoding="utf-8") as htmlfile:
+                    htmlfile.write(html_report)
+                print(f"📄 HTML digest written to {html_output}")
+            
+            except ValueError as e:
+                print(f"❌ Invalid report data: {e}")
+                return 1
+            except OSError as e:
+                print(f"❌ I/O error: {e}")
+                return 1
 
         # model is specified, we're doing something
         elif _config.plugins.target_type:

@@ -113,6 +113,8 @@ CLI reference for garak
     --version, -V         print version info & exit
     --report REPORT, -r REPORT
                           process garak report into a list of AVID reports
+    --rebuild_cis REPORT_PATH
+                          recalculate confidence intervals for existing report and update in-place
     --interactive, -I     Enter interactive probing mode
     --fix                 Update provided configuration with fixer migrations;
                           requires one of --config / --*_option_file, /
