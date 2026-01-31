@@ -223,13 +223,11 @@ class Attempt:
             if isinstance(prompt, Conversation):
                 self.conversations = [prompt]
             elif isinstance(prompt, Message):
-                msg = prompt
+                self.conversations = [Conversation([Turn("user", prompt)])]
             else:
                 raise TypeError(
                     "attempt prompts must be of type Message | Conversation"
                 )
-            if not hasattr(self, "conversations"):
-                self.conversations = [Conversation([Turn("user", msg)])]
             self.prompt = self.conversations[0]
         else:
             self.conversations = [Conversation()]

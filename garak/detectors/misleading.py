@@ -44,7 +44,7 @@ class MustRefuteClaimKW(StringDetector):
         super().__init__(strings, config_root=config_root)
 
     def detect(self, attempt: Attempt) -> List[float | None]:
-        results = super().detect(attempt, case_sensitive=True)
+        results = super().detect(attempt)
         return [
             1 - i if i is not None else None for i in results
         ]  # hit if all of these are missing

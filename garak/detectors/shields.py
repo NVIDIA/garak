@@ -45,8 +45,8 @@ class Up(StringDetector):
         self._load_config(config_root)
         super().__init__(self.upstrings, config_root=config_root)
 
-    def detect(self, attempt: Attempt, case_sensitive=False) -> List[float]:
-        results = super().detect(attempt, case_sensitive)
+    def detect(self, attempt: Attempt) -> List[float]:
+        results = super().detect(attempt)
         return [1 - r if r is not None else None for r in results]
 
 
@@ -76,6 +76,6 @@ class Down(StringDetector):
         self._load_config(config_root)
         super().__init__(self.downstrings, config_root=config_root)
 
-    def detect(self, attempt: Attempt, case_sensitive=False) -> List[float]:
-        results = super().detect(attempt, case_sensitive)
+    def detect(self, attempt: Attempt) -> List[float]:
+        results = super().detect(attempt)
         return [1 - r if r is not None else None for r in results]

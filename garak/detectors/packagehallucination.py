@@ -45,12 +45,12 @@ class PackageHallucinationDetector(Detector, ABC):
     @abstractmethod
     def language_name(self) -> str:
         """Programming language name - must be overridden by subclasses"""
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def _extract_package_references(self, output: str) -> Set[str]:
         """Extract package references from output - must be overridden by subclasses"""
-        pass
+        raise NotImplementedError
 
     def _load_package_list(self):
         import datasets

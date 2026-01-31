@@ -153,11 +153,13 @@ def test_case_sensitivity():
     attempt.outputs = ["UNSAFE content", "Block THIS", "unsafe"]
 
     # Case sensitive
-    results = up_detector.detect(attempt, case_sensitive=True)
+    up_detector.case_sensitive = True
+    results = up_detector.detect(attempt)
     assert results == [1.0, 1.0, 0.0], "Up detector case sensitive check failed"
 
     # Case insensitive
-    results = up_detector.detect(attempt, case_sensitive=False)
+    up_detector.case_sensitive = False
+    results = up_detector.detect(attempt)
     assert results == [0.0, 0.0, 0.0], "Up detector case insensitive check failed"
 
     # Test Down detector
@@ -167,9 +169,11 @@ def test_case_sensitivity():
     attemptd.outputs = ["SAFE content", "Allow THIS", "safe"]
 
     # Case sensitive
-    results = down_detector.detect(attemptd, case_sensitive=True)
+    down_detector.case_sensitive = True
+    results = down_detector.detect(attemptd)
     assert results == [1.0, 1.0, 0.0], "Down detector case sensitive check failed"
 
     # Case insensitive
-    results = down_detector.detect(attemptd, case_sensitive=False)
+    down_detector.case_sensitive = False
+    results = down_detector.detect(attemptd)
     assert results == [0.0, 0.0, 0.0], "Down detector case insensitive check failed"

@@ -157,10 +157,10 @@ class Probe(Configurable):
         systematic transformation of attempts"""
         return attempt
 
-    def _generator_precall_hook(self, generator, attempt=None):
+    def _generator_precall_hook(self, generator, attempt=None) -> None:
         """function to be overloaded if a probe wants to take actions between
         attempt generation and posing prompts to the model"""
-        pass
+        return
 
     def _buff_hook(
         self, attempts: Iterable[garak.attempt.Attempt]

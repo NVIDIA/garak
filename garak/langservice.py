@@ -42,7 +42,7 @@ def start_msg() -> str:
     return "🌐", "loading language services: " + " ".join(tasks())
 
 
-def _load_langprovider(language_service: dict = {}) -> LangProvider:
+def _load_langprovider(language_service: dict) -> LangProvider:
     """Load a single language provider based on the configuration provided."""
     langprovider_instance = None
     langprovider_config = {

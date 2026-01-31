@@ -86,7 +86,7 @@ class PackageHallucinationProbe(garak.probes.Probe, ABC):
     @abstractmethod
     def language_name(self) -> str:
         """Programming language name - must be overridden by subclasses"""
-        pass
+        raise NotImplementedError
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)

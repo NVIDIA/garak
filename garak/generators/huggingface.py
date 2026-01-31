@@ -467,8 +467,10 @@ class LLaVA(Generator, HFCompatible):
 
     extra_dependency_names = ["pillow"]
 
-    def _load_deps(self):
-        return super()._load_deps(["PIL"])
+    def _load_deps(self, deps_override: List | None = None):
+        if deps_override is None:
+            deps_override = []
+        return super()._load_deps(deps_override + ["PIL"])
 
     DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
         "max_tokens": 4000,
@@ -520,7 +522,7 @@ class LLaVA(Generator, HFCompatible):
         self.model.to(self.device)
 
     def generate(
-        self, prompt: Conversation, generations_this_call: int = 1
+        self, prompt: Conversation, generations_this_call: int = 1, typecheck=True
     ) -> List[Union[Message, None]]:
 
         text_prompt = prompt.last_message().text

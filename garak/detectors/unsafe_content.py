@@ -38,8 +38,6 @@ class Martin_haDistilbert(HFDetector):
 class ToxicCommentModel(S_nlpDetox):
     """Garak's default toxicity detector"""
 
-    pass
-
 
 surge_list = defaultdict(list)
 with open(

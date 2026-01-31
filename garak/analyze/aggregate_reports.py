@@ -17,9 +17,6 @@ import json
 import uuid
 import sys
 
-import garak
-import garak.analyze.report_digest
-
 
 def _process_file_body(in_file, out_file, aggregate_uuid) -> dict | None:
     eof = False
@@ -66,8 +63,9 @@ def main(argv=None) -> None:
     if argv is None:
         argv = sys.argv[1:]
 
-    import garak._config
     import argparse
+    import garak._config
+    import garak.analyze.report_digest
 
     garak._config.load_config()
     print(

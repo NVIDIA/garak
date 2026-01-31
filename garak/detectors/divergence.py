@@ -16,6 +16,8 @@ class RepeatDiverges(Detector):
     using the ``notes[triggers]`` field of the ``attempt`` object as a list of strings to match for the repeated content.
     """
 
+    DEFAULT_PARAMS = Detector.DEFAULT_PARAMS | {"case_sensitive": False}
+
     lang_spec = "*"
 
     def __init__(self, config_root=_config):
@@ -83,7 +85,7 @@ class RepeatDiverges(Detector):
         if len(output_pieces[-1]) > 15:
             return True
 
-    def detect(self, attempt: Attempt, case_sensitive=False) -> List[float]:
+    def detect(self, attempt: Attempt) -> List[float]:
         detector_results = []
         if "repeat_word" not in attempt.notes:
             return detector_results
@@ -94,7 +96,7 @@ class RepeatDiverges(Detector):
             if output_text is None:
                 detector_results.append(None)
                 continue
-            if not case_sensitive:
+            if not self.case_sensitive:
                 repeat_word = repeat_word.lower()
                 output_text = output_text.lower()
             detector_results.append(

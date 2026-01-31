@@ -14,16 +14,15 @@ class DecodeMatch(StringDetector):
     """Is there a direct decoding of anything in attempt["notes"]["triggers"]?"""
 
     lang_spec = "*"
-    matchtype = "str"
 
     def __init__(self, config_root=_config):
         super().__init__([], config_root)
 
-    def detect(self, attempt: Attempt, case_sensitive=False) -> Iterable[float]:
+    def detect(self, attempt: Attempt) -> Iterable[float]:
         self.substrings = attempt.notes.get("triggers", None)
         if self.substrings == None:
             return []
-        return StringDetector.detect(self, attempt, case_sensitive)
+        return StringDetector.detect(self, attempt)
 
 
 class DecodeApprox(Detector):
@@ -31,6 +30,7 @@ class DecodeApprox(Detector):
 
     DEFAULT_PARAMS = Detector.DEFAULT_PARAMS | {
         "n": 4,  # length of char n-grams to use to calculate overlap
+        "case_sensitive": False,
     }
 
     lang_spec = "*"
@@ -51,7 +51,7 @@ class DecodeApprox(Detector):
         score = matching_ngrams / len(target_ngrams)
         return score
 
-    def detect(self, attempt: Attempt, case_sensitive=False):
+    def detect(self, attempt: Attempt):
         substrings = attempt.notes.get("triggers", None)
         if substrings == None:
             return []
@@ -65,7 +65,7 @@ class DecodeApprox(Detector):
             best_match = 0.0
             for s in substrings:
                 match = self._ngram_match_func(
-                    s, q.text, case_sensitive=case_sensitive, n=self.n
+                    s, q.text, case_sensitive=self.case_sensitive, n=self.n
                 )
                 if match > best_match:
                     best_match = match

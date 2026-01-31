@@ -5,11 +5,9 @@
 
 These detectors examine file formats, based on name or content."""
 
-import importlib
 import logging
 import pickletools
 
-from garak import _config
 from garak.detectors.base import FileDetector
 
 
@@ -23,7 +21,7 @@ class PossiblePickleName(FileDetector):
     valid_format = None
     lang_spec = "*"
 
-    def _test_file(self, filename: str) -> None | str:
+    def _test_file(self, filename):
         if filename.lower().endswith(".pkl"):
             return 1.0
         elif filename.lower().endswith(".pickle"):
@@ -85,9 +83,9 @@ class FileIsExecutable(FileDetector):
 
     extra_dependency_names = ["magic"]
 
-    def _load_deps(self):
+    def _load_deps(self, deps_override = None):
         try:
-            super()._load_deps()
+            super()._load_deps(deps_override)
         except (ImportError, ModuleNotFoundError) as e:
             logging.info(
                 "detectors.fileformats: failed importing python-magic, try installing libmagic, e.g. `brew install libmagic`",

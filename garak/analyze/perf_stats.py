@@ -12,7 +12,6 @@
 
 from collections import defaultdict
 import datetime
-from glob import glob
 import json
 import sys
 

@@ -74,7 +74,7 @@ class Buff(Configurable):
 
     def untransform(self, attempt: garak.attempt.Attempt) -> garak.attempt.Attempt:
         """Only necessary if buff requires a post buff hook"""
-        pass
+        return attempt
 
     def buff(
         self, source_attempts: List[garak.attempt.Attempt], probename=""

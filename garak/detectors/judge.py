@@ -7,7 +7,7 @@ from typing import List
 
 from garak import _config, _plugins
 from garak.resources.red_team.evaluation import EvaluationJudge, get_token_limit
-from garak.attempt import Attempt, Message
+from garak.attempt import Attempt
 from garak.detectors.base import Detector
 from garak.exception import GarakException, BadGeneratorException
 from garak.generators.openai import OpenAICompatible
