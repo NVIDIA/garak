@@ -162,6 +162,11 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/
 
+# Test configuration
+garak-config.yaml
+
+# Run state directories (resume feature - user data, not source code)
+.garak/runs/
 
 garak.*.jsonl
 garak.log

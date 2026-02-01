@@ -55,6 +55,15 @@ def start_run():
             "The current/default config is optimised for speed rather than thoroughness. Try e.g. --config full for a stronger test, or specify some probes.",
             logging=logging,
         )
+
+    # RESUME SUPPORT: Skip file setup if already done (for resume)
+    if (
+        hasattr(_config.transient, "reportfile")
+        and _config.transient.reportfile is not None
+    ):
+        logging.info("Report file already open, skipping initialization")
+        return
+
     _config.transient.run_id = str(uuid.uuid4())  # uuid1 is safe but leaks host info
     report_path = Path(_config.reporting.report_dir)
     if not report_path.is_absolute():
@@ -74,66 +83,164 @@ def start_run():
     else:
         filename = _config.reporting.report_prefix + ".report.jsonl"
     _config.transient.report_filename = str(report_path / filename)
-    _config.transient.reportfile = open(
-        _config.transient.report_filename, "w", buffering=1, encoding="utf-8"
-    )
-    setup_dict = {"entry_type": "start_run setup"}
-    for k, v in _config.__dict__.items():
-        if k[:2] != "__" and type(v) in (
-            str,
-            int,
-            bool,
-            dict,
-            tuple,
-            list,
-            set,
-            type(None),
-        ):
-            setup_dict[f"_config.{k}"] = v
-    for subset in "system transient run plugins reporting".split():
-        for k, v in getattr(_config, subset).__dict__.items():
-            if k[:2] != "__" and type(v) in (
-                str,
-                int,
-                bool,
-                dict,
-                tuple,
-                list,
-                set,
-                type(None),
-            ):
-                setup_dict[f"{subset}.{k}"] = v
 
-    _config.transient.reportfile.write(
-        json.dumps(setup_dict, ensure_ascii=False) + "\n"
+    # Determine if resuming
+    is_resuming = (
+        hasattr(_config.transient, "resume_run_id") and _config.transient.resume_run_id
     )
-    _config.transient.reportfile.write(
-        json.dumps(
-            {
+
+    # Check if report file is already open (opened by cli.py in normal mode)
+    file_already_open = (
+        hasattr(_config.transient, "reportfile")
+        and _config.transient.reportfile is not None
+        and not _config.transient.reportfile.closed
+    )
+
+    if not file_already_open:
+        # Open report file in append mode if resuming, write mode if new
+        # (This path is used for interactive mode)
+        file_mode = "a" if is_resuming else "w"
+        _config.transient.reportfile = open(
+            _config.transient.report_filename, file_mode, buffering=1, encoding="utf-8"
+        )
+
+        # Write start_run setup entry only for new runs (not on resume)
+        if not is_resuming:
+            setup_dict = {"entry_type": "start_run setup"}
+            for k, v in _config.__dict__.items():
+                if k[:2] != "__" and type(v) in (
+                    str,
+                    int,
+                    bool,
+                    dict,
+                    tuple,
+                    list,
+                    set,
+                    type(None),
+                ):
+                    setup_dict[f"_config.{k}"] = v
+            for subset in "system transient run plugins reporting".split():
+                for k, v in getattr(_config, subset).__dict__.items():
+                    if k[:2] != "__" and type(v) in (
+                        str,
+                        int,
+                        bool,
+                        dict,
+                        tuple,
+                        list,
+                        set,
+                        type(None),
+                    ):
+                        setup_dict[f"{subset}.{k}"] = v
+
+            _config.transient.reportfile.write(
+                json.dumps(setup_dict, ensure_ascii=False) + "\n"
+            )
+
+            # Write init entry only for new runs (not on resume)
+            # Use original start_time if available (should match state), otherwise current time
+            start_time = (
+                _config.transient.original_starttime_iso
+                if hasattr(_config.transient, "original_starttime_iso")
+                and _config.transient.original_starttime_iso
+                else _config.transient.starttime_iso
+            )
+            init_entry = {
                 "entry_type": "init",
                 "garak_version": _config.version,
-                "start_time": _config.transient.starttime_iso,
+                "start_time": start_time,
                 "run": _config.transient.run_id,
-            },
-            ensure_ascii=False,
-        )
-        + "\n"
-    )
+            }
+            # Add resume capability metadata if enabled
+            if hasattr(_config.run, "resumable") and _config.run.resumable:
+                init_entry["resume_enabled"] = True
+                init_entry["resume_granularity"] = getattr(
+                    _config.run, "resume_granularity", "probe"
+                )
+            _config.transient.reportfile.write(
+                json.dumps(init_entry, ensure_ascii=False) + "\n"
+            )
     logging.info("reporting to %s", _config.transient.report_filename)
 
 
 def end_run():
     import datetime
     import logging
+    import os
+    import tempfile
 
     from garak import _config
 
     logging.info("run complete, ending")
+
+    # Helper function to remove trailing metadata entries
+    def remove_trailing_metadata_entries(report_path):
+        """Remove completion/digest entries from the end of a resumed report"""
+        try:
+            with open(report_path, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+
+            # Find the last valid entry (non-metadata)
+            last_valid_idx = len(lines) - 1
+            for i in range(len(lines) - 1, -1, -1):
+                try:
+                    entry = json.loads(lines[i])
+                    if entry.get("entry_type") not in ["completion", "digest"]:
+                        last_valid_idx = i
+                        break
+                except:
+                    continue
+
+            # Write back only up to the last valid entry
+            if last_valid_idx < len(lines) - 1:
+                with tempfile.NamedTemporaryFile(
+                    "w",
+                    delete=False,
+                    encoding="utf-8",
+                    dir=os.path.dirname(report_path),
+                ) as tmp:
+                    tmp.writelines(lines[: last_valid_idx + 1])
+                    tmp_path = tmp.name
+                os.replace(tmp_path, report_path)
+                logging.info(
+                    f"Removed {len(lines) - last_valid_idx - 1} trailing metadata entries"
+                )
+        except Exception as e:
+            logging.warning(f"Could not remove trailing entries: {e}")
+
+    # Remove old completion/digest entries if resuming
+    is_resuming = (
+        hasattr(_config.transient, "resume_run_id") and _config.transient.resume_run_id
+    )
+    if is_resuming:
+        remove_trailing_metadata_entries(_config.transient.report_filename)
+
+    # Use original start_time if available (for resumed runs)
+    start_time = (
+        _config.transient.original_start_time
+        if hasattr(_config.transient, "original_start_time")
+        and _config.transient.original_start_time
+        else _config.transient.starttime_iso
+    )
+
     end_object = {
         "entry_type": "completion",
+        "start_time": start_time,
         "end_time": datetime.datetime.now().isoformat(),
         "run": _config.transient.run_id,
     }
+
+    # Add resume metadata if this run was resumed
+    if (
+        hasattr(_config.transient, "resume_run_id")
+        and _config.transient.resume_run_id
+        and hasattr(_config.transient, "original_start_time")
+        and _config.transient.original_start_time
+    ):
+        end_object["resumed"] = True
+        end_object["original_run_id"] = _config.transient.resume_run_id
+        end_object["original_start_time"] = _config.transient.original_start_time
+
     _config.transient.reportfile.write(
         json.dumps(end_object, ensure_ascii=False) + "\n"
     )

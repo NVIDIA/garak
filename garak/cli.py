@@ -3,7 +3,19 @@
 
 """Flow for invoking garak from the command line"""
 
-command_options = "list_detectors list_probes list_generators list_buffs list_config plugin_info interactive report version fix".split()
+command_options = "list_detectors list_probes list_generators list_buffs list_config plugin_info interactive report version fix list_runs delete_run".split()
+
+
+def str_to_bool(value):
+    """Convert string to boolean for CLI arguments."""
+    if isinstance(value, bool):
+        return value
+    if value.lower() in ("true", "1", "yes", "y"):
+        return True
+    elif value.lower() in ("false", "0", "no", "n"):
+        return False
+    else:
+        raise argparse.ArgumentTypeError(f"Boolean value expected. Got: {value}")
 
 
 def parse_cli_plugin_config(plugin_type, args):
@@ -136,6 +148,39 @@ def main(arguments=None) -> None:
     )
     parser.add_argument(
         "--config", type=str, default=None, help="YAML or JSON config file for this run"
+    )
+    parser.add_argument(
+        "--resumable",
+        type=str_to_bool,
+        nargs="?",
+        const=True,
+        default=_config.run.resumable,
+        help="Enable/disable resumable scans. Use --resumable true/false to override config (default: enabled)",
+    )
+    parser.add_argument(
+        "--resume",
+        type=str,
+        default=None,
+        help="Resume a previous run using the specified run ID (e.g., --resume garak-run-xxx)",
+    )
+    parser.add_argument(
+        "--list_runs",
+        action="store_true",
+        help="List unfinished runs",
+    )
+    parser.add_argument(
+        "--delete_run",
+        type=str,
+        default=None,
+        help="Delete a run by ID",
+    )
+    parser.add_argument(
+        "--resume_granularity",
+        "--resume-granularity",
+        type=str,
+        choices=["probe", "attempt"],
+        default=None,
+        help="Resume granularity: 'probe' (skip completed probes) or 'attempt' (skip completed prompts). Overrides config file.",
     )
 
     ## PLUGINS
@@ -346,6 +391,59 @@ def main(arguments=None) -> None:
     args = cli_args
     # stash cli_args
     _config.transient.cli_args = cli_args
+    _config.transient.args = args  # Also set args for command.py
+
+    # Handle resume argument
+    if hasattr(args, "resume") and args.resume:
+        _config.transient.resume_run_id = args.resume
+
+        # Load resumed state early to extract model_type and generator
+        from garak import _plugins
+        import garak.resumeservice as resumeservice
+
+        resumeservice.load()
+        state = resumeservice.get_state()
+        if state:
+            # Load model_type and generator from resumed state
+            if "model_type" in state:
+                _config.plugins.model_type = state["model_type"]
+                _config.plugins.target_type = state[
+                    "model_type"
+                ]  # Set target_type for condition check
+            if "model_name" in state:
+                _config.plugins.model_name = state["model_name"]
+            if "generator" in state:
+                # Extract generator name from full class path
+                generator_class = state["generator"]
+                if "." in generator_class:
+                    _config.plugins.model_type = generator_class.split(".")[-2]
+                    _config.plugins.target_type = generator_class.split(".")[
+                        -2
+                    ]  # Set target_type for condition check
+                    _config.plugins.model_name = generator_class.split(".")[-1]
+
+            # Restore generator configuration
+            if "generator_config" in state and state["generator_config"]:
+                # Merge generator config into _config.plugins.generators
+                for gen_family, gen_configs in state["generator_config"].items():
+                    if not hasattr(_config.plugins, "generators"):
+                        _config.plugins.generators = {}
+                    if gen_family not in _config.plugins.generators:
+                        _config.plugins.generators[gen_family] = {}
+                    for gen_name, gen_params in gen_configs.items():
+                        _config.plugins.generators[gen_family][gen_name] = gen_params
+
+            # Restore run configuration parameters
+            if "run_generations" in state:
+                _config.run.generations = state["run_generations"]
+            if "run_deprefix" in state:
+                _config.run.deprefix = state["run_deprefix"]
+
+            # Restore reporting configuration parameters
+            if "reporting_group_aggregation_function" in state:
+                _config.reporting.group_aggregation_function = state[
+                    "reporting_group_aggregation_function"
+                ]
 
     # save args info into config
     # need to know their type: plugin, system, or run
@@ -443,6 +541,67 @@ def main(arguments=None) -> None:
                 sys.exit(1)
             finally:
                 command.end_run()
+
+        # Handle resume-related commands
+        if hasattr(args, "list_runs") and args.list_runs:
+            from garak import resumeservice
+            from datetime import datetime
+
+            runs = resumeservice.list_runs()
+            if not runs:
+                print("\n📋 No unfinished runs found.")
+                print(
+                    "\nStart a new resumable scan with: garak --resumable [options]\n"
+                )
+            else:
+                print("\n📋 Resumable Runs\n")
+
+                # Print header
+                print(
+                    f"{'#':<4} {'Run ID':<38} {'Started':<20} {'Progress':<12} {'%':<6}"
+                )
+                print("-" * 82)
+
+                for idx, run in enumerate(runs, 1):
+                    # Calculate percentage
+                    percentage = (
+                        (run["progress"] / run["total"] * 100)
+                        if run["total"] > 0
+                        else 0
+                    )
+
+                    # Format the timestamp more readably
+                    try:
+                        dt = datetime.fromisoformat(run["start_time"])
+                        formatted_time = dt.strftime("%Y-%m-%d %H:%M")
+                    except:
+                        formatted_time = run["start_time"][:16]
+
+                    # Progress format
+                    progress_str = f"{run['progress']}/{run['total']}"
+
+                    print(
+                        f"{idx:<4} {run['run_id']:<38} {formatted_time:<20} {progress_str:<12} {percentage:>5.1f}%"
+                    )
+
+                print("-" * 82)
+                print(f"\nTotal: {len(runs)} unfinished run(s)")
+                print("\nTo resume: garak --resume <run_id>")
+                print("To delete: garak --delete_run <run_id>\n")
+            return
+
+        if hasattr(args, "delete_run") and args.delete_run:
+            from garak import resumeservice
+
+            try:
+                resumeservice.delete_run(args.delete_run)
+                print(f"✅ Deleted run: {args.delete_run}")
+            except Exception as e:
+                print(f"❌ Failed to delete run: {e}")
+                import sys
+
+                sys.exit(1)
+            return
 
         if args.version:
             pass
@@ -566,6 +725,50 @@ def main(arguments=None) -> None:
                 logging.error(message)
                 raise ValueError(message)
 
+            # RESUME SUPPORT: Restore report paths and override probe spec with probes from resumed run
+            from garak import resumeservice
+
+            if resumeservice.enabled():
+                resumed_state = resumeservice.get_state()
+                if resumed_state:
+                    # Restore report directory and prefix from resumed state
+                    if "report_dir" in resumed_state:
+                        _config.reporting.report_dir = resumed_state["report_dir"]
+                        logging.info(
+                            f"Restored report_dir from state: {resumed_state['report_dir']}"
+                        )
+                    if "report_prefix" in resumed_state:
+                        _config.reporting.report_prefix = resumed_state["report_prefix"]
+                        logging.info(
+                            f"Restored report_prefix from state: {resumed_state['report_prefix']}"
+                        )
+
+                    # Use the original run_id to maintain report filename consistency
+                    if "run_id" in resumed_state:
+                        # Extract UUID from full run_id format "garak-run-<uuid>-<timestamp>"
+                        full_run_id = resumed_state["run_id"]
+                        original_run_id = resumeservice.extract_uuid_from_run_id(
+                            full_run_id
+                        )
+                        _config.transient.run_id = original_run_id
+                        logging.info(f"Restored run_id from state: {original_run_id}")
+
+                    # Override probe spec with probes from resumed run
+                    if "probenames" in resumed_state:
+                        resumed_probes = resumed_state["probenames"]
+                        # Strip "probes." prefix if present for parse_plugin_spec compatibility
+                        resumed_probes_clean = [
+                            p.replace("probes.", "") for p in resumed_probes
+                        ]
+                        # Convert probe list to comma-separated spec
+                        _config.plugins.probe_spec = ",".join(resumed_probes_clean)
+                        logging.info(
+                            f"Resuming run with probes from state: {resumed_probes}"
+                        )
+                        print(
+                            f"🔄 Using probes from resumed run: {', '.join(resumed_probes_clean)}"
+                        )
+
             parsable_specs = ["probe", "detector", "buff"]
             parsed_specs = {}
             for spec_type in parsable_specs:
@@ -605,6 +808,172 @@ def main(arguments=None) -> None:
                 command.hint(
                     f"This run can be sped up 🥳 Generator '{generator.fullname}' supports parallelism! Consider using `--parallel_attempts 16` (or more) to greatly accelerate your run. 🐌",
                     logging=logging,
+                )
+
+            # RESUME SUPPORT: Set up report file before start_run()
+            import uuid
+            import os
+            from pathlib import Path
+
+            def parse_existing_report_metadata(report_path):
+                """Parse existing report to extract original run_id and start_time.
+
+                Args:
+                    report_path: Path to existing report.jsonl file
+
+                Returns:
+                    Tuple of (run_id, start_time) or (None, None) if not found
+                """
+                if not os.path.exists(report_path):
+                    return None, None
+
+                try:
+                    with open(report_path, "r", encoding="utf-8") as f:
+                        for line in f:
+                            if not line.strip():
+                                continue
+                            entry = json.loads(line.strip())
+                            if entry.get("entry_type") == "init":
+                                return entry.get("run"), entry.get("start_time")
+                except Exception as e:
+                    logging.warning(f"Could not parse existing report metadata: {e}")
+
+                return None, None
+
+            # Set run_id first (needed for report filename)
+            if not hasattr(_config.transient, "run_id") or not _config.transient.run_id:
+                _config.transient.run_id = str(uuid.uuid4())
+
+            # Check if resuming
+            is_resuming = (
+                hasattr(_config.transient, "resume_run_id")
+                and _config.transient.resume_run_id
+            )
+            original_start_time = None
+
+            if is_resuming:
+                # The run_id, report_dir, and report_prefix should already be restored by earlier code
+                # NOW construct report path using the loaded run_id
+                report_dir = _config.transient.data_dir / _config.reporting.report_dir
+                report_prefix = (
+                    _config.reporting.report_prefix
+                    or f"garak.{_config.transient.run_id}"
+                )
+                expected_report_path = str(report_dir / f"{report_prefix}.report.jsonl")
+
+                # Parse existing report to verify and get original start_time
+                parsed_run_id, original_start_time = parse_existing_report_metadata(
+                    expected_report_path
+                )
+
+                if original_start_time:
+                    logging.info(
+                        f"Preserving original start_time: {original_start_time}"
+                    )
+                    _config.transient.original_start_time = original_start_time
+                    # CRITICAL: Update starttime_iso to use the ORIGINAL timestamp, not current time
+                    _config.transient.starttime_iso = original_start_time
+                else:
+                    logging.warning(
+                        "Could not find original start_time in existing report"
+                    )
+
+            # Set up report directory
+            report_dir = _config.transient.data_dir / _config.reporting.report_dir
+            report_dir.mkdir(parents=True, exist_ok=True)
+
+            # Set up report filename
+            report_prefix = (
+                _config.reporting.report_prefix or f"garak.{_config.transient.run_id}"
+            )
+            _config.transient.report_filename = str(
+                report_dir / f"{report_prefix}.report.jsonl"
+            )
+
+            # Set file mode - append if resuming and file exists, otherwise write
+            file_mode = (
+                "a"
+                if (is_resuming and os.path.exists(_config.transient.report_filename))
+                else "w"
+            )
+
+            # Open report file
+            _config.transient.reportfile = open(
+                _config.transient.report_filename,
+                file_mode,
+                buffering=1,
+                encoding="utf-8",
+            )
+
+            # Open hitlog file if needed
+            hitlog_filename = str(report_dir / f"{report_prefix}.hitlog.jsonl")
+            hitlog_file_mode = (
+                "a" if (is_resuming and os.path.exists(hitlog_filename)) else "w"
+            )
+            _config.transient.hitlogfile = open(
+                hitlog_filename, hitlog_file_mode, buffering=1, encoding="utf-8"
+            )
+
+            # Write setup and init entries to report (only if not resuming)
+            if not is_resuming:
+                # Write setup entry first
+                setup_dict = {"entry_type": "start_run setup"}
+                # Fields to exclude from run_params list only (not from actual config values)
+                exclude_from_params_list = {"resumable", "resume_granularity"}
+
+                for k, v in _config.__dict__.items():
+                    if k[:2] != "__" and type(v) in (
+                        str,
+                        int,
+                        bool,
+                        dict,
+                        tuple,
+                        list,
+                        set,
+                        type(None),
+                    ):
+                        # Filter resume-specific params from run_params list only
+                        if k == "run_params":
+                            filtered_params = [
+                                p for p in v if p not in exclude_from_params_list
+                            ]
+                            setup_dict[f"_config.{k}"] = filtered_params
+                        else:
+                            setup_dict[f"_config.{k}"] = v
+                for subset in "system transient run plugins reporting".split():
+                    for k, v in getattr(_config, subset).__dict__.items():
+                        if k[:2] != "__" and type(v) in (
+                            str,
+                            int,
+                            bool,
+                            dict,
+                            tuple,
+                            list,
+                            set,
+                            type(None),
+                        ):
+                            setup_dict[f"{subset}.{k}"] = v
+
+                _config.transient.reportfile.write(
+                    json.dumps(setup_dict, ensure_ascii=False) + "\n"
+                )
+
+                # Write init entry
+                init_entry = {
+                    "entry_type": "init",
+                    "garak_version": _config.version,
+                    "start_time": _config.transient.starttime_iso,
+                    "run": _config.transient.run_id,
+                }
+                # Add resume capability metadata if enabled
+                if hasattr(_config.run, "resumable") and _config.run.resumable:
+                    init_entry["resume_enabled"] = True
+                    if hasattr(_config.run, "resume_granularity"):
+                        init_entry["resume_granularity"] = (
+                            _config.run.resume_granularity
+                        )
+                _config.transient.reportfile.write(
+                    json.dumps(init_entry, ensure_ascii=False) + "\n"
                 )
 
             command.start_run()  # start the run now that all config validation is complete

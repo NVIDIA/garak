@@ -86,15 +86,41 @@ def check_storage(required_space_gb=1, path="/"):
 
     Args:
         required_space_gb (float): Minimum required free space in GB.
-        path (str): Filesystem path to check.
+        path (str): Filesystem path to check. Use "auto" to automatically check
+                   both the specified path and the Hugging Face cache directory.
 
     Returns:
         bool: True if there is enough free space, False otherwise.
     """
+    # Check the specified path
     total, used, free = shutil.disk_usage(path)
     free_gb = free / (2**30)  # Convert bytes to gigabytes
 
-    return free_gb >= required_space_gb
+    if free_gb < required_space_gb:
+        return False
+
+    # Also check Hugging Face cache directory for tests that download models
+    # HF_HOME > HUGGINGFACE_HUB_CACHE > default (~/.cache/huggingface)
+    hf_cache_dir = os.getenv("HF_HOME") or os.getenv("HUGGINGFACE_HUB_CACHE")
+    if hf_cache_dir is None:
+        hf_cache_dir = os.path.join(os.path.expanduser("~"), ".cache", "huggingface")
+
+    # Only check HF cache if it's on a different drive/mount than the specified path
+    try:
+        if os.path.exists(hf_cache_dir):
+            hf_total, hf_used, hf_free = shutil.disk_usage(hf_cache_dir)
+        else:
+            # If cache doesn't exist, check parent directory
+            hf_total, hf_used, hf_free = shutil.disk_usage(os.path.expanduser("~"))
+
+        hf_free_gb = hf_free / (2**30)
+        if hf_free_gb < required_space_gb:
+            return False
+    except (OSError, PermissionError):
+        # If we can't check HF cache, just rely on the original path check
+        pass
+
+    return True
 
 
 def pytest_runtest_setup(item):
@@ -105,9 +131,33 @@ def pytest_runtest_setup(item):
         path = marker.kwargs.get("path", "/")  # Default is the root directory
 
         if not check_storage(required_space_gb, path):
-            pytest.skip(
-                f"❌ Skipping test. Not enough free space ({required_space_gb} GB) at '{path}'."
-            )
+            # Provide detailed error message showing which location(s) failed
+            total, used, free = shutil.disk_usage(path)
+            free_gb = free / (2**30)
+
+            error_msg = f"❌ Skipping test. Not enough free space at '{path}' ({free_gb:.2f} GB available, {required_space_gb} GB required)."
+
+            # Check HF cache separately for better error message
+            hf_cache_dir = os.getenv("HF_HOME") or os.getenv("HUGGINGFACE_HUB_CACHE")
+            if hf_cache_dir is None:
+                hf_cache_dir = os.path.join(
+                    os.path.expanduser("~"), ".cache", "huggingface"
+                )
+
+            try:
+                if os.path.exists(hf_cache_dir):
+                    hf_total, hf_used, hf_free = shutil.disk_usage(hf_cache_dir)
+                else:
+                    hf_total, hf_used, hf_free = shutil.disk_usage(
+                        os.path.expanduser("~")
+                    )
+                hf_free_gb = hf_free / (2**30)
+                if hf_free_gb < required_space_gb:
+                    error_msg += f" HF cache dir '{hf_cache_dir}' has {hf_free_gb:.2f} GB available."
+            except:
+                pass
+
+            pytest.skip(error_msg)
         else:
             total, used, free = shutil.disk_usage(path)
             free_gb = free / (2**30)  # Convert bytes to gigabytes
