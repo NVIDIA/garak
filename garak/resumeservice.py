@@ -5,12 +5,13 @@
 
 This service manages run state persistence and provides configurable resumption
 at either probe-level or attempt-level granularity. It maintains run state in
-~/.garak/runs/ and provides run management capabilities.
+the XDG-compliant data directory (typically ~/.local/share/garak/runs/) and 
+provides run management capabilities.
 
 Architecture:
 - Service pattern (follows langservice.py)
 - Configurable granularity: probe-level or attempt-level
-- Persistent state storage (separate from reports)
+- Persistent state storage (separate from reports, in XDG data dir)
 - Run management features (list, delete, resume)
 
 Granularity Options:
@@ -45,8 +46,9 @@ class RunManager:
     """
 
     def __init__(self):
-        # Use home directory for cross-platform compatibility
-        self.run_dir = Path.home() / ".garak" / "runs"
+        # Use XDG-compliant data directory for run state storage
+        # State is stored separately from reports in the data directory
+        self.run_dir = _config.transient.data_dir / "runs"
         self.run_dir.mkdir(parents=True, exist_ok=True)
 
     def generate_run_id(self, existing_uuid: str = None) -> str:

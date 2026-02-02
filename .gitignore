@@ -165,9 +165,6 @@ cython_debug/
 # Test configuration
 garak-config.yaml
 
-# Run state directories (resume feature - user data, not source code)
-.garak/runs/
-
 garak.*.jsonl
 garak.log
 hitlog.*.jsonl

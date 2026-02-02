@@ -156,7 +156,7 @@ python3 -m garak --resume_granularity attempt --target_type openai --target_name
 python3 -m garak --resumable false --target_type openai --target_name gpt-4 --probes test
 ```
 
-State files are stored in `~/.garak/runs/` and can be managed with `--list_runs` and `--delete_run`.
+State files are stored in the XDG-compliant data directory (typically `~/.local/share/garak/runs/` on Linux, `~/Library/Application Support/garak/runs/` on macOS) and can be managed with `--list_runs` and `--delete_run`.
 
 ## Reading the results
 
