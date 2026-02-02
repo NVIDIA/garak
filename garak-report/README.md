@@ -227,6 +227,39 @@ garak/garak/analyze/ui/
 - Styles use CSS-in-JS or plain modules
 - All state handled via React hooks
 
+### Optional: Set up pre-commit hooks
+
+The repo uses [pre-commit](https://pre-commit.com/) for Python hooks. To add garak-report checks, append the following to `.pre-commit-config.yaml`:
+
+```yaml
+  - repo: local
+    hooks:
+      - id: garak-report-lint
+        name: garak-report lint
+        entry: bash -c 'cd garak-report && yarn lint --max-warnings=0'
+        language: system
+        files: ^garak-report/.*\.(ts|tsx)$
+        pass_filenames: false
+      - id: garak-report-typecheck
+        name: garak-report typecheck
+        entry: bash -c 'cd garak-report && yarn check'
+        language: system
+        files: ^garak-report/.*\.(ts|tsx)$
+        pass_filenames: false
+      - id: garak-report-test
+        name: garak-report test
+        entry: bash -c 'cd garak-report && yarn test'
+        language: system
+        files: ^garak-report/
+        pass_filenames: false
+```
+
+Then install/update the hooks:
+
+```bash
+pre-commit install
+```
+
 ---
 
 ## ✅ Testing & Coverage
@@ -250,6 +283,28 @@ CI (or your pre-commit hook) can simply invoke `yarn test`; the build will fail 
 The UI lives in `garak-report/`, while the Python core lives in the repo root.  If you prefer to stay at the root you can delegate Yarn commands:
 
 ```bash
+# one-off
+yarn --cwd garak-report dev
+
+# or create a root-level package.json with convenience scripts:
+{
+  "name": "garak-root",
+  "private": true,
+  "scripts": {
+    "ui:dev": "yarn --cwd garak-report dev",
+    "ui:build": "yarn --cwd garak-report build",
+    "ui:test": "yarn --cwd garak-report test"
+  }
+}
+```
+
+---
+
+## 📄 License
+
+This project is licensed under the [Apache License 2.0](./LICENSE.txt).  
+© 2023–2025 NVIDIA Corporation
+
 # one-off
 yarn --cwd garak-report dev
 
