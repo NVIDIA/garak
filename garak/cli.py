@@ -745,13 +745,8 @@ def main(arguments=None) -> None:
 
                     # Use the original run_id to maintain report filename consistency
                     if "run_id" in resumed_state:
-                        # Extract UUID from full run_id format "garak-run-<uuid>-<timestamp>"
-                        full_run_id = resumed_state["run_id"]
-                        original_run_id = resumeservice.extract_uuid_from_run_id(
-                            full_run_id
-                        )
-                        _config.transient.run_id = original_run_id
-                        logging.info(f"Restored run_id from state: {original_run_id}")
+                        _config.transient.run_id = resumed_state["run_id"]
+                        logging.info(f"Restored run_id from state: {resumed_state['run_id']}")
 
                     # Override probe spec with probes from resumed run
                     if "probenames" in resumed_state:

@@ -5,13 +5,12 @@
 
 This service manages run state persistence and provides configurable resumption
 at either probe-level or attempt-level granularity. It maintains run state in
-the XDG-compliant data directory (typically ~/.local/share/garak/runs/) and 
-provides run management capabilities.
+~/.garak/runs/ and provides run management capabilities.
 
 Architecture:
 - Service pattern (follows langservice.py)
 - Configurable granularity: probe-level or attempt-level
-- Persistent state storage (separate from reports, in XDG data dir)
+- Persistent state storage (separate from reports)
 - Run management features (list, delete, resume)
 
 Granularity Options:
@@ -46,24 +45,19 @@ class RunManager:
     """
 
     def __init__(self):
-        # Use XDG-compliant data directory for run state storage
-        # State is stored separately from reports in the data directory
-        self.run_dir = _config.transient.data_dir / "runs"
+        # Store run state in cache directory as per maintainer guidance
+        from garak import _config
+        cache_dir = Path(_config.transient.cache_dir)
+        self.run_dir = cache_dir / "runs"
         self.run_dir.mkdir(parents=True, exist_ok=True)
 
-    def generate_run_id(self, existing_uuid: str = None) -> str:
-        """Generate unique run ID with timestamp.
-
-        Args:
-            existing_uuid: Optional UUID to use instead of generating a new one.
-                          Useful for maintaining consistency with transient.run_id.
+    def generate_run_id(self) -> str:
+        """Generate unique run ID.
 
         Returns:
-            A unique run ID string in format: garak-run-<uuid>-<timestamp>
+            A unique UUID string
         """
-        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        run_uuid = existing_uuid if existing_uuid else str(uuid.uuid4())
-        return f"garak-run-{run_uuid}-{timestamp}"
+        return str(uuid.uuid4())
 
     def save_state(self, run_id: str, state: Dict) -> None:
         """Save run state to disk atomically.
@@ -443,48 +437,24 @@ def get_run_id() -> Optional[str]:
     return None
 
 
-def extract_uuid_from_run_id(run_id: str) -> str:
-    """Extract the UUID portion from a full run_id.
 
-    Format: garak-run-<uuid>-<timestamp>
-    Returns: <uuid>
-
-    Args:
-        run_id: Full run_id string
-
-    Returns:
-        UUID string (36 chars), or the input if it's already just a UUID
-    """
-    if run_id.startswith("garak-run-"):
-        # Format: garak-run-<uuid>-<timestamp>
-        # Split by dash and get the UUID (between first and second dashes after "garak-run")
-        parts = run_id.split("-")
-        if len(parts) >= 5:
-            # garak-run-<uuid-part-1>-<uuid-part-2>-<uuid-part-3>-<uuid-part-4>-<uuid-part-5>-<timestamp>
-            # UUID is parts[2:7] joined by dashes
-            uuid_part = "-".join(parts[2:7])
-            if len(uuid_part) == 36:  # Standard UUID length
-                return uuid_part
-    # If already a UUID or unparseable, return as-is
-    return run_id
 
 
 def initialize_new_run(
-    probenames: List[str], generator=None, existing_run_uuid: str = None
+    probenames: List[str], generator=None
 ) -> str:
     """Initialize a new resumable run.
 
     Args:
         probenames: List of probe names to be executed.
         generator: The generator instance (optional, for saving resume info)
-        existing_run_uuid: Optional existing UUID from _config.transient.run_id to maintain consistency
 
     Returns:
         Generated run ID.
     """
     # Delegate to the version with attempt support
     return initialize_new_run_with_attempts(
-        probenames, generator, existing_run_uuid=existing_run_uuid
+        probenames, generator
     )
 
 
@@ -789,14 +759,13 @@ def mark_attempt_complete_by_seq(probe_classname: str, seq: int) -> None:
 
 
 def initialize_new_run_with_attempts(
-    probenames: List[str], generator=None, existing_run_uuid: str = None
+    probenames: List[str], generator=None
 ) -> str:
     """Initialize a new resumable run with attempt tracking support.
 
     Args:
         probenames: List of probe names to be executed.
         generator: The generator instance (optional, for saving resume info)
-        existing_run_uuid: Optional existing UUID from _config.transient.run_id to maintain consistency
 
     Returns:
         Generated run ID.
@@ -806,7 +775,7 @@ def initialize_new_run_with_attempts(
     if _run_manager is None:
         _run_manager = RunManager()
 
-    run_id = _run_manager.generate_run_id(existing_uuid=existing_run_uuid)
+    run_id = _run_manager.generate_run_id()
 
     # Preserve original start_time if available (for resumed runs)
     original_start_time = (

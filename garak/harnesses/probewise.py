@@ -278,16 +278,9 @@ class ProbewiseHarness(Harness):
                 logger.info(
                     f"Initializing new resumable run with granularity={resumeservice.get_granularity()}"
                 )
-                # Pass existing transient.run_id to maintain consistency across reports/hitlog
-                existing_uuid = (
-                    str(_config.transient.run_id) if _config.transient.run_id else None
-                )
-                run_id = resumeservice.initialize_new_run(
-                    probenames, model, existing_run_uuid=existing_uuid
-                )
-                # Extract UUID from full run_id - it should match the existing UUID we passed in
-                uuid_part = resumeservice.extract_uuid_from_run_id(run_id)
-                _config.transient.run_id = uuid_part
+                # Initialize new resumable run
+                run_id = resumeservice.initialize_new_run(probenames, model)
+                _config.transient.run_id = run_id
                 granularity = resumeservice.get_granularity()
                 logger.info(f"Initialized run {run_id} with granularity={granularity}")
                 print(f"🆔 Run ID: {run_id} ({granularity}-level resume enabled)")
