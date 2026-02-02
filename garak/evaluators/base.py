@@ -21,6 +21,11 @@ from garak.analyze.bootstrap_ci import (
 import garak.resources.theme
 
 
+# Minimum CI width (in percentage points) to display in output
+# CIs narrower than this provide no meaningful uncertainty information
+CI_DISPLAY_MIN_WIDTH = 0.001
+
+
 class Evaluator:
     """Class to be subclassed by evaluators.
 
@@ -268,11 +273,21 @@ class Evaluator:
             end="",
         )
         if evals and failrate > 0.0:
-            ci_text = (
-                f" [{ci_lower:.2f}%, {ci_upper:.2f}%]"
-                if ci_lower is not None and ci_upper is not None
-                else ""
-            )
+            ci_text = ""
+            if ci_lower is not None and ci_upper is not None:
+                ci_width = abs(ci_upper - ci_lower)
+                
+                # Warn about invalid ranges but still display (helps catch bugs)
+                if ci_lower > ci_upper:
+                    logging.warning(
+                        "Invalid CI range for %s / %s: [%.2f%%, %.2f%%] (lower > upper)",
+                        self.probename, detector_name, ci_lower, ci_upper
+                    )
+                
+                # Suppress zero-width CIs (no uncertainty information)
+                if ci_width > CI_DISPLAY_MIN_WIDTH:
+                    ci_text = f" [{ci_lower:.2f}%, {ci_upper:.2f}%]"
+            
             print(
                 f"   ({Fore.LIGHTRED_EX}attack success rate:{Style.RESET_ALL} {failrate:6.2f}%{ci_text})",
                 end="",
@@ -331,11 +346,21 @@ class Evaluator:
             f"  {Style.BRIGHT}{outcome}{Style.RESET_ALL} score {passes:>4}/{evals:>4} -- {short_detector_name:<20}"
         )
         if evals and failrate > 0.0:
-            ci_text = (
-                f" [{ci_lower:.2f}%, {ci_upper:.2f}%]"
-                if ci_lower is not None and ci_upper is not None
-                else ""
-            )
+            ci_text = ""
+            if ci_lower is not None and ci_upper is not None:
+                ci_width = abs(ci_upper - ci_lower)
+                
+                # Defensive: warn about invalid ranges but still display (helps catch bugs)
+                if ci_lower > ci_upper:
+                    logging.warning(
+                        "Invalid CI range for %s / %s: [%.2f%%, %.2f%%] (lower > upper)",
+                        self.probename, detector_name, ci_lower, ci_upper
+                    )
+                
+                # Suppress zero-width CIs (no uncertainty information)
+                if ci_width > CI_DISPLAY_MIN_WIDTH:
+                    ci_text = f" [{ci_lower:.2f}%, {ci_upper:.2f}%]"
+            
             print(
                 f"    {Fore.LIGHTRED_EX}attack success rate:{Style.RESET_ALL} {failrate:6.2f}%{ci_text}",
                 end="",

@@ -25,6 +25,7 @@ import garak._plugins
 from garak.data import path as data_path
 import garak.analyze
 import garak.analyze.calibration
+from garak.evaluators.base import CI_DISPLAY_MIN_WIDTH
 
 if not _config.loaded:
     _config.load_config()
@@ -350,6 +351,10 @@ def _get_probe_detector_details(
         result["confidence"] = confidence
         result["absolute_confidence_lower"] = 1.0 - ci_upper  # Inverted
         result["absolute_confidence_upper"] = 1.0 - ci_lower  # Inverted
+        
+        # Suppress zero-width CIs in HTML display (convert to 0-1 scale)
+        ci_width = abs(result["absolute_confidence_upper"] - result["absolute_confidence_lower"]) * 100
+        result["show_confidence_interval"] = (ci_width > CI_DISPLAY_MIN_WIDTH)
 
     return result
 

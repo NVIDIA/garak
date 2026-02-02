@@ -70,7 +70,7 @@ def calculate_ci_from_report(
             f"Expected to find garak report JSONL file."
         )
     
-    # Pull defaults from config (configuration-driven design)
+    # Pull defaults from config
     if num_iterations is None:
         num_iterations = _config.reporting.bootstrap_num_iterations
     if confidence_level is None:
