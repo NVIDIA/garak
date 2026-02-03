@@ -42,7 +42,7 @@ class AzureOpenAIGenerator(OpenAICompatible):
     #. On the Azure portal page for the Azure OpenAI you want to use click "Resource Management -> Keys and Endpoint" and copy the API Key and endpoint.
     #. In your console, Set the ``AZURE_API_KEY``, ``AZURE_ENDPOINT`` and ``AZURE_MODEL_NAME`` variables.
     #. Run garak, setting ``--target_type`` to ``azure`` and ``--target_name`` to the name **of the deployment**. - e.g. ``gpt-4o``.
-    
+
     """
 
     ENV_VAR = "AZURE_API_KEY"
@@ -83,8 +83,7 @@ class AzureOpenAIGenerator(OpenAICompatible):
 
         return super()._validate_env_var()
 
-    def _load_client(self):
-        self._load_deps()
+    def _load_unsafe(self):
         if self.target_name in openai_model_mapping:
             self.target_name = openai_model_mapping[self.target_name]
 

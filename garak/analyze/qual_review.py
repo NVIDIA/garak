@@ -12,7 +12,6 @@ from collections import defaultdict
 import json
 import random
 import sys
-import argparse
 
 import garak
 import garak.analyze
@@ -55,7 +54,9 @@ def qual_review(report_path: str) -> None:
         for record in g:
             if record["entry_type"] == "eval":
                 passrate = (
-                    record["passed"] / record["total"] if record["total"] > 0 else 0
+                    record["passed"] / record["total_evaluated"]
+                    if record["total_evaluated"] > 0
+                    else 0
                 )
                 probe_module, probe_classname = record["probe"].split(".", 1)
                 detector = record["detector"].replace("detector.", "")
@@ -171,6 +172,8 @@ def qual_review(report_path: str) -> None:
 def main(argv=None) -> None:
     if argv is None:
         argv = sys.argv[1:]
+
+    import argparse
 
     garak._config.load_config()
     print(

@@ -14,10 +14,10 @@ Specifying Custom Configuration
 garak can be configured in multiple ways:
 
 * Via command-line parameters
-* Using YAML configs
+* Using YAML or JSON config files
 * Through specifying JSON on the command line
 
-The easiest way is often to use a YAML config, and how to do that is
+The easiest way is often to use a config file (YAML or JSON), and how to do that is
 described below.
 
 Garak Config Hierarchy
@@ -28,13 +28,13 @@ Configuration values can come from multiple places. At garak load, the
 the priority of which values go where. The hierarchy is as follows:
 
 1. Values given at the command line
-2. Config values given in a YAML file passed via ``--config``
-3. Values in a YAML site config, ``garak.site.yaml``, placed in the config directory (``XDG_CONFIG_DIR``, which is ``~/.config/garak/`` on Linux; see XDG spec for details)
+2. Config values given in a YAML or JSON file passed via ``--config``
+3. Values in a YAML or JSON site config, ``garak.site.yaml``, ``garak.site.yml``, or ``garak.site.json``, placed in the config directory (``XDG_CONFIG_DIR``, which is ``~/.config/garak/`` on Linux; see XDG spec for details)
 4. Fixed values kept in the garak core config - don't edit this. Package updates will overwrite it, and you might break your garak install. It's in ``garak/resources`` if you want to take a look.
 5. Default values specified in plugin code
 
-Config YAML
-^^^^^^^^^^^
+Config Files (YAML and JSON)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Let's take a look at the core config.
 
@@ -169,25 +169,28 @@ Bundled Quick Configs
 ^^^^^^^^^^^^^^^^^^^^^
 
 Garak comes bundled with some quick configs that can be loaded directly using ``--config``.
-These don't need the ``.yml`` extension when being requested. They include:
 
-* ``broad`` - Run all active probes, just once each, for a rapid broad test
+**Note on extensions:** JSON configs can be loaded without the ``.json`` extension (e.g., ``--config fast``).
+YAML configs require the explicit ``.yaml`` or ``.yml`` extension (e.g., ``--config fast.yaml`` or ``--config fast.yml``).
+Extensions are case-insensitive, so ``.JSON``, ``.YAML``, and ``.YML`` are also accepted.
+
+Bundled configs include:
+
+* ``bag`` - The config used for calibration
 * ``fast`` - Go through a selection of light probes; skip extended detectors
-* ``full`` - Select many probes, and multiple payloads; use a paraphrase buff to get multiple variations on each prompt
-* ``long_attack_gen`` - Focus on ``atkgen``, with many generations, to give a higher chance of breaking through (i.e. yielding toxicity)
-* ``notox`` - Scan without any toxicity-inducing probes
-* ``tox_and_buffs`` - Go through toxicity & slur probes, using only relevant payloads, and a fast paraphraser
 
-These are great places to look at to get an idea of how garak YAML configs can look.
+These are great places to look at to get an idea of how garak configs can look.
 Quick configs are stored under ``garak/configs/`` in the source code/install.
 
 
 Using a Custom Config
 ^^^^^^^^^^^^^^^^^^^^^
 
-To override values in this we can create a new YAML file and point to it from the
+To override values in this we can create a new config file (YAML or JSON) and point to it from the
 command line using ``--config``. For example, to select just ``latentinjection``
 probes and run each prompt just once:
+
+**YAML format:**
 
 .. code-block:: yaml
 
@@ -199,6 +202,23 @@ probes and run each prompt just once:
         probe_spec: latentinjection
 
 If we save this as ``latent1.yaml`` somewhere, then we can use it with ``garak --config latent1.yaml``.
+Note: YAML configs require the explicit ``.yaml`` or ``.yml`` extension (case-insensitive).
+
+**JSON format:**
+
+.. code-block:: json
+
+    {
+      "run": {
+        "generations": 1
+      },
+      "plugins": {
+        "probe_spec": "latentinjection"
+      }
+    }
+
+If we save this as ``latent1.json`` somewhere, then we can use it with ``garak --config latent1.json``
+or without the extension: ``garak --config latent1``.
 
 Using a Custom JSON Config
 ^^^^^^^^^^^^^^^^^^^^^^^^^^

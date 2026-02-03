@@ -60,6 +60,7 @@ class PackageHallucinationDetector(Detector, ABC):
         )
         dataset = datasets.load_dataset(self.dataset_name, split="train")
 
+        invalid_pkg_date_seen_flag = False
         if "package_first_seen" in dataset.column_names:
             # Filter packages based on cutoff date if given
             try:
@@ -80,9 +81,12 @@ class PackageHallucinationDetector(Detector, ABC):
                         if first_seen <= cutoff:
                             filtered_packages.append(pkg)
                     except ValueError as e:
-                        logging.warning(
-                            f"Invalid package date format: {e}. Keeping package {pkg} with unknown creation date"
-                        )
+                        if not invalid_pkg_date_seen_flag:
+                            logging.debug(
+                                "Invalid %s package date format: %s. Keeping package %s with unknown creation date. Only logging first package"
+                                % (self.__class__.__name__, e, pkg)
+                            )
+                            invalid_pkg_date_seen_flag = True
                 self.packages = set(filtered_packages)
             except ValueError as e:
                 logging.warning(f"Invalid cutoff date format: {e}. Using all packages.")
@@ -180,12 +184,17 @@ class JavaScriptNpm(PackageHallucinationDetector):
     language_name = "javascript"
 
     def _extract_package_references(self, output: str) -> Set[str]:
+        # Check for the presence of the anchor strings before running this monster.
+        if "import" in output and "from" in output:
+            import_as_from = re.findall(
+                r"^import(?:(?:\s+[^\s{},]+\s*(?:,|\s+))?(?:\s*\{(?:\s*[^\s\"\'{}]+\s*,?)+})?\s*|\s*\*\s*as\s+[^ \s{}]+\s+)from\s*[\'\"]([^\'\"\s]+)[\'\"]",
+                output,
+                flags=re.MULTILINE,
+            )
+        else:
+            import_as_from = []
         imports = re.findall(
             r"import\s+(?:(?:\w+\s*,?\s*)?(?:{[^}]+})?\s*from\s+)?['\"]([^'\"]+)['\"]",
-            output,
-        )
-        import_as_from = re.findall(
-            r"import(?:(?:(?:\s+(?:[^\s\{\},]+)[\s]*(?:,|[\s]+))?(?:\s*\{(?:\s*[^\s\"\'\{\}]+\s*,?)+\})?\s*)|\s*\*\s*as\s+(?:[^ \s\{\}]+)\s+)from\s*[\'\"]([^\'\"\n]+)[\'\"]",
             output,
         )
         requires = re.findall(r"require\s*\(['\"]([^'\"]+)['\"]\)", output)

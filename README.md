@@ -102,11 +102,11 @@ For help and inspiration, find us on [Twitter](https://twitter.com/garak_llm) or
 
 ## Examples
 
-Probe ChatGPT for encoding-based prompt injection (OSX/\*nix) (replace example value with a real OpenAI API key)
+Probe a commercial model for encoding-based prompt injection (OSX/\*nix) (replace example value with a real OpenAI API key)
  
 ```
 export OPENAI_API_KEY="sk-123XXXXXXXXXXXX"
-python3 -m garak --target_type openai --target_name gpt-3.5-turbo --probes encoding
+python3 -m garak --target_type openai --target_name gpt-5-nano --probes encoding
 ```
 
 See if the Hugging Face version of GPT2 is vulnerable to DAN 11.0
@@ -153,7 +153,7 @@ Using private endpoints:
 ### OpenAI
 
 * `--target_type openai`
-* `--target_name` - the OpenAI model you'd like to use. `gpt-3.5-turbo-0125` is fast and fine for testing.
+* `--target_name` - the OpenAI model you'd like to use. `gpt-5-nano` is fast and fine for testing.
 * set the `OPENAI_API_KEY` environment variable to your OpenAI API key (e.g. "sk-19763ASDF87q6657"); see https://platform.openai.com/account/api-keys when logged in
 
 Recognised model types are whitelisted, because the plugin needs to know which sub-API to use. Completion or ChatCompletion models are OK. If you'd like to use a model not supported, you should get an informative error message, and please send a PR / open an issue.

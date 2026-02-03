@@ -172,3 +172,9 @@ garak_runs/
 runs/
 logs/
 .DS_Store
+
+# Yarn
+.yarn/
+garak-report/.yarn/
+
+.yarn

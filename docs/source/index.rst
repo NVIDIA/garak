@@ -15,7 +15,7 @@ On the other hand, if you'd like a to get into the details or work out how
 to contribute code, you're in the right place - welcome!
 
 You can also join our `Discord <https://discord.gg/uVch4puUCs>`_
-and follow us on `Twitter <https://twitter.com/garak_llm>`_!
+and follow us on `LinkedIn <https://www.linkedin.com/company/garakllm/>`_ & `X <https://www.twitter.com/garak_llm>`_!
 
 Check out the :doc:`usage` section for further information, including :doc:`install`.
 
@@ -65,6 +65,7 @@ Check out the :doc:`usage` section for further information, including :doc:`inst
    report
    _config
    _plugins
+   analyze
 
 
 .. toctree::

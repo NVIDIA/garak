@@ -1,17 +1,21 @@
+# SPDX-FileCopyrightText: Portions Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 import argparse
 from logging import getLogger
 import os
 from pathlib import Path
 import torch
-import torch.nn as nn
 from tqdm import tqdm
 import numpy as np
+from typing import Optional
 
 import gc
 
 from garak._plugins import load_plugin
 from garak.generators import Generator
-from garak.generators.huggingface import Model
+from garak.generators.huggingface import Model, Pipeline
+from garak.attempt import Conversation, Turn, Message
 import garak._config
 from garak.data import path as data_path
 from garak.resources.autodan.genetic import (
@@ -20,10 +24,7 @@ from garak.resources.autodan.genetic import (
     autodan_hga,
     apply_gpt_mutation,
 )
-from garak.resources.autodan.model_utils import (
-    load_conversation_template,
-    check_for_attack_success,
-)
+from garak.resources.autodan.model_utils import check_for_attack_success
 from garak.resources.common import REJECTION_STRINGS
 
 
@@ -85,15 +86,16 @@ def autodan_generate(
     crossover_rate: float = 0.5,
     num_points: int = 5,
     mutation_rate: float = 0.1,
-    mutation_generator_name: str = "gpt-3.5-turbo",
-    mutation_generator_type: str = "openai",
+    mutation_generator_name: str = "mistralai/mixtral-8x22b-instruct-v0.1",
+    mutation_generator_type: str = "nim.NVOpenAIChat",
     hierarchical: bool = False,
     out_path: Path = cached_autodan_resource_data / "autodan_prompts.txt",
     init_prompt_path: Path = autodan_resource_data / "autodan_init.txt",
     reference_path: Path = autodan_resource_data / "prompt_group.pth",
-    low_memory: bool = False,
+    stop_on_success: bool = True,
     random_seed: int = None,
-):
+    system_prompt: Optional[str] = None,
+) -> list[str]:
     """Execute base AutoDAN generation
 
     Args:
@@ -112,16 +114,15 @@ def autodan_generate(
         out_path (Path): Path to write generated AutoDAN string
         init_prompt_path (Path): Path to initial prompts
         reference_path (Path): Path to reference prompt tensors
-        low_memory (bool): Whether to use low memory
+        stop_on_success (bool): Return on first success
         random_seed (int): Random seed, if used.
+        system_prompt (str): Optional system prompt
 
     Returns:
-        None
+        List of successful adversarial prefixes
     """
-    if not isinstance(generator, Model):
-        msg = "AutoDAN generation currently only supports HuggingFace models."
-        logger.error(msg)
-        raise TypeError(msg)
+    if not type(generator) is Pipeline and not isinstance(generator, Model):
+        raise TypeError(f"Expected Pipeline or Model but got {type(generator)}")
 
     if random_seed is not None:
         np.random.seed(random_seed)
@@ -129,9 +130,6 @@ def autodan_generate(
         torch.cuda.manual_seed_all(random_seed)
 
     adv_string_init = open(init_prompt_path, "r", encoding="utf-8").readlines()[0]
-
-    conv_template = load_conversation_template(generator.name)
-    crit = nn.CrossEntropyLoss(reduction="mean")
 
     config_root = {
         "generators": {mutation_generator_type: {"name": mutation_generator_name}}
@@ -150,10 +148,10 @@ def autodan_generate(
 
     # TODO: Have this support references other than ChatGPT.
     for o in range(len(reference)):
-        reference[o] = reference[o].replace("ChatGPT", conv_template.name)
-        reference[o] = reference[o].replace("chatGPT", conv_template.name)
+        reference[o] = reference[o].replace("ChatGPT", generator.name)
+        reference[o] = reference[o].replace("chatGPT", generator.name)
         reference[o] = reference[o].replace(
-            "ModelKeeper", developer_dict.get(conv_template.name, "Moderation")
+            "ModelKeeper", developer_dict.get(generator.name, "Moderation")
         )
         reference[o] = reference[o] + " [PROMPT]:"
 
@@ -161,32 +159,47 @@ def autodan_generate(
     if hierarchical:
         word_dict = dict()
 
-    for j in tqdm(range(num_steps), leave=True):
+    successful_prefixes = list()
+
+    for j in tqdm(range(num_steps), leave=False, position=0, colour="green"):
         with torch.no_grad():
-            losses = get_score_autodan(
+            score_list = get_score_autodan(
                 generator=generator,
-                conv_template=conv_template,
                 instruction=prompt,
                 target=target,
                 test_controls=new_adv_prefixes,
-                crit=crit,
-                low_memory=low_memory,
+                system_prompt=system_prompt,
             )
-            score_list = losses.cpu().numpy().tolist()
 
-            best_new_adv_prefix_id = losses.argmin()
+            best_new_adv_prefix_id = np.argmin(score_list)
             best_new_adv_prefix = new_adv_prefixes[best_new_adv_prefix_id]
 
             adv_prefix = best_new_adv_prefix
-            gen_str = generator.generate(prompt=adv_prefix)[0]
-            success = check_for_attack_success(gen_str, REJECTION_STRINGS)
+            conv = Conversation(
+                turns=[Turn(role="user", content=Message(text=adv_prefix))]
+            )
+            gen_output = generator.generate(prompt=conv)[0]
+            success = False
+            if gen_output and gen_output.text:
+                success = check_for_attack_success(gen_output.text, REJECTION_STRINGS)
             if success:
                 logger.info(
-                    f"Found a successful AutoDAN prompt!\n{adv_prefix}\nAppending to {out_path}."
+                    f"Found a successful AutoDAN prompt! Appending to {out_path}."
                 )
-                with open(out_path, "a", encoding="utf-8") as f:
-                    f.write(f"{adv_prefix}\n")
-                break
+                successful_prefixes.append(adv_prefix)
+                outpathdir = Path(out_path).parent
+                outpathdir.mkdir(parents=True, exist_ok=True)
+                try:
+                    with open(out_path, "a", encoding="utf-8") as f:
+                        f.write(f"{adv_prefix}\n")
+                except FileNotFoundError as e:
+                    logger.error(f"Failed to open {out_path}: {e}")
+                except PermissionError as e:
+                    logger.error(f"Failed to open {out_path}: {e}")
+                if stop_on_success:
+                    break
+                else:
+                    continue
 
             if hierarchical:
                 unfiltered_new_adv_prefixes, word_dict = autodan_hga(
@@ -216,11 +229,11 @@ def autodan_generate(
             gc.collect()
             torch.cuda.empty_cache()
 
-    if success:
-        return adv_prefix
+    if successful_prefixes:
+        return successful_prefixes
 
     else:
         logger.info(
-            f"Ran through {num_steps} iterations and found no successful prompts"
+            f"AutoDAN ran {num_steps} iterations and found no successful prompts"
         )
-        print(f"Ran through {num_steps} iterations and found no successful prompts")
+        print(f"🎺☹️ AutoDAN ran {num_steps} iterations and found no successful prompts")

@@ -7,6 +7,8 @@ from types import GeneratorType
 from typing import List, Optional, Union
 import uuid
 
+from garak.exception import GarakException
+
 (
     ATTEMPT_NEW,
     ATTEMPT_STARTED,
@@ -152,6 +154,22 @@ class Conversation:
             ret_val.turns.append(Turn.from_dict(turn))
         return ret_val
 
+    @classmethod
+    def from_openai(cls, conv: List[dict], notes: Optional[dict] = None):
+        new_conv = list()
+        conv_copy = deepcopy(conv)
+        for turn in conv_copy:
+            if isinstance(turn, dict):
+                new_conv.append(Turn.from_dict(turn))
+            else:
+                msg = "Conversation.from_openai expected a `list` of `dict`s but encountered {}".format(
+                    type(turn)
+                )
+                raise GarakException(msg)
+        if notes is None:
+            notes = dict()
+        return cls(turns=new_conv, notes=notes)
+
 
 class Attempt:
     """A class defining objects that represent everything that constitutes a single attempt at evaluating an LLM.
@@ -265,7 +283,7 @@ class Attempt:
             "probe_classname": self.probe_classname,
             "probe_params": self.probe_params,
             "targets": self.targets,
-            "prompt": asdict(self.prompt),
+            "prompt": asdict(self.prompt) if self.prompt is not None else None,
             "outputs": [asdict(output) if output else None for output in self.outputs],
             "detector_results": {k: list(v) for k, v in self.detector_results.items()},
             "notes": notes,
