@@ -112,11 +112,12 @@ def calculate_ci_from_report(
     
     eval_threshold = setup_entry.get("run.eval_threshold")
     if eval_threshold is None:
+        eval_threshold = _config.run.eval_threshold
         logging.warning(
-            "No eval_threshold found in setup entry for %s, using default 0.5",
-            report_file
+            "No eval_threshold found in setup entry for %s, using config default %.2f",
+            report_file,
+            eval_threshold
         )
-        eval_threshold = 0.5
     
     # Determine which probe/detector pairs to process
     if probe_detector_pairs is None:
