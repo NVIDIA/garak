@@ -46,10 +46,12 @@ class Evaluator:
         self.probename = ""
         if _config.system.show_z:
             self.calibration = garak.analyze.calibration.Calibration()
-        
-        ci_method = getattr(_config.reporting, 'confidence_interval_method', "")
+
+        ci_method = getattr(_config.reporting, "confidence_interval_method", "")
         if ci_method == "bootstrap":
-            self.detector_metrics = garak.analyze.detector_metrics.get_detector_metrics()
+            self.detector_metrics = (
+                garak.analyze.detector_metrics.get_detector_metrics()
+            )
         else:
             self.detector_metrics = None
 
@@ -88,10 +90,6 @@ class Evaluator:
             fails = 0
             nones = 0
             messages = []
-            
-            ci_method = getattr(_config.reporting, 'confidence_interval_method', "")
-            collect_individual_results = (ci_method == "bootstrap")
-            binary_outcomes: Optional[List[int]] = [] if collect_individual_results else None
 
             for attempt in attempts:
                 for idx, score in enumerate(attempt.detector_results[detector]):
@@ -99,12 +97,8 @@ class Evaluator:
                         nones += 1
                     elif self.test(float(score)):
                         passes += 1
-                        if collect_individual_results:
-                            binary_outcomes.append(0)
                     else:
                         fails += 1
-                        if collect_individual_results:
-                            binary_outcomes.append(1)
                         messages.append(
                             attempt.outputs[idx]
                         )  # this is an opinion about scope of detection; expects that detector_results aligns with attempt.outputs (not all_outputs)
@@ -156,7 +150,13 @@ class Evaluator:
 
             ci_lower: Optional[float] = None
             ci_upper: Optional[float] = None
-            if ci_method == "bootstrap" and outputs_evaluated >= BOOTSTRAP_MIN_SAMPLE_SIZE:
+            ci_method = getattr(_config.reporting, "confidence_interval_method", "")
+            if (
+                ci_method == "bootstrap"
+                and outputs_evaluated >= BOOTSTRAP_MIN_SAMPLE_SIZE
+            ):
+                # Construct individual results post-hoc (order doesn't matter for bootstrap resampling)
+                binary_outcomes = [1] * fails + [0] * passes
                 try:
                     se, sp = self.detector_metrics.get_detector_se_sp(detector)
                     ci_result = calculate_bootstrap_ci(
@@ -214,7 +214,9 @@ class Evaluator:
             # Add CI fields if calculation succeeded
             if ci_lower is not None and ci_upper is not None:
                 eval_record["confidence_method"] = "bootstrap"
-                eval_record["confidence"] = str(_config.reporting.bootstrap_confidence_level)
+                eval_record["confidence"] = str(
+                    _config.reporting.bootstrap_confidence_level
+                )
                 eval_record["confidence_upper"] = ci_upper / 100
                 eval_record["confidence_lower"] = ci_lower / 100
 
@@ -281,18 +283,21 @@ class Evaluator:
             ci_text = ""
             if ci_lower is not None and ci_upper is not None:
                 ci_width = abs(ci_upper - ci_lower)
-                
+
                 # Warn about invalid ranges but still display (helps catch bugs)
                 if ci_lower > ci_upper:
                     logging.warning(
                         "Invalid CI range for %s / %s: [%.2f%%, %.2f%%] (lower > upper)",
-                        self.probename, detector_name, ci_lower, ci_upper
+                        self.probename,
+                        detector_name,
+                        ci_lower,
+                        ci_upper,
                     )
-                
+
                 # Suppress zero-width CIs (no uncertainty information)
                 if ci_width > CI_DISPLAY_MIN_WIDTH:
                     ci_text = f" [{ci_lower:.2f}%, {ci_upper:.2f}%]"
-            
+
             print(
                 f"   ({Fore.LIGHTRED_EX}attack success rate:{Style.RESET_ALL} {failrate:6.2f}%{ci_text})",
                 end="",
@@ -354,18 +359,21 @@ class Evaluator:
             ci_text = ""
             if ci_lower is not None and ci_upper is not None:
                 ci_width = abs(ci_upper - ci_lower)
-                
+
                 # Defensive: warn about invalid ranges but still display (helps catch bugs)
                 if ci_lower > ci_upper:
                     logging.warning(
                         "Invalid CI range for %s / %s: [%.2f%%, %.2f%%] (lower > upper)",
-                        self.probename, detector_name, ci_lower, ci_upper
+                        self.probename,
+                        detector_name,
+                        ci_lower,
+                        ci_upper,
                     )
-                
+
                 # Suppress zero-width CIs (no uncertainty information)
                 if ci_width > CI_DISPLAY_MIN_WIDTH:
                     ci_text = f" [{ci_lower:.2f}%, {ci_upper:.2f}%]"
-            
+
             print(
                 f"    {Fore.LIGHTRED_EX}attack success rate:{Style.RESET_ALL} {failrate:6.2f}%{ci_text}",
                 end="",
