@@ -21,7 +21,7 @@ Eval-type entries are added after each probe/detector pair completes, and list t
 Confidence Intervals (Optional)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Eval entries may include bootstrap confidence intervals for attack success rates when sample size ≥ 30:
+Confidence intervals are disabled by default but can be enabled via the ``reporting.confidence_interval_method`` configuration parameter (see :doc:`configurable`). When enabled, eval entries may include bootstrap confidence intervals for attack success rates when sample size ≥ 30:
 
 * ``confidence``: Confidence level (e.g., "0.95")
 * ``confidence_lower``: Lower bound (0-1 scale)
