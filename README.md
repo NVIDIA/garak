@@ -115,6 +115,48 @@ See if the Hugging Face version of GPT2 is vulnerable to DAN 11.0
 python3 -m garak --target_type huggingface --target_name gpt2 --probes dan.Dan_11_0
 ```
 
+## Resumable Scans
+
+`garak` supports resumable scans that allow you to continue interrupted scans without starting from scratch. This is useful for:
+- Long-running scans that may be interrupted by network issues, rate limits, or system crashes
+- Saving API costs by avoiding redundant prompts
+- Enabling flexible scan scheduling (pause/resume)
+
+### Basic Usage
+
+```bash
+# Start a resumable scan (enabled by default)
+python3 -m garak --target_type openai --target_name gpt-4 --probes all
+
+# If interrupted, resume using the run ID shown at start
+python3 -m garak --resume garak-run-abc123-20260201-120000
+
+# List all unfinished runs
+python3 -m garak --list_runs
+
+# Delete old run state
+python3 -m garak --delete_run garak-run-abc123-20260201-120000
+```
+
+### Resume Granularity
+
+Choose between two resumption levels:
+- **`probe`** (default) - Skip entire completed probes (faster, coarser-grained)
+- **`attempt`** - Skip individual completed prompts (slower, more precise)
+
+```bash
+# Use attempt-level granularity for fine-grained resume
+python3 -m garak --resume_granularity attempt --target_type openai --target_name gpt-4
+```
+
+### Disable Resume for One-Time Runs
+
+```bash
+# Disable resume if you don't need it
+python3 -m garak --resumable false --target_type openai --target_name gpt-4 --probes test
+```
+
+State files are stored in the cache directory (`runs/` subdirectory) and can be managed with `--list_runs` and `--delete_run`. The location respects the XDG Base Directory Specification.
 
 ## Reading the results
 

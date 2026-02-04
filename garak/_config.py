@@ -35,7 +35,7 @@ from garak import __version__ as version
 system_params = (
     "verbose narrow_output parallel_requests parallel_attempts skip_unknown".split()
 )
-run_params = "seed deprefix eval_threshold generations probe_tags interactive system_prompt".split()
+run_params = "seed deprefix eval_threshold generations probe_tags interactive system_prompt resumable resume_granularity".split()
 plugins_params = "target_type target_name extended_detectors".split()
 reporting_params = "taxonomy report_prefix".split()
 project_dir_name = "garak"
@@ -122,6 +122,8 @@ run.seed = None
 run.soft_probe_prompt_cap = 64
 run.target_lang = "en"
 run.langproviders = []
+run.resumable = True  # Default for resumable flag
+run.resume_granularity = "probe"  # Default resume granularity: 'probe' or 'attempt'
 
 # placeholder
 # generator, probe, detector, buff = {}, {}, {}, {}
