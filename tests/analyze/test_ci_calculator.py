@@ -53,7 +53,7 @@ def test_calculate_ci_from_report_file_not_found():
 
 
 def test_insufficient_samples():
-    """Verify warning logged when n < BOOTSTRAP_MIN_SAMPLE_SIZE"""
+    """Verify warning logged when n < bootstrap_min_sample_size"""
     with tempfile.NamedTemporaryFile(mode='w', suffix='.jsonl', delete=False) as f:
         f.write(json.dumps({"entry_type": "start_run setup", "run.eval_threshold": 0.5}) + "\n")
         for i in range(10):

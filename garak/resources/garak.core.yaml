@@ -42,3 +42,4 @@ reporting:
   confidence_interval_method:
   bootstrap_num_iterations: 10000
   bootstrap_confidence_level: 0.95
+  bootstrap_min_sample_size: 30

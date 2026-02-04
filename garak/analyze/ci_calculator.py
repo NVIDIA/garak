@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Optional, Dict, List, Tuple
 
 from garak import _config
-from garak.analyze.bootstrap_ci import calculate_bootstrap_ci, BOOTSTRAP_MIN_SAMPLE_SIZE
+from garak.analyze.bootstrap_ci import calculate_bootstrap_ci
 from garak.analyze.detector_metrics import get_detector_metrics
 from garak.attempt import ATTEMPT_COMPLETE
 
@@ -144,14 +144,15 @@ def calculate_ci_from_report(
                 attempts, probe_name, detector_name, eval_threshold
             )
             
-            # Check minimum sample size (imported constant - single source of truth)
-            if len(binary_results) < BOOTSTRAP_MIN_SAMPLE_SIZE:
+            # Check minimum sample size from config
+            min_sample_size = _config.reporting.bootstrap_min_sample_size
+            if len(binary_results) < min_sample_size:
                 logging.warning(
                     "Insufficient samples for CI calculation: probe=%s, detector=%s, n=%d (minimum: %d)",
                     probe_name,
                     detector_name,
                     len(binary_results),
-                    BOOTSTRAP_MIN_SAMPLE_SIZE
+                    min_sample_size
                 )
                 continue
             

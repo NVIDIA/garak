@@ -18,10 +18,7 @@ from garak import _config
 import garak.attempt
 import garak.analyze.calibration
 import garak.analyze.detector_metrics
-from garak.analyze.bootstrap_ci import (
-    BOOTSTRAP_MIN_SAMPLE_SIZE,
-    calculate_bootstrap_ci,
-)
+from garak.analyze.bootstrap_ci import calculate_bootstrap_ci
 import garak.resources.theme
 
 
@@ -151,9 +148,10 @@ class Evaluator:
             ci_lower: Optional[float] = None
             ci_upper: Optional[float] = None
             ci_method = getattr(_config.reporting, "confidence_interval_method", "")
+            min_sample_size = _config.reporting.bootstrap_min_sample_size
             if (
                 ci_method == "bootstrap"
-                and outputs_evaluated >= BOOTSTRAP_MIN_SAMPLE_SIZE
+                and outputs_evaluated >= min_sample_size
             ):
                 # Construct individual results post-hoc (order doesn't matter for bootstrap resampling)
                 binary_outcomes = [1] * fails + [0] * passes
@@ -188,7 +186,7 @@ class Evaluator:
                         detector,
                         self.probename,
                         outputs_evaluated,
-                        BOOTSTRAP_MIN_SAMPLE_SIZE,
+                        min_sample_size,
                     )
 
             if _config.system.narrow_output:
