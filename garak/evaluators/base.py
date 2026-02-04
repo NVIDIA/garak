@@ -43,7 +43,7 @@ class Evaluator:
         if _config.system.show_z:
             self.calibration = garak.analyze.calibration.Calibration()
         
-        ci_method = getattr(_config.reporting, 'confidence_interval_method', "None")
+        ci_method = getattr(_config.reporting, 'confidence_interval_method', "")
         if ci_method == "bootstrap":
             self.detector_metrics = garak.analyze.detector_metrics.get_detector_metrics()
         else:
@@ -85,7 +85,7 @@ class Evaluator:
             nones = 0
             messages = []
             
-            ci_method = getattr(_config.reporting, 'confidence_interval_method', "None")
+            ci_method = getattr(_config.reporting, 'confidence_interval_method', "")
             collect_individual_results = (ci_method == "bootstrap")
             binary_outcomes = [] if collect_individual_results else None
 

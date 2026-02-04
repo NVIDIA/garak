@@ -165,8 +165,20 @@ Reporting Config Items
 * ``show_top_group_score`` - Should the aggregated score be shown as a top-level figure in report concertinas?
 * ``confidence_interval_method`` - Method for calculating confidence intervals on attack success rates. Options:
 
-  - ``"None"`` (default) - No confidence intervals calculated or displayed.
+  - Empty value (default) - No confidence intervals calculated or displayed.
   - ``"bootstrap"`` - Non-parametric bootstrap with detector performance correction (requires detector metrics and n≥30).
+  
+  Example YAML configuration:
+  
+  .. code-block:: yaml
+  
+     ---
+     reporting:
+       confidence_interval_method:  # Empty - no CIs
+       
+     ---
+     reporting:
+       confidence_interval_method: "bootstrap"  # Enable bootstrap CIs
   
 * ``bootstrap_num_iterations`` - Number of bootstrap resampling iterations for computing confidence intervals on attack success rates (default: 10000). Only used when ``confidence_interval_method`` is ``"bootstrap"``.
 * ``bootstrap_confidence_level`` - Confidence level for bootstrap confidence intervals, expressed as a decimal between 0 and 1 (default: 0.95 for 95% confidence intervals). Only used when ``confidence_interval_method`` is ``"bootstrap"``.
