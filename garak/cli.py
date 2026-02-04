@@ -558,8 +558,9 @@ def main(arguments=None) -> None:
             
             # Validate file exists and is a file
             if not report_path.exists():
-                print(f"❌ Report file not found: {report_path}")
-                return 1
+                msg = f"❌ Report file not found: {report_path}"
+                logging.critical(msg)
+                raise GarakException(msg)
             
             if not report_path.is_file():
                 print(f"❌ Path is not a file: {report_path}")
