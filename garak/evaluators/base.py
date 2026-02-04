@@ -6,7 +6,11 @@ These describe evaluators for assessing detector results.
 import json
 import logging
 from pathlib import Path
+<<<<<<< HEAD
 from typing import Iterable, List
+=======
+from typing import Iterable, Optional, Tuple, List
+>>>>>>> 3d8115d3 (Add type hints for optional CI parameters in evaluators)
 
 from colorama import Fore, Style
 
@@ -87,7 +91,7 @@ class Evaluator:
             
             ci_method = getattr(_config.reporting, 'confidence_interval_method', "")
             collect_individual_results = (ci_method == "bootstrap")
-            binary_outcomes = [] if collect_individual_results else None
+            binary_outcomes: Optional[List[int]] = [] if collect_individual_results else None
 
             for attempt in attempts:
                 for idx, score in enumerate(attempt.detector_results[detector]):
@@ -150,7 +154,8 @@ class Evaluator:
             outputs_evaluated = passes + fails
             outputs_processed = passes + fails + nones
 
-            ci_lower, ci_upper = None, None
+            ci_lower: Optional[float] = None
+            ci_upper: Optional[float] = None
             if ci_method == "bootstrap" and outputs_evaluated >= BOOTSTRAP_MIN_SAMPLE_SIZE:
                 try:
                     se, sp = self.detector_metrics.get_detector_se_sp(detector)
@@ -241,8 +246,8 @@ class Evaluator:
         passes,
         evals,
         messages=list(),
-        ci_lower=None,
-        ci_upper=None,
+        ci_lower: Optional[float] = None,
+        ci_upper: Optional[float] = None,
     ):
         """Print the evaluator's summary"""
 
