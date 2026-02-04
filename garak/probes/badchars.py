@@ -113,7 +113,7 @@ class BadCharacters(garak.probes.Probe):
     """Imperceptible perturbations mixing invisible chars, homoglyphs, swaps, deletions.
 
     Implements the paper's full spectrum of adversarial perturbations by generating prompt variants that insert invisible Unicode,
-        swap characters with bidi tricks, substitute homoglyphs, and inject deletions/backspaces.
+    swap characters with bidi tricks, substitute homoglyphs, and inject deletions/backspaces.
     The goal is to stress refusal policies with subtle transformations that should remain semantically equivalent to the original payloads.
     """
 

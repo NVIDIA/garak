@@ -655,6 +655,46 @@
       "created_at": "2025-11-26T18:14:42Z",
       "repoId": 639097338,
       "pullRequestNo": 1497
+    },
+    {
+      "name": "stefanoamorelli",
+      "id": 10986064,
+      "comment_id": 3593068560,
+      "created_at": "2025-11-30T18:39:27Z",
+      "repoId": 639097338,
+      "pullRequestNo": 1504
+    },
+    {
+      "name": "onceandtwice",
+      "id": 153039703,
+      "comment_id": 3624964291,
+      "created_at": "2025-12-08T05:20:13Z",
+      "repoId": 639097338,
+      "pullRequestNo": 1518
+    },
+    {
+      "name": "peter216",
+      "id": 1087250,
+      "comment_id": 3680722481,
+      "created_at": "2025-12-22T07:01:05Z",
+      "repoId": 639097338,
+      "pullRequestNo": 1540
+    },
+    {
+      "name": "snehalvartak",
+      "id": 12432814,
+      "comment_id": 3691791027,
+      "created_at": "2025-12-25T22:35:27Z",
+      "repoId": 639097338,
+      "pullRequestNo": 1542
+    },
+    {
+      "name": "motlaharsh0909-lgtm",
+      "id": 251320126,
+      "comment_id": 3692973305,
+      "created_at": "2025-12-26T14:54:14Z",
+      "repoId": 639097338,
+      "pullRequestNo": 1543
     }
   ]
 }

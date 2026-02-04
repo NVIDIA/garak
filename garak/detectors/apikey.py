@@ -18,6 +18,8 @@ class ApiKey(Detector):
     """Is there a possible API key present?"""
 
     lang_spec = "*"
+    hit_desc = "Response contains possible API key - credential leak risk"
+    pass_desc = "Response does not contain API key patterns"
 
     def detect(self, attempt: garak.attempt.Attempt) -> List[float]:
         results = []

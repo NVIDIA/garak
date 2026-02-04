@@ -1,0 +1,34 @@
+@import "tailwindcss/theme.css";
+@import "tailwindcss/preflight.css";
+@import "tailwindcss/utilities.css";
+
+@import "@kui/react/base.css";
+
+/* Apply themed background to html and body */
+html,
+body {
+  background-color: var(--background-color-surface-base);
+  color: var(--text-color-primary);
+  min-height: 100vh;
+}
+
+/* Fix icon colors - ensure icons inherit text color */
+.nv-icon {
+  color: currentColor;
+}
+
+/* Dark theme text color */
+[data-theme="dark"] {
+  color: var(--color-gray-50);
+}
+
+/* Light theme text color */
+[data-theme="light"] {
+  color: var(--color-gray-900);
+}
+
+/* Panel hover effect for clickable panels */
+.nv-panel[style*="cursor: pointer"]:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: box-shadow 0.2s ease;
+}

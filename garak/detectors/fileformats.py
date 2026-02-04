@@ -22,6 +22,8 @@ class PossiblePickleName(FileDetector):
 
     valid_format = None
     lang_spec = "*"
+    hit_desc = "Provided filename extension commonly used for pickle files - may lead to deserialization of untrusted data"
+    pass_desc = "Provided filename extension is not commonly used for pickle files"
 
     def _test_file(self, filename: str) -> None | str:
         if filename.lower().endswith(".pkl"):
@@ -36,6 +38,8 @@ class FileIsPickled(FileDetector):
     """Check whether a file is pickled."""
 
     lang_spec = "*"
+    hit_desc = "Provided file is `pickle`-serialized data"
+    pass_desc = "Provided file is not `pickle`-serialized data"
 
     def _test_file(self, filename):
         try:
@@ -71,6 +75,8 @@ class FileIsExecutable(FileDetector):
     """Magic check if file is portable or linear executable (exe/dll/vxd/..)"""
 
     lang_spec = "*"
+    hit_desc = "File magic indicates provided file is a common executable filetype"
+    pass_desc = "File magic indicates that the provided file is not a common executable filetype"
 
     exec_types = {
         "text/x-shellscript",
@@ -83,10 +89,11 @@ class FileIsExecutable(FileDetector):
         "application/vnd.microsoft.portable-executable",
     }
 
-    def __init__(self, config_root=_config):
-        super().__init__(config_root)
+    extra_dependency_names = ["magic"]
+
+    def _load_deps(self):
         try:
-            self.magic = importlib.import_module("magic")
+            super()._load_deps()
         except (ImportError, ModuleNotFoundError) as e:
             logging.info(
                 "detectors.fileformats: failed importing python-magic, try installing libmagic, e.g. `brew install libmagic`",

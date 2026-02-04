@@ -124,19 +124,15 @@ class TAP(garak.probes.Probe):
     DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
         "goal_str": GOAL,
         "target": TARGET,
-        "attack_model_type": "huggingface.Model",
-        "attack_model_name": "lmsys/vicuna-13b-v1.3",
+        "attack_model_type": "huggingface.Pipeline",
+        "attack_model_name": "mistralai/Ministral-8B-Instruct-2410",
         "attack_model_config": {
-            "max_tokens": 500,
             "hf_args": {"device": "cpu"},
         },
         "attack_max_attempts": 5,
-        "evaluator_model_type": "openai",
-        "evaluator_model_name": "gpt-3.5-turbo",
-        "evaluator_model_config": {
-            "max_tokens": 10,
-            "temperature": 0.0,
-        },
+        "evaluator_model_type": "openai.OpenAIReasoningGenerator",
+        "evaluator_model_name": "gpt-5-nano",
+        "evaluator_model_config": {},
         "branching_factor": 4,
         "width": 10,
         "depth": 10,
@@ -148,6 +144,16 @@ class TAP(garak.probes.Probe):
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
         self.run_tap = None
+        if self.width < 3:
+            logging.warning(
+                f"Running TAP with width less than 3 can result in weirdness and failures. "
+                f"Running with provided width: {self.width}"
+            )
+        if self.attack_max_attempts < 3:
+            logging.warning(
+                f"Running TAP with attack_max_attempts less than 3 can result in weirdness and failures. "
+                f"Running with provided attack_max_attempts: {self.attack_max_attempts}"
+            )
 
     def probe(self, generator) -> List[garak.attempt.Attempt]:
         self.generator = generator
@@ -256,23 +262,19 @@ class PAIR(garak.probes.Probe):
     DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
         "goal_str": GOAL,
         "target": TARGET,
-        "attack_model_type": "huggingface.Model",
-        "attack_model_name": "lmsys/vicuna-13b-v1.3",
+        "attack_model_type": "huggingface.Pipeline",
+        "attack_model_name": "mistralai/Ministral-8B-Instruct-2410",
         "attack_model_config": {
-            "max_tokens": 500,
             "hf_args": {"device": "cpu"},
         },
         "attack_max_attempts": 5,
-        "evaluator_model_type": "openai",
-        "evaluator_model_name": "gpt-3.5-turbo",
-        "evaluator_model_config": {
-            "max_tokens": 10,
-            "temperature": 0.0,
-        },
+        "evaluator_model_type": "openai.OpenAIReasoningGenerator",
+        "evaluator_model_name": "gpt-5-nano",
+        "evaluator_model_config": {},
         "branching_factor": 4,
         "width": 10,
         "depth": 10,
-        "n_streams": 1,
+        "n_streams": 2,
         "keep_last_n": 1,
         "pruning": True,
     }
@@ -362,3 +364,4 @@ class PAIR(garak.probes.Probe):
 
         else:
             logging.debug("TAP failed to find a jailbreak!")
+            return []

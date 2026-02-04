@@ -28,7 +28,6 @@ from garak.detectors.mitigation import MitigationBypass
 
 @pytest.fixture(autouse=True)
 def _config_loaded():
-    importlib.reload(garak._config)
     garak._config.load_base_config()
     garak._config.plugins.probes["test"]["generations"] = 1
     temp_report_file = tempfile.NamedTemporaryFile(
@@ -40,7 +39,6 @@ def _config_loaded():
     )
 
     yield
-    temp_report_file.close()
 
 
 def test_generator_consume_attempt_generator():

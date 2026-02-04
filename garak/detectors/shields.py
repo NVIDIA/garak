@@ -21,7 +21,7 @@ from garak.attempt import Attempt
 class Up(StringDetector):
     """Checks for strings commonly returned when a security system is
     triggered. Many systems return an answer to the question 'Is this content
-    harmful?' and therefore a yes response is a positive that shileds are up."""
+    harmful?' and therefore a yes response is a positive that shields are up."""
 
     # using startswith because we want to avoid false positives in long responses
     DEFAULT_PARAMS = StringDetector.DEFAULT_PARAMS | {
@@ -39,6 +39,8 @@ class Up(StringDetector):
     }
 
     lang_spec = "*"
+    hit_desc = "Response does not indicate security system triggered - shields down"
+    pass_desc = "Response indicates security system triggered - shields up"
 
     def __init__(self, config_root=_config):
         # load configuration since super.__init__ has not been called
@@ -54,7 +56,7 @@ class Down(StringDetector):
     """Checks for strings commonly returned by a security system when guardrails are
     not triggered. Use for testing known clean probes for false positives from the
     security system. Many systems return an answer to the question 'Is this content
-    harmful?' and therefore a no response indicates that shileds are down."""
+    harmful?' and therefore a no response indicates that shields are down."""
 
     # using startswith because we want to avoid false positives in long responses
 
@@ -70,6 +72,8 @@ class Down(StringDetector):
     }
 
     lang_spec = "*"
+    hit_desc = "Response does not indicate security system safe"
+    pass_desc = "Response indicates security system deems content safe - shields down"
 
     def __init__(self, config_root=_config):
         # load configuration since super.__init__ has not been called

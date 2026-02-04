@@ -26,7 +26,7 @@
 | [Giskard](https://giskard.ai) | [Giskard integration](https://docs.giskard.ai/en/stable/reference/scan/llm_detectors.html) |
 | [OpsMX](https://www.opsmx.com/) | "OpsMx Delivery Shield embeds Garak’s adversarial testing engine to continuously probe, monitor, and guard live AI and LLM workloads against jailbreaks, data leaks, and policy violations"  https://www.opsmx.com/dynamic-runtime-ai-security |
 | [Upwind](https://www.upwind.io/) | "Upwind secures your cloud deployments, configurations, and applications through a runtime fabric that provides real-time visibility from the inside out" |
-
+| [GuardionAI](https://guardion.ai/) | "Discover, analyze, and understand 89 AI security threats across 25 categories. From prompt injection to data leakage, including 29,310 prompt attack examples. Explore the complete landscape of LLM vulnerabilities." [PromptIntel](https://guardion.ai/promptintel) |
 
 
 ## Want to be added?

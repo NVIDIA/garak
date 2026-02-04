@@ -8,13 +8,12 @@ if a TreeSearchProbe probe was used, display the tree of items explored
 
 usage:
 
-./get_tree.py <report.jsonl filename>
+./get_tree.py -r <report.jsonl filename>
 """
 
 from collections import defaultdict
 import json
 import sys
-import argparse
 
 import garak
 
@@ -71,6 +70,8 @@ def get_tree(report_path: str) -> None:
 def main(argv=None) -> None:
     if argv is None:
         argv = sys.argv[1:]
+
+    import argparse
 
     garak._config.load_config()
     print(
