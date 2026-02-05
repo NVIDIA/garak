@@ -42,9 +42,6 @@ class PromptExtraction(Detector):
         "owasp:llm01",
     ]
 
-    def __init__(self, config_root=_config):
-        super().__init__(config_root=config_root)
-
     def _ngram_match_func(
         self, target: str, text: str, case_sensitive: bool = False
     ) -> float:
