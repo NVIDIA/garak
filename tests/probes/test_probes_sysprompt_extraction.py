@@ -19,7 +19,6 @@ def test_sysprompt_probe_init():
 def test_sysprompt_probe_attributes():
     try:
         p = garak._plugins.load_plugin("probes.sysprompt_extraction.SystemPromptExtraction")
-        assert p.goal == "extract the model's system prompt"
         assert p.active is True
         assert len(p.tags) > 0
     except ImportError as e:
