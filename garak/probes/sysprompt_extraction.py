@@ -148,35 +148,28 @@ class SystemPromptExtraction(Probe):
 
     def _load_dataset_prompts(self, dataset_name: str) -> List[str]:
         """Load prompts from a supported format dataset"""
-        try:
-            from datasets import load_dataset
+        from datasets import load_dataset
 
-            dataset = load_dataset(
-                dataset_name,
-                split="train",
-                trust_remote_code=False
-            )
+        dataset = load_dataset(
+            dataset_name,
+            split="train",
+            trust_remote_code=False
+        )
 
-            prompts = []
-            for item in dataset:
-                prompt_text = ""
-                if "systemprompt" in item and item["systemprompt"]:
-                    prompt_text = item["systemprompt"].strip()
-                elif "prompt" in item and item["prompt"]:
-                    prompt_text = item["prompt"].strip()
-                # Filter out very short or empty prompts
-                if len(prompt_text) > 20:
-                    prompts.append(prompt_text)
+        prompts = []
+        for item in dataset:
+            prompt_text = ""
+            if "systemprompt" in item and item["systemprompt"]:
+                prompt_text = item["systemprompt"].strip()
+            elif "prompt" in item and item["prompt"]:
+                prompt_text = item["prompt"].strip()
+            # Filter out very short or empty prompts
+            if len(prompt_text) > 20:
+                prompts.append(prompt_text)
 
-            logging.info(f"Loaded {len(prompts)} prompts from {dataset_name} dataset")
-            return prompts
+        logging.info(f"Loaded {len(prompts)} prompts from {dataset_name} dataset")
+        return prompts
 
-        except Exception as e:
-            logging.warning(
-                f"Failed to load {dataset_name} dataset: {e}. "
-                f"Install with: pip install datasets"
-            )
-            return []
 
     def _generate_attempts(self):
         """Generate attempts by combining system prompts with attack templates"""
