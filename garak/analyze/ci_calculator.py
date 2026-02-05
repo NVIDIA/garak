@@ -9,50 +9,20 @@ from typing import Optional, Dict, List, Tuple
 from garak import _config
 from garak.analyze.bootstrap_ci import calculate_bootstrap_ci
 from garak.analyze.detector_metrics import get_detector_metrics
-from garak.attempt import ATTEMPT_COMPLETE
 
 
-def reconstruct_binary_results(
-    attempts: List[dict],
-    probe_name: str,
-    detector_name: str,
-    eval_threshold: float
-) -> List[int]:
-    """Extract binary pass/fail outcomes from attempt records for probe/detector pair"""
-    binary_results = []
-    
-    for attempt in attempts:
-        if attempt.get("probe_classname") != probe_name:
-            continue
-        
-        if attempt.get("status") != ATTEMPT_COMPLETE:
-            continue
-        
-        detector_results = attempt.get("detector_results", {})
-        if detector_name not in detector_results:
-            continue
-        
-        scores = detector_results[detector_name]
-        for score in scores:
-            if score is None:
-                continue
-            try:
-                score_float = float(score)
-            except (ValueError, TypeError) as e:
-                logging.warning(
-                    "Invalid score value '%s' for probe=%s, detector=%s: %s. Skipping.",
-                    score, probe_name, detector_name, e
-                )
-                continue
-            binary_results.append(0 if score_float < eval_threshold else 1)
-    
-    if not binary_results:
-        raise ValueError(
-            f"No results found for probe '{probe_name}' with detector '{detector_name}'. "
-            f"Check that probe and detector names match report entries."
-        )
-    
-    return binary_results
+def _get_report_digest(report_path: str) -> Optional[dict]:
+    """Extract digest entry from end of report JSONL"""
+    with open(report_path, "r", encoding="utf-8") as reportfile:
+        for entry in [json.loads(line.strip()) for line in reportfile if line.strip()]:
+            if entry.get("entry_type") == "digest":
+                return entry
+    return None
+
+
+def _reconstruct_binary_from_aggregates(passed: int, failed: int) -> List[int]:
+    # Reconstruct binary pass/fail data from aggregates; order irrelevant for bootstrap resampling
+    return [1] * passed + [0] * failed
 
 
 def calculate_ci_from_report(
@@ -61,7 +31,7 @@ def calculate_ci_from_report(
     num_iterations: Optional[int] = None,
     confidence_level: Optional[float] = None
 ) -> Dict[Tuple[str, str], Tuple[float, float]]:
-    """Calculate CIs for probe/detector pairs from report JSONL, params default to _config"""
+    """Calculate bootstrap CIs for probe/detector pairs using report digest aggregates"""
     report_file = Path(report_path)
     
     if not report_file.exists():
@@ -76,116 +46,102 @@ def calculate_ci_from_report(
     if confidence_level is None:
         confidence_level = _config.reporting.bootstrap_confidence_level
     
-    # Parse report
-    setup_entry = None
-    attempts = []
-    eval_entries = []
+    # Read digest entry from report
+    digest = _get_report_digest(str(report_file))
     
-    try:
-        with open(report_file, "r", encoding="utf-8") as f:
-            for line_num, line in enumerate(f, 1):
-                try:
-                    entry = json.loads(line.strip())
-                except json.JSONDecodeError as e:
-                    raise json.JSONDecodeError(
-                        f"Malformed JSON at line {line_num} in {report_file}: {e.msg}",
-                        e.doc,
-                        e.pos
-                    ) from e
-                
-                entry_type = entry.get("entry_type")
-                if entry_type == "start_run setup":
-                    setup_entry = entry
-                elif entry_type == "attempt":
-                    attempts.append(entry)
-                elif entry_type == "eval":
-                    eval_entries.append(entry)
-    
-    except OSError as e:
-        raise OSError(f"Error reading report file {report_file}: {e}")
-    
-    if setup_entry is None:
+    if digest is None:
         raise ValueError(
-            f"Report {report_file} missing 'start_run setup' entry. "
-            f"Cannot determine eval_threshold for binary conversion."
+            f"Report {report_file} missing 'digest' entry. "
+            f"Digest is required for CI calculation from aggregates. "
+            f"Ensure report was generated with garak v0.11.0 or later."
         )
     
-    eval_threshold = setup_entry.get("run.eval_threshold")
-    if eval_threshold is None:
-        eval_threshold = _config.run.eval_threshold
-        logging.warning(
-            "No eval_threshold found in setup entry for %s, using config default %.2f",
-            report_file,
-            eval_threshold
-        )
-    
-    # Determine which probe/detector pairs to process
-    if probe_detector_pairs is None:
-        probe_detector_pairs = []
-        for entry in eval_entries:
-            probe = entry.get("probe")
-            detector = entry.get("detector")
-            if probe is not None and detector is not None:
-                probe_detector_pairs.append((probe, detector))
-    
-    if not probe_detector_pairs:
-        logging.warning("No probe/detector pairs found in report %s", report_file)
+    eval_data = digest.get("eval", {})
+    if not eval_data:
+        logging.warning("No evaluation data found in digest for %s", report_file)
         return {}
     
     # Load detector metrics for Se/Sp correction
     detector_metrics = get_detector_metrics()
+    min_sample_size = _config.reporting.bootstrap_min_sample_size
     
     ci_results = {}
     
-    for probe_name, detector_name in probe_detector_pairs:
-        try:
-            # Reconstruct binary results
-            binary_results = reconstruct_binary_results(
-                attempts, probe_name, detector_name, eval_threshold
-            )
-            
-            # Check minimum sample size from config
-            min_sample_size = _config.reporting.bootstrap_min_sample_size
-            if len(binary_results) < min_sample_size:
-                logging.warning(
-                    "Insufficient samples for CI calculation: probe=%s, detector=%s, n=%d (minimum: %d)",
-                    probe_name,
-                    detector_name,
-                    len(binary_results),
-                    min_sample_size
-                )
+    # Iterate through digest structure: probe_group -> probe_class -> detector
+    for probe_group in eval_data:
+        for probe_key in eval_data[probe_group]:
+            if probe_key == "_summary":
                 continue
             
-            # Get detector Se/Sp
-            se, sp = detector_metrics.get_detector_se_sp(detector_name)
+            # Parse probe module and class from key (format: "module.class")
+            if "." not in probe_key:
+                continue
             
-            # Calculate CI
-            ci_result = calculate_bootstrap_ci(
-                results=binary_results,
-                sensitivity=se,
-                specificity=sp,
-                num_iterations=num_iterations,
-                confidence_level=confidence_level
-            )
+            probe_name = f"probes.{probe_key}"
             
-            if ci_result is not None:
-                ci_results[(probe_name, detector_name)] = ci_result
-                logging.debug(
-                    "Calculated CI for %s / %s: [%.2f, %.2f]",
-                    probe_name,
-                    detector_name,
-                    ci_result[0],
-                    ci_result[1]
+            for detector_key in eval_data[probe_group][probe_key]:
+                if detector_key == "_summary":
+                    continue
+                
+                detector_name = f"detector.{detector_key}"
+                
+                # Skip if not in requested pairs (if specified)
+                if probe_detector_pairs is not None:
+                    if (probe_name, detector_name) not in probe_detector_pairs:
+                        continue
+                
+                detector_result = eval_data[probe_group][probe_key][detector_key]
+                
+                # Extract aggregates
+                total = detector_result.get("total_evaluated", 0)
+                passed = detector_result.get("passed", 0)
+                
+                if total == 0:
+                    logging.warning(
+                        "No evaluated samples for probe=%s, detector=%s",
+                        probe_name,
+                        detector_name
+                    )
+                    continue
+                
+                # Check minimum sample size
+                if total < min_sample_size:
+                    logging.warning(
+                        "Insufficient samples for CI calculation: probe=%s, detector=%s, n=%d (minimum: %d)",
+                        probe_name,
+                        detector_name,
+                        total,
+                        min_sample_size
+                    )
+                    continue
+                
+                # Reconstruct binary data from aggregates
+                # Order irrelevant: bootstrap resamples randomly with replacement
+                failed = total - passed
+                binary_results = _reconstruct_binary_from_aggregates(passed, failed)
+                
+                # Get detector Se/Sp for correction
+                se, sp = detector_metrics.get_detector_se_sp(detector_key)
+                
+                # Calculate bootstrap CI
+                ci_result = calculate_bootstrap_ci(
+                    results=binary_results,
+                    sensitivity=se,
+                    specificity=sp,
+                    num_iterations=num_iterations,
+                    confidence_level=confidence_level
                 )
-        
-        except ValueError as e:
-            logging.warning(
-                "Could not calculate CI for %s / %s: %s",
-                probe_name,
-                detector_name,
-                e
-            )
-            continue
+                
+                if ci_result is not None:
+                    ci_results[(probe_name, detector_name)] = ci_result
+                    logging.debug(
+                        "Calculated CI for %s / %s: [%.2f, %.2f] (n=%d)",
+                        probe_name,
+                        detector_name,
+                        ci_result[0],
+                        ci_result[1],
+                        total
+                    )
     
     return ci_results
 
