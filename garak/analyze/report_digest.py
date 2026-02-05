@@ -266,11 +266,23 @@ def _get_probe_info(probe_module, probe_class, absolute_score) -> dict:
     }
 
 
-def _get_detectors_info(cursor, probe_group, probe_class) -> List[tuple]:
+def _get_detectors_info(cursor, probe_group: str, probe_class: str) -> List[dict]:
+    """Returns list of dicts with keys: detector, absolute_score, confidence, ci_lower, ci_upper"""
     res = cursor.execute(
         f"select detector, score, confidence, confidence_lower, confidence_upper from results where probe_group='{probe_group}' and probe_class='{probe_class}' order by score asc, detector asc;"
     )
-    return res.fetchall()
+    rows = res.fetchall()
+    
+    return [
+        {
+            "detector": row[0],
+            "absolute_score": row[1],
+            "confidence": row[2],
+            "ci_lower": row[3],
+            "ci_upper": row[4],
+        }
+        for row in rows
+    ]
 
 
 def _get_probe_detector_details(
@@ -440,11 +452,11 @@ def build_digest(report_filename: str, config=_config):
 
             detectors_info = _get_detectors_info(cursor, probe_group, probe_class)
             for detector_info in detectors_info:
-                detector = detector_info[0]
-                absolute_score = detector_info[1]
-                confidence = detector_info[2] if len(detector_info) > 2 else None
-                ci_lower = detector_info[3] if len(detector_info) > 3 else None
-                ci_upper = detector_info[4] if len(detector_info) > 4 else None
+                detector = detector_info["detector"]
+                absolute_score = detector_info["absolute_score"]
+                confidence = detector_info.get("confidence", None)
+                ci_lower = detector_info.get("ci_lower", None)
+                ci_upper = detector_info.get("ci_upper", None)
 
                 probe_detector_result = _get_probe_detector_details(
                     probe_module,
