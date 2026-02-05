@@ -40,9 +40,9 @@ def test_sysprompt_probe_generates_attempts():
         assert hasattr(p, "prompts")
         assert hasattr(p, "system_prompt_map")
 
-        if len(p.system_prompts) > 0:
-            assert len(p.prompts) > 0
-            assert len(p.system_prompt_map) > 0
+        assert len(p.system_prompts) > 0, "There must be some system prompts"
+        assert len(p.prompts) > 0, "Probe must generate prompts"
+        assert len(p.system_prompt_map) > 0, "system prompt map can't be empty"
 
     except ImportError as e:
         pytest.skip(f"Required dependency not available: {e}")
