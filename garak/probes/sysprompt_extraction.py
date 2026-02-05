@@ -107,7 +107,7 @@ class SystemPromptExtraction(Probe):
 
     def _load_system_prompts(self) -> List[str]:
         """Load system prompts from configured sources"""
-        self.system_prompts = []
+        self.system_prompts = set()
 
         # Map source names to dataset identifiers
         dataset_map = {
@@ -118,7 +118,7 @@ class SystemPromptExtraction(Probe):
         for source in self.system_prompt_sources:
             if source in dataset_map:
                 prompts = self._load_dataset_prompts(dataset_map[source])
-                self.system_prompts.extend(prompts)
+                self.system_prompts.update(prompts)
             else:
                 logging.warning(
                     f"Unknown system prompt source: {source}. "
