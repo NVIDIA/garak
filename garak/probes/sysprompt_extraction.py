@@ -102,8 +102,8 @@ class SystemPromptExtraction(Probe):
 
     DEFAULT_PARAMS = Probe.DEFAULT_PARAMS | {
         "system_prompt_sources": [
-            "danielrosehill",  # https://huggingface.co/datasets/danielrosehill/System-Prompt-Library
-            "teilomillet",      # https://huggingface.co/datasets/teilomillet/system_prompt
+            "garak-llm/drh-System-Prompt-Library", # credit danielrosehill/System-Prompt-Library-030825
+            "garak-llm/tm-system_prompt", # credit teilomillet/system_prompt
         ],
         "attack_templates": ATTACK_TEMPLATES,
         "max_system_prompts": 50,  # Maximum system prompts to test (for performance)
