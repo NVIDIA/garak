@@ -15,6 +15,7 @@ import logging
 from collections.abc import Iterable
 import random
 from typing import Iterable, Union
+import time
 
 from colorama import Fore, Style
 import tqdm
@@ -299,9 +300,13 @@ class Probe(Configurable):
     def _execute_attempt(self, this_attempt):
         """handles sending an attempt to the generator, postprocessing, and logging"""
         self._generator_precall_hook(self.generator, this_attempt)
+        start_time = time.time()
         this_attempt.outputs = self.generator.generate(
             this_attempt.prompt, generations_this_call=self.generations
         )
+        end_time = time.time()
+        latency = end_time - start_time
+        this_attempt.notes["total_time"] = latency
         if self.post_buff_hook:
             this_attempt = self._postprocess_buff(this_attempt)
         this_attempt = self._postprocess_hook(this_attempt)
