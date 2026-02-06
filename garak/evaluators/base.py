@@ -6,11 +6,8 @@ These describe evaluators for assessing detector results.
 import json
 import logging
 from pathlib import Path
-<<<<<<< HEAD
-from typing import Iterable, List
-=======
+
 from typing import Iterable, Optional, Tuple, List
->>>>>>> 3d8115d3 (Add type hints for optional CI parameters in evaluators)
 
 from colorama import Fore, Style
 
@@ -240,12 +237,11 @@ class Evaluator:
         return zscore, zrating_symbol
 
     def print_results_wide(
-        self, detector_name, passes, evals, messages: List | None = None
         self,
         detector_name,
         passes,
         evals,
-        messages=list(),
+        messages: Optional[List] = None,
         ci_lower: Optional[float] = None,
         ci_upper: Optional[float] = None,
     ):
@@ -318,9 +314,9 @@ class Evaluator:
         detector_name,
         passes,
         evals,
-        messages: List | None = None,
-        ci_lower= Optional[float] = None,
-        ci_upper= Optional[float] = None,
+        messages: Optional[List] = None,
+        ci_lower: Optional[float] = None,
+        ci_upper: Optional[float] = None,
     ):
         """Print the evaluator's summary"""
 
