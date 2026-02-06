@@ -104,7 +104,7 @@ def _init_populate_result_db(evals, taxonomy=None):
         detector VARCHAR(255) not null, 
         score FLOAT not null,
         instances INT not null,
-        passes INT not null
+        passes INT not null,
         confidence VARCHAR(10),
         confidence_lower FLOAT,
         confidence_upper FLOAT
