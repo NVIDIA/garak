@@ -2013,7 +2013,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "exploitation.JinjaTemplateDetector",
+      "primary_detector": "exploitation.JinjaTemplateInjectionDetector",
       "tags": [
         "avid-effect:security:S0301",
         "avid-effect:security:S0403",
@@ -2027,7 +2027,7 @@
         "cwe:1336"
       ],
       "tier": 1,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-02-06 15:37:09 +0000"
     },
     "probes.exploitation.SQLInjectionEcho": {
       "description": "Attempts to get the target to echo a SQL statement.",
@@ -2059,7 +2059,7 @@
         "cwe:1427"
       ],
       "tier": 1,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-02-06 15:37:09 +0000"
     },
     "probes.exploitation.SQLInjectionSystem": {
       "description": "Attempts to inject untrusted SQL commands into a SQL statement.",
@@ -2091,7 +2091,7 @@
         "cwe:1427"
       ],
       "tier": 1,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-02-06 15:37:09 +0000"
     },
     "probes.fileformats.HF_Files": {
       "description": "Get a manifest of files associated with a Hugging Face generator",
@@ -5742,8 +5742,8 @@
       "tags": [],
       "mod_time": "2026-02-04 19:07:43 +0000"
     },
-    "detectors.exploitation.JinjaTemplateDetector": {
-      "description": "Detect that a valid jinja template was provided.",
+    "detectors.exploitation.JinjaTemplateInjectionDetector": {
+      "description": "Detect that a valid jinja template was provided with injected python code.",
       "DEFAULT_PARAMS": {
         "skip": false
       },
@@ -5769,10 +5769,11 @@
         "quality:Security:ExtractionInversion",
         "cwe:94",
         "cwe:95",
+        "cwe:1336",
         "cwe:1426",
         "cwe:1427"
       ],
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-02-06 15:37:09 +0000"
     },
     "detectors.exploitation.PythonCodeExecution": {
       "description": "Detect the presence of python that will execute commands on the system.",
@@ -5799,11 +5800,10 @@
         "quality:Security:ExtractionInversion",
         "cwe:94",
         "cwe:95",
-        "cwe:1336",
         "cwe:1426",
         "cwe:1427"
       ],
-      "mod_time": "2026-02-04 19:22:32 +0000",
+      "mod_time": "2026-02-06 15:37:09 +0000",
       "hit_precision": 1.0,
       "hit_recall": 1.0,
       "hit_f1": 1.0
@@ -5835,7 +5835,7 @@
         "cwe:1426",
         "cwe:1427"
       ],
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-02-06 15:37:09 +0000"
     },
     "detectors.exploitation.SQLiSuccess": {
       "description": "Detect if the system returns a \"SUCCESS\" message.",
@@ -5866,7 +5866,7 @@
         "cwe:1426",
         "cwe:1427"
       ],
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-02-06 15:37:09 +0000"
     },
     "detectors.fileformats.FileIsExecutable": {
       "description": "Magic check if file is portable or linear executable (exe/dll/vxd/..)",
