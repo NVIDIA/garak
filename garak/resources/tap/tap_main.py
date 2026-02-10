@@ -2,14 +2,16 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import copy
+import json
+
 import torch.cuda
 from pathlib import Path
 from tqdm import tqdm
 from logging import getLogger
 
 import garak.generators.openai
-from garak.attempt import Conversation, Message
-from garak import _plugins
+from garak.attempt import Conversation, Message, Attempt
+from garak import _plugins, _config
 
 from garak.resources.red_team.conversation import (
     prune,
@@ -292,6 +294,7 @@ def run_tap(
     pruning: bool = True,
     save_results: bool = SAVE_RESULTS,
     outfile: Path = resources_tap_data_file,
+    probe_classname: str = "probes.tap.tap_main"
 ):
     """Function for generating attacks using TAP where a generator has already been instantiated.
 
@@ -315,7 +318,7 @@ def run_tap(
     pruning : Whether to enable pruning -- Turning this off with branching_factor = 1 gives the PAIR attack.
     save_results : Whether to save results to outfile
     outfile : Location to write successful generated attacks
-
+    probe_classname: Name of probe class to use for logging
     """
     # Initialize attack parameters
     attack_params = {
@@ -359,6 +362,7 @@ def run_tap(
     convs_list = [
         TAPConversation(self_id="NA", parent_id="NA") for _ in range(batch_size)
     ]
+    target_response_list = []
 
     for conv in convs_list:
         conv.set_system_message(system_prompt)
@@ -489,8 +493,24 @@ def run_tap(
         for i, conv in enumerate(convs_list):
             conv.add_message("user", improv_list[i])
             # Note that this does not delete the system prompt
-            conv.messages = conv.messages[-2 * keep_last_n :]
+            conv.messages = conv.messages[-2 * keep_last_n:]
 
         logger.debug(f"TAP iteration {iteration} complete")
+
+    # The attack wasn't successful, store the final attempts:
+    for conversation, target_response in zip(convs_list, target_response_list):
+        conversation.add_message("assistant", target_response.text)
+
+        attempt = garak.attempt.Attempt(
+            probe_classname=probe_classname,
+            goal=goal,
+            status=garak.attempt.ATTEMPT_COMPLETE,
+            prompt=conversation.to_garak_conv(),
+            notes={},
+        )
+
+        _config.transient.reportfile.write(
+            json.dumps(attempt.as_dict()) + "\n"
+        )
 
     return list()
