@@ -347,7 +347,7 @@ class WebSocketGenerator(Generator):
                 logger.warning(
                     "WebSocket generator doesn't support conversation history yet - skipping test"
                 )
-                return [None] * min(generations_this_call, 1)
+                return [None]
 
             # Extract text from simple, single-turn conversation
             prompt_text = prompt.last_message().text
