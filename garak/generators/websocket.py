@@ -364,7 +364,7 @@ class WebSocketGenerator(Generator):
                     message = Message(text=response_text)
                     return [message]
                 else:
-                    message = Message(text="")
+                    message = Message(text=None)
                     return [message]
             finally:
                 loop.close()
