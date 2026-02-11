@@ -365,7 +365,7 @@ class WebSocketGenerator(Generator):
                     return [message]
                 else:
                     message = Message(text="")
-                    return [message] * min(generations_this_call, 1)
+                    return [message]
             finally:
                 loop.close()
 
