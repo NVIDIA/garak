@@ -372,7 +372,7 @@ class WebSocketGenerator(Generator):
         except Exception as e:
             logger.error(f"WebSocket generation failed: {e}")
             message = Message(text="")
-            return [message] * min(generations_this_call, 1)
+            return [message]
 
     def __del__(self):
         """Clean up WebSocket connection"""
