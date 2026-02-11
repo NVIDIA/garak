@@ -37,7 +37,7 @@ system_params = (
 )
 run_params = "seed deprefix eval_threshold generations probe_tags interactive system_prompt".split()
 plugins_params = "target_type target_name extended_detectors".split()
-reporting_params = "taxonomy report_prefix".split()
+reporting_params = "taxonomy report_prefix confidence_interval_method".split()
 project_dir_name = "garak"
 
 
