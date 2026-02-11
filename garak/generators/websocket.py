@@ -341,7 +341,7 @@ class WebSocketGenerator(Generator):
                 logger.warning(
                     "WebSocket generator doesn't support system prompts yet - skipping test"
                 )
-                return [None] * min(generations_this_call, 1)
+                return [None]
 
             if not self._has_single_turn(prompt):
                 logger.warning(
