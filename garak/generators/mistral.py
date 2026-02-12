@@ -51,6 +51,10 @@ class MistralGenerator(Generator):
                     raise GeneratorBackoffTrigger from e
             raise e
 
+        # Capture token usage if tracking is enabled
+        # Mistral returns OpenAI-compatible usage structure
+        self._capture_oai_token_usage(chat_response)
+
         return [Message(chat_response.choices[0].message.content)]
 
 

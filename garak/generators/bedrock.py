@@ -224,6 +224,21 @@ class BedrockGenerator(Generator):
                 return [None]
 
             text = content_block["text"]
+
+            # Capture token usage if tracking is enabled
+            # Bedrock Converse API returns usage in response
+            if getattr(self, "track_usage", False) and "usage" in response:
+                from garak.budget import TokenUsage
+
+                usage = response["usage"]
+                self._last_usage = TokenUsage(
+                    prompt_tokens=usage.get("inputTokens", 0) or 0,
+                    completion_tokens=usage.get("outputTokens", 0) or 0,
+                    total_tokens=usage.get("totalTokens", 0) or 0,
+                    model=self.name,
+                    estimated=False,
+                )
+
             return [Message(text=text)]
 
         except Exception as e:

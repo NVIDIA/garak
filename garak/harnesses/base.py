@@ -22,6 +22,7 @@ import garak.attempt
 from garak import _config
 from garak import _plugins
 from garak.configurable import Configurable
+from garak.exception import BudgetExceededError
 
 
 def _initialize_runtime_services():
@@ -63,6 +64,31 @@ class Harness(Configurable):
 
         _initialize_runtime_services()
 
+        # Initialize budget manager if usage tracking or limits are configured
+        # Note: track_usage is auto-enabled by CLI when cost/token limits are set
+        self.budget_manager = None
+        if hasattr(_config, "run"):
+            track_usage = getattr(_config.run, "track_usage", False)
+            cost_limit = getattr(_config.run, "cost_limit", None)
+            token_limit = getattr(_config.run, "token_limit", None)
+
+            if track_usage:
+                from garak.budget import BudgetManager
+
+                self.budget_manager = BudgetManager(
+                    cost_limit=cost_limit,
+                    token_limit=token_limit,
+                )
+                # Initialize shared state for multiprocessing budget enforcement
+                # Pass model name for accurate cost calculation in workers
+                model_name = getattr(_config.plugins, "target_name", None)
+                self.budget_manager.init_shared_state(model=model_name)
+                logging.info(
+                    "Budget tracking enabled: cost_limit=%s, token_limit=%s",
+                    cost_limit,
+                    token_limit,
+                )
+
         logging.info("harness init: %s", self)
 
     def _load_buffs(self, buff_names: List) -> None:
@@ -100,6 +126,48 @@ class Harness(Configurable):
 
     def _end_run_hook(self):
         _config.set_http_lib_agents(self._http_lib_user_agents)
+
+    def _collect_usage_from_attempt(self, attempt) -> None:
+        """Extract and record token usage from attempt outputs.
+
+        NOTE: Usage is now recorded immediately in the generator's _post_generate_hook
+        for faster budget enforcement in parallel execution. This method is kept for
+        backwards compatibility with generators that may not call _post_generate_hook
+        or for cases where the budget_manager wasn't available at generation time.
+
+        Looks for 'token_usage' in each output Message's notes field.
+        Only records if the usage hasn't already been recorded (checked via usage_log).
+        """
+        if self.budget_manager is None:
+            return
+
+        from garak.budget import TokenUsage
+
+        for output in attempt.outputs:
+            if output is None:
+                continue
+            if hasattr(output, "notes") and output.notes:
+                usage_data = output.notes.get("token_usage")
+                if usage_data:
+                    # Check if this usage was already recorded by checking timestamp
+                    # Usage is now recorded immediately in generator._post_generate_hook
+                    # so we skip to avoid double-counting
+                    timestamp = usage_data.get("timestamp")
+                    already_recorded = any(
+                        u.timestamp == timestamp for u in self.budget_manager.usage_log
+                    )
+                    if already_recorded:
+                        continue
+
+                    try:
+                        usage = TokenUsage(**usage_data)
+                        self.budget_manager.record_usage(usage)
+                    except BudgetExceededError:
+                        # Don't re-raise here - let all attempts complete status update
+                        # The budget check after evaluation will raise the exception
+                        logging.debug("Budget exceeded during usage collection, will raise after evaluation")
+                    except Exception as e:
+                        logging.warning("Failed to record usage: %s", e)
 
     def run(self, model, probes, detectors, evaluator, announce_probe=True) -> None:
         """Core harness method
@@ -171,6 +239,10 @@ class Harness(Configurable):
                     json.dumps(attempt.as_dict(), ensure_ascii=False) + "\n"
                 )
 
+                # Aggregate token usage from attempt outputs if budget tracking is enabled
+                if self.budget_manager is not None:
+                    self._collect_usage_from_attempt(attempt)
+
             if len(attempt_results) == 0:
                 logging.warning(
                     "zero attempt results: probe %s, detector %s",
@@ -179,6 +251,28 @@ class Harness(Configurable):
                 )
             else:
                 evaluator.evaluate(attempt_results)
+
+            # Check if budget was exceeded during this probe
+            # If so, stop processing more probes but let this one complete evaluation
+            from garak.budget import is_budget_exceeded, get_shared_usage
+            if is_budget_exceeded() and self.budget_manager:
+                shared_tokens, shared_cost, _, _, _ = get_shared_usage()
+                token_limit = self.budget_manager.token_limit
+                cost_limit = self.budget_manager.cost_limit
+                if token_limit and shared_tokens > token_limit:
+                    logging.info("Budget exceeded after probe evaluation, stopping")
+                    self._end_run_hook()
+                    raise BudgetExceededError(
+                        f"Token limit exceeded: {shared_tokens:,} tokens used, "
+                        f"limit is {token_limit:,} tokens"
+                    )
+                if cost_limit and shared_cost > cost_limit:
+                    logging.info("Cost limit exceeded after probe evaluation, stopping")
+                    self._end_run_hook()
+                    raise BudgetExceededError(
+                        f"Cost limit exceeded: ${shared_cost:.4f} spent, "
+                        f"limit is ${cost_limit:.2f}"
+                    )
 
         self._end_run_hook()
 

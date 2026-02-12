@@ -67,6 +67,14 @@ class OllamaGenerator(Generator):
                     raise GeneratorBackoffTrigger from e
             raise e
 
+        # Capture token usage if tracking is enabled
+        # Ollama returns prompt_eval_count and eval_count
+        self._capture_dict_token_usage(
+            response,
+            prompt_key="prompt_eval_count",
+            completion_key="eval_count",
+        )
+
         return [Message(response.get("response", None))]
 
 
@@ -105,6 +113,15 @@ class OllamaGeneratorChat(OllamaGenerator):
                 if isinstance(e, backoff_exception):
                     raise GeneratorBackoffTrigger from e
             raise e
+
+        # Capture token usage if tracking is enabled
+        # Ollama chat returns prompt_eval_count and eval_count
+        self._capture_dict_token_usage(
+            response,
+            prompt_key="prompt_eval_count",
+            completion_key="eval_count",
+        )
+
         return [
             Message(response.get("message", {}).get("content", None))
         ]  # Return the response or None

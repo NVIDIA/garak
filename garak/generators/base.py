@@ -31,7 +31,7 @@ class Generator(Configurable):
         "skip_seq_end": None,
     }
 
-    _run_params = {"deprefix", "seed"}
+    _run_params = {"deprefix", "seed", "track_usage"}
     _system_params = {"parallel_requests", "max_workers"}
 
     active = True
@@ -64,6 +64,9 @@ class Generator(Configurable):
         self._rng = random.Random()
         if self.seed:
             self._rng.seed(self.seed)
+
+        # Instance variable for token usage tracking (set by subclasses in _call_model)
+        self._last_usage = None
 
         print(
             f"🦜 loading {Style.BRIGHT}{Fore.LIGHTMAGENTA_EX}generator{Style.RESET_ALL}: {self.generator_family_name}: {self.name}"
@@ -99,9 +102,142 @@ class Generator(Configurable):
     def clear_history(self):
         pass
 
+    def _capture_oai_token_usage(self, response, model_name: str = None) -> None:
+        """Capture token usage from an OpenAI-compatible API response.
+
+        This helper method extracts token usage from responses that follow
+        the OpenAI API format (with .usage attribute containing prompt_tokens,
+        completion_tokens, and total_tokens). Sets self._last_usage if
+        tracking is enabled.
+
+        :param response: API response object with optional .usage attribute
+        :param model_name: Optional model name override. If not provided, uses self.name
+        """
+        if not getattr(self, "track_usage", False):
+            return
+        if not hasattr(response, "usage") or response.usage is None:
+            return
+
+        from garak.budget import TokenUsage
+
+        self._last_usage = TokenUsage(
+            prompt_tokens=getattr(response.usage, "prompt_tokens", 0) or 0,
+            completion_tokens=getattr(response.usage, "completion_tokens", 0) or 0,
+            total_tokens=getattr(response.usage, "total_tokens", 0) or 0,
+            model=model_name or self.name,
+            estimated=False,
+        )
+
+    def _capture_dict_token_usage(
+        self,
+        usage_dict: dict,
+        model_name: str = None,
+        prompt_key: str = "prompt_tokens",
+        completion_key: str = "completion_tokens",
+        total_key: str = "total_tokens",
+    ) -> None:
+        """Capture token usage from a dictionary-style API response.
+
+        This helper method extracts token usage from responses that return
+        usage info as a dictionary (like Ollama's prompt_eval_count/eval_count
+        or Bedrock's inputTokens/outputTokens).
+
+        :param usage_dict: Dictionary containing token usage information
+        :param model_name: Optional model name override. If not provided, uses self.name
+        :param prompt_key: Key for prompt/input tokens (default: "prompt_tokens")
+        :param completion_key: Key for completion/output tokens (default: "completion_tokens")
+        :param total_key: Key for total tokens (default: "total_tokens", computed if not present)
+        """
+        if not getattr(self, "track_usage", False):
+            return
+        if not usage_dict:
+            return
+
+        from garak.budget import TokenUsage
+
+        prompt_tokens = usage_dict.get(prompt_key, 0) or 0
+        completion_tokens = usage_dict.get(completion_key, 0) or 0
+        total_tokens = usage_dict.get(total_key, 0)
+        if not total_tokens:
+            total_tokens = prompt_tokens + completion_tokens
+
+        self._last_usage = TokenUsage(
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
+            total_tokens=total_tokens,
+            model=model_name or self.name,
+            estimated=False,
+        )
+
     def _post_generate_hook(
         self, outputs: List[Message | None]
     ) -> List[Message | None]:
+        """Post-process outputs after generation.
+
+        If usage tracking is enabled and _last_usage is set:
+        1. Updates shared multiprocessing state for budget enforcement
+        2. Checks budget limits and marks exceeded if over limit
+        3. Attaches the token usage info to each output message's notes
+
+        This runs in worker processes during parallel execution, so we use
+        shared multiprocessing state rather than the BudgetManager instance
+        (which only exists in the main process).
+        """
+        # Attach usage data to outputs if tracking is enabled
+        if getattr(self, "track_usage", False) and self._last_usage is not None:
+            from dataclasses import asdict
+            from garak.budget import (
+                update_shared_usage,
+                mark_budget_exceeded,
+                get_shared_usage,
+                get_budget_limits,
+                get_model_pricing,
+            )
+
+            usage_dict = asdict(self._last_usage)
+
+            # Get budget limits from shared state (works in worker processes)
+            token_limit, cost_limit = get_budget_limits()
+
+            if token_limit is not None or cost_limit is not None:
+                # Calculate cost using actual model pricing passed to workers
+                # Pricing is per 1M tokens, we convert to cents for integer storage
+                input_price, output_price = get_model_pricing()
+                cost_usd = (
+                    (self._last_usage.prompt_tokens / 1_000_000) * input_price +
+                    (self._last_usage.completion_tokens / 1_000_000) * output_price
+                )
+                # Convert to cents (integer) for shared state
+                estimated_cost_cents = max(1, int(cost_usd * 100))
+
+                # Update shared counters with prompt/completion breakdown
+                update_shared_usage(
+                    self._last_usage.total_tokens,
+                    estimated_cost_cents,
+                    self._last_usage.prompt_tokens,
+                    self._last_usage.completion_tokens,
+                )
+
+                # Check if we've exceeded limits
+                total_tokens, total_cost, _, _, _ = get_shared_usage()
+
+                if token_limit is not None and total_tokens > token_limit:
+                    mark_budget_exceeded()
+                    # Don't raise here - just mark the flag
+                    # The probe's _execute_all will check is_budget_exceeded() and stop cleanly
+                    # This allows completed attempts to still be evaluated
+
+                if cost_limit is not None and total_cost > cost_limit:
+                    mark_budget_exceeded()
+                    # Don't raise here - just mark the flag
+
+            for output in outputs:
+                if output is not None and hasattr(output, "notes"):
+                    if output.notes is None:
+                        output.notes = {}
+                    output.notes["token_usage"] = usage_dict
+            # Clear after attaching to avoid double-counting
+            self._last_usage = None
         return outputs
 
     def _prune_skip_sequences(

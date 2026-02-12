@@ -364,6 +364,10 @@ class Attempt:
         # testing suggests this should only attempt to set if the initial prompt was already injected
         if len(self.conversations) == 0 or len(self.conversations[0].turns) == 0:
             raise TypeError("A prompt must be set before outputs are given")
+        # Handle empty outputs gracefully (e.g., when budget is exceeded mid-run)
+        # Fill with None placeholders to match conversation count
+        if len(value) == 0 and len(self.conversations) > 0:
+            value = [None] * len(self.conversations)
         # do we have only the initial prompt? in which case, let's flesh out messages a bit
         elif (
             len(self.conversations) == 1 and len(value) > 1
@@ -445,6 +449,7 @@ class Attempt:
                 content = entry
                 if isinstance(entry, str):
                     content = Message(entry, lang=self.lang)
+                # Allow None content for failed/incomplete responses (e.g., budget exceeded)
                 self.conversations[idx].turns.append(Turn(role, content))
             return
         raise ValueError(
