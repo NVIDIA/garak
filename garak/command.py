@@ -160,7 +160,16 @@ def end_run():
     logging.info(msg)
 
 
-def print_plugins(prefix: str, color, selected_plugins=None, tier_filter=None):
+def _tier_name(tier_value):
+    """Convert a tier int value to its enum name string."""
+    try:
+        from garak.probes._tier import Tier
+        return Tier(int(tier_value)).name
+    except (ValueError, TypeError):
+        return ""
+
+
+def print_plugins(prefix: str, color, selected_plugins=None, verbose=0):
     """
     Print plugins for a category (probes/detectors/generators/buffs).
 
@@ -168,10 +177,10 @@ def print_plugins(prefix: str, color, selected_plugins=None, tier_filter=None):
         prefix: Plugin category (probes/detectors/generators/buffs)
         color: Color for output formatting
         selected_plugins: Optional list of specific plugins to show. If None, shows all.
-        tier_filter: Optional tier level (1, 2, 3, or 9) to filter probes by. Only applies to probes.
+        verbose: Verbosity level. 0 = plain list, >=1 = markdown table with metadata.
     """
     from colorama import Style
-    from garak._plugins import enumerate_plugins, plugin_info, PLUGIN_TYPES
+    from garak._plugins import enumerate_plugins, plugin_info as get_plugin_info, PLUGIN_TYPES
 
     if prefix not in PLUGIN_TYPES:
         raise ValueError(f"Requested prefix '{prefix}' is not a valid plugin type")
@@ -187,65 +196,83 @@ def print_plugins(prefix: str, color, selected_plugins=None, tier_filter=None):
             print(f"No {prefix} match the provided filter")
             return
 
-    # For probes, get tier info and optionally filter by tier
-    tier_info = {}
-    if prefix == "probes":
-        filtered_rows = []
-        for plugin_name, active in rows:
-            info = plugin_info(plugin_name)
-            tier = info.get("tier", None)
-            tier_info[plugin_name] = tier
-            # Filter by tier if specified
-            if tier_filter is not None:
-                if tier is not None and int(tier) == tier_filter:
-                    filtered_rows.append((plugin_name, active))
-            else:
-                filtered_rows.append((plugin_name, active))
-        rows = filtered_rows
-
     short = [(p.replace(f"{prefix}.", ""), a, p) for p, a, *_ in [(pn, ac, pn) for pn, ac in rows]]
-    if selected_plugins is None and tier_filter is None:
+    if selected_plugins is None:
         module_names = {(m.split(".")[0], True, None) for m, a, _ in short}
         short += module_names
 
-    # Tier display names
-    tier_names = {
-        1: "Tier 1",
-        2: "Tier 2",
-        3: "Tier 3",
-        9: "Tier 9",
-    }
+    sorted_items = sorted(short, key=lambda x: x[0])
 
-    # print output
-    for item in sorted(short, key=lambda x: x[0]):
+    if verbose >= 1 and prefix == "probes":
+        _print_probes_table(sorted_items, prefix)
+    else:
+        # plain text output (default)
+        for item in sorted_items:
+            plugin_name, active = item[0], item[1]
+            print(f"{Style.BRIGHT}{color}{prefix}: {Style.RESET_ALL}", end="")
+            print(plugin_name, end="")
+            if "." not in plugin_name:
+                print(" 🌟", end="")
+            if not active:
+                print(" 💤", end="")
+            print()
+
+
+def _print_probes_table(sorted_items, prefix):
+    """Render probes as a markdown table with name, active, tier, description."""
+    from py_markdown_table.markdown_table import markdown_table
+    from garak._plugins import plugin_info as get_plugin_info
+
+    table_data = []
+    for item in sorted_items:
         plugin_name, active = item[0], item[1]
         full_name = item[2] if len(item) > 2 else None
-        print(f"{Style.BRIGHT}{color}{prefix}: {Style.RESET_ALL}", end="")
-        print(plugin_name, end="")
-        if "." not in plugin_name:
-            print(" 🌟", end="")
+
+        is_module_header = "." not in plugin_name
+
+        if is_module_header:
+            active_str = "🌟"
+            tier_str = ""
+            desc_str = ""
         else:
-            # Show tier for probe classes (not module headers)
-            if prefix == "probes" and full_name:
-                tier = tier_info.get(full_name)
-                if tier is not None:
-                    tier_display = tier_names.get(int(tier), f"Tier {tier}")
-                    print(f"\t{tier_display}", end="")
-        if not active:
-            print(" 💤", end="")
-        print()
+            active_str = "✅" if active else "💤"
+            if full_name:
+                info = get_plugin_info(full_name)
+                tier_val = info.get("tier", None)
+                tier_str = _tier_name(tier_val) if tier_val is not None else ""
+                desc_str = info.get("description", "")
+                # Truncate long descriptions
+                if len(desc_str) > 80:
+                    desc_str = desc_str[:77] + "..."
+            else:
+                tier_str = ""
+                desc_str = ""
+
+        table_data.append({
+            "name": plugin_name,
+            "active": active_str,
+            "tier": tier_str,
+            "description": desc_str,
+        })
+
+    print(f"{prefix}:")
+    print(
+        markdown_table(table_data)
+        .set_params(row_sep="markdown", padding_width=1, padding_weight="centerleft", quote=False)
+        .get_markdown()
+    )
 
 
-def print_probes(selected_probes=None, tier_filter=None):
-    """Print available probes with optional tier filtering.
+def print_probes(selected_probes=None, verbose=0):
+    """Print available probes.
 
     Args:
         selected_probes: Optional list of specific probes to show.
-        tier_filter: Optional tier level (1, 2, 3, or 9) to filter probes by.
+        verbose: Verbosity level. 0 = plain list, >=1 = markdown table.
     """
     from colorama import Fore
 
-    print_plugins("probes", Fore.LIGHTYELLOW_EX, selected_probes, tier_filter=tier_filter)
+    print_plugins("probes", Fore.LIGHTYELLOW_EX, selected_probes, verbose=verbose)
 
 
 def print_detectors(selected_detectors=None):

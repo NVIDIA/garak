@@ -128,6 +128,7 @@ dependencies = [
   "pillow>=10.4.0",
   "ftfy>=6.3.1",
   "boto3>=1.28.0",
+  "py-markdown-table>=1.2.0",
 ]
 
 [project.optional-dependencies]
