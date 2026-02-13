@@ -3,7 +3,7 @@
 import pytest
 import json
 import uuid
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch, AsyncMock, MagicMock
 
 from garak.generators.websocket import WebSocketGenerator
 from garak.attempt import Conversation, Turn, Message
@@ -208,17 +208,13 @@ class TestWebSocketGenerator:
         gen = WebSocketGenerator(uri="ws://localhost:3000")
 
         mock_websocket = AsyncMock()
-        # Mock websockets.connect to return the mock_websocket as an awaitable
-        with patch("garak.generators.websocket.websockets.connect") as mock_connect:
-            # Create an async mock that returns the mock_websocket when awaited
-            async def async_connect(*args, **kwargs):
-                return mock_websocket
+        mock_connect = AsyncMock(return_value=mock_websocket)
+        gen.websockets = MagicMock()
+        gen.websockets.connect = mock_connect
 
-            mock_connect.side_effect = async_connect
-
-            await gen._connect_websocket()
-            mock_connect.assert_called_once()
-            assert gen.websocket == mock_websocket
+        await gen._connect_websocket()
+        mock_connect.assert_called_once()
+        assert gen.websocket == mock_websocket
 
     @pytest.mark.asyncio
     async def test_send_and_receive_basic(self):

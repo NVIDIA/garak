@@ -6,16 +6,19 @@ that use real-time bidirectional communication protocols.
 
 import asyncio
 import json
+import ssl
 import time
 import base64
 import logging
 from typing import List, Union, Dict, Any
 from urllib.parse import urlparse
-import websockets
-from websockets.exceptions import ConnectionClosed
+
+import jsonpath_ng
+from jsonpath_ng.exceptions import JsonPathParserError
 
 from garak import _config
 from garak.attempt import Message, Conversation
+from garak.exception import BadGeneratorException, GarakException
 from garak.generators.base import Generator
 
 logger = logging.getLogger(__name__)
@@ -67,6 +70,7 @@ class WebSocketGenerator(Generator):
     }
 
     ENV_VAR = "WEBSOCKET_API_KEY"
+    extra_dependency_names = ["websockets"]
 
     def __init__(self, uri=None, config_root=_config):
         # Set uri if explicitly provided (overrides default)
@@ -92,6 +96,16 @@ class WebSocketGenerator(Generator):
 
         # Current WebSocket connection
         self.websocket = None
+
+        # Validate jsonpath if using JSON responses
+        if self.response_json and self.response_json_field:
+            try:
+                self.json_expr = jsonpath_ng.parse(self.response_json_field)
+            except JsonPathParserError as e:
+                logger.critical(
+                    "Couldn't parse response_json_field %s", self.response_json_field
+                )
+                raise e
 
         logger.info(f"WebSocket generator initialized for {self.uri}")
 
@@ -174,38 +188,40 @@ class WebSocketGenerator(Generator):
             return obj
 
     def _extract_response_text(self, response: str) -> str:
-        """Extract text from response using JSON field extraction"""
+        """Extract text from response using jsonpath_ng for JSON field extraction"""
         if not self.response_json:
             return response
 
         try:
             response_data = json.loads(response)
 
-            # Handle JSONPath-style field extraction
-            if self.response_json_field.startswith("$"):
-                # Simple JSONPath support for common cases
-                path = self.response_json_field[1:]  # Remove $
-                if path.startswith("."):
-                    path = path[1:]  # Remove leading dot
-                if "." in path:
-                    # Navigate nested fields
-                    current = response_data
-                    for field in path.split("."):
-                        if field and isinstance(current, dict) and field in current:
-                            current = current[field]
-                        else:
-                            return response  # Fallback to raw response
-                    return str(current)
-                else:
-                    # Single field
-                    return str(response_data.get(path, response))
-            else:
+            if self.response_json_field[0] != "$":
                 # Direct field access
-                return str(response_data.get(self.response_json_field, response))
+                if isinstance(response_data, list):
+                    extracted = [item[self.response_json_field] for item in response_data]
+                    return str(extracted[0]) if len(extracted) == 1 else str(extracted)
+                else:
+                    return str(response_data.get(self.response_json_field, response))
+            else:
+                # Use JSONPath via jsonpath_ng
+                field_path_expr = jsonpath_ng.parse(self.response_json_field)
+                responses = field_path_expr.find(response_data)
+                if len(responses) == 1:
+                    return str(responses[0].value)
+                elif len(responses) > 1:
+                    return str(responses[0].value)
+                else:
+                    logger.warning(
+                        "JSONPath '%s' yielded no results, returning raw response",
+                        self.response_json_field,
+                    )
+                    return response
 
-        except (json.JSONDecodeError, KeyError, TypeError):
+        except (json.JSONDecodeError, KeyError, TypeError) as e:
             logger.warning(
-                f"Failed to extract JSON field '{self.response_json_field}', returning raw response"
+                "Failed to extract JSON field '%s': %s, returning raw response",
+                self.response_json_field,
+                e,
             )
             return response
 
@@ -224,19 +240,34 @@ class WebSocketGenerator(Generator):
 
             # SSL verification
             if self.secure and not self.verify_ssl:
-                import ssl
-
                 connect_args["ssl"] = ssl.create_default_context()
                 connect_args["ssl"].check_hostname = False
                 connect_args["ssl"].verify_mode = ssl.CERT_NONE
 
             logger.debug(f"Connecting to WebSocket: {self.uri}")
-            self.websocket = await websockets.connect(self.uri, **connect_args)
+            self.websocket = await self.websockets.connect(self.uri, **connect_args)
             logger.info(f"WebSocket connected to {self.uri}")
 
-        except Exception as e:
-            logger.error(f"Failed to connect to WebSocket {self.uri}: {e}")
-            raise
+        except self.websockets.exceptions.InvalidURI as e:
+            msg = f"Invalid WebSocket URI {self.uri}: {e}"
+            logger.error(msg)
+            raise BadGeneratorException(msg) from e
+        except self.websockets.exceptions.InvalidHandshake as e:
+            msg = f"WebSocket handshake failed for {self.uri}: {e}"
+            logger.error(msg)
+            raise BadGeneratorException(msg) from e
+        except ssl.SSLError as e:
+            msg = f"SSL error connecting to {self.uri}: {e}"
+            logger.error(msg)
+            raise BadGeneratorException(msg) from e
+        except OSError as e:
+            msg = f"Network error connecting to WebSocket {self.uri}: {e}"
+            logger.error(msg)
+            raise ConnectionError(msg) from e
+        except asyncio.TimeoutError as e:
+            msg = f"Connection timeout to WebSocket {self.uri}"
+            logger.error(msg)
+            raise ConnectionError(msg) from e
 
     async def _send_and_receive(self, message: str) -> str:
         """Send message and receive response with timeout and typing indicator handling"""
@@ -295,7 +326,7 @@ class WebSocketGenerator(Generator):
                     if response_parts:
                         break
                     continue
-                except ConnectionClosed:
+                except self.websockets.exceptions.ConnectionClosed:
                     logger.warning("WebSocket connection closed during receive")
                     break
 
@@ -305,13 +336,12 @@ class WebSocketGenerator(Generator):
 
             return full_response
 
-        except Exception as e:
-            logger.error(f"Error in WebSocket communication: {e}")
-            # Try to reconnect for next request
+        except OSError as e:
+            logger.error(f"Network error in WebSocket communication: {e}")
             if self.websocket:
                 await self.websocket.close()
                 self.websocket = None
-            raise
+            raise ConnectionError(f"WebSocket network error: {e}") from e
 
     async def _generate_async(self, prompt: str) -> str:
         """Async wrapper for generation"""
@@ -369,10 +399,14 @@ class WebSocketGenerator(Generator):
             finally:
                 loop.close()
 
-        except Exception as e:
+        except (ConnectionError, BadGeneratorException) as e:
             logger.error(f"WebSocket generation failed: {e}")
-            message = Message(text="")
-            return [message]
+            return [Message(text="")]
+        except GarakException:
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error in WebSocket generation: {e}")
+            return [Message(text="")]
 
     def __del__(self):
         """Clean up WebSocket connection"""
@@ -382,7 +416,7 @@ class WebSocketGenerator(Generator):
                 asyncio.set_event_loop(loop)
                 loop.run_until_complete(self.websocket.close())
                 loop.close()
-            except:
+            except Exception:
                 pass  # Ignore cleanup errors
 
 
