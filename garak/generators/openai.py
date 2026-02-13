@@ -21,7 +21,7 @@ import openai
 import backoff
 
 from garak import _config
-from garak.attempt import Message, Conversation
+from garak.attempt import Message, Conversation, Turn
 import garak.exception
 from garak.generators.base import Generator
 
@@ -185,6 +185,53 @@ class OpenAICompatible(Generator):
         self._validate_config()
 
         super().__init__(self.name, config_root=config_root)
+
+    def _conversation_to_list(self, conversation: Conversation) -> list[dict]:
+        """Convert Conversation object to a list of dicts.
+
+        Overriding this method for OpenAICompatible to support multimodal:
+        https://developers.openai.com/api/docs/guides/images-vision/?format=base64-encoded#analyze-images
+        """
+        turn_list = []
+        for turn in conversation.turns:
+            if turn.content.data is not None and hasattr(turn, "data_type"):
+                if "image" in turn.data_type:
+                    transformed_turn = {
+                        "role": turn.role,
+                        "content": [
+                            {"type": "input_text", "text": turn.content.text},
+                            {
+                                "type": "input_image",
+                                "image_url": f"data:{turn.content.data_type};{turn.content.data}",
+                            },
+                        ],
+                    }
+                elif turn.data_type.split("/")[-1] in ["wav", "mp3"]:
+                    transformed_turn = {
+                        "role": turn.role,
+                        "content": [
+                            {"type": "text", "text": turn.content.text},
+                            {
+                                "type": "input_audio",
+                                "input_audio": {
+                                    "data": f"data:{turn.content.data_type};{turn.content.data}",
+                                    "format": turn.data_type.split("/")[-1],
+                                },
+                            },
+                        ],
+                    }
+                else:
+                    raise garak.exception.GarakException(
+                        f"Data type {turn.content.data_type} not supported."
+                    )
+            else:
+                transformed_turn = {
+                    "role": turn.role,
+                    "content": turn.content.text,
+                }
+            turn_list.append(transformed_turn)
+
+        return turn_list
 
     # noinspection PyArgumentList
     @backoff.on_exception(

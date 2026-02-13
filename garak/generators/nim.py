@@ -169,6 +169,9 @@ class NVMultimodal(NVOpenAIChat):
     modality = {"in": {"text", "image", "audio"}, "out": {"text"}}
 
     def _prepare_prompt(self, conv: Conversation) -> Conversation:
+        if not self.embed_data:
+            return conv
+
         from dataclasses import asdict
 
         prepared_conv = Conversation()
