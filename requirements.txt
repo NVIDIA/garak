@@ -10,6 +10,7 @@ google-api-python-client>=2.0
 backoff>=2.1.1
 rapidfuzz>=3.0.0
 nltk>=3.9.1
+llm>=0.11
 accelerate>=0.23.0
 avidtools==0.1.2
 stdlibs>=2022.10.9
