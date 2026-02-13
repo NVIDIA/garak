@@ -169,6 +169,28 @@ def _tier_name(tier_value):
         return ""
 
 
+def _truncate(text, max_len=80):
+    """Truncate text to max_len, appending '...' if needed."""
+    if len(text) > max_len:
+        return text[:max_len - 3] + "..."
+    return text
+
+
+# Column definitions per plugin type for verbose table output.
+# Each entry is (column_name, extractor_fn(info_dict) -> str).
+# "name" and "active" are always included and handled separately.
+_PLUGIN_TABLE_COLUMNS = {
+    "probes": [
+        ("tier", lambda info: _tier_name(info.get("tier")) if info.get("tier") is not None else ""),
+        ("description", lambda info: _truncate(info.get("description", ""))),
+    ],
+    # Future plugin types can define their own extra columns here, e.g.:
+    # "detectors": [
+    #     ("description", lambda info: _truncate(info.get("description", ""))),
+    # ],
+}
+
+
 def print_plugins(prefix: str, color, selected_plugins=None, verbose=0):
     """
     Print plugins for a category (probes/detectors/generators/buffs).
@@ -203,8 +225,8 @@ def print_plugins(prefix: str, color, selected_plugins=None, verbose=0):
 
     sorted_items = sorted(short, key=lambda x: x[0])
 
-    if verbose >= 1 and prefix == "probes":
-        _print_probes_table(sorted_items, prefix)
+    if verbose >= 1 and prefix in _PLUGIN_TABLE_COLUMNS:
+        _print_plugins_table(sorted_items, prefix)
     else:
         # plain text output (default)
         for item in sorted_items:
@@ -218,10 +240,12 @@ def print_plugins(prefix: str, color, selected_plugins=None, verbose=0):
             print()
 
 
-def _print_probes_table(sorted_items, prefix):
-    """Render probes as a markdown table with name, active, tier, description."""
+def _print_plugins_table(sorted_items, prefix):
+    """Render plugins as a markdown table with name, active, and type-specific columns."""
     from py_markdown_table.markdown_table import markdown_table
     from garak._plugins import plugin_info as get_plugin_info
+
+    extra_columns = _PLUGIN_TABLE_COLUMNS.get(prefix, [])
 
     table_data = []
     for item in sorted_items:
@@ -230,30 +254,19 @@ def _print_probes_table(sorted_items, prefix):
 
         is_module_header = "." not in plugin_name
 
-        if is_module_header:
-            active_str = "🌟"
-            tier_str = ""
-            desc_str = ""
-        else:
-            active_str = "✅" if active else "💤"
-            if full_name:
-                info = get_plugin_info(full_name)
-                tier_val = info.get("tier", None)
-                tier_str = _tier_name(tier_val) if tier_val is not None else ""
-                desc_str = info.get("description", "")
-                # Truncate long descriptions
-                if len(desc_str) > 80:
-                    desc_str = desc_str[:77] + "..."
-            else:
-                tier_str = ""
-                desc_str = ""
+        row = {"name": plugin_name}
 
-        table_data.append({
-            "name": plugin_name,
-            "active": active_str,
-            "tier": tier_str,
-            "description": desc_str,
-        })
+        if is_module_header:
+            row["active"] = "🌟"
+            for col_name, _ in extra_columns:
+                row[col_name] = ""
+        else:
+            row["active"] = "✅" if active else "💤"
+            info = get_plugin_info(full_name) if full_name else {}
+            for col_name, extractor in extra_columns:
+                row[col_name] = extractor(info)
+
+        table_data.append(row)
 
     print(f"{prefix}:")
     print(
