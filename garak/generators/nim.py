@@ -164,6 +164,7 @@ class NVMultimodal(NVOpenAIChat):
     DEFAULT_PARAMS = NVOpenAIChat.DEFAULT_PARAMS | {
         "suppressed_params": {"n", "frequency_penalty", "presence_penalty", "stop"},
         "max_input_len": 180_000,
+        "embed_data": False,
     }
 
     modality = {"in": {"text", "image", "audio"}, "out": {"text"}}
