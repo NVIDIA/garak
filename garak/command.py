@@ -49,7 +49,7 @@ def start_run():
 
     logging.info("run started at %s", _config.transient.starttime_iso)
     # print("ASSIGN UUID", args)
-    if _config.system.lite and "probes" not in _config.transient.cli_args and not _config.transient.cli_args.list_probes and not _config.transient.cli_args.list_detectors and not _config.transient.cli_args.list_generators and not _config.transient.cli_args.list_buffs and not _config.transient.cli_args.list_config and not _config.transient.cli_args.plugin_info and not _config.run.interactive:  # type: ignore
+    if _config.system.lite and "probes" not in _config.transient.cli_args and _config.transient.cli_args.list_probes is None and not _config.transient.cli_args.list_detectors and not _config.transient.cli_args.list_generators and not _config.transient.cli_args.list_buffs and not _config.transient.cli_args.list_config and not _config.transient.cli_args.plugin_info and not _config.run.interactive:  # type: ignore
         hint(
             "The current/default config is optimised for speed rather than thoroughness. Try e.g. --config full for a stronger test, or specify some probes.",
             logging=logging,
@@ -159,7 +159,38 @@ def end_run():
     logging.info(msg)
 
 
-def print_plugins(prefix: str, color, selected_plugins=None):
+def _tier_name(tier_value):
+    """Convert a tier int value to its enum name string."""
+    try:
+        from garak.probes._tier import Tier
+        return Tier(int(tier_value)).name
+    except (ValueError, TypeError):
+        return ""
+
+
+def _truncate(text, max_len=80):
+    """Truncate text to max_len, appending '...' if needed."""
+    if len(text) > max_len:
+        return text[:max_len - 3] + "..."
+    return text
+
+
+# Column definitions per plugin type for verbose table output.
+# Each entry is (column_name, extractor_fn(info_dict) -> str).
+# "name" and "active" are always included and handled separately.
+_PLUGIN_TABLE_COLUMNS = {
+    "probes": [
+        ("tier", lambda info: _tier_name(info.get("tier")) if info.get("tier") is not None else ""),
+        ("description", lambda info: _truncate(info.get("description", ""))),
+    ],
+    # Future plugin types can define their own extra columns here, e.g.:
+    # "detectors": [
+    #     ("description", lambda info: _truncate(info.get("description", ""))),
+    # ],
+}
+
+
+def print_plugins(prefix: str, color, selected_plugins=None, verbose=0):
     """
     Print plugins for a category (probes/detectors/generators/buffs).
 
@@ -167,9 +198,10 @@ def print_plugins(prefix: str, color, selected_plugins=None):
         prefix: Plugin category (probes/detectors/generators/buffs)
         color: Color for output formatting
         selected_plugins: Optional list of specific plugins to show. If None, shows all.
+        verbose: Verbosity level. 0 = plain list, >=1 = markdown table with metadata.
     """
     from colorama import Style
-    from garak._plugins import enumerate_plugins, PLUGIN_TYPES
+    from garak._plugins import enumerate_plugins, plugin_info as get_plugin_info, PLUGIN_TYPES
 
     if prefix not in PLUGIN_TYPES:
         raise ValueError(f"Requested prefix '{prefix}' is not a valid plugin type")
@@ -184,26 +216,75 @@ def print_plugins(prefix: str, color, selected_plugins=None):
         else:
             print(f"No {prefix} match the provided filter")
             return
-    short = [(p.replace(f"{prefix}.", ""), a) for p, a in rows]
+
+    short = [(p.replace(f"{prefix}.", ""), a, p) for p, a, *_ in [(pn, ac, pn) for pn, ac in rows]]
     if selected_plugins is None:
-        module_names = set([(m.split(".")[0], True) for m, a in short])
+        module_names = {(m.split(".")[0], True, None) for m, a, _ in short}
         short += module_names
 
-    # print output
-    for plugin_name, active in sorted(short):
-        print(f"{Style.BRIGHT}{color}{prefix}: {Style.RESET_ALL}", end="")
-        print(plugin_name, end="")
-        if "." not in plugin_name:
-            print(" 🌟", end="")
-        if not active:
-            print(" 💤", end="")
-        print()
+    sorted_items = sorted(short, key=lambda x: x[0])
+
+    if verbose >= 1 and prefix in _PLUGIN_TABLE_COLUMNS:
+        _print_plugins_table(sorted_items, prefix)
+    else:
+        # plain text output (default)
+        for item in sorted_items:
+            plugin_name, active = item[0], item[1]
+            print(f"{Style.BRIGHT}{color}{prefix}: {Style.RESET_ALL}", end="")
+            print(plugin_name, end="")
+            if "." not in plugin_name:
+                print(" 🌟", end="")
+            if not active:
+                print(" 💤", end="")
+            print()
 
 
-def print_probes(selected_probes=None):
+def _print_plugins_table(sorted_items, prefix):
+    """Render plugins as a markdown table with name, active, and type-specific columns."""
+    from py_markdown_table.markdown_table import markdown_table
+    from garak._plugins import plugin_info as get_plugin_info
+
+    extra_columns = _PLUGIN_TABLE_COLUMNS.get(prefix, [])
+
+    table_data = []
+    for item in sorted_items:
+        plugin_name, active = item[0], item[1]
+        full_name = item[2] if len(item) > 2 else None
+
+        is_module_header = "." not in plugin_name
+
+        row = {"name": plugin_name}
+
+        if is_module_header:
+            row["active"] = "🌟"
+            for col_name, _ in extra_columns:
+                row[col_name] = ""
+        else:
+            row["active"] = "✅" if active else "💤"
+            info = get_plugin_info(full_name) if full_name else {}
+            for col_name, extractor in extra_columns:
+                row[col_name] = extractor(info)
+
+        table_data.append(row)
+
+    print(f"{prefix}:")
+    print(
+        markdown_table(table_data)
+        .set_params(row_sep="markdown", padding_width=1, padding_weight="centerleft", quote=False)
+        .get_markdown()
+    )
+
+
+def print_probes(selected_probes=None, verbose=0):
+    """Print available probes.
+
+    Args:
+        selected_probes: Optional list of specific probes to show.
+        verbose: Verbosity level. 0 = plain list, >=1 = markdown table.
+    """
     from colorama import Fore
 
-    print_plugins("probes", Fore.LIGHTYELLOW_EX, selected_probes)
+    print_plugins("probes", Fore.LIGHTYELLOW_EX, selected_probes, verbose=verbose)
 
 
 def print_detectors(selected_detectors=None):
