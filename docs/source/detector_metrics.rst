@@ -1,5 +1,5 @@
-Detector Metrics: F1 Score and Ranking
-======================================
+Detector Quality Metrics
+========================
 
 Detectors in garak attempt to identify specific failure modes in model outputs. To assess detector performance, they must be evaluated against labeled benchmark datasets where the ground truth is known. This evaluation process measures how accurately each detector identifies its target failure mode.
 
@@ -147,6 +147,8 @@ Key Fields
 - **metadata**: Evaluation metadata including date, random seed, dataset configuration, and any errors encountered
 
 The primary ranking metric is ``hit_f1`` under each detector's metrics.
+
+.. _Confidence Intervals:
 
 Confidence Intervals
 --------------------
