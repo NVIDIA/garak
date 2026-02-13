@@ -103,13 +103,16 @@ def test_instantiate_generators(classname):
     category, namespace, klass = classname.split(".")
     from garak._config import GarakSubConfig
 
+    # Use WebSocket URI for WebSocket generators, HTTP URI for others
+    uri = "wss://echo.websocket.org" if "websocket" in classname.lower() else "https://example.com"
+    
     gen_config = {
         namespace: {
             klass: {
                 "name": "gpt-3.5-turbo-instruct",  # valid for OpenAI
                 "api_key": "fake",
                 "org_id": "fake",  # required for NeMo
-                "uri": "https://example.com",  # required for rest
+                "uri": uri,  # WebSocket URI for WebSocket generators
                 "provider": "fake",  # required for LiteLLM
             }
         }
