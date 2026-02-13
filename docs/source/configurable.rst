@@ -164,6 +164,11 @@ Reporting Config Items
 * ``group_aggregation_function`` - How should scored of probe groups (e.g. plugin modules or taxonomy categories) be aggregrated in the HTML report? Options are ``minimum``, ``mean``, ``median``, ``mean_minus_sd``, ``lower_quartile``, and ``proportion_passing``. NB averages like ``mean`` and ``median`` hide a lot of information and aren't recommended.
 * ``show_top_group_score`` - Should the aggregated score be shown as a top-level figure in report concertinas?
 
+CAS Config Items
+""""""""""""""""
+
+* ``intent_spec`` - Comma-separated list of intent codes / code prefixes to use with intent-based probes
+* ``expand_intent_tree`` - Flag for whether child intents should be included when parsing the intent spec
 
 Bundled Quick Configs
 ^^^^^^^^^^^^^^^^^^^^^

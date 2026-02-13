@@ -311,6 +311,29 @@
       "tier": 2,
       "mod_time": "2026-01-26 10:58:13 +0000"
     },
+    "probes.base.IntentProbe": {
+      "description": "Probe implementing a technique that tests over a range of intents",
+      "DEFAULT_PARAMS": {},
+      "active": false,
+      "blocked_intent_spec": "",
+      "doc_uri": "",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "garak": null,
+      "goal": "",
+      "lang": null,
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": null,
+      "skip_root_intents": true,
+      "tags": [],
+      "tier": 9,
+      "mod_time": "2026-02-11 11:23:43 +0000"
+    },
     "probes.base.IterativeProbe": {
       "description": "",
       "DEFAULT_PARAMS": {
@@ -332,7 +355,7 @@
       "primary_detector": null,
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-01-28 08:20:25 +0000"
+      "mod_time": "2026-02-11 11:23:43 +0000"
     },
     "probes.base.Probe": {
       "description": "Base class for objects that define and execute LLM evaluations",
@@ -352,7 +375,7 @@
       "primary_detector": null,
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-01-28 08:20:25 +0000"
+      "mod_time": "2026-02-11 11:23:43 +0000"
     },
     "probes.base.TreeSearchProbe": {
       "DEFAULT_PARAMS": {
@@ -377,7 +400,7 @@
       "primary_detector": null,
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-01-28 08:20:25 +0000"
+      "mod_time": "2026-02-11 11:23:43 +0000"
     },
     "probes.continuation.ContinueSlursReclaimedSlurs": {
       "description": "Continue partial word with slur or reclaimed slur.",
@@ -2308,6 +2331,29 @@
       "tier": 2,
       "mod_time": "2025-11-12 08:34:39 +0000"
     },
+    "probes.grandma.GrandmaIntent": {
+      "description": "Roleplaying attack asking for imitation of a grandmother",
+      "DEFAULT_PARAMS": {},
+      "active": false,
+      "blocked_intent_spec": "",
+      "doc_uri": "",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "garak": null,
+      "goal": "",
+      "lang": null,
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": null,
+      "skip_root_intents": true,
+      "tags": [],
+      "tier": 9,
+      "mod_time": "2026-02-11 11:23:43 +0000"
+    },
     "probes.grandma.Slurs": {
       "description": "Use the grandma attack to get ethnic slurs.",
       "DEFAULT_PARAMS": {
@@ -2337,7 +2383,7 @@
         "avid-effect:security:S0300"
       ],
       "tier": 1,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-02-11 11:23:43 +0000"
     },
     "probes.grandma.Substances": {
       "description": "Use the grandma attack to get instructions for harmful items.",
@@ -2368,7 +2414,7 @@
         "quality:Behavioral:ContentSafety:LegalGoodsServices"
       ],
       "tier": 1,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-02-11 11:23:43 +0000"
     },
     "probes.grandma.Win10": {
       "description": "Will the model yield a Windows 10 product key if we beg it to?",
@@ -2395,7 +2441,7 @@
         "quality:Behavioral:ContentSafety:LegalGoodsServices"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-02-11 11:23:43 +0000"
     },
     "probes.grandma.Win11": {
       "description": "Will the model yield a Windows 11 product key if we beg it to?",
@@ -2422,7 +2468,7 @@
         "quality:Behavioral:ContentSafety:LegalGoodsServices"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-02-11 11:23:43 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetEiffel": {
       "description": "String-based latent prompt injections in fact snippets on the Eiffel Tower",
@@ -8154,7 +8200,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2026-01-09 16:14:13 +0000"
+      "mod_time": "2026-02-09 10:36:25 +0000"
     },
     "generators.huggingface.InferenceEndpoint": {
       "description": "Interface for Hugging Face private endpoints",
@@ -8182,7 +8228,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-01-09 16:14:13 +0000"
+      "mod_time": "2026-02-09 10:36:25 +0000"
     },
     "generators.huggingface.LLaVA": {
       "description": "Get LLaVA ([ text + image ] -> text) generations",
@@ -8215,7 +8261,7 @@
       },
       "parallel_capable": false,
       "supports_multiple_generations": false,
-      "mod_time": "2026-01-09 16:14:13 +0000"
+      "mod_time": "2026-02-09 10:36:25 +0000"
     },
     "generators.huggingface.Model": {
       "description": "Get text generations from a locally-run Hugging Face model",
@@ -8245,7 +8291,7 @@
       },
       "parallel_capable": false,
       "supports_multiple_generations": true,
-      "mod_time": "2026-01-09 16:14:13 +0000"
+      "mod_time": "2026-02-09 10:36:25 +0000"
     },
     "generators.huggingface.Pipeline": {
       "description": "Get text generations from a locally-run Hugging Face pipeline",
@@ -8275,7 +8321,7 @@
       },
       "parallel_capable": false,
       "supports_multiple_generations": true,
-      "mod_time": "2026-01-09 16:14:13 +0000"
+      "mod_time": "2026-02-09 10:36:25 +0000"
     },
     "generators.langchain.LangChainLLMGenerator": {
       "description": "Class supporting LangChain LLM interfaces",
@@ -9183,7 +9229,7 @@
       },
       "active": true,
       "extra_dependency_names": [],
-      "mod_time": "2025-06-30 11:03:40 +0000"
+      "mod_time": "2026-02-11 11:23:43 +0000"
     },
     "harnesses.probewise.ProbewiseHarness": {
       "DEFAULT_PARAMS": {

@@ -67,6 +67,8 @@ Check out the :doc:`usage` section for further information, including :doc:`inst
    _plugins
    cas
    analyze
+   cas
+   intentservice
 
 
 .. toctree::

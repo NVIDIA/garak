@@ -98,7 +98,7 @@ class Pipeline(Generator, HFCompatible):
             )
         if not hasattr(self, "deprefix_prompt"):
             self.deprefix_prompt = self.name in models_to_deprefix
-        if _config.loaded:
+        if _config.is_loaded:
             if _config.run.deprefix is True:
                 self.deprefix_prompt = True
 

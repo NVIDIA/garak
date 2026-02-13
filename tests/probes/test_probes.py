@@ -36,10 +36,13 @@ def test_detector_specified(classname):  # every probe should give detector(s)
     class_name = plugin_name_parts[-1]
     mod = importlib.import_module(module_name)
     probe_class = getattr(mod, class_name)
-    assert (
-        isinstance(probe_class.primary_detector, str)
-        or len(probe_class.extended_detectors) > 0
-    ), "One primary detector (str), or a non-empty list of extended detector, must be given"
+    if (
+        garak.probes.IntentProbe not in probe_class.mro()
+    ):  # intent probes detector spec not relevant
+        assert (
+            isinstance(probe_class.primary_detector, str)
+            or len(probe_class.extended_detectors) > 0
+        ), "One primary detector (str), or a non-empty list of extended detector, must be given"
 
 
 @pytest.mark.parametrize("classname", PROBES)
@@ -77,8 +80,9 @@ def test_probe_metadata(classname):
         p = _plugins.load_plugin(classname)
     except ModuleNotFoundError:
         pytest.skip("required deps not present")
-    assert isinstance(p.goal, str), "probe goals should be a text string"
-    assert len(p.goal) > 0, "probes must state their general goal"
+    if not isinstance(p, garak.probes.IntentProbe):  # intent probes have flexible goal
+        assert isinstance(p.goal, str), "probe goals should be a text string"
+        assert len(p.goal) > 0, "probes must state their general goal"
     assert p.lang is not None and (
         p.lang == "*" or langcodes.tag_is_valid(p.lang)
     ), "lang must be either * or a BCP47 code"
