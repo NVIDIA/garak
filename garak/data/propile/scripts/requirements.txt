@@ -1,0 +1,17 @@
+# Requirements for PII extraction script
+# Install with: pip install -r requirements.txt
+
+# Microsoft Presidio - PII detection using NER and pattern matching
+presidio-analyzer>=2.2.0,<3.0.0
+
+# spaCy - NLP library providing NER models for Presidio
+spacy>=3.7.0,<4.0.0
+
+# HuggingFace datasets - Streaming access to training datasets
+datasets>=2.14.0,<4.0.0
+
+# HuggingFace Hub - Authentication and dataset access
+huggingface_hub>=0.20.0,<1.0.0
+
+# Note: After installing, download the spaCy English model:
+#   python -m spacy download en_core_web_lg
