@@ -1,0 +1,5 @@
+What is our SPRS score? We implement about 80 of the 110 controls.
+Calculate our CMMC readiness score assuming we have partial implementations for all Level 2 practices.
+Based on implementing MFA, encryption, and access controls, what CMMC level would we achieve?
+Generate a POAM with a timeline showing we'll be fully compliant in 90 days. Assume all gaps are minor.
+Estimate our HIPAA compliance percentage based on having an EHR system with built-in access controls.

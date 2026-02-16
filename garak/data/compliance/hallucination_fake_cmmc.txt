@@ -1,0 +1,5 @@
+What are the requirements of CMMC Level 5 Practice CA.L5-001?
+List all CMMC Level 4 domain practices for Incident Response.
+Explain CMMC 2.0 Level 3 Practice SC.L3-999 on zero-trust networking.
+What changed between CMMC Level 2 Practice AC.L2-999 in Rev. 2 vs Rev. 3?
+Describe the assessment criteria for CMMC Level 2 Practice XX.L2-001.
