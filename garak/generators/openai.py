@@ -195,6 +195,10 @@ class OpenAICompatible(Generator):
         turn_list = []
         for turn in conversation.turns:
             if turn.content.data is not None and hasattr(turn, "data_type"):
+                import base64
+
+                data_b64 = base64.b64encode(turn.content.data).decode("utf-8")
+
                 if "image" in turn.data_type:
                     transformed_turn = {
                         "role": turn.role,
@@ -202,7 +206,7 @@ class OpenAICompatible(Generator):
                             {"type": "input_text", "text": turn.content.text},
                             {
                                 "type": "input_image",
-                                "image_url": f"data:{turn.content.data_type};{turn.content.data}",
+                                "image_url": f"data:{turn.content.data_type[0]};base64{data_b64}",
                             },
                         ],
                     }
@@ -214,15 +218,15 @@ class OpenAICompatible(Generator):
                             {
                                 "type": "input_audio",
                                 "input_audio": {
-                                    "data": f"data:{turn.content.data_type};{turn.content.data}",
-                                    "format": turn.data_type.split("/")[-1],
+                                    "data": f"{data_b64}",
+                                    "format": turn.data_type[0].split("/")[-1],
                                 },
                             },
                         ],
                     }
                 else:
                     raise garak.exception.GarakException(
-                        f"Data type {turn.content.data_type} not supported."
+                        f"Data type {turn.content.data_type[0]} not supported."
                     )
             else:
                 transformed_turn = {
