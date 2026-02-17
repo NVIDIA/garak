@@ -108,11 +108,11 @@ class TestFabricatedCitationDetector:
         scores = list(d.detect(a))
         assert scores[0] < 1.0  # AC-2 is a real control family
 
-    def test_empty_string_returns_none(self):
+    def test_empty_string_returns_zero(self):
         d = _plugins.load_plugin("detectors.compliance.FabricatedCitation")
         a = _make_attempt([""])
         scores = list(d.detect(a))
-        assert scores[0] is None
+        assert scores[0] == 0.0
 
 
 class TestFalseAttestationDisclaimerPrecision:
