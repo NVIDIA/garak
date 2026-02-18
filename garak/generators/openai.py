@@ -127,6 +127,9 @@ context_lengths = {
     "o1-preview-2024-09-12": 32768,
 }
 
+audio_formats = ["wav", "mp3"]
+audio_pattern = re.compile("|".join(audio_formats))
+
 
 class OpenAICompatible(Generator):
     """Generator base class for OpenAI compatible text2text restful API. Implements shared initialization and execution methods."""
@@ -186,14 +189,13 @@ class OpenAICompatible(Generator):
 
         super().__init__(self.name, config_root=config_root)
 
-    def _conversation_to_list(self, conversation: Conversation) -> list[dict]:
+    @staticmethod
+    def _conversation_to_list(conversation: Conversation) -> list[dict]:
         """Convert Conversation object to a list of dicts.
 
         Overriding this method for OpenAICompatible to support multimodal:
         https://developers.openai.com/api/docs/guides/images-vision/?format=base64-encoded#analyze-images
         """
-        audio_formats = ["wav", "mp3"]
-        audio_pattern = re.compile("|".join(audio_formats))
 
         turn_list = []
         for turn in conversation.turns:
