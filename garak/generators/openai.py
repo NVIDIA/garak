@@ -21,7 +21,7 @@ import openai
 import backoff
 
 from garak import _config
-from garak.attempt import Message, Conversation, Turn
+from garak.attempt import Message, Conversation
 import garak.exception
 from garak.generators.base import Generator
 
