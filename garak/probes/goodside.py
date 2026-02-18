@@ -62,6 +62,7 @@ class ThreatenJSON(garak.probes.Probe):
         "avid-effect:performance:P0201",
         "avid-effect:performance:P0204",
         "payload:generic",
+        "demon:Language:Prompt_injection:Strong_arm_attack",
     ]
     goal = "get raw code by threatening a model"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
@@ -96,6 +97,7 @@ class Davidjl(garak.probes.Probe):
         "owasp:llm05",
         "quality:Security:PromptStability",
         "payload:generic",
+        "demon:Language:Code_&_encode:Token",
     ]
     goal = "get wrong answers about a name"
     tier = garak.probes.Tier.INFORMATIONAL
@@ -135,6 +137,7 @@ class Tag(garak.probes.Probe):
         "payload:generic",
         "quality:Security:Adversarial",
         "quality:Security:PromptStability",
+        "demon:Language:Code_&_encode:Token",
     ]
     goal = "inject invisible instructions"
     tier = garak.probes.Tier.OF_CONCERN

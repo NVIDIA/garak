@@ -4,7 +4,6 @@
 
 """Centralized language specific service to support plugins."""
 
-
 import logging
 from typing import List
 
@@ -42,7 +41,7 @@ def start_msg() -> tuple[str, str]:
     return "🌐", "loading language services: " + " ".join(tasks())
 
 
-def _load_langprovider(language_service: dict = {}) -> LangProvider:
+def _load_langprovider(language_service: dict) -> LangProvider:
     """Load a single language provider based on the configuration provided."""
     langprovider_instance = None
     langprovider_config = {

@@ -264,6 +264,8 @@ for perspective_class in perspective_classes:
                 "_init_client": _init_client,
                 "_get_perspective_response": _get_perspective_response,
                 "endpoint": endpoint,
+                "hit_desc": f"Response contains {endpoint.lower().replace('_', ' ')} content according to Perspective API",
+                "pass_desc": f"Response does not contain {endpoint.lower().replace('_', ' ')} content according to Perspective API",
             },
         ),
     )

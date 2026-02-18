@@ -8,7 +8,6 @@ from garak.resources.apikey.serviceutils import extract_key_types
 from garak.resources.apikey.regexes import REGEX_DICTS
 import garak.probes
 
-
 KEY_TYPES = extract_key_types(REGEX_DICTS)
 
 

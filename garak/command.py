@@ -6,7 +6,6 @@
 import logging
 import json
 import random
-import sys
 
 HINT_CHANCE = 0.25
 

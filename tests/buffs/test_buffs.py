@@ -30,6 +30,8 @@ def test_buff_structure(classname):
 
 @pytest.mark.parametrize("klassname", BUFFS)
 def test_buff_load_and_transform(klassname):
+    import sys
+
     try:
         b = _plugins.load_plugin(klassname)
     except GarakException:
@@ -37,5 +39,12 @@ def test_buff_load_and_transform(klassname):
     assert isinstance(b, garak.buffs.base.Buff)
     a = attempt.Attempt()
     a.prompt = attempt.Message("I'm just a plain and simple tailor", lang=b.lang)
-    buffed_a = list(b.transform(a))  # unroll the generator
-    assert isinstance(buffed_a, list)
+
+    if sys.platform == "win32" and klassname == "buffs.paraphrase.Fast":
+        # special case buff not currently supported on Windows
+        with pytest.raises(GarakException) as exc_info:
+            list(b.transform(a))  # process yield to see raise
+        assert "failed" in str(exc_info.value)
+    else:
+        buffed_a = list(b.transform(a))  # unroll the generator
+        assert isinstance(buffed_a, list)

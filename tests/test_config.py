@@ -16,7 +16,6 @@ from pytest_httpserver import HTTPServer
 from garak import _config
 import garak.cli
 
-
 SITE_YAML_FILENAME = "TESTONLY.site.yaml.bak"
 CONFIGURABLE_YAML = """
 plugins:
@@ -54,9 +53,7 @@ plugins:
                     device: cuda:0
                 Pipeline:
                   dtype: for_detector
-""".encode(
-    "utf-8"
-)
+""".encode("utf-8")
 
 ANSI_ESCAPE = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 XDG_VARS = ("XDG_DATA_HOME", "XDG_CONFIG_HOME", "XDG_CACHE_HOME")

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-if a TreeSearchProbe probe was used, display the tree of items explored 
+if a TreeSearchProbe probe was used, display the tree of items explored
 
 usage:
 

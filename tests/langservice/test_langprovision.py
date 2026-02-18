@@ -3,7 +3,7 @@
 
 import pytest
 
-from garak.langservice import _load_langprovider
+from garak.services.langservice import _load_langprovider
 from garak.langproviders.base import split_input_text
 
 

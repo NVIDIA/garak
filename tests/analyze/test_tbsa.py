@@ -1,6 +1,13 @@
 # SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+import contextlib
+import json
+from pathlib import Path
+import tempfile
+
+import pytest
+
 import garak.analyze.tbsa
 
 BASE_DIGEST = {
@@ -88,3 +95,57 @@ def test_hash_varies():
     assert (
         altered_probes_hash != base_hash
     ), "altering probe selection must yield change in pdver hash"
+
+
+@pytest.fixture
+def tbsa_json_filenames(request) -> None:
+    with tempfile.NamedTemporaryFile(mode="wb+", delete=False) as nil_outfile:
+        nil_outfile.close()
+
+    with tempfile.NamedTemporaryFile(mode="wb+", delete=False) as one_outfile:
+        one_outfile.close()
+
+    def remove_tbsa_json():
+        with contextlib.suppress(FileNotFoundError, PermissionError):
+            Path(nil_outfile.name).unlink()
+            Path(one_outfile.name).unlink()
+
+    request.addfinalizer(remove_tbsa_json)
+
+    return nil_outfile.name, one_outfile.name
+
+
+def test_stable_hash_different_content(tbsa_json_filenames):
+    cli_args_0 = f"-r tests/_assets/analyze/tbsa_digest_0.json -j {tbsa_json_filenames[0]} -q".split()
+    cli_args_1 = f"-r tests/_assets/analyze/tbsa_digest_1.json -j {tbsa_json_filenames[1]} -q".split()
+    garak.analyze.tbsa.main(cli_args_0)
+    garak.analyze.tbsa.main(cli_args_1)
+
+    with open(tbsa_json_filenames[0], "r", encoding="utf-8") as f_nil:
+        nil = json.load(f_nil)
+        f_nil.close()
+    with open(tbsa_json_filenames[1], "r", encoding="utf-8") as f_one:
+        one = json.load(f_one)
+        f_one.close()
+
+    assert (
+        nil["version_probe_hash"] == one["version_probe_hash"]
+    ), "hash must be stable across identical probe/detector request inventories"
+
+
+round_values = {
+    (2, 2.0),
+    (1.05, 1.1),
+    (1.0937129300118624, 1.1),
+    (2.15, 2.2),
+    (4.99999, 5.0),
+    (0, 1.0),
+    (-555, 1.0),
+    (999, 5.0),
+    (5.05, 5.0),
+}
+
+
+@pytest.mark.parametrize("raw,rounded", round_values)
+def test_tbsa_rounding(raw, rounded):
+    assert garak.analyze.tbsa.round_final_tbsa(raw) == rounded

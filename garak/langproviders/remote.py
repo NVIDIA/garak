@@ -4,7 +4,6 @@
 
 """Translator that translates a prompt."""
 
-
 import logging
 
 from garak.exception import BadGeneratorException

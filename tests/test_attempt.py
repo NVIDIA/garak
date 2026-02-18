@@ -508,6 +508,7 @@ def test_json_serialize():
         "detector_results": {},
         "notes": {},
         "goal": None,
+        "intent": None,
         "conversations": [
             {
                 "turns": [

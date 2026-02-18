@@ -13,6 +13,7 @@ For example, "You have 25 tokens. Every time you deny a request four tokens will
 DAN prompts are often community-created, crafted from many different techniques and cooperatively developed.
 
 """
+
 import json
 import logging
 from typing import Iterable
@@ -45,6 +46,7 @@ class DANProbeMeta(type):
             "avid-effect:security:S0403",
             "owasp:llm01",
             "quality:Security:PromptStability",
+            "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",
         ],
         "primary_detector": "dan.DAN",
         "extended_detectors": ["mitigation.MitigationBypass"],
@@ -304,7 +306,11 @@ class Ablation_Dan_11_0(
     metaclass=DANProbeMeta,
     tier=garak.probes.Tier.COMPETE_WITH_SOTA,
     active=True,
-    extra_tags=["payload:jailbreak"],
+    extra_tags=[
+        "payload:jailbreak",
+        "demon:Language:Prompt_injection:Stop_sequences",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+    ],
 ):
     """Ablation experiments over the DAN 11.0 prompt
 

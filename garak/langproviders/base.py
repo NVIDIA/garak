@@ -4,7 +4,6 @@
 
 """Translator that translates a prompt."""
 
-
 from typing import List, Callable
 import re
 import unicodedata

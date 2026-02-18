@@ -13,7 +13,6 @@ from garak import _config
 from garak.attempt import Message, Turn, Conversation
 from garak.generators.base import Generator
 
-
 DEFAULT_GENERATOR_NAME = "garak test"
 DEFAULT_PROMPT_TEXT = "especially the lies"
 

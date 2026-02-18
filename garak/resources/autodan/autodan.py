@@ -27,7 +27,6 @@ from garak.resources.autodan.genetic import (
 from garak.resources.autodan.model_utils import check_for_attack_success
 from garak.resources.common import REJECTION_STRINGS
 
-
 logger = getLogger(__name__)
 
 autodan_resource_data = data_path / "autodan"
@@ -236,4 +235,6 @@ def autodan_generate(
         logger.info(
             f"AutoDAN ran {num_steps} iterations and found no successful prompts"
         )
-        print(f"🎺☹️ AutoDAN ran {num_steps} iterations and found no successful prompts")
+        print(
+            f"🎺☹️ AutoDAN ran {num_steps} iterations and found no successful prompts"
+        )

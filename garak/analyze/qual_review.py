@@ -51,12 +51,16 @@ def qual_review(report_path: str) -> None:
 
     with open(report_path, "r", encoding="utf-8") as report_file:
         g = (json.loads(line.strip()) for line in report_file if line.strip())
+        total_key = None
         for record in g:
             if record["entry_type"] == "eval":
+                if not total_key:
+                    if "total_evaluated" in record:
+                        total_key = "total_evaluated"
+                    else:
+                        total_key = "total"
                 passrate = (
-                    record["passed"] / record["total_evaluated"]
-                    if record["total_evaluated"] > 0
-                    else 0
+                    record["passed"] / record[total_key] if record[total_key] > 0 else 0
                 )
                 probe_module, probe_classname = record["probe"].split(".", 1)
                 detector = record["detector"].replace("detector.", "")

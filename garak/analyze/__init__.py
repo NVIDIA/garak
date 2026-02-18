@@ -43,3 +43,16 @@ ABSOLUTE_COMMENT = {  # see ABSOLUTE_DEFCON_BOUNDS
 #   we want to be able to tolerate at least one misclassification
 #   probes logging < 1/MINIMUM_STD_DEV attempts, don't have reliable Zscores
 MINIMUM_STD_DEV = 1.0 / 30
+
+
+def score_to_defcon(score: float, bounds) -> int:
+    """assign a defcon class (i.e. 1-5, 1=worst) to a score, given a bounds class (see above)"""
+    if score < bounds.TERRIBLE:
+        return 1
+    if score < bounds.BELOW_AVG:
+        return 2
+    if score < bounds.ABOVE_AVG:
+        return 3
+    if score < bounds.EXCELLENT:
+        return 4
+    return 5

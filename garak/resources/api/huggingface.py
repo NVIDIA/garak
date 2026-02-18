@@ -87,6 +87,15 @@ class HFCompatible:
 
         return args
 
+    def _gather_generation_params(self):
+        from transformers import GenerationConfig
+
+        generation_params = {}
+        for generation_param in GenerationConfig._get_default_generation_params():
+            if generation_param in self.hf_args.keys():
+                generation_params[generation_param] = self.hf_args[generation_param]
+        return generation_params
+
     def _select_hf_device(self):
         """Determine the most efficient device for tensor load, hold any existing `device` already selected"""
         import torch

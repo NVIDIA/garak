@@ -13,7 +13,6 @@ import markdown
 import os
 import pprint
 import re
-import statistics
 import sys
 from typing import IO, List
 
@@ -25,9 +24,10 @@ import garak._plugins
 from garak.data import path as data_path
 import garak.analyze
 import garak.analyze.calibration
+import garak.resources.scoring
 
 
-if not _config.loaded:
+if not _config.is_loaded:
     _config.load_config()
 
 misp_resource_file = data_path / "tags.misp.tsv"
@@ -37,19 +37,6 @@ if os.path.isfile(misp_resource_file):
         for line in f:
             key, title, descr = line.strip().split("\t")
             tag_descriptions[key] = (title, descr)
-
-
-def map_absolute_score(score: float) -> int:
-    """assign a defcon class (i.e. 1-5, 1=worst) to a %age score 0.0-100.0"""
-    if score < garak.analyze.ABSOLUTE_DEFCON_BOUNDS.TERRIBLE:
-        return 1
-    if score < garak.analyze.ABSOLUTE_DEFCON_BOUNDS.BELOW_AVG:
-        return 2
-    if score < garak.analyze.ABSOLUTE_DEFCON_BOUNDS.ABOVE_AVG:
-        return 3
-    if score < garak.analyze.ABSOLUTE_DEFCON_BOUNDS.EXCELLENT:
-        return 4
-    return 5
 
 
 def plugin_docstring_to_description(docstring):
@@ -167,46 +154,19 @@ def _get_group_aggregate_score(
     cursor, probe_group, aggregation_function
 ) -> tuple[float, bool]:
 
-    unknown_function = False
     group_score = None  # range 0.0--1.0
     res = cursor.execute(
         f"select score as s from results where probe_group = '{probe_group}';"
     )
     probe_scores = [i[0] for i in res.fetchall()]
 
-    # main aggregation function here
-    match aggregation_function:
-        # get all the scores
-
-        case "mean":
-            group_score = statistics.mean(probe_scores)
-        case "minimum":
-            group_score = min(probe_scores)
-        case "median":
-            group_score = statistics.median(probe_scores)
-        case "lower_quartile":
-            if len(probe_scores) == 1:
-                group_score = probe_scores[0]
-            else:
-                group_score = statistics.quantiles(probe_scores, method="inclusive")[0]
-        case "mean_minus_sd":
-            if len(probe_scores) == 1:
-                group_score = probe_scores[0]
-            else:
-                group_score = statistics.mean(probe_scores) - statistics.stdev(
-                    probe_scores
-                )
-        case "proportion_passing":
-            group_score = len(
-                [
-                    p
-                    for p in probe_scores
-                    if p > garak.analyze.ABSOLUTE_DEFCON_BOUNDS.BELOW_AVG
-                ]
-            ) / len(probe_scores)
-        case _:
-            group_score = min(probe_scores)  # minimum as default
-            unknown_function = True
+    if len(probe_scores):
+        group_score, unknown_function = garak.resources.scoring.aggregate(
+            probe_scores, aggregation_function
+        )
+    else:
+        group_score = None
+        unknown_function = None
 
     return (group_score, unknown_function)
 
@@ -234,7 +194,9 @@ def _get_group_info(probe_group, group_score, taxonomy, config=_config) -> dict:
     group_info = {
         "group": probe_group_name,
         "score": group_score,
-        "group_defcon": map_absolute_score(group_score),
+        "group_defcon": garak.analyze.score_to_defcon(
+            group_score, garak.analyze.ABSOLUTE_DEFCON_BOUNDS
+        ),
         "doc": group_doc,
         "group_link": group_link,
         "group_aggregation_function": config.reporting.group_aggregation_function,
@@ -258,7 +220,9 @@ def _get_probe_info(probe_module, probe_class, absolute_score) -> dict:
     return {
         "probe_name": probe_plugin_name,
         "probe_score": absolute_score,
-        "probe_severity": map_absolute_score(absolute_score),
+        "probe_severity": garak.analyze.score_to_defcon(
+            absolute_score, garak.analyze.ABSOLUTE_DEFCON_BOUNDS
+        ),
         "probe_descr": html.escape(probe_description),
         "probe_tier": probe_plugin_info["tier"],
         "probe_tags": probe_tags,
@@ -296,17 +260,22 @@ def _get_probe_detector_details(
         relative_score = "n/a"
 
     else:
-        relative_defcon, relative_comment = calibration.defcon_and_comment(zscore)
         relative_score = float(zscore)
+        relative_defcon = garak.analyze.score_to_defcon(
+            relative_score, garak.analyze.RELATIVE_DEFCON_BOUNDS
+        )
         calibration_used = True
 
-    absolute_defcon = map_absolute_score(absolute_score)
+    absolute_defcon = garak.analyze.score_to_defcon(
+        absolute_score, garak.analyze.ABSOLUTE_DEFCON_BOUNDS
+    )
 
     if absolute_score == 1.0:  # clean sheet locks relative score interpretation to best
         relative_defcon, absolute_defcon = 5, 5
-        relative_comment = garak.analyze.RELATIVE_COMMENT[5]
 
     absolute_comment = garak.analyze.ABSOLUTE_COMMENT[absolute_defcon]
+    if relative_defcon is not None:
+        relative_comment = garak.analyze.RELATIVE_COMMENT[relative_defcon]
 
     if probe_tier == 1:
         detector_defcon = (
@@ -458,13 +427,17 @@ def build_html(digest: dict, config=_config) -> str:
         content = template_file.read()
 
     if "__GARAK_INSERT_HERE__" not in content:
-        print("❌ Marker __GARAK_INSERT_HERE__ not found in template HTML", file=sys.stderr)
+        print(
+            "❌ Marker __GARAK_INSERT_HERE__ not found in template HTML",
+            file=sys.stderr,
+        )
         return json.dumps(digest, indent=2)  # fallback: just dump JSON
 
     # Embed digest JSON inside the template
     digest_json = json.dumps([digest], separators=(",", ":"))
     final_html = content.replace("__GARAK_INSERT_HERE__", digest_json)
     return final_html
+
 
 def _get_report_digest(report_path):
     with open(report_path, "r", encoding="utf-8") as reportfile:

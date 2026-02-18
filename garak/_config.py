@@ -38,10 +38,11 @@ system_params = (
 run_params = "seed deprefix eval_threshold generations probe_tags interactive system_prompt".split()
 plugins_params = "target_type target_name extended_detectors".split()
 reporting_params = "taxonomy report_prefix".split()
+cas_params = "intent_spec".split()
 project_dir_name = "garak"
 
 
-loaded = False
+is_loaded = False
 
 
 @dataclass
@@ -85,6 +86,7 @@ system = GarakSubConfig()
 run = GarakSubConfig()
 plugins = GarakSubConfig()
 reporting = GarakSubConfig()
+cas = GarakSubConfig()
 
 
 def _lock_config_as_dict():
@@ -158,9 +160,12 @@ def _combine_into(d: dict, combined: dict) -> dict:
 
 def _load_config_files(settings_filenames) -> dict:
     global config_files
-    config_files += settings_filenames
     config = nested_dict()
     for settings_filename in settings_filenames:
+        if settings_filename in config_files:
+            logging.debug("Skipping already-loaded config: %s", settings_filename)
+            continue
+        config_files.append(settings_filename)
         with open(settings_filename, encoding="utf-8") as settings_file:
             try:
                 settings = json.load(settings_file)
@@ -225,13 +230,14 @@ def _load_config_files(settings_filenames) -> dict:
 
 
 def _store_config(settings_files) -> None:
-    global system, run, plugins, reporting, version
+    global system, run, plugins, reporting, version, cas
     settings = _load_config_files(settings_files)
     system = _set_settings(system, settings["system"])
     run = _set_settings(run, settings["run"])
     run.user_agent = run.user_agent.replace("{version}", version)
     plugins = _set_settings(plugins, settings["plugins"])
     reporting = _set_settings(reporting, settings["reporting"])
+    cas = _set_settings(cas, settings["cas"])
 
 
 # not my favourite solution in this module, but if
@@ -286,11 +292,11 @@ def get_http_lib_agents():
 
 
 def load_base_config() -> None:
-    global loaded
+    global is_loaded
     settings_files = [str(transient.package_dir / "resources" / "garak.core.yaml")]
     logging.debug("Loading configs from: %s", ",".join(settings_files))
     _store_config(settings_files=settings_files)
-    loaded = True
+    is_loaded = True
 
 
 def load_config(
@@ -298,7 +304,7 @@ def load_config(
 ) -> None:
     # would be good to bubble up things from run_config, e.g. generator, probe(s), detector(s)
     # and then not have cli be upset when these are not given as cli params
-    global loaded
+    global is_loaded
 
     settings_files = [str(transient.package_dir / "resources" / "garak.core.yaml")]
 
@@ -401,7 +407,7 @@ def load_config(
 
     if DICT_CONFIG_AFTER_LOAD:
         _lock_config_as_dict()
-    loaded = True
+    is_loaded = True
 
 
 def parse_plugin_spec(

@@ -3,7 +3,6 @@ import os
 import pytest
 import requests_mock
 
-
 DEFAULT_DEPLOYMENT_NAME = "ibm/granite-3-8b-instruct"
 
 

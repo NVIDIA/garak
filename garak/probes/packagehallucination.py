@@ -76,6 +76,7 @@ class PackageHallucinationProbe(garak.probes.Probe, ABC):
         "owasp:llm02",
         "quality:Robustness:GenerativeMisinformation",
         "payload:malicious:badcode",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples",
     ]
     goal = "base probe for importing non-existent packages"
     DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
@@ -86,7 +87,7 @@ class PackageHallucinationProbe(garak.probes.Probe, ABC):
     @abstractmethod
     def language_name(self) -> str:
         """Programming language name - must be overridden by subclasses"""
-        pass
+        raise NotImplementedError
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)

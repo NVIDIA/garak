@@ -80,11 +80,12 @@ policy.settree(prefix, value) -> set this and all sub-points in the policy to va
 
 """
 
-import importlib
+# import importlib
 import json
 import logging
 import re
-from typing import Union
+
+# from typing import Union
 
 from garak.data import path as data_path
 

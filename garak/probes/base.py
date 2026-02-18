@@ -14,7 +14,7 @@ import json
 import logging
 from collections.abc import Iterable
 import random
-from typing import Iterable, Union
+from typing import Iterable, List, Set, Union
 
 from colorama import Fore, Style
 import tqdm
@@ -22,6 +22,7 @@ import tqdm
 from garak import _config
 from garak.configurable import Configurable
 from garak.exception import GarakException, PluginConfigurationError
+from garak.intents import Stub
 from garak.probes._tier import Tier
 import garak.attempt
 import garak.resources.theme
@@ -139,13 +140,13 @@ class Probe(Configurable):
         self.reverse_langprovider = self._get_reverse_langprovider()
 
     def _get_langprovider(self):
-        from garak.langservice import get_langprovider
+        from garak.services.langservice import get_langprovider
 
         langprovider_instance = get_langprovider(self.lang)
         return langprovider_instance
 
     def _get_reverse_langprovider(self):
-        from garak.langservice import get_langprovider
+        from garak.services.langservice import get_langprovider
 
         langprovider_instance = get_langprovider(self.lang, reverse=True)
         return langprovider_instance
@@ -157,10 +158,10 @@ class Probe(Configurable):
         systematic transformation of attempts"""
         return attempt
 
-    def _generator_precall_hook(self, generator, attempt=None):
+    def _generator_precall_hook(self, generator, attempt=None) -> None:
         """function to be overloaded if a probe wants to take actions between
         attempt generation and posing prompts to the model"""
-        pass
+        return
 
     def _buff_hook(
         self, attempts: Iterable[garak.attempt.Attempt]
@@ -825,3 +826,69 @@ class IterativeProbe(Probe):
         next_turn_attempts = self._generate_next_attempts(this_attempt)
         self.attempt_queue.extend(next_turn_attempts)
         return processed
+
+
+class IntentProbe(Probe):
+    """Probe implementing a technique that tests over a range of intents"""
+
+    import garak.services.intentservice
+
+    skip_root_intents = True
+    blocked_intent_spec = ""
+
+    def __init__(self, config_root=_config):
+        super().__init__(config_root)
+
+        self._populate_intents()
+        self._populate_stubs()
+        self.build_prompts()
+
+    def _attempt_prestore_hook(
+        self, attempt: garak.attempt.Attempt, seq: int
+    ) -> garak.attempt.Attempt:
+        attempt.intent = self.prompt_intents[seq]
+        return attempt
+
+    def _populate_intents(self) -> None:
+        # work out which intents this probe will process
+        # should be leaves
+        self.intents = garak.services.intentservice.get_applicable_intents(
+            blocked_spec=self.blocked_intent_spec
+        )
+
+    def _populate_stubs(self) -> None:
+        """populate self.stubs with intent stub text, in order of self.intents"""
+
+        self.stubs: List[Stub] = []  # stubs to be used in prompt construction
+        self.stub_intents = []  # list of intent sources aligned w/ self.stubs
+
+        for intent in self.intents:
+            if self.skip_root_intents and len(intent) == 1:
+                continue
+            intent_stubs = garak.services.intentservice.get_intent_stubs(intent)
+            for intent_stub in intent_stubs:
+                expanded_stubs = self._expand_stub(intent_stub)
+                self.stubs.extend(expanded_stubs)
+                self.stub_intents.extend([intent] * len(expanded_stubs))
+
+    def _expand_stub(self, stub: Stub) -> Set[Stub] | List[Stub]:
+        """Stubwise-expansion, stubs 1:*"""
+        return {stub}
+
+    def _prompts_from_stub(
+        self, stub: Stub
+    ) -> List[str] | List[garak.attempt.Conversation]:
+        """Stub to prompt transformation, stubs 1:* prompts"""
+        return [stub.content]
+
+    def build_prompts(self):
+        """In the most basic case, consume self.stubs and populate self.prompts"""
+        self.prompts = []
+        self.prompt_intents = []
+        for i, stub in enumerate(self.stubs):
+            prompts = self._prompts_from_stub(stub)
+            self.prompts.extend(prompts)
+            self.prompt_intents.extend([self.stub_intents[i]] * len(prompts))
+
+    def probe(self, generator) -> Iterable[garak.attempt.Attempt]:
+        return super().probe(generator)

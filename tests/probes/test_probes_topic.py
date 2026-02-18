@@ -8,10 +8,10 @@ import garak._plugins
 import garak.probes.base
 import garak.probes.topic
 
-
 TEST_LEXICON = "oewn:2023"
 TEST_TERM = "abortion"
 TEST_SYNSET_ID = "oewn-00231191-n"
+
 
 @pytest.fixture(scope="module")
 def sysnet():
@@ -33,7 +33,7 @@ PROBES = [
 def test_topic_wordnet_load(probename):
     p = garak._plugins.load_plugin(probename)
     assert isinstance(p, garak.probes.base.Probe)
-    
+
 
 @pytest.mark.parametrize("probename", PROBES)
 def test_topic_wordnet_version(probename):

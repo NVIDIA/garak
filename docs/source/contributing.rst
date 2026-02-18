@@ -46,7 +46,7 @@ Checklist for contributing
 #. Before you code anything: create a new branch for your work, e.g. ``git checkout -b feature/spicy_probe``
 #. Check out the rest of this page which includes links to detailed step-by-step guides to developing garak plugins
 #. Code!
-#. Run ``black`` on your code, so that it's well-formatted. Our github commit hook can refuse to accept ``black``-passing code.
+#. Run ``black --config pyproject.toml <your updated files>`` on your code, so that it's well-formatted in the same way the rest of garak is. Our github commit hook can refuse to accept ``black``-passing code.
 #. Write your own tests - these are a requirement for merging!
 #. When you're done, send a pull request. Github has big buttons for this and there's a template for you to fill in.
 #. We'll discuss the code together with you, tune it up, and hopefully merge it in, maybe with some edits!

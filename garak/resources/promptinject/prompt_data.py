@@ -72,7 +72,7 @@ rogue_strings = {
 Possible escape and padding characters which may be prepended to any malicious
 string in order to further confuse the model.
 """
-escape_chars = {"n": "\n", "back": "\\", "hex": "\xFF", "ask": "***"}
+escape_chars = {"n": "\n", "back": "\\", "hex": "\xff", "ask": "***"}
 
 """
 Possible characters used as characters for simulating prompt shot delimiting.

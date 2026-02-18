@@ -10,6 +10,7 @@ usage:
 ./analyze_log.py <report.jsonl filename>
 
 """
+
 import sys
 import json
 

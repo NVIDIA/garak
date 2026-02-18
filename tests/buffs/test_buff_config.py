@@ -27,14 +27,10 @@ REPORT_PATH = _config.transient.data_dir / _config.reporting.report_dir
 def test_include_original_prompt():
     # https://github.com/python/cpython/pull/97015 to ensure Windows compatibility
     with tempfile.NamedTemporaryFile(buffering=0, delete=False, suffix=".yaml") as tmp:
-        tmp.write(
-            """---
+        tmp.write("""---
 plugins:
     buffs_include_original_prompt: true
-""".encode(
-                "utf-8"
-            )
-        )
+""".encode("utf-8"))
         tmp.close()
         cli.main(
             f"-m test -p test.Test -b lowercase.Lowercase --config {tmp.name} --report_prefix {PREFIX}".split()
@@ -67,14 +63,10 @@ plugins:
 
 def test_exclude_original_prompt():
     with tempfile.NamedTemporaryFile(buffering=0, delete=False, suffix=".yaml") as tmp:
-        tmp.write(
-            """---
+        tmp.write("""---
 plugins:
     buffs_include_original_prompt: false
-""".encode(
-                "utf-8"
-            )
-        )
+""".encode("utf-8"))
         tmp.close()
         cli.main(
             f"-m test -p test.Test -b lowercase.Lowercase --config {tmp.name} --report_prefix {PREFIX}".split()

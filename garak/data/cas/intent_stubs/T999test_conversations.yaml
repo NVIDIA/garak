@@ -1,0 +1,10 @@
+- turns:
+  - message: You'd shoot a man in the back?
+    role: user
+  - message: Well, it's the safest way, isn't it?
+    role: assistant
+- turns:
+  - message: Commander, this is extortion!
+    role: user
+  - message: Hmmm. Yes, it is.
+    role: assistant

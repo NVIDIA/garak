@@ -3,16 +3,18 @@
 These describe evaluators for assessing detector results.
 """
 
+from collections import defaultdict
 import json
 import logging
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, List
 
 from colorama import Fore, Style
 
 from garak import _config
 import garak.attempt
 import garak.analyze.calibration
+import garak.resources.scoring
 import garak.resources.theme
 
 
@@ -42,112 +44,190 @@ class Evaluator:
         """
         return False  # fail everything by default
 
+    def _evaluate_one_detector(
+        self, attempts: Iterable[garak.attempt.Attempt], detector_name: str
+    ) -> None:
+        passes = 0
+        fails = 0
+        nones = 0
+        messages = []
+
+        from dataclasses import asdict
+
+        for attempt in attempts:
+            for idx, score in enumerate(attempt.detector_results[detector_name]):
+                if score is None:
+                    nones += 1
+                elif self.test(float(score)):
+                    passes += 1
+                else:  # if we don't pass
+                    fails += 1
+                    messages.append(
+                        attempt.outputs[idx]
+                    )  # this is an opinion about scope of detection; expects that detector_results aligns with attempt.outputs (not all_outputs)
+                    if (
+                        _config.transient.hitlogfile is None
+                        or _config.transient.hitlogfile.closed
+                    ):
+                        hitlog_mode = (
+                            "w" if _config.transient.hitlogfile is None else "a"
+                        )
+                        hitlog_filename = Path(
+                            str(_config.transient.report_filename).replace(
+                                ".report.jsonl", ".hitlog.jsonl"
+                            )
+                        )
+                        logging.info("hit log in %s", hitlog_filename)
+                        _config.transient.hitlogfile = open(
+                            hitlog_filename,
+                            hitlog_mode,
+                            buffering=1,
+                            encoding="utf-8",
+                        )
+
+                    triggers = attempt.notes.get("triggers", None)
+                    _config.transient.hitlogfile.write(
+                        json.dumps(
+                            {
+                                "goal": attempt.goal,
+                                "prompt": asdict(attempt.prompt),
+                                "output": asdict(attempt.outputs[idx]),
+                                "triggers": triggers,
+                                "score": score,
+                                "run_id": str(_config.transient.run_id),
+                                "attempt_id": str(attempt.uuid),
+                                "attempt_seq": attempt.seq,
+                                "attempt_idx": idx,
+                                "generator": f"{_config.plugins.target_type} {_config.plugins.target_name}",
+                                "probe": self.probename,
+                                "detector": detector_name,
+                                "generations_per_prompt": _config.run.generations,
+                            },
+                            ensure_ascii=False,
+                        )
+                        + "\n"  # generator,probe,prompt,trigger,result,detector,score,run id,attemptid,
+                    )
+
+        outputs_evaluated = passes + fails
+        outputs_processed = passes + fails + nones
+
+        if _config.system.narrow_output:
+            print_func = self.print_results_narrow
+        else:
+            print_func = self.print_results_wide
+        print_func(detector_name, passes, outputs_evaluated, messages)
+
+        _config.transient.reportfile.write(
+            json.dumps(
+                {
+                    "entry_type": "eval",
+                    "probe": self.probename,
+                    "detector": detector_name,
+                    "passed": passes,
+                    "fails": fails,
+                    "nones": nones,
+                    "total_evaluated": outputs_evaluated,
+                    "total_processed": outputs_processed,
+                },
+                ensure_ascii=False,
+            )
+            + "\n"
+        )
+
+        return {
+            "passed": passes,
+            "fails": fails,
+            "nones": nones,
+            "total_evaluated": outputs_evaluated,
+            "total_procesed": outputs_processed,
+        }
+
     def evaluate(self, attempts: Iterable[garak.attempt.Attempt]) -> None:
         """evaluate feedback from detectors
 
         expects a list of attempts that correspond to one probe
         outputs results once per detector
         """
-        from dataclasses import asdict
 
         if isinstance(attempts, list) and len(attempts) == 0:
-            logging.debug(
-                "evaluators.base.Evaluator.evaluate called with 0 attempts, expected 1+"
+            logging.error(
+                "evaluators.base.Evaluator.evaluate called with list of 0 attempts, expected len 1+ or iterable"
             )
             return
 
         attempts = list(
             attempts
-        )  # disprefer this but getting detector_names from first one for the loop below is a pain
+        )  # iterable is preferred but we select them by idx later
 
-        self.probename = attempts[0].probe_classname
-        detector_names = attempts[0].detector_results.keys()
+        intent_detector_groups = defaultdict(set)
 
-        for detector in detector_names:
-            passes = 0
-            fails = 0
-            nones = 0
-            messages = []
+        detectors_to_eval = set()
+        detector_to_attempt_ids = defaultdict(list)
+        for idx, attempt in enumerate(attempts):
+            if not self.probename:
+                self.probename = attempt.probe_classname
 
-            for attempt in attempts:
-                for idx, score in enumerate(attempt.detector_results[detector]):
-                    if score is None:
-                        nones += 1
-                    elif self.test(float(score)):
-                        passes += 1
-                    else:  # if we don't pass
-                        fails += 1
-                        messages.append(
-                            attempt.outputs[idx]
-                        )  # this is an opinion about scope of detection; expects that detector_results aligns with attempt.outputs (not all_outputs)
-                        if (
-                            _config.transient.hitlogfile is None
-                            or _config.transient.hitlogfile.closed
-                        ):
-                            hitlog_mode = (
-                                "w" if _config.transient.hitlogfile is None else "a"
-                            )
-                            hitlog_filename = Path(
-                                str(_config.transient.report_filename).replace(
-                                    ".report.jsonl", ".hitlog.jsonl"
-                                )
-                            )
-                            logging.info("hit log in %s", hitlog_filename)
-                            _config.transient.hitlogfile = open(
-                                hitlog_filename,
-                                hitlog_mode,
-                                buffering=1,
-                                encoding="utf-8",
-                            )
-
-                        triggers = attempt.notes.get("triggers", None)
-                        _config.transient.hitlogfile.write(
-                            json.dumps(
-                                {
-                                    "goal": attempt.goal,
-                                    "prompt": asdict(attempt.prompt),
-                                    "output": asdict(attempt.outputs[idx]),
-                                    "triggers": triggers,
-                                    "score": score,
-                                    "run_id": str(_config.transient.run_id),
-                                    "attempt_id": str(attempt.uuid),
-                                    "attempt_seq": attempt.seq,
-                                    "attempt_idx": idx,
-                                    "generator": f"{_config.plugins.target_type} {_config.plugins.target_name}",
-                                    "probe": self.probename,
-                                    "detector": detector,
-                                    "generations_per_prompt": _config.run.generations,
-                                },
-                                ensure_ascii=False,
-                            )
-                            + "\n"  # generator,probe,prompt,trigger,result,detector,score,run id,attemptid,
-                        )
-
-            outputs_evaluated = passes + fails
-            outputs_processed = passes + fails + nones
-
-            if _config.system.narrow_output:
-                print_func = self.print_results_narrow
-            else:
-                print_func = self.print_results_wide
-            print_func(detector, passes, outputs_evaluated, messages)
-
-            _config.transient.reportfile.write(
-                json.dumps(
-                    {
-                        "entry_type": "eval",
-                        "probe": self.probename,
-                        "detector": detector,
-                        "passed": passes,
-                        "fails": fails,
-                        "nones": nones,
-                        "total_evaluated": outputs_evaluated,
-                        "total_processed": outputs_processed,
-                    },
-                    ensure_ascii=False,
+            attempt_detectors = set(attempt.detector_results.keys())
+            if not attempt_detectors:
+                logging.warning(
+                    "probe %s attempt %s seq %s intent %s had no assigned detectors"
+                    % (
+                        self.probename,
+                        attempt.uuid,
+                        attempt.seq,
+                        attempt.intent,
+                    )
                 )
-                + "\n"
+
+            detectors_to_eval.update(attempt_detectors)
+            for attempt_detector in attempt_detectors:
+                detector_to_attempt_ids[attempt_detector].append(idx)
+                if attempt.intent:
+                    intent_detector_groups[attempt.intent].add(attempt_detector)
+
+        detector_results = {}
+
+        for detector_to_eval in sorted(detectors_to_eval):
+            attempt_subset = [
+                attempts[i] for i in detector_to_attempt_ids[detector_to_eval]
+            ]
+            detector_results[detector_to_eval] = self._evaluate_one_detector(
+                attempt_subset, detector_to_eval
             )
+
+        for intent in intent_detector_groups:
+            evaluation_count = 0
+            pass_rates = []
+            intent_relevant_detectors = intent_detector_groups[intent]
+            for detector_name in intent_relevant_detectors:
+                total_evaluated = detector_results[detector_name]["total_evaluated"]
+                evaluation_count += total_evaluated
+                if total_evaluated > 0:
+                    pass_rate = (
+                        detector_results[detector_name]["passed"] / total_evaluated
+                    )
+                    pass_rates.append(pass_rate)
+
+            if len(pass_rates):
+                intent_score, _ = garak.resources.scoring.aggregate(
+                    pass_rates, _config.reporting.group_aggregation_function
+                )
+            else:
+                intent_score = None
+
+            # write intent log entry
+            intent_log_entry = {
+                "entry_type": "eval_intent",
+                "probe": self.probename,
+                "intent": intent,
+                "score": intent_score,
+                "aggregation": _config.reporting.group_aggregation_function,
+                "n_detectors": len(pass_rates),
+                "n_evaluations": evaluation_count,
+                "detectors_used": list(intent_relevant_detectors),
+            }
+
+            _config.transient.reportfile.write(json.dumps(intent_log_entry) + "\n")
 
     def get_z_rating(self, probe_name, detector_name, asr_pct) -> str:
         probe_module, probe_classname = probe_name.split(".")
@@ -166,8 +246,14 @@ class Evaluator:
             )
         return zscore, zrating_symbol
 
-    def print_results_wide(self, detector_name, passes, evals, messages=list()):
+    def print_results_wide(
+        self, detector_name, passes, evals, messages: List | None = None
+    ):
         """Print the evaluator's summary"""
+
+        if messages is None:
+            messages = []
+
         zscore = None
         failrate = 0.0
         if evals:
@@ -209,8 +295,14 @@ class Evaluator:
                 except:
                     pass
 
-    def print_results_narrow(self, detector_name, passes, evals, messages=list()):
+    def print_results_narrow(
+        self, detector_name, passes, evals, messages: List | None = None
+    ):
         """Print the evaluator's summary"""
+
+        if messages is None:
+            messages = []
+
         failrate = 0.0
         if evals:
             outcome = (

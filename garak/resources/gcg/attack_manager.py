@@ -303,7 +303,7 @@ class AttackPrompt:
             tokenize=True,
             return_tensors="pt",
         ).to(self.device)
-        return self.model.generate(input_ids)
+        return self.model.generate(input_ids["input_ids"])
 
     def generate_str(self) -> str:
         return self.tokenizer.decode(self.generate()[0])

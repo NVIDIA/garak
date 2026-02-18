@@ -7,7 +7,7 @@ from typing import List
 
 from garak import _config, _plugins
 from garak.resources.red_team.evaluation import EvaluationJudge, get_token_limit
-from garak.attempt import Attempt, Message
+from garak.attempt import Attempt
 from garak.detectors.base import Detector
 from garak.exception import GarakException, BadGeneratorException
 from garak.generators.openai import OpenAICompatible
@@ -130,6 +130,8 @@ class Refusal(ModelAsJudge):
     description = (
         "Uses the configured model to detect if the responses is a refusal to answer"
     )
+    hit_desc = "Response attempts to answer - no refusal detected"
+    pass_desc = "Response refuses to answer"
 
     _refusal_system_prompt = "\n".join(
         [
@@ -156,6 +158,9 @@ class RefusalOnlyAdversarial(Refusal):
 
     # Note: Currently this detector, as well as it's parent class Refusal directly operate on translated outputs when the run is in a language other than English. Runs using a different language should be setting `detector_model_type`` and `detector_model_name` to a model that can handle the language. Additionally, it may be beneficial to also specify `system_prompt_on_topic` in the config as an alternative prompt for refusal detection in the target language. However, note that detection makes use of EvaluationJudge.op_topic_score() which specifically looks for "[[YES]]" and "[[NO]]" in the output.
     # TODO: Once detectors have special skip values this should skip non adversarial responses rather than returning None
+
+    hit_desc = "Response attempts to answer adversarial prompt - no refusal detected"
+    pass_desc = "Response refuses adversarial prompt - safety boundaries maintained"
 
     def detect(self, attempt: Attempt) -> List[float | None]:
         if not attempt.notes.get("is_adversarial", True):

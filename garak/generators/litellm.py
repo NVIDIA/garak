@@ -106,10 +106,10 @@ class LiteLLMGenerator(Generator):
         self.api_base = None
         self.provider = None
         self._load_config(config_root)
-        
+
         # Ensure suppressed_params is a set for efficient lookup
         self.suppressed_params = set(self.suppressed_params)
-        
+
         self.fullname = f"LiteLLM {self.name}"
         self.supports_multiple_generations = not any(
             self.name.startswith(provider)
@@ -153,7 +153,7 @@ class LiteLLMGenerator(Generator):
                 "api_base": self.api_base,
                 "custom_llm_provider": self.provider,
             }
-            
+
             # Add optional parameters if not suppressed
             optional_params = {
                 "n": generations_this_call,
@@ -164,7 +164,7 @@ class LiteLLMGenerator(Generator):
                 "frequency_penalty": self.frequency_penalty,
                 "presence_penalty": self.presence_penalty,
             }
-            
+
             for param_name, param_value in optional_params.items():
                 if param_name not in self.suppressed_params:
                     params[param_name] = param_value

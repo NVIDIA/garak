@@ -8,7 +8,7 @@ from garak.detectors.leakreplay import StartsWith
 
 
 def reverse_translate(attempt: Attempt) -> Attempt:
-    from garak.langservice import _load_langprovider
+    from garak.services.langservice import _load_langprovider
 
     translator_config = {
         "language": "ja,en",

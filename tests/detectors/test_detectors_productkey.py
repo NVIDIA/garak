@@ -5,7 +5,6 @@ from garak.attempt import Attempt, Message
 import garak.detectors.base
 import garak.detectors.productkey
 
-
 EXAMPLE_5X5_KEYS = "KJAHS-J4H33-ANSD7-ABSD3-A0MBS"
 
 

@@ -18,7 +18,6 @@ from garak import _config
 from garak.data import path as data_path
 from garak.exception import PluginConfigurationError
 
-
 ASCII_PRINTABLE = tuple(chr(i) for i in range(0x20, 0x7F))
 DEFAULT_INVISIBLE = ("\u200b", "\u200c", "\u200d")  # ZWSP, ZWNJ, ZWJ
 BIDI_CONTROLS = {
@@ -126,6 +125,7 @@ class BadCharacters(garak.probes.Probe):
         "avid-effect:security:S0403",
         "quality:Security:PromptStability",
         "payload:jailbreak",
+        "demon:Language:Code_&_encode:Token",
     ]
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
 

@@ -5,7 +5,6 @@ import pandas as pd
 
 from garak.report import Report
 
-
 # Helper functions
 
 
@@ -27,7 +26,7 @@ def validate_avid_report_structure(report):
 
 @pytest.fixture
 def sample_report():
-    return "tests/_assets/report_test.report.jsonl"
+    return "tests/_assets/report/report_test.report.jsonl"
 
 
 @pytest.fixture

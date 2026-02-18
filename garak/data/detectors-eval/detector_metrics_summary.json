@@ -1,0 +1,104 @@
+{
+  "results": {
+    "dan.DAN": {
+      "metrics": {
+        "accuracy": 0.875,
+        "hit_precision": 0.8,
+        "hit_recall": 1.0,
+        "hit_f1": 0.888888888888889,
+        "hit_sensitivity": 1.0,
+        "hit_specificity": 0.75,
+        "pass_precision": 1.0,
+        "pass_recall": 0.75,
+        "pass_f1": 0.8571428571428571
+      }
+    },
+    "divergence.RepeatDiverges": {
+      "metrics": {
+        "accuracy": 0.5,
+        "hit_precision": 0.0,
+        "hit_recall": 0.0,
+        "hit_f1": 0.0,
+        "hit_sensitivity": 0.0,
+        "hit_specificity": 1.0,
+        "pass_precision": 0.5,
+        "pass_recall": 1.0,
+        "pass_f1": 0.6666666666666666
+      }
+    },
+    "exploitation.PythonCodeExecution": {
+      "metrics": {
+        "accuracy": 1.0,
+        "hit_precision": 1.0,
+        "hit_recall": 1.0,
+        "hit_f1": 1.0,
+        "hit_sensitivity": 1.0,
+        "hit_specificity": 1.0,
+        "pass_precision": 1.0,
+        "pass_recall": 1.0,
+        "pass_f1": 1.0
+      }
+    },
+    "malwaregen.AnyCode": {
+      "metrics": {
+        "accuracy": 1.0,
+        "hit_precision": 0.0,
+        "hit_recall": 0.0,
+        "hit_f1": 0.0,
+        "hit_sensitivity": 0.0,
+        "hit_specificity": 1.0,
+        "pass_precision": 1.0,
+        "pass_recall": 1.0,
+        "pass_f1": 1.0
+      }
+    },
+    "mitigation.MitigationBypass": {
+      "metrics": {
+        "accuracy": 0.6533631035445158,
+        "hit_precision": 0.5998546247501363,
+        "hit_recall": 0.921295004186436,
+        "hit_f1": 0.7266123706801674,
+        "hit_sensitivity": 0.921295004186436,
+        "hit_specificity": 0.3854312029025956,
+        "pass_precision": 0.830426939266386,
+        "pass_recall": 0.3854312029025956,
+        "pass_f1": 0.5264963781929088,
+        "hit_f1_ci": {
+          "mean": 0.7266036740429815,
+          "ci_lower": 0.7201670685506444,
+          "ci_upper": 0.732868655214754,
+          "ci_width": 0.012701586664109588,
+          "n_samples": 7166
+        },
+        "pass_f1_ci": {
+          "mean": 0.526467147004592,
+          "ci_lower": 0.5099615321374689,
+          "ci_upper": 0.5424949483702955,
+          "ci_width": 0.032533416232826684,
+          "n_samples": 7166
+        }
+      }
+    },
+    "unsafe_content.ToxicCommentModel": {
+      "metrics": {
+        "accuracy": 0.6875,
+        "hit_precision": 1.0,
+        "hit_recall": 0.375,
+        "hit_f1": 0.5454545454545454,
+        "hit_sensitivity": 0.375,
+        "hit_specificity": 1.0,
+        "pass_precision": 0.6153846153846154,
+        "pass_recall": 1.0,
+        "pass_f1": 0.761904761904762
+      }
+    }
+  },
+  "metadata": {
+    "evaluation_date": "2026-01-30T14:28:03.070613",
+    "random_seed": 42,
+    "balance_datasets": true,
+    "save_datasets": false,
+    "num_detectors_evaluated": 6,
+    "errors": []
+  }
+}

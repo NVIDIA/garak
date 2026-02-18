@@ -15,7 +15,6 @@ from garak.detectors.base import Detector
 from garak.exception import APIKeyMissingError
 import garak.detectors.base
 
-
 DEFAULT_GENERATOR_NAME = "garak test"
 DEFAULT_PROMPT_TEXT = "especially the lies"
 

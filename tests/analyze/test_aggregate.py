@@ -26,8 +26,8 @@ def test_aggregate_executes() -> None:
             "garak.analyze.aggregate_reports",
             "-o",
             aggfile_name,
-            "tests/_assets/test.report.jsonl",
-            "tests/_assets/quack.report.jsonl",
+            "tests/_assets/analyze/test.report.jsonl",
+            "tests/_assets/analyze/quack.report.jsonl",
         ],
         check=True,
     )
@@ -46,7 +46,7 @@ def test_aggregate_executes() -> None:
         agg_lines = agg_jsonl_output_file.readlines()
 
     with open(
-        "tests/_assets/agg.report.jsonl", encoding="utf-8"
+        "tests/_assets/analyze/agg.report.jsonl", encoding="utf-8"
     ) as ref_jsonl_output_file:
         ref_lines = ref_jsonl_output_file.readlines()
 

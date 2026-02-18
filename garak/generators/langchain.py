@@ -3,7 +3,6 @@
 
 """LangChain generator support"""
 
-
 from typing import List, Union
 
 from garak import _config

@@ -54,19 +54,21 @@ Check out the :doc:`usage` section for further information, including :doc:`inst
    cli
    command
    detectors
+   detector_metrics
    evaluators
    exception
    generators
    harnesses
    interactive
-   langservice
    payloads
    probes
-   report
+   analyze
    _config
    _plugins
    cas
-   analyze
+   report
+   services.intentservice
+   services.langservice
 
 
 .. toctree::

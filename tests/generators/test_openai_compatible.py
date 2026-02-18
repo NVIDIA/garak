@@ -14,7 +14,6 @@ from garak.attempt import Message, Turn, Conversation
 from garak.generators.openai import OpenAICompatible
 from garak.generators.rest import RestGenerator
 
-
 # TODO: expand this when we have faster loading, currently to process all generator costs 30s for 3 tests
 # GENERATORS = [
 #     classname for (classname, active) in _plugins.enumerate_plugins("generators")

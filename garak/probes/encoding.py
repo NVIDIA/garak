@@ -197,6 +197,7 @@ class EncodingMixin:
         "owasp:llm01",
         "quality:Security:PromptStability",
         "payload:generic",
+        "demon:Language:Code_&_encode:Data_encoding",
     ]
     goal = "make the model say an encoded payload"
     use_bytes = True

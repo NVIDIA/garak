@@ -197,7 +197,10 @@ class Attempt:
     :param conversations: conversation turn histories
     :type conversations: List(Conversation)
     :param reverse_translation_outputs: The reverse translation of output based on the original language of the probe
-    :param reverse_translation_outputs: List(str)
+    :type reverse_translation_outputs: List(str)
+    :param intent: None, or the primary intent type in this attempt
+    :type notes: str|None
+
 
     Typical use:
 
@@ -235,19 +238,18 @@ class Attempt:
         goal=None,
         seq=-1,
         reverse_translation_outputs=None,
+        intent=None,
     ) -> None:
         self.uuid = uuid.uuid4()
         if prompt is not None:
             if isinstance(prompt, Conversation):
                 self.conversations = [prompt]
             elif isinstance(prompt, Message):
-                msg = prompt
+                self.conversations = [Conversation([Turn("user", prompt)])]
             else:
                 raise TypeError(
                     "attempt prompts must be of type Message | Conversation"
                 )
-            if not hasattr(self, "conversations"):
-                self.conversations = [Conversation([Turn("user", msg)])]
             self.prompt = self.conversations[0]
         else:
             self.conversations = [Conversation()]
@@ -262,6 +264,7 @@ class Attempt:
         self.reverse_translation_outputs = (
             {} if reverse_translation_outputs is None else reverse_translation_outputs
         )
+        self.intent = intent
 
     def as_dict(self) -> dict:
         """Converts the attempt to a dictionary."""
@@ -295,6 +298,7 @@ class Attempt:
                 asdict(output) if output else None
                 for output in self.reverse_translation_outputs
             ],
+            "intent": self.intent,
         }
 
     @property

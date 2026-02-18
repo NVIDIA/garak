@@ -1,7 +1,6 @@
 from garak import _config, _plugins
 from garak.probes.badchars import DEFAULT_INVISIBLE, BIDI_CONTROLS
 
-
 PLUGIN_NAME = "probes.badchars.BadCharacters"
 
 
