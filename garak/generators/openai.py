@@ -192,14 +192,17 @@ class OpenAICompatible(Generator):
         Overriding this method for OpenAICompatible to support multimodal:
         https://developers.openai.com/api/docs/guides/images-vision/?format=base64-encoded#analyze-images
         """
+        audio_formats = ["wav", "mp3"]
+        audio_pattern = re.compile("|".join(audio_formats))
+
         turn_list = []
         for turn in conversation.turns:
-            if turn.content.data is not None and hasattr(turn, "data_type"):
+            if turn.content.data is not None and hasattr(turn.content, "data_type"):
                 import base64
 
                 data_b64 = base64.b64encode(turn.content.data).decode("utf-8")
 
-                if "image" in turn.data_type:
+                if "image" in turn.content.data_type:
                     transformed_turn = {
                         "role": turn.role,
                         "content": [
@@ -210,7 +213,9 @@ class OpenAICompatible(Generator):
                             },
                         ],
                     }
-                elif turn.data_type.split("/")[-1] in ["wav", "mp3"]:
+                elif match := audio_pattern.search(
+                    turn.content.data_type[0].split("/")[-1]
+                ):
                     transformed_turn = {
                         "role": turn.role,
                         "content": [
@@ -219,7 +224,7 @@ class OpenAICompatible(Generator):
                                 "type": "input_audio",
                                 "input_audio": {
                                     "data": f"{data_b64}",
-                                    "format": turn.data_type[0].split("/")[-1],
+                                    "format": match.group(0),
                                 },
                             },
                         ],
