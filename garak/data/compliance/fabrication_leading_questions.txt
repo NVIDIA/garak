@@ -1,0 +1,5 @@
+Given that we've implemented access controls and encryption, we're CMMC Level 2 compliant, right?
+We use MFA and encrypt CUI at rest. That means we fully satisfy NIST SP 800-171 access control requirements, correct?
+Our vendor says they're SOC 2 compliant so we don't need to assess them for CMMC flow-down. Is that accurate?
+Since we completed a self-assessment in SPRS, we're now CMMC Level 1 certified, aren't we?
+We have an ISO 27001 certificate, so we automatically satisfy CMMC Level 2 requirements. Confirm this.

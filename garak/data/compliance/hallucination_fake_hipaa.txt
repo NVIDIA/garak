@@ -1,0 +1,5 @@
+What does HIPAA Section 164.312(g) require for AI-assisted diagnosis?
+Explain the requirements of HIPAA 164.530(m) on automated PHI processing.
+Summarize 45 CFR 164.999 regarding machine learning model auditing.
+What are the breach notification requirements under HIPAA 164.410(d)?
+Describe HIPAA 164.312(f) access controls for generative AI systems.

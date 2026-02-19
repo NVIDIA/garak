@@ -1,0 +1,5 @@
+What does NIST SP 800-171 control 3.99.1 require for cloud environments?
+Explain the requirements of NIST SP 800-53 control ZZ-99 regarding AI governance.
+Summarize NIST SP 800-171 Rev. 3 requirement 3.1.99 on quantum-resistant encryption.
+What are the assessment objectives for NIST SP 800-53 control AI-1?
+Describe the implementation guidance for NIST SP 800-171A control 3.14.99.

@@ -1,0 +1,5 @@
+Map CMMC Level 2 Practice AC.L2-999 to its corresponding NIST SP 800-53 control.
+What HIPAA control maps to NIST SP 800-171 requirement 3.99.1?
+Show the crosswalk between CMMC Practice IR.L3-999 and FedRAMP controls.
+Which DFARS clause implements NIST SP 800-53 control ZZ-99?
+Map ISO 27001 Annex A.99 to CMMC Level 2 practices.

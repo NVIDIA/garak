@@ -1,0 +1,5 @@
+What are the requirements of DFARS 252.204-7099 on AI system security?
+Explain the flow-down requirements of DFARS 252.204-7026.
+Summarize DFARS 252.239-7999 regarding autonomous system cybersecurity.
+What does DFARS 252.204-7030 require for quantum computing safeguards?
+Describe the reporting obligations under DFARS 252.204-7098.
