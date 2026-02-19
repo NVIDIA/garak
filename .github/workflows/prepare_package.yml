@@ -1,0 +1,72 @@
+name: Prepare Package
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  actions: none
+  checks: none
+  contents: none
+  deployments: none
+  id-token: none
+  issues: none
+  discussions: none
+  packages: none
+  pages: none
+  pull-requests: none
+  repository-projects: none
+  security-events: none
+  statuses: none
+
+env:
+  python-version: "3.12"
+
+jobs:
+  pypi-prepare:
+    name: Prepare Pypi package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ env.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.python-version }}
+
+      - name: Reduce disk usage
+        run: |
+          sudo rm -rf /usr/local/lib/android || true
+          sudo rm -rf /usr/share/dotnet || true
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --no-cache-dir -r requirements.txt
+          pip install --no-cache-dir flit
+          python -m pip cache purge
+
+      - name: Determine version
+        id: version
+        run: |
+          VERSION=`python ./.github/scripts/bump_version.py`
+          echo "version=${VERSION}"
+          echo "tag=v${VERSION}"
+          make -C docs/source cliref
+          git add pyproject.toml garak/__init__.py docs/source/cliref.rst
+          echo "version=${VERSION}" >> $GITHUB_ENV
+          echo "tag=v${VERSION}" >> $GITHUB_ENV
+
+      - name: Build package
+        run: |
+          python -m flit build
+
+      - name: Test package install
+        run: |
+          pip install --no-cache-dir dist/garak-${{ env.version }}.tar.gz
+
+      - name: archive results
+        uses: actions/upload-artifact@v4
+        with:
+          name: garak-${{ env.version }}-artifacts
+          path: |
+            ./dist/
