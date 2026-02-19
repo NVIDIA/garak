@@ -37,6 +37,33 @@ Module for code around calibrating garak (i.e. calculating bases for relative/Z-
    :show-inheritance:
 
 
+garak.analyze.check_report_integrity
+------------------------------------
+
+Conduct a variety of checks and tests to assess the integrity of a garak report.jsonl file
+
+Tests include:
+
+* ✔️ Version mismatch between report and garak 
+* ✔️ Report created using dev version of garak
+* ✔️ Current version of garak is dev version
+* ✔️ probe_spec matches probes used in attempts
+* ✔️ Each attempt status 1 has matching status 2
+* ✔️ Attempts have enough unique generations according to config
+* ✔️ Attempt run ID is in the setup run IDs
+* ✔️ Detection has correct cardinality in attempt status 2s
+* ✔️ Summary digest object is present
+* ✔️ At least one Z-score is listed
+* ✔️ Summary matches probes requested
+* ✔️ The run was completed
+* ✔️ The run is <6 months old (significant due to API, calibration freshness)
+* ✔️ There is at least one eval statement per probe
+* ✔️ Eval totals = num status 2 attempts
+* ✔️ Eval passed+failed+nones <= total prompts
+
+Invoke and see usage via command line via ``python -m garak.analyze.check_report_integrity``
+
+
 garak.analyze.count_tokens
 --------------------------
 
