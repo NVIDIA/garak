@@ -144,7 +144,7 @@ class Evaluator:
 
             ci_lower: Optional[float] = None
             ci_upper: Optional[float] = None
-            ci_method = getattr(_config.reporting, "confidence_interval_method", "")
+            ci_method = getattr(_config.reporting, "confidence_interval_method")
             min_sample_size = _config.reporting.bootstrap_min_sample_size
             if (
                 ci_method == "bootstrap"
