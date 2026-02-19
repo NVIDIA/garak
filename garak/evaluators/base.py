@@ -41,7 +41,7 @@ class Evaluator:
         if _config.system.show_z:
             self.calibration = garak.analyze.calibration.Calibration()
 
-        ci_method = getattr(_config.reporting, "confidence_interval_method", "")
+        ci_method = getattr(_config.reporting, "confidence_interval_method")
         if ci_method == "bootstrap":
             self.detector_metrics = (
                 garak.analyze.detector_metrics.get_detector_metrics()
