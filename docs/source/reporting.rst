@@ -18,6 +18,34 @@ Attempt-type entries have uuid and status fields.
 Status can be 0 (not sent to target), 1 (with target response but not evaluated), or 2 (with response and evaluation).
 Eval-type entries are added after each probe/detector pair completes, and list the results used to compute the score.
 
+Confidence Intervals (Optional)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Confidence intervals are disabled by default but can be enabled via the ``reporting.confidence_interval_method`` configuration parameter (see :doc:`configurable`). When enabled, eval entries may include bootstrap confidence intervals for attack success rates when sample size ≥ 30:
+
+* ``confidence``: Confidence level (e.g., "0.95")
+* ``confidence_lower``: Lower bound (0-1 scale)
+* ``confidence_upper``: Upper bound (0-1 scale)
+
+These intervals account for sampling uncertainty. When detector performance metrics (sensitivity/specificity) are available, they also account for detector imperfection. Otherwise, a perfect detector is assumed.
+
+Recalculating Confidence Intervals
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For reports created before CI support or to experiment with different parameters, use the ``--rebuild_cis`` command:
+
+.. code-block:: bash
+
+   garak --rebuild_cis path/to/garak.uuid.report.jsonl
+
+This reconstructs binary pass/fail outcomes from attempt records and recalculates CIs using current config settings. The report file is updated in-place with new CI values in eval entries.
+
+To override config defaults:
+
+.. code-block:: bash
+
+   garak --rebuild_cis report.jsonl --bootstrap_num_iterations 50000 --bootstrap_confidence_level 0.99
+
 Report HTML
 -----------
 
@@ -29,6 +57,9 @@ Runs are broken down into:
 3. detectors for each probe
 
 Results given are both absolute and relative.
+
+During console output, attack success rates may include confidence intervals displayed as: ``(attack success rate: 45.23% [40.50%, 50.30%])``.
+The bracketed values show the lower and upper bounds of the requested (default 95%) confidence interval as percentages, preserving the asymmetry of the bootstrap distribution.
 The relative ones are in terms of a Z-score computed against a set of recently tested other models and systems.
 For Z-scores, 0 is average, negative is worse, positive is better.
 Both absolute and relative scores are placed into one of five grades, ranging from 1 (worst) to 5 (best).

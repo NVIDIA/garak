@@ -6,14 +6,22 @@ These describe evaluators for assessing detector results.
 import json
 import logging
 from pathlib import Path
-from typing import Iterable, List
+
+from typing import Iterable, Optional, Tuple, List
 
 from colorama import Fore, Style
 
 from garak import _config
 import garak.attempt
 import garak.analyze.calibration
+import garak.analyze.detector_metrics
+from garak.analyze.bootstrap_ci import calculate_bootstrap_ci
 import garak.resources.theme
+
+
+# Minimum CI width (in percentage points) to display in output
+# CIs narrower than this provide no meaningful uncertainty information
+CI_DISPLAY_MIN_WIDTH = 0.001
 
 
 class Evaluator:
@@ -32,6 +40,14 @@ class Evaluator:
         self.probename = ""
         if _config.system.show_z:
             self.calibration = garak.analyze.calibration.Calibration()
+
+        ci_method = getattr(_config.reporting, "confidence_interval_method")
+        if ci_method == "bootstrap":
+            self.detector_metrics = (
+                garak.analyze.detector_metrics.get_detector_metrics()
+            )
+        else:
+            self.detector_metrics = None
 
     def test(self, test_value: float) -> bool:
         """Function for converting the detector result to a boolean, True=pass
@@ -75,7 +91,7 @@ class Evaluator:
                         nones += 1
                     elif self.test(float(score)):
                         passes += 1
-                    else:  # if we don't pass
+                    else:
                         fails += 1
                         messages.append(
                             attempt.outputs[idx]
@@ -126,27 +142,81 @@ class Evaluator:
             outputs_evaluated = passes + fails
             outputs_processed = passes + fails + nones
 
+            ci_lower: Optional[float] = None
+            ci_upper: Optional[float] = None
+            ci_method = getattr(_config.reporting, "confidence_interval_method")
+            min_sample_size = _config.reporting.bootstrap_min_sample_size
+            if (
+                ci_method == "bootstrap"
+                and outputs_evaluated >= min_sample_size
+            ):
+                # Construct individual results post-hoc (order doesn't matter for bootstrap resampling)
+                binary_outcomes = [1] * fails + [0] * passes
+                try:
+                    se, sp = self.detector_metrics.get_detector_se_sp(detector)
+                    ci_result = calculate_bootstrap_ci(
+                        results=binary_outcomes, sensitivity=se, specificity=sp
+                    )
+                    if ci_result is not None:
+                        ci_lower, ci_upper = ci_result
+                    else:
+                        logging.warning(
+                            "CI calculation returned None for %s (probe: %s, n=%d, Se=%.3f, Sp=%.3f)",
+                            detector,
+                            self.probename,
+                            outputs_evaluated,
+                            se,
+                            sp,
+                        )
+                except ValueError as e:
+                    logging.error(
+                        "CI calculation failed for %s (probe: %s, n=%d): %s",
+                        detector,
+                        self.probename,
+                        outputs_evaluated,
+                        str(e),
+                    )
+            elif ci_method == "bootstrap" and outputs_evaluated > 0:
+                if hasattr(_config.system, "verbose") and _config.system.verbose > 0:
+                    logging.debug(
+                        "Skipping CI calculation for %s (probe: %s): sample size n=%d < %d",
+                        detector,
+                        self.probename,
+                        outputs_evaluated,
+                        min_sample_size,
+                    )
+
             if _config.system.narrow_output:
                 print_func = self.print_results_narrow
             else:
                 print_func = self.print_results_wide
-            print_func(detector, passes, outputs_evaluated, messages)
+            print_func(
+                detector, passes, outputs_evaluated, messages, ci_lower, ci_upper
+            )
+
+            # Build eval record
+            eval_record = {
+                "entry_type": "eval",
+                "probe": self.probename,
+                "detector": detector,
+                "passed": passes,
+                "fails": fails,
+                "nones": nones,
+                "total_evaluated": outputs_evaluated,
+                "total_processed": outputs_processed,
+            }
+
+            # Add CI fields if calculation succeeded
+            if ci_lower is not None and ci_upper is not None:
+                eval_record["confidence_method"] = "bootstrap"
+                eval_record["confidence"] = (
+                    _config.reporting.bootstrap_confidence_level
+                )
+                eval_record["confidence_upper"] = ci_upper / 100
+                eval_record["confidence_lower"] = ci_lower / 100
 
             _config.transient.reportfile.write(
-                json.dumps(
-                    {
-                        "entry_type": "eval",
-                        "probe": self.probename,
-                        "detector": detector,
-                        "passed": passes,
-                        "fails": fails,
-                        "nones": nones,
-                        "total_evaluated": outputs_evaluated,
-                        "total_processed": outputs_processed,
-                    },
-                    ensure_ascii=False,
-                )
-                + "\n"
+                json.dumps(eval_record, ensure_ascii=False) + "\n"
             )
 
     def get_z_rating(self, probe_name, detector_name, asr_pct) -> str:
@@ -167,7 +237,13 @@ class Evaluator:
         return zscore, zrating_symbol
 
     def print_results_wide(
-        self, detector_name, passes, evals, messages: List | None = None
+        self,
+        detector_name,
+        passes,
+        evals,
+        messages: Optional[List] = None,
+        ci_lower: Optional[float] = None,
+        ci_upper: Optional[float] = None,
     ):
         """Print the evaluator's summary"""
 
@@ -198,8 +274,26 @@ class Evaluator:
             end="",
         )
         if evals and failrate > 0.0:
+            ci_text = ""
+            if ci_lower is not None and ci_upper is not None:
+                ci_width = abs(ci_upper - ci_lower)
+
+                # Warn about invalid ranges but still display (helps catch bugs)
+                if ci_lower > ci_upper:
+                    logging.warning(
+                        "Invalid CI range for %s / %s: [%.2f%%, %.2f%%] (lower > upper)",
+                        self.probename,
+                        detector_name,
+                        ci_lower,
+                        ci_upper,
+                    )
+
+                # Suppress zero-width CIs (no uncertainty information)
+                if ci_width > CI_DISPLAY_MIN_WIDTH:
+                    ci_text = f" [{ci_lower:.2f}%, {ci_upper:.2f}%]"
+
             print(
-                f"   ({Fore.LIGHTRED_EX}attack success rate:{Style.RESET_ALL} {failrate:6.2f}%)",
+                f"   ({Fore.LIGHTRED_EX}attack success rate:{Style.RESET_ALL} {failrate:6.2f}%{ci_text})",
                 end="",
             )
         if _config.system.show_z and zscore is not None:
@@ -216,7 +310,13 @@ class Evaluator:
                     pass
 
     def print_results_narrow(
-        self, detector_name, passes, evals, messages: List | None = None
+        self,
+        detector_name,
+        passes,
+        evals,
+        messages: Optional[List] = None,
+        ci_lower: Optional[float] = None,
+        ci_upper: Optional[float] = None,
     ):
         """Print the evaluator's summary"""
 
@@ -250,8 +350,26 @@ class Evaluator:
             f"  {Style.BRIGHT}{outcome}{Style.RESET_ALL} score {passes:>4}/{evals:>4} -- {short_detector_name:<20}"
         )
         if evals and failrate > 0.0:
+            ci_text = ""
+            if ci_lower is not None and ci_upper is not None:
+                ci_width = abs(ci_upper - ci_lower)
+
+                # Defensive: warn about invalid ranges but still display (helps catch bugs)
+                if ci_lower > ci_upper:
+                    logging.warning(
+                        "Invalid CI range for %s / %s: [%.2f%%, %.2f%%] (lower > upper)",
+                        self.probename,
+                        detector_name,
+                        ci_lower,
+                        ci_upper,
+                    )
+
+                # Suppress zero-width CIs (no uncertainty information)
+                if ci_width > CI_DISPLAY_MIN_WIDTH:
+                    ci_text = f" [{ci_lower:.2f}%, {ci_upper:.2f}%]"
+
             print(
-                f"    {Fore.LIGHTRED_EX}attack success rate:{Style.RESET_ALL} {failrate:6.2f}%",
+                f"    {Fore.LIGHTRED_EX}attack success rate:{Style.RESET_ALL} {failrate:6.2f}%{ci_text}",
                 end="",
             )
         if failrate > 0.0 and _config.system.show_z and zscore is not None:
