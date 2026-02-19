@@ -416,8 +416,8 @@ class WebSocketGenerator(Generator):
                 asyncio.set_event_loop(loop)
                 loop.run_until_complete(self.websocket.close())
                 loop.close()
-            except Exception:
-                pass  # Ignore cleanup errors
+            except Exception as e:
+                logger.warning("websocket teardown error", exc_info=e)
 
 
 DEFAULT_CLASS = "WebSocketGenerator"
