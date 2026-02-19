@@ -209,7 +209,7 @@ class Evaluator:
             # Add CI fields if calculation succeeded
             if ci_lower is not None and ci_upper is not None:
                 eval_record["confidence_method"] = "bootstrap"
-                eval_record["confidence"] = str(
+                eval_record["confidence"] = (
                     _config.reporting.bootstrap_confidence_level
                 )
                 eval_record["confidence_upper"] = ci_upper / 100
