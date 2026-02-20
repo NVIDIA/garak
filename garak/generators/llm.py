@@ -35,12 +35,12 @@ class LLMGenerator(Generator):
     """
 
     DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
-        "max_tokens": None,
         "top_p": None,
         "stop": [],
     }
 
     generator_family_name = "llm"
+    parallel_capable = False
 
     extra_dependency_names = ["llm"]
 
@@ -142,13 +142,16 @@ class LLMGenerator(Generator):
             if stop_value:
                 prompt_kwargs.setdefault("stop", stop_value)
 
-        try:
-            response = self.target.prompt(text_prompt, **prompt_kwargs)
-            out = response.text()
-            return [Message(out)]
-        except Exception as e:
-            logging.error("`llm` generation failed: %s", repr(e))
-            return [None]
+        outputs: List[Union[Message, None]] = []
+        for _ in range(generations_this_call):
+            try:
+                response = self.target.prompt(text_prompt, **prompt_kwargs)
+                out = response.text()
+                outputs.append(Message(out))
+            except Exception as e:
+                logging.error("`llm` generation failed: %s", repr(e))
+                outputs.append(None)
+        return outputs
 
 
 DEFAULT_CLASS = "LLMGenerator"

@@ -74,7 +74,7 @@ def test_generate_returns_message(cfg, fake_llm):
 
     prompt_text, kwargs = fake_llm.calls[0]
     assert prompt_text == test_txt
-    assert kwargs == {}  
+    assert kwargs == {"max_tokens": gen.max_tokens}
 
 
 def test_param_passthrough(cfg, fake_llm):
@@ -169,3 +169,16 @@ def test_skips_multiple_system_turns(cfg, fake_llm):
     out = gen._call_model(conv)
     assert out == [None]
     assert fake_llm.calls == []
+
+
+def test_multiple_generations(cfg, fake_llm):
+    """_call_model respects generations_this_call > 1."""
+    gen = LLMGenerator(name="alias", config_root=cfg)
+    conv = Conversation([Turn("user", Message(text="ping"))])
+    generations = 3
+    out = gen._call_model(conv, generations_this_call=generations)
+
+    assert len(out) == generations
+    assert all(isinstance(m, Message) for m in out)
+    assert all(m.text == "OK_FAKE" for m in out)
+    assert len(fake_llm.calls) == generations
