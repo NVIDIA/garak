@@ -224,6 +224,24 @@ def print_buffs():
     print_plugins("buffs", Fore.LIGHTGREEN_EX)
 
 
+def format_description_for_cli(text: str) -> str:
+    """Extract markdown links [text](url) and display URLs separately below description"""
+    import re
+    
+    link_pattern = r'\[([^\]]+)\]\(([^\)]+)\)'
+    
+    # Replace [text](url) with just text
+    formatted = re.sub(link_pattern, r'\1', text)
+    
+    # Extract URLs to show separately
+    matches = re.findall(link_pattern, text)
+    if matches:
+        for link_text, url in matches:
+            formatted += f"\n{'':>35}   {url}"
+    
+    return formatted
+
+
 # describe plugin
 def plugin_info(plugin_name):
     from garak._plugins import plugin_info
@@ -238,6 +256,9 @@ def plugin_info(plugin_name):
         for k, v in info.items():
             if k in priority_fields:
                 continue
+            # Format hit_desc and pass_desc to render markdown links
+            if k in ("hit_desc", "pass_desc") and isinstance(v, str):
+                v = format_description_for_cli(v)
             print(f"{k:>35}:", v)
     else:
         print(
