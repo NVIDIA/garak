@@ -14,7 +14,7 @@ role-playing, and other documented extraction methods.
 import json
 import logging
 import random
-from typing import List, Set
+from typing import List
 
 from garak import _config
 from garak.attempt import Conversation, Turn, Message
@@ -54,7 +54,7 @@ class SystemPromptExtraction(Probe):
 
     DEFAULT_PARAMS = Probe.DEFAULT_PARAMS | {
         "system_prompt_sources": [
-            # "garak-llm/drh-System-Prompt-Library",  # credit danielrosehill/System-Prompt-Library-030825
+            "garak-llm/drh-System-Prompt-Library",  # credit danielrosehill/System-Prompt-Library-030825
             "garak-llm/tm-system_prompt",  # credit teilomillet/system_prompt
         ],
         "system_prompt_subsample": 50,  # Maximum system prompts to test (for performance)
@@ -92,7 +92,7 @@ class SystemPromptExtraction(Probe):
         return prompts
 
     @staticmethod
-    def _load_system_prompt_datasets(dataset_names, subsample_size) -> Set[str]:
+    def _load_system_prompt_datasets(dataset_names, subsample_size) -> List[str]:
         """Load system prompts from configured sources"""
         system_prompts = set()
 

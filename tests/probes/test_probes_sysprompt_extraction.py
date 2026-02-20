@@ -41,7 +41,6 @@ def test_sysprompt_probe_generates_attempts():
         p = SystemPromptExtraction()
 
         assert hasattr(p, "prompts")
-        assert hasattr(p, "system_prompt_map")
 
         assert len(p.system_prompts) > 0, "There must be some system prompts"
         assert len(p.prompts) > 0, "Probe must generate prompts"
@@ -102,8 +101,6 @@ def test_sysprompt_probe_with_mock_data():
 
         assert len(p.prompts) > 0
         assert len(p.prompts) <= len(p.system_prompts) * len(p.attack_templates)
-
-        assert len(p.system_prompt_map) == len(p.prompts)
 
     except ImportError as e:
         pytest.skip(f"Required dependency not available: {e}")

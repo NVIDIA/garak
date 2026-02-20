@@ -145,8 +145,8 @@ def test_prompt_extraction_case_insensitive():
     a = Attempt(prompt=conv)
     a.outputs = [Message(text=SYSTEM_PROMPT.upper(), lang="en")]
 
-    result = d.detect(a, case_sensitive=False)
-    assert result[0] == 1.0, "Should detect with case-insensitive matching"
+    result = d.detect(a)
+    assert result[0] == 1.0, "Should detect with case-insensitive matching (default)"
 
 
 def test_prompt_extraction_mixed_content():
