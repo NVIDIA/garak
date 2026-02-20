@@ -97,13 +97,18 @@ class SystemPromptExtraction(Probe):
         system_prompts = set()
 
         for source in dataset_names:
-            prompts = SystemPromptExtraction._load_dataset_prompts(source)
-            system_prompts.update(prompts)
+            try:
+                prompts = SystemPromptExtraction._load_dataset_prompts(source)
+                system_prompts.update(prompts)
+            except Exception as e:
+                logging.warning(
+                    "Failed to load system prompt dataset %s: %s", source, e
+                )
 
         # Assembling combinations from larger datasets can be expensive
         # Limit to system_prompt_subsample
         if subsample_size is not None and len(system_prompts) > subsample_size:
-            system_prompts = random.sample(system_prompts, subsample_size)
+            system_prompts = random.sample(list(system_prompts), subsample_size)
 
         logging.info(
             f"Loaded {len(system_prompts)} system prompts for extraction testing"
