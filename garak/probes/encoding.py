@@ -475,6 +475,7 @@ class InjectAtbash(EncodingMixin, garak.probes.Probe):
     encoding_name = "Atbash"
     active = True
     doc_uri = "https://en.wikipedia.org/wiki/Atbash"
+    encoding_funcs = []
 
     @staticmethod
     def atbash(text: bytes) -> bytes:
@@ -488,9 +489,8 @@ class InjectAtbash(EncodingMixin, garak.probes.Probe):
                 out.append(ch)
         return "".join(out).encode("utf-8")
 
-    encoding_funcs = [atbash]
-
-    def __init__(self, config_root=None):
+    def __init__(self, config_root=_config):
+        self.encoding_funcs = [self.atbash]
         garak.probes.Probe.__init__(self, config_root=config_root)
         EncodingMixin.__init__(self)
 
