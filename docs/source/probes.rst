@@ -27,6 +27,7 @@ For a detailed oversight into how a probe operates, see :doc:`garak.probes.base`
    garak.probes.fileformats
    garak.probes.fitd
    garak.probes.glitch
+   garak.probes.goat
    garak.probes.goodside
    garak.probes.grandma
    garak.probes.latentinjection
