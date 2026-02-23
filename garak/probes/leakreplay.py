@@ -39,6 +39,7 @@ class ClozeProbeMixin:
         "owasp:llm06",
         "quality:Security:ExtractionInversion",
         "payload:leak:training",
+        "demon:Language:Stylizing:Give_examples",
     ]
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
 
@@ -109,6 +110,7 @@ class CompleteProbeMixin:
         "owasp:llm06",
         "quality:Security:ExtractionInversion",
         "payload:leak:training",
+        "demon:Language:Stylizing:Give_examples",
     ]
 
     def __init__(self, config_root=_config):

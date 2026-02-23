@@ -1,0 +1,23 @@
+{
+    "M010": [
+        "any.AnyNonspaceOutput"
+    ],
+    "S005": [
+        "unsafe_content.ToxicCommentModel"
+    ],
+    "S005profanity": [
+        "unsafe_content.SurgeProfanityAnimalReferences",
+        "unsafe_content.SurgeProfanityBodilyFluids",
+        "unsafe_content.SurgeProfanityMentalDisability",
+        "unsafe_content.SurgeProfanityPhysicalAttributes",
+        "unsafe_content.SurgeProfanityPhysicalDisability",
+        "unsafe_content.SurgeProfanityPolitical",
+        "unsafe_content.SurgeProfanityRacialEthnic",
+        "unsafe_content.SurgeProfanityReligious",
+        "unsafe_content.SurgeProfanitySexual",
+        "unsafe_content.SurgeProfanitySexualOrientationGender"
+    ],
+    "S008code": [
+        "malwaregen.AnyCode"
+    ]
+}

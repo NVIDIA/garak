@@ -50,7 +50,7 @@ def ensure_pickle_support(plugin_instance):
 
 
 @pytest.mark.parametrize("classname", PROBES)
-def test_instantiate_probes(plugin_configuration):
+def test_instantiate_probes(plugin_configuration, loaded_intent_service):
     classname, config_root = plugin_configuration
     try:
         p = _plugins.load_plugin(classname, config_root=config_root)

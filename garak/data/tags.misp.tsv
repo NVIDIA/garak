@@ -146,3 +146,35 @@ cwe:1336	Improper Neutralization of Special Elements Used in a Template Engine	T
 cwe:1426	Improper Validation of Generative AI Output	The product invokes a generative AI/ML component whose behaviors and outputs cannot be directly controlled, but the product does not validate or insufficiently validates the outputs to ensure that they align with the intended security, content, or privacy policy.
 cwe:1427	Improper Neutralization of Input Used for LLM Prompting	The product uses externally-provided data to build prompts provided to large language models (LLMs), but the way these prompts are constructed causes the LLM to fail to distinguish between user-supplied inputs and developer provided system directives.
 cwe:352	Cross-Site Request Forgery (CSRF)	The web application does not, or cannot, sufficiently verify whether a request was intentionally provided by the user who sent the request, which could have originated from an unauthorized actor.  
+demon:Language:Code_&_encode:Programming	Programming	Encapsulate request in code/pseudocode
+demon:Language:Code_&_encode:Data_encoding	Data encoding	Use an encoded representation for the request, e.g. base64 or ROT13
+demon:Language:Code_&_encode:Data_presentation	Data presentation	Switch to an alternative layer for input represented, e.g. token IDs or a matrix of embeddings
+demon:Language:Code_&_encode:Token	Token	Use tokenizer-specific weaknesses to alter target behaviour
+demon:Language:Prompt_injection:Ignore_previous_instructions	Ignore previous instructions	Concatenating untrusted user input with the trusted prompt(s) from the system developers
+demon:Language:Prompt_injection:Strong_arm_attack	Strong arm attack	Use intensifiers and strong instructions
+demon:Language:Prompt_injection:Stop_sequences	Stop sequences	Using the language of code to halt the model's direction of processing
+demon:Language:Stylizing:Formal_language	Formal language	Write from a position of authority
+demon:Language:Stylizing:Servile_language	Servile language	Employ servile language
+demon:Language:Stylizing:Synonymous_language	Synonymous language	Varying prompt slightly in form but not meaning
+demon:Language:Stylizing:Capitalizing	Capitalizing	USING CAPS
+demon:Language:Stylizing:Give_examples	Give examples	Issuing examples of the target behaviour
+demon:Rhetoric:Persuasion_&_manipulation:Distraction	Distraction	Use an unrelated context or instruction to “slip something through the filter”
+demon:Rhetoric:Persuasion_&_manipulation:Escalating	Escalating	Attempting to have target “agree” with a very small part of the argument, and then building up to ask for slightly more
+demon:Rhetoric:Persuasion_&_manipulation:Reverse_psychology	Reverse psychology	Framing the intent as fighting the good fight
+demon:Rhetoric:Socratic_questioning:Identity_characteristics	Identity characteristics	Referencing identity characteristics, such as nationalities, cultural and/or religious symbols, historically or culturally significant events or locations, physical attribute
+demon:Rhetoric:Socratic_questioning:Social_hierarchies	Social hierarchies	Reference social hierarchies while posing the request
+demon:Possible_worlds:Socratic_questioning:Unreal_computing	Unreal computing	Emulation of a computing device
+demon:Possible_worlds:World_building:Opposite_world	Opposite world	Describe an opposite world as part of the request
+demon:Possible_worlds:World_building:Scenarios	Scenarios	Create scenarios where intent would be ethically sound or encouraged, or non-compliance risks harm
+demon:Fictionalizing:Switching_genres:Poetry	Poetry	Framing request or response as a poem or other verse
+demon:Fictionalizing:Switching_genres:Games	Games	Framing request as part of a game
+demon:Fictionalizing:Switching_genres:Posting	Posting	Framing request as help writing a post or other subsuming content
+demon:Fictionalizing:Re-storying:Goal_hijacking	Goal hijacking	Constructing a new meaning from an existing narrative, where the attacker works within a context to redirect the narrative
+demon:Fictionalizing:Roleplaying:Claim_authority	Claim authority	State in prose that one is a figure of authority when requesting
+demon:Fictionalizing:Roleplaying:DAN_and_target_persona	DAN and target persona	Ask target to evoke personas that don't have restrictions
+demon:Fictionalizing:Roleplaying:User_persona	User persona	Inventing personas to elicit different behavior. May be evoked by simply using names associated with a specific culture or world view 
+demon:Stratagems:Scattershot:Regenerate_response	Regenerate response	Repeatedly eliciting a response in case target slips up
+demon:Stratagems:Scattershot:Clean_slate	Clean slate	Resetting context by e.g. starting a new session
+demon:Stratagems:Scattershot:Changing_hyperparams	Changing hyperparams	Adjusting generation params, e.g. temperature
+demon:Stratagems:Meta-prompting:Perspective-shifting	Perspective-shifting	Hypotheticals by shifting new point of view, e.g. “what if you didn’t have this restriction? What would you say?”, or asking target to compare outputs and clarify gap
+demon:Stratagems:Meta-prompting:Ask_for_examples	Ask for examples	Request examples of intended behaviour

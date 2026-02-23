@@ -8,16 +8,26 @@ import pytest
 
 import garak._config
 
-# import garak.intents.base
+from garak.exception import GarakException
 
 nltk.download("punkt_tab")
 cas_data_path = garak._config.transient.package_dir / "data" / "cas"
 
 
 def test_load_intentservice():
-    import garak.intentservice
+    import garak.services.intentservice
 
-    garak.intentservice.load()
+    garak._config.load_config()
+    garak.services.intentservice.load()
+
+
+def test_intentservice_reject_load():
+    import garak.services.intentservice
+
+    garak._config.is_loaded = False
+    assert (
+        garak.services.intentservice.enabled() == False
+    ), "intent service must return disabled if config is not loaded"
 
 
 INVALID_INTENTS = ["X", "c", "C1", "C0001", "CC001", "C001HELLO"]
@@ -25,43 +35,36 @@ INVALID_INTENTS = ["X", "c", "C1", "C0001", "CC001", "C001HELLO"]
 
 @pytest.mark.parametrize("invalid_intent", INVALID_INTENTS)
 def test_invalid_intents_rejected(invalid_intent):
-    import garak.intentservice
+    import garak.services.intentservice
 
     with pytest.raises(ValueError) as excinfo:
-        s = garak.intentservice.get_intent_stubs(invalid_intent)
+        s = garak.services.intentservice.get_intent_stubs(invalid_intent)
     assert str(excinfo.value).startswith("Not a valid")
 
 
-def test_no_extra_text_intents_in_core():
-    text_stubs_path = cas_data_path / "intent_stubs"
-    for child in text_stubs_path.iterdir():
-        if child.name == "README.md":
-            continue
-        assert child.suffix == ".txt", "intent stub files must be .txt"
-
-
 def test_no_spurious_text_intents():
-    import garak.intentservice
+    import garak.services.intentservice
 
-    garak.intentservice.load()
+    garak._config.load_config()
+    garak.services.intentservice.load()
 
     text_stubs_path = cas_data_path / "intent_stubs"
     for child in text_stubs_path.iterdir():
         if child.name == "README.md":
             continue
         intent_code = child.stem.split("_")[0]
-        assert intent_code in garak.intentservice.intents, (
+        assert intent_code in garak.services.intentservice.intent_typology, (
             "Text stub file code %s not in typology" % child
         )
 
 
 @pytest.mark.skip(reason="nltk.pos_tag returns too many false negatives")
 def test_typology_intents_start_verb():
-    import garak.intentservice
+    import garak.services.intentservice
 
-    garak.intentservice.load()
-    for intent in garak.intentservice.intents:
-        text_intents = garak.intentservice._get_stubs_typology(intent)
+    garak.services.intentservice.load()
+    for intent in garak.services.intentservice.intent_typology:
+        text_intents = garak.services.intentservice._get_stubs_typology(intent)
         for text_intent in text_intents:
             tags = nltk.pos_tag(nltk.word_tokenize(text_intent))
             assert (
@@ -72,35 +75,21 @@ def test_typology_intents_start_verb():
             )
 
 
-def test_text_intents_match_typology():
-    import garak.intentservice
-
-    garak.intentservice.load()
-
-    text_stubs_path = cas_data_path / "intent_stubs"
-    for child in text_stubs_path.iterdir():
-        if child.name == "README.md":
-            continue
-        child_without_extn = child.stem
-        assert child_without_extn in garak.intentservice.intents, (
-            "Intent file %s does not match an available intent" % child
-        )
-
-
 INTENT_MODULES = [
     module.name.replace(".py", "")
     for module in (garak._config.transient.package_dir / "intents").iterdir()
-    if module.name not in ("base.py", "__pycache__")
+    if module.name not in ("base.py", "__pycache__", "__init__.py")
 ]
 
 
 @pytest.mark.parametrize("intent_module", INTENT_MODULES)
 def test_code_intent_structure(intent_module):
-    import garak.intentservice
+    import garak.services.intentservice
 
-    garak.intentservice.load()
+    garak._config.load_config()
+    garak.services.intentservice.load()
 
-    assert intent_module in garak.intentservice.intents, (
+    assert intent_module in garak.services.intentservice.intent_typology, (
         "Module '%s' not described in intent service typology" % intent_module
     )
 

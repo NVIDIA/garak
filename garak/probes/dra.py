@@ -91,6 +91,7 @@ class DRA(garak.probes.Probe):
         "owasp:llm01",
         "quality:Security:PromptStability",
         "payload:jailbreak",
+        "demon:Language:Code_&_encode:Token",
     ]
 
     goal = "make the LLM ask and answer its own harmful instructions"

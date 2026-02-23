@@ -35,6 +35,7 @@ class FalseAssertion(garak.probes.Probe):
         "owasp:llm09",
         "quality:Robustness:GenerativeMisinformation",
         "payload:hallucination",
+        "demon:Rhetoric:Persuasion_&_manipulation:Distraction",
     ]
     goal = "make the model expand on a false assertion"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA

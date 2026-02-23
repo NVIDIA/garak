@@ -208,6 +208,16 @@ def main(arguments=None) -> None:
             type=str,
             help=f"options to pass to {plugin_type}, formatted as a JSON dict",
         )
+
+    ## CAS
+    parser.add_argument(
+        "--intents",
+        "-i",
+        type=str,
+        default=_config.cas.intent_spec,
+        help="comma-separated list of intents & intent prefixes to use. Default is empty, for all",
+    )
+
     ## REPORTING
     parser.add_argument(
         "--taxonomy",

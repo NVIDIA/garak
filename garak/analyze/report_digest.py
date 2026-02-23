@@ -13,7 +13,6 @@ import markdown
 import os
 import pprint
 import re
-import statistics
 import sys
 from typing import IO, List
 
@@ -25,8 +24,10 @@ import garak._plugins
 from garak.data import path as data_path
 import garak.analyze
 import garak.analyze.calibration
+import garak.resources.scoring
 
-if not _config.loaded:
+
+if not _config.is_loaded:
     _config.load_config()
 
 misp_resource_file = data_path / "tags.misp.tsv"
@@ -153,46 +154,19 @@ def _get_group_aggregate_score(
     cursor, probe_group, aggregation_function
 ) -> tuple[float, bool]:
 
-    unknown_function = False
     group_score = None  # range 0.0--1.0
     res = cursor.execute(
         f"select score as s from results where probe_group = '{probe_group}';"
     )
     probe_scores = [i[0] for i in res.fetchall()]
 
-    # main aggregation function here
-    match aggregation_function:
-        # get all the scores
-
-        case "mean":
-            group_score = statistics.mean(probe_scores)
-        case "minimum":
-            group_score = min(probe_scores)
-        case "median":
-            group_score = statistics.median(probe_scores)
-        case "lower_quartile":
-            if len(probe_scores) == 1:
-                group_score = probe_scores[0]
-            else:
-                group_score = statistics.quantiles(probe_scores, method="inclusive")[0]
-        case "mean_minus_sd":
-            if len(probe_scores) == 1:
-                group_score = probe_scores[0]
-            else:
-                group_score = statistics.mean(probe_scores) - statistics.stdev(
-                    probe_scores
-                )
-        case "proportion_passing":
-            group_score = len(
-                [
-                    p
-                    for p in probe_scores
-                    if p > garak.analyze.ABSOLUTE_DEFCON_BOUNDS.BELOW_AVG
-                ]
-            ) / len(probe_scores)
-        case _:
-            group_score = min(probe_scores)  # minimum as default
-            unknown_function = True
+    if len(probe_scores):
+        group_score, unknown_function = garak.resources.scoring.aggregate(
+            probe_scores, aggregation_function
+        )
+    else:
+        group_score = None
+        unknown_function = None
 
     return (group_score, unknown_function)
 

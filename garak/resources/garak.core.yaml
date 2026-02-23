@@ -18,6 +18,12 @@ run:
   user_agent: "garak/{version} (LLM vulnerability scanner https://garak.ai)"
   soft_probe_prompt_cap: 256
 
+cas:
+  intent_spec: S
+  expand_intent_tree: True
+  trust_code_stubs: False
+  serve_detectorless_intents: False
+
 plugins:
   target_type:
   target_name:
