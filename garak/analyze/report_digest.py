@@ -17,7 +17,6 @@ import statistics
 import sys
 from typing import IO, List
 
-import jinja2
 import sqlite3
 
 import garak
@@ -27,23 +26,8 @@ from garak.data import path as data_path
 import garak.analyze
 import garak.analyze.calibration
 
-
 if not _config.loaded:
     _config.load_config()
-
-templateLoader = jinja2.FileSystemLoader(
-    searchpath=_config.transient.package_dir / "analyze" / "templates"
-)
-templateEnv = jinja2.Environment(loader=templateLoader)
-
-header_template = templateEnv.get_template("digest_header.jinja")
-footer_template = templateEnv.get_template("digest_footer.jinja")
-group_template = templateEnv.get_template("digest_group.jinja")
-probe_template = templateEnv.get_template("digest_probe.jinja")
-detector_template = templateEnv.get_template("digest_detector.jinja")
-end_module = templateEnv.get_template("digest_end_module.jinja")
-about_z_template = templateEnv.get_template("digest_about_z.jinja")
-
 
 misp_resource_file = data_path / "tags.misp.tsv"
 tag_descriptions = {}
@@ -52,19 +36,6 @@ if os.path.isfile(misp_resource_file):
         for line in f:
             key, title, descr = line.strip().split("\t")
             tag_descriptions[key] = (title, descr)
-
-
-def map_absolute_score(score: float) -> int:
-    """assign a defcon class (i.e. 1-5, 1=worst) to a %age score 0.0-100.0"""
-    if score < garak.analyze.ABSOLUTE_DEFCON_BOUNDS.TERRIBLE:
-        return 1
-    if score < garak.analyze.ABSOLUTE_DEFCON_BOUNDS.BELOW_AVG:
-        return 2
-    if score < garak.analyze.ABSOLUTE_DEFCON_BOUNDS.ABOVE_AVG:
-        return 3
-    if score < garak.analyze.ABSOLUTE_DEFCON_BOUNDS.EXCELLENT:
-        return 4
-    return 5
 
 
 def plugin_docstring_to_description(docstring):
@@ -131,7 +102,8 @@ def _init_populate_result_db(evals, taxonomy=None):
         probe_class VARCHAR(255) not null,
         detector VARCHAR(255) not null, 
         score FLOAT not null,
-        instances INT not null
+        instances INT not null,
+        passes INT not null
     );"""
 
     cursor.execute(create_table)
@@ -140,8 +112,9 @@ def _init_populate_result_db(evals, taxonomy=None):
         eval["probe"] = eval["probe"].replace("probes.", "")
         pm, pc = eval["probe"].split(".")
         detector = eval["detector"].replace("detector.", "")
-        score = eval["passed"] / eval["total"] if eval["total"] else 0
-        instances = eval["total"]
+        passes = eval["passed"]
+        instances = eval["total_evaluated"]
+        score = passes / instances if instances else 0
         groups = []
         if taxonomy is not None:
             # get the probe tags
@@ -156,7 +129,7 @@ def _init_populate_result_db(evals, taxonomy=None):
         # add a row for each group
         for group in groups:
             cursor.execute(
-                f"insert into results values ('{pm}', '{group}', '{pc}', '{detector}', '{score}', '{instances}')"
+                f"insert into results values ('{pm}', '{group}', '{pc}', '{detector}', '{score}', '{instances}', '{passes}')"
             )
 
     return conn, cursor
@@ -247,7 +220,9 @@ def _get_group_info(probe_group, group_score, taxonomy, config=_config) -> dict:
     group_info = {
         "group": probe_group_name,
         "score": group_score,
-        "group_defcon": map_absolute_score(group_score),
+        "group_defcon": garak.analyze.score_to_defcon(
+            group_score, garak.analyze.ABSOLUTE_DEFCON_BOUNDS
+        ),
         "doc": group_doc,
         "group_link": group_link,
         "group_aggregation_function": config.reporting.group_aggregation_function,
@@ -271,7 +246,9 @@ def _get_probe_info(probe_module, probe_class, absolute_score) -> dict:
     return {
         "probe_name": probe_plugin_name,
         "probe_score": absolute_score,
-        "probe_severity": map_absolute_score(absolute_score),
+        "probe_severity": garak.analyze.score_to_defcon(
+            absolute_score, garak.analyze.ABSOLUTE_DEFCON_BOUNDS
+        ),
         "probe_descr": html.escape(probe_description),
         "probe_tier": probe_plugin_info["tier"],
         "probe_tags": probe_tags,
@@ -309,13 +286,23 @@ def _get_probe_detector_details(
         relative_score = "n/a"
 
     else:
-        relative_defcon, relative_comment = calibration.defcon_and_comment(zscore)
         relative_score = float(zscore)
+        relative_defcon = garak.analyze.score_to_defcon(
+            relative_score, garak.analyze.RELATIVE_DEFCON_BOUNDS
+        )
         calibration_used = True
 
-    absolute_defcon = map_absolute_score(absolute_score)
-    if absolute_score == 1.0:
+    absolute_defcon = garak.analyze.score_to_defcon(
+        absolute_score, garak.analyze.ABSOLUTE_DEFCON_BOUNDS
+    )
+
+    if absolute_score == 1.0:  # clean sheet locks relative score interpretation to best
         relative_defcon, absolute_defcon = 5, 5
+
+    absolute_comment = garak.analyze.ABSOLUTE_COMMENT[absolute_defcon]
+    if relative_defcon is not None:
+        relative_comment = garak.analyze.RELATIVE_COMMENT[relative_defcon]
+
     if probe_tier == 1:
         detector_defcon = (
             min(absolute_defcon, relative_defcon)
@@ -330,7 +317,7 @@ def _get_probe_detector_details(
         "detector_descr": html.escape(detector_description),
         "absolute_score": absolute_score,
         "absolute_defcon": absolute_defcon,
-        "absolute_comment": garak.analyze.ABSOLUTE_COMMENT[absolute_defcon],
+        "absolute_comment": absolute_comment,
         "relative_score": relative_score,
         "relative_defcon": relative_defcon,
         "relative_comment": relative_comment,
@@ -413,6 +400,7 @@ def build_digest(report_filename: str, config=_config):
             probe_info = _get_probe_info(
                 probe_module, probe_class, group_absolute_score
             )
+
             report_digest["eval"][probe_group][f"{probe_module}.{probe_class}"][
                 "_summary"
             ] = probe_info
@@ -427,6 +415,15 @@ def build_digest(report_filename: str, config=_config):
                     calibration,
                     probe_info["probe_tier"],
                 )
+
+                # add counts for detector (using original field names from eval records)
+                det_counts = cursor.execute(
+                    "select instances, passes from results where probe_module=? and probe_class=? and detector=? and probe_group=? limit 1;",
+                    (probe_module, probe_class, detector, probe_group),
+                ).fetchone()
+                if det_counts:
+                    probe_detector_result["total_evaluated"] = det_counts[0]
+                    probe_detector_result["passed"] = det_counts[1]
 
                 report_digest["eval"][probe_group][f"{probe_module}.{probe_class}"][
                     detector
@@ -445,62 +442,27 @@ def build_digest(report_filename: str, config=_config):
     return report_digest
 
 
-def build_html(digest: dict, config=_config):
-    # taxonomy = config.reporting.taxonomy
-    # group_aggregation_function = config.reporting.group_aggregation_function
+def build_html(digest: dict, config=_config) -> str:
+    # Read the template HTML
+    template_path = os.path.join(os.path.dirname(__file__), "ui", "index.html")
+    if not os.path.exists(template_path):
+        print(f"❌ Template file not found: {template_path}", file=sys.stderr)
+        return json.dumps(digest, indent=2)  # fallback: just dump JSON
 
-    html_report_content = ""
+    with open(template_path, "r", encoding="utf-8") as template_file:
+        content = template_file.read()
 
-    header_content = digest["meta"]
-    header_content["setup"] = pprint.pformat(
-        header_content["setup"], sort_dicts=True, width=60
-    )
-    header_content["now"] = datetime.datetime.now().isoformat()
-    html_report_content += header_template.render(header_content)
+    if "__GARAK_INSERT_HERE__" not in content:
+        print(
+            "❌ Marker __GARAK_INSERT_HERE__ not found in template HTML",
+            file=sys.stderr,
+        )
+        return json.dumps(digest, indent=2)  # fallback: just dump JSON
 
-    group_names = digest["eval"].keys()
-    for probe_group in group_names:
-        group_info = digest["eval"][probe_group]["_summary"]
-
-        group_info["unrecognised_aggregation_function"] = digest["meta"][
-            "aggregation_unknown"
-        ]
-        group_info["show_top_group_score"] = config.reporting.show_top_group_score
-
-        html_report_content += group_template.render(group_info)
-
-        if group_info["score"] < 1.0 or config.reporting.show_100_pass_modules:
-            for probe_name in digest["eval"][probe_group].keys():
-                if probe_name == "_summary":
-                    continue
-                probe_info = digest["eval"][probe_group][probe_name]["_summary"]
-                html_report_content += probe_template.render(probe_info)
-
-                detector_names = digest["eval"][probe_group][probe_name].keys()
-                for detector_name in detector_names:
-                    if detector_name == "_summary":
-                        continue
-
-                    probe_detector_result = digest["eval"][probe_group][probe_name][
-                        detector_name
-                    ]
-
-                    if (
-                        probe_detector_result["absolute_score"] < 1.0
-                        or config.reporting.show_100_pass_modules
-                    ):
-                        html_report_content += detector_template.render(
-                            probe_detector_result
-                        )
-
-        html_report_content += end_module.render()
-
-    if digest["meta"]["calibration_used"]:
-        html_report_content += about_z_template.render(digest["meta"]["calibration"])
-
-    html_report_content += footer_template.render()
-
-    return html_report_content
+    # Embed digest JSON inside the template
+    digest_json = json.dumps([digest], separators=(",", ":"))
+    final_html = content.replace("__GARAK_INSERT_HERE__", digest_json)
+    return final_html
 
 
 def _get_report_digest(report_path):

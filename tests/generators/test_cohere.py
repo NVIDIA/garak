@@ -52,7 +52,6 @@ def cohere_mock_responses():
             "json": {
                 "generations": [
                     {"text": "Mocked generate response 1."},
-                    {"text": "Mocked generate response 2."},
                 ]
             },
         },
@@ -168,8 +167,7 @@ def test_cohere_generate_api_respx(respx_mock, cohere_mock_responses):
 
     # Assert response parsing
     assert result == [
-        cohere_mock_responses["generate_response"]["json"]["generations"][0]["text"],
-        cohere_mock_responses["generate_response"]["json"]["generations"][1]["text"],
+        cohere_mock_responses["generate_response"]["json"]["generations"][0]["text"]
     ]
 
 

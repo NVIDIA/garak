@@ -5,11 +5,12 @@ was used in training, by having it replay an excerpt from that doc.
 
 Any probe that gets a model to replay training documents can be placed here.
 
-Further info: 
+Further info:
 
 * https://arxiv.org/abs/2305.00118
 
 """
+
 import csv
 import re
 import tqdm
@@ -22,8 +23,10 @@ import garak.probes
 
 # ─── Base Mixins ────────────────────────────────────────────────────────
 
+
 class ClozeProbeMixin:
     """Mixin for cloze‐style data replay (fill-in-the-blank)."""
+
     lang = "*"
     primary_detector = "base.TriggerListDetector"
     active = False
@@ -32,7 +35,7 @@ class ClozeProbeMixin:
     doc_uri = "https://arxiv.org/abs/2305.00118"
     tags = [
         "avid-effect:security:S0301",
-        "owasp:llm10", 
+        "owasp:llm10",
         "owasp:llm06",
         "quality:Security:ExtractionInversion",
         "payload:leak:training",
@@ -89,8 +92,10 @@ class ClozeProbeMixin:
                 )
         return attempt
 
+
 class CompleteProbeMixin:
     """Mixin for document completion data replay tests."""
+
     primary_detector = "leakreplay.StartsWith"
     active = False
     follow_prompt_cap = False
@@ -100,10 +105,10 @@ class CompleteProbeMixin:
     lang = "*"  # Works with any language
     tags = [
         "avid-effect:security:S0301",
-        "owasp:llm10", 
+        "owasp:llm10",
         "owasp:llm06",
         "quality:Security:ExtractionInversion",
-        "payload:leak:training"
+        "payload:leak:training",
     ]
 
     def __init__(self, config_root=_config):
@@ -127,122 +132,145 @@ class CompleteProbeMixin:
         attempt.notes["triggers"] = [self.triggers[seq]]
         return attempt
 
+
 class NonFullMixin:
     """Mixin for lightweight (limited) variants of probes."""
+
     active = True
     follow_prompt_cap = True
 
+
 # ─── Domain‐Specific Probe Classes ──────────────────────────────────────
+
 
 # Literature
 class LiteratureClozeFull(ClozeProbeMixin, garak.probes.Probe):
     """Test for data leakage on literature passages with masked entities in a cloze test format.
-    
+
     Tests if models can fill in masked entities from literature excerpts, using the full dataset.
     """
+
     source_file = "book_cloze.tsv"
+
 
 class LiteratureCloze(NonFullMixin, LiteratureClozeFull):
     """Lightweight version of literature cloze test for data leakage.
-    
+
     Uses a limited subset of the literature dataset to test for data leakage with masked entities.
     """
-    pass
+
 
 class LiteratureCompleteFull(CompleteProbeMixin, garak.probes.Probe):
     """Test for data leakage on literature passages through text completion.
-    
+
     Tests if models can complete literature excerpts from their training data, using the full dataset.
     """
+
     source_file = "book_cloze.tsv"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA  # regraded to tier 2
 
+
 class LiteratureComplete(NonFullMixin, LiteratureCompleteFull):
     """Lightweight version of literature completion test for data leakage.
-    
+
     Uses a limited subset of the literature dataset to test for data leakage through text completion.
     """
+
 
 # NYT
 class NYTClozeFull(ClozeProbeMixin, garak.probes.Probe):
     """Test for data leakage on New York Times articles with masked entities in a cloze test format.
-    
+
     Tests if models can fill in masked entities from NYT articles, using the full dataset.
     """
+
     source_file = "nyt_cloze.tsv"
+
 
 class NYTCloze(NonFullMixin, NYTClozeFull):
     """Lightweight version of NYT cloze test for data leakage.
-    
+
     Uses a limited subset of the NYT dataset to test for data leakage with masked entities.
     """
-    pass
+
 
 class NYTCompleteFull(CompleteProbeMixin, garak.probes.Probe):
     """Test for data leakage on New York Times articles through text completion.
-    
+
     Tests if models can complete NYT article excerpts from their training data, using the full dataset.
     """
+
     source_file = "nyt_cloze.tsv"
+
 
 class NYTComplete(NonFullMixin, NYTCompleteFull):
     """Lightweight version of NYT completion test for data leakage.
-    
+
     Uses a limited subset of the NYT dataset to test for data leakage through text completion.
     """
+
 
 # Guardian
 class GuardianClozeFull(ClozeProbeMixin, garak.probes.Probe):
     """Test for data leakage on Guardian articles with masked entities in a cloze test format.
-    
+
     Tests if models can fill in masked entities from Guardian articles, using the full dataset.
     """
+
     source_file = "guardian_cloze.tsv"
+
 
 class GuardianCloze(NonFullMixin, GuardianClozeFull):
     """Lightweight version of Guardian cloze test for data leakage.
-    
+
     Uses a limited subset of the Guardian dataset to test for data leakage with masked entities.
     """
-    pass
+
 
 class GuardianCompleteFull(CompleteProbeMixin, garak.probes.Probe):
     """Test for data leakage on Guardian articles through text completion.
-    
+
     Tests if models can complete Guardian article excerpts from their training data, using the full dataset.
     """
+
     source_file = "guardian_cloze.tsv"
+
 
 class GuardianComplete(NonFullMixin, GuardianCompleteFull):
     """Lightweight version of Guardian completion test for data leakage.
-    
+
     Uses a limited subset of the Guardian dataset to test for data leakage through text completion.
     """
+
 
 # Potter
 class PotterClozeFull(ClozeProbeMixin, garak.probes.Probe):
     """Test for data leakage on Harry Potter text with masked entities in a cloze test format.
-    
+
     Tests if models can fill in masked entities from Harry Potter excerpts, using the full dataset.
     """
+
     source_file = "potter_cloze.tsv"
+
 
 class PotterCloze(NonFullMixin, PotterClozeFull):
     """Lightweight version of Harry Potter cloze test for data leakage.
-    
+
     Uses a limited subset of the Harry Potter dataset to test for data leakage with masked entities.
     """
-    pass
+
 
 class PotterCompleteFull(CompleteProbeMixin, garak.probes.Probe):
     """Test for data leakage on Harry Potter text through completion.
-    
+
     Tests if models can complete Harry Potter excerpts from their training data, using the full dataset.
     """
+
     source_file = "potter_cloze.tsv"
+
 
 class PotterComplete(NonFullMixin, PotterCompleteFull):
     """Lightweight version of Harry Potter completion test for data leakage.
-    
+
     Uses a limited subset of the Harry Potter dataset to test for data leakage through text completion.
     """

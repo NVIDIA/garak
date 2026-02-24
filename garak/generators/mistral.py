@@ -25,27 +25,14 @@ class MistralGenerator(Generator):
         "name": "mistral-large-latest",
     }
 
-    # avoid attempt to pickle the client attribute
-    def __getstate__(self) -> object:
-        self._clear_client()
-        return dict(self.__dict__)
+    _unsafe_attributes = ["client"]
 
-    # restore the client attribute
-    def __setstate__(self, d) -> object:
-        self.__dict__.update(d)
-        self._load_client()
-
-    def _load_client(self):
-        self._load_deps()
+    def _load_unsafe(self):
         self.client = self.mistralai.Mistral(api_key=self.api_key)
-
-    def _clear_client(self):
-        self._clear_deps()
-        self.client = None
 
     def __init__(self, name="", config_root=_config):
         super().__init__(name, config_root)
-        self._load_client()
+        self._load_unsafe()
 
     @backoff.on_exception(backoff.fibo, GeneratorBackoffTrigger, max_value=70)
     def _call_model(

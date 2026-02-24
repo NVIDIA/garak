@@ -5,7 +5,6 @@ import os
 import pytest
 import importlib
 
-
 # TODO: expand this when all `parallel_capable` generators can be evaluated
 # GENERATORS = [
 #     classname

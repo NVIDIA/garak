@@ -4,7 +4,7 @@
 import datetime
 
 project = "garak"
-copyright = f"2023-{datetime.datetime.now().year}, NVIDIA Corporation"
+copyright = f"2023-{datetime.datetime.now().year}, NVIDIA Corporation. Content provided under Apache License 2.0."
 author = "Leon Derczynski"
 
 # -- General configuration

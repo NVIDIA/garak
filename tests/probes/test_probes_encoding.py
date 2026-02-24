@@ -74,12 +74,16 @@ def test_encoding_suppress_prompt_cap(classname):
     p = _plugins.load_plugin(classname, config_root=instance_config)
     assert len(p.prompts) >= rand_cap
 
-@pytest.mark.parametrize("plain, expected", [
-    ("abc", "zyx"),                       
-    ("ABC", "ZYX"),                       
-    ("Hello, World!", "Svool, Dliow!"),   
-    ("1234!?", "1234!?"),                 
-])
+
+@pytest.mark.parametrize(
+    "plain, expected",
+    [
+        ("abc", "zyx"),
+        ("ABC", "ZYX"),
+        ("Hello, World!", "Svool, Dliow!"),
+        ("1234!?", "1234!?"),
+    ],
+)
 def test_atbash_function(plain, expected):
     # Tests all 4 cases of Atbash Encoding
     # Uppercase, Lowercase, Mixed case, and Numbers/Special characters.

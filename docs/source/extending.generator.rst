@@ -305,7 +305,7 @@ Done!
 
 Congratulations - you've written a garak plugin!
 
-If it's all tested and working, then it's time to send the code. You should first run ``black`` to format your code in the standard that the garak repository expects (Python 3.10 style, 88 columns). Then, push your work to your github fork, and finally, send us a pull request - and we'll take it from there!
+If it's all tested and working, then it's time to send the code. You should first run ``black --config pyproject.toml <your updated files>`` to format your code in the standard that the garak repository expects (Python 3.10 style, 88 columns). Then, push your work to your github fork, and finally, send us a pull request - and we'll take it from there!
 
 
 Advanced: Modalities
