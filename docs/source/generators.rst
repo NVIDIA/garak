@@ -18,6 +18,7 @@ For a detailed oversight into how a generator operates, see :doc:`garak.generato
    garak.generators.groq
    garak.generators.guardrails
    garak.generators.huggingface
+   garak.generators.inference_api
    garak.generators.langchain
    garak.generators.langchain_serve
    garak.generators.litellm
