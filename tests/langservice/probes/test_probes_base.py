@@ -11,6 +11,7 @@ from garak.attempt import Message, Attempt, Conversation
 
 
 NON_PROMPT_PROBES = [
+    "probes.agent_breaker.AgentBreaker",
     "probes.dan.AutoDAN",
     "probes.tap.TAP",
     "probes.suffix.BEAST",

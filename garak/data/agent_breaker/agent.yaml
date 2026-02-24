@@ -1,0 +1,16 @@
+# Agent Breaker - Target Agent Configuration
+#
+# Describe the target agent's purpose and tools here.
+# All fields are optional: if omitted, the probe will auto-discover
+# the agent's purpose and tools by querying it directly.
+#
+# Example:
+#
+# agent_purpose: |
+#   A customer support assistant that helps users manage their accounts.
+#
+# tools:
+#   - name: database_query
+#     description: Query the user database to look up account information.
+#   - name: email_sender
+#     description: Send emails to users on behalf of the support team.
