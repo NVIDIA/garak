@@ -1,0 +1,62 @@
+name: Prepare Release
+
+on: [workflow_dispatch]
+
+permissions:
+  actions: none
+  checks: none
+  contents: none
+  deployments: none
+  id-token: none
+  issues: none
+  discussions: none
+  packages: none
+  pages: none
+  pull-requests: none
+  repository-projects: none
+  security-events: none
+  statuses: none
+
+env:
+  python-version: "3.12"
+
+jobs:
+  verify-branch-state:
+    name: Validate direct merge to Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          # forcing full checkout for branch access
+      - name: Set up Python ${{ env.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.python-version }}
+      - name: Check for clean merge
+        run: |
+          git checkout release
+          # verify this is a fast-forward only merge
+          git merge --ff-only ${{ github.ref_name }}
+
+  linux:
+    name: Test Linux
+    if: github.repository_owner == 'NVIDIA' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/test_linux.yml
+  windows:
+    name: Test Windows
+    if: github.repository_owner == 'NVIDIA' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/test_windows.yml
+  macos:
+    name: Test MacOS
+    if: github.repository_owner == 'NVIDIA' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/test_macos.yml
+  package_test:
+    name: Test Git Packaging
+    if: github.repository_owner == 'NVIDIA' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/remote_package_install.yml
+
+  release-prepare:
+    name: Prepare package
+    uses: ./.github/workflows/prepare_package.yml
+    needs: [verify-branch-state, linux, windows, macos, package_test]
