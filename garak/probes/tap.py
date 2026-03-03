@@ -469,9 +469,10 @@ class TAPIntent(garak.probes.IntentProbe):
                 if tap_outputs:
                     # Build attempts for this stub
                     for prompt in tap_outputs:
+                        # notes["stub"] is already set to the correct TextStub by
+                        # _attempt_prestore_hook (called inside _mint_attempt);
+                        # do not overwrite it with a raw string from self.prompts.
                         attempt = self._mint_attempt(prompt, seq)
-                        attempt.notes = dict(attempt.notes) if attempt.notes else {}
-                        attempt.notes["stub"] = stub
                         all_attempts.append(attempt)
 
             except Exception as e:
