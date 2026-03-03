@@ -17,6 +17,7 @@ For a detailed oversight into how a probe operates, see :doc:`garak.probes.base`
    garak.probes.audio
    garak.probes.av_spam_scanning
    garak.probes.continuation
+   garak.probes.custom
    garak.probes.dan
    garak.probes.divergence
    garak.probes.doctor

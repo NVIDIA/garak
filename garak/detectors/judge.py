@@ -84,13 +84,11 @@ class ModelAsJudge(Detector, EvaluationJudge):
     def detect(self, attempt: Attempt) -> List[float | None]:
         results = []
         if not hasattr(self, "system_prompt_judge"):
-            probe_info = _plugins.plugin_info(f"probes.{attempt.probe_classname}")
-            # when no detector goal is provided inject the probe goal
-            detector_goal = (
-                self.detector_goal
-                if self.detector_goal is not None
-                else probe_info["goal"]
-            )
+            if self.detector_goal is not None:
+                detector_goal = self.detector_goal
+            else:
+                detector_goal = attempt.goal
+            
             self.system_prompt_judge = self._goal_system_prompt.format(
                 goal=detector_goal
             )
