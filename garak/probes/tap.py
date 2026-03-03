@@ -470,11 +470,11 @@ class TAPIntent(garak.probes.IntentProbe):
                 )
 
                 if tap_outputs:
-                    # Build attempts for this stub
+                    # Build attempts for this stub. _mint_attempt runs the
+                    # IntentProbe prestore hook, which stamps the originating
+                    # intent (self.prompt_intents[seq]) onto the attempt.
                     for prompt in tap_outputs:
                         attempt = self._mint_attempt(prompt, seq)
-                        attempt.notes = dict(attempt.notes) if attempt.notes else {}
-                        attempt.notes["stub"] = stub
                         all_attempts.append(attempt)
 
             except Exception as e:
