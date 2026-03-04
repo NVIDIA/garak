@@ -7,7 +7,8 @@ Look at files associated with the target for potentially vulnerable items.
 
 Probes in this module should examine files associated with the target, rather than inference.
 
-The probes check in the model background for file types that may have known weaknesses."""
+The probes check in the model background for file types that may have known weaknesses.
+"""
 
 import logging
 from typing import Iterable

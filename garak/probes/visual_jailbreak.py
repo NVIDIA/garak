@@ -23,7 +23,7 @@ import requests
 import tqdm
 
 from garak import _config
-from garak.attempt import Message, Conversation
+from garak.attempt import Message
 import garak.probes
 from garak.data import path as data_path
 from garak.generators.base import Generator

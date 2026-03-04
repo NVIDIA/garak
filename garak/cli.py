@@ -135,7 +135,7 @@ def main(arguments=None) -> None:
         help="number of generations per prompt",
     )
     parser.add_argument(
-        "--config", type=str, default=None, help="YAML config file for this run"
+        "--config", type=str, default=None, help="YAML or JSON config file for this run"
     )
 
     ## PLUGINS
@@ -266,11 +266,6 @@ def main(arguments=None) -> None:
         action="store_true",
         help="Enter interactive probing mode",
     )
-    parser.add_argument(
-        "--generate_autodan",
-        action="store_true",
-        help="generate AutoDAN prompts; requires --prompt_options with JSON containing a prompt and target",
-    )
 
     parser.add_argument(
         "--fix",
@@ -298,7 +293,12 @@ def main(arguments=None) -> None:
     # load site config before loading CLI config
     _cli_config_supplied = args.config is not None
     prior_user_agents = _config.get_http_lib_agents()
-    _config.load_config(run_config_filename=args.config)
+    try:
+        _config.load_config(run_config_filename=args.config)
+    except FileNotFoundError as e:
+        logging.exception(e)
+        print(f"❌{e}")
+        exit(1)
 
     # extract what was actually passed on CLI; use a masking argparser
     aux_parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
@@ -606,19 +606,6 @@ def main(arguments=None) -> None:
                     f"This run can be sped up 🥳 Generator '{generator.fullname}' supports parallelism! Consider using `--parallel_attempts 16` (or more) to greatly accelerate your run. 🐌",
                     logging=logging,
                 )
-
-            if "generate_autodan" in args and args.generate_autodan:
-                from garak.resources.autodan import autodan_generate
-
-                try:
-                    prompt = _config.probe_options["prompt"]
-                    target = _config.probe_options["target"]
-                except Exception as e:
-                    print(
-                        "AutoDAN generation requires --probe_options with a .json containing a `prompt` and `target` "
-                        "string"
-                    )
-                autodan_generate(generator=generator, prompt=prompt, target=target)
 
             command.start_run()  # start the run now that all config validation is complete
             print(f"📜 reporting to {_config.transient.report_filename}")

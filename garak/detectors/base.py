@@ -24,13 +24,13 @@ class Detector(Configurable):
     lang_spec: str = (
         None  # language this is for. format: a comma-separated list of BCP47 tags, or "*"
     )
-    precision = 0.0
-    recall = 0.0
-    accuracy = None
     active: bool = True
     tags = []  # list of taxonomy categories per the MISP format
+
     # list of strings naming modules required but not explicitly in garak by default
     extra_dependency_names = []
+    hit_desc = "Detector identified matching indicators of risk"  # description when detector scores a hit
+    pass_desc = "Detector found no issue"  # description when detector passes
 
     # support mainstream any-to-any large models
     # legal element for str list `modality['in']`: 'text', 'image', 'audio', 'video', '3d'
@@ -68,6 +68,7 @@ class Detector(Configurable):
             )
 
         logging.info(f"detector init: {self}")
+        self._load_deps()
 
     def detect(self, attempt: garak.attempt.Attempt) -> Iterable[float | None]:
         """Takes a list of Attempts; classifies them; returns a list of results
@@ -111,9 +112,18 @@ class HFDetector(Detector, HFCompatible):
         orig_loglevel = transformers_logging.get_verbosity()
         transformers_logging.set_verbosity_error()
 
+        # disable huggingface attempts to open PRs in public sources
+        disable_env_key = "DISABLE_SAFETENSORS_CONVERSION"
+        stored_env = os.getenv(disable_env_key, default=None)
+        os.environ[disable_env_key] = "true"
+
         model_kwargs = self._gather_hf_params(
             hf_constructor=AutoConfig.from_pretrained
         )  # will defer to device_map if device map was `auto` may not match self.device
+        generation_params = self._gather_generation_params()
+        for param in generation_params.keys():
+            if param in model_kwargs.keys():
+                model_kwargs.pop(param)
 
         self.config = AutoConfig.from_pretrained(
             self.detector_model_path, **model_kwargs
@@ -132,6 +142,13 @@ class HFDetector(Detector, HFCompatible):
             tokenizer=self.detector_tokenizer,
             device=self.device,
         )
+        for k, v in generation_params.items():
+            setattr(self.detector.generation_config, k, v)
+
+        if stored_env:
+            os.environ[disable_env_key] = stored_env
+        else:
+            del os.environ[disable_env_key]
 
         transformers_logging.set_verbosity(orig_loglevel)
 
@@ -181,15 +198,14 @@ class StringDetector(Detector):
 
     DEFAULT_PARAMS = Detector.DEFAULT_PARAMS | {
         "matchtype": "str",  # "str" or "word"
+        "case_sensitive": False,
     }
 
     def __init__(self, substrings, config_root=_config):
         super().__init__(config_root=config_root)
         self.substrings = substrings
 
-    def detect(
-        self, attempt: garak.attempt.Attempt, case_sensitive=False
-    ) -> Iterable[float | None]:
+    def detect(self, attempt: garak.attempt.Attempt) -> Iterable[float | None]:
         detector_results = []
         all_outputs = attempt.outputs_for(self.lang_spec)
 
@@ -200,7 +216,7 @@ class StringDetector(Detector):
                 continue
             match = False
             for s in self.substrings:
-                if not case_sensitive:
+                if not self.case_sensitive:
                     s, output_text = s.lower(), output_text.lower()
 
                 if self.matchtype == "str":
@@ -224,9 +240,9 @@ class StringDetector(Detector):
 class TriggerListDetector(Detector):
     """Subclass of Detector using attempt's notes[triggers] as list of strings to match"""
 
-    def detect(
-        self, attempt: garak.attempt.Attempt, case_sensitive=False
-    ) -> Iterable[float | None]:
+    DEFAULT_PARAMS = Detector.DEFAULT_PARAMS | {"case_sensitive": False}
+
+    def detect(self, attempt: garak.attempt.Attempt) -> Iterable[float | None]:
         detector_results = []
         all_outputs = attempt.outputs_for(self.lang_spec)
 
@@ -240,7 +256,7 @@ class TriggerListDetector(Detector):
                     continue  # trigger is absent
                 match = False
                 for trigger in triggers:
-                    if case_sensitive:
+                    if self.case_sensitive:
                         if trigger in output.text:
                             match = True
                     else:
@@ -256,7 +272,7 @@ class FileDetector(Detector):
 
     valid_format = "local filename"
 
-    def _test_file(self, filename: str) -> Union[None, str]:
+    def _test_file(self, filename: str) -> Union[None, float]:
         raise NotImplementedError
 
     def detect(self, attempt: garak.attempt.Attempt) -> Iterable[float | None]:

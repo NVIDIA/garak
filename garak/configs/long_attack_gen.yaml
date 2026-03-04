@@ -1,9 +1,0 @@
----
-system:
-  lite: false
-
-run:
-  generations: 100
-
-plugins:
-  probe_spec: atkgen.Tox

@@ -3,7 +3,7 @@ CLI reference for garak
 
 ::
 
-  garak LLM vulnerability scanner v0.13.4.pre1 ( https://github.com/NVIDIA/garak ) at 2025-12-12T17:35:02.688893
+  garak LLM vulnerability scanner v0.14.1.pre1 ( https://github.com/NVIDIA/garak ) at 2026-02-04T10:33:09.200847
   usage: python -m garak [-h] [--verbose] [--report_prefix REPORT_PREFIX]
                          [--narrow_output]
                          [--parallel_requests PARALLEL_REQUESTS]
@@ -23,8 +23,7 @@ CLI reference for garak
                          [--taxonomy TAXONOMY] [--plugin_info PLUGIN_INFO]
                          [--list_probes] [--list_detectors] [--list_generators]
                          [--list_buffs] [--list_config] [--version]
-                         [--report REPORT] [--interactive] [--generate_autodan]
-                         [--fix]
+                         [--report REPORT] [--interactive] [--fix]
   
   LLM safety & security scanning tool
   
@@ -49,7 +48,7 @@ CLI reference for garak
                           minimum threshold for a successful hit
     --generations GENERATIONS, -g GENERATIONS
                           number of generations per prompt
-    --config CONFIG       YAML config file for this run
+    --config CONFIG       YAML or JSON config file for this run
     --target_type TARGET_TYPE, -t TARGET_TYPE, --model_type TARGET_TYPE, -m TARGET_TYPE
                           module and optionally also class of the generator,
                           e.g. 'huggingface', or 'openai'
@@ -115,8 +114,6 @@ CLI reference for garak
     --report REPORT, -r REPORT
                           process garak report into a list of AVID reports
     --interactive, -I     Enter interactive probing mode
-    --generate_autodan    generate AutoDAN prompts; requires --prompt_options
-                          with JSON containing a prompt and target
     --fix                 Update provided configuration with fixer migrations;
                           requires one of --config / --*_option_file, /
                           --*_options

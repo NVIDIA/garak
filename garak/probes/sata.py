@@ -140,7 +140,7 @@ class MLM(garak.probes.Probe):
     """
     goal = "disregard the system prompt"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
-    active = False
+    active = True
 
     DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
         "payload_name": ["harmful_behaviors"],

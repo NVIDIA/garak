@@ -15,7 +15,6 @@ from typing import List, Callable, Union
 from pathlib import Path
 
 from garak import _config
-from garak.configurable import Configurable
 from garak.exception import GarakException, ConfigFailure
 
 PLUGIN_TYPES = ("probes", "detectors", "generators", "harnesses", "buffs")
@@ -44,13 +43,34 @@ class PluginCache:
     _user_plugin_cache_filename = (
         _config.transient.cache_dir / "resources" / "plugin_cache.json"
     )
+    _detector_metrics_filename = (
+        _config.transient.package_dir
+        / "data"
+        / "detectors-eval"
+        / "detector_metrics_summary.json"
+    )
     _plugin_cache_dict = None
+    _detector_metrics_cache = None
 
     _mutex = Lock()
 
     def __init__(self) -> None:
         if PluginCache._plugin_cache_dict is None:
             PluginCache._plugin_cache_dict = self._load_plugin_cache()
+
+    @staticmethod
+    def _get_detector_metrics():
+        if PluginCache._detector_metrics_cache is None:
+            if os.path.exists(PluginCache._detector_metrics_filename):
+                with open(
+                    PluginCache._detector_metrics_filename, "r", encoding="utf-8"
+                ) as f:
+                    PluginCache._detector_metrics_cache = json.load(f).get(
+                        "results", {}
+                    )
+            else:
+                PluginCache._detector_metrics_cache = {}
+        return PluginCache._detector_metrics_cache
 
     @staticmethod
     def _extract_modules_klasses(base_klass):
@@ -299,6 +319,16 @@ class PluginCache:
         )
         plugin_metadata["mod_time"] = mod_time.strftime(TIME_FORMAT)
 
+        # merge detector metrics if available
+        if category == "detectors":
+            metrics_key = plugin_name.replace("detectors.", "", 1)
+            detector_metrics = PluginCache._get_detector_metrics().get(metrics_key, {})
+            if detector_metrics:
+                metrics = detector_metrics.get("metrics", {})
+                for field in ("hit_precision", "hit_recall", "hit_f1"):
+                    if field in metrics:
+                        plugin_metadata[field] = metrics[field]
+
         return plugin_metadata
 
 
@@ -451,43 +481,3 @@ def load_plugin(path, break_on_fail=True, config_root=_config) -> object:
             return False
 
     return plugin_instance
-
-
-def _import_failed(absent_modules: [str], calling_module: str):
-    quoted_module_list = "'" + "', '".join(absent_modules) + "'"
-    module_list = " ".join(absent_modules)
-    msg = f"⛔ Plugin '{calling_module}' requires Python modules which aren't installed/available: {quoted_module_list}"
-    hint = f"💡 Try 'pip install {module_list}' to get missing module."
-    logging.critical(msg)
-    print(msg + "\n" + hint)
-    raise ModuleNotFoundError(msg)
-
-
-def _load_deps(plugin_instance: Configurable, deps_override=list()):
-    # load external dependencies. should be invoked at construction and
-    # in _client_load (if used)
-    dep_names = (
-        deps_override if deps_override else plugin_instance.extra_dependency_names
-    )
-    for extra_dependency in dep_names:
-        extra_dep_name = extra_dependency.replace(".", "_").replace("-", "_")
-        if (
-            not hasattr(plugin_instance, extra_dep_name)
-            or getattr(plugin_instance, extra_dep_name) is None
-        ):
-            try:
-                setattr(
-                    plugin_instance,
-                    extra_dep_name,
-                    importlib.import_module(extra_dependency),
-                )
-            except ModuleNotFoundError as e:
-                _import_failed(plugin_instance.extra_dependency_names, plugin_instance.__class__.__name__)
-
-
-def _clear_deps(plugin_instance: Configurable):
-    # unload external dependencies from class. should be invoked before
-    # serialisation, esp. in _clear_client (if used)
-    for extra_dependency in plugin_instance.extra_dependency_names:
-        extra_dep_name = extra_dependency.replace(".", "_").replace("-", "_")
-        setattr(plugin_instance, extra_dep_name, None)

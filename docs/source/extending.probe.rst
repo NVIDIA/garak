@@ -225,5 +225,5 @@ Done!
 
 Congratulations on writing a probe for garak!
 
-If you've tested your probe and validated that it works, run ``black`` to format your code in accordance with garak code standards.
+If you've tested your probe and validated that it works, run ``black --config pyproject.toml <your updated files>`` to format your code in accordance with garak code standards.
 Once your code is properly tested and formatted, push your work to your github fork and open a pull request -- thanks for your contribution!

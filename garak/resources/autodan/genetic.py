@@ -12,10 +12,13 @@ from collections import defaultdict, OrderedDict
 import sys
 import time
 from logging import getLogger
-from typing import Tuple
+from typing import Tuple, Optional, List, Union
 
+import garak.generators
 from garak.resources.api import nltk
 from garak.resources.autodan.model_utils import AutoDanPrefixManager, forward
+from garak.generators.huggingface import Model, Pipeline
+from garak.attempt import Conversation, Turn, Message
 
 logger = getLogger(__name__)
 
@@ -30,6 +33,29 @@ except LookupError as e:
     nltk.download("punkt")
     nltk.download("wordnet")
 
+# This feels pretty unsustainable.
+MODEL_NAMES = {
+    "llama2",
+    "meta",
+    "vicuna",
+    "lmsys",
+    "guanaco",
+    "theblokeai",
+    "wizardlm",
+    "mpt-chat",
+    "mosaicml",
+    "mpt-instruct",
+    "falcon",
+    "tii",
+    "chatgpt",
+    "modelkeeper",
+    "prompt",
+    "nemotron",
+    "mixtral",
+    "mistral",
+    "gemma",
+}
+
 
 # TODO: Could probably clean up the inputs here by using imports.
 def autodan_ga(
@@ -37,11 +63,11 @@ def autodan_ga(
     score_list: list,
     num_elites: int,
     batch_size: int,
-    crossover_rate=0.5,
-    num_points=5,
-    mutation=0.01,
-    if_softmax=True,
-    mutation_generator=None,
+    crossover_rate: float = 0.5,
+    num_points: int = 5,
+    mutation: float = 0.01,
+    if_softmax: bool = True,
+    mutation_generator: garak.generators.Generator = None,
 ) -> list:
     """Genetic algorithm for creating AutoDAN samples.
 
@@ -92,14 +118,14 @@ def autodan_ga(
 
 
 def autodan_hga(
-    word_dict,
-    control_prefixes,
-    score_list,
-    num_elites,
-    batch_size,
-    crossover_rate=0.5,
-    mutation_rate=0.01,
-    mutation_generator=None,
+    word_dict: dict,
+    control_prefixes: list[str],
+    score_list: list[float],
+    num_elites: int,
+    batch_size: int,
+    crossover_rate: float = 0.5,
+    mutation_rate: float = 0.01,
+    mutation_generator: garak.generators.Generator = None,
 ) -> Tuple[list, dict]:
     """Hierarchical genetic algorithm for AutoDAN sample generation
 
@@ -144,7 +170,7 @@ def autodan_hga(
 
 
 def roulette_wheel_selection(
-    data_list: list, score_list: list, num_selected: int, if_softmax=True
+    data_list: list, score_list: list, num_selected: int, if_softmax: bool = True
 ) -> list:
     """Roulette wheel selection for multipoint crossover policy
 
@@ -158,7 +184,7 @@ def roulette_wheel_selection(
         A list of `num_selected` strings from `data_list`, weighted by score.
     """
     if if_softmax:
-        selection_probs = np.exp(score_list - np.max(score_list))
+        selection_probs = np.exp(np.array(score_list) - np.max(score_list))
         selection_probs = selection_probs / selection_probs.sum()
     else:
         total_score = sum(score_list)
@@ -173,10 +199,10 @@ def roulette_wheel_selection(
 
 def apply_crossover_and_mutation(
     selected_data: list,
-    crossover_probability=0.5,
-    num_points=3,
-    mutation_rate=0.01,
-    mutation_generator=None,
+    crossover_probability: float = 0.5,
+    num_points: int = 3,
+    mutation_rate: float = 0.01,
+    mutation_generator: garak.generators.Generator = None,
 ) -> list:
     """Perform crossover and mutation on selected parents.
 
@@ -259,10 +285,11 @@ def crossover(str1: str, str2: str, num_points: int) -> Tuple[str, str]:
     return " ".join(new_str1), " ".join(new_str2)
 
 
-def gpt_mutate(mutation_generator, sentence: str) -> str:
+def gpt_mutate(mutation_generator: garak.generators.Generator, sentence: str) -> str:
     """Call OpenAI API to mutate input sentences
 
     Args:
+        mutation_generator: generator to perform mutation
         sentence (str): Sentence to be mutated
 
     Returns:
@@ -278,14 +305,16 @@ def gpt_mutate(mutation_generator, sentence: str) -> str:
     while not received:
         try:
             # TODO: Make the model configurable.
-            response = mutation_generator.generate(
-                prompt=[
-                    {"role": "system", "content": system_msg},
-                    {"role": "user", "content": user_message},
+            conv = Conversation(
+                turns=[
+                    Turn(role="system", content=Message(text=system_msg)),
+                    Turn(role="user", content=Message(text=user_message)),
                 ]
             )
-            revised_sentence = response[0].replace("\n", "")
-            received = True
+            response = mutation_generator.generate(prompt=conv)[0]
+            if response and response.text:
+                revised_sentence = response.text.replace("\n", "")
+                received = True
         except Exception as e:
             logger.error(e)
             error = sys.exc_info()[0]
@@ -310,7 +339,10 @@ def gpt_mutate(mutation_generator, sentence: str) -> str:
 
 
 def apply_gpt_mutation(
-    offspring: list, mutation_rate=0.01, reference: list = None, mutation_generator=None
+    offspring: list,
+    mutation_rate: float = 0.01,
+    reference: list = None,
+    mutation_generator: garak.generators.Generator = None,
 ) -> list:
     # TODO: Allow for use of local models in lieu of OpenAI
     """Use OpenAI or reference corpus to apply mutation.
@@ -340,7 +372,7 @@ def apply_gpt_mutation(
     return offspring
 
 
-def replace_with_synonyms(sentence: str, num=10) -> str:
+def replace_with_synonyms(sentence: str, num: int = 10) -> str:
     """Function to replace words in sentences with synonyms.
 
     Args:
@@ -350,29 +382,12 @@ def replace_with_synonyms(sentence: str, num=10) -> str:
     Returns:
         String of input sentence with synonym replacements.
     """
-    model_names = {
-        "llama2",
-        "meta",
-        "vicuna",
-        "lmsys",
-        "guanaco",
-        "theblokeai",
-        "wizardlm",
-        "mpt-chat",
-        "mosaicml",
-        "mpt-instruct",
-        "falcon",
-        "tii",
-        "chatgpt",
-        "modelkeeper",
-        "prompt",
-    }
     stop_words = set(stopwords.words("english"))
     words = nltk.word_tokenize(sentence)
     uncommon_words = [
         word
         for word in words
-        if word.lower() not in stop_words and word.lower() not in model_names
+        if word.lower() not in stop_words and word.lower() not in MODEL_NAMES
     ]
     selected_words = random.sample(uncommon_words, min(num, len(uncommon_words)))
     for word in selected_words:
@@ -384,7 +399,7 @@ def replace_with_synonyms(sentence: str, num=10) -> str:
 
 
 def construct_momentum_word_dict(
-    word_dict: dict, control_suffixes: list, score_list: list, top_k=30
+    word_dict: dict, control_suffixes: list, score_list: list, top_k: int = 30
 ) -> dict:
     """Construct word-level score dictionary
 
@@ -397,23 +412,6 @@ def construct_momentum_word_dict(
     Returns:
         Dictionary of top_k words, according to score.
     """
-    model_names = {
-        "llama2",
-        "meta",
-        "vicuna",
-        "lmsys",
-        "guanaco",
-        "theblokeai",
-        "wizardlm",
-        "mpt-chat",
-        "mosaicml",
-        "mpt-instruct",
-        "falcon",
-        "tii",
-        "chatgpt",
-        "modelkeeper",
-        "prompt",
-    }
     stop_words = set(stopwords.words("english"))
     if len(control_suffixes) != len(score_list):
         raise ValueError("control_suffixs and score_list must have the same length.")
@@ -425,7 +423,7 @@ def construct_momentum_word_dict(
             [
                 word
                 for word in nltk.word_tokenize(suffix)
-                if word.lower() not in stop_words and word.lower() not in model_names
+                if word.lower() not in stop_words and word.lower() not in MODEL_NAMES
             ]
         )
         for word in words:
@@ -497,26 +495,9 @@ def replace_with_best_synonym(
         Sentence with words replaced
     """
     stop_words = set(stopwords.words("english"))
-    model_names = {
-        "llama2",
-        "meta",
-        "vicuna",
-        "lmsys",
-        "guanaco",
-        "theblokeai",
-        "wizardlm",
-        "mpt-chat",
-        "mosaicml",
-        "mpt-instruct",
-        "falcon",
-        "tii",
-        "chatgpt",
-        "modelkeeper",
-        "prompt",
-    }
     words = nltk.word_tokenize(sentence)
     for i, word in enumerate(words):
-        if word.lower() not in stop_words and word.lower() not in model_names:
+        if word.lower() not in stop_words and word.lower() not in MODEL_NAMES:
             if random.random() < replace_rate:
                 synonyms = get_synonyms(word)
                 word_scores = {syn: word_dict.get(syn, 0) for syn in synonyms}
@@ -564,86 +545,78 @@ def join_words_with_punctuation(words: list) -> str:
 
 
 def get_score_autodan(
-    generator,
-    conv_template,
-    instruction,
-    target,
-    test_controls=None,
-    crit=None,
-    low_memory=False,
-):
+    generator: Pipeline | Model,
+    instruction: str,
+    target: str,
+    test_controls: Optional[List[str]] = None,
+    system_prompt: Optional[str] = None,
+) -> list[float]:
     """Get AutoDAN score for the instruction
 
     Args:
-        generator (garak.generators.huggingface.Model): Generator for model
-        conv_template (Conversation): Conversation template for the model
+        generator (Pipeline | Model): Generator for model
         instruction (str): Instruction to be given to the model
         target (str): Target output
         test_controls (list): List of test jailbreak strings
-        crit (torch.nn.Loss): Loss function for the generator
+        system_prompt (str): Optional system prompt
 
     Returns:
-        Torch tensor of losses
+        list of loss values.
     """
     # Convert all test_controls to token ids and find the max length
-    losses = []
-    input_ids_list = []
-    target_slices = []
+    losses = list()
+    input_ids_list = list()
+    target_slices = list()
+    attn_masks = list()
     device = generator.device
+    if type(generator) is Pipeline:
+        model = generator.generator.model
+    elif isinstance(generator, Model):
+        model = generator.model
+    else:
+        msg = f"Expected Pipeline or Model but got {type(generator)}"
+        logger.critical("autodan.genetic.get_score_autodan(): " + msg)
+        raise TypeError(msg)
     for item in test_controls:
         prefix_manager = AutoDanPrefixManager(
             generator=generator,
-            conv_template=conv_template,
             instruction=instruction,
             target=target,
             adv_string=item,
+            system_prompt=system_prompt,
         )
-        input_ids = prefix_manager.get_input_ids(adv_string=item).to(device)
-        if not low_memory:
-            input_ids_list.append(input_ids)
-            target_slices.append(prefix_manager._target_slice)
-
-            # Pad all token ids to the max length
-            pad_tok = 0
-            for ids in input_ids_list:
-                while pad_tok in ids:
-                    pad_tok += 1
-
-            # Find the maximum length of input_ids in the list
-            max_input_length = max([ids.size(0) for ids in input_ids_list])
-
-            # Pad each input_ids tensor to the maximum length
-            padded_input_ids_list = []
-            for ids in input_ids_list:
-                pad_length = max_input_length - ids.size(0)
-                padded_ids = torch.cat(
-                    [ids, torch.full((pad_length,), pad_tok, device=device)], dim=0
-                )
-                padded_input_ids_list.append(padded_ids)
-
-            # Stack the padded input_ids tensors
-            input_ids = torch.stack(padded_input_ids_list, dim=0)
-
-            attn_mask = (input_ids != pad_tok).type(input_ids.dtype)
-
-        else:
-            target_slices = prefix_manager._target_slice
+        input_ids, attention_mask = prefix_manager.get_input_ids(adv_string=item)
+        input_ids_list.append(input_ids)
+        attn_masks.append(attention_mask)
+        target_slices.append(prefix_manager.target_ids)
 
     # Forward pass and compute loss
-    logits = forward(
-        generator=generator,
-        input_ids=input_ids,
-        attention_mask=attn_mask,
-        batch_size=len(test_controls),
-    )
+    for input_ids, target_ids, attn_mask in zip(
+        input_ids_list, target_slices, attn_masks
+    ):
+        with torch.no_grad():
+            logits = forward(
+                model=model,
+                input_ids=input_ids,
+                attention_mask=attn_mask,
+                batch_size=len(test_controls),
+            )
 
-    for idx, target_slice in enumerate(target_slices):
-        loss_slice = slice(target_slice.start - 1, target_slice.stop - 1)
-        logits_slice = logits[idx, loss_slice, :].unsqueeze(0).transpose(1, 2)
-        targets = input_ids[idx, loss_slice].unsqueeze(0)
-        loss = crit(logits_slice, targets)
-        losses.append(loss)
+            shift = input_ids.shape[1] - target_ids.shape[1]
+            shift_logits = logits[..., shift - 1 : -1, :].contiguous()
+            shift_labels = target_ids
 
-    del input_ids_list, target_slices, input_ids, attn_mask
+            loss = (
+                torch.nn.functional.cross_entropy(
+                    shift_logits.view(-1, shift_logits.size(-1)),
+                    shift_labels.view(-1),
+                    reduction="none",
+                )
+                .view(-1)
+                .mean(dim=-1)
+            )
+            losses.append(loss.item())
+
+    del input_ids_list, target_slices, attn_masks, input_ids, attn_mask, target_ids
     gc.collect()
-    return torch.stack(losses)
+    return losses

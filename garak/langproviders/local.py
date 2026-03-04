@@ -4,7 +4,6 @@
 
 """Local language providers & translators."""
 
-
 from typing import List, Callable
 
 from garak.exception import BadGeneratorException
@@ -58,6 +57,13 @@ class LocalHFTranslator(LangProvider, HFCompatible):
         super().__init__(config_root=config_root)
 
     def _load_langprovider(self):
+        import os
+
+        # disable huggingface attempts to open PRs in public sources
+        disable_env_key = "DISABLE_SAFETENSORS_CONVERSION"
+        stored_env = os.getenv(disable_env_key, default=None)
+        os.environ[disable_env_key] = "true"
+
         if "m2m100" in self.model_name:
             from transformers import M2M100ForConditionalGeneration, M2M100Tokenizer
 
@@ -108,6 +114,11 @@ class LocalHFTranslator(LangProvider, HFCompatible):
             model_name = self.model_name.format(model_suffix)
             self.model = MarianMTModel.from_pretrained(model_name).to(self.device)
             self.tokenizer = MarianTokenizer.from_pretrained(model_name)
+
+        if stored_env:
+            os.environ[disable_env_key] = stored_env
+        else:
+            del os.environ[disable_env_key]
 
     def _translate(self, text: str) -> str:
         if "m2m100" in self.model_name:

@@ -3,7 +3,6 @@
 
 """LangChain generator support"""
 
-
 from typing import List, Union
 
 from garak import _config
@@ -38,9 +37,13 @@ class LangChainLLMGenerator(Generator):
         "frequency_penalty": 0.0,
         "presence_penalty": 0.0,
         "stop": [],
+        "model_provider": None,
+        "configurable_fields": None,
     }
-    extra_dependency_names = ["langchain.llms"]
+    extra_dependency_names = ["langchain.chat_models"]
     generator_family_name = "LangChain"
+
+    _unsafe_attributes = ["generator"]
 
     def __init__(self, name="", config_root=_config):
         self.name = name
@@ -48,8 +51,22 @@ class LangChainLLMGenerator(Generator):
         self.fullname = f"LangChain LLM {self.name}"
 
         super().__init__(self.name, config_root=config_root)
+        self._load_unsafe()
 
-        self.generator = getattr(self.langchain_llms, self.name)()
+    def _load_unsafe(self):
+        configured_fields = {}
+        if self.configurable_fields:
+            for field in self.configurable_fields:
+                if hasattr(self, field):
+                    configured_fields[field] = getattr(self, field)
+
+        # if not already added pass thru an configured `api_key`
+        if hasattr(self, "api_key") and not configured_fields.get("api_key", None):
+            configured_fields["api_key"] = self.api_key
+
+        self.generator = self.langchain_chat_models.init_chat_model(
+            self.name, configurable_fields=self.configurable_fields, **configured_fields
+        )
 
     def _call_model(
         self, prompt: Conversation, generations_this_call: int = 1
@@ -60,8 +77,9 @@ class LangChainLLMGenerator(Generator):
         This calls invoke once per generation; invoke() seems to have the best
         support across LangChain LLM integrations.
         """
-        # Should this be expanded to process a whole conversation in some way?
-        return [Message(r) for r in self.generator.invoke(prompt.last_message().text)]
+        conv = self._conversation_to_list(prompt)
+        resp = self.generator.invoke(conv)
+        return [Message(resp.content)] if hasattr(resp, "content") else [None]
 
 
 DEFAULT_CLASS = "LangChainLLMGenerator"

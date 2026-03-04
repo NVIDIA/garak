@@ -1,16 +1,73 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+import importlib
 import logging
 import inspect
 import os
+from typing import List
 from garak import _config
 from garak import _plugins
 from garak.exception import APIKeyMissingError
 
 
+def _import_failed(absent_modules: List[str], calling_module: str):
+    quoted_module_list = "'" + "', '".join(absent_modules) + "'"
+    module_list = " ".join(absent_modules)
+    msg = f"⛔ Plugin '{calling_module}' requires Python modules which aren't installed/available: {quoted_module_list}"
+    hint = f"💡 Try 'pip install {module_list}' to get missing module."
+    logging.critical(msg)
+    print(msg + "\n" + hint)
+    raise ModuleNotFoundError(msg)
+
+
 class Configurable:
+    # list of strings naming modules required but not explicitly in garak by default
+    extra_dependency_names = []
+
+    # list of attributes that cannot be serialized
+    _unsafe_attributes = []
     _supported_params = None  # override to provide a list of supported values
+
+    def _load_deps(self, deps_override: List | None = None):
+        # load external dependencies. should be invoked at construction and
+        # in _client_load (if used)
+        dep_names = deps_override if deps_override else self.extra_dependency_names
+        for extra_dependency in dep_names:
+            extra_dep_name = extra_dependency.replace(".", "_").replace("-", "_")
+            if (
+                not hasattr(self, extra_dep_name)
+                or getattr(self, extra_dep_name) is None
+            ):
+                try:
+                    setattr(
+                        self,
+                        extra_dep_name,
+                        importlib.import_module(extra_dependency),
+                    )
+                except ModuleNotFoundError as e:
+                    _import_failed(
+                        self.extra_dependency_names,
+                        self.__class__.__name__,
+                    )
+
+    # avoid attempt to pickle the unsafe attributes
+    def __getstate__(self) -> object:
+        data = dict(self.__dict__)
+        for attribute in self._unsafe_attributes:
+            data[attribute] = None
+        for extra_dependency in self.extra_dependency_names:
+            extra_dep_name = extra_dependency.replace(".", "_").replace("-", "_")
+            data[extra_dep_name] = None
+        return data
+
+    # restore the unsafe attributes
+    def __setstate__(self, d) -> object:
+        self.__dict__.update(d)
+        if hasattr(self, "_load_deps"):
+            self._load_deps()
+        if hasattr(self, "_load_unsafe"):
+            self._load_unsafe()
 
     def _load_config(self, config_root=_config):
         if hasattr(self, "_instance_configured"):

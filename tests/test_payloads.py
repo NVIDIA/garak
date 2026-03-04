@@ -11,7 +11,6 @@ import garak._config
 import garak.exception
 import garak.payloads
 
-
 PAYLOAD_NAMES = list(
     garak.payloads.Director().search()
 )  # default includes local custom payloads to help test them

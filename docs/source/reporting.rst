@@ -7,6 +7,8 @@ By default, ``garak`` outputs:
 * an HTML report summarising scores
 * a JSONL hit log, describing all the attempts from the run that were scored successful
 
+For information on how detectors classify responses as hits or passes, and how detector performance is measured, see :doc:`detector_metrics`.
+
 Report JSONL
 ------------
 

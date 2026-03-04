@@ -3,20 +3,25 @@
 
 import gc
 import torch
-import fastchat.model as fsmodel
+from typing import Tuple, Union, Optional
 from logging import getLogger
-from typing import Tuple
+import garak._config
+from garak.generators.huggingface import Model, Pipeline
+from transformers import PreTrainedModel
 
 logger = getLogger(__name__)
 
 
 def forward(
-    generator, input_ids: torch, attention_mask, batch_size=512
+    model: PreTrainedModel,
+    input_ids: torch.Tensor,
+    attention_mask: torch.Tensor,
+    batch_size: int = 512,
 ) -> torch.Tensor:
     """Run a forward pass on the specified model
 
     Args:
-        generator (garak.generators.huggingface.Model): Generator with model for forward pass
+        model (PreTrainedModel): Generator with model for forward pass
         input_ids (torch.Tensor): Tokenized input to the model
         attention_mask (torch.Tensor): Attention mask from tokenizer
         batch_size (int): Number of samples to run
@@ -33,16 +38,11 @@ def forward(
             batch_attention_mask = None
 
         logits.append(
-            generator.model(
-                input_ids=batch_input_ids, attention_mask=batch_attention_mask
-            ).logits
+            model(input_ids=batch_input_ids, attention_mask=batch_attention_mask).logits
         )
 
-        # Do we need to do garbage collection here?
-        gc.collect()
-
-    # Does this do anything since we return from the scope after this call?
     del batch_input_ids, batch_attention_mask
+    gc.collect()
 
     return torch.cat(logits, dim=0)
 
@@ -55,200 +55,88 @@ def check_for_attack_success(gen_str: str, test_prefixes) -> bool:
         test_prefixes (list): List of test prefixes
 
     Returns:
-        Tuple:
-            Boolean of whether the model jailbreak was successful
-            Generated string
+        Boolean of whether the model jailbreak was successful
     """
     gen_str = gen_str.lower()
-    jailbreak = False
-    lowercase_test_prefixes = [word.lower() for word in test_prefixes]
-    # This only checks for known rejections -- the model output may still not achieve the goal.
-    # TODO: Use a better detector
-    if len(gen_str) != 0:
-        jailbreak = not any([prefix in gen_str for prefix in lowercase_test_prefixes])
-    return jailbreak
-
-
-def load_conversation_template(template_name: str):
-    """Load the specified conversation template
-
-    Args:
-        template_name (str): template name to load from fastchat
-
-    Returns:
-        Conversation template
-    """
-    try:
-        conv_template = fsmodel.get_conversation_template(template_name)
-        if conv_template.name == "zero_shot":
-            conv_template.roles = tuple(["### " + r for r in conv_template.roles])
-            conv_template.sep = "\n"
-        elif conv_template.name == "llama-2":
-            conv_template.sep2 = conv_template.sep2.strip()
-        return conv_template
-    except Exception as e:
-        logger.error(e)
+    # We can do a better check. Maybe fuzzy match the target?
+    accepted = not any([prefix.lower() in gen_str for prefix in test_prefixes])
+    return accepted
 
 
 class AutoDanPrefixManager:
-    def __init__(self, *, generator, conv_template, instruction, target, adv_string):
+    def __init__(
+        self,
+        *,
+        generator: Union[Pipeline, Model],
+        instruction: str,
+        target: str,
+        adv_string: str,
+        system_prompt: Optional[str],
+    ):
         """Prefix manager class for AutoDAN
 
         Args:
-            generator (garak.generators.huggingface.Model): Generator to use
-            conv_template (ConversationTemplate): Conversation template for specified model
+            generator (Pipeline | Model): Generator to use
             instruction (str): Instruction to pass to the model
             target (str): Target output string
             adv_string (str): Adversarial (jailbreak) string
+            system_prompt (str): Optional system prompt
         """
-
+        # Can't use isinstance here because of subclassing
+        if type(generator) is Pipeline:
+            self.model = generator.generator.model
+        elif isinstance(generator, Model):
+            self.model = generator.model
+        else:
+            logger.critical(f"Expected Pipeline or Model but got {type(generator)}")
+            raise TypeError(f"Expected Pipeline or Model but got {type(generator)}")
+        self.device = generator.device
         self.tokenizer = generator.tokenizer
-        self.conv_template = conv_template
         self.instruction = instruction
         self.target = target
         self.adv_string = adv_string
+        self.messages = list()
+        self.system_prompt = system_prompt
+        self.target_ids = None
 
-    def get_prompt(self, adv_string=None):
-        if adv_string is not None:
-            self.adv_string = adv_string
+    def _reset_messages(self):
+        del self.messages
+        self.messages = list()
+        if self.system_prompt:
+            self.messages.append({"role": "system", "content": self.system_prompt})
 
-        self.conv_template.append_message(
-            self.conv_template.roles[0], f"{self.adv_string} {self.instruction} "
-        )
-        self.conv_template.append_message(self.conv_template.roles[1], f"{self.target}")
-        prompt = self.conv_template.get_prompt()
-
-        encoding = self.tokenizer(prompt)
-
-        if self.conv_template.name == "llama-2":
-            self.conv_template.messages = []
-
-            self.conv_template.append_message(self.conv_template.roles[0], None)
-            toks = self.tokenizer(self.conv_template.get_prompt()).input_ids
-            self._user_role_slice = slice(None, len(toks))
-
-            self.conv_template.update_last_message(f"{self.instruction}")
-            toks = self.tokenizer(self.conv_template.get_prompt()).input_ids
-            self._goal_slice = slice(
-                self._user_role_slice.stop, max(self._user_role_slice.stop, len(toks))
-            )
-
-            separator = " " if self.instruction else ""
-            self.conv_template.update_last_message(
-                f"{self.adv_string}{separator}{self.instruction}"
-            )
-            toks = self.tokenizer(self.conv_template.get_prompt()).input_ids
-            self._control_slice = slice(self._goal_slice.stop, len(toks))
-
-            self.conv_template.append_message(self.conv_template.roles[1], None)
-            toks = self.tokenizer(self.conv_template.get_prompt()).input_ids
-            self._assistant_role_slice = slice(self._control_slice.stop, len(toks))
-
-            self.conv_template.update_last_message(f"{self.target}")
-            toks = self.tokenizer(self.conv_template.get_prompt()).input_ids
-            self._target_slice = slice(self._assistant_role_slice.stop, len(toks) - 2)
-            self._loss_slice = slice(self._assistant_role_slice.stop - 1, len(toks) - 3)
-
-        # This needs improvement
-        else:
-            python_tokenizer = False or self.conv_template.name == "oasst_pythia"
-            try:
-                encoding.char_to_token(len(prompt) - 1)
-            except:
-                python_tokenizer = True
-
-            if python_tokenizer:
-                # This is specific to the vicuna and pythia tokenizer and conversation prompt.
-                # It will not work with other tokenizers or prompts.
-                self.conv_template.messages = []
-
-                self.conv_template.append_message(self.conv_template.roles[0], None)
-                toks = self.tokenizer(self.conv_template.get_prompt()).input_ids
-                self._user_role_slice = slice(None, len(toks))
-
-                self.conv_template.update_last_message(f"{self.instruction}")
-                toks = self.tokenizer(self.conv_template.get_prompt()).input_ids
-                self._goal_slice = slice(
-                    self._user_role_slice.stop,
-                    max(self._user_role_slice.stop, len(toks) - 1),
-                )
-
-                separator = " " if self.instruction else ""
-                self.conv_template.update_last_message(
-                    f"{self.adv_string}{separator}{self.instruction}"
-                )
-                toks = self.tokenizer(self.conv_template.get_prompt()).input_ids
-                self._control_slice = slice(self._goal_slice.stop, len(toks) - 1)
-
-                self.conv_template.append_message(self.conv_template.roles[1], None)
-                toks = self.tokenizer(self.conv_template.get_prompt()).input_ids
-                self._assistant_role_slice = slice(self._control_slice.stop, len(toks))
-
-                self.conv_template.update_last_message(f"{self.target}")
-                toks = self.tokenizer(self.conv_template.get_prompt()).input_ids
-                self._target_slice = slice(
-                    self._assistant_role_slice.stop, len(toks) - 1
-                )
-                self._loss_slice = slice(
-                    self._assistant_role_slice.stop - 1, len(toks) - 2
-                )
-            else:
-                self._system_slice = slice(
-                    None, encoding.char_to_token(len(self.conv_template.system_message))
-                )
-                self._user_role_slice = slice(
-                    encoding.char_to_token(prompt.find(self.conv_template.roles[0])),
-                    encoding.char_to_token(
-                        prompt.find(self.conv_template.roles[0])
-                        + len(self.conv_template.roles[0])
-                        + 1
-                    ),
-                )
-                self._goal_slice = slice(
-                    encoding.char_to_token(prompt.find(self.instruction)),
-                    encoding.char_to_token(
-                        prompt.find(self.instruction) + len(self.instruction)
-                    ),
-                )
-                self._control_slice = slice(
-                    encoding.char_to_token(prompt.find(self.adv_string)),
-                    encoding.char_to_token(
-                        prompt.find(self.adv_string) + len(self.adv_string)
-                    ),
-                )
-                self._assistant_role_slice = slice(
-                    encoding.char_to_token(prompt.find(self.conv_template.roles[1])),
-                    encoding.char_to_token(
-                        prompt.find(self.conv_template.roles[1])
-                        + len(self.conv_template.roles[1])
-                        + 1
-                    ),
-                )
-                self._target_slice = slice(
-                    encoding.char_to_token(prompt.find(self.target)),
-                    encoding.char_to_token(prompt.find(self.target) + len(self.target)),
-                )
-                self._loss_slice = slice(
-                    encoding.char_to_token(prompt.find(self.target)) - 1,
-                    encoding.char_to_token(prompt.find(self.target) + len(self.target))
-                    - 1,
-                )
-
-        self.conv_template.messages = []
-
-        return prompt
-
-    def get_input_ids(self, adv_string=None):
+    def get_input_ids(
+        self, adv_string: str = None
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         """Get input ids from the tokenizer for a provided string
 
         Args:
             adv_string (str): String to tokenize
 
         Returns:
-            Torch tensor of input_ids
+            Tuple of input_ids and attention_mask
         """
-        prompt = self.get_prompt(adv_string=adv_string)
-        toks = self.tokenizer(prompt).input_ids
-        input_ids = torch.tensor(toks[: self._target_slice.stop])
+        if adv_string is not None:
+            self.adv_string = adv_string
 
-        return input_ids
+        self._reset_messages()
+
+        self.messages.append(
+            {"role": "user", "content": f"{self.adv_string} {self.instruction}"}
+        )
+        self.messages.append({"role": "assistant", "content": self.target})
+
+        self.target_ids = self.tokenizer(
+            [self.target], add_special_tokens=False, return_tensors="pt"
+        )["input_ids"].to(self.device)
+        outputs = self.tokenizer.apply_chat_template(
+            self.messages,
+            add_generation_prompt=True,
+            tokenize=True,
+            return_dict=True,
+            return_tensors="pt",
+        )
+        tokenized_msg = outputs["input_ids"].to(self.device)
+        attention_mask = outputs["attention_mask"].to(self.device)
+
+        return tokenized_msg, attention_mask

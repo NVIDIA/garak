@@ -4,8 +4,10 @@ from dataclasses import dataclass, field, asdict, is_dataclass
 from copy import deepcopy
 from pathlib import Path
 from types import GeneratorType
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Tuple
 import uuid
+
+from garak.exception import GarakException
 
 (
     ATTEMPT_NEW,
@@ -44,9 +46,8 @@ class Message:
     text: str = None
     lang: str = None
     data_path: Optional[str] = None
-    data_type: Optional[str] = None
+    data_type: Optional[Tuple[str | None, str | None]] = None
     data_checksum: Optional[str] = None
-    # data: bytes = None  # should this dataclass attribute exist?
     notes: Optional[dict] = field(default_factory=dict)
 
     @property
@@ -152,6 +153,22 @@ class Conversation:
             ret_val.turns.append(Turn.from_dict(turn))
         return ret_val
 
+    @classmethod
+    def from_openai(cls, conv: List[dict], notes: Optional[dict] = None):
+        new_conv = list()
+        conv_copy = deepcopy(conv)
+        for turn in conv_copy:
+            if isinstance(turn, dict):
+                new_conv.append(Turn.from_dict(turn))
+            else:
+                msg = "Conversation.from_openai expected a `list` of `dict`s but encountered {}".format(
+                    type(turn)
+                )
+                raise GarakException(msg)
+        if notes is None:
+            notes = dict()
+        return cls(turns=new_conv, notes=notes)
+
 
 class Attempt:
     """A class defining objects that represent everything that constitutes a single attempt at evaluating an LLM.
@@ -223,13 +240,11 @@ class Attempt:
             if isinstance(prompt, Conversation):
                 self.conversations = [prompt]
             elif isinstance(prompt, Message):
-                msg = prompt
+                self.conversations = [Conversation([Turn("user", prompt)])]
             else:
                 raise TypeError(
                     "attempt prompts must be of type Message | Conversation"
                 )
-            if not hasattr(self, "conversations"):
-                self.conversations = [Conversation([Turn("user", msg)])]
             self.prompt = self.conversations[0]
         else:
             self.conversations = [Conversation()]
@@ -265,7 +280,7 @@ class Attempt:
             "probe_classname": self.probe_classname,
             "probe_params": self.probe_params,
             "targets": self.targets,
-            "prompt": asdict(self.prompt),
+            "prompt": asdict(self.prompt) if self.prompt is not None else None,
             "outputs": [asdict(output) if output else None for output in self.outputs],
             "detector_results": {k: list(v) for k, v in self.detector_results.items()},
             "notes": notes,

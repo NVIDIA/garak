@@ -4,7 +4,6 @@
 import garak._plugins
 from garak.attempt import Attempt
 
-
 TEST_TEXT = "match"
 TEST_TEXT2 = "cardassia"
 NOT_TEST_TEXT = "kjasfhg"

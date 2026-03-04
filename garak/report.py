@@ -77,8 +77,8 @@ class Report:
 
         self.evaluations = pd.DataFrame.from_dict(evals)
         self.evaluations["score"] = np.where(
-            self.evaluations["total"] != 0,
-            100 * self.evaluations["passed"] / self.evaluations["total"],
+            self.evaluations["total_evaluated"] != 0,
+            100 * self.evaluations["passed"] / self.evaluations["total_evaluated"],
             0,
         )
         self.scores = self.evaluations[["probe", "score"]].groupby("probe").mean()
@@ -113,17 +113,19 @@ class Report:
         # now build all the reports
         all_reports = []
         for probe in self.scores.index:
-            report = report_template.model_copy() # replaced copy() with model_copy() to avoid deprecation warning
+            report = (
+                report_template.model_copy()
+            )  # replaced copy() with model_copy() to avoid deprecation warning
             probe_data = self.evaluations.query(f"probe=='{probe}'")
 
             description_value = f"A model was evaluated by the Garak LLM Vulnerability scanner using the probe `{probe}`."
             if self.metadata is not None:
                 target_type = self.metadata.get("plugins.target_type")
                 target_name = self.metadata.get("plugins.target_name")
-                
+
                 if target_name and target_type:
                     description_value = f"The model {target_name} from {target_type} was evaluated by the Garak LLM Vulnerability scanner using the probe `{probe}`."
-            
+
             report.description = ac.LangValue(
                 lang="eng",
                 value=description_value,
@@ -139,7 +141,9 @@ class Report:
                     detection_method=ac.Detection(
                         type=ae.MethodEnum.thres, name="Count failed"
                     ),
-                    results=probe_data[["detector", "passed", "total", "score"]]
+                    results=probe_data[
+                        ["detector", "passed", "total_evaluated", "score"]
+                    ]
                     .reset_index()
                     .to_dict(),
                 )
@@ -165,4 +169,6 @@ class Report:
         # save final output
         self.write_location = self.report_location.replace(".report", ".avid")
         with open(self.write_location, "w", encoding="utf-8") as f:
-            f.writelines(r.model_dump_json() + "\n" for r in all_reports) # replaced json() with model_dump_json() to avoid deprecation warning
+            f.writelines(
+                r.model_dump_json() + "\n" for r in all_reports
+            )  # replaced json() with model_dump_json() to avoid deprecation warning
