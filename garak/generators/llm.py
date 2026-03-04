@@ -8,7 +8,7 @@ which provides a unified interface to many LLM providers via plugins.
 
 API keys and provider configuration are managed by ``llm`` itself
 (e.g. ``llm keys set openai``). Pass the ``llm`` model id or alias
-as ``--model_name``:
+as ``--target_name``:
 
 .. code-block:: bash
 
@@ -102,11 +102,11 @@ class LLMGenerator(Generator):
         text_prompt = prompt.last_message("user").text
 
         prompt_kwargs = {}
-        if self.temperature is not None:
+        if self.temperature:
             prompt_kwargs["temperature"] = self.temperature
-        if self.max_tokens is not None:
+        if self.max_tokens:
             prompt_kwargs["max_tokens"] = self.max_tokens
-        if self.top_p is not None:
+        if self.top_p:
             prompt_kwargs["top_p"] = self.top_p
         if self.stop:
             prompt_kwargs["stop"] = self.stop

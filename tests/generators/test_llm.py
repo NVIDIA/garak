@@ -44,9 +44,10 @@ def fake_llm(monkeypatch):
 
 
 def test_instantiation_resolves_model(cfg, fake_llm):
-    gen = LLMGenerator(name="my-alias", config_root=cfg)
-    assert gen.name == "my-alias"
-    assert hasattr(gen, "target")
+    test_name = "my-alias"
+    gen = LLMGenerator(name=test_name, config_root=cfg)
+    assert gen.name == test_name
+    assert isinstance(gen.target, FakeModel)
 
 
 def test_generate_returns_message(cfg, fake_llm):
@@ -61,19 +62,20 @@ def test_generate_returns_message(cfg, fake_llm):
 
 def test_param_passthrough(cfg, fake_llm):
     gen = LLMGenerator(name="alias", config_root=cfg)
-    gen.temperature = 0.2
-    gen.max_tokens = 64
-    gen.top_p = 0.9
-    gen.stop = ["\n\n"]
+    temperature, max_tokens, top_p, stop = 0.2, 64, 0.9, ["\n\n"]
+    gen.temperature = temperature
+    gen.max_tokens = max_tokens
+    gen.top_p = top_p
+    gen.stop = stop
 
     conv = Conversation([Turn("user", Message(text="hello"))])
     gen._call_model(conv)
 
     _, kwargs = fake_llm.calls[0]
-    assert kwargs["temperature"] == 0.2
-    assert kwargs["max_tokens"] == 64
-    assert kwargs["top_p"] == 0.9
-    assert kwargs["stop"] == ["\n\n"]
+    assert kwargs["temperature"] == temperature
+    assert kwargs["max_tokens"] == max_tokens
+    assert kwargs["top_p"] == top_p
+    assert kwargs["stop"] == stop
 
 
 def test_handles_llm_exception(cfg, monkeypatch):
