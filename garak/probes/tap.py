@@ -476,7 +476,7 @@ class TAPIntent(garak.probes.IntentProbe):
                         all_attempts.append(attempt)
 
             except Exception as e:
-                logging.error(f"Error running TAP for stub '{prompt}': {e}")
+                logging.error(f"Error running TAP for stub '{stub}': {e}")
                 continue
 
         # Execute all attempts

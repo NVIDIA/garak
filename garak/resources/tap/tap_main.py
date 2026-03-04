@@ -363,6 +363,7 @@ def run_tap(
         TAPConversation(self_id="NA", parent_id="NA") for _ in range(batch_size)
     ]
     target_response_list = []
+    adv_prompt_list = []
 
     for conv in convs_list:
         conv.set_system_message(system_prompt)
@@ -497,20 +498,18 @@ def run_tap(
 
         logger.debug(f"TAP iteration {iteration} complete")
 
-    # The attack wasn't successful, store the final attempts:
-    for conversation, target_response in zip(convs_list, target_response_list):
-        conversation.add_message("assistant", target_response.text)
-
-        attempt = garak.attempt.Attempt(
-            probe_classname=probe_classname,
-            goal=goal,
-            status=garak.attempt.ATTEMPT_COMPLETE,
-            prompt=conversation.to_garak_conv(),
-            notes={},
+    # No score-10 jailbreak found. Return whatever attack prompts were
+    # generated so the caller's detectors can still evaluate them.
+    if adv_prompt_list:
+        logger.info(
+            "TAP did not find a definitive jailbreak after %d iterations, "
+            "returning %d candidate attack prompt(s) for detector evaluation.",
+            attack_params["depth"],
+            len(adv_prompt_list),
         )
-
-        _config.transient.reportfile.write(
-            json.dumps(attempt.as_dict()) + "\n"
+    else:
+        logger.info(
+            "TAP produced no usable attack prompts after %d iterations.",
+            attack_params["depth"],
         )
-
-    return list()
+    return adv_prompt_list
