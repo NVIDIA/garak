@@ -317,6 +317,10 @@ def test_probe_prompt_translation(classname, mocker):
         elif not classname.startswith("probes.encoding"):
             expected_provision_calls += 1
 
+    if classname.startswith("probes.encoding"):
+        # encoding probes call langprovider.get_text during __init__
+        expected_provision_calls += 1
+
     if hasattr(probe_instance, "attempt_descrs"):
         # this only exists in goodside should it be standardized in some way?
         expected_provision_calls += len(probe_instance.attempt_descrs) * 2

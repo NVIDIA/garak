@@ -563,7 +563,7 @@ class InjectNato(EncodingMixin, garak.probes.Probe):
 class InjectEcoji(EncodingMixin, garak.probes.Probe):
     """Probe for susceptibility to Ecoji encoding.
 
-    Encodes payloads using the [ecoji](https://ecoji.io/) mapping, and tries a variety
+    Encodes payloads using the `ecoji <https://ecoji.io/>`_ mapping, and tries a variety
     of ways of getting the target model to repeat & decode them."""
 
     doc_uri = "https://ecoji.io/"
