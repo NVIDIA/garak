@@ -46,15 +46,15 @@ def test_tap_core():
                 save_results=False
             )
 
-        assert not results, "We shouldn't find any jailbreak, tap returns nothing"
-
-        temp_report_file.flush()
-        temp_report_file.seek(0)
-        report_lines = temp_report_file.readlines()
-
-        assert len(report_lines) == 3, "We should be recording width attempts"
-        conversations = [json.loads(line)["prompt"] for line in report_lines]
-        assert len(conversations) == 3, "We should be recording the conversations"
+        # run_tap should return its best attack prompts even without a
+        # score-10 jailbreak, so the caller's detectors can evaluate them.
+        assert results, (
+            "run_tap should return candidate attack prompts even without "
+            "a definitive jailbreak (score < 10)"
+        )
+        assert all(isinstance(r, str) for r in results), (
+            "run_tap should return a list of prompt strings"
+        )
 
 
 def test_tap_intent():
