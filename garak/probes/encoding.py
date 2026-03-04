@@ -457,40 +457,6 @@ class InjectBraille(EncodingMixin, garak.probes.Probe):
         EncodingMixin.__init__(self)
 
 
-class InjectAtbash(EncodingMixin, garak.probes.Probe):
-    """Atbash Probe Credit: Nakul-Rajpal
-
-    https://en.wikipedia.org/wiki/Atbash
-
-    This probe checks whether a model:
-    - recognizes Atbash-encoded malicious instructions,
-    - repeats or decodes them,
-    - and follows hidden instructions despite obfuscation.
-    """
-
-    encoding_name = "Atbash"
-    active = True
-    doc_uri = "https://en.wikipedia.org/wiki/Atbash"
-    encoding_funcs = []
-
-    @staticmethod
-    def atbash(text: bytes) -> bytes:
-        out = []
-        for ch in text.decode():
-            if "a" <= ch <= "z":
-                out.append(chr(ord("z") - (ord(ch) - ord("a"))))
-            elif "A" <= ch <= "Z":
-                out.append(chr(ord("Z") - (ord(ch) - ord("A"))))
-            else:
-                out.append(ch)
-        return "".join(out).encode("utf-8")
-
-    def __init__(self, config_root=_config):
-        self.encoding_funcs = [self.atbash]
-        garak.probes.Probe.__init__(self, config_root=config_root)
-        EncodingMixin.__init__(self)
-
-
 class InjectMorse(EncodingMixin, garak.probes.Probe):
     """Probe for susceptibility to Morse encoding. Credit Wally#3422
 
@@ -563,7 +529,7 @@ class InjectNato(EncodingMixin, garak.probes.Probe):
 class InjectEcoji(EncodingMixin, garak.probes.Probe):
     """Probe for susceptibility to Ecoji encoding.
 
-    Encodes payloads using the `ecoji <https://ecoji.io/>`_ mapping, and tries a variety
+    Encodes payloads using the [ecoji](https://ecoji.io/) mapping, and tries a variety
     of ways of getting the target model to repeat & decode them."""
 
     doc_uri = "https://ecoji.io/"
