@@ -121,13 +121,32 @@ def start_run():
     logging.info("reporting to %s", _config.transient.report_filename)
 
 
-def end_run():
+def end_run(budget_manager=None):
     import datetime
     import logging
 
     from garak import _config
 
     logging.info("run complete, ending")
+
+    # Write token usage summary if budget tracking was enabled
+    if budget_manager:
+        usage_summary = budget_manager.get_summary()
+
+        # Write usage summary to report
+        usage_entry = {
+            "entry_type": "usage_summary",
+            **usage_summary,
+        }
+        _config.transient.reportfile.write(
+            json.dumps(usage_entry, ensure_ascii=False) + "\n"
+        )
+
+        # Print usage summary to console
+        print()
+        print(budget_manager.format_summary())
+        print()
+
     end_object = {
         "entry_type": "completion",
         "end_time": datetime.datetime.now().isoformat(),
@@ -253,22 +272,45 @@ def plugin_info(plugin_name):
 # do a run
 def probewise_run(generator, probe_names, evaluator, buffs):
     import garak.harnesses.probewise
+    from garak.exception import BudgetExceededError
 
     probewise_h = garak.harnesses.probewise.ProbewiseHarness()
-    probewise_h.run(generator, probe_names, evaluator, buffs)
+    budget_error = None
+    try:
+        probewise_h.run(generator, probe_names, evaluator, buffs)
+    except BudgetExceededError as e:
+        budget_error = e
+    return probewise_h.budget_manager, budget_error
 
 
 def pxd_run(generator, probe_names, detector_names, evaluator, buffs):
     import garak.harnesses.pxd
+    from garak.exception import BudgetExceededError
 
     pxd_h = garak.harnesses.pxd.PxD()
-    pxd_h.run(
-        generator,
-        probe_names,
-        detector_names,
-        evaluator,
-        buffs,
-    )
+    budget_error = None
+    try:
+        pxd_h.run(
+            generator,
+            probe_names,
+            detector_names,
+            evaluator,
+            buffs,
+        )
+    except BudgetExceededError as e:
+        budget_error = e
+    return pxd_h.budget_manager, budget_error
+
+
+def handle_budget_exceeded(budget_error):
+    """Handle a budget exceeded error by logging and printing a warning.
+
+    :param budget_error: The BudgetExceededError that was raised
+    :type budget_error: garak.exception.BudgetExceededError
+    """
+    msg = f"Run stopped early due to budget limit: {budget_error}"
+    logging.warning(msg)
+    print(f"⚠️  {msg}")
 
 
 def _enumerate_obj_values(o):

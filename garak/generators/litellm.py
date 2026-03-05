@@ -185,6 +185,10 @@ class LiteLLMGenerator(Generator):
                     raise GeneratorBackoffTrigger from e
             raise e
 
+        # Capture token usage if tracking is enabled
+        # LiteLLM provides unified usage format compatible with OpenAI
+        self._capture_oai_token_usage(response)
+
         if self.supports_multiple_generations:
             return [Message(c.message.content) for c in response.choices]
         else:
