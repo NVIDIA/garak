@@ -11,6 +11,7 @@ For a detailed oversight into how a probe operates, see :doc:`garak.probes.base`
 
    garak.probes
    garak.probes.base
+   garak.probes.agent_breaker
    garak.probes.ansiescape
    garak.probes.apikey
    garak.probes.atkgen

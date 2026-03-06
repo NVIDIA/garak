@@ -6,6 +6,7 @@ garak.detectors
 
    garak.detectors
    garak.detectors.base
+   garak.detectors.agent_breaker
    garak.detectors.always
    garak.detectors.any
    garak.detectors.ansiescape
