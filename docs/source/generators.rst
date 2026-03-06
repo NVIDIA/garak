@@ -20,6 +20,7 @@ For a detailed oversight into how a generator operates, see :doc:`garak.generato
    garak.generators.huggingface
    garak.generators.langchain
    garak.generators.langchain_serve
+   garak.generators.llm
    garak.generators.litellm
    garak.generators.mistral
    garak.generators.ollama
