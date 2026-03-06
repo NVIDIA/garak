@@ -226,7 +226,8 @@ def main(arguments=None) -> None:
     parser.add_argument(
         "--list_probes",
         action="store_true",
-        help="list all available probes. Usage: combine with --probes/-p to filter for probes that will be activated based on a `probe_spec`, e.g. '--list_probes -p dan' to show only active 'dan' family probes.",
+        help="list available probes. Use -v for a detailed markdown table with tier and description. "
+        "Combine with --probes/-p to filter by probe_spec, e.g. '--list_probes -p dan'.",
     )
     parser.add_argument(
         "--list_detectors",
@@ -455,7 +456,7 @@ def main(arguments=None) -> None:
             probe_spec = getattr(args, "probes", None)
             if probe_spec and probe_spec.lower() not in ("", "auto", "all", "*"):
                 selected_probes, _ = _config.parse_plugin_spec(probe_spec, "probes")
-            command.print_probes(selected_probes)
+            command.print_probes(selected_probes, verbose=_config.system.verbose)
 
         elif args.list_detectors:
             selected_detectors = None
