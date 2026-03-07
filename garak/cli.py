@@ -3,7 +3,7 @@
 
 """Flow for invoking garak from the command line"""
 
-command_options = "list_detectors list_probes list_generators list_buffs list_config plugin_info interactive report version fix".split()
+command_options = "list_detectors list_probes list_generators list_buffs list_config plugin_info interactive report rebuild_cis version fix".split()
 
 
 def parse_cli_plugin_config(plugin_type, args):
@@ -215,6 +215,37 @@ def main(arguments=None) -> None:
         default=_config.reporting.taxonomy,
         help="specify a MISP top-level taxonomy to be used for grouping probes in reporting. e.g. 'avid-effect', 'owasp' ",
     )
+    parser.add_argument(
+        "--confidence_interval_method",
+        type=str,
+        default=None,
+        choices=["bootstrap", "none"],
+        help="method for CI calculation: 'bootstrap' (default) or 'none' to disable",
+    )
+    parser.add_argument(
+        "--rebuild_cis",
+        type=str,
+        metavar="REPORT_PATH",
+        help="recalculate confidence intervals for existing report and update in-place"
+    )
+    parser.add_argument(
+        "--bootstrap_num_iterations",
+        type=int,
+        default=None,
+        help="number of bootstrap iterations for CI calculation (overrides config)",
+    )
+    parser.add_argument(
+        "--bootstrap_confidence_level",
+        type=float,
+        default=None,
+        help="confidence level for bootstrap CIs, e.g. 0.95 or 0.99 (overrides config)",
+    )
+    parser.add_argument(
+        "--bootstrap_min_sample_size",
+        type=int,
+        default=None,
+        help="minimum sample size required for bootstrap CI calculation (overrides config)",
+    )
 
     ## COMMANDS
     # items placed here also need to be listed in command_options below
@@ -399,6 +430,31 @@ def main(arguments=None) -> None:
             _config.system.parallel_requests = worker_count_validation(
                 _config.system.parallel_requests
             )
+
+        if (
+            _config.reporting.bootstrap_num_iterations is not None
+            and _config.reporting.bootstrap_num_iterations <= 0
+        ):
+            raise ValueError(
+                f"bootstrap_num_iterations must be > 0, got {_config.reporting.bootstrap_num_iterations}"
+            )
+
+        if (
+            _config.reporting.bootstrap_confidence_level is not None
+            and not (0.0 < _config.reporting.bootstrap_confidence_level < 1.0)
+        ):
+            raise ValueError(
+                f"bootstrap_confidence_level must be in (0, 1), got {_config.reporting.bootstrap_confidence_level}"
+            )
+
+        if (
+            _config.reporting.bootstrap_min_sample_size is not None
+            and _config.reporting.bootstrap_min_sample_size <= 0
+        ):
+            raise ValueError(
+                f"bootstrap_min_sample_size must be > 0, got {_config.reporting.bootstrap_min_sample_size}"
+            )
+
     except ValueError as e:
         logging.exception(e)
         print(e)
@@ -540,6 +596,11 @@ def main(arguments=None) -> None:
             report = Report(args.report).load().get_evaluations()
             report.export()
             print(f"📜 AVID reports generated at {report.write_location}")
+
+        elif args.rebuild_cis:
+            from garak.analyze.rebuild_cis import rebuild_cis_for_report
+
+            return rebuild_cis_for_report(report_path=args.rebuild_cis)
 
         # model is specified, we're doing something
         elif _config.plugins.target_type:
