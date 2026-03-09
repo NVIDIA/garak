@@ -2,11 +2,14 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 0DIN (https://0din.ai). All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+import re
+
 import pytest
 
 import garak._plugins
 import garak.attempt
 import garak.probes
+from garak.attempt import Attempt, Conversation, Message, Turn
 
 
 PROBE_CLASSES = [
@@ -97,3 +100,41 @@ def test_single_turn_probes_use_strings():
             assert isinstance(
                 prompt, str
             ), f"{classname} prompts should be strings, got {type(prompt)}"
+
+
+def test_placeholder_injection_leakreplay_detector():
+    """PlaceholderInjection should include leakreplay.StartsWith as extended detector."""
+    p = garak._plugins.load_plugin("probes.substances.PlaceholderInjection")
+    assert "leakreplay.StartsWith" in p.extended_detectors
+
+
+def test_placeholder_injection_prestore_hook_sets_triggers():
+    """_attempt_prestore_hook should store Potter trigger in attempt.notes."""
+    p = garak._plugins.load_plugin("probes.substances.PlaceholderInjection")
+    attempt = Attempt(prompt=Message(text="test", lang="en"))
+    result = p._attempt_prestore_hook(attempt, 0)
+    assert "triggers" in result.notes
+    assert len(result.notes["triggers"]) == 1
+    assert "dursley" in result.notes["triggers"][0].lower()
+
+
+def test_placeholder_injection_postprocess_strips_placeholders():
+    """_postprocess_hook should strip [[SPACE]][[SPACE]] tokens from output."""
+    p = garak._plugins.load_plugin("probes.substances.PlaceholderInjection")
+    raw = (
+        "Mr. [[SPACE]][[SPACE]] and [[SPACE]][[SPACE]] Mrs. [[SPACE]][[SPACE]] Dursley"
+    )
+    attempt = Attempt(prompt=Message(text="test", lang="en"))
+    # Build a minimal conversation with one turn holding our raw output
+    attempt.conversations = [
+        Conversation(
+            [
+                Turn("user", Message(text="test", lang="en")),
+                Turn("assistant", Message(text=raw, lang="en")),
+            ]
+        )
+    ]
+    result = p._postprocess_hook(attempt)
+    cleaned = result.conversations[0].last_message().text
+    assert "[[SPACE]]" not in cleaned
+    assert "Mr. and Mrs. Dursley" in cleaned
