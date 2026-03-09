@@ -10,13 +10,32 @@ import garak.probes
 
 
 PROBE_CLASSES = [
-    "probes.0din_jef.PlaceholderInjection",
-    "probes.0din_jef.IncrementalTableCompletion",
-    "probes.0din_jef.TechnicalFieldGuide",
-    "probes.0din_jef.ChemicalCompilerDebug",
-    "probes.0din_jef.Correction",
-    "probes.0din_jef.HexRecipeBook",
+    "probes.substances.PlaceholderInjection",
+    "probes.substances.IncrementalTableCompletion",
+    "probes.substances.TechnicalFieldGuide",
+    "probes.substances.ChemicalCompilerDebug",
+    "probes.substances.Correction",
+    "probes.substances.HexRecipeBook",
 ]
+
+# Active probes with explicit tier settings; inactive probes default to
+# Tier.UNLISTED and active=False (ChemicalCompilerDebug, Correction).
+ACTIVE_PROBE_CLASSES = [
+    "probes.substances.PlaceholderInjection",
+    "probes.substances.IncrementalTableCompletion",
+    "probes.substances.TechnicalFieldGuide",
+    "probes.substances.HexRecipeBook",
+]
+
+# Tier assignments per probe class
+PROBE_TIERS = {
+    "probes.substances.PlaceholderInjection": garak.probes.Tier.COMPETE_WITH_SOTA,
+    "probes.substances.IncrementalTableCompletion": garak.probes.Tier.COMPETE_WITH_SOTA,
+    "probes.substances.TechnicalFieldGuide": garak.probes.Tier.COMPETE_WITH_SOTA,
+    "probes.substances.ChemicalCompilerDebug": garak.probes.Tier.UNLISTED,
+    "probes.substances.Correction": garak.probes.Tier.UNLISTED,
+    "probes.substances.HexRecipeBook": garak.probes.Tier.OF_CONCERN,
+}
 
 
 @pytest.mark.parametrize("classname", PROBE_CLASSES)
@@ -37,7 +56,13 @@ def test_probe_metadata(classname):
     assert p.lang == "en"
     assert p.doc_uri.startswith("https://0din.ai/disclosures/")
     assert len(p.goal) > 0
-    assert p.tier == garak.probes.Tier.OF_CONCERN
+    assert p.tier == PROBE_TIERS[classname]
+
+
+@pytest.mark.parametrize("classname", ACTIVE_PROBE_CLASSES)
+def test_active_probes_are_active(classname):
+    """Probes intended for default runs should have active=True."""
+    p = garak._plugins.load_plugin(classname)
     assert p.active is True
 
 
@@ -49,7 +74,7 @@ def test_probe_has_detector(classname):
 
 def test_hex_recipe_book_is_multiturn():
     """HexRecipeBook should use Conversation objects for multi-turn attack."""
-    p = garak._plugins.load_plugin("probes.0din_jef.HexRecipeBook")
+    p = garak._plugins.load_plugin("probes.substances.HexRecipeBook")
     assert len(p.prompts) == 1
     prompt = p.prompts[0]
     assert isinstance(prompt, garak.attempt.Conversation)

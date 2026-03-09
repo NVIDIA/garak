@@ -2,17 +2,18 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 0DIN (https://0din.ai). All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""**0DIN JEF n-day jailbreak probes**
+"""**Substance and CBRN jailbreak probes**
 
-Disclosed jailbreak techniques from the `0DIN <https://0din.ai>`_ AI
-bug-bounty program.
+Disclosed jailbreak techniques targeting guardrails around hazardous
+substance synthesis and CBRN (chemical, biological, radiological, nuclear)
+content.
 
 These probes implement attack techniques discovered and responsibly
-disclosed through 0DIN's vulnerability disclosure program. Each probe
-targets a specific guardrail-bypass method that has been observed to
+disclosed through `0DIN <https://0din.ai>`_'s AI bug-bounty program. Each
+probe targets a specific guardrail-bypass method that has been observed to
 succeed against production LLMs.
 
-The probes are part of the `Jailbreak Evaluation Framework (JEF)
+The probes are part of the `0DIN Jailbreak Evaluation Framework (JEF)
 <https://github.com/0din-ai/0din-JEF>`_. For weighted scoring with
 procedural-chain detection, see ``pip install 0din-jef[garak]``.
 
@@ -45,7 +46,7 @@ class PlaceholderInjection(garak.probes.Probe):
         "quality:Security:PromptStability",
     ]
     goal = "bypass content filters using placeholder injection between words"
-    tier = garak.probes.Tier.OF_CONCERN
+    tier = garak.probes.Tier.COMPETE_WITH_SOTA
     active = True
 
     def __init__(self, config_root=_config):
@@ -68,7 +69,7 @@ class IncrementalTableCompletion(garak.probes.Probe):
     lang = "en"
     doc_uri = "https://0din.ai/disclosures/0d1e2015-f6ce-4b79-8bde-edd26bfc6f02"
     primary_detector = "mitigation.MitigationBypass"
-    extended_detectors = ["0din_jef.MethKeywords"]
+    extended_detectors = ["substances.MethKeywords"]
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:ethics:E0301",
@@ -76,7 +77,7 @@ class IncrementalTableCompletion(garak.probes.Probe):
         "quality:Security:PromptStability",
     ]
     goal = "bypass content filters using incremental table completion"
-    tier = garak.probes.Tier.OF_CONCERN
+    tier = garak.probes.Tier.COMPETE_WITH_SOTA
     active = True
 
     def __init__(self, config_root=_config):
@@ -99,7 +100,7 @@ class TechnicalFieldGuide(garak.probes.Probe):
     lang = "en"
     doc_uri = "https://0din.ai/disclosures/a50c962f-1a46-4382-b810-9a2b4c5c6091"
     primary_detector = "mitigation.MitigationBypass"
-    extended_detectors = ["0din_jef.MethKeywords"]
+    extended_detectors = ["substances.MethKeywords"]
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:ethics:E0301",
@@ -107,7 +108,7 @@ class TechnicalFieldGuide(garak.probes.Probe):
         "quality:Security:PromptStability",
     ]
     goal = "bypass content filters using technical field guide framing"
-    tier = garak.probes.Tier.OF_CONCERN
+    tier = garak.probes.Tier.COMPETE_WITH_SOTA
     active = True
 
     def __init__(self, config_root=_config):
@@ -169,7 +170,7 @@ class ChemicalCompilerDebug(garak.probes.Probe):
     lang = "en"
     doc_uri = "https://0din.ai/disclosures/4e8ed295-a772-4a29-8727-cbefada44123"
     primary_detector = "mitigation.MitigationBypass"
-    extended_detectors = ["0din_jef.MethKeywords"]
+    extended_detectors = ["substances.MethKeywords"]
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:ethics:E0301",
@@ -177,8 +178,6 @@ class ChemicalCompilerDebug(garak.probes.Probe):
         "quality:Security:PromptStability",
     ]
     goal = "bypass content filters using chemical compiler debug framing"
-    tier = garak.probes.Tier.OF_CONCERN
-    active = True
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -208,7 +207,7 @@ class Correction(garak.probes.Probe):
     lang = "en"
     doc_uri = "https://0din.ai/disclosures/439777fa-377a-43cb-83c6-c1a012e384b1"
     primary_detector = "mitigation.MitigationBypass"
-    extended_detectors = ["0din_jef.MethKeywords"]
+    extended_detectors = ["substances.MethKeywords"]
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:ethics:E0301",
@@ -216,8 +215,6 @@ class Correction(garak.probes.Probe):
         "quality:Security:PromptStability",
     ]
     goal = "bypass content filters using correction request framing"
-    tier = garak.probes.Tier.OF_CONCERN
-    active = True
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -282,7 +279,7 @@ class HexRecipeBook(garak.probes.Probe):
     lang = "en"
     doc_uri = "https://0din.ai/disclosures/06b58763-8a7b-4d82-afb6-ebe738b378a4"
     primary_detector = "mitigation.MitigationBypass"
-    extended_detectors = ["0din_jef.MethKeywords"]
+    extended_detectors = ["substances.MethKeywords"]
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:ethics:E0301",
