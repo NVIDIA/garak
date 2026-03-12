@@ -30,6 +30,7 @@ garak.detectors
    garak.detectors.productkey
    garak.detectors.shields
    garak.detectors.snowball
+   garak.detectors.sysprompt_extraction
    garak.detectors.unsafe_content
    garak.detectors.visual_jailbreak
    garak.detectors.web_injection

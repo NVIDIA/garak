@@ -42,6 +42,7 @@ For a detailed oversight into how a probe operates, see :doc:`garak.probes.base`
    garak.probes.snowball
    garak.probes.smuggling
    garak.probes.suffix
+   garak.probes.sysprompt_extraction
    garak.probes.tap
    garak.probes.test
    garak.probes.topic
