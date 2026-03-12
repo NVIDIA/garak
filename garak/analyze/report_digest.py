@@ -25,6 +25,7 @@ import garak._plugins
 from garak.data import path as data_path
 import garak.analyze
 import garak.analyze.calibration
+from garak.evaluators.base import CI_DISPLAY_MIN_WIDTH
 
 if not _config.loaded:
     _config.load_config()
@@ -103,7 +104,10 @@ def _init_populate_result_db(evals, taxonomy=None):
         detector VARCHAR(255) not null, 
         score FLOAT not null,
         instances INT not null,
-        passes INT not null
+        passes INT not null,
+        confidence VARCHAR(10),
+        confidence_lower FLOAT,
+        confidence_upper FLOAT
     );"""
 
     cursor.execute(create_table)
@@ -115,6 +119,12 @@ def _init_populate_result_db(evals, taxonomy=None):
         passes = eval["passed"]
         instances = eval["total_evaluated"]
         score = passes / instances if instances else 0
+
+        # Extract CI fields if present
+        confidence = eval.get("confidence")
+        ci_lower = eval.get("confidence_lower")
+        ci_upper = eval.get("confidence_upper")
+
         groups = []
         if taxonomy is not None:
             # get the probe tags
@@ -129,7 +139,8 @@ def _init_populate_result_db(evals, taxonomy=None):
         # add a row for each group
         for group in groups:
             cursor.execute(
-                f"insert into results values ('{pm}', '{group}', '{pc}', '{detector}', '{score}', '{instances}', '{passes}')"
+                f"insert into results values ('{pm}', '{group}', '{pc}', '{detector}', '{score}', '{instances}', '{passes}', ?, ?, ?)",
+                (confidence, ci_lower, ci_upper),
             )
 
     return conn, cursor
@@ -255,15 +266,35 @@ def _get_probe_info(probe_module, probe_class, absolute_score) -> dict:
     }
 
 
-def _get_detectors_info(cursor, probe_group, probe_class) -> List[tuple]:
+def _get_detectors_info(cursor, probe_group: str, probe_class: str) -> List[dict]:
+    """Returns list of dicts with keys: detector, absolute_score, confidence, ci_lower, ci_upper"""
     res = cursor.execute(
-        f"select detector, score from results where probe_group='{probe_group}' and probe_class='{probe_class}' order by score asc, detector asc;"
+        f"select detector, score, confidence, confidence_lower, confidence_upper from results where probe_group='{probe_group}' and probe_class='{probe_class}' order by score asc, detector asc;"
     )
-    return res.fetchall()
+    rows = res.fetchall()
+    
+    return [
+        {
+            "detector": row[0],
+            "absolute_score": row[1],
+            "confidence": row[2],
+            "ci_lower": row[3],
+            "ci_upper": row[4],
+        }
+        for row in rows
+    ]
 
 
 def _get_probe_detector_details(
-    probe_module, probe_class, detector, absolute_score, calibration, probe_tier
+    probe_module,
+    probe_class,
+    detector,
+    absolute_score,
+    calibration,
+    probe_tier,
+    confidence=None,
+    ci_lower=None,
+    ci_upper=None,
 ) -> dict:
     calibration_used = False
     detector = re.sub(r"[^0-9A-Za-z_.]", "", detector)
@@ -312,7 +343,7 @@ def _get_probe_detector_details(
     else:
         detector_defcon = relative_defcon
 
-    return {
+    result = {
         "detector_name": detector,
         "detector_descr": html.escape(detector_description),
         "absolute_score": absolute_score,
@@ -324,6 +355,20 @@ def _get_probe_detector_details(
         "detector_defcon": detector_defcon,
         "calibration_used": calibration_used,
     }
+
+    # Add CI fields if present
+    # NOTE: CIs are calculated for attack success rate (failure rate), but absolute_score is pass rate
+    # So we need to invert: CI for pass rate = [1 - ci_upper, 1 - ci_lower]
+    if confidence is not None and ci_lower is not None and ci_upper is not None:
+        result["confidence"] = confidence
+        result["absolute_confidence_lower"] = 1.0 - ci_upper  # Inverted
+        result["absolute_confidence_upper"] = 1.0 - ci_lower  # Inverted
+        
+        # Suppress zero-width CIs in HTML display (convert to 0-1 scale)
+        ci_width = abs(result["absolute_confidence_upper"] - result["absolute_confidence_lower"]) * 100
+        result["show_confidence_interval"] = (ci_width > CI_DISPLAY_MIN_WIDTH)
+
+    return result
 
 
 def _get_calibration_info(calibration):
@@ -406,7 +451,13 @@ def build_digest(report_filename: str, config=_config):
             ] = probe_info
 
             detectors_info = _get_detectors_info(cursor, probe_group, probe_class)
-            for detector, absolute_score in detectors_info:
+            for detector_info in detectors_info:
+                detector = detector_info["detector"]
+                absolute_score = detector_info["absolute_score"]
+                confidence = detector_info.get("confidence", None)
+                ci_lower = detector_info.get("ci_lower", None)
+                ci_upper = detector_info.get("ci_upper", None)
+
                 probe_detector_result = _get_probe_detector_details(
                     probe_module,
                     probe_class,
@@ -414,6 +465,9 @@ def build_digest(report_filename: str, config=_config):
                     absolute_score,
                     calibration,
                     probe_info["probe_tier"],
+                    confidence,
+                    ci_lower,
+                    ci_upper,
                 )
 
                 # add counts for detector (using original field names from eval records)

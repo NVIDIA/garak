@@ -215,6 +215,31 @@ def main(arguments=None) -> None:
         default=_config.reporting.taxonomy,
         help="specify a MISP top-level taxonomy to be used for grouping probes in reporting. e.g. 'avid-effect', 'owasp' ",
     )
+    parser.add_argument(
+        "--confidence_interval_method",
+        type=str,
+        default=None,
+        choices=["bootstrap", "none"],
+        help="method for CI calculation: 'bootstrap' (default) or 'none' to disable",
+    )
+    parser.add_argument(
+        "--bootstrap_num_iterations",
+        type=int,
+        default=None,
+        help="number of bootstrap iterations for CI calculation (overrides config)",
+    )
+    parser.add_argument(
+        "--bootstrap_confidence_level",
+        type=float,
+        default=None,
+        help="confidence level for bootstrap CIs, e.g. 0.95 or 0.99 (overrides config)",
+    )
+    parser.add_argument(
+        "--bootstrap_min_sample_size",
+        type=int,
+        default=None,
+        help="minimum sample size required for bootstrap CI calculation (overrides config)",
+    )
 
     ## COMMANDS
     # items placed here also need to be listed in command_options below
@@ -399,6 +424,31 @@ def main(arguments=None) -> None:
             _config.system.parallel_requests = worker_count_validation(
                 _config.system.parallel_requests
             )
+
+        if (
+            _config.reporting.bootstrap_num_iterations is not None
+            and _config.reporting.bootstrap_num_iterations <= 0
+        ):
+            raise ValueError(
+                f"bootstrap_num_iterations must be > 0, got {_config.reporting.bootstrap_num_iterations}"
+            )
+
+        if (
+            _config.reporting.bootstrap_confidence_level is not None
+            and not (0.0 < _config.reporting.bootstrap_confidence_level < 1.0)
+        ):
+            raise ValueError(
+                f"bootstrap_confidence_level must be in (0, 1), got {_config.reporting.bootstrap_confidence_level}"
+            )
+
+        if (
+            _config.reporting.bootstrap_min_sample_size is not None
+            and _config.reporting.bootstrap_min_sample_size <= 0
+        ):
+            raise ValueError(
+                f"bootstrap_min_sample_size must be > 0, got {_config.reporting.bootstrap_min_sample_size}"
+            )
+
     except ValueError as e:
         logging.exception(e)
         print(e)
