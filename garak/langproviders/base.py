@@ -10,7 +10,7 @@ import unicodedata
 import string
 import logging
 from garak.resources.api import nltk
-from langdetect import detect, DetectorFactory, LangDetectException
+import langid
 
 _intialized_words = False
 
@@ -104,13 +104,12 @@ def contains_invisible_unicode(text: str) -> bool:
 
 def is_meaning_string(text: str) -> bool:
     """Check if the input text is a meaningless sequence or invalid for translation."""
-    DetectorFactory.seed = 0
-
+    
     # Detect Language: Skip if no valid language is detected
     try:
-        lang = detect(text)
-    except LangDetectException:
-        logging.debug("langdetect failed to detect a valid language.")
+        lang, confidence = langid.classify(text)
+    except Exception as e:
+        logging.debug(f"langid failed to detect a valid language: {e}")
         return False
 
     if lang == "en":
