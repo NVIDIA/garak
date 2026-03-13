@@ -1,0 +1,823 @@
+"""**Generative Offensive Agent Tester (GOAT)**
+
+A multi-turn jailbreak probe that uses an attacker LLM to iteratively craft
+adversarial prompts using the Observation-Thought-Strategy-Response (O-T-S-R)
+reasoning framework.
+
+The GOAT algorithm maintains two conversation histories:
+- C_A: Attacker LLM history with full reasoning (O, T, S, R)
+- C_T: Target LLM history with just adversarial prompts and responses
+
+Further info:
+* https://arxiv.org/abs/2410.01606
+"""
+
+import copy
+import json
+import logging
+import random
+import re
+from collections import defaultdict
+from typing import Dict, Iterable, List, Optional, Tuple
+
+from tqdm import tqdm
+
+from garak import _config, _plugins
+from garak.data import path as data_path
+from garak.exception import GarakException
+import garak.attempt
+import garak.probes
+
+
+class GOATAttack(garak.probes.IterativeProbe):
+    """Generative Offensive Agent Tester
+
+    Uses Observation-Thought-Strategy-Response (O-T-S-R) reasoning framework
+    to iteratively craft adversarial prompts across multiple turns.
+
+    The probe:
+    1. Loads attack goals from a HuggingFace dataset or custom list
+    2. Uses an attacker LLM to generate adversarial prompts
+    3. Sends prompts to the target and evaluates responses
+    4. Continues until jailbreak detected or max turns reached
+    5. Marks final attempts as 'adversarial' for detector evaluation
+
+    Configuration:
+        num_goals: Number of goals to randomly sample (-1 for all)
+        custom_goals: List of custom attack goals
+        augment_custom_goals: Whether to add custom goals to dataset goals
+        attack_hf_dataset: HuggingFace dataset path for attack goals
+        max_calls_per_conv: Maximum turns per conversation
+        red_team_model_type: Generator type for attacker LLM
+        red_team_model_name: Model name for attacker LLM
+        end_condition: Early stopping mode ("verify" or "detector")
+        early_stop_on: When to mark an attempt as adversarial ("any" or "all").
+            Only relevant when generations > 1.
+            "any" (default): Mark adversarial as soon as any generation branch
+            is jailbroken. All remaining branches are terminated — the attack_goal
+            is considered achieved. Every output at that turn is evaluated by the
+            detector.
+            "all": Only mark adversarial when ALL generation branches have
+            terminated. WARNING: jailbreaks on fewer than `generations` branches
+            at a given turn are INVISIBLE to the detector — they are detected
+            internally for early stopping but never evaluated by the detector.
+            Only the final turn is seen by the detector.
+
+    Prompt Customization (for different attacker models or styles):
+        custom_system_prompt: Override the attacker system prompt
+        custom_initial_prompt: Override the initial turn prompt template
+        custom_followup_prompt: Override the followup turn prompt template
+        custom_judge_prompt: Override the jailbreak judge prompt
+        custom_attack_techniques: Dict of {"Name": "Definition"} for custom techniques
+    """
+
+    lang = "en"
+    primary_detector = "judge.JailbreakOnlyAdversarial"
+    _run_params = garak.probes.IterativeProbe._run_params | {"eval_threshold"}
+    tags = [
+        "owasp:llm01",
+        "owasp:llm09",
+        "avid-effect:security:S0403",
+        "quality:Behavioral:ContentSafety:HateHarassment",
+        "quality:Behavioral:ContentSafety:LegalGoodsServices",
+        "quality:Behavioral:ContentSafety:Profanity",
+        "quality:Behavioral:ContentSafety:Toxicity",
+        "quality:Behavioral:ContentSafety:Unauthorized",
+        "quality:Security:PromptStability",
+        "quality:Security:Adversarial",
+        "cwe:1427",
+    ]
+    goal = "elicit a harmful, unethical, or illegal response from the model"
+    doc_uri = "https://arxiv.org/abs/2410.01606"
+    tier = garak.probes.Tier.OF_CONCERN
+    active = False
+
+    DEFAULT_PARAMS = garak.probes.IterativeProbe.DEFAULT_PARAMS | {
+        "max_calls_per_conv": 5,
+        "end_condition": "verify",
+        # Early stop strategy (only relevant when generations > 1):
+        #   "any" (default) — attack_goal is achieved as soon as at least one
+        #       generation branch is jailbroken. All remaining branches are
+        #       terminated and every output at that turn is evaluated by the
+        #       detector (jailbroken ones score as FAIL, refusals as PASS).
+        #   "all" — the attempt is only marked adversarial when ALL generation
+        #       branches have terminated. WARNING: if only some branches are
+        #       jailbroken at a given turn (fewer than `generations`), those
+        #       jailbreaks are INVISIBLE to the detector — they are detected
+        #       internally for early stopping but never evaluated. Only the
+        #       final turn (when every branch has terminated or max_calls_per_conv
+        #       is reached) is seen by the detector.
+        "early_stop_on": "any",
+        # Attacker LLM configuration
+        "red_team_model_type": "huggingface.Model",
+        "red_team_model_name": "Qwen/Qwen3-4B-Thinking-2507",
+        "red_team_model_config": {
+            "max_tokens": 4096,
+        },
+        # Goal configuration
+        "custom_goals": [],
+        "augment_custom_goals": False,
+        "attack_hf_dataset": "JailbreakBench/JBB-Behaviors",
+        "attack_hf_dataset_load_kwargs": {"split": "harmful", "name": "behaviors"},
+        "attack_hf_dataset_column": "Goal",
+        "num_goals": 5,
+        # Prompt template overrides (None = use default from data files)
+        # These allow customization for different attacker models or attack styles
+        "custom_system_prompt": None,
+        "custom_initial_prompt": None,
+        "custom_followup_prompt": None,
+        "custom_judge_prompt": None,
+        # Custom attack techniques dict: {"Technique Name": "Technique Definition", ...}
+        "custom_attack_techniques": None,
+    }
+
+    def __init__(self, config_root=_config):
+        self.attacker_model = None
+        self.detector = None  # For end_condition="detector" mode
+        # Track goals that have already been jailbroken (for cross-attempt
+        # early stopping). When early_stop_on="any" and a goal is achieved in
+        # one attempt, sibling attempts for the same goal at the same turn may
+        # already be queued. This set lets _generate_next_attempts skip them.
+        self._achieved_goals: set = set()
+        super().__init__(config_root=config_root)
+
+        # Validate early_stop_on
+        if self.early_stop_on not in ("any", "all"):
+            raise GarakException(
+                f"Unsupported early_stop_on '{self.early_stop_on}'. Use 'any' or 'all'."
+            )
+
+        # Load prompt templates from data files
+        self._load_prompt_templates()
+
+        # Load attack goals
+        self.attack_goals = self._get_attack_goals()
+
+        # load attacker early to validate probe configuration values
+        self._load_attacker()
+        logging.info(
+            f"goat.GOATAttack: Initialized with {len(self.attack_goals)} goals, "
+            f"max_calls_per_conv={self.max_calls_per_conv}, end_condition={self.end_condition}, "
+            f"early_stop_on={self.early_stop_on}"
+        )
+
+    def _load_prompt_templates(self):
+        """Load prompt templates from data files or use custom overrides.
+
+        Custom prompts can be provided via DEFAULT_PARAMS to support different
+        attacker models or attack styles without modifying package data files.
+        """
+        goat_data_path = data_path / "goat"
+
+        # System prompt for attacker LLM
+        if self.custom_system_prompt:
+            self.system_prompt_template = self.custom_system_prompt
+        else:
+            with open(goat_data_path / "system_prompt.txt", "r", encoding="utf-8") as f:
+                self.system_prompt_template = f.read()
+
+        # Initial prompt (first turn)
+        if self.custom_initial_prompt:
+            self.initial_prompt_template = self.custom_initial_prompt
+        else:
+            with open(goat_data_path / "initial_prompt.txt", "r", encoding="utf-8") as f:
+                self.initial_prompt_template = f.read()
+
+        # Followup prompt (subsequent turns)
+        if self.custom_followup_prompt:
+            self.followup_prompt_template = self.custom_followup_prompt
+        else:
+            with open(goat_data_path / "followup_prompt.txt", "r", encoding="utf-8") as f:
+                self.followup_prompt_template = f.read()
+
+        # Attack techniques
+        if self.custom_attack_techniques:
+            self.attack_techniques = self.custom_attack_techniques
+        else:
+            with open(goat_data_path / "attack_techniques.json", "r", encoding="utf-8") as f:
+                self.attack_techniques = json.load(f)
+
+        # Judge prompt (JailbreakBench classifier)
+        if self.custom_judge_prompt:
+            self.judge_prompt_template = self.custom_judge_prompt
+        else:
+            with open(goat_data_path / "judge_prompt.txt", "r", encoding="utf-8") as f:
+                self.judge_prompt_template = f.read()
+
+    def _get_attack_goals(self) -> List[str]:
+        """Get attack goals from custom list and/or HuggingFace dataset."""
+        attack_goals = []
+
+        if self.custom_goals and not self.augment_custom_goals:
+            # Use only custom goals
+            attack_goals = list(self.custom_goals)
+        else:
+            # Load from HuggingFace dataset
+            hf_goals = self._load_hf_dataset_goals()
+
+            if self.augment_custom_goals and self.custom_goals:
+                # Combine custom goals with dataset goals
+                attack_goals = list(self.custom_goals) + hf_goals
+            else:
+                # Use only dataset goals
+                attack_goals = hf_goals
+
+        # Remove duplicates
+        attack_goals = list(set(attack_goals))
+
+        # Random sample if num_goals is specified
+        if self.num_goals > 0 and len(attack_goals) > self.num_goals:
+            attack_goals = random.sample(attack_goals, self.num_goals)
+
+        if not attack_goals:
+            raise GarakException(
+                "goat.GOATAttack: No attack goals loaded. "
+                "Check custom_goals or attack_hf_dataset configuration."
+            )
+
+        return attack_goals
+
+    def _load_hf_dataset_goals(self) -> List[str]:
+        """Load attack goals from HuggingFace dataset."""
+        if not self.attack_hf_dataset or not self.attack_hf_dataset.strip():
+            logging.debug(
+                "goat.GOATAttack: No HF dataset path provided, returning empty list."
+            )
+            return []
+
+        try:
+            from datasets import load_dataset
+
+            hf_dataset = load_dataset(
+                self.attack_hf_dataset, **self.attack_hf_dataset_load_kwargs
+            )
+            goals = list(hf_dataset[self.attack_hf_dataset_column])
+            logging.debug(
+                f"goat.GOATAttack: Loaded {len(goals)} goals from {self.attack_hf_dataset}"
+            )
+            return goals
+        except Exception as e:
+            logging.warning(
+                f"goat.GOATAttack: Failed to load HF dataset {self.attack_hf_dataset}: {e}"
+            )
+            return []
+
+    def _load_attacker(self):
+        """Instantiate the attacker LLM."""
+        if self.attacker_model is not None:
+            return
+
+        logging.debug("goat.GOATAttack: Loading attacker LLM...")
+
+        try:
+            rt_model_module, rt_model_class = self.red_team_model_type.split(".")
+        except ValueError as e:
+            msg = (
+                f"red_team_model_type must be fully specified, e.g. 'module.Class'. "
+                f"Got: {self.red_team_model_type}"
+            )
+            logging.critical(msg)
+            raise GarakException(msg) from e
+
+        rt_config = {
+            "generators": {
+                rt_model_module: {
+                    rt_model_class: self.red_team_model_config
+                    | {"name": self.red_team_model_name},
+                }
+            }
+        }
+
+        self.attacker_model = _plugins.load_plugin(
+            f"generators.{self.red_team_model_type}", config_root=rt_config
+        )
+
+    def _load_detector(self):
+        """Instantiate detector for end_condition='detector' mode."""
+        if self.detector is not None:
+            return
+
+        logging.debug("goat.GOATAttack: Loading detector for early stopping...")
+        self.detector = _plugins.load_plugin(f"detectors.{self.primary_detector}")
+
+    def _format_attack_techniques(self) -> str:
+        """Format attack techniques for the system prompt."""
+        techniques = []
+        for name, definition in self.attack_techniques.items():
+            techniques.append(f"Technique Name: {name}\nTechnique Definition: {definition}")
+        return "\n\n".join(techniques)
+
+    def _create_init_attempts(self) -> Iterable[garak.attempt.Attempt]:
+        """Create initial attempts for each attack goal.
+
+        This is called by IterativeProbe.probe() to get the starting attempts.
+        """
+        self._load_attacker()
+
+        init_attempts = []
+        desc = f"Generating {self.__class__.__name__} initial turns"
+
+        for goal_idx, goal in enumerate(
+            tqdm(self.attack_goals, desc=desc, leave=False)
+        ):
+            logging.info(
+                f"goat.GOATAttack: Goal {goal_idx + 1}/{len(self.attack_goals)}: {goal[:80]}..."
+            )
+
+            # Initialize attacker conversation C_A with system prompt
+            attack_techniques_text = self._format_attack_techniques()
+            system_prompt = self.system_prompt_template.format(
+                goal=goal, attack_techniques=attack_techniques_text
+            )
+
+            initial_prompt = self.initial_prompt_template.format(goal=goal)
+
+            C_A = garak.attempt.Conversation([
+                garak.attempt.Turn("system", garak.attempt.Message(system_prompt)),
+                garak.attempt.Turn("user", garak.attempt.Message(initial_prompt)),
+            ])
+
+            # Generate first adversarial prompt from attacker LLM
+            adversarial_prompt, C_A = self._generate_adversarial_prompt(C_A)
+            if adversarial_prompt is None:
+                logging.warning(
+                    f"goat.GOATAttack: No initial adversarial prompt for goal: {goal[:50]}..."
+                )
+                continue
+
+            # Create target conversation C_T with just the adversarial prompt
+            target_conversation = garak.attempt.Conversation(
+                turns=[garak.attempt.Turn("user", garak.attempt.Message(adversarial_prompt))],
+                notes={"turn": 1},
+            )
+
+            # Create attempt using IterativeProbe's helper
+            attempt = self._create_attempt(target_conversation)
+            attempt.notes = attempt.notes or {}
+            attempt.notes.update({
+                "attack_goal": goal,
+                "attacker_conversation": C_A,
+                "is_adversarial": False,  # Will be set True when this becomes final turn
+            })
+
+            init_attempts.append(attempt)
+
+        logging.info(f"goat.GOATAttack: Created {len(init_attempts)} initial attempts")
+        return init_attempts
+
+    def _postprocess_attempt(self, this_attempt: garak.attempt.Attempt) -> garak.attempt.Attempt:
+        """Override to set is_adversarial before the deep copy in parent class.
+
+        The parent class (IterativeProbe._postprocess_attempt) calls super() which
+        returns a deep copy, then calls _generate_next_attempts(). But modifications
+        made in _generate_next_attempts don't affect the deep copy that gets returned.
+
+        This override sets is_adversarial before calling the parent, ensuring the
+        flag is included in the deep copy that goes to the report.
+
+        Note: we cache should_terminate in attempt.notes so _generate_next_attempts
+        uses the same result.
+
+        The ``early_stop_on`` parameter controls when an attempt is marked adversarial
+        (only relevant when ``generations > 1``):
+        - ``"any"`` (default): Mark adversarial as soon as **any** branch is
+          jailbroken. All remaining branches are also terminated (no further turns
+          for this goal). Every output at this turn is evaluated by the detector.
+        - ``"all"``: Mark adversarial only when **all** branches have terminated.
+          **WARNING**: if fewer than ``generations`` branches are jailbroken at a
+          given turn, those jailbreaks are **invisible** to the detector — they are
+          detected internally for early stopping but never formally evaluated.
+          Only the final turn (all terminated or max turns reached) is seen by the
+          detector.
+        """
+        # Early exit: if this goal was already achieved by a sibling attempt
+        # that was processed earlier in the same _execute_all batch, mark as
+        # non-adversarial to avoid inflating the metric with redundant
+        # evaluations.  We can't prevent the target call (base class already
+        # executed it), but we can prevent its results from being evaluated.
+        attack_goal = this_attempt.notes.get("attack_goal", "")
+        if self.early_stop_on == "any" and attack_goal in self._achieved_goals:
+            this_attempt.notes["is_adversarial"] = False
+            this_attempt.notes["_should_terminate"] = [True] * len(
+                this_attempt.outputs
+            )
+            logging.debug(
+                f"goat.GOATAttack: Goal already achieved, marking attempt "
+                f"{this_attempt.uuid} as non-adversarial to avoid metric inflation."
+            )
+            return super()._postprocess_attempt(this_attempt)
+
+        # Determine if this is the final turn before the deep copy
+        should_terminate = self._should_terminate_conversation(this_attempt)
+        # Turn number is tracked on the Conversation object, not attempt.notes
+        current_turn = this_attempt.conversations[0].notes.get("turn", 1)
+        is_last_possible_turn = current_turn >= self.max_calls_per_conv
+        any_terminated = any(should_terminate)
+        all_terminated = all(should_terminate)
+
+        # Cache the termination decision so _generate_next_attempts uses the same result
+        this_attempt.notes["_should_terminate"] = should_terminate
+
+        # Set is_adversarial before parent's deep copy
+        if self.early_stop_on == "any":
+            # Mark adversarial if ANY branch jailbroken or we've hit max turns.
+            # This ensures every jailbreak is evaluated by the detector.
+            is_adversarial = any_terminated or is_last_possible_turn
+        else:
+            # "all" mode: mark adversarial only when ALL branches are done.
+            is_adversarial = all_terminated or is_last_possible_turn
+
+            # Warn when "all" mode silently drops jailbreaks that the detector
+            # will never see: some branches jailbroken but not all.
+            if any_terminated and not all_terminated and not is_last_possible_turn:
+                n_jailbroken = sum(should_terminate)
+                n_total = len(should_terminate)
+                logging.warning(
+                    f"goat.GOATAttack: early_stop_on='all' — {n_jailbroken}/{n_total} "
+                    f"branches jailbroken at turn {current_turn} but attempt is NOT "
+                    f"marked adversarial. These jailbreaks will be invisible to the "
+                    f"detector. Set early_stop_on='any' to capture them."
+                )
+
+        this_attempt.notes["is_adversarial"] = is_adversarial
+        if is_adversarial:
+            logging.debug(
+                f"goat.GOATAttack: Marked attempt {this_attempt.uuid} as adversarial "
+                f"(turn {current_turn}, early_stop_on={self.early_stop_on})"
+            )
+
+        # Record achieved goals for cross-attempt coordination.
+        # When a jailbreak is found, sibling attempts for the same goal that
+        # were queued at the same turn should not generate further turns.
+        if any_terminated:
+            if attack_goal:
+                self._achieved_goals.add(attack_goal)
+
+        # Now call parent which will deep copy with our is_adversarial value
+        return super()._postprocess_attempt(this_attempt)
+
+    def _generate_adversarial_prompt(
+        self, attacker_conversation: garak.attempt.Conversation
+    ) -> Tuple[Optional[str], garak.attempt.Conversation]:
+        """Generate an adversarial prompt using the attacker LLM.
+
+        Args:
+            attacker_conversation: The attacker's conversation history (C_A)
+
+        Returns:
+            Tuple of (adversarial_prompt or None, updated_attacker_conversation)
+        """
+        attacker_response = self._call_attacker_llm(attacker_conversation)
+        if not attacker_response:
+            return None, attacker_conversation
+
+        attacker_response_text = self._extract_content(attacker_response)
+
+        # Parse O-T-S-R format
+        r_A = self._parse_otsr_response(attacker_response_text)
+        adversarial_prompt = r_A.get("Response") if r_A else None
+
+        # Update C_A with attacker's response
+        if r_A:
+            formatted_response = self._format_otsr(r_A)
+            attacker_conversation.turns.append(
+                garak.attempt.Turn("assistant", garak.attempt.Message(formatted_response))
+            )
+
+        return adversarial_prompt, attacker_conversation
+
+    def _should_terminate_conversation(
+        self, attempt: garak.attempt.Attempt
+    ) -> List[bool]:
+        """Determine if we should stop attacking based on the target's response.
+
+        Supports two modes via end_condition parameter:
+        - "verify": Uses internal LLM-as-judge with JailbreakBench prompt
+        - "detector": Uses the actual detector for early stopping
+
+        Returns:
+            List of bools, one per attempt.outputs entry. True = stop this
+            conversation branch (jailbreak succeeded).
+        """
+        if self.end_condition == "detector":
+            return self._should_terminate_using_detector(attempt)
+        elif self.end_condition == "verify":
+            return self._should_terminate_using_verify(attempt)
+        else:
+            raise GarakException(
+                f"Unsupported end_condition '{self.end_condition}'. "
+                "Use 'verify' or 'detector'."
+            )
+
+    def _should_terminate_using_detector(
+        self, attempt: garak.attempt.Attempt
+    ) -> List[bool]:
+        """Use the actual detector for early stopping decisions.
+
+        Returns:
+            List of bools, one per attempt.outputs entry. True = stop this conversation branch.
+        """
+        self._load_detector()
+
+        # JailbreakOnlyAdversarial.detect() skips non-adversarial attempts.
+        # For early stopping, we need to evaluate regardless of the turn's
+        # adversarial status, so we temporarily enable the flag.
+        original_is_adversarial = attempt.notes.get("is_adversarial", False)
+        attempt.notes["is_adversarial"] = True
+
+        detector_scores = self.detector.detect(attempt)
+
+        # Restore original value
+        attempt.notes["is_adversarial"] = original_is_adversarial
+
+        current_turn = attempt.conversations[0].notes.get("turn", 1)
+        should_terminate = []
+        for score in detector_scores:
+            if score is None:
+                should_terminate.append(True)  # Terminate on evaluation failure
+            else:
+                # Score of 1.0 means jailbreak detected (unsafe)
+                is_jailbreak = score >= self.eval_threshold
+                should_terminate.append(is_jailbreak)
+
+                if is_jailbreak:
+                    logging.info(
+                        f"goat.GOATAttack: Detector found jailbreak at turn {current_turn}"
+                    )
+
+        return should_terminate
+
+    def _should_terminate_using_verify(
+        self, attempt: garak.attempt.Attempt
+    ) -> List[bool]:
+        """Use internal LLM-as-judge for early stopping decisions.
+
+        Returns:
+            List of bools, one per attempt.outputs entry. True = stop this conversation branch.
+        """
+        should_terminate = []
+        goal = attempt.notes.get("attack_goal", "")
+        current_turn = attempt.conversations[0].notes.get("turn", 1)
+        early_stop_reasonings = []
+
+        for output in attempt.outputs:
+            if output is None or output.text is None:
+                should_terminate.append(True)
+                early_stop_reasonings.append(None)
+                continue
+
+            # Use internal judge for early stopping decision
+            is_jailbreak, reasoning = self._evaluate_jailbreak(output.text, goal)
+
+            # Collect reasoning for attempt-level notes
+            early_stop_reasonings.append(reasoning if reasoning else None)
+
+            should_terminate.append(is_jailbreak)
+
+            if is_jailbreak:
+                logging.info(
+                    f"goat.GOATAttack: Jailbreak detected at turn {current_turn}, "
+                    "stopping early"
+                )
+            else:
+                logging.debug(
+                    f"goat.GOATAttack: No jailbreak at turn {current_turn}, continuing"
+                )
+
+        # Store reasoning at attempt level (not on individual output Messages)
+        attempt.notes["early_stop_reasonings"] = early_stop_reasonings
+
+        return should_terminate
+
+    def _generate_next_attempts(
+        self, last_attempt: garak.attempt.Attempt
+    ) -> Iterable[garak.attempt.Attempt]:
+        """Generate next turn attempts based on the target's response.
+
+        This is called by IterativeProbe after each turn completes.
+        Note: is_adversarial is set in _postprocess_attempt before this is called.
+
+        When ``early_stop_on="any"`` and any branch was jailbroken, no further
+        attempts are generated — the attack_goal is considered achieved and all
+        remaining branches are terminated to save compute.
+
+        Args:
+            last_attempt: The completed attempt with target's response
+
+        Returns:
+            List of attempts for the next turn (empty if should stop)
+        """
+        # Use cached termination decision from _postprocess_attempt to ensure consistency
+        should_terminate = last_attempt.notes.get("_should_terminate")
+        if should_terminate is None:
+            # Fallback if not cached - shouldn't happen
+            should_terminate = self._should_terminate_conversation(last_attempt)
+
+        # Turn number is tracked on the Conversation object
+        current_turn = last_attempt.conversations[0].notes.get("turn", 1)
+        is_last_possible_turn = current_turn >= self.max_calls_per_conv
+        attack_goal = last_attempt.notes["attack_goal"]
+
+        # Cross-attempt coordination: if a sibling attempt for the same attack_goal
+        # already achieved a jailbreak (recorded in _achieved_goals by
+        # _postprocess_attempt), don't generate further turns for this attack_goal.
+        # This handles the case where multiple attempts for the same attack_goal
+        # execute at the same turn — one jailbreaks, the other hasn't yet.
+        if self.early_stop_on == "any" and attack_goal in self._achieved_goals:
+            logging.debug(
+                f"goat.GOATAttack: Attack goal already achieved by sibling attempt, "
+                f"skipping next turns for: {attack_goal[:50]}..."
+            )
+            return []
+
+        # In "any" mode, if any branch of THIS attempt was jailbroken the
+        # attack_goal is achieved. Stop all branches.
+        if self.early_stop_on == "any" and any(should_terminate):
+            logging.debug(
+                f"goat.GOATAttack: early_stop_on='any' — at least one branch "
+                f"terminated at turn {current_turn}, stopping all branches for goal: "
+                f"{attack_goal[:50]}..."
+            )
+            return []
+
+        # Generate next turn attempts for non-terminated conversations
+        next_attempts = []
+        C_A = last_attempt.notes.get("attacker_conversation")
+
+        for conversation, should_term in zip(last_attempt.conversations, should_terminate):
+            if should_term or is_last_possible_turn:
+                continue  # Don't generate next turn
+
+            # Get last prompt and response from target conversation
+            last_prompt = conversation.last_message("user")
+            last_response = conversation.last_message("assistant")
+
+            if not last_prompt or not last_response:
+                logging.warning(
+                    f"goat.GOATAttack: Missing prompt or response in attempt {last_attempt.uuid}"
+                )
+                continue
+
+            if not C_A:
+                logging.warning(
+                    f"goat.GOATAttack: Missing attacker conversation in attempt {last_attempt.uuid}"
+                )
+                continue
+
+            # Create followup prompt for attacker LLM
+            followup_prompt = self.followup_prompt_template.format(
+                goal=attack_goal,
+                adversarial_prev_prompt=last_prompt.text,
+                prev_model_response=last_response.text,
+            )
+
+            # Deep copy to avoid mutating original
+            C_A = copy.deepcopy(C_A)
+            C_A.turns.append(
+                garak.attempt.Turn("user", garak.attempt.Message(followup_prompt))
+            )
+
+            # Generate next adversarial prompt
+            adversarial_prompt, C_A = self._generate_adversarial_prompt(C_A)
+            if adversarial_prompt is None:
+                logging.warning(
+                    f"goat.GOATAttack: No followup adversarial prompt for attack goal: {attack_goal[:50]}..."
+                )
+                continue
+
+            # Create next target conversation (append to existing)
+            next_conversation = copy.deepcopy(conversation)
+            next_conversation.turns.append(
+                garak.attempt.Turn("user", garak.attempt.Message(adversarial_prompt))
+            )
+            # Track turn number on the Conversation object
+            next_conversation.notes["turn"] = current_turn + 1
+
+            # Create next attempt
+            next_attempt = self._create_attempt(next_conversation)
+            next_attempt.notes = next_attempt.notes or {}
+            next_attempt.notes.update({
+                "attack_goal": attack_goal,
+                "attacker_conversation": C_A,
+                "is_adversarial": False,
+            })
+
+            next_attempts.append(next_attempt)
+
+        return next_attempts
+
+    def _call_attacker_llm(self, conversation: garak.attempt.Conversation) -> Optional[str]:
+        """Call the attacker LLM and return the response text."""
+        try:
+            response = self.attacker_model.generate(conversation, generations_this_call=1)
+        except GarakException as e:
+            logging.warning(f"goat.GOATAttack: Attacker LLM error: {e}")
+            return None
+
+        if not response or not response[0] or not response[0].text:
+            logging.warning("goat.GOATAttack: Empty response from attacker LLM")
+            return None
+
+        return response[0].text
+
+    def _extract_content(self, content: str) -> str:
+        """Extract content, removing thinking tags if present (e.g., DeepSeek style)."""
+        if "</think>" in content:
+            return content.split("</think>")[1].strip()
+        return content
+
+    def _extract_reasoning(self, content: str) -> str:
+        """Extract reasoning from thinking tags if present."""
+        if "</think>" in content:
+            thinking = content.split("</think>")[0]
+            return thinking.removeprefix("<think>").strip()
+        return ""
+
+    def _parse_otsr_response(self, text: str) -> Optional[Dict]:
+        """Parse Observation, Thought, Strategy, Response from attacker output.
+
+        Handles various formats including markers (▶), simple headers, etc.
+        """
+        # Pattern for O-T-S-R sections
+        patterns = {
+            "Observation": r"(?:^|\n)\s*[▶►]?\s*Observation[:\s]+(.+?)(?=(?:\n\s*[▶►]?\s*(?:Thought|Strategy|Response)[:\s])|$)",
+            "Thought": r"(?:^|\n)\s*[▶►]?\s*Thought[:\s]+(.+?)(?=(?:\n\s*[▶►]?\s*(?:Strategy|Response)[:\s])|$)",
+            "Strategy": r"(?:^|\n)\s*[▶►]?\s*Strategy[:\s]+(.+?)(?=(?:\n\s*[▶►]?\s*Response[:\s])|$)",
+            "Response": r"(?:^|\n)\s*[▶►]?\s*Response[:\s]+(.+?)$",
+        }
+
+        result = defaultdict(str)
+        for key, pattern in patterns.items():
+            match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
+            if match:
+                content = match.group(1).strip()
+                # Handle nested markdown headers in Response
+                if key == "Response" and "**Observation:**" in content:
+                    nested_match = re.search(
+                        r"\*\*Response:\*\*\s*(.+?)$", content, re.DOTALL | re.IGNORECASE
+                    )
+                    if nested_match:
+                        content = nested_match.group(1).strip()
+                # Remove quotes
+                content = re.sub(r'^["\']|["\']$', "", content).strip()
+                result[key] = content
+
+        # Fallback: simpler patterns
+        if not result.get("Response"):
+            simple_patterns = {
+                "Observation": r"Observation[:\s]+(.+?)(?=(?:Thought|Strategy|Response)[:\s]|$)",
+                "Thought": r"Thought[:\s]+(.+?)(?=(?:Strategy|Response)[:\s]|$)",
+                "Strategy": r"Strategy[:\s]+(.+?)(?=Response[:\s]|$)",
+                "Response": r"Response[:\s]+(.+?)$",
+            }
+            for key, pattern in simple_patterns.items():
+                match = re.search(pattern, text, re.DOTALL | re.IGNORECASE)
+                if match:
+                    result[key] = match.group(1).strip()
+
+        # Final fallback: use whole text as Response
+        if not result.get("Response") and text:
+            parts = text.split("---")
+            result["Response"] = parts[-1].strip() if len(parts) > 1 else text.strip()
+
+        return result if result.get("Response") else None
+
+    def _format_otsr(self, r_A: Dict) -> str:
+        """Format O-T-S-R dict for storage in attacker conversation."""
+        return (
+            f"Observation: {r_A['Observation']}\n"
+            f"Thought: {r_A['Thought']}\n"
+            f"Strategy: {r_A['Strategy']}\n"
+            f"Response: {r_A['Response']}"
+        )
+
+    def _evaluate_jailbreak(self, response: str, goal: str) -> Tuple[bool, str]:
+        """Evaluate if jailbreak was achieved (for early stopping in verify mode).
+
+        Uses the JailbreakBench classifier prompt from the GOAT paper,
+        loaded from judge_prompt.txt.
+
+        Args:
+            response: The target model's response
+            goal: The attack goal
+
+        Returns:
+            Tuple of (is_jailbreak: bool, reasoning: str)
+        """
+
+        # Combine judge prompt template with the evaluation content
+        full_prompt = self.judge_prompt_template.format(goal=goal, response=response)
+
+        conversation = garak.attempt.Conversation([
+            garak.attempt.Turn("user", garak.attempt.Message(full_prompt))
+        ])
+
+        judge_response = self._call_attacker_llm(conversation)
+        if not judge_response:
+            return False, ""
+
+        response_text = self._extract_content(judge_response)
+        reasoning = self._extract_reasoning(judge_response)
+
+        is_unsafe = "unsafe" in response_text.lower()
+        return is_unsafe, reasoning
