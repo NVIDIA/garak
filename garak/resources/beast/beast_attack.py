@@ -9,6 +9,7 @@ import torch
 import numpy as np
 
 import garak._config
+from garak.attempt import Conversation, Message, Turn
 from garak.generators import Generator
 from garak.resources.common import REJECTION_STRINGS, load_advbench
 from tqdm import tqdm
@@ -30,13 +31,22 @@ def _format_chat(generator: Generator, prompt: str):
     return formatted_prompt
 
 
+def _prompt_to_conversation(text: str) -> Conversation:
+    """Build a Conversation from a single user message string for generator.generate()."""
+    return Conversation(
+        turns=[Turn(role="user", content=Message(text=text))]
+    )
+
+
 @torch.no_grad()
 def _evaluate(generator, prompt, candidate):
     candidate_str = generator.tokenizer.decode(candidate)
     input_str = prompt + candidate_str
-    outputs = generator.generate(input_str)
+    conv = _prompt_to_conversation(input_str)
+    raw_outputs = generator.generate(conv, typecheck=False)
+    outputs = [m.text if m else "" for m in raw_outputs]
     result = _check_jailbreak(outputs)
-    return result, outputs[0]
+    return result, outputs[0] if outputs else ""
 
 
 @torch.no_grad()
@@ -44,12 +54,14 @@ def _evaluate_target(generator, prompt, candidate, target):
     result = False
     candidate_str = generator.tokenizer.decode(candidate)
     input_str = prompt + candidate_str
-    outputs = generator.generate(input_str)
+    conv = _prompt_to_conversation(input_str)
+    raw_outputs = generator.generate(conv, typecheck=False)
+    outputs = [m.text if m else "" for m in raw_outputs]
     for output in outputs:
         if target in output:
             result = True
             return result, output
-    return result, outputs[0]
+    return result, outputs[0] if outputs else ""
 
 
 @torch.no_grad()
@@ -86,21 +98,13 @@ def _get_perplexity(
         else:
             logs = log
 
+    # .float() avoids numpy issues with bfloat16
+    perplexity = torch.exp(
+        logs / (len(input_tokens[0]) - len(target_tokens[0]))
+    ).detach().float().cpu().numpy()
     if return_logits:
-        return (
-            torch.exp(logs / (len(input_tokens[0]) - len(target_tokens[0])))
-            .detach()
-            .cpu()
-            .numpy(),
-            output.logits,
-        )
-    else:
-        return (
-            torch.exp(logs / (len(input_tokens[0]) - len(target_tokens[0])))
-            .detach()
-            .cpu()
-            .numpy()
-        )
+        return perplexity, output.logits
+    return perplexity
 
 
 @torch.no_grad()
@@ -152,7 +156,7 @@ def _score_candidates(
             scores += -np.stack(_get_perplexity(generator, tokens, tokens_))
 
     scores = scores / len(target)
-    return scores
+    return float(np.mean(scores))
 
 
 def _check_jailbreak(outputs: list[str]) -> bool:
@@ -165,7 +169,7 @@ def _check_jailbreak(outputs: list[str]) -> bool:
     """
     jailbreak = False
     for output in outputs:
-        if not any([rs in output[0] for rs in REJECTION_STRINGS]):
+        if not any(rs in output for rs in REJECTION_STRINGS):
             jailbreak = True
             break
     return jailbreak
@@ -199,7 +203,7 @@ def _sample_tokens(
     ).input_ids.to(generator.model.device)
     output = generator.model(input_ids)
     logits = output.logits[:, -1, :]
-    temp = generator.generation_config.temperature
+    temp = getattr(generator.generation_config, "temperature", None) or 1.0
     probs = torch.softmax(logits / temp, dim=-1)
     tokens = torch.multinomial(probs, k, replacement=False)
     return tokens[0].tolist()
@@ -232,8 +236,9 @@ def _get_best_candidate(
         best_suffix: The best performing adversarial suffix
         best_score: The best score
     """
-    best_suffix = ""
-    best_score = np.Inf
+    best_suffix = []
+    # score is -perplexity
+    best_score = -np.inf
 
     beams = [[sample] for sample in _sample_tokens(generator, prompt, k1, suffix_ids)]
     for i in tqdm(range(suffix_len), leave=False):
@@ -245,13 +250,15 @@ def _get_best_candidate(
             _score_candidates(generator, prompt, response, candidate)
             for candidate in candidates
         ]
-        sorted_scores = sorted(range(len(scores)), key=lambda j: scores[j])
+        sorted_scores = sorted(
+            range(len(scores)), key=lambda j: scores[j], reverse=True
+        )
         beams = [candidates[j] for j in sorted_scores[:k1]]
 
         best_candidate = candidates[sorted_scores[0]]
         candidate_score = scores[sorted_scores[0]]
 
-        if candidate_score < best_score:
+        if candidate_score > best_score:
             best_score = candidate_score
             best_suffix = best_candidate
 
@@ -367,6 +374,14 @@ def run_beast(
         suffixes (list[str]): List of adversarial suffixes as strings
 
     """
+    # handle both hf pipeline and hf direct
+    if hasattr(target_generator, "generator") and target_generator.generator is not None:
+        if not hasattr(target_generator, "model"):
+            target_generator.model = target_generator.generator.model
+        if not hasattr(target_generator, "generation_config"):
+            target_generator.generation_config = (
+                target_generator.generator.generation_config
+            )
     if not hasattr(target_generator, "model") or not hasattr(
         target_generator, "tokenizer"
     ):
