@@ -22,6 +22,40 @@ SYSTEM_PROMPT = (
 beast_resource_data = garak._config.transient.cache_dir / "data" / "beast"
 
 
+class BeastGeneratorView:
+    """nonmutating adapter exposing model/tokenizer/gcfg for BEAST
+    """
+
+    def __init__(self, generator: Generator):
+        self._generator = generator
+        self._hf_pipeline = getattr(generator, "generator", None)
+
+    @property
+    def name(self) -> str:
+        return getattr(self._generator, "name", "<unknown>")
+
+    @property
+    def tokenizer(self):
+        return getattr(self._generator, "tokenizer", None)
+
+    @property
+    def model(self):
+        if self._hf_pipeline is not None and hasattr(self._hf_pipeline, "model"):
+            return self._hf_pipeline.model
+        return getattr(self._generator, "model", None)
+
+    @property
+    def generation_config(self):
+        if self._hf_pipeline is not None and hasattr(
+            self._hf_pipeline, "generation_config"
+        ):
+            return self._hf_pipeline.generation_config
+        return getattr(self._generator, "generation_config", None)
+
+    def generate(self, *args, **kwargs):
+        return self._generator.generate(*args, **kwargs)
+
+
 def _format_chat(generator: Generator, prompt: str):
     chat = [
         {"role": "system", "content": SYSTEM_PROMPT},
@@ -374,25 +408,17 @@ def run_beast(
         suffixes (list[str]): List of adversarial suffixes as strings
 
     """
-    # handle both hf pipeline and hf direct
-    if hasattr(target_generator, "generator") and target_generator.generator is not None:
-        if not hasattr(target_generator, "model"):
-            target_generator.model = target_generator.generator.model
-        if not hasattr(target_generator, "generation_config"):
-            target_generator.generation_config = (
-                target_generator.generator.generation_config
-            )
-    if not hasattr(target_generator, "model") or not hasattr(
-        target_generator, "tokenizer"
-    ):
+    beast_generator = BeastGeneratorView(target_generator)
+
+    if beast_generator.model is None or beast_generator.tokenizer is None:
         raise ValueError(
-            f"{target_generator.name} does not have both a `model` and `tokenizer` attribute. "
+            f"{beast_generator.name} does not have both a `model` and `tokenizer` attribute. "
             f"Cannot run BEAST."
         )
 
-    if not hasattr(target_generator.tokenizer, "apply_chat_template"):
+    if not hasattr(beast_generator.tokenizer, "apply_chat_template"):
         raise ValueError(
-            f"{target_generator.name} tokenizer does not have a chat template to apply."
+            f"{beast_generator.name} tokenizer does not have a chat template to apply."
         )
 
     if not prompts:
@@ -401,7 +427,7 @@ def run_beast(
         responses = data["target"].tolist()
 
     suffixes = _attack(
-        generator=target_generator,
+        generator=beast_generator,
         prompts=prompts,
         responses=responses,
         k1=k1,
