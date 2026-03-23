@@ -509,7 +509,11 @@ def run_tap(
         )
     else:
         logger.info(
-            "TAP produced no usable attack prompts after %d iterations.",
+            "TAP produced no usable attack prompts after %d iterations. "
+            "Returning original goal as fallback.",
             attack_params["depth"],
         )
+        # Return the original goal so an attempt is still created
+        adv_prompt_list = [goal]
+
     return adv_prompt_list
