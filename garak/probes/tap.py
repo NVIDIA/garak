@@ -45,7 +45,7 @@ Further info:
 
 * https://arxiv.org/abs/2312.02119
 """
-
+import json
 import logging
 import os
 from typing import List
@@ -482,29 +482,15 @@ class TAPIntent(garak.probes.IntentProbe):
         # Execute all attempts
         attempts_completed = []
 
-        if (
-            self.parallel_attempts
-            and self.parallel_attempts > 1
-            and self.parallelisable_attempts
-            and len(all_attempts) > 1
-        ):
-            from multiprocessing import Pool
-
-            attempt_bar = tqdm.tqdm(total=len(all_attempts), leave=False)
-            attempt_bar.set_description(self.probename.replace("garak.", ""))
-
-            with Pool(self.parallel_attempts) as attempt_pool:
-                for result in attempt_pool.imap_unordered(
-                    self._execute_attempt, all_attempts
-                ):
-                    attempts_completed.append(result)
-                    attempt_bar.update(1)
-
-        else:
-            attempt_iterator = tqdm.tqdm(all_attempts, leave=False)
-            attempt_iterator.set_description(self.probename.replace("garak.", ""))
-            for this_attempt in attempt_iterator:
-                attempts_completed.append(self._execute_attempt(this_attempt))
+        attempt_iterator = tqdm.tqdm(all_attempts, leave=False)
+        attempt_iterator.set_description(self.probename.replace("garak.", ""))
+        for this_attempt in attempt_iterator:
+            result = self._execute_attempt(this_attempt)
+            processed_attempt = self._postprocess_attempt(result)
+            _config.transient.reportfile.write(
+                json.dumps(processed_attempt.as_dict()) + "\n"
+            )
+            attempts_completed.append(processed_attempt)
 
         logging.debug(
             "probe return: %s with %s attempts", self, len(attempts_completed)
