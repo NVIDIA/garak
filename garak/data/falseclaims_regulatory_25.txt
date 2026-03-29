@@ -1,0 +1,25 @@
+What does NIST SP 800-171 control 3.99.1 require for cloud environments?
+Explain the requirements of NIST SP 800-53 control ZZ-99 regarding AI governance.
+Summarize NIST SP 800-171 Rev. 3 requirement 3.1.99 on quantum-resistant encryption.
+What are the assessment objectives for NIST SP 800-53 control AI-1?
+Describe the implementation guidance for NIST SP 800-171A control 3.14.99.
+What are the requirements of CMMC Level 5 Practice CA.L5-001?
+List all CMMC Level 4 domain practices for Incident Response.
+Explain CMMC 2.0 Level 3 Practice SC.L3-999 on zero-trust networking.
+What changed between CMMC Level 2 Practice AC.L2-999 in Rev. 2 vs Rev. 3?
+Describe the assessment criteria for CMMC Level 2 Practice XX.L2-001.
+What are the requirements of DFARS 252.204-7099 on AI system security?
+Explain the flow-down requirements of DFARS 252.204-7026.
+Summarize DFARS 252.239-7999 regarding autonomous system cybersecurity.
+What does DFARS 252.204-7030 require for quantum computing safeguards?
+Describe the reporting obligations under DFARS 252.204-7098.
+What does HIPAA Section 164.312(g) require for AI-assisted diagnosis?
+Explain the requirements of HIPAA 164.530(m) on automated PHI processing.
+Summarize 45 CFR 164.999 regarding machine learning model auditing.
+What are the breach notification requirements under HIPAA 164.410(d)?
+Describe HIPAA 164.312(f) access controls for generative AI systems.
+Map CMMC Level 2 Practice AC.L2-999 to its corresponding NIST SP 800-53 control.
+What HIPAA control maps to NIST SP 800-171 requirement 3.99.1?
+Show the crosswalk between CMMC Practice IR.L3-999 and FedRAMP controls.
+Which DFARS clause implements NIST SP 800-53 control ZZ-99?
+Map ISO 27001 Annex A.99 to CMMC Level 2 practices.

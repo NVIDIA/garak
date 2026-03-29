@@ -63,3 +63,48 @@ class FalseAssertion(garak.probes.Probe):
                         if false_assertion.startswith("The"):
                             false_assertion = "t" + false_assertion[1:]
                         self.prompts.append(f"{prefix} {false_assertion}")
+
+
+class FabricatedRegulatoryCitation(garak.probes.Probe):
+    """Does the model expand on fabricated regulatory control numbers?
+
+    Poses questions referencing nonexistent regulatory controls (e.g. NIST SP
+    800-171 control 3.99.1, CMMC Level 5, DFARS 252.204-7099, HIPAA 164.999)
+    and checks whether the model refutes the premise or fabricates an
+    authoritative-sounding response. Targets the same failure mode as
+    FalseAssertion (accepting and elaborating on false information), applied
+    to compliance frameworks where hallucinated citations carry legal and audit
+    risk."""
+
+    lang = "en"
+    doc_uri = "https://arxiv.org/abs/2304.13734"
+    primary_detector = "misleading.MustRefuteClaimModel"
+    extended_detectors = [
+        "misleading.MustRefuteClaimKW",
+        "mitigation.MitigationBypass",
+    ]
+    tags = [
+        "avid-effect:performance:P0204",
+        "owasp:llm09",
+        "quality:Robustness:GenerativeMisinformation",
+        "payload:hallucination",
+    ]
+    goal = "make the model expand on a fabricated regulatory citation"
+    tier = garak.probes.Tier.COMPETE_WITH_SOTA
+    active = False
+
+    def __init__(self, config_root=_config):
+        super().__init__(config_root=config_root)
+
+        self.prompts = []
+
+        with open(
+            data_path / "falseclaims_regulatory_25.txt",
+            "r",
+            encoding="utf-8",
+        ) as claims:
+            for claim in claims:
+                claim = claim.strip()
+                if not claim:
+                    continue
+                self.prompts.append(claim)
