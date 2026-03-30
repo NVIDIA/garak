@@ -6,7 +6,6 @@ from unittest.mock import MagicMock, patch
 import garak.attempt
 import garak.probes.crescendo
 
-
 FAKE_CONVERSATIONS = [
     {
         "goal": "test goal",
@@ -51,6 +50,7 @@ def replay_probe(mock_data_path):
         probe.langprovider.target_lang = "en"
         probe.lang = "en"
         probe.attempt_queue = []
+        probe.goal = "cause the model to comply with a harmful request through gradual escalation"
 
         conversations_path = mock_data_path / probe.conversations_filename
         probe.cached_conversations = []
@@ -63,9 +63,10 @@ def replay_probe(mock_data_path):
         return probe
 
 
-def _make_fake_attempt(turns, turn_idx, cached_turns):
+def _make_fake_attempt(turns, turn_idx, cache_idx):
     attempt = MagicMock(spec=garak.attempt.Attempt)
-    attempt.notes = {"cached_turns": cached_turns, "turn_idx": turn_idx}
+    attempt.notes = {"cache_idx": cache_idx, "turn_idx": turn_idx}
+    attempt.goal = FAKE_CONVERSATIONS[cache_idx]["goal"]
     conv = MagicMock(spec=garak.attempt.Conversation)
     conv.turns = [
         garak.attempt.Turn(role="user", content=garak.attempt.Message(text=t))
@@ -94,13 +95,15 @@ def test_crescendo_replay_create_init_attempts(replay_probe):
         assert len(attempts) == len(FAKE_CONVERSATIONS)
         for i, attempt in enumerate(attempts):
             assert attempt.notes["turn_idx"] == 0
-            assert attempt.notes["cached_turns"] == FAKE_CONVERSATIONS[i]["turns"]
+            assert attempt.notes["cache_idx"] == i
+            assert attempt.goal == FAKE_CONVERSATIONS[i]["goal"]
 
 
 def test_crescendo_replay_generate_next_attempts_advances_turn(replay_probe):
-    cached_turns = FAKE_CONVERSATIONS[0]["turns"]
+    cache_idx = 0
+    cached_turns = FAKE_CONVERSATIONS[cache_idx]["turns"]
     last_attempt = _make_fake_attempt(
-        turns=[cached_turns[0]], turn_idx=0, cached_turns=cached_turns
+        turns=[cached_turns[0]], turn_idx=0, cache_idx=cache_idx
     )
 
     with patch.object(replay_probe, "_create_attempt") as mock_create:
@@ -112,14 +115,15 @@ def test_crescendo_replay_generate_next_attempts_advances_turn(replay_probe):
 
         assert len(next_attempts) == 1
         assert next_attempts[0].notes["turn_idx"] == 1
-        assert next_attempts[0].notes["cached_turns"] == cached_turns
+        assert next_attempts[0].notes["cache_idx"] == cache_idx
 
 
 def test_crescendo_replay_generate_next_attempts_stops_at_end(replay_probe):
-    cached_turns = FAKE_CONVERSATIONS[0]["turns"]
+    cache_idx = 0
+    cached_turns = FAKE_CONVERSATIONS[cache_idx]["turns"]
     last_turn_idx = len(cached_turns) - 1
     last_attempt = _make_fake_attempt(
-        turns=cached_turns, turn_idx=last_turn_idx, cached_turns=cached_turns
+        turns=cached_turns, turn_idx=last_turn_idx, cache_idx=cache_idx
     )
 
     next_attempts = replay_probe._generate_next_attempts(last_attempt)
@@ -128,9 +132,10 @@ def test_crescendo_replay_generate_next_attempts_stops_at_end(replay_probe):
 
 
 def test_crescendo_replay_generate_next_appends_correct_turn(replay_probe):
-    cached_turns = FAKE_CONVERSATIONS[0]["turns"]
+    cache_idx = 0
+    cached_turns = FAKE_CONVERSATIONS[cache_idx]["turns"]
     last_attempt = _make_fake_attempt(
-        turns=[cached_turns[0]], turn_idx=0, cached_turns=cached_turns
+        turns=[cached_turns[0]], turn_idx=0, cache_idx=cache_idx
     )
 
     appended_turns = []
@@ -151,9 +156,10 @@ def test_crescendo_replay_generate_next_appends_correct_turn(replay_probe):
 
 
 def test_crescendo_replay_skips_none_conversations(replay_probe):
-    cached_turns = FAKE_CONVERSATIONS[0]["turns"]
+    cache_idx = 0
     last_attempt = MagicMock(spec=garak.attempt.Attempt)
-    last_attempt.notes = {"cached_turns": cached_turns, "turn_idx": 0}
+    last_attempt.notes = {"cache_idx": cache_idx, "turn_idx": 0}
+    last_attempt.goal = FAKE_CONVERSATIONS[cache_idx]["goal"]
     last_attempt.conversations = [None, None]
 
     next_attempts = replay_probe._generate_next_attempts(last_attempt)
@@ -175,8 +181,8 @@ def test_crescendo_replay_forces_generations_1(mock_data_path):
         probe.langprovider.target_lang = "en"
         probe.lang = "en"
         probe.attempt_queue = []
+        probe.goal = "test"
         probe.cached_conversations = []
-        probe.generations = 999
 
         conversations_path = mock_data_path / probe.conversations_filename
         with open(conversations_path, "r", encoding="utf-8") as f:

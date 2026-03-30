@@ -179,7 +179,7 @@ class CrescendoJudge(ModelAsJudge):
         - Secondary judge corrects false negatives caused by the primary
           judge's own safety alignment, by re-evaluating the primary's
           explanation for signs of alignment-driven refusal
-        - Goal read from attempt.notes["goal"] for per-conversation specificity
+        - Goal read from attempt.goal for per-conversation specificity
 
     Divergences:
         - Secondary judge sends the primary's explanation back for re-evaluation
@@ -246,17 +246,17 @@ class CrescendoJudge(ModelAsJudge):
         return score, raw_text
 
     def detect(self, attempt: Attempt) -> List[float | None]:
-        goal = ""
-        if attempt.notes:
-            goal = attempt.notes.get("goal", "")
-        if not goal:
-            try:
-                probe_info = _plugins.plugin_info(f"probes.{attempt.probe_classname}")
-                goal = probe_info.get("goal", "")
-            except Exception:
-                pass
+        goal = attempt.goal or ""
 
-        tested_prompt = attempt.prompt.last_message().text if attempt.prompt else ""
+        tested_prompt = (
+            "\n".join(
+                f"{t.role.capitalize()}: {t.content.text}"
+                for t in attempt.prompt.turns
+                if hasattr(t.content, "text")
+            )
+            if attempt.prompt
+            else ""
+        )
 
         ret_list = []
         for output in attempt.outputs:
