@@ -19,6 +19,7 @@ For a guide to writing probes, see :doc:`extending.probe`.
    garak.probes.audio
    garak.probes.av_spam_scanning
    garak.probes.continuation
+   garak.probes.crescendo
    garak.probes.dan
    garak.probes.divergence
    garak.probes.doctor
