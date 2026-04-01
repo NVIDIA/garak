@@ -17,6 +17,7 @@ garak.detectors
    garak.detectors.exploitation
    garak.detectors.fileformats
    garak.detectors.goodside
+   garak.detectors.harmactionseval
    garak.detectors.judge
    garak.detectors.knownbadsignatures
    garak.detectors.leakreplay

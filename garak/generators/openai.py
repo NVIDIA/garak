@@ -131,6 +131,26 @@ audio_formats = ["wav", "mp3"]
 audio_pattern = re.compile("|".join(audio_formats))
 
 
+def _serialize_openai_tool_call(tool_call) -> dict:
+    """Convert OpenAI SDK tool call objects into plain dicts for report logging."""
+    if hasattr(tool_call, "model_dump"):
+        return tool_call.model_dump(mode="json")
+    if hasattr(tool_call, "to_dict"):
+        return tool_call.to_dict()
+
+    function = getattr(tool_call, "function", None)
+    serialized = {
+        "id": getattr(tool_call, "id", None),
+        "type": getattr(tool_call, "type", None),
+    }
+    if function is not None:
+        serialized["function"] = {
+            "name": getattr(function, "name", None),
+            "arguments": getattr(function, "arguments", None),
+        }
+    return serialized
+
+
 class OpenAICompatible(Generator):
     """Generator base class for OpenAI compatible text2text restful API. Implements shared initialization and execution methods."""
 
@@ -341,9 +361,25 @@ class OpenAICompatible(Generator):
         if is_completion:
             reponse_message_list = [Message(c.text) for c in response.choices]
         else:
-            reponse_message_list = [
-                Message(c.message.content) for c in response.choices
-            ]
+            reponse_message_list = []
+            for choice in response.choices:
+                message = choice.message
+                message_notes = {}
+                tool_calls = getattr(message, "tool_calls", None)
+                if tool_calls:
+                    message_notes["tool_calls"] = [
+                        _serialize_openai_tool_call(tool_call)
+                        for tool_call in tool_calls
+                    ]
+                finish_reason = getattr(choice, "finish_reason", None)
+                if finish_reason is not None:
+                    message_notes["finish_reason"] = finish_reason
+                reponse_message_list.append(
+                    Message(
+                        message.content,
+                        notes=message_notes,
+                    )
+                )
 
         if len(reponse_message_list) != generations_this_call:
             raise garak.exception.BadGeneratorException(

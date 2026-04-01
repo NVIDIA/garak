@@ -31,6 +31,7 @@ For a guide to writing probes, see :doc:`extending.probe`.
    garak.probes.glitch
    garak.probes.goodside
    garak.probes.grandma
+   garak.probes.harmactionseval
    garak.probes.latentinjection
    garak.probes.leakreplay
    garak.probes.lmrc
