@@ -1,9 +1,8 @@
 """Cohere AI model support
 
-Support for Cohere's text generation API. Uses the command model by default,
-but just supply the name of another either on the command line or as the
-constructor param if you want to use that. You'll need to set an environment
-variable called COHERE_API_KEY to your Cohere API key, for this generator.
+Support for Cohere's text generation API. A model name must be specified
+(e.g. 'command-r-plus'). The legacy 'command' model default has been removed
+as Cohere has deprecated it. Set the COHERE_API_KEY environment variable.
 
 NOTE: As of Cohere v5.0.0+, the generate API is legacy and chat API is recommended.
 This implementation follows Cohere's official migration guide:
@@ -20,7 +19,11 @@ import tqdm
 
 from garak import _config
 from garak.attempt import Message, Conversation
-from garak.exception import GeneratorBackoffTrigger
+from garak.exception import (
+    BadGeneratorException,
+    GeneratorBackoffTrigger,
+    TargetNameMissingError,
+)
 from garak.generators.base import Generator
 
 COHERE_GENERATION_LIMIT = (
@@ -54,11 +57,19 @@ class CohereGenerator(Generator):
 
     generator_family_name = "Cohere"
 
-    def __init__(self, name="command", config_root=_config):
+    _unsafe_attributes = ["generator"]
+
+    def __init__(self, name="", config_root=_config):
         self.name = name
         self.fullname = f"Cohere {self.name}"
 
         super().__init__(self.name, config_root=config_root)
+
+        if not self.name:
+            raise TargetNameMissingError(
+                "Model name is required for Cohere (e.g. 'command-r-plus'). "
+                "The 'command' model is deprecated and will be retired."
+            )
 
         logging.debug(
             "Cohere generation request limit capped at %s", COHERE_GENERATION_LIMIT
@@ -71,12 +82,21 @@ class CohereGenerator(Generator):
             )
             self.api_version = "v2"
 
-        # Initialize appropriate client based on API version
-        # Following Cohere's guidance to use Client() for v1 and ClientV2() for v2
+        self._load_client()
+
+    def _load_client(self):
+        """Initialize the Cohere API client based on api_version.
+
+        Called from __init__ and restored via __setstate__ on deserialization.
+        """
         if self.api_version == "v1":
             self.generator = self.cohere.Client(api_key=self.api_key)
         else:  # api_version == "v2"
             self.generator = self.cohere.ClientV2(api_key=self.api_key)
+
+    def __setstate__(self, d):
+        super().__setstate__(d)
+        self._load_client()
 
     @backoff.on_exception(backoff.fibo, GeneratorBackoffTrigger, max_value=70)
     def _call_cohere_api(self, prompt_text, request_size=COHERE_GENERATION_LIMIT):
@@ -128,6 +148,11 @@ class CohereGenerator(Generator):
                             )
                             responses.append(str(response))
                     except Exception as e:
+                        if isinstance(e, self.cohere.errors.NotFoundError):
+                            raise BadGeneratorException(
+                                f"Cohere model '{self.name}' not found (404). "
+                                "Check the model name is valid."
+                            ) from e
 
                         backoff_exception_types = (
                             self.cohere.errors.GatewayTimeoutError,
@@ -137,7 +162,7 @@ class CohereGenerator(Generator):
                         )
                         for backoff_exception in backoff_exception_types:
                             if isinstance(e, backoff_exception):
-                                raise GeneratorBackoffTrigger from e  # bubble up ApiError for backoff handling
+                                raise GeneratorBackoffTrigger from e
                         logging.error(f"Chat API error: {e}")
                         responses.append(None)
 
@@ -147,7 +172,6 @@ class CohereGenerator(Generator):
                 return responses
             else:  # api_version == "v1"
                 # Use legacy generate API with cohere.Client()
-                # Following Cohere's guidance for full backward compatibility
                 try:
                     message = prompt_text[-1]["content"]
 
@@ -167,24 +191,29 @@ class CohereGenerator(Generator):
 
                     # Handle response based on structure
                     if hasattr(response, "generations"):
-                        # Handle the v5+ API response format
                         return [gen.text for gen in response.generations]
+                    elif isinstance(response, list):
+                        return [g.text for g in response]
+                    elif hasattr(response, "text"):
+                        return [response.text]
                     else:
-                        # Try to handle other possible response formats
-                        try:
-                            if isinstance(response, list):
-                                return [g.text for g in response]
-                            elif hasattr(response, "text"):
-                                return [response.text]
-                            else:
-                                # Last resort - try to convert response to string
-                                return [str(response)]
-                        except RuntimeError as e:
-                            logging.error(
-                                f"Failed to extract text from Cohere response: {e}"
-                            )
-                            return [None] * request_size
-                except RuntimeError as e:
+                        return [str(response)]
+                except Exception as e:
+                    if isinstance(e, self.cohere.errors.NotFoundError):
+                        raise BadGeneratorException(
+                            f"Cohere model '{self.name}' not found (404). "
+                            "Check the model name is valid."
+                        ) from e
+
+                    backoff_exception_types = (
+                        self.cohere.errors.GatewayTimeoutError,
+                        self.cohere.errors.TooManyRequestsError,
+                        self.cohere.errors.ServiceUnavailableError,
+                        self.cohere.errors.InternalServerError,
+                    )
+                    for backoff_exception in backoff_exception_types:
+                        if isinstance(e, backoff_exception):
+                            raise GeneratorBackoffTrigger from e
                     logging.error(f"Generate API error: {e}")
                     return [None] * request_size
 
@@ -197,14 +226,15 @@ class CohereGenerator(Generator):
         request_sizes = [COHERE_GENERATION_LIMIT] * quotient
         if remainder:
             request_sizes += [remainder]
-        outputs = []
+        raw_outputs = []
         generation_iterator = tqdm.tqdm(request_sizes, leave=False)
         generation_iterator.set_description(self.fullname)
         for request_size in generation_iterator:
-            outputs += self._call_cohere_api(
+            raw_outputs += self._call_cohere_api(
                 self._conversation_to_list(prompt), request_size=request_size
             )
-        return outputs
+        # Wrap str results in Message; preserve None as-is
+        return [Message(o) if isinstance(o, str) else o for o in raw_outputs]
 
 
 DEFAULT_CLASS = "CohereGenerator"
