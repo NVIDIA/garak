@@ -12,9 +12,9 @@ description: |
   only — switching to CJK or other scripts bypasses keyword-based safety rules
   entirely.
 
-  This is the single lowest-defended attack vector in production: only 28% of
-  system prompts include any non-English defense keywords (UltraProbe scan,
-  n=721).
+  This is the single lowest-defended attack vector in production: 65.3% of
+  system prompts include any non-English defense keywords (prompt-defense-audit scan of 121 leaked prompts,
+  
 
   Covers: Chinese (Simplified + Traditional), Japanese, Korean, Arabic, Russian.
 
@@ -107,14 +107,14 @@ calibration:
 
 # ── Empirical Data ──
 empirical:
-  source: "UltraProbe Defense Posture Scanner"
-  dataset_doi: "10.5281/zenodo.19410475"
-  sample_size: 721
-  methodology: "Static regex analysis of 721 URLs cited by OpenAI web_search across 155 queries"
+  source: "prompt-defense-audit (deterministic regex scanner)"
+  dataset: "jujumilk3/leaked-system-prompts (GitHub)"
+  sample_size: 121
+  methodology: "Regex defense pattern analysis of 121 leaked production system prompts from ChatGPT, Claude, Grok, Perplexity, Cursor, v0, Copilot, and others"
   findings:
-    defense_present_rate: 0.28
-    defense_absent_rate: 0.72
-    note: "Lowest defended vector in production — 72% of applications have zero non-English defense keywords"
+    defense_present_rate: 0.653
+    defense_absent_rate: 0.347
+    note: "Lowest defended vector in production — 34.7% of prompts have zero non-English defense keywords"
 
 contributor:
   name: "MinYi Xie"

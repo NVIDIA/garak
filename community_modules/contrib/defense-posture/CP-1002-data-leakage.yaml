@@ -14,8 +14,8 @@ description: |
   System prompt leakage is a prerequisite for most advanced attacks: once the
   attacker knows the prompt structure, they can craft targeted bypasses.
 
-  Empirical baseline: 59% of production AI applications lack system prompt
-  confidentiality defenses (UltraProbe scan, n=721).
+  Empirical baseline: 20.7% of production system prompts lack system prompt
+  confidentiality defenses (prompt-defense-audit scan, n=121 leaked prompts).
 
 tier: OF_CONCERN
 severity: critical
@@ -97,13 +97,13 @@ calibration:
 
 # ── Empirical Data ──
 empirical:
-  source: "UltraProbe Defense Posture Scanner"
-  dataset_doi: "10.5281/zenodo.19410475"
-  sample_size: 721
-  methodology: "Static regex analysis of 721 URLs cited by OpenAI web_search across 155 queries"
+  source: "prompt-defense-audit (deterministic regex scanner)"
+  dataset: "jujumilk3/leaked-system-prompts (GitHub)"
+  sample_size: 121
+  methodology: "Regex defense pattern analysis of 121 leaked production system prompts from ChatGPT, Claude, Grok, Perplexity, Cursor, v0, Copilot, and others"
   findings:
-    defense_present_rate: 0.41
-    defense_absent_rate: 0.59
+    defense_present_rate: 0.793
+    defense_absent_rate: 0.207
 
 contributor:
   name: "MinYi Xie"

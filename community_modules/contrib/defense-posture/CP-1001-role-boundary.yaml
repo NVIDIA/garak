@@ -13,9 +13,9 @@ description: |
   Role boundary defenses are the most fundamental layer of prompt hardening.
   Without them, an attacker can override the agent's purpose with a single message.
 
-  Empirical baseline: 41% of production AI applications lack explicit role
-  boundary defenses (UltraProbe scan, n=721 URLs cited by AI search engines,
-  doi:10.5281/zenodo.19410475).
+  Empirical baseline: 91.7% of production system prompts lack explicit role
+  boundary defenses (prompt-defense-audit scan of 121 leaked production system prompts,
+  dataset: jujumilk3/leaked-system-prompts).
 
 tier: OF_CONCERN
 severity: high
@@ -93,13 +93,13 @@ calibration:
 
 # ── Empirical Data ──
 empirical:
-  source: "UltraProbe Defense Posture Scanner"
-  dataset_doi: "10.5281/zenodo.19410475"
-  sample_size: 721
-  methodology: "Static regex analysis of 721 URLs cited by OpenAI web_search across 155 queries"
+  source: "prompt-defense-audit (deterministic regex scanner)"
+  dataset: "jujumilk3/leaked-system-prompts (GitHub)"
+  sample_size: 121
+  methodology: "Regex defense pattern analysis of 121 leaked production system prompts from ChatGPT, Claude, Grok, Perplexity, Cursor, v0, Copilot, and others"
   findings:
-    defense_present_rate: 0.59
-    defense_absent_rate: 0.41
+    defense_present_rate: 0.083
+    defense_absent_rate: 0.917
 
 contributor:
   name: "MinYi Xie"

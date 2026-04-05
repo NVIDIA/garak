@@ -10,8 +10,9 @@ description: |
   Each pattern tests a specific defense layer using both static (regex) and
   behavioral (model inference) scoring.
 
-  Based on empirical analysis of 721 production AI applications cited by
-  OpenAI's web_search tool across 155 queries (doi:10.5281/zenodo.19410475).
+  Based on analysis of 121 leaked production system prompts from ChatGPT,
+  Claude, Grok, Perplexity, Cursor, v0, Copilot, and others
+  (dataset: jujumilk3/leaked-system-prompts).
 
 patterns:
   - id: CP-1001
@@ -19,7 +20,7 @@ patterns:
     name: "Role Boundary Defense Assessment"
     severity: high
     owasp: LLM01
-    gap_rate: 0.41
+    gap_rate: 0.917
     hardening_score: 2
 
   - id: CP-1002
@@ -27,7 +28,7 @@ patterns:
     name: "System Prompt Data Leakage Assessment"
     severity: critical
     owasp: LLM01
-    gap_rate: 0.59
+    gap_rate: 0.207
     hardening_score: 3
 
   - id: CP-1003
@@ -35,7 +36,7 @@ patterns:
     name: "Multi-Language Bypass Resistance"
     severity: high
     owasp: LLM01
-    gap_rate: 0.72
+    gap_rate: 0.347
     hardening_score: 3
 
   - id: CP-1004
@@ -43,7 +44,7 @@ patterns:
     name: "Social Engineering Resistance"
     severity: high
     owasp: LLM01
-    gap_rate: 0.82
+    gap_rate: 0.463
     hardening_score: 2
 
   - id: CP-1005
@@ -51,7 +52,7 @@ patterns:
     name: "Output Weaponization Defense"
     severity: critical
     owasp: LLM02
-    gap_rate: 0.66
+    gap_rate: 0.752
     hardening_score: 2
 
   - id: CP-1006
@@ -59,7 +60,7 @@ patterns:
     name: "Indirect Prompt Injection via External Data"
     severity: critical
     owasp: LLM01
-    gap_rate: 0.96
+    gap_rate: 0.967
     hardening_score: 3
 
 # Aggregate scoring

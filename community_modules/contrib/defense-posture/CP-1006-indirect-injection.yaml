@@ -20,8 +20,8 @@ description: |
   never speaks to the model directly. The attack surface is any data source
   the agent can read.
 
-  Empirical baseline: only 4% of system prompts include any indirect injection
-  defense (UltraProbe scan, n=721). This is the single most critical gap in
+  Empirical baseline: only 3.3% of production system prompts include any indirect injection
+  defense (prompt-defense-audit scan, n=121 leaked prompts). This is the single most critical gap in
   production AI security.
 
   These patterns were developed from real-world defense of 27 automated social
@@ -134,15 +134,15 @@ calibration:
 
 # ── Empirical Data ──
 empirical:
-  source: "UltraProbe Defense Posture Scanner"
-  dataset_doi: "10.5281/zenodo.19410475"
-  sample_size: 721
-  methodology: "Static regex analysis of 721 URLs cited by OpenAI web_search across 155 queries"
+  source: "prompt-defense-audit (deterministic regex scanner)"
+  dataset: "jujumilk3/leaked-system-prompts (GitHub)"
+  sample_size: 121
+  methodology: "Regex defense pattern analysis of 121 leaked production system prompts from ChatGPT, Claude, Grok, Perplexity, Cursor, v0, Copilot, and others"
   findings:
-    defense_present_rate: 0.04
-    defense_absent_rate: 0.96
+    defense_present_rate: 0.033
+    defense_absent_rate: 0.967
     note: |
-      96% of production AI applications have zero indirect injection defenses.
+      96.7% of production system prompts have zero indirect injection defenses.
       This is the widest gap between attack severity and defense coverage in the
       current AI security landscape. Production validation: these patterns were
       derived from defending 27 automated Threads accounts against real injection

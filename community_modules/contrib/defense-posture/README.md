@@ -1,6 +1,6 @@
 # Defense Posture Community Patterns (CP-1001 — CP-1006)
 
-Six community patterns for assessing the **defense posture** of LLM system prompts. Each pattern targets a specific defense layer that production AI applications commonly lack.
+Six community patterns for assessing the **defense posture** of LLM system prompts. Each pattern targets a specific defense layer that production AI systems commonly lack.
 
 ## Context
 
@@ -14,24 +14,31 @@ A system with a hardening score of 15/15 may still fail behavioral probes — bu
 
 | ID | Name | OWASP | Gap Rate | Hardening |
 |----|------|-------|----------|-----------|
-| CP-1001 | Role Boundary Defense | LLM01 | 41% | +2 |
-| CP-1002 | System Prompt Data Leakage | LLM01 | 59% | +3 |
-| CP-1003 | Multi-Language Bypass Resistance | LLM01 | 72% | +3 |
-| CP-1004 | Social Engineering Resistance | LLM01 | 82% | +2 |
-| CP-1005 | Output Weaponization Defense | LLM02 | 66% | +2 |
-| CP-1006 | Indirect Injection via External Data | LLM01 | 96% | +3 |
+| CP-1001 | Role Boundary Defense | LLM01 | 91.7% | +2 |
+| CP-1002 | System Prompt Data Leakage | LLM01 | 20.7% | +3 |
+| CP-1003 | Multi-Language Bypass Resistance | LLM01 | 34.7% | +3 |
+| CP-1004 | Social Engineering Resistance | LLM01 | 46.3% | +2 |
+| CP-1005 | Output Weaponization Defense | LLM02 | 75.2% | +2 |
+| CP-1006 | Indirect Injection via External Data | LLM01 | 96.7% | +3 |
 
-**Gap Rate** = percentage of production AI applications lacking this defense (n=721).
+**Gap Rate** = percentage of production system prompts lacking this defense (n=121 leaked prompts).
 
 **Total hardening score**: 0–15. Threshold for "adequately hardened": &ge; 10.
 
 ## Methodology
 
-Empirical data from scanning 721 URLs cited by OpenAI's `web_search` tool across 155 queries spanning 5 domains (technology, local services, recommendations, e-commerce, health).
+Defense pattern analysis of 121 leaked production system prompts from [jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) — a curated, verified collection of system prompts extracted from ChatGPT, Claude, Grok, Perplexity, Cursor, v0, Copilot, Notion AI, and others.
 
-- **Dataset**: [doi:10.5281/zenodo.19410475](https://doi.org/10.5281/zenodo.19410475)
-- **Scanner**: [UltraProbe](https://ultralab.tw/en/probe) — deterministic regex, no LLM calls, <50ms
-- **Open source**: [ultralab-scanners](https://github.com/ppcvote/ultralab-scanners)
+- **Scanner**: [prompt-defense-audit](https://github.com/ppcvote/prompt-defense-audit) — deterministic regex, no LLM calls, <5ms per prompt
+- **Dataset**: [jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) (n=121)
+- **Reproducibility**: Clone both repos and run the scan yourself
+
+### Limitations
+
+- Regex measures defense keyword presence, not behavioral resilience
+- Leaked prompts may be outdated (some from 2023)
+- Selection bias: prompts that are easier to leak may be less well-defended
+- n=121 is sufficient for directional findings, not precise confidence intervals
 
 ## Each Pattern Contains
 
@@ -40,7 +47,7 @@ probe:               Attack prompts with metadata
 static_indicators:   Regex patterns for <1ms static scoring
 behavioral:          Pass/fail criteria for model inference scoring
 calibration:         Hardening score + expected false-refusal delta
-empirical:           Real-world defense gap data with sample size
+empirical:           Real defense gap data with sample size
 ```
 
 ## Static + Behavioral Scoring

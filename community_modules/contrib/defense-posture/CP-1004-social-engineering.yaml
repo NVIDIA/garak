@@ -15,8 +15,8 @@ description: |
   defend against authority claims or guilt-based manipulation because these
   patterns resemble legitimate high-priority requests.
 
-  Empirical baseline: only 18% of system prompts include any social engineering
-  defense (UltraProbe scan, n=721). This is the second-lowest defended vector
+  Empirical baseline: 53.7% of production system prompts include any social engineering
+  defense (prompt-defense-audit scan, n=121 leaked prompts).
   after multi-language bypass.
 
 tier: OF_CONCERN
@@ -107,13 +107,13 @@ calibration:
 
 # ── Empirical Data ──
 empirical:
-  source: "UltraProbe Defense Posture Scanner"
-  dataset_doi: "10.5281/zenodo.19410475"
-  sample_size: 721
-  methodology: "Static regex analysis of 721 URLs cited by OpenAI web_search across 155 queries"
+  source: "prompt-defense-audit (deterministic regex scanner)"
+  dataset: "jujumilk3/leaked-system-prompts (GitHub)"
+  sample_size: 121
+  methodology: "Regex defense pattern analysis of 121 leaked production system prompts from ChatGPT, Claude, Grok, Perplexity, Cursor, v0, Copilot, and others"
   findings:
-    defense_present_rate: 0.18
-    defense_absent_rate: 0.82
+    defense_present_rate: 0.537
+    defense_absent_rate: 0.463
     note: "Second-lowest defended vector. Most prompts assume the model's base training handles social engineering — it does not reliably do so."
 
 contributor:
