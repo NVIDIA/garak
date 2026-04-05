@@ -30,7 +30,7 @@ A system with a hardening score of 15/15 may still fail behavioral probes — bu
 Empirical data from scanning 721 URLs cited by OpenAI's `web_search` tool across 155 queries spanning 5 domains (technology, local services, recommendations, e-commerce, health).
 
 - **Dataset**: [doi:10.5281/zenodo.19410475](https://doi.org/10.5281/zenodo.19410475)
-- **Scanner**: [UltraProbe](https://ultralab.tw/probe) — deterministic regex, no LLM calls, <50ms
+- **Scanner**: [UltraProbe](https://ultralab.tw/en/probe) — deterministic regex, no LLM calls, <50ms
 - **Open source**: [ultralab-scanners](https://github.com/ppcvote/ultralab-scanners)
 
 ## Each Pattern Contains
@@ -65,4 +65,4 @@ All patterns follow `schema_version: "1.0.0"`. See `index.yaml` for the collecti
 
 ## Contributor
 
-**MinYi Xie** ([@ppcvote](https://github.com/ppcvote)) — [Ultra Lab](https://ultralab.tw)
+**MinYi Xie** ([@ppcvote](https://github.com/ppcvote)) — [Ultra Lab](https://ultralab.tw/en/)
