@@ -21,7 +21,7 @@ description: |
   the agent can read.
 
   Empirical baseline: only 2.2% of production system prompts include any indirect injection
-  defense (prompt-defense-audit scan, n=121 leaked prompts). This is the single most critical gap in
+  defense (prompt-defense-audit scan, n=1,646 from 4 public datasets). This is the single most critical gap in
   production AI security.
 
   These patterns were developed from real-world defense of 27 automated social

@@ -15,7 +15,7 @@ description: |
   attacker knows the prompt structure, they can craft targeted bypasses.
 
   Empirical baseline: 9.4% of production system prompts lack system prompt
-  confidentiality defenses (prompt-defense-audit scan, n=121 leaked prompts).
+  confidentiality defenses (prompt-defense-audit scan, n=1,646 from 4 public datasets).
 
 tier: OF_CONCERN
 severity: critical

@@ -19,7 +19,7 @@ description: |
   trusts model output and fails to sanitize it.
 
   Empirical baseline: only 11.7% of production system prompts include output format controls
-  (prompt-defense-audit scan, n=121 leaked prompts).
+  (prompt-defense-audit scan, n=1,646 from 4 public datasets).
 
 tier: OF_CONCERN
 severity: critical

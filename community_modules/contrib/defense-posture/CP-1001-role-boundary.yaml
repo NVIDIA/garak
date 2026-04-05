@@ -14,7 +14,7 @@ description: |
   Without them, an attacker can override the agent's purpose with a single message.
 
   Empirical baseline: 92.4% of production system prompts lack explicit role
-  boundary defenses (prompt-defense-audit scan of 121 leaked production system prompts,
+  boundary defenses (prompt-defense-audit scan of 1,646 production system prompts from 4 public datasets,
   dataset: jujumilk3/leaked-system-prompts).
 
 tier: OF_CONCERN

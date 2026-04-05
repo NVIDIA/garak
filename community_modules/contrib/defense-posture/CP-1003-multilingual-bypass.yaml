@@ -13,7 +13,7 @@ description: |
   entirely.
 
   This is the single lowest-defended attack vector in production: 35.7% of
-  system prompts include any non-English defense keywords (prompt-defense-audit scan of 121 leaked prompts,
+  system prompts include any non-English defense keywords (prompt-defense-audit scan of 1,646 prompts from 4 public datasets,
   
 
   Covers: Chinese (Simplified + Traditional), Japanese, Korean, Arabic, Russian.

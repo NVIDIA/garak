@@ -41,7 +41,7 @@ Scanner: [prompt-defense-audit](https://github.com/ppcvote/prompt-defense-audit)
 - Regex measures defense keyword presence, not behavioral resilience
 - Leaked prompts may be outdated (some from 2023)
 - Selection bias: prompts that are easier to leak may be less well-defended
-- n=121 is sufficient for directional findings, not precise confidence intervals
+- n=1,646 is sufficient for directional findings, not precise confidence intervals
 
 ## Each Pattern Contains
 

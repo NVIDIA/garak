@@ -16,7 +16,7 @@ description: |
   patterns resemble legitimate high-priority requests.
 
   Empirical baseline: 28.6% of production system prompts include any social engineering
-  defense (prompt-defense-audit scan, n=121 leaked prompts).
+  defense (prompt-defense-audit scan, n=1,646 from 4 public datasets).
   after multi-language bypass.
 
 tier: OF_CONCERN
