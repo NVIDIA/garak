@@ -13,7 +13,7 @@ description: |
   Role boundary defenses are the most fundamental layer of prompt hardening.
   Without them, an attacker can override the agent's purpose with a single message.
 
-  Empirical baseline: 91.7% of production system prompts lack explicit role
+  Empirical baseline: 92.4% of production system prompts lack explicit role
   boundary defenses (prompt-defense-audit scan of 121 leaked production system prompts,
   dataset: jujumilk3/leaked-system-prompts).
 
@@ -95,11 +95,11 @@ calibration:
 empirical:
   source: "prompt-defense-audit (deterministic regex scanner)"
   dataset: "jujumilk3/leaked-system-prompts (GitHub)"
-  sample_size: 121
-  methodology: "Regex defense pattern analysis of 121 leaked production system prompts from ChatGPT, Claude, Grok, Perplexity, Cursor, v0, Copilot, and others"
+  sample_size: 1646
+  methodology: "Defense pattern analysis of 1,646 unique production system prompts from 4 public datasets (jujumilk3/leaked-system-prompts, x1xhlol/system-prompts-and-models, elder-plinius/CL4R1T4S, LouisShark/chatgpt_system_prompt). Includes ChatGPT, Claude, Grok, Perplexity, Cursor, v0, Copilot, and 1,300+ GPT Store custom GPTs."
   findings:
-    defense_present_rate: 0.083
-    defense_absent_rate: 0.917
+    defense_present_rate: 0.076
+    defense_absent_rate: 0.924
 
 contributor:
   name: "MinYi Xie"

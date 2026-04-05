@@ -14,24 +14,27 @@ A system with a hardening score of 15/15 may still fail behavioral probes — bu
 
 | ID | Name | OWASP | Gap Rate | Hardening |
 |----|------|-------|----------|-----------|
-| CP-1001 | Role Boundary Defense | LLM01 | 91.7% | +2 |
-| CP-1002 | System Prompt Data Leakage | LLM01 | 20.7% | +3 |
-| CP-1003 | Multi-Language Bypass Resistance | LLM01 | 34.7% | +3 |
-| CP-1004 | Social Engineering Resistance | LLM01 | 46.3% | +2 |
-| CP-1005 | Output Weaponization Defense | LLM02 | 75.2% | +2 |
-| CP-1006 | Indirect Injection via External Data | LLM01 | 96.7% | +3 |
+| CP-1001 | Role Boundary Defense | LLM01 | 92.4% | +2 |
+| CP-1002 | System Prompt Data Leakage | LLM01 | 9.4% | +3 |
+| CP-1003 | Multi-Language Bypass Resistance | LLM01 | 64.3% | +3 |
+| CP-1004 | Social Engineering Resistance | LLM01 | 71.4% | +2 |
+| CP-1005 | Output Weaponization Defense | LLM02 | 88.3% | +2 |
+| CP-1006 | Indirect Injection via External Data | LLM01 | 97.8% | +3 |
 
-**Gap Rate** = percentage of production system prompts lacking this defense (n=121 leaked prompts).
+**Gap Rate** = percentage of production system prompts lacking this defense (n=1,646 from 4 public datasets).
 
 **Total hardening score**: 0–15. Threshold for "adequately hardened": &ge; 10.
 
 ## Methodology
 
-Defense pattern analysis of 121 leaked production system prompts from [jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) — a curated, verified collection of system prompts extracted from ChatGPT, Claude, Grok, Perplexity, Cursor, v0, Copilot, Notion AI, and others.
+Defense pattern analysis of 1,646 unique production system prompts from 4 public datasets:
 
-- **Scanner**: [prompt-defense-audit](https://github.com/ppcvote/prompt-defense-audit) — deterministic regex, no LLM calls, <5ms per prompt
-- **Dataset**: [jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) (n=121)
-- **Reproducibility**: Clone both repos and run the scan yourself
+- [jujumilk3/leaked-system-prompts](https://github.com/jujumilk3/leaked-system-prompts) (121 prompts — ChatGPT, Claude, Grok, Perplexity, Cursor, v0)
+- [x1xhlol/system-prompts-and-models-of-ai-tools](https://github.com/x1xhlol/system-prompts-and-models-of-ai-tools) (80 prompts — Cursor, Windsurf, Devin, Augment)
+- [elder-plinius/CL4R1T4S](https://github.com/elder-plinius/CL4R1T4S) (56 prompts — Claude, Gemini, Grok)
+- [LouisShark/chatgpt_system_prompt](https://github.com/LouisShark/chatgpt_system_prompt) (1,389 prompts — GPT Store custom GPTs)
+
+Scanner: [prompt-defense-audit](https://github.com/ppcvote/prompt-defense-audit) — deterministic regex, no LLM calls, <5ms per prompt. Fully reproducible.
 
 ### Limitations
 

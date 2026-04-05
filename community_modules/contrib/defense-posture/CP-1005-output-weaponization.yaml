@@ -18,7 +18,7 @@ description: |
   Maps to OWASP LLM02 (Insecure Output Handling) — the receiving application
   trusts model output and fails to sanitize it.
 
-  Empirical baseline: only 24.8% of production system prompts include output format controls
+  Empirical baseline: only 11.7% of production system prompts include output format controls
   (prompt-defense-audit scan, n=121 leaked prompts).
 
 tier: OF_CONCERN
@@ -119,11 +119,11 @@ calibration:
 empirical:
   source: "prompt-defense-audit (deterministic regex scanner)"
   dataset: "jujumilk3/leaked-system-prompts (GitHub)"
-  sample_size: 121
-  methodology: "Regex defense pattern analysis of 121 leaked production system prompts from ChatGPT, Claude, Grok, Perplexity, Cursor, v0, Copilot, and others"
+  sample_size: 1646
+  methodology: "Defense pattern analysis of 1,646 unique production system prompts from 4 public datasets (jujumilk3/leaked-system-prompts, x1xhlol/system-prompts-and-models, elder-plinius/CL4R1T4S, LouisShark/chatgpt_system_prompt). Includes ChatGPT, Claude, Grok, Perplexity, Cursor, v0, Copilot, and 1,300+ GPT Store custom GPTs."
   findings:
-    defense_present_rate: 0.248
-    defense_absent_rate: 0.752
+    defense_present_rate: 0.117
+    defense_absent_rate: 0.883
     note: "Output format controls are rare because developers assume the receiving application sanitizes. In agentic pipelines, there is often no sanitization layer between model output and downstream execution."
 
 contributor:

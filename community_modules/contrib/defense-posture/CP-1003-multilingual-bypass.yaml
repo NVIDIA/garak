@@ -12,7 +12,7 @@ description: |
   only — switching to CJK or other scripts bypasses keyword-based safety rules
   entirely.
 
-  This is the single lowest-defended attack vector in production: 65.3% of
+  This is the single lowest-defended attack vector in production: 35.7% of
   system prompts include any non-English defense keywords (prompt-defense-audit scan of 121 leaked prompts,
   
 
@@ -109,12 +109,12 @@ calibration:
 empirical:
   source: "prompt-defense-audit (deterministic regex scanner)"
   dataset: "jujumilk3/leaked-system-prompts (GitHub)"
-  sample_size: 121
-  methodology: "Regex defense pattern analysis of 121 leaked production system prompts from ChatGPT, Claude, Grok, Perplexity, Cursor, v0, Copilot, and others"
+  sample_size: 1646
+  methodology: "Defense pattern analysis of 1,646 unique production system prompts from 4 public datasets (jujumilk3/leaked-system-prompts, x1xhlol/system-prompts-and-models, elder-plinius/CL4R1T4S, LouisShark/chatgpt_system_prompt). Includes ChatGPT, Claude, Grok, Perplexity, Cursor, v0, Copilot, and 1,300+ GPT Store custom GPTs."
   findings:
-    defense_present_rate: 0.653
-    defense_absent_rate: 0.347
-    note: "Lowest defended vector in production — 34.7% of prompts have zero non-English defense keywords"
+    defense_present_rate: 0.357
+    defense_absent_rate: 0.643
+    note: "Lowest defended vector in production — 64.3% of prompts have zero non-English defense keywords"
 
 contributor:
   name: "MinYi Xie"
