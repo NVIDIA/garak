@@ -291,3 +291,50 @@ def test_generate_returns_message_objects(respx_mock, cohere_mock_responses):
     result = gen.generate(conv)
     for item in result:
         assert item is None or isinstance(item, Message)
+
+
+# ─── Live Endpoint Tests ─────────────────────────────────────────────
+# These tests require a valid COHERE_API_KEY and are skipped in CI.
+
+LIVE_MODEL = "command-a-03-2025"
+
+_real_cohere_key = os.environ.get("COHERE_API_KEY", "")
+_has_cohere_key = _real_cohere_key not in (None, "", "fake-api-key")
+
+
+@pytest.fixture
+def restore_real_api_key():
+    """Temporarily restore the real API key for live tests."""
+    var = CohereGenerator.ENV_VAR
+    os.environ[var] = _real_cohere_key
+    yield
+    os.environ[var] = "fake-api-key"
+
+
+@pytest.mark.skipif(not _has_cohere_key, reason="COHERE_API_KEY not set")
+def test_live_chat_api_output_format(restore_real_api_key):
+    """Verify live chat API (v2) returns Message objects with non-empty text."""
+    gen = CohereGenerator(name=LIVE_MODEL)
+    assert gen.api_version == "v2"
+    conv = Conversation([Turn("user", Message("Say hello in one word."))])
+    result = gen.generate(conv, generations_this_call=1)
+
+    assert len(result) == 1
+    assert isinstance(result[0], Message)
+    assert isinstance(result[0].text, str)
+    assert len(result[0].text) > 0
+
+
+@pytest.mark.skipif(not _has_cohere_key, reason="COHERE_API_KEY not set")
+def test_live_v1_api_rejects_new_model(restore_real_api_key):
+    """Newer models are not available on the legacy v1 generate API.
+
+    This verifies that the 404 handling correctly raises BadGeneratorException
+    rather than silently returning None.
+    """
+    gen = CohereGenerator(name=LIVE_MODEL)
+    gen.api_version = "v1"
+    gen._load_client()
+    conv = Conversation([Turn("user", Message("Say hello in one word."))])
+    with pytest.raises(BadGeneratorException):
+        gen.generate(conv, generations_this_call=1)
