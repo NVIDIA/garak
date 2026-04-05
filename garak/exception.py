@@ -1,6 +1,28 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+from enum import IntEnum
+
+
+class ExitCode(IntEnum):
+    """Standard exit codes for the garak CLI.
+
+    Follows common Unix conventions:
+    - 0: success
+    - 1: general / runtime error
+    - 2: CLI usage / argument error
+    - 3: configuration error
+    - 4: plugin error (missing API key, bad generator, etc.)
+    - 5: user-initiated interrupt (Ctrl-C / SIGINT)
+    """
+
+    SUCCESS = 0
+    RUNTIME_ERROR = 1
+    USAGE_ERROR = 2
+    CONFIG_ERROR = 3
+    PLUGIN_ERROR = 4
+    INTERRUPTED = 5
+
 
 class GarakException(Exception):
     """Base class for all  garak exceptions"""

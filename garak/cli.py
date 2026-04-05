@@ -36,13 +36,22 @@ def parse_cli_plugin_config(plugin_type, args):
     return opts_cli_config
 
 
-def main(arguments=None) -> None:
-    """Main entry point for garak runs invoked from the CLI"""
+def main(arguments=None) -> int:
+    """Main entry point for garak runs invoked from the CLI.
+
+    Returns an :class:`~garak.exception.ExitCode` integer.
+    """
     import datetime
 
     from garak import __description__
     from garak import _config, _plugins
-    from garak.exception import GarakException
+    from garak.exception import (
+        ExitCode,
+        GarakException,
+        APIKeyMissingError,
+        PluginConfigurationError,
+        ConfigFailure,
+    )
 
     _config.transient.starttime = datetime.datetime.now()
     _config.transient.starttime_iso = _config.transient.starttime.isoformat()
@@ -324,7 +333,7 @@ def main(arguments=None) -> None:
     except FileNotFoundError as e:
         logging.exception(e)
         print(f"❌{e}")
-        exit(1)
+        return ExitCode.CONFIG_ERROR
 
     # extract what was actually passed on CLI; use a masking argparser
     aux_parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
@@ -453,7 +462,7 @@ def main(arguments=None) -> None:
     except ValueError as e:
         logging.exception(e)
         print(e)
-        exit(1)  # exit non zero indicated parsing error
+        return ExitCode.USAGE_ERROR
 
     if hasattr(_config.run, "seed") and isinstance(_config.run.seed, int):
         import random
@@ -468,6 +477,7 @@ def main(arguments=None) -> None:
 
     import garak.evaluators
 
+    exit_code: int = ExitCode.SUCCESS
     try:
         has_config_file_or_json = False
         # do a special thing for CLI probe options, generator options
@@ -491,7 +501,7 @@ def main(arguments=None) -> None:
             except Exception as e:
                 logging.error(e)
                 print(e)
-                sys.exit(1)
+                exit_code = ExitCode.RUNTIME_ERROR
             finally:
                 command.end_run()
 
@@ -578,7 +588,7 @@ def main(arguments=None) -> None:
                             print(msg)
             # should this add support for --*_spec entries passed on cli?
             if has_changes:
-                exit(1)  # exit with error code to denote changes
+                exit_code = ExitCode.CONFIG_ERROR
             else:
                 print(
                     "No revisions applied. Please verify options provided for `--fix`"
@@ -687,8 +697,19 @@ def main(arguments=None) -> None:
         logging.exception(e)
         logging.info(msg)
         print(msg)
+        exit_code = ExitCode.INTERRUPTED
+    except (APIKeyMissingError, PluginConfigurationError) as e:
+        logging.exception(e)
+        print(e)
+        exit_code = ExitCode.PLUGIN_ERROR
+    except ConfigFailure as e:
+        logging.exception(e)
+        print(e)
+        exit_code = ExitCode.CONFIG_ERROR
     except (ValueError, GarakException) as e:
         logging.exception(e)
         print(e)
+        exit_code = ExitCode.RUNTIME_ERROR
 
     _config.set_http_lib_agents(prior_user_agents)
+    return exit_code
