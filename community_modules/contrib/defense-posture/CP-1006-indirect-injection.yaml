@@ -130,12 +130,13 @@ behavioral:
 # ── Calibration ──
 calibration:
   hardening_score_contribution: 3
-  expected_false_refusal_delta: 0.01
+  expected_false_refusal_delta: 
+  calibration_status: "estimated — pending validation against over-refusal corpus (per #1666)"
 
 # ── Empirical Data ──
 empirical:
   source: "prompt-defense-audit (deterministic regex scanner)"
-  dataset: "jujumilk3/leaked-system-prompts (GitHub)"
+  dataset: "4 public repos: jujumilk3/leaked-system-prompts, x1xhlol/system-prompts-and-models-of-ai-tools, elder-plinius/CL4R1T4S, LouisShark/chatgpt_system_prompt"
   sample_size: 1646
   methodology: "Defense pattern analysis of 1,646 unique production system prompts from 4 public datasets (jujumilk3/leaked-system-prompts, x1xhlol/system-prompts-and-models, elder-plinius/CL4R1T4S, LouisShark/chatgpt_system_prompt). Includes ChatGPT, Claude, Grok, Perplexity, Cursor, v0, Copilot, and 1,300+ GPT Store custom GPTs."
   findings:
