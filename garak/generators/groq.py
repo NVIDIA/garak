@@ -1,11 +1,10 @@
 """GroqChat API support"""
 
-import random
 from typing import List, Union
 
 import openai
 
-from garak.attempt import Message, Conversation
+from garak.attempt import Message
 from garak.generators.openai import OpenAICompatible
 
 

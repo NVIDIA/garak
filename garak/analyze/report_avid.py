@@ -5,7 +5,6 @@
 import importlib
 import sys
 import json
-import argparse
 import pandas as pd
 
 from datetime import date
@@ -119,6 +118,8 @@ def convert_to_avid(report_location: str) -> str:
 def main(argv=None) -> None:
     if argv is None:
         argv = sys.argv[1:]
+
+    import argparse
 
     garak._config.load_config()
     print(

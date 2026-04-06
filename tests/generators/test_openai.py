@@ -28,7 +28,7 @@ def set_fake_env(request) -> None:
 
 
 def test_openai_version():
-    assert openai.__version__.split(".")[0] == "1"  # expect openai module v1.x
+    assert openai.__version__.split(".")[0] == "2"  # expect openai module v2.x
 
 
 @pytest.mark.usefixtures("set_fake_env")

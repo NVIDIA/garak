@@ -6,7 +6,6 @@ from pathlib import Path
 
 from garak import cli, _config
 
-
 CODEPATH_PREFIX = "_garak_test_hitlog_codepath"
 
 

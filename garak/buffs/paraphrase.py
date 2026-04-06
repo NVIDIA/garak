@@ -25,6 +25,7 @@ class PegasusT5(Buff, HFCompatible):
     }
     lang = "en"
     doc_uri = "https://huggingface.co/tuner007/pegasus_paraphrase"
+    _unsafe_attributes = ["para_model", "tokenizer"]
 
     def __init__(self, config_root=_config) -> None:
         self.num_return_sequences = 6
@@ -33,8 +34,14 @@ class PegasusT5(Buff, HFCompatible):
         self.para_model = None
         super().__init__(config_root=config_root)
 
-    def _load_model(self):
+    def _load_unsafe(self):
         from transformers import PegasusForConditionalGeneration, PegasusTokenizer
+        import os
+
+        # disable huggingface attempts to open PRs in public sources
+        disable_env_key = "DISABLE_SAFETENSORS_CONVERSION"
+        stored_env = os.getenv(disable_env_key, default=None)
+        os.environ[disable_env_key] = "true"
 
         self.device = self._select_hf_device()
         self.para_model = PegasusForConditionalGeneration.from_pretrained(
@@ -44,9 +51,14 @@ class PegasusT5(Buff, HFCompatible):
             self.para_model_name, trust_remote_code=self.hf_args["trust_remote_code"]
         )
 
+        if stored_env:
+            os.environ[disable_env_key] = stored_env
+        else:
+            del os.environ[disable_env_key]
+
     def _get_response(self, input_text):
         if self.para_model is None:
-            self._load_model()
+            self._load_unsafe()
 
         batch = self.tokenizer(
             [input_text],
@@ -88,10 +100,16 @@ class Fast(Buff, HFCompatible):
 
     DEFAULT_PARAMS = Buff.DEFAULT_PARAMS | {
         "para_model_name": "garak-llm/chatgpt_paraphraser_on_T5_base",
-        "hf_args": {"device": "cpu", "torch_dtype": "float32"},
+        "hf_args": {
+            "device": "cpu",
+            "torch_dtype": "float32",
+            "custom_generate": "transformers-community/group-beam-search",
+            "trust_remote_code": True,
+        },
     }
     lang = "en"
     doc_uri = "https://huggingface.co/humarin/chatgpt_paraphraser_on_T5_base"
+    _unsafe_attributes = ["para_model", "tokenizer"]
 
     def __init__(self, config_root=_config) -> None:
         self.num_beams = 5
@@ -106,22 +124,46 @@ class Fast(Buff, HFCompatible):
         self.para_model = None
         super().__init__(config_root=config_root)
 
-    def _load_model(self):
+    def _load_unsafe(self):
         from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+        import os
+
+        # disable huggingface attempts to open PRs in public sources
+        disable_env_key = "DISABLE_SAFETENSORS_CONVERSION"
+        stored_env = os.getenv(disable_env_key, default=None)
+        os.environ[disable_env_key] = "true"
 
         self.device = self._select_hf_device()
         model_kwargs = self._gather_hf_params(
             hf_constructor=AutoModelForSeq2SeqLM.from_pretrained
         )  # will defer to device_map if device map was `auto` may not match self.device
+        generation_params = self._gather_generation_params()
+        for param in generation_params.keys():
+            if param in model_kwargs.keys():
+                model_kwargs.pop(param)
+
+        if self.hf_args.get("custom_generate", None):
+            if not self.hf_args.get("trust_remote_code", False):
+                raise ValueError(
+                    "When using a 'custom_generate' option 'trust_remote_code' must be enabled."
+                )
 
         self.para_model = AutoModelForSeq2SeqLM.from_pretrained(
             self.para_model_name, **model_kwargs
         ).to(self.device)
         self.tokenizer = AutoTokenizer.from_pretrained(self.para_model_name)
 
+        for k, v in generation_params.items():
+            setattr(self.para_model.generation_config, k, v)
+
+        if stored_env:
+            os.environ[disable_env_key] = stored_env
+        else:
+            del os.environ[disable_env_key]
+
     def _get_response(self, input_text):
         if self.para_model is None:
-            self._load_model()
+            self._load_unsafe()
 
         input_ids = self.tokenizer(
             f"paraphrase: {input_text}",
@@ -131,18 +173,25 @@ class Fast(Buff, HFCompatible):
             truncation=True,
         ).input_ids
 
-        outputs = self.para_model.generate(
-            input_ids,
-            # temperature=self.temperature,
-            repetition_penalty=self.repetition_penalty,
-            num_return_sequences=self.num_return_sequences,
-            no_repeat_ngram_size=self.no_repeat_ngram_size,
-            num_beams=self.num_beams,
-            num_beam_groups=self.num_beam_groups,
-            max_length=self.max_length,
-            diversity_penalty=self.diversity_penalty,
-            # do_sample = False,
-        )
+        try:
+            outputs = self.para_model.generate(
+                input_ids,
+                # temperature=self.temperature,
+                repetition_penalty=self.repetition_penalty,
+                num_return_sequences=self.num_return_sequences,
+                no_repeat_ngram_size=self.no_repeat_ngram_size,
+                num_beams=self.num_beams,
+                num_beam_groups=self.num_beam_groups,
+                max_length=self.max_length,
+                diversity_penalty=self.diversity_penalty,
+                # requirements for custom generation in transformers >= 4.57.0
+                trust_remote_code=self.hf_args["trust_remote_code"],
+            )
+        except OSError as e:
+            from garak.exception import GarakException
+
+            msg = f"{self.__module__}.{self.__class__.__name__} failed to generate a model response"
+            raise GarakException(msg) from e
 
         res = self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
 

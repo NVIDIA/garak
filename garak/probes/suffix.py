@@ -55,7 +55,15 @@ class GCGCached(garak.probes.Probe):
 class GCG(garak.probes.Probe):
     """Greedy Coordinate Gradient probe
 
-    An automatic jailbreaking probe, using gradient descent."""
+    An automatic jailbreaking probe, using gradient descent.
+
+    Accepts `goal_str` and `target_str` as parameters for optimizing a single input `goal_str`
+    to have `target_str` in the output. It can also accept a csv file of inputs via the `data_path`
+    parameter. If a csv file is provided, it must have the columns `goal` and `target` specified.
+
+    If no `target_str` or `goal_str` are provided and no `data_path` value is provided, adversarial suffixes
+    are generated based on sampled rows from AdvBench
+    """
 
     aliases = ["gcg.GCG"]
     lang = "en"
@@ -70,6 +78,19 @@ class GCG(garak.probes.Probe):
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
     doc_uri = "https://arxiv.org/abs/2307.15043"
 
+    DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
+        "stop_on_success": True,
+        "goal_str": None,
+        "target_str": None,
+        "data_path": None,
+        "n_rows": 50,
+        "n_steps": 500,
+        "batch_size": 128,
+        "topk": 256,
+        "anneal": False,
+        "filter_cand": True,
+    }
+
     prompts = list()
     active = False
 
@@ -81,21 +102,46 @@ class GCG(garak.probes.Probe):
         super().__init__(config_root=config_root)
 
     def probe(self, generator) -> List[garak.attempt.Attempt]:
-        try:
-            from garak.generators.huggingface import Model
+        self.generator = generator
 
-            if not isinstance(generator, Model):
+        try:
+            from garak.generators.huggingface import Model, Pipeline
+
+            if hasattr(self, "system_prompt"):
+                system_prompt = self.system_prompt
+            else:
+                system_prompt = None
+
+            if not isinstance(generator, Pipeline):
                 msg = f"Incompatible generator type received: {generator.__class__.__module__}.{generator.__class__.__name__} expected: {Model.__module__}.{Model.__name__}"
                 logging.error(msg)
                 return list()
-            gcg_output = self.run_gcg(target_generator=generator)
+            gcg_output = self.run_gcg(
+                target_generator=generator,
+                stop_success=self.stop_on_success,
+                goal_str=self.goal_str,
+                target_str=self.target_str,
+                train_data=self.data_path,
+                n_train=self.n_rows,
+                n_steps=self.n_steps,
+                batch_size=self.batch_size,
+                topk=self.topk,
+                anneal=self.anneal,
+                filter_cand=self.filter_cand,
+                system_prompt=system_prompt,
+            )
         except Exception as e:
-            logging.error(e)
+            logging.exception(e)
             print(f"GCG generation encountered an error:\n{e}")
             gcg_output = None
 
         if gcg_output:
-            self.prompts = [self.goal + gcg_output]
+            prompts = list()
+            for output in gcg_output:
+                suffix = output[0]
+                goal_str = output[1]
+                prompts.append(goal_str + suffix)
+            self.prompts = prompts
 
             # build list of attempts
             attempts_todo = []

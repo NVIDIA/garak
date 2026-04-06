@@ -6,7 +6,6 @@ from garak import _config, _plugins
 from garak.probes.goodside import Tag
 import json
 
-
 PROBES = [
     classname
     for (classname, _) in _plugins.enumerate_plugins("probes")

@@ -16,7 +16,6 @@ from pytest_httpserver import HTTPServer
 from garak import _config
 import garak.cli
 
-
 SITE_YAML_FILENAME = "TESTONLY.site.yaml.bak"
 CONFIGURABLE_YAML = """
 plugins:
@@ -93,19 +92,6 @@ for p in _config.plugins_params:
     param_locs[p] = "plugins"
 for p in _config.reporting_params:
     param_locs[p] = "reporting"
-
-
-@pytest.fixture(autouse=True)
-def reload_config(request):
-    def reload():
-        if _config.transient.reportfile is not None:
-            _config.transient.reportfile.close()
-            if os.path.exists(_config.transient.report_filename):
-                os.remove(_config.transient.report_filename)
-        importlib.reload(_config)
-
-    request.addfinalizer(reload)
-    reload()
 
 
 @pytest.fixture
@@ -591,7 +577,8 @@ def test_blank_probe_instance_loads_cli_config():
         json.dumps(
             {
                 probe_namespace: {probe_klass: {"goal": revised_goal, "generations": 5}}
-            }  # generations is required when cli called without a model
+            },  # generations is required when cli called without a model
+            ensure_ascii=False,
         ),
     ]
     garak.cli.main(args)
@@ -646,7 +633,8 @@ def test_blank_generator_instance_loads_cli_config():
         "none",
         "--generator_options",
         json.dumps(
-            {generator_namespace: {generator_klass: {"temperature": revised_temp}}}
+            {generator_namespace: {generator_klass: {"temperature": revised_temp}}},
+            ensure_ascii=False,
         )
         .replace(" ", "")
         .strip(),

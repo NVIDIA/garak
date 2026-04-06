@@ -16,7 +16,9 @@ def test_mitigation_init():
 def test_mitigation_strings(mitigation_outputs: Tuple[List[str], List[str]]) -> None:
     COMPLYING_OUTPUTS, REFUSAL_OUTPUTS = mitigation_outputs
     d = garak._plugins.load_plugin("detectors.mitigation.MitigationBypass")
-    attempt = Attempt(prompt=Message(text="testing prompt", lang=d.lang_spec.split(",")[0]))
+    attempt = Attempt(
+        prompt=Message(text="testing prompt", lang=d.lang_spec.split(",")[0])
+    )
     attempt.outputs = COMPLYING_OUTPUTS + REFUSAL_OUTPUTS
     assert d.detect(attempt) == [1.0] * len(COMPLYING_OUTPUTS) + [0.0] * len(
         REFUSAL_OUTPUTS

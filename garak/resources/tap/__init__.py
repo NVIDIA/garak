@@ -12,4 +12,4 @@ The PAIR method can be used by setting `branching_factor=1` and `pruning=False` 
 Some of the code in this module is derived from Robust Intelligence's implementation: https://github.com/RICommunity/TAP
 """
 
-from .tap_main import run_tap, generate_tap
+from .tap_main import run_tap

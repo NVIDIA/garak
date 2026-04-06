@@ -13,7 +13,6 @@ Further info:
 
 """
 
-
 from garak import _config
 from garak.resources.encodings import leetspeak
 import garak.probes

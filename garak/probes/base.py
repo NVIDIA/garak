@@ -157,10 +157,10 @@ class Probe(Configurable):
         systematic transformation of attempts"""
         return attempt
 
-    def _generator_precall_hook(self, generator, attempt=None):
+    def _generator_precall_hook(self, generator, attempt=None) -> None:
         """function to be overloaded if a probe wants to take actions between
         attempt generation and posing prompts to the model"""
-        pass
+        return
 
     def _buff_hook(
         self, attempts: Iterable[garak.attempt.Attempt]
@@ -302,11 +302,6 @@ class Probe(Configurable):
         this_attempt.outputs = self.generator.generate(
             this_attempt.prompt, generations_this_call=self.generations
         )
-        if len(this_attempt.outputs) != self.generations:
-            raise garak.exception.BadGeneratorException(
-                "Generator did not return the requested number of responses (asked for %i got %i). supports_multiple_generations may be set incorrectly."
-                % (self.generations, len(this_attempt.outputs))
-            )
         if self.post_buff_hook:
             this_attempt = self._postprocess_buff(this_attempt)
         this_attempt = self._postprocess_hook(this_attempt)
@@ -335,21 +330,22 @@ class Probe(Configurable):
                 self.max_workers,
             )
 
+            attempt_pool = None
             try:
-                with Pool(pool_size) as attempt_pool:
-                    for result in attempt_pool.imap_unordered(
-                        self._execute_attempt, attempts
-                    ):
-                        processed_attempt = self._postprocess_attempt(result)
+                attempt_pool = Pool(pool_size)
+                for result in attempt_pool.imap_unordered(
+                    self._execute_attempt, attempts
+                ):
+                    processed_attempt = self._postprocess_attempt(result)
 
-                        _config.transient.reportfile.write(
-                            json.dumps(processed_attempt.as_dict(), ensure_ascii=False)
-                            + "\n"
-                        )
-                        attempts_completed.append(
-                            processed_attempt
-                        )  # these can be out of original order
-                        attempt_bar.update(1)
+                    _config.transient.reportfile.write(
+                        json.dumps(processed_attempt.as_dict(), ensure_ascii=False)
+                        + "\n"
+                    )
+                    attempts_completed.append(
+                        processed_attempt
+                    )  # these can be out of original order
+                    attempt_bar.update(1)
             except OSError as o:
                 if o.errno == 24:
                     msg = "Parallelisation limit hit. Try reducing parallel_attempts or raising limit (e.g. ulimit -n 4096)"
@@ -357,6 +353,10 @@ class Probe(Configurable):
                     raise GarakException(msg) from o
                 else:
                     raise (o)
+            finally:
+                if attempt_pool is not None:
+                    attempt_pool.close()
+                    attempt_pool.join()
 
         else:
             attempt_iterator = tqdm.tqdm(attempts, leave=False)
@@ -366,7 +366,7 @@ class Probe(Configurable):
                 processed_attempt = self._postprocess_attempt(result)
 
                 _config.transient.reportfile.write(
-                    json.dumps(processed_attempt.as_dict()) + "\n"
+                    json.dumps(processed_attempt.as_dict(), ensure_ascii=False) + "\n"
                 )
                 attempts_completed.append(processed_attempt)
 

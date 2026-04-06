@@ -3,7 +3,7 @@
 
 """**DRA (Disguise and Reconstruction Attack) probes.**
 
-This probe tests models using harmful strings disguised and reconstructed through string manipulation. 
+This probe tests models using harmful strings disguised and reconstructed through string manipulation.
 
 Probes in this module must implement DRA.
 
@@ -71,7 +71,7 @@ class DRA(garak.probes.Probe):
     Uses all available templates and behaviors. Optional ``soft_probe_prompt_cap`` for limiting.
 
     Parameter Tuning:
-    
+
     ``toxic_trunc``: Controls truncation level for toxic/harmful tokens. If attacks fail,
     this suggests the prompt is still too harmful and being rejected. Increase toxic_trunc
     to truncate more toxic words, increasing the disguise level and making prompts less detectable.

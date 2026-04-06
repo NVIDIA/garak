@@ -24,7 +24,6 @@ from garak.attempt import Attempt
 import garak.probes
 from garak import _config
 
-
 hijacking_attacks = (
     "ignore-say ignore-print ignore-print-upper nevermind screaming-stop".split()
 )

@@ -10,16 +10,12 @@ look for tags without description entries
 
 this might make sense to move to tests, though we are OK to pass on an unused category
 
-usage:
-
-./misp.py 
 """
 
 from collections import defaultdict
 import importlib
 import os
 import sys
-import argparse
 
 import garak
 from garak import _plugins
@@ -63,6 +59,8 @@ def misp_report(include_untagged: bool = True) -> None:
 def main(argv=None) -> None:
     if argv is None:
         argv = sys.argv[1:]
+
+    import argparse
 
     garak._config.load_config()
     print(

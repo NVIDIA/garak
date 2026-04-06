@@ -10,10 +10,8 @@
 #   compute mean, standard deviation, shapiro-wilk across all input report evals
 # output: json dict: keys are probe/detector, values are dict: keys are mu, sigma, sw
 
-import argparse
 from collections import defaultdict
 import datetime
-from glob import glob
 import json
 import sys
 
@@ -61,6 +59,8 @@ def build_score_dict(filenames):
 def main(argv=None) -> None:
     if argv is None:
         argv = sys.argv[1:]
+
+    import argparse
 
     _config.load_config()
     print(

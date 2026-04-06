@@ -31,10 +31,11 @@ def string_detector():
 
 def test_case_sensitive_exact_match(string_detector):
     """Test that exact matches are detected when case_sensitive=True"""
+    string_detector.case_sensitive = True
     for test_str in TEST_STRINGS:
         attempt = Attempt(prompt=Message(text="Hello"))
         attempt.outputs = [Message(test_str)]
-        results = string_detector.detect(attempt, case_sensitive=True)
+        results = string_detector.detect(attempt)
         assert results == [1.0], f"Failed to detect exact match for '{test_str}'"
 
 
@@ -49,10 +50,12 @@ def test_case_sensitive_no_match(string_detector):
         TEST_STRINGS[2].title(),  # title but not camelcase variation
     ]
 
+    string_detector.case_sensitive = True
+
     for test_str in test_cases:
         attempt = Attempt(prompt=Message(text="Hello"))
         attempt.outputs = [Message(test_str)]
-        results = string_detector.detect(attempt, case_sensitive=True)
+        results = string_detector.detect(attempt)
         assert results == [
             0.0
         ], f"Should not detect absent case variation '{test_str}' in case sensitive mode"
@@ -69,10 +72,12 @@ def test_case_insensitive_match(string_detector):
         (TEST_STRINGS[2], TEST_STRINGS[2].upper()),
     ]
 
+    string_detector.case_sensitive = False
+
     for original, variant in test_cases:
         attempt = Attempt(prompt=Message(text="Hello"))
         attempt.outputs = [Message(variant)]
-        results = string_detector.detect(attempt, case_sensitive=False)
+        results = string_detector.detect(attempt)
         assert results == [
             1.0
         ], f"Failed to detect case insensitive match: '{original}' vs '{variant}'"
@@ -85,16 +90,20 @@ def test_multiple_outputs(string_detector):
         Message(s) for s in [TEST_STRINGS[0], TEST_STRINGS[0].upper(), "no match"]
     ]
 
+    string_detector.case_sensitive = True
+
     # Case sensitive - should only match exact "test"
-    results = string_detector.detect(attempt, case_sensitive=True)
+    results = string_detector.detect(attempt)
     assert results == [
         1.0,
         0.0,
         0.0,
     ], "Case sensitive matching failed for multiple outputs"
 
+    string_detector.case_sensitive = False
+
     # Case insensitive - should match both "test" and "TEST"
-    results = string_detector.detect(attempt, case_sensitive=False)
+    results = string_detector.detect(attempt)
     assert results == [
         1.0,
         1.0,
@@ -107,7 +116,9 @@ def test_none_outputs(string_detector):
     attempt = Attempt(prompt=Message(text="Hello"))
     attempt.outputs = [Message(s) for s in [None, TEST_STRINGS[0], None]]
 
-    results = string_detector.detect(attempt, case_sensitive=True)
+    string_detector.case_sensitive = True
+
+    results = string_detector.detect(attempt)
     assert len(results) == len(
         attempt.outputs
     ), "Detector result for each output including None"
@@ -150,14 +161,18 @@ def test_matchtype_with_case_sensitivity(matchtype):
         attempt = Attempt(prompt=Message(text="Hello"))
         attempt.outputs = [Message(text)]
 
+        detector.case_sensitive = True
+
         # Test case sensitive
-        results = detector.detect(attempt, case_sensitive=True)
+        results = detector.detect(attempt)
         assert results == [
             1.0 if should_match_sensitive else 0.0
         ], f"Case sensitive {matchtype} match failed for '{text}'"
 
+        detector.case_sensitive = False
+
         # Test case insensitive
-        results = detector.detect(attempt, case_sensitive=False)
+        results = detector.detect(attempt)
         assert results == [
             1.0
         ], f"Case insensitive {matchtype} match failed for '{text}'"
@@ -175,10 +190,12 @@ def test_stringdetector_word_boundary_matching():
         ("THISISUPPERCASE", False),
     ]
 
+    detector.case_sensitive = True
+
     for text, match in test_cases:
         attempt = Attempt(prompt=Message(text=""))
         attempt.outputs = [Message(text)]
-        results = detector.detect(attempt, case_sensitive=True)
+        results = detector.detect(attempt)
         assert results == [
             1.0 if match else 0.0
         ], f"Word boundary match failed for '{text}', expected {match}"
@@ -193,10 +210,12 @@ def test_stringdetector_startswith():
         ("tests always succeed", True),
     ]
 
+    detector.case_sensitive = True
+
     for text, match in test_cases:
         attempt = Attempt(prompt=Message(text=""))
         attempt.outputs = [Message(text)]
-        results = detector.detect(attempt, case_sensitive=True)
+        results = detector.detect(attempt)
         assert results == [
             1.0 if match else 0.0
         ], f"startswith match failed for '{text}', expected {match}"

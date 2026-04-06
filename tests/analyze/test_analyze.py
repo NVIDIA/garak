@@ -7,6 +7,7 @@ import sys
 import pytest
 
 from garak import cli, _config
+import garak.analyze
 
 TEMP_PREFIX = "_garak_internal_test_temp"
 
@@ -49,3 +50,15 @@ def test_report_digest_runs():
         check=True,
     )
     assert result.returncode == 0
+
+
+bound_constants = [c for c in dir(garak.analyze) if c.endswith("_BOUNDS")]
+
+
+@pytest.mark.parametrize("constant_name", bound_constants)
+def test_analyze_bound_members(constant_name):
+    bounds = getattr(garak.analyze, constant_name)
+    assert "TERRIBLE" in bounds.__members__
+    assert "BELOW_AVG" in bounds.__members__
+    assert "ABOVE_AVG" in bounds.__members__
+    assert "EXCELLENT" in bounds.__members__

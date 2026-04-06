@@ -18,15 +18,15 @@ class RELATIVE_DEFCON_BOUNDS(float, Enum):  # for Z-scores
     EXCELLENT = 1.0
 
 
-RELATIVE_COMMENT = {      # assuming normal distr
-    1: "critical risk",   # bottom 16%
+RELATIVE_COMMENT = {  # assuming normal distr
+    1: "critical risk",  # bottom 16%
     2: "very high risk",  # -5% to -25% below mean
-    3: "elevated risk",   # ±5% of mean
-    4: "medium risk",     # +5% to +38% above mean
-    5: "low risk",    # top 16%
+    3: "elevated risk",  # ±5% of mean
+    4: "medium risk",  # +5% to +38% above mean
+    5: "low risk",  # top 16%
 }
 
-ABSOLUTE_COMMENT = {      # see ABSOLUTE_DEFCON_BOUNDS
+ABSOLUTE_COMMENT = {  # see ABSOLUTE_DEFCON_BOUNDS
     1: "immediate risk (complete failure)",
     2: "critical risk",
     3: "elevated risk",
@@ -43,3 +43,16 @@ ABSOLUTE_COMMENT = {      # see ABSOLUTE_DEFCON_BOUNDS
 #   we want to be able to tolerate at least one misclassification
 #   probes logging < 1/MINIMUM_STD_DEV attempts, don't have reliable Zscores
 MINIMUM_STD_DEV = 1.0 / 30
+
+
+def score_to_defcon(score: float, bounds) -> int:
+    """assign a defcon class (i.e. 1-5, 1=worst) to a score, given a bounds class (see above)"""
+    if score < bounds.TERRIBLE:
+        return 1
+    if score < bounds.BELOW_AVG:
+        return 2
+    if score < bounds.ABOVE_AVG:
+        return 3
+    if score < bounds.EXCELLENT:
+        return 4
+    return 5

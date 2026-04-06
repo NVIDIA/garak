@@ -74,6 +74,12 @@ class Pipeline(Generator, HFCompatible):
             return
 
         from transformers import pipeline, set_seed
+        import os
+
+        # disable huggingface attempts to open PRs in public sources
+        disable_env_key = "DISABLE_SAFETENSORS_CONVERSION"
+        stored_env = os.getenv(disable_env_key, default=None)
+        os.environ[disable_env_key] = "true"
 
         if self.seed is not None:
             set_seed(self.seed)
@@ -82,6 +88,11 @@ class Pipeline(Generator, HFCompatible):
         pipeline_kwargs["truncation"] = (
             True  # this is forced to maintain existing pipeline expectations
         )
+        generation_params = self._gather_generation_params()
+        for param in generation_params.keys():
+            if param in pipeline_kwargs:
+                pipeline_kwargs.pop(param)
+
         self.generator = pipeline("text-generation", **pipeline_kwargs)
         if self.generator.tokenizer is None:
             # account for possible model without a stored tokenizer
@@ -103,6 +114,15 @@ class Pipeline(Generator, HFCompatible):
                 self.deprefix_prompt = True
 
         self._set_hf_context_len(self.generator.model.config)
+        if hasattr(self.generator.generation_config, "max_length"):
+            self.generator.generation_config.max_length = None
+        for k, v in generation_params.items():
+            setattr(self.generator.generation_config, k, v)
+
+        if stored_env:
+            os.environ[disable_env_key] = stored_env
+        else:
+            del os.environ[disable_env_key]
 
     def _call_model(
         self, prompt: Conversation, generations_this_call: int = 1
@@ -120,12 +140,15 @@ class Pipeline(Generator, HFCompatible):
                     else:
                         formatted_prompt = prompt.last_message().text
 
-                    raw_output = self.generator(
-                        formatted_prompt,
-                        pad_token_id=self.generator.tokenizer.eos_token_id,
-                        max_new_tokens=self.max_tokens,
-                        num_return_sequences=generations_this_call,
+                    self.generator.generation_config.pad_token_id = (
+                        self.generator.tokenizer.eos_token_id
                     )
+                    self.generator.generation_config.max_new_tokens = self.max_tokens
+                    self.generator.generation_config.num_return_sequences = (
+                        generations_this_call
+                    )
+
+                    raw_output = self.generator(formatted_prompt)
             except Exception as e:
                 logging.error(e)
                 raw_output = []  # could handle better than this
@@ -352,6 +375,12 @@ class Model(Pipeline, HFCompatible):
             return
 
         import transformers
+        import os
+
+        # disable huggingface attempts to open PRs in public sources
+        disable_env_key = "DISABLE_SAFETENSORS_CONVERSION"
+        stored_env = os.getenv(disable_env_key, default=None)
+        os.environ[disable_env_key] = "true"
 
         if self.seed is not None:
             transformers.set_seed(self.seed)
@@ -359,6 +388,10 @@ class Model(Pipeline, HFCompatible):
         model_kwargs = self._gather_hf_params(
             hf_constructor=transformers.AutoConfig.from_pretrained
         )  # will defer to device_map if device map was `auto` may not match self.device
+        generation_params = self._gather_generation_params()
+        for param in generation_params.keys():
+            if param in model_kwargs.keys():
+                model_kwargs.pop(param)
 
         self.config = transformers.AutoConfig.from_pretrained(self.name, **model_kwargs)
 
@@ -372,7 +405,7 @@ class Model(Pipeline, HFCompatible):
         if not hasattr(self, "deprefix_prompt"):
             self.deprefix_prompt = self.name in models_to_deprefix
 
-        if self.config.tokenizer_class:
+        if hasattr(self.config, "tokenizer_class") and self.config.tokenizer_class:
             self.tokenizer = transformers.AutoTokenizer.from_pretrained(
                 self.config.tokenizer_class
             )
@@ -391,8 +424,18 @@ class Model(Pipeline, HFCompatible):
         self.generation_config = transformers.GenerationConfig.from_pretrained(
             self.name
         )
+        if hasattr(self.generation_config, "max_length"):
+            self.generation_config.max_length = None
+        for k, v in generation_params.items():
+            setattr(self.generation_config, k, v)
+
         self.generation_config.eos_token_id = self.model.config.eos_token_id
         self.generation_config.pad_token_id = self.model.config.eos_token_id
+
+        if stored_env:
+            os.environ[disable_env_key] = stored_env
+        else:
+            del os.environ[disable_env_key]
 
     def _call_model(
         self, prompt: Conversation, generations_this_call: int = 1
@@ -467,8 +510,10 @@ class LLaVA(Generator, HFCompatible):
 
     extra_dependency_names = ["pillow"]
 
-    def _load_deps(self):
-        return super()._load_deps(["PIL"])
+    def _load_deps(self, deps_override: List | None = None):
+        if deps_override is None:
+            deps_override = []
+        return super()._load_deps(deps_override + ["PIL"])
 
     DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
         "max_tokens": 4000,
@@ -506,21 +551,39 @@ class LLaVA(Generator, HFCompatible):
         super().__init__(self.name, config_root=config_root)
 
         from transformers import LlavaNextProcessor, LlavaNextForConditionalGeneration
+        import os
+
+        # disable huggingface attempts to open PRs in public sources
+        disable_env_key = "DISABLE_SAFETENSORS_CONVERSION"
+        stored_env = os.getenv(disable_env_key, default=None)
+        os.environ[disable_env_key] = "true"
 
         self.device = self._select_hf_device()
         model_kwargs = self._gather_hf_params(
             hf_constructor=LlavaNextForConditionalGeneration.from_pretrained
         )  # will defer to device_map if device map was `auto` may not match self.device
+        generation_params = self._gather_generation_params()
+        for param in generation_params.keys():
+            if param in model_kwargs.keys():
+                model_kwargs.pop(param)
 
         self.processor = LlavaNextProcessor.from_pretrained(self.name)
         self.model = LlavaNextForConditionalGeneration.from_pretrained(
             self.name, **model_kwargs
         )
 
+        for k, v in generation_params.items():
+            setattr(self.model.generation_config, k, v)
+
         self.model.to(self.device)
 
+        if stored_env:
+            os.environ[disable_env_key] = stored_env
+        else:
+            del os.environ[disable_env_key]
+
     def generate(
-        self, prompt: Conversation, generations_this_call: int = 1
+        self, prompt: Conversation, generations_this_call: int = 1, typecheck=True
     ) -> List[Union[Message, None]]:
 
         text_prompt = prompt.last_message().text
@@ -536,9 +599,10 @@ class LLaVA(Generator, HFCompatible):
             self.device
         )
         exist_token_number: int = inputs.data["input_ids"].shape[1]
-        output = self.model.generate(
-            **inputs, max_new_tokens=self.max_tokens - exist_token_number
+        self.model.generation_config.max_new_tokens = (
+            self.max_tokens - exist_token_number
         )
+        output = self.model.generate(**inputs)
         output = self.processor.decode(output[0], skip_special_tokens=True)
 
         return [Message(output)]

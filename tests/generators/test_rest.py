@@ -47,7 +47,7 @@ def test_plaintext_rest(requests_mock):
 def test_json_rest_top_level(requests_mock):
     requests_mock.post(
         "https://www.wikidata.org/wiki/Q22971",
-        text=json.dumps({"text": DEFAULT_TEXT_RESPONSE}),
+        text=json.dumps({"text": DEFAULT_TEXT_RESPONSE}, ensure_ascii=False),
     )
     _config.plugins.generators["rest"]["RestGenerator"]["response_json"] = True
     _config.plugins.generators["rest"]["RestGenerator"]["response_json_field"] = "text"
@@ -63,7 +63,7 @@ def test_json_rest_top_level(requests_mock):
 def test_json_rest_list(requests_mock):
     requests_mock.post(
         "https://www.wikidata.org/wiki/Q22971",
-        text=json.dumps([DEFAULT_TEXT_RESPONSE]),
+        text=json.dumps([DEFAULT_TEXT_RESPONSE], ensure_ascii=False),
     )
     _config.plugins.generators["rest"]["RestGenerator"]["response_json"] = True
     _config.plugins.generators["rest"]["RestGenerator"]["response_json_field"] = "$"
@@ -88,7 +88,8 @@ def test_json_rest_deeper(requests_mock):
                         },
                     }
                 ]
-            }
+            },
+            ensure_ascii=False,
         ),
     )
     _config.plugins.generators["rest"]["RestGenerator"]["response_json"] = True
@@ -120,7 +121,8 @@ def test_rest_skip_code(requests_mock):
                         },
                     }
                 ]
-            }
+            },
+            ensure_ascii=False,
         ),
     )
     conv = Conversation([Turn("user", Message("Who is Enabran Tain's son?"))])
@@ -151,7 +153,8 @@ def test_rest_valid_proxy(mocker, requests_mock):
                         },
                     }
                 ]
-            }
+            },
+            ensure_ascii=False,
         ),
     )
     mock_http_function = mocker.patch.object(
@@ -200,7 +203,8 @@ def test_rest_ssl_suppression(mocker, requests_mock, verify_ssl):
                         },
                     }
                 ]
-            }
+            },
+            ensure_ascii=False,
         ),
     )
     mock_http_function = mocker.patch.object(

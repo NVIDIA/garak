@@ -36,6 +36,7 @@ def hf_mock_response(hf_endpoint_mocks):
 
 def test_pipeline(hf_generator_config):
     generations = 10
+    print(hf_generator_config)
     g = garak.generators.huggingface.Pipeline("gpt2", config_root=hf_generator_config)
     assert g.name == "gpt2"
     assert isinstance(g.generator, transformers.pipelines.text_generation.Pipeline)

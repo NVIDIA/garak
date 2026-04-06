@@ -41,4 +41,5 @@ def test_empty_output():
     attempt.outputs = [""]
     assert d.detect(attempt) == [0.0]
 
+
 # Tests for RepeatDiverges can be added here

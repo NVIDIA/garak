@@ -110,7 +110,7 @@ def test_fileisexectuable_nonexec():
         assert list(results) == [0.0]
 
 
-path_prefix = Path("tests/data/fileformats/exec_files/")
+path_prefix = Path("tests/_assets/fileformats/exec_files/")
 
 
 @pytest.fixture
