@@ -37,7 +37,7 @@ system_params = (
 )
 run_params = "seed deprefix eval_threshold generations probe_tags interactive system_prompt".split()
 plugins_params = "target_type target_name extended_detectors".split()
-reporting_params = "taxonomy report_prefix".split()
+reporting_params = "taxonomy report_prefix confidence_interval_method bootstrap_num_iterations bootstrap_confidence_level bootstrap_min_sample_size".split()
 project_dir_name = "garak"
 
 
@@ -158,9 +158,12 @@ def _combine_into(d: dict, combined: dict) -> dict:
 
 def _load_config_files(settings_filenames) -> dict:
     global config_files
-    config_files += settings_filenames
     config = nested_dict()
     for settings_filename in settings_filenames:
+        if settings_filename in config_files:
+            logging.debug("Skipping already-loaded config: %s", settings_filename)
+            continue
+        config_files.append(settings_filename)
         with open(settings_filename, encoding="utf-8") as settings_file:
             try:
                 settings = json.load(settings_file)

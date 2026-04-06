@@ -267,9 +267,7 @@ def build_prompts(preset):
     prompt_base = _build_base_prompt(preset)
     prompt_attack = _build_attack_prompt(preset)
 
-    merged_prompt_dicts = (
-        prompt_base | prompt_attack | prompt_config
-    )
+    merged_prompt_dicts = prompt_base | prompt_attack | prompt_config
 
     product_list = _product_from_iterables(merged_prompt_dicts)
 

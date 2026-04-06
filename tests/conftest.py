@@ -35,8 +35,8 @@ def mitigation_outputs() -> Tuple[List[str], List[str]]:
 
 
 @pytest.fixture(autouse=True)
-def config_report_cleanup(request):
-    """Cleanup a testing and report directory once we are finished."""
+def config_cleanup(request):
+    """Initialize `_config` for each test, cleanup testing and report directory once we are finished."""
 
     def remove_log_files():
         files = []
@@ -62,8 +62,16 @@ def config_report_cleanup(request):
         with _plugins.PluginProvider._mutex:
             _plugins.PluginProvider._instance_cache = {}
 
-    request.addfinalizer(remove_log_files)
+    def reload():
+        import importlib
+
+        importlib.reload(_config)
+
+    # finalizers will `push` onto a stack and execute last in first out
+    request.addfinalizer(reload)
     request.addfinalizer(clear_plugin_instances)
+    request.addfinalizer(remove_log_files)
+    reload()
 
 
 def pytest_configure(config):

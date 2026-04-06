@@ -215,6 +215,31 @@ def main(arguments=None) -> None:
         default=_config.reporting.taxonomy,
         help="specify a MISP top-level taxonomy to be used for grouping probes in reporting. e.g. 'avid-effect', 'owasp' ",
     )
+    parser.add_argument(
+        "--confidence_interval_method",
+        type=str,
+        default=None,
+        choices=["bootstrap", "none"],
+        help="method for CI calculation: 'bootstrap' (default) or 'none' to disable",
+    )
+    parser.add_argument(
+        "--bootstrap_num_iterations",
+        type=int,
+        default=None,
+        help="number of bootstrap iterations for CI calculation (overrides config)",
+    )
+    parser.add_argument(
+        "--bootstrap_confidence_level",
+        type=float,
+        default=None,
+        help="confidence level for bootstrap CIs, e.g. 0.95 or 0.99 (overrides config)",
+    )
+    parser.add_argument(
+        "--bootstrap_min_sample_size",
+        type=int,
+        default=None,
+        help="minimum sample size required for bootstrap CI calculation (overrides config)",
+    )
 
     ## COMMANDS
     # items placed here also need to be listed in command_options below
@@ -226,7 +251,8 @@ def main(arguments=None) -> None:
     parser.add_argument(
         "--list_probes",
         action="store_true",
-        help="list all available probes. Usage: combine with --probes/-p to filter for probes that will be activated based on a `probe_spec`, e.g. '--list_probes -p dan' to show only active 'dan' family probes.",
+        help="list available probes. Use -v for a detailed markdown table with tier and description. "
+        "Combine with --probes/-p to filter by probe_spec, e.g. '--list_probes -p dan'.",
     )
     parser.add_argument(
         "--list_detectors",
@@ -399,6 +425,31 @@ def main(arguments=None) -> None:
             _config.system.parallel_requests = worker_count_validation(
                 _config.system.parallel_requests
             )
+
+        if (
+            _config.reporting.bootstrap_num_iterations is not None
+            and _config.reporting.bootstrap_num_iterations <= 0
+        ):
+            raise ValueError(
+                f"bootstrap_num_iterations must be > 0, got {_config.reporting.bootstrap_num_iterations}"
+            )
+
+        if (
+            _config.reporting.bootstrap_confidence_level is not None
+            and not (0.0 < _config.reporting.bootstrap_confidence_level < 1.0)
+        ):
+            raise ValueError(
+                f"bootstrap_confidence_level must be in (0, 1), got {_config.reporting.bootstrap_confidence_level}"
+            )
+
+        if (
+            _config.reporting.bootstrap_min_sample_size is not None
+            and _config.reporting.bootstrap_min_sample_size <= 0
+        ):
+            raise ValueError(
+                f"bootstrap_min_sample_size must be > 0, got {_config.reporting.bootstrap_min_sample_size}"
+            )
+
     except ValueError as e:
         logging.exception(e)
         print(e)
@@ -455,7 +506,7 @@ def main(arguments=None) -> None:
             probe_spec = getattr(args, "probes", None)
             if probe_spec and probe_spec.lower() not in ("", "auto", "all", "*"):
                 selected_probes, _ = _config.parse_plugin_spec(probe_spec, "probes")
-            command.print_probes(selected_probes)
+            command.print_probes(selected_probes, verbose=_config.system.verbose)
 
         elif args.list_detectors:
             selected_detectors = None

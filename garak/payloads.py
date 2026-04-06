@@ -1,9 +1,7 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-""" Management of payloads.
-
-"""
+"""Management of payloads."""
 
 from __future__ import annotations
 
@@ -17,7 +15,6 @@ from typing import Generator, List, Union
 import garak._config
 import garak.exception
 from garak.data import path as data_path
-
 
 PAYLOAD_SCHEMA = {
     "type": "object",

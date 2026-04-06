@@ -6,10 +6,13 @@ import pytest
 
 import garak._plugins
 
-
 PLUGINS = []
 for plugin_type in garak._plugins.PLUGIN_TYPES:
-    PLUGINS += [classname for (classname, active) in garak._plugins.enumerate_plugins(plugin_type)]
+    PLUGINS += [
+        classname
+        for (classname, active) in garak._plugins.enumerate_plugins(plugin_type)
+    ]
+
 
 @pytest.mark.parametrize("classname", PLUGINS)
 def test_plugin_structure(classname):

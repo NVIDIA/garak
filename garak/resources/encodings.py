@@ -6,7 +6,6 @@
 Functions used to offer various encodings that are needed more than one place in garak
 """
 
-
 import random
 
 

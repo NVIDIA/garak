@@ -1,4 +1,4 @@
-""" Support systems and models service through LangChain Serve """
+"""Support systems and models service through LangChain Serve"""
 
 import logging
 import json

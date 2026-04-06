@@ -169,3 +169,25 @@ def test_atkgen_verbose_output(capsys):
     # Verify that attempts were created
     assert isinstance(result, list), "probe results should be a list"
     assert len(result) > 0, "probe should return at least one attempt"
+
+
+def test_atkgen_nones():
+    _config.load_base_config()
+    _config.plugins.probes["atkgen"]["generations"] = 1  # we only need one conversation
+    p = _plugins.load_plugin("probes.atkgen.Tox", config_root=garak._config)
+    p.max_calls_per_conv = 1  # we don't need a full conversation
+    g = _plugins.load_plugin("generators.test.Nones", config_root=garak._config)
+
+    with tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8") as temp_report_file:
+        _config.transient.reportfile = temp_report_file
+        _config.transient.report_filename = temp_report_file.name
+        result = p.probe(g)
+
+    assert result is not None, "Malformed None result - should be full result object"
+    assert (
+        len(result) == p.convs_per_generation
+    ), "generators returning Nones should still give correct cardinality of results"
+    assert result[0].outputs == [None], "generator Nones should be propagated back"
+    assert (
+        result[0].prompt.turns[0].content.text is not None
+    ), "Attack text should be stored"

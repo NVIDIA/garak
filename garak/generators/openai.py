@@ -27,6 +27,10 @@ from garak.generators.base import Generator
 
 # lists derived from https://platform.openai.com/docs/models
 chat_models = (
+    "gpt-5-nano",
+    "gpt-5-nano-2025-08-07",
+    "gpt-5-mini",
+    "gpt-5.2",
     "chatgpt-4o-latest",  # links to latest version
     "gpt-3.5-turbo",  # links to latest version
     "gpt-3.5-turbo-0125",
@@ -123,6 +127,9 @@ context_lengths = {
     "o1-preview-2024-09-12": 32768,
 }
 
+audio_formats = ["wav", "mp3"]
+audio_pattern = re.compile("|".join(audio_formats))
+
 
 class OpenAICompatible(Generator):
     """Generator base class for OpenAI compatible text2text restful API. Implements shared initialization and execution methods."""
@@ -181,6 +188,61 @@ class OpenAICompatible(Generator):
         self._validate_config()
 
         super().__init__(self.name, config_root=config_root)
+
+    @staticmethod
+    def _conversation_to_list(conversation: Conversation) -> list[dict]:
+        """Convert Conversation object to a list of dicts.
+
+        Overriding this method for OpenAICompatible to support multimodal:
+        https://developers.openai.com/api/docs/guides/images-vision/?format=base64-encoded#analyze-images
+        """
+
+        turn_list = []
+        for turn in conversation.turns:
+            if turn.content.data is not None and hasattr(turn.content, "data_type"):
+                import base64
+
+                data_b64 = base64.b64encode(turn.content.data).decode("utf-8")
+
+                if "image" in turn.content.data_type:
+                    transformed_turn = {
+                        "role": turn.role,
+                        "content": [
+                            {"type": "input_text", "text": turn.content.text},
+                            {
+                                "type": "input_image",
+                                "image_url": f"data:{turn.content.data_type[0]};base64{data_b64}",
+                            },
+                        ],
+                    }
+                elif match := audio_pattern.search(
+                    turn.content.data_type[0].split("/")[-1]
+                ):
+                    transformed_turn = {
+                        "role": turn.role,
+                        "content": [
+                            {"type": "text", "text": turn.content.text},
+                            {
+                                "type": "input_audio",
+                                "input_audio": {
+                                    "data": f"{data_b64}",
+                                    "format": match.group(0),
+                                },
+                            },
+                        ],
+                    }
+                else:
+                    raise garak.exception.GarakException(
+                        f"Data type {turn.content.data_type[0]} not supported."
+                    )
+            else:
+                transformed_turn = {
+                    "role": turn.role,
+                    "content": turn.content.text,
+                }
+            turn_list.append(transformed_turn)
+
+        return turn_list
 
     # noinspection PyArgumentList
     @backoff.on_exception(

@@ -5,7 +5,6 @@ import pandas as pd
 
 from garak.report import Report
 
-
 # Helper functions
 
 
@@ -27,7 +26,7 @@ def validate_avid_report_structure(report):
 
 @pytest.fixture
 def sample_report():
-    return "tests/_assets/report_test.report.jsonl"
+    return "tests/_assets/report/report_test.report.jsonl"
 
 
 @pytest.fixture
@@ -47,7 +46,7 @@ def sample_report_without_metadata(tmp_path):
 
     with open(report_file, "w") as f:
         for line in lines:
-            f.write(json.dumps(line) + "\n")
+            f.write(json.dumps(line, ensure_ascii=False) + "\n")
 
     return str(report_file)
 
@@ -143,7 +142,7 @@ def test_get_evaluations_raises_error_when_no_evals(tmp_path):
 
     with open(report_file, "w") as f:
         for line in lines:
-            f.write(json.dumps(line) + "\n")
+            f.write(json.dumps(line, ensure_ascii=False) + "\n")
 
     r = Report(report_location=str(report_file))
     r.load()

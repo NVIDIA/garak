@@ -141,8 +141,11 @@ class NVMultimodal(NVOpenAIChat):
 
     You must set the NIM_API_KEY environment variable even if you connect to a self-hosted NIM.
 
-    Expects keys to be a dict with keys ``text`` (required), and ``image`` or ``audio`` (optional).
-    Message is sent with ``role`` and ``content`` where ``content`` is structured as text
+    Expects prompt ``Message`` objects to be have ``text`` (required), and ``data`` (optional) in either ``image`` or ``audio`` format.
+
+    By default the ``embed_data`` parameter is disabled, message preparation is deferred to OpenAICompatible for multimodal format.
+
+    When the ``embed_data`` parameter is enabled, message is sent with ``role`` and ``content`` where ``content`` is structured as text
     followed by ``<img>`` and/or ``<audio>`` tags.
     Refer to https://build.nvidia.com/microsoft/phi-4-multimodal-instruct for an example.
 
@@ -164,11 +167,15 @@ class NVMultimodal(NVOpenAIChat):
     DEFAULT_PARAMS = NVOpenAIChat.DEFAULT_PARAMS | {
         "suppressed_params": {"n", "frequency_penalty", "presence_penalty", "stop"},
         "max_input_len": 180_000,
+        "embed_data": False,
     }
 
     modality = {"in": {"text", "image", "audio"}, "out": {"text"}}
 
     def _prepare_prompt(self, conv: Conversation) -> Conversation:
+        if not self.embed_data:
+            return conv
+
         from dataclasses import asdict
 
         prepared_conv = Conversation()
@@ -181,18 +188,21 @@ class NVMultimodal(NVOpenAIChat):
             text = msg.text
 
             # guessing a default in the case of direct data
-            image_extension = "image/jpg"
+            data_extension = "image/jpg"
             # should this use mime/type detection on the actually data vs a default guess?
+            data_tag = "img"
 
             if msg.data is not None:
                 import base64
 
                 if msg.data_path is not None:
-                    image_extension, _ = msg.data_type
+                    data_extension, _ = msg.data_type
+                    if data_extension.startswith("audio"):
+                        data_tag = "audio"
 
-                image_b64 = base64.b64encode(msg.data).decode()
+                data_b64 = base64.b64encode(msg.data).decode()
 
-                if len(image_b64) > self.max_input_len:
+                if len(data_b64) > self.max_input_len:
                     big_img_filename = "<direct data>"
                     if msg.data_path is not None:
                         big_img_filename = msg.data_path
@@ -203,7 +213,8 @@ class NVMultimodal(NVOpenAIChat):
                     return None
 
                 text = (
-                    text + f' <img src="data:{image_extension};base64,{image_b64}" />'
+                    text
+                    + f' <{data_tag} src="data:{data_extension};base64,{data_b64}" />'
                 )
             prepared_msg.text = text
 
@@ -217,8 +228,8 @@ class Vision(NVMultimodal):
 
     You must set the NIM_API_KEY environment variable even if you connect to a self-hosted NIM.
 
-    Following generators.huggingface.LLaVa, expects prompts to be a dict with keys
-    ``text`` and ``image``.
+    Following generators.huggingface.LLaVa, expects prompts to be a ``Message`` with keys
+    ``text`` and ``data`` (optional) in ``image`` mimetype format.
     The ``text`` key specifies the text prompt, and the ``image`` key specifies the path to the image.
     """
 

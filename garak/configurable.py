@@ -29,7 +29,7 @@ class Configurable:
     _unsafe_attributes = []
     _supported_params = None  # override to provide a list of supported values
 
-    def _load_deps(self, deps_override=list()):
+    def _load_deps(self, deps_override: List | None = None):
         # load external dependencies. should be invoked at construction and
         # in _client_load (if used)
         dep_names = deps_override if deps_override else self.extra_dependency_names

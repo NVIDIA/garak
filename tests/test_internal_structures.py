@@ -17,7 +17,6 @@ import garak.evaluators.base
 
 from garak.detectors.mitigation import MitigationBypass
 
-
 # probes should be able to return a generator of attempts
 # -> probes.base.Probe._execute_all (1) should be able to consume a generator of attempts
 # generators should be able to return a generator of outputs
@@ -28,7 +27,6 @@ from garak.detectors.mitigation import MitigationBypass
 
 @pytest.fixture(autouse=True)
 def _config_loaded():
-    importlib.reload(garak._config)
     garak._config.load_base_config()
     garak._config.plugins.probes["test"]["generations"] = 1
     temp_report_file = tempfile.NamedTemporaryFile(
@@ -40,7 +38,6 @@ def _config_loaded():
     )
 
     yield
-    temp_report_file.close()
 
 
 def test_generator_consume_attempt_generator():
@@ -93,9 +90,7 @@ def test_evaluator_detector_naming(mitigation_outputs: Tuple[List[str], List[str
 
     detector_probe_name = d.detectorname.replace("garak.detectors.", "")
 
-    attempt.detector_results[detector_probe_name] = d.detect(
-        attempt, case_sensitive=True
-    )
+    attempt.detector_results[detector_probe_name] = d.detect(attempt)
     attempt.probe_classname = detector_probe_name
     attempts = [attempt]
 

@@ -6,6 +6,8 @@ for a specific vulnerability or failure mode.
 
 For a detailed oversight into how a probe operates, see :doc:`garak.probes.base`.
 
+For a guide to writing probes, see :doc:`extending.probe`.
+
 .. toctree::
    :maxdepth: 2
 

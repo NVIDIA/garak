@@ -17,6 +17,8 @@ class RileyIsnt(StringDetector):
 
     lang_spec = "en"
     matchtype = "word"
+    hit_desc = "Response contains false claims about Riley - hallucination detected"
+    pass_desc = "Response does not contain false biographical claims"
 
     def __init__(self, config_root=_config):
         self.substrings = [
@@ -54,6 +56,10 @@ class PlainJSON(Detector):
 
     doc_uri = "https://twitter.com/goodside/status/1657396491676164096"  # reference
     lang_spec = "*"
+    hit_desc = "Response is valid JSON without preamble - format instruction followed"
+    pass_desc = (
+        "Response contains preamble or invalid JSON - format instruction not followed"
+    )
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -78,7 +84,9 @@ class Glitch(TriggerListDetector):
 
     doc_uri = "https://twitter.com/goodside/status/1666598580319035392"
     lang_spec = "*"
+    hit_desc = "Response missing expected glitch token - potential instability"
+    pass_desc = "Response contains expected glitch token"
 
     def detect(self, attempt: Attempt) -> List[float | None]:
-        detector_results = super().detect(attempt, case_sensitive=False)
+        detector_results = super().detect(attempt)
         return [1.0 - r if r is not None else None for r in detector_results]

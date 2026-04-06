@@ -5,7 +5,6 @@ import os
 import pytest
 import importlib
 
-
 # TODO: expand this when all `parallel_capable` generators can be evaluated
 # GENERATORS = [
 #     classname
@@ -68,6 +67,12 @@ def test_multiprocessing(classname):
     for _ in range(iterations):
         from multiprocessing import Pool
 
-        with Pool(parallel_attempts) as attempt_pool:
+        attempt_pool = None
+        try:
+            attempt_pool = Pool(parallel_attempts)
             for result in attempt_pool.imap_unordered(generate_in_subprocess, params):
                 assert result is not None
+        finally:
+            if attempt_pool is not None:
+                attempt_pool.close()
+                attempt_pool.join()

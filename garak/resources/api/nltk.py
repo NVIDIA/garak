@@ -7,7 +7,6 @@ from pathlib import Path
 
 from garak import _config
 
-
 logger = getLogger(__name__)
 
 
