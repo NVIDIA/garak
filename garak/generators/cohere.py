@@ -82,21 +82,17 @@ class CohereGenerator(Generator):
             )
             self.api_version = "v2"
 
-        self._load_client()
+        self._load_unsafe()
 
-    def _load_client(self):
+    def _load_unsafe(self):
         """Initialize the Cohere API client based on api_version.
 
-        Called from __init__ and restored via __setstate__ on deserialization.
+        Called from __init__ and restored via Configurable.__setstate__ on deserialization.
         """
         if self.api_version == "v1":
             self.generator = self.cohere.Client(api_key=self.api_key)
         else:  # api_version == "v2"
             self.generator = self.cohere.ClientV2(api_key=self.api_key)
-
-    def __setstate__(self, d):
-        super().__setstate__(d)
-        self._load_client()
 
     @backoff.on_exception(backoff.fibo, GeneratorBackoffTrigger, max_value=70)
     def _call_cohere_api(self, prompt_text, request_size=COHERE_GENERATION_LIMIT):
