@@ -2,6 +2,7 @@ import os
 import json
 import logging
 import pickle
+import warnings
 import pytest
 import httpx
 
@@ -21,12 +22,7 @@ except Exception:
 # Default model name and API URLs
 DEFAULT_MODEL_NAME = "command-r-plus"
 COHERE_API_BASE = "https://api.cohere.com"
-COHERE_V1 = f"{COHERE_API_BASE}/v1"
 COHERE_V2 = f"{COHERE_API_BASE}/v2"
-
-# API version constants
-API_V1 = "v1"  # Legacy generate API
-API_V2 = "v2"  # Recommended chat API
 
 # ─── Fixtures ─────────────────────────────────────────────────────────
 
@@ -59,32 +55,9 @@ def cohere_config_root():
 
 
 @pytest.fixture
-def cohere_v1_config_root():
-    """Provide a config_root dict for CohereGenerator with v1 API."""
-    return {
-        "generators": {
-            "cohere": {
-                "CohereGenerator": {
-                    "name": DEFAULT_MODEL_NAME,
-                    "api_version": "v1",
-                }
-            }
-        }
-    }
-
-
-@pytest.fixture
 def cohere_mock_responses():
     """Provide mock HTTP response specs for Cohere endpoints."""
     return {
-        "generate_response": {
-            "code": 200,
-            "json": {
-                "generations": [
-                    {"text": "Mocked generate response 1."},
-                ]
-            },
-        },
         "chat_response": {
             "code": 200,
             "json": {"message": {"content": [{"text": "Mocked chat response."}]}},
@@ -112,12 +85,11 @@ def mock_cohere_endpoint(respx_mock, path, spec):
 
 
 def test_cohere_instantiation(cohere_config_root):
-    # Test v2 (default) with config_root
-    gen_v2 = CohereGenerator(config_root=cohere_config_root)
-    assert gen_v2.name == DEFAULT_MODEL_NAME
-    assert gen_v2.api_key == "fake-api-key"
-    assert hasattr(gen_v2, "generator")
-    assert gen_v2.api_version == "v2"
+    gen = CohereGenerator(config_root=cohere_config_root)
+    assert gen.name == DEFAULT_MODEL_NAME
+    assert gen.api_key == "fake-api-key"
+    assert hasattr(gen, "generator")
+    assert isinstance(gen.generator, cohere.ClientV2)
 
 
 def test_cohere_missing_model_name():
@@ -139,53 +111,43 @@ def test_cohere_missing_api_key(cohere_config_root):
 
 def test_cohere_default_parameters(cohere_config_root):
     gen = CohereGenerator(config_root=cohere_config_root)
-    assert gen.api_version == "v2"  # Default should be v2 (chat API)
     assert gen.temperature == CohereGenerator.DEFAULT_PARAMS["temperature"]
     assert gen.max_tokens == CohereGenerator.DEFAULT_PARAMS["max_tokens"]
     gen.temperature = 0.5
     assert gen.temperature == 0.5
 
 
-# ─── API Version Tests ─────────────────────────────────────────────────────────
+# ─── Deprecation Warning Tests ───────────────────────────────────────
 
 
-def test_api_version_validation(cohere_config_root, cohere_v1_config_root):
-    # Test invalid api_version gets corrected to v2
-    invalid_config = {
+def test_api_version_deprecation_warning():
+    """Setting api_version should emit a DeprecationWarning and still use ClientV2."""
+    config_root = {
         "generators": {
             "cohere": {
                 "CohereGenerator": {
                     "name": DEFAULT_MODEL_NAME,
-                    "api_version": "invalid",
+                    "api_version": "v1",
                 }
             }
         }
     }
-    gen = CohereGenerator(config_root=invalid_config)
-    assert gen.api_version == "v2"
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        gen = CohereGenerator(config_root=config_root)
+        deprecation_warnings = [x for x in w if issubclass(x.category, DeprecationWarning)]
+        assert len(deprecation_warnings) >= 1
+        assert "api_version" in str(deprecation_warnings[0].message)
 
-    # Test v1 is accepted
-    gen = CohereGenerator(config_root=cohere_v1_config_root)
-    assert gen.api_version == "v1"
-
-    # Test v2 is accepted
-    gen = CohereGenerator(config_root=cohere_config_root)
-    assert gen.api_version == "v2"
+    # Should still use ClientV2 regardless
+    assert isinstance(gen.generator, cohere.ClientV2)
 
 
 # ─── _load_unsafe Tests ──────────────────────────────────────────────
 
 
-def test_load_unsafe_v1(cohere_config_root):
+def test_load_unsafe(cohere_config_root):
     gen = CohereGenerator(config_root=cohere_config_root)
-    gen.api_version = "v1"
-    gen._load_unsafe()
-    assert isinstance(gen.generator, cohere.Client)
-
-
-def test_load_unsafe_v2(cohere_config_root):
-    gen = CohereGenerator(config_root=cohere_config_root)
-    gen.api_version = "v2"
     gen._load_unsafe()
     assert isinstance(gen.generator, cohere.ClientV2)
 
@@ -198,34 +160,7 @@ def test_serialization_restores_client(cohere_config_root):
     assert hasattr(restored, "generator")
     assert restored.generator is not None
     assert restored.name == DEFAULT_MODEL_NAME
-
-
-# ─── Legacy Generate API (respx) ──────────────────────────────────────
-
-
-@pytest.mark.respx(base_url=COHERE_API_BASE)
-def test_cohere_generate_api_respx(respx_mock, cohere_mock_responses, cohere_v1_config_root):
-    mock_cohere_endpoint(
-        respx_mock, "/v1/generate", cohere_mock_responses["generate_response"]
-    )
-    gen = CohereGenerator(config_root=cohere_v1_config_root)
-    conv = Conversation([Turn("user", Message("Test prompt"))])
-    result = gen.generate(conv, generations_this_call=1)
-
-    # Assert headers
-    last = respx_mock.calls.last.request
-    assert last.headers["Authorization"] == "Bearer fake-api-key"
-    assert "application/json" in last.headers.get("Content-Type", "")
-
-    # Assert payload
-    payload = json.loads(last.content)
-    assert payload["model"] == DEFAULT_MODEL_NAME
-    assert payload["prompt"] == "Test prompt"
-
-    # Assert response parsing - should be Message objects
-    assert len(result) == 1
-    assert isinstance(result[0], Message)
-    assert result[0].text == "Mocked generate response 1."
+    assert isinstance(restored.generator, cohere.ClientV2)
 
 
 # ─── Chat API (respx) ─────────────────────────────────────────────────
@@ -233,14 +168,14 @@ def test_cohere_generate_api_respx(respx_mock, cohere_mock_responses, cohere_v1_
 
 @pytest.mark.respx(base_url=COHERE_API_BASE)
 @pytest.mark.parametrize(
-    "response_key, expect_error_str",
+    "response_key, expect_none",
     [
         ("chat_response", False),
         ("missing_content_response", True),
     ],
 )
 def test_cohere_chat_api_respx(
-    respx_mock, cohere_mock_responses, cohere_config_root, response_key, expect_error_str
+    respx_mock, cohere_mock_responses, cohere_config_root, response_key, expect_none
 ):
     spec = cohere_mock_responses[response_key]
     mock_cohere_endpoint(respx_mock, "/v2/chat", spec)
@@ -256,7 +191,7 @@ def test_cohere_chat_api_respx(
     assert payload.get("messages")[0]["content"] == "Test prompt"
 
     # Check response - should be Message or None
-    if expect_error_str:
+    if expect_none:
         assert result[0] is None, f"Expected None for error but got {result[0]}"
     else:
         assert isinstance(result[0], Message)
@@ -272,18 +207,6 @@ def test_chat_api_404_raises_bad_generator(respx_mock, cohere_mock_responses):
         "generators": {"cohere": {"CohereGenerator": {"name": "nonexistent-model"}}}
     }
     mock_cohere_endpoint(respx_mock, "/v2/chat", cohere_mock_responses["not_found_response"])
-    gen = CohereGenerator(config_root=config_root)
-    conv = Conversation([Turn("user", Message("Test prompt"))])
-    with pytest.raises(BadGeneratorException):
-        gen.generate(conv)
-
-
-@pytest.mark.respx(base_url=COHERE_API_BASE)
-def test_generate_api_404_raises_bad_generator(respx_mock, cohere_mock_responses):
-    config_root = {
-        "generators": {"cohere": {"CohereGenerator": {"name": "nonexistent-model", "api_version": "v1"}}}
-    }
-    mock_cohere_endpoint(respx_mock, "/v1/generate", cohere_mock_responses["not_found_response"])
     gen = CohereGenerator(config_root=config_root)
     conv = Conversation([Turn("user", Message("Test prompt"))])
     with pytest.raises(BadGeneratorException):
@@ -347,7 +270,6 @@ def test_live_chat_api_output_format(restore_real_api_key):
         "generators": {"cohere": {"CohereGenerator": {"name": LIVE_MODEL}}}
     }
     gen = CohereGenerator(config_root=config_root)
-    assert gen.api_version == "v2"
     conv = Conversation([Turn("user", Message("Say hello in one word."))])
     result = gen.generate(conv, generations_this_call=1)
 
@@ -355,19 +277,3 @@ def test_live_chat_api_output_format(restore_real_api_key):
     assert isinstance(result[0], Message)
     assert isinstance(result[0].text, str)
     assert len(result[0].text) > 0
-
-
-@pytest.mark.skipif(not _has_cohere_key, reason="COHERE_API_KEY not set")
-def test_live_v1_api_rejects_new_model(restore_real_api_key):
-    """Newer models are not available on the legacy v1 generate API.
-
-    This verifies that the 404 handling correctly raises BadGeneratorException
-    rather than silently returning None.
-    """
-    config_root = {
-        "generators": {"cohere": {"CohereGenerator": {"name": LIVE_MODEL, "api_version": "v1"}}}
-    }
-    gen = CohereGenerator(config_root=config_root)
-    conv = Conversation([Turn("user", Message("Say hello in one word."))])
-    with pytest.raises(BadGeneratorException):
-        gen.generate(conv, generations_this_call=1)
