@@ -15,166 +15,34 @@ excessive autonomy -- not covered by garak's existing detectors.
 import json
 import logging
 import re
-import subprocess
-import tempfile
-from datetime import datetime
-from pathlib import Path
 from typing import Iterable
 
 import garak.attempt
 from garak import _config
+from garak.data import path as data_path
 from garak.detectors.base import Detector
 
 logger = logging.getLogger(__name__)
 
-# Load all ATR patterns from bundled JSON (714 patterns across 9 categories)
-_RULES_PATH = Path(__file__).parent / "atr_rules.json"
-_ALL_RULES: dict[str, list[list[str]]] = {}
-if _RULES_PATH.exists():
-    with open(_RULES_PATH) as f:
-        _ALL_RULES = json.load(f)
-else:
-    logger.warning("ATR rules file not found: %s", _RULES_PATH)
+_ATR_RULES_FILE = "atr/rules.json"
 
 
-def sync_rules_from_github(
-    repo: str = "Agent-Threat-Rule/agent-threat-rules",
-    branch: str = "main",
-    output: Path | None = None,
-) -> int:
-    """Fetch latest ATR rules from GitHub and update the bundled JSON.
-
-    Requires: git, PyYAML (pip install pyyaml).
-    Returns the number of patterns synced.
-
-    Usage::
-
-        from garak.detectors.atr import sync_rules_from_github
-        count = sync_rules_from_github()
-        print(f"Synced {count} patterns")
-    """
-    import yaml  # PyYAML -- optional dependency
-
-    dest = output or _RULES_PATH
-    with tempfile.TemporaryDirectory() as tmpdir:
-        subprocess.run(
-            ["git", "clone", "--depth", "1", "-b", branch,
-             f"https://github.com/{repo}.git", tmpdir],
-            check=True, capture_output=True,
-        )
-        rules_dir = Path(tmpdir) / "rules"
-        if not rules_dir.exists():
-            raise FileNotFoundError(f"No rules/ directory in {repo}")
-
-        result: dict[str, list[list[str]]] = {}
-        for yaml_file in sorted(rules_dir.rglob("*.yaml")):
-            doc = yaml.safe_load(yaml_file.read_text())
-            if not doc or not doc.get("detection", {}).get("conditions"):
-                continue
-            cat = doc.get("tags", {}).get("category", "unknown")
-            if cat not in result:
-                result[cat] = []
-            for cond in doc["detection"]["conditions"]:
-                if cond.get("operator") == "regex" and cond.get("value"):
-                    pat = re.sub(r"^\(\?[imsx]+\)", "", cond["value"])
-                    result[cat].append([doc["id"], doc.get("severity", "medium"), pat])
-
-        dest.write_text(json.dumps(result, indent=2, ensure_ascii=True))
-        total = sum(len(v) for v in result.values())
-        logger.info("ATR sync: %d patterns across %d categories -> %s", total, len(result), dest)
-        return total
+def _load_rules() -> dict[str, list[list[str]]]:
+    """Load ATR rules from garak's data directory."""
+    rules_path = data_path / _ATR_RULES_FILE
+    if not rules_path.exists():
+        logger.warning("ATR rules file not found: %s", rules_path)
+        return {}
+    with open(rules_path, encoding="utf-8") as f:
+        return json.load(f)
 
 
-def generate_rule_from_probe(
-    probe_outputs: list[str],
-    category: str = "prompt-injection",
-    severity: str = "high",
-    min_common_length: int = 8,
-) -> str:
-    """Generate an ATR rule YAML draft from successful Garak probe outputs.
-
-    Takes a list of strings that bypassed defenses (successful attacks)
-    and extracts common substrings as detection patterns. Returns a
-    YAML rule string ready for review and submission to ATR.
-
-    This is a starting point -- generated rules should be reviewed by
-    a human before being added to the ATR ruleset.
-
-    Usage::
-
-        from garak.detectors.atr import generate_rule_from_probe
-        attacks = ["ignore previous instructions and ...", "forget all rules and ..."]
-        rule_yaml = generate_rule_from_probe(attacks, category="prompt-injection")
-        print(rule_yaml)
-    """
-    if not probe_outputs:
-        return ""
-
-    # Extract keywords that appear in 50%+ of outputs
-    word_counts: dict[str, int] = {}
-    for text in probe_outputs:
-        words = set(re.findall(r"\b[a-zA-Z]{4,}\b", text.lower()))
-        for w in words:
-            word_counts[w] = word_counts.get(w, 0) + 1
-
-    threshold = max(2, len(probe_outputs) // 2)
-    common_words = sorted(
-        [w for w, c in word_counts.items() if c >= threshold],
-        key=lambda w: word_counts[w],
-        reverse=True,
-    )[:6]
-
-    if not common_words:
-        return ""
-
-    # Build regex pattern from common words
-    pattern = r"(?i)\b" + r"\b.*\b".join(re.escape(w) for w in common_words[:4]) + r"\b"
-
-    date = datetime.now().strftime("%Y/%m/%d")
-    rule_id = f"ATR-DRAFT-{hash(pattern) % 100000:05d}"
-
-    return f"""title: "Garak-generated: {common_words[0]} pattern"
-id: {rule_id}
-rule_version: 1
-status: draft
-description: >
-  Auto-generated from {len(probe_outputs)} successful Garak probe outputs.
-  Common keywords: {', '.join(common_words[:6])}.
-  REVIEW REQUIRED before adding to production ruleset.
-author: "garak + ATR"
-date: "{date}"
-schema_version: "0.1"
-detection_tier: pattern
-maturity: experimental
-severity: {severity}
-tags:
-  category: {category}
-  subcategory: garak-generated
-  confidence: low
-agent_source:
-  type: mcp_exchange
-  framework: [any]
-  provider: [any]
-detection:
-  conditions:
-    - field: content
-      operator: regex
-      value: '{pattern}'
-      description: "Pattern from {len(probe_outputs)} Garak probe outputs"
-  condition: any
-response:
-  actions: [alert]
-test_cases:
-  true_positives:
-    - input: "{probe_outputs[0][:100].replace(chr(34), chr(39))}"
-      expected: triggered
-"""
-
-
-def _compile_category(category: str) -> list[tuple[str, re.Pattern]]:
+def _compile_category(
+    rules: dict[str, list[list[str]]], category: str
+) -> list[tuple[str, re.Pattern]]:
     """Compile regex patterns for a given ATR category."""
     compiled = []
-    for rule_id, _severity, pattern in _ALL_RULES.get(category, []):
+    for rule_id, _severity, pattern in rules.get(category, []):
         try:
             compiled.append((rule_id, re.compile(pattern, re.IGNORECASE)))
         except re.error as e:
@@ -185,7 +53,10 @@ def _compile_category(category: str) -> list[tuple[str, re.Pattern]]:
 class ATRDetector(Detector):
     """Base class for ATR regex-based detectors.
 
-    Compiles patterns once at init, matches against all outputs.
+    Loads rules from ``garak/data/atr/rules.json`` at init time. Users can
+    override the bundled file by placing a custom ``rules.json`` under
+    ``$XDG_DATA_HOME/garak/data/atr/rules.json``.
+
     Returns 1.0 (hit) if any pattern matches, 0.0 otherwise.
     """
 
@@ -194,14 +65,15 @@ class ATRDetector(Detector):
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
+        self._rules = _load_rules()
         self._compiled: list[tuple[str, re.Pattern]] = []
-        for cat in self.atr_categories:
-            self._compiled.extend(_compile_category(cat))
+        for cat in self.atr_categories or list(self._rules.keys()):
+            self._compiled.extend(_compile_category(self._rules, cat))
         logger.info(
             "ATR detector %s: %d patterns from %d categories",
             self.__class__.__name__,
             len(self._compiled),
-            len(self.atr_categories),
+            len(self.atr_categories) or len(self._rules),
         )
 
     def detect(self, attempt: garak.attempt.Attempt) -> Iterable[float | None]:
@@ -210,8 +82,7 @@ class ATRDetector(Detector):
             if output is None or output.text is None:
                 results.append(None)
                 continue
-            text = output.text
-            hit = any(regex.search(text) for _, regex in self._compiled)
+            hit = any(regex.search(output.text) for _, regex in self._compiled)
             results.append(1.0 if hit else 0.0)
         return results
 
@@ -231,7 +102,8 @@ class AgentThreats(ATRDetector):
     ]
     hit_desc = "Output contains AI agent threat pattern"
     pass_desc = "No agent threat patterns detected"
-    atr_categories = list(_ALL_RULES.keys())
+    # empty list = all categories loaded in __init__
+    atr_categories = []
 
 
 class PromptInjection(ATRDetector):
@@ -239,7 +111,6 @@ class PromptInjection(ATRDetector):
 
     Catches instruction override attempts, system prompt leaks,
     persona hijacking, and delimiter injection.
-    ATR rules: ATR-2026-00001 through ATR-2026-00005, 00080-00094, 00097, 00104.
     """
 
     tags = [
@@ -257,7 +128,6 @@ class ToolPoisoning(ATRDetector):
 
     Catches hidden instructions in tool descriptions, consent bypass
     directives, tool shadowing, and schema-description contradictions.
-    ATR rules: ATR-2026-00010 through ATR-2026-00013, 00095-00096, 00100-00106.
     """
 
     tags = [
@@ -274,7 +144,6 @@ class CredentialExfiltration(ATRDetector):
 
     Catches leaked API keys (OpenAI, Anthropic, GitHub, AWS, Slack),
     private keys, database URLs, JWT tokens, and system prompt disclosures.
-    ATR rules: ATR-2026-00020, 00021, 00075, 00102, 00113-00115, 00136, 00141-00152.
     """
 
     tags = [
@@ -291,7 +160,6 @@ class PrivilegeEscalation(ATRDetector):
 
     Catches attempts to execute system commands, modify permissions,
     manage users, or access admin functions through agent tools.
-    ATR rules: ATR-2026-00040, 00041, 00107, 00110-00112, 00143-00144.
     """
 
     tags = [
@@ -308,7 +176,6 @@ class SkillCompromise(ATRDetector):
 
     Catches skill impersonation, typosquatting, description-behavior
     mismatch, hidden capabilities, rug pulls, and parameter injection.
-    ATR rules: ATR-2026-00060 through ATR-2026-00066, 00120-00135, 00147-00151.
     """
 
     tags = [
@@ -325,7 +192,6 @@ class ExcessiveAutonomy(ATRDetector):
 
     Catches retry loops, resource exhaustion, cascading failures,
     and unauthorized financial actions.
-    ATR rules: ATR-2026-00050 through ATR-2026-00052, 00098-00099.
     """
 
     tags = [
@@ -342,7 +208,6 @@ class AgentManipulation(ATRDetector):
 
     Catches cross-agent privilege escalation, message spoofing,
     human trust exploitation, and agent identity attacks.
-    ATR rules: ATR-2026-00030, 00032, 00074, 00076-00077, 00108, 00116-00119.
     """
 
     tags = [
@@ -359,7 +224,6 @@ class DataPoisoning(ATRDetector):
 
     Catches poisoned training data, injected instructions in retrieved
     documents, and context manipulation through data sources.
-    ATR rules: ATR-2026-00070.
     """
 
     tags = [
