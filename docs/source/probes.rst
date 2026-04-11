@@ -37,6 +37,7 @@ For a guide to writing probes, see :doc:`extending.probe`.
    garak.probes.malwaregen
    garak.probes.misleading
    garak.probes.packagehallucination
+   garak.probes.persuasion
    garak.probes.phrasing
    garak.probes.promptinject
    garak.probes.realtoxicityprompts
