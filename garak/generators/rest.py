@@ -308,8 +308,6 @@ class RestGenerator(Generator):
         return response
 
 
-
-
 class MultiRestGenerator(Generator):
     """
     This is a generator to work with multiple request-response pairs using Burp Suite's exported XML format. It supports variable substitution, in case you need to build succeeding requests uponinformation from previous request/response pairs.
@@ -647,38 +645,4 @@ class MultiRestGenerator(Generator):
         return ["".join(self.run(prompt))]
 
 
-class WebSocketGenerator(Generator):
-    """
-    This is a generator to work with websockets
-    """
-
-    DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
-        "uri": None,
-        "auth_key": None,
-        "body": "{}",
-        "json_response": True,
-        "json_key": "output",
-    }
-
-    def __init__(self, name="WebSocket", config_root=_config):
-        super().__init__(name, config_root=config_root)
-
-    def json_handler(self, data):
-        response_json = json.loads(data)
-        return json.dumps(response_json[self.json_key])
-
-    def request(self, payload):
-        with connect(self.uri) as websocket:
-            websocket.send(self.body.replace("$INPUT", payload))
-            message = websocket.recv()
-            return self.json_handler(message) if self.json_response == True else message
-
-    def _call_model(
-        self, prompt: str, generations_this_call: int = 1
-    ) -> List[Union[str, None]]:
-        if output := self.request(self, prompt) == dict:
-            return output[self.json_key]
-        else:
-            return output
-            
 DEFAULT_CLASS = "RestGenerator"
