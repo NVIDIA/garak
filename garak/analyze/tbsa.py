@@ -317,7 +317,7 @@ def main(argv=None) -> None:
                 "infile": args.report_path,
                 "run_id": digest["meta"]["run_uuid"],
             }
-            json_outfile.write(json.dumps(results))
+            json_outfile.write(json.dumps(results, ensure_ascii=False))
 
 
 if __name__ == "__main__":

@@ -24,7 +24,6 @@ For a detailed oversight into how a generator operates, see :doc:`garak.generato
    garak.generators.mistral
    garak.generators.ollama
    garak.generators.openai
-   garak.generators.nemo
    garak.generators.nim
    garak.generators.nvcf
    garak.generators.replicate
@@ -32,3 +31,4 @@ For a detailed oversight into how a generator operates, see :doc:`garak.generato
    garak.generators.rasa
    garak.generators.test
    garak.generators.watsonx
+   garak.generators.websocket

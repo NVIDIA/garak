@@ -213,7 +213,9 @@ class TAP(garak.probes.Probe):
                 attempt_bar = tqdm.tqdm(total=len(attempts_todo), leave=False)
                 attempt_bar.set_description(self.probename.replace("garak.", ""))
 
-                with Pool(self.parallel_attempts) as attempt_pool:
+                attempt_pool = None
+                try:
+                    attempt_pool = Pool(self.parallel_attempts)
                     for result in attempt_pool.imap_unordered(
                         self._execute_attempt, attempts_todo
                     ):
@@ -221,6 +223,10 @@ class TAP(garak.probes.Probe):
                             result
                         )  # these will be out of original order
                         attempt_bar.update(1)
+                finally:
+                    if attempt_pool is not None:
+                        attempt_pool.close()
+                        attempt_pool.join()
 
             else:
                 attempt_iterator = tqdm.tqdm(attempts_todo, leave=False)
@@ -341,7 +347,9 @@ class PAIR(garak.probes.Probe):
                 attempt_bar = tqdm.tqdm(total=len(attempts_todo), leave=False)
                 attempt_bar.set_description(self.probename.replace("garak.", ""))
 
-                with Pool(self.parallel_attempts) as attempt_pool:
+                attempt_pool = None
+                try:
+                    attempt_pool = Pool(self.parallel_attempts)
                     for result in attempt_pool.imap_unordered(
                         self._execute_attempt, attempts_todo
                     ):
@@ -349,6 +357,10 @@ class PAIR(garak.probes.Probe):
                             result
                         )  # these will be out of original order
                         attempt_bar.update(1)
+                finally:
+                    if attempt_pool is not None:
+                        attempt_pool.close()
+                        attempt_pool.join()
 
             else:
                 attempt_iterator = tqdm.tqdm(attempts_todo, leave=False)

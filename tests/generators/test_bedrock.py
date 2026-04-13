@@ -220,6 +220,50 @@ def test_bedrock_malformed_response_handling(mock_boto3):
 
 
 @pytest.mark.usefixtures("set_aws_env", "mock_boto3")
+def test_bedrock_reasoning_response_handling(mock_boto3):
+    """Test reasoning response handling."""
+    from garak.generators.bedrock import BedrockGenerator
+
+    generator = BedrockGenerator(name="claude-4-5-sonnet")
+    conv = Conversation([Turn(role="user", content=Message("Test"))])
+
+    # Test various responses with reasoning
+    reasoning_responses = [
+        (
+            {  # Only reasoning text
+                "output": {
+                    "message": {
+                        "content": [
+                            {"reasoningContent": {"reasoningText": {"text": ""}}},
+                        ]
+                    }
+                }
+            },
+            [None],
+        ),
+        (
+            {  # Reasoning text followed by text
+                "output": {
+                    "message": {
+                        "content": [
+                            {"reasoningContent": {"reasoningText": {"text": ""}}},
+                            {"text": "Hello, world!"},
+                        ]
+                    }
+                }
+            },
+            [Message(text="Hello, world!", lang=None, data_path=None, data_type=None, data_checksum=None, notes={})],
+        ),
+    ]
+
+    for reasoning_response, expected_output in reasoning_responses:
+        mock_boto3.converse.return_value = reasoning_response
+        output = generator.generate(conv, generations_this_call=1)
+        assert len(output) == len(expected_output)
+        assert output == expected_output
+
+
+@pytest.mark.usefixtures("set_aws_env", "mock_boto3")
 @pytest.mark.skipif(ClientError is None, reason="botocore not installed")
 def test_bedrock_validation_error_does_not_retry(mock_boto3):
     """Test validation error does not retry."""

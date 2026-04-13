@@ -3,6 +3,8 @@ garak.probes.base
 
 This class defines the basic structure of garak's probes. All probes inherit from ``garak.probes.base.Probe``.
 
+For a guide to writing probes, see :doc:`extending.probe`.
+
 Attributes:
 
 1. **doc_uri**   URI for documentation of the probe (perhaps a paper)

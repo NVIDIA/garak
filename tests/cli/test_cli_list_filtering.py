@@ -68,3 +68,33 @@ def test_list_probes_with_detector_spec(capsys, options):
         ), "expected all spec values to be present"
     else:
         assert any("🌟" in ln for ln in lines)
+
+
+def test_list_probes_verbose_table(capsys):
+    """Test that --list_probes -v outputs a markdown table with tier and description."""
+    cli.main(["--list_probes", "-v"])
+    output = capsys.readouterr().out
+    # Should contain markdown table structure
+    assert "|" in output, "expected markdown table with | delimiters"
+    # Should contain the expected column headers
+    assert "name" in output, "expected 'name' column header"
+    assert "active" in output, "expected 'active' column header"
+    assert "tier" in output, "expected 'tier' column header"
+    assert "description" in output, "expected 'description' column header"
+    # Should contain at least one tier enum name
+    tier_names = ["OF_CONCERN", "COMPETE_WITH_SOTA", "INFORMATIONAL", "UNLISTED"]
+    assert any(
+        name in output for name in tier_names
+    ), f"expected at least one tier name from {tier_names}"
+    # Should contain active/inactive markers
+    assert "✅" in output or "💤" in output, "expected active/inactive markers"
+    # Module headers should have 🌟
+    assert "🌟" in output, "expected module header markers"
+
+
+def test_list_probes_verbose_with_probe_spec(capsys):
+    """Test that --list_probes -v -p <spec> outputs a filtered markdown table."""
+    cli.main(["--list_probes", "-v", "-p", "dan"])
+    output = capsys.readouterr().out
+    assert "|" in output, "expected markdown table"
+    assert "dan" in output.lower(), "expected 'dan' probes in output"

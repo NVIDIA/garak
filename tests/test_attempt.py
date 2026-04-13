@@ -560,7 +560,7 @@ def test_json_serialize():
         "reverse_translation_outputs": [],
     }
 
-    json_serialised = json.dumps(att_dict)
+    json_serialised = json.dumps(att_dict, ensure_ascii=False)
     assert isinstance(json_serialised, str)
 
 

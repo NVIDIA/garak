@@ -53,7 +53,9 @@ plugins:
                     device: cuda:0
                 Pipeline:
                   dtype: for_detector
-""".encode("utf-8")
+""".encode(
+    "utf-8"
+)
 
 ANSI_ESCAPE = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 XDG_VARS = ("XDG_DATA_HOME", "XDG_CONFIG_HOME", "XDG_CACHE_HOME")
@@ -575,7 +577,8 @@ def test_blank_probe_instance_loads_cli_config():
         json.dumps(
             {
                 probe_namespace: {probe_klass: {"goal": revised_goal, "generations": 5}}
-            }  # generations is required when cli called without a model
+            },  # generations is required when cli called without a model
+            ensure_ascii=False,
         ),
     ]
     garak.cli.main(args)
@@ -630,7 +633,8 @@ def test_blank_generator_instance_loads_cli_config():
         "none",
         "--generator_options",
         json.dumps(
-            {generator_namespace: {generator_klass: {"temperature": revised_temp}}}
+            {generator_namespace: {generator_klass: {"temperature": revised_temp}}},
+            ensure_ascii=False,
         )
         .replace(" ", "")
         .strip(),

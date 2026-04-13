@@ -117,7 +117,7 @@ def extract_json(s: str) -> tuple[dict, str]:
             prompt = alternative_match.group(1) if alternative_match is not None else ""
         if improvement:
             parsed = {"improvement": improvement, "prompt": prompt}
-            json_str = json.dumps(parsed)
+            json_str = json.dumps(parsed, ensure_ascii=False)
             return parsed, json_str
         else:
             # All extraction methods failed - return default values

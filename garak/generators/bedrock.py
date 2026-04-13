@@ -216,14 +216,15 @@ class BedrockGenerator(Generator):
                 )
                 return [None]
 
-            content_block = message["content"][0]
-            if "text" not in content_block:
-                logging.error(
-                    "Malformed response from Bedrock: missing 'text' in content block"
-                )
+            content_blocks_with_text = [
+                content_block for content_block in message["content"] if "text" in content_block
+            ]
+            if len(content_blocks_with_text) == 0:
+                logging.error("Malformed response from Bedrock: missing 'text' in content blocks")
                 return [None]
 
-            text = content_block["text"]
+            text = content_blocks_with_text[0]["text"]
+
             return [Message(text=text)]
 
         except Exception as e:
