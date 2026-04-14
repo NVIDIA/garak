@@ -15,6 +15,8 @@ NON_PROMPT_PROBES = [
     "probes.suffix.BEAST",
     "probes.suffix.GCG",
     "probes.fitd.FITD",
+    "probes.crescendo.Crescendo",
+    "probes.crescendo.CrescendoReplay",
 ]
 ATKGEN_PROMPT_PROBES = ["probes.atkgen.Tox"]
 VISUAL_PROBES = [
