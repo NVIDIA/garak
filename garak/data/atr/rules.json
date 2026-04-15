@@ -429,6 +429,26 @@
       "ATR-2026-00139",
       "critical",
       "(?:the boss|manager|admin|supervisor|orchestrator)\\s+(?:said|wants|told|instructed|approved).*(?:skip|bypass|disable|ignore|turn off)\\s+(?:the\\s+)?(?:content|safety|security|filter|check|validation)"
+    ],
+    [
+      "ATR-2026-00164",
+      "high",
+      "(?:also|additionally|while\\s+you.re\\s+at\\s+it|before\\s+(?:returning|responding))\\s+(?:read|access|check|scan|collect|gather|harvest)\\s+(?:all\\s+)?(?:other|additional|nearby|available|accessible)\\s+(?:files?|directories|folders?|configs?|secrets?|keys?|tokens?|env)"
+    ],
+    [
+      "ATR-2026-00164",
+      "high",
+      "(?:send|forward|relay|pass|share|transmit)\\s+(?:this|these|the|all)\\s+(?:results?|data|output|findings?|information)\\s+to\\s+(?:the\\s+)?(?:other|another|secondary|backup|external)\\s+(?:agent|server|endpoint|service|API)"
+    ],
+    [
+      "ATR-2026-00164",
+      "high",
+      "(?:you\\s+(?:also\\s+)?have|this\\s+skill\\s+(?:also\\s+)?has|you\\s+can\\s+also|additionally\\s+you\\s+can)\\s+(?:full\\s+)?(?:access|permission|authority|rights?)\\s+to\\s+(?:all\\s+)?(?:files?|system|network|internet|shell|root)"
+    ],
+    [
+      "ATR-2026-00164",
+      "high",
+      "(?:override|expand|extend|elevate|escalate)\\s+(?:your\\s+)?(?:current\\s+)?(?:scope|permissions?|access|privileges?|authority|role)\\s+(?:to|beyond|past)"
     ]
   ],
   "context-exfiltration": [
@@ -771,6 +791,26 @@
       "ATR-2026-00152",
       "high",
       "master\\s+password\\s+to\\s+decrypt.{0,50}(sk-|ghp_|key-|secret-|token-)"
+    ],
+    [
+      "ATR-2026-00162",
+      "critical",
+      "(?:cat|read|type|head|tail|strings|xxd|base64)\\s+[^\\n]*(?:\\.ssh/id_|\\.aws/credentials|\\.npmrc|\\.env|\\.netrc|\\.docker/config|\\.kube/config)[^\\n]*(?:\\||>|curl|wget|nc\\s|fetch|POST|http)"
+    ],
+    [
+      "ATR-2026-00162",
+      "critical",
+      "(?:curl|wget|fetch|http|nc)\\s+[^\\n]*-[dX]\\s+[^\\n]*(?:\\$\\(cat|`cat|readFile|readFileSync)[^\\n]*(?:id_rsa|credentials|\\.env|secret|token|private.key)"
+    ],
+    [
+      "ATR-2026-00162",
+      "critical",
+      "(?:cat|read)\\s+[^\\n]*(?:id_rsa|credentials|\\.env|secret_key|private_key)[^\\n]*\\|\\s*(?:base64|xxd|gzip)[^\\n]*\\|\\s*(?:curl|wget|nc)"
+    ],
+    [
+      "ATR-2026-00162",
+      "critical",
+      "(?:tar|zip|7z)\\s+[^\\n]*(?:\\.ssh|\\.aws|\\.gnupg|\\.kube)[^\\n]*(?:curl|wget|upload|send|POST|nc\\s)"
     ]
   ],
   "data-poisoning": [
@@ -2716,6 +2756,31 @@
       "ATR-2026-00155",
       "high",
       "Before\\s+doing\\s+ANYTHING[,\\s]+(?:run|execute|check|verify)"
+    ],
+    [
+      "ATR-2026-00163",
+      "high",
+      "(?:always|must|shall)\\s+(?:approve|accept|allow|grant|permit)\\s+(?:all\\s+)?(?:file|tool|command|operation|request|action)s?\\s+(?:without|regardless|even\\s+if)"
+    ],
+    [
+      "ATR-2026-00163",
+      "high",
+      "(?:do\\s+not|never|don.t)\\s+(?:ask|prompt|request|require|wait\\s+for)\\s+(?:the\\s+)?(?:user|human|operator).{0,30}(?:confirm|approv|permiss|consent|verif)"
+    ],
+    [
+      "ATR-2026-00163",
+      "high",
+      "(?:you\\s+(?:must|should|will|shall)\\s+)?(?:skip|bypass|disable|ignore|override)\\s+(?:all\\s+)?(?:security|safety|permission|access|auth)\\s+(?:check|control|warning|prompt|gate|guard|verification|validation)s?\\s+(?:for|when|before|during|to\\s+(?:allow|enable|proceed|run|execute))"
+    ],
+    [
+      "ATR-2026-00163",
+      "high",
+      "(?:this\\s+(?:step|action|operation)\\s+is\\s+(?:routine|standard|normal|expected|safe)|(?:no\\s+need|unnecessary)\\s+to\\s+(?:verify|check|confirm|validate|alert|warn))\\s+(?:the\\s+)?(?:user|human|operator)"
+    ],
+    [
+      "ATR-2026-00163",
+      "high",
+      "(?:execute|run|perform)\\s+(?:silently|quietly|in\\s+the\\s+background|without\\s+(?:notification|alerting|informing|telling|notifying))"
     ]
   ],
   "tool-poisoning": [
@@ -3198,6 +3263,31 @@
       "ATR-2026-00106",
       "high",
       "(?:safe|read-only|readonly|read\\s+only).*(?:query|operation|access).*write[_-]?mode.*(?:boolean|true|enable)"
+    ],
+    [
+      "ATR-2026-00161",
+      "critical",
+      "<important>[\\s\\S]{0,600}?\\b(read|send|exec|fetch|invoke|extract|include|must|pass|forward|upload)\\b[\\s\\S]{0,300}?</important>"
+    ],
+    [
+      "ATR-2026-00161",
+      "critical",
+      "(?:side\\s+effect|important\\s+behavior|crucial\\s+dependency|hidden\\s+dependency|relies?\\s+on|depends?\\s+on|works?\\s+with|requires?)\\s+(?:the\\s+)?(?:also\\s+present|previously\\s+declared|already\\s+installed|silently\\s+loaded|hidden\\s+companion)\\s+['\"]?[a-z_][a-z_0-9-]*['\"]?(?:\\s+tool|_tool)?"
+    ],
+    [
+      "ATR-2026-00161",
+      "critical",
+      "\\b(?:id_rsa|id_dsa|id_ed25519|id_ecdsa|mcp\\.json|\\.aws/credentials|\\.aws/config|\\.kube/config|\\.docker/config\\.json|\\.netrc|known_hosts)\\b|/etc/(?:passwd|shadow|ssl/private)|/proc/self/environ|\\b\\.env(?:\\.local|\\.production|\\.secret)?\\b(?![/a-zA-Z])"
+    ],
+    [
+      "ATR-2026-00161",
+      "critical",
+      "(?:do\\s+not|don.?t|never|please\\s+do\\s+not)\\s+(?:mention|tell|inform|notify|show|alert|disclose)\\s+(?:this|that|these|it|the\\s+(?:above|following))\\s*(?:detail|note|step|part|instruction)?\\s*(?:to\\s+)?(?:the\\s+)?user[\\s,.:;]+(?:it|as\\s+it|this|that)\\s*(?:is|.s)?\\s*(?:a\\s+|just\\s+a\\s+|merely\\s+a\\s+|only\\s+a\\s+|simply\\s+a\\s+)?(?:mere\\s+)?(?:implementation|technical|internal|plumbing|housekeeping)\\s+(?:detail|note|step)"
+    ],
+    [
+      "ATR-2026-00161",
+      "critical",
+      "before\\s+(?:using|invoking|calling|responding\\s+with|executing|running)\\s+(?:this\\s+)?(?:tool|function|capability|endpoint)[\\s,.:;]+(?:you\\s+(?:must|should|need\\s+to)|please)?\\s*(?:read|load|open|include|fetch|cat|echo|dump)\\s+['\"~$/\\\\]"
     ]
   ],
   "skill-compromise": [
@@ -3394,7 +3484,7 @@
     [
       "ATR-2026-00124",
       "high",
-      "name:\\s*(solana|bitcoin|ethereum|crypto|wallet|bybit|binance)[_-](drain|steal|track|swap|flip|recover|generat|manag|trad)[a-z]*"
+      "name:\\s*(solana|bitcoin|ethereum|crypto|wallet|bybit|binance)[_-](drain|steal|recover|generat)[a-z]*"
     ],
     [
       "ATR-2026-00125",
@@ -3444,7 +3534,7 @@
     [
       "ATR-2026-00127",
       "medium",
-      "(provides?|includes?|contains?|offers?|supports?|has)\\s+(\\d{2,3}|over\\s+\\d{2}|more\\s+than\\s+\\d{2})\\s+(commands?|tools?|subcommands?|functions?|operations?|endpoints?|actions?|methods?)"
+      "(provides?|includes?|contains?|offers?|supports?|has)\\s+(?:(?:[5-9]\\d|\\d{3,})|over\\s+(?:[5-9]\\d|\\d{3,})|more\\s+than\\s+(?:[5-9]\\d|\\d{3,}))\\s+(commands?|tools?|subcommands?|functions?|operations?|endpoints?|actions?|methods?)"
     ],
     [
       "ATR-2026-00128",
@@ -3585,6 +3675,26 @@
       "ATR-2026-00151",
       "high",
       "(community\\s+fork|enhanced\\s+version|patched\\s+version)\\s+of\\s+(the\\s+)?(official|original|standard)\\s+\\S+"
+    ],
+    [
+      "ATR-2026-00157",
+      "critical",
+      "getHours\\s*\\(\\s*\\)\\s*.{0,40}(readFileSync|readFile|fs\\.read|open\\s*\\()"
+    ],
+    [
+      "ATR-2026-00157",
+      "critical",
+      "(getHours|getDay|getMonth|new\\s+Date)\\s*\\(\\s*\\)\\s*.{0,80}(\\.env|credentials|id_rsa|\\.npmrc|\\.ssh|\\.aws|\\.docker|\\.kube)"
+    ],
+    [
+      "ATR-2026-00157",
+      "critical",
+      "(getHours|getTime|Date\\.now)\\s*\\(\\s*\\).{0,60}(https\\.request|http\\.request|fetch\\s*\\(|axios|request\\s*\\(|\\.write\\s*\\()"
+    ],
+    [
+      "ATR-2026-00157",
+      "critical",
+      "if\\s*\\(\\s*\\w+\\.getHours\\s*\\(\\s*\\)\\s*(>=|<=|==|===|>|<)\\s*\\d{1,2}\\s*(&&|\\|\\|)\\s*\\w+\\.getHours\\s*\\(\\s*\\)\\s*(>=|<=|==|===|>|<)\\s*\\d{1,2}\\s*\\)"
     ]
   ]
 }

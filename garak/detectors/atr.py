@@ -2,7 +2,7 @@
 
 Detects prompt injection, tool poisoning, credential exfiltration,
 privilege escalation, and 5 other AI agent threat categories using
-108 detection rules (714 regex patterns) from the ATR open-source project.
+113 detection rules (736 regex patterns) from the ATR open-source project.
 
 Rules ported from https://github.com/Agent-Threat-Rule/agent-threat-rules
 (MIT license, adopted by Cisco AI Defense).
@@ -24,12 +24,12 @@ from garak.detectors.base import Detector
 
 logger = logging.getLogger(__name__)
 
-_ATR_RULES_FILE = "atr/rules.json"
+_RULES_FILENAME = "rules.json"
 
 
 def _load_rules() -> dict[str, list[list[str]]]:
     """Load ATR rules from garak's data directory."""
-    rules_path = data_path / _ATR_RULES_FILE
+    rules_path = data_path / __name__.split(".")[-1] / _RULES_FILENAME
     if not rules_path.exists():
         logger.warning("ATR rules file not found: %s", rules_path)
         return {}
@@ -65,15 +65,15 @@ class ATRDetector(Detector):
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
-        self._rules = _load_rules()
+        rules = _load_rules()
         self._compiled: list[tuple[str, re.Pattern]] = []
-        for cat in self.atr_categories or list(self._rules.keys()):
-            self._compiled.extend(_compile_category(self._rules, cat))
+        for cat in self.atr_categories or list(rules.keys()):
+            self._compiled.extend(_compile_category(rules, cat))
         logger.info(
             "ATR detector %s: %d patterns from %d categories",
             self.__class__.__name__,
             len(self._compiled),
-            len(self.atr_categories) or len(self._rules),
+            len(self.atr_categories) or len(rules),
         )
 
     def detect(self, attempt: garak.attempt.Attempt) -> Iterable[float | None]:
@@ -88,7 +88,7 @@ class ATRDetector(Detector):
 
 
 class AgentThreats(ATRDetector):
-    """Detect all 9 categories of AI agent threats (714 patterns).
+    """Detect all 9 categories of AI agent threats (736 patterns).
 
     Comprehensive scan covering prompt injection, tool poisoning,
     credential exfiltration, privilege escalation, excessive autonomy,

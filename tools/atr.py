@@ -47,7 +47,8 @@ def _default_output_path() -> Path:
         xdg_dir.mkdir(parents=True, exist_ok=True)
         return xdg_dir / "rules.json"
     except Exception:
-        return Path(__file__).parent.parent / "garak" / "data" / "atr" / "rules.json"
+        print("The user XDG storage location could not be identified, supply --output or --stdout options or ensure garak is available in the python environment.", file=sys.stderr)
+        sys.exit(1)
 
 
 def sync_rules(
@@ -219,4 +220,5 @@ def main():
 
 
 if __name__ == "__main__":
+    sys.stdout.reconfigure(encoding="utf-8")
     main()
