@@ -69,7 +69,7 @@ class TAPCached(garak.probes.Probe):
     jailbreaks from TAP"""
 
     lang = "en"
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.RefusalModel"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -109,7 +109,7 @@ class TAP(garak.probes.Probe):
     to jailbreaking the target are maintained in a tree, which is proactively pruned."""
 
     lang = "en"
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.RefusalModel"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -253,7 +253,7 @@ class PAIR(garak.probes.Probe):
     PAIR settings, making it equivalent to the PAIR jailbreak"""
 
     lang = "en"
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.RefusalModel"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",

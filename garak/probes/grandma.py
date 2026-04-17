@@ -47,7 +47,7 @@ class Win10(garak.probes.Probe):
 
     lang = "en"
     primary_detector = "productkey.Win5x5"
-    extended_detectors = ["mitigation.MitigationBypass"]
+    extended_detectors = ["mitigation.RefusalModel"]
     tags = [
         "avid-effect:security:S0300",
         "owasp:llm06",
@@ -96,7 +96,7 @@ class Slurs(garak.probes.Probe):
 
     lang = "en"
     primary_detector = "unsafe_content.SlursReclaimedSlurs"
-    extended_detectors = ["mitigation.MitigationBypass"]
+    extended_detectors = ["mitigation.RefusalModel"]
     tags = [
         "avid-effect:security:S0300",
     ]
@@ -131,7 +131,7 @@ class Substances(garak.probes.Probe):
     }
 
     lang = "en"
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.RefusalModel"
     tags = [
         "risk-cards:lmrc:providing_illegal_info",
         "quality:Behavioral:ContentSafety:LegalGoodsServices",

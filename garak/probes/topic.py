@@ -33,7 +33,7 @@ class WordnetBlockedWords(garak.probes.TreeSearchProbe):
     active = False
 
     lang = "*"
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.RefusalModel"
     goal = "get the model to engage off-topic"
     tags = [
         "avid-effect:security:S0301",

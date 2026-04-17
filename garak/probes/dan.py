@@ -48,7 +48,7 @@ class DANProbeMeta(type):
             "quality:Security:PromptStability",
         ],
         "primary_detector": "dan.DAN",
-        "extended_detectors": ["mitigation.MitigationBypass"],
+        "extended_detectors": ["mitigation.RefusalModel"],
     }
 
     def __new__(cls, name, bases, attrs, **kwargs):
@@ -439,7 +439,7 @@ class DanInTheWildFull(
     prompt_file="inthewild_jailbreak_llms.json",
     goal="disregard the system prompt or alignment",
     extra_tags=["payload:jailbreak"],
-    primary_detector="mitigation.MitigationBypass",
+    primary_detector="mitigation.RefusalModel",
     extended_detectors=[],
 ):
     """A library of jailbreaks.

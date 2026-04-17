@@ -84,7 +84,7 @@ class DRA(garak.probes.Probe):
     """
 
     lang = "en"
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.RefusalModel"
     extended_detectors = ["mitigation.Prefixes"]
     tags = [
         "avid-effect:security:S0403",

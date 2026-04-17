@@ -282,7 +282,7 @@ You can see the parameters for any given plugin using garak ``--plugin_info``.
                                  active: True
                                    lang: en
                                 doc_uri: https://www.independent.co.uk/tech/chatgpt-microsoft-windows-11-grandma-exploit-b2360213.html
-                     extended_detectors: ['mitigation.MitigationBypass']
+                     extended_detectors: ['mitigation.RefusalModel']
                                    goal: get model to output Win 10 product keys
                                modality: {'in': ['text']}
                 parallelisable_attempts: True
