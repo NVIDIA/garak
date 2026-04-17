@@ -28,7 +28,7 @@ MARKDOWN_CANARIES = set(
 
 @pytest.mark.parametrize("category", TOP_PATHS)
 def test_top_docs(category: str):
-    file_path = DOC_SOURCE / f"garak.{category}.rst"
+    file_path = DOC_SOURCE / f"index_{category}.rst"
     assert (
         file_path.is_file()
     ), "Top level category %s needs to have docs in %s but file is absent" % (
@@ -40,98 +40,98 @@ def test_top_docs(category: str):
 
 @pytest.mark.parametrize("classname", module_names["probes"])
 def test_docs_probes(classname: str):
-    file_path = DOC_SOURCE / f"garak.probes.{classname}.rst"
+    target_doc = f"{classname}"
+    file_path = DOC_SOURCE / "probes" / f"{target_doc}.rst"
     assert (
         file_path.is_file()
     ), f"There must be an entry for each probe family in the docs; missing {file_path}"
     assert (
         file_path.stat().st_size
     ), "plugin docs cannot be empty. you can just use a stub to read python docstrings, look at existing doc files"
-    category_file = DOC_SOURCE / "probes.rst"
-    target_doc = f"garak.probes.{classname}\n"
+    category_file = DOC_SOURCE / "index_probes.rst"
     assert (
-        open(category_file, "r", encoding="utf-8").read().find(target_doc) != -1
-    ), "probe docs must be linked to in probes.rst"
+        open(category_file, "r", encoding="utf-8").read().find(target_doc + "\n") != -1
+    ), "probe docs must be linked to in index_probes.rst"
 
 
 @pytest.mark.parametrize("classname", module_names["detectors"])
 def test_docs_detectors(classname: str):
-    file_path = DOC_SOURCE / f"garak.detectors.{classname}.rst"
+    target_doc = f"{classname}"
+    file_path = DOC_SOURCE / "detectors" / f"{target_doc}.rst"
     assert (
         file_path.is_file()
     ), f"There must be an entry for each detector family in the docs; missing {file_path}"
     assert (
         file_path.stat().st_size
     ), "plugin docs cannot be empty. you can just use a stub to read python docstrings, look at existing doc files"
-    category_file = DOC_SOURCE / "detectors.rst"
-    target_doc = f"garak.detectors.{classname}\n"
+    category_file = DOC_SOURCE / "index_detectors.rst"
     assert (
-        open(category_file, "r", encoding="utf-8").read().find(target_doc) != -1
-    ), "detector docs must be linked to in detectors.rst"
+        open(category_file, "r", encoding="utf-8").read().find(target_doc + "\n") != -1
+    ), "detector docs must be linked to in index_detectors.rst"
 
 
 @pytest.mark.parametrize("classname", module_names["harnesses"])
 def test_docs_harnesses(classname: str):
-    file_path = DOC_SOURCE / f"garak.harnesses.{classname}.rst"
+    target_doc = f"{classname}"
+    file_path = DOC_SOURCE / "harnesses" / f"{target_doc}.rst"
     assert (
         file_path.is_file()
     ), f"There must be an entry for each harness family in the docs; missing {file_path}"
     assert (
         file_path.stat().st_size
     ), "plugin docs cannot be empty. you can just use a stub to read python docstrings, look at existing doc files"
-    category_file = DOC_SOURCE / "harnesses.rst"
-    target_doc = f"garak.harnesses.{classname}\n"
+    category_file = DOC_SOURCE / "index_harnesses.rst"
     assert (
-        open(category_file, "r", encoding="utf-8").read().find(target_doc) != -1
-    ), "harness docs must be linked to in harnesses.rst"
+        open(category_file, "r", encoding="utf-8").read().find(target_doc + "\n") != -1
+    ), "harness docs must be linked to in index_harnesses.rst"
 
 
 @pytest.mark.parametrize("classname", module_names["evaluators"])
 def test_docs_evaluators(classname: str):
-    file_path = DOC_SOURCE / f"garak.evaluators.{classname}.rst"
+    target_doc = f"{classname}"
+    file_path = DOC_SOURCE / "evaluators" / f"{target_doc}.rst"
     assert (
         file_path.is_file()
     ), f"There must be an entry for each evaluator family in the docs; missing {file_path}"
     assert (
         file_path.stat().st_size
     ), "plugin docs cannot be empty. you can just use a stub to read python docstrings, look at existing doc files"
-    category_file = DOC_SOURCE / "evaluators.rst"
-    target_doc = f"garak.evaluators.{classname}\n"
+    category_file = DOC_SOURCE / "index_evaluators.rst"
     assert (
-        open(category_file, "r", encoding="utf-8").read().find(target_doc) != -1
-    ), "evaluator docs must be linked to in evaluators.rst"
+        open(category_file, "r", encoding="utf-8").read().find(target_doc + "\n") != -1
+    ), "evaluator docs must be linked to in index_evaluators.rst"
 
 
 @pytest.mark.parametrize("classname", module_names["generators"])
 def test_docs_generators(classname: str):
-    file_path = DOC_SOURCE / f"garak.generators.{classname}.rst"
+    target_doc = f"{classname}"
+    file_path = DOC_SOURCE / "generators" / f"{target_doc}.rst"
     assert (
         file_path.is_file()
     ), f"There must be an entry for each generator family in the docs; missing {file_path}"
     assert (
         file_path.stat().st_size
     ), "plugin docs cannot be empty. you can just use a stub to read python docstrings, look at existing doc files"
-    category_file = DOC_SOURCE / "generators.rst"
-    target_doc = f"garak.generators.{classname}\n"
+    category_file = DOC_SOURCE / "index_generators.rst"
     assert (
-        open(category_file, "r", encoding="utf-8").read().find(target_doc) != -1
-    ), "generator docs must be linked to in generators.rst"
+        open(category_file, "r", encoding="utf-8").read().find(target_doc + "\n") != -1
+    ), "generator docs must be linked to in index_generators.rst"
 
 
 @pytest.mark.parametrize("classname", module_names["buffs"])
 def test_docs_buffs(classname: str):
-    file_path = DOC_SOURCE / f"garak.buffs.{classname}.rst"
+    target_doc = f"{classname}"
+    file_path = DOC_SOURCE / "buffs" / f"{target_doc}.rst"
     assert (
         file_path.is_file()
     ), f"There must be an entry for each buff family in the docs; missing {file_path}"
     assert (
         file_path.stat().st_size
     ), "plugin docs cannot be empty. you can just use a stub to read python docstrings, look at existing doc files"
-    category_file = DOC_SOURCE / "buffs.rst"
-    target_doc = f"garak.buffs.{classname}\n"
+    category_file = DOC_SOURCE / "index_buffs.rst"
     assert (
-        open(category_file, "r", encoding="utf-8").read().find(target_doc) != -1
-    ), "buff docs must be linked to in buffs.rst"
+        open(category_file, "r", encoding="utf-8").read().find(target_doc + "\n") != -1
+    ), "buff docs must be linked to in index_buffs.rst"
 
 
 from garak import _plugins
@@ -256,4 +256,4 @@ def test_doc_src_no_markdown(rst_file):
         canary_match = canary.search(rst_file_content, re.I)
         assert (
             canary_match is None
-        ), f"Markdown-like content in rst: {result.group().strip()} use ReStructured Text for garak docs - Markdown won't render"
+        ), f"Markdown-like content in rst: {canary_match.group().strip()} use ReStructured Text for garak docs - Markdown won't render"

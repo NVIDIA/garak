@@ -1,3 +1,4 @@
 sphinx
 sphinx-rtd-theme
 sphinx-github-style
+sphinx-reredirect

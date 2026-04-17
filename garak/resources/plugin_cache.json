@@ -5888,7 +5888,7 @@
       "pass_desc": "File magic indicates that the provided file is not a common executable filetype",
       "tags": [],
       "valid_format": "local filename",
-      "mod_time": "2026-02-11 20:16:58 +0000"
+      "mod_time": "2026-04-08 14:06:23 +0000"
     },
     "detectors.fileformats.FileIsPickled": {
       "description": "Check whether a file is pickled.",
@@ -5908,7 +5908,7 @@
       "pass_desc": "Provided file is not `pickle`-serialized data",
       "tags": [],
       "valid_format": "local filename",
-      "mod_time": "2026-02-11 20:16:58 +0000"
+      "mod_time": "2026-04-08 14:06:23 +0000"
     },
     "detectors.fileformats.PossiblePickleName": {
       "description": "Guess if filenames look like pickles",
@@ -5928,7 +5928,7 @@
       "pass_desc": "Provided filename extension is not commonly used for pickle files",
       "tags": [],
       "valid_format": null,
-      "mod_time": "2026-02-11 20:16:58 +0000"
+      "mod_time": "2026-04-08 14:06:23 +0000"
     },
     "detectors.goodside.Glitch": {
       "description": "Inverse trigger list detector - hit if trigger absent",

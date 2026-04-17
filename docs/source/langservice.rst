@@ -1,5 +1,5 @@
-garak.langservice
-=================
+langservice
+===========
 
 The ``langservice`` module in garak is designed to handle text language tasks using various translation services and models.
 It provides an entry point to translation support backed by translators, each implementing different translation strategies and models, including both cloud-based services,

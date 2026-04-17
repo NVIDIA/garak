@@ -3,7 +3,7 @@ CLI reference for garak
 
 ::
 
-  garak LLM vulnerability scanner v0.14.2.pre1 ( https://github.com/NVIDIA/garak ) at 2026-04-03T10:17:28.777992
+  garak LLM vulnerability scanner v0.14.2.pre1 ( https://github.com/NVIDIA/garak ) at 2026-04-06T12:06:42.770686
   usage: python -m garak [-h] [--verbose] [--report_prefix REPORT_PREFIX]
                          [--narrow_output]
                          [--parallel_requests PARALLEL_REQUESTS]
@@ -14,13 +14,16 @@ CLI reference for garak
                          [--target_type TARGET_TYPE] [--target_name TARGET_NAME]
                          [--probes PROBES] [--probe_tags PROBE_TAGS]
                          [--detectors DETECTORS] [--extended_detectors]
-                         [--buffs BUFFS]
-                         [--buff_option_file BUFF_OPTION_FILE | --buff_options BUFF_OPTIONS]
-                         [--detector_option_file DETECTOR_OPTION_FILE | --detector_options DETECTOR_OPTIONS]
-                         [--generator_option_file GENERATOR_OPTION_FILE | --generator_options GENERATOR_OPTIONS]
-                         [--harness_option_file HARNESS_OPTION_FILE | --harness_options HARNESS_OPTIONS]
-                         [--probe_option_file PROBE_OPTION_FILE | --probe_options PROBE_OPTIONS]
-                         [--taxonomy TAXONOMY]
+                         [--buffs BUFFS] [--buff_option_file BUFF_OPTION_FILE |
+                         --buff_options BUFF_OPTIONS]
+                         [--detector_option_file DETECTOR_OPTION_FILE |
+                         --detector_options DETECTOR_OPTIONS]
+                         [--generator_option_file GENERATOR_OPTION_FILE |
+                         --generator_options GENERATOR_OPTIONS]
+                         [--harness_option_file HARNESS_OPTION_FILE |
+                         --harness_options HARNESS_OPTIONS]
+                         [--probe_option_file PROBE_OPTION_FILE |
+                         --probe_options PROBE_OPTIONS] [--taxonomy TAXONOMY]
                          [--confidence_interval_method {bootstrap,none}]
                          [--bootstrap_num_iterations BOOTSTRAP_NUM_ITERATIONS]
                          [--bootstrap_confidence_level BOOTSTRAP_CONFIDENCE_LEVEL]
@@ -47,53 +50,51 @@ CLI reference for garak
                           How many probe attempts to launch in parallel. Raise
                           this for faster runs when using non-local models.
     --skip_unknown        allow skip of unknown probes, detectors, or buffs
-    --seed SEED, -s SEED  random seed
+    --seed, -s SEED       random seed
     --deprefix            remove the prompt from the front of generator output
     --eval_threshold EVAL_THRESHOLD
                           minimum threshold for a successful hit
-    --generations GENERATIONS, -g GENERATIONS
+    --generations, -g GENERATIONS
                           number of generations per prompt
     --config CONFIG       YAML or JSON config file for this run
-    --target_type TARGET_TYPE, -t TARGET_TYPE, --model_type TARGET_TYPE, -m TARGET_TYPE
+    --target_type, -t, --model_type, -m TARGET_TYPE
                           module and optionally also class of the generator,
                           e.g. 'huggingface', or 'openai'
-    --target_name TARGET_NAME, --model_name TARGET_NAME, -n TARGET_NAME
+    --target_name, --model_name, -n TARGET_NAME
                           name of the target, e.g.
                           'timdettmers/guanaco-33b-merged'
-    --probes PROBES, -p PROBES
-                          list of probe names to use, or 'all' for all
+    --probes, -p PROBES   list of probe names to use, or 'all' for all
                           (default).
     --probe_tags PROBE_TAGS
                           only include probes with a tag that starts with this
                           value (e.g. owasp:llm01)
-    --detectors DETECTORS, -d DETECTORS
+    --detectors, -d DETECTORS
                           list of detectors to use, or 'all' for all. Default is
                           to use the probe's suggestion.
     --extended_detectors  If detectors aren't specified on the command line,
                           should we run all detectors? (default is just the
                           primary detector, if given, else everything)
-    --buffs BUFFS, -b BUFFS
-                          list of buffs to use. Default is none
-    --buff_option_file BUFF_OPTION_FILE, -B BUFF_OPTION_FILE
+    --buffs, -b BUFFS     list of buffs to use. Default is none
+    --buff_option_file, -B BUFF_OPTION_FILE
                           path to JSON file containing options to pass to buff
     --buff_options BUFF_OPTIONS
                           options to pass to buff, formatted as a JSON dict
-    --detector_option_file DETECTOR_OPTION_FILE, -D DETECTOR_OPTION_FILE
+    --detector_option_file, -D DETECTOR_OPTION_FILE
                           path to JSON file containing options to pass to
                           detector
     --detector_options DETECTOR_OPTIONS
                           options to pass to detector, formatted as a JSON dict
-    --generator_option_file GENERATOR_OPTION_FILE, -G GENERATOR_OPTION_FILE
+    --generator_option_file, -G GENERATOR_OPTION_FILE
                           path to JSON file containing options to pass to
                           generator
     --generator_options GENERATOR_OPTIONS
                           options to pass to generator, formatted as a JSON dict
-    --harness_option_file HARNESS_OPTION_FILE, -H HARNESS_OPTION_FILE
+    --harness_option_file, -H HARNESS_OPTION_FILE
                           path to JSON file containing options to pass to
                           harness
     --harness_options HARNESS_OPTIONS
                           options to pass to harness, formatted as a JSON dict
-    --probe_option_file PROBE_OPTION_FILE, -P PROBE_OPTION_FILE
+    --probe_option_file, -P PROBE_OPTION_FILE
                           path to JSON file containing options to pass to probe
     --probe_options PROBE_OPTIONS
                           options to pass to probe, formatted as a JSON dict
@@ -128,8 +129,7 @@ CLI reference for garak
     --list_buffs          list available buffs/fuzzes
     --list_config         print active config info (and don't scan)
     --version, -V         print version info & exit
-    --report REPORT, -r REPORT
-                          process garak report into a list of AVID reports
+    --report, -r REPORT   process garak report into a list of AVID reports
     --interactive, -I     Enter interactive probing mode
     --fix                 Update provided configuration with fixer migrations;
                           requires one of --config / --*_option_file, /

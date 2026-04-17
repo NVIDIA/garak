@@ -491,6 +491,7 @@ def build_digest(report_filename: str, config=_config):
 
     _close_result_db(conn)
 
+    report_digest["meta"]["setup"]["reporting.taxonomy"] = taxonomy
     report_digest["meta"]["calibration_used"] = calibration_used
     report_digest["meta"]["aggregation_unknown"] = aggregation_unknown
     if calibration_used:
@@ -564,7 +565,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--taxonomy",
         "-t",
-        help="Optional taxonomy to use for grouping probes",
+        help="Optional taxonomy to use for grouping probes (use 'None' to explicitly clear)",
     )
 
     args = parser.parse_args()
@@ -573,9 +574,27 @@ if __name__ == "__main__":
     output_path = args.output_path
     write_digest_suffix = args.write_digest_suffix
     taxonomy = args.taxonomy
+    # Allow "-t None" to explicitly clear taxonomy back to probe family grouping
+    taxonomy_specified = taxonomy is not None
+    if taxonomy is not None and taxonomy.lower() == "none":
+        taxonomy = None
+
+    # If -t not specified, inherit taxonomy from the original report's setup
+    if not taxonomy_specified:
+        with open(report_path, "r", encoding="utf-8") as f:
+            for line in f:
+                if line.strip():
+                    entry = json.loads(line.strip())
+                    if entry["entry_type"] == "start_run setup":
+                        taxonomy = entry.get("reporting.taxonomy") or None
+                        break
+
+    # Propagate CLI taxonomy to _config so build_digest picks it up
+    _config.reporting.taxonomy = taxonomy
 
     digest = _get_report_digest(report_path)
-    if not digest:
+    if not digest or taxonomy_specified:
+        # Rebuild digest when taxonomy is specified, even if one already exists
         digest = build_digest(report_path)
         if write_digest_suffix:
             with open(report_path, "a+", encoding="utf-8") as reportfile:

@@ -1,5 +1,5 @@
-garak.interactive
-=================
+interactive
+===========
 
 .. automodule:: garak.interactive
    :members:
