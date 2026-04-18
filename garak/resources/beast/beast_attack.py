@@ -39,6 +39,12 @@ def _evaluate(generator, prompt, candidate):
     return result, outputs[0]
 
 
+def _get_model(generator: Generator):
+    if hasattr(generator, "generator") and hasattr(generator.generator, "model"):
+        return generator.generator.model
+    return generator.model
+
+
 @torch.no_grad()
 def _evaluate_target(generator, prompt, candidate, target):
     result = False
@@ -59,7 +65,7 @@ def _get_perplexity(
     input_tokens: torch.Tensor,
     return_logits: bool = False,
 ) -> Union[float, Tuple[float, torch.Tensor]]:
-
+    model = _get_model(generator)
     kwargs = {
         "input_ids": input_tokens,
         "use_cache": False,
@@ -68,7 +74,7 @@ def _get_perplexity(
         "output_hidden_states": True,
         "return_dict": True,
     }
-    output = generator.model(**kwargs)
+    output = model(**kwargs)
     softmax = torch.nn.Softmax(dim=-1)
     logs = None
 
@@ -124,13 +130,14 @@ def _score_candidates(
         candidate_str = ""
 
     formatted_prompt = _format_chat(generator, input_str + candidate_str)
+    model = _get_model(generator)
     tokens = generator.tokenizer.encode(
         formatted_prompt, return_tensors="pt", add_special_tokens=False
-    ).to(generator.model.device)
+    ).to(model.device)
     target = [
         generator.tokenizer.encode(
             response_str, return_tensors="pt", add_special_tokens=False
-        ).to(generator.model.device)
+        ).to(model.device)
     ]
     scores = np.zeros(len(tokens))
 
@@ -144,7 +151,7 @@ def _score_candidates(
                 generator.tokenizer.bos_token,
                 return_tensors="pt",
                 add_special_tokens=False,
-            ).to(generator.model.device)
+            ).to(model.device)
             bos = torch.cat([bos] * len(tokens_), dim=0)
             tokens_ = torch.cat([bos, tokens_], dim=1).type(tokens_.dtype)
             scores += -np.stack(_get_perplexity(generator, tokens_[:, :1], tokens_))
@@ -194,10 +201,11 @@ def _sample_tokens(
     else:
         suffix_str = ""
     formatted_input = _format_chat(generator, prompt + suffix_str)
+    model = _get_model(generator)
     input_ids = generator.tokenizer(
         formatted_input, return_tensors="pt", add_special_tokens=False
-    ).input_ids.to(generator.model.device)
-    output = generator.model(input_ids)
+    ).input_ids.to(model.device)
+    output = model(input_ids)
     logits = output.logits[:, -1, :]
     temp = generator.generation_config.temperature
     probs = torch.softmax(logits / temp, dim=-1)
@@ -233,7 +241,7 @@ def _get_best_candidate(
         best_score: The best score
     """
     best_suffix = ""
-    best_score = np.Inf
+    best_score = float("inf")
 
     beams = [[sample] for sample in _sample_tokens(generator, prompt, k1, suffix_ids)]
     for i in tqdm(range(suffix_len), leave=False):
