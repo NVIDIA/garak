@@ -52,12 +52,6 @@ def validate_schema(filename: str) -> bool:
     if "injection_marker" not in data.keys():
         print(f"{filepath} is missing a 'injection_marker' key.")
         error_in_file = True
-    if "payload_marker" not in data.keys():
-        print(f"{filepath} is missing a 'payload_marker' key.")
-        error_in_file = True
-    if "trigger_marker" not in data.keys():
-        print(f"{filepath} is missing a 'trigger_marker' key.")
-        error_in_file = True
     if "contexts" not in data.keys():
         print(f"{filepath} is missing a 'contexts' key.")
         error_in_file = True
