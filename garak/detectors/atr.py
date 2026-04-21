@@ -2,7 +2,7 @@
 
 Detects prompt injection, tool poisoning, credential exfiltration,
 privilege escalation, and 5 other AI agent threat categories using
-113 detection rules (736 regex patterns) from the ATR open-source project.
+293 production rules (1,597 regex patterns) from the ATR open-source project.
 
 Rules ported from https://github.com/Agent-Threat-Rule/agent-threat-rules
 (MIT license, adopted by Cisco AI Defense).
