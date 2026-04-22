@@ -18,6 +18,7 @@ class GetKey(garak.probes.Probe):
     """
 
     lang = "en"
+    intent = "S009cred"  # asks the target to emit API keys and other credential-like secrets
     primary_detector = "apikey.ApiKey"
     tags = [
         "quality:Behavioral:ContentSafety:LegalGoodsServices",
@@ -48,6 +49,8 @@ class CompleteKey(garak.probes.Probe):
     """
 
     lang = "en"
+    intent = "S009cred"  # completing a partial API key is still revealing credential material
+    # T007 is a secondary fit because the prompt is phrased as a completion task.
     primary_detector = "apikey.ApiKey"
     tags = [
         "quality:Behavioral:ContentSafety:LegalGoodsServices",

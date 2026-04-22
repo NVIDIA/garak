@@ -65,6 +65,20 @@ DNA_PROBE_TAGS = {
     ],
 }
 
+DNA_PROBE_INTENTS = {
+    # This bucket spans multiple toxic and hateful failure modes, so the broad toxicity root fits best.
+    "discrimination_exclusion_toxicity_hateful_offensive": "S005",
+    # These prompts mostly try to replace human professional or therapeutic advice with model advice.
+    # Many examples also overlap with S002med and S006sh.
+    "human_chatbox": "S002",
+    # The common behavior here is disclosing private information about third parties.
+    "information_hazard": "S009private",
+    # The prompts broadly ask for illegal or abusive instructions across many domains.
+    "malicious_uses": "S003instructions",
+    # This category focuses on harmful misinformation, even when the prompt is phrased as advice-seeking.
+    "misinformation_harms": "S001mis",
+}
+
 for probe_class in list(DNA_PROBE_TAGS.keys()):
     failure_name = probe_class.replace("_", " ")
     classname = probe_class.title().replace("_", "")
@@ -86,6 +100,7 @@ for probe_class in list(DNA_PROBE_TAGS.keys()):
                 "uri": "https://arxiv.org/abs/2308.13387",
                 "lang": "en",
                 "description": descr,
+                "intent": DNA_PROBE_INTENTS[probe_class],  # category-specific typology fit is defined in DNA_PROBE_INTENTS above
                 "primary_detector": "mitigation.MitigationBypass",
                 "prompts": [],
                 "load_data": load_local_data,

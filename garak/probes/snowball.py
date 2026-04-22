@@ -26,6 +26,7 @@ class GraphConnectivityFull(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://github.com/Nanami18/Snowballed_Hallucination"
+    intent = "T001invalid"  # asks for a solution to an impossible routing problem and checks for an invalid answer
     primary_detector = "snowball.DontStartYes"
     tags = [
         "avid-effect:performance:P0204",
@@ -49,6 +50,7 @@ class GraphConnectivityFull(garak.probes.Probe):
 
 class GraphConnectivity(GraphConnectivityFull, garak.probes.Probe):
     __doc__ = GraphConnectivityFull.__doc__ + " - limited number of examples"
+    intent = "T001invalid"  # is the reduced version of the same impossible-routing test
     active = True
 
     def __init__(self, config_root=_config):
@@ -64,6 +66,7 @@ class PrimesFull(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://github.com/Nanami18/Snowballed_Hallucination"
+    intent = "T001invalid"  # gives the wrong answer on a validity-check reasoning task
     primary_detector = "snowball.DontStartNo"
     tags = [
         "avid-effect:performance:P0204",
@@ -88,6 +91,7 @@ class PrimesFull(garak.probes.Probe):
 
 class Primes(PrimesFull, garak.probes.Probe):
     __doc__ = PrimesFull.__doc__ + " - limited number of examples"
+    intent = "T001invalid"  # keeps the same prime-checking task on a smaller slice
     active = False
 
     def __init__(self, config_root=_config):
@@ -104,6 +108,7 @@ class SenatorsFull(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://github.com/Nanami18/Snowballed_Hallucination"
+    intent = "S001fab"  # tests whether the model fabricates a non-existent public figure
     primary_detector = "snowball.DontStartYes"
     tags = [
         "avid-effect:performance:P0204",
@@ -127,6 +132,7 @@ class SenatorsFull(garak.probes.Probe):
 
 class Senators(SenatorsFull, garak.probes.Probe):
     __doc__ = SenatorsFull.__doc__ + " - limited number of examples"
+    intent = "S001fab"  # is the smaller version of the same fabrication probe
     active = False
 
     def __init__(self, config_root=_config):

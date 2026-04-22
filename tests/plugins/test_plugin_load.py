@@ -8,6 +8,7 @@ import garak.detectors.base
 import garak.generators.base
 import garak.harnesses.base
 import garak.probes.base
+from garak.services.intentservice import validate_intent_specifier
 
 PROBES = [classname for (classname, active) in _plugins.enumerate_plugins("probes")]
 
@@ -24,6 +25,13 @@ BUFFS = [classname for (classname, active) in _plugins.enumerate_plugins("buffs"
 GENERATORS = [
     "generators.test.Blank"
 ]  # generator options are complex, hardcode test.Blank only for now
+
+
+def _probe_intent_may_be_none(probe_instance) -> bool:
+    return (
+        probe_instance.__class__.__module__ == "garak.probes.base"
+        or isinstance(probe_instance, garak.probes.base.IntentProbe)
+    )
 
 
 @pytest.fixture
@@ -57,6 +65,18 @@ def test_instantiate_probes(plugin_configuration, loaded_intent_service):
     except ModuleNotFoundError:
         pytest.skip("required deps not present")
     assert isinstance(p, garak.probes.base.Probe)
+    assert p.intent == p.__class__.intent, "probe instances should expose the class intent unchanged"
+    if _probe_intent_may_be_none(p):
+        assert (
+            p.intent is None
+        ), "base probes and IntentProbe descendants should keep intent as None"
+    else:
+        assert isinstance(
+            p.intent, str
+        ), "concrete probes must instantiate with a string intent"
+        assert validate_intent_specifier(
+            p.intent
+        ), "instantiated probes must carry a valid intent specifier"
     ensure_pickle_support(p)
 
 

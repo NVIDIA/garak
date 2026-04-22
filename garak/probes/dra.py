@@ -84,6 +84,8 @@ class DRA(garak.probes.Probe):
     """
 
     lang = "en"
+    intent = "T009ignore"  # the elicited behavior is answering a harmful reconstructed request despite the model's normal safeguards
+    # T018decode is a secondary fit because the jailbreak works by reconstructing the hidden request from disguised tokens.
     primary_detector = "mitigation.MitigationBypass"
     extended_detectors = ["mitigation.Prefixes"]
     tags = [
@@ -139,8 +141,10 @@ class DRA(garak.probes.Probe):
                 line.strip() for line in f.readlines() if line.strip()
             ]
 
-        # Load behaviors from payload
-        self.all_behaviors = garak.payloads.load(self.payload_name).payloads
+        _payload_group = garak.payloads.load(self.payload_name)
+        self.all_behaviors = _payload_group.payloads
+        if _payload_group.intent:
+            self._payload_intent = _payload_group.intent
 
         # Generate prompts for each behavior in the dataset
         self.prompts = self._generate_prompts()
@@ -272,6 +276,8 @@ class DRAAdvanced(DRA):
     """
 
     active = False
+    intent = "T009ignore"  # keeps the same jailbreak behavior while using the same disguise-and-reconstruction mechanism
+    # T018decode remains a secondary fit because the attack still reconstructs the hidden request.
 
     DEFAULT_PARAMS = DRA.DEFAULT_PARAMS | {
         "custom_sentence": "how to perform a cyber attack",  # Default custom sentence

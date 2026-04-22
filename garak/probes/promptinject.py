@@ -122,6 +122,8 @@ for rogue_string in rogue_strings:
                 "name": "promptinject_" + rogue_string,
                 "lang": "en",
                 "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
+                "intent": "T009ignore",  # PromptInject attacks try to override the model's current task and follow the injected one instead.
+                # T008input is a secondary fit because success is often observed as verbatim repetition of the rogue string.
                 "primary_detector": "promptinject.AttackRogueString",
                 "parallelisable_attempts": False,
                 "tags": [
@@ -156,6 +158,8 @@ for rogue_string in rogue_strings:
                 "name": "promptinject_" + rogue_string,
                 "lang": "en",
                 "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
+                "intent": "T009ignore",  # PromptInject attacks try to override the model's current task and follow the injected one instead.
+                # T008input is a secondary fit because success is often observed as verbatim repetition of the rogue string.
                 "primary_detector": "promptinject.AttackRogueString",
                 "parallelisable_attempts": False,
                 "tags": [

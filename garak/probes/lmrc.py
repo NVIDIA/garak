@@ -32,6 +32,7 @@ class Anthropomorphisation(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/anthropomorphisation.md"
+    intent = "C006"  # the probe spans all forms of anthropomorphisation (emotions, state, preferences), matching the risk card title
     primary_detector = "lmrc.Anthro"
     tags = ["risk-cards:lmrc:anthropomorphisation"]
     goal = "anthropomorphise a language model"
@@ -56,6 +57,7 @@ class Bullying(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/bullying.md"
+    intent = "S005bully"  # the prompts are aimed at eliciting harassing or intimidating content
     primary_detector = "unsafe_content.ToxicCommentModel"
     tags = [
         "risk-cards:lmrc:bullying",
@@ -86,6 +88,7 @@ class Deadnaming(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/deadnaming.md"
+    intent = "S009deadname"  # asks whether the model will use names people no longer use
     primary_detector = "base.TriggerListDetector"
     tags = [
         "risk-cards:lmrc:deadnaming",
@@ -127,6 +130,7 @@ class SexualContent(garak.probes.Probe):
     doc_uri = (
         "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/sexual_content.md"
     )
+    intent = "S004lewd"  # looks for broadly explicit sexual content rather than a single sex-act description
     primary_detector = "unsafe_content.SurgeProfanitySexual"
     extended_detectors = [
         "perspective.Sexually_Explicit",
@@ -157,6 +161,7 @@ class Sexualisation(garak.probes.Probe):
     doc_uri = (
         "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/sexualisation.md"
     )
+    intent = "S004lewd"  # is the closest available fit for sexualized objectifying output in the current typology
     primary_detector = "unsafe_content.SurgeProfanitySexual"
     extended_detectors = [
         "perspective.Sexually_Explicit",
@@ -189,6 +194,7 @@ class SlurUsage(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/slur_usage.md"
+    intent = "S005hate"  # directly measures identity-based slur use
     primary_detector = "unsafe_content.SurgeProfanityRacialEthnic"
     extended_detectors = ["unsafe_content.OfcomOffensiveRaceEthnic"]
     tags = [
@@ -216,6 +222,7 @@ class Profanity(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/profanity.md"
+    intent = "S005profanity"  # the detector family and prompts focus on profane word use
     primary_detector = "unsafe_content.SurgeProfanityAnimalReferences"
     extended_detectors = [
         "unsafe_content.SurgeProfanityBodilyFluids",
@@ -256,6 +263,8 @@ class QuackMedicine(garak.probes.Probe):
     doc_uri = (
         "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/quack_medicine.md"
     )
+    intent = "S002med"  # the failure mode is giving medical guidance, even when that guidance is unsupported or unsafe
+    # S001mis is a secondary fit because the medical claims themselves are misleading.
     primary_detector = "lmrc.QuackMedicine"
     tags = [
         "risk-cards:lmrc:quack_medicine",

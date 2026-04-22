@@ -9,6 +9,7 @@ import re
 from garak import _config, _plugins
 from garak.attempt import Turn, Conversation, Message, Attempt
 import garak.probes
+from garak.services.intentservice import validate_intent_specifier
 
 PROBES = [classname for (classname, active) in _plugins.enumerate_plugins("probes")]
 
@@ -27,6 +28,13 @@ with open(
     encoding="utf-8",
 ) as misp_data:
     MISP_TAGS = [line.split("\t")[0] for line in misp_data.read().split("\n")]
+
+
+def _probe_intent_may_be_none(probe_class) -> bool:
+    return (
+        probe_class.__module__ == "garak.probes.base"
+        or garak.probes.IntentProbe in probe_class.mro()
+    )
 
 
 @pytest.mark.parametrize("classname", PROBES)
@@ -72,6 +80,30 @@ def test_probe_structure(classname):
                 if k not in c._supported_params:
                     unsupported_defaults.append(k)
     assert unsupported_defaults == []
+
+
+@pytest.mark.parametrize("classname", PROBES)
+def test_probe_intent(classname, loaded_intent_service):
+    plugin_name_parts = classname.split(".")
+    module_name = "garak." + ".".join(plugin_name_parts[:-1])
+    class_name = plugin_name_parts[-1]
+    mod = importlib.import_module(module_name)
+    probe_class = getattr(mod, class_name)
+
+    assert hasattr(probe_class, "intent"), "probes must declare an intent attribute"
+
+    if _probe_intent_may_be_none(probe_class):
+        assert (
+            probe_class.intent is None
+        ), "base probes and IntentProbe descendants should set intent to None"
+    else:
+        assert isinstance(
+            probe_class.intent, str
+        ), "concrete probes must set intent to a typology code"
+        assert len(probe_class.intent) > 0, "intent must not be empty"
+        assert validate_intent_specifier(
+            probe_class.intent
+        ), "intent must match a valid intent typology entry"
 
 
 @pytest.mark.parametrize("classname", PROBES)
@@ -193,3 +225,114 @@ def test_mint_attempt_with_run_system_prompt(prompt):
     assert attempt.prompt.last_message("system").text == expected_system_prompt
     system_message = [turn for turn in attempt.prompt.turns if turn.role == "system"]
     assert len(system_message) == 1
+
+
+def test_mint_attempt_base_probe_intent_is_none():
+    import garak.probes.base
+
+    probe = garak.probes.base.Probe()
+    attempt = probe._mint_attempt("hello")
+    assert (
+        attempt.intent is None
+    ), "base Probe has no intent, so attempt.intent must be None"
+
+
+def test_mint_attempt_propagates_probe_intent():
+    import garak.probes.base
+
+    probe = garak.probes.base.Probe()
+    probe.intent = "T999test"
+    attempt = probe._mint_attempt("hello")
+    assert attempt.intent == "T999test", "attempt.intent must match the probe's intent"
+
+
+def test_mint_attempt_intent_survives_multiple_attempts():
+    import garak.probes.base
+
+    probe = garak.probes.base.Probe()
+    probe.intent = "S005"
+    attempts = [probe._mint_attempt(f"prompt {i}", seq=i) for i in range(5)]
+    for a in attempts:
+        assert a.intent == "S005", "every minted attempt must carry the probe's intent"
+
+
+def test_concrete_probe_propagates_intent(loaded_intent_service):
+    p = _plugins.load_plugin("probes.test.Test")
+    assert p.intent is not None, "probes.test.Test should have a non-None intent"
+    attempt = p._mint_attempt("hello")
+    assert (
+        attempt.intent == p.intent
+    ), "attempt.intent must match the concrete probe's intent"
+
+
+def test_attempt_intent_in_serialised_dict(loaded_intent_service):
+    p = _plugins.load_plugin("probes.test.Test")
+    attempt = p._mint_attempt("hello")
+    d = attempt.as_dict()
+    assert "intent" in d, "serialised attempt dict must include 'intent'"
+    assert d["intent"] == p.intent, "serialised intent must match probe intent"
+
+
+def test_payload_intent_overrides_probe_intent():
+    import garak.probes.base
+
+    probe = garak.probes.base.Probe()
+    probe.intent = "T999test"
+    probe._payload_intent = "S005hate"
+    attempt = probe._mint_attempt("hello")
+    assert (
+        attempt.intent == "S005hate"
+    ), "payload intent must override probe intent when set"
+
+
+def test_payload_intent_none_falls_back_to_probe_intent():
+    import garak.probes.base
+
+    probe = garak.probes.base.Probe()
+    probe.intent = "T999test"
+    probe._payload_intent = None
+    attempt = probe._mint_attempt("hello")
+    assert (
+        attempt.intent == "T999test"
+    ), "when payload intent is None, probe intent should be used"
+
+
+def test_no_payload_intent_attr_falls_back_to_probe_intent():
+    import garak.probes.base
+
+    probe = garak.probes.base.Probe()
+    probe.intent = "T999test"
+    attempt = probe._mint_attempt("hello")
+    assert (
+        attempt.intent == "T999test"
+    ), "when no _payload_intent attr exists, probe intent should be used"
+
+
+def test_encoding_probe_per_prompt_intents(loaded_intent_service):
+    import garak.probes.encoding
+
+    p = _plugins.load_plugin("probes.encoding.InjectROT13")
+    assert hasattr(p, "_prompt_intents"), "encoding probes must track per-prompt intents"
+    assert len(p._prompt_intents) == len(
+        p.prompts
+    ), "there must be one intent entry per prompt"
+    for i, pi in enumerate(p._prompt_intents):
+        if pi is not None:
+            assert isinstance(
+                pi, str
+            ), f"prompt intent at index {i} must be a string or None"
+
+
+def test_encoding_probe_attempt_carries_payload_intent(loaded_intent_service):
+    import garak.probes.encoding
+
+    p = _plugins.load_plugin("probes.encoding.InjectROT13")
+    intents_with_values = [
+        (seq, pi) for seq, pi in enumerate(p._prompt_intents) if pi is not None
+    ]
+    assert len(intents_with_values) > 0, "at least some prompts should have payload-derived intents"
+    seq, expected_intent = intents_with_values[0]
+    attempt = p._mint_attempt(p.prompts[seq], seq=seq)
+    assert (
+        attempt.intent == expected_intent
+    ), "attempt intent must reflect the payload-specific intent set in _attempt_prestore_hook"

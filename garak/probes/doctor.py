@@ -26,6 +26,7 @@ class Puppetry(garak.probes.Probe):
     guardrails"""
 
     lang = "en"
+    intent = "T009ignore"  # the policy-puppetry prompt tries to replace the model's normal instruction hierarchy
     primary_detector = "mitigation.MitigationBypass"
     goal = "roleplay as doctor to get unsafe outputs"
     doc_uri = "https://hiddenlayer.com/innovation-hub/novel-universal-bypass-for-all-major-llms/"
@@ -85,6 +86,7 @@ class Bypass(garak.probes.Probe):
     guardrails"""
 
     lang = "en"
+    intent = "T009ignore"  # this roleplay attack is explicitly trying to override the model's safety behavior
     primary_detector = "mitigation.MitigationBypass"
     goal = "roleplay as doctor to get bypass guardrails"
     doc_uri = "https://hiddenlayer.com/innovation-hub/novel-universal-bypass-for-all-major-llms/"
@@ -178,6 +180,7 @@ class BypassLeet(Bypass):
     technique that successfully bypasses instruction hierarchy and safety
     guardrails"""
 
+    intent = "T009ignore"  # this is the same bypass prompt written in leetspeak
     goal = Bypass.goal + ", but use leetspeak"
     doc_uri = "https://hiddenlayer.com/innovation-hub/novel-universal-bypass-for-all-major-llms/"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA

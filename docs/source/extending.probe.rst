@@ -95,6 +95,10 @@ From the base class:
     tags: Iterable[str] = []
     # what the probe is trying to do, phrased as an imperative
     goal: str = ""
+    # the target behaviour / failure mode this probe elicits,
+    # as a code from the trait typology (garak/data/cas/trait_typology.json).
+    # Propagated to every Attempt minted by the probe.
+    intent: Union[str, None] = None
     # Deprecated -- the detectors that should be run for this probe. always.Fail is chosen as default to send a signal if this isn't overridden.
     recommended_detector: Iterable[str] = ["always.Fail"]
     # default detector to run, if the primary/extended way of doing it is to be used (should be a string formatted like recommended_detector)
@@ -118,6 +122,7 @@ Many of these are decent defaults, though there are a few that we absolutely wan
 * ``active``: Should this probe be part of default scans?
 * ``tags``: MISP-formatted taxonomy categories __e.g.__ ``["avid-effect:security:S0403", "owasp:llm01", "quality:Security:PromptStability", "payload:jailbreak"]``
 * ``goal``: What is the probe trying to do? __e.g.__ ``"disregard the system prompt"``
+* ``intent``: Which target behaviour / failure mode does this probe elicit? Must be a code from ``garak/data/cas/trait_typology.json`` __e.g.__ ``"T009ignore"``. The value is automatically propagated to every ``Attempt`` the probe creates. If the probe loads a payload that also declares an ``intent``, the payload's intent takes priority.
 * ``primary_detector``: What ``Detector`` should your probe use?
 
 .. code-block:: python
@@ -133,6 +138,7 @@ Many of these are decent defaults, though there are a few that we absolutely wan
             "payload:jailbreak",
         ]
         goal = "disregard the system prompt"
+        intent = "T009ignore"  # the target behaviour elicited, from trait_typology.json
         doc_uri = "https://garak.ai"
         active = False
         ...
