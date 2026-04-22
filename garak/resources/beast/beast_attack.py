@@ -96,6 +96,7 @@ def _get_perplexity(
         return (
             torch.exp(logs / (len(input_tokens[0]) - len(target_tokens[0])))
             .detach()
+            .float()
             .cpu()
             .numpy(),
             output.logits,
@@ -104,6 +105,7 @@ def _get_perplexity(
         return (
             torch.exp(logs / (len(input_tokens[0]) - len(target_tokens[0])))
             .detach()
+            .float()
             .cpu()
             .numpy()
         )

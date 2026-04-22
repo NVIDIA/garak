@@ -26,7 +26,6 @@ import string
 from pathlib import Path
 from typing import Union, Tuple, List, Optional
 
-import numpy as np
 import pandas as pd
 import torch
 from logging import getLogger
@@ -159,7 +158,7 @@ class AttackPrompt:
         self.test_prefixes = test_prefixes
         self.messages = list()
         self.system_prompt = system_prompt
-        self.best_loss = np.inf
+        self.best_loss = float("inf")
         self.success = False
 
         if max_new_tokens > 32:
@@ -435,8 +434,8 @@ class AttackPrompt:
             )
 
         steps = 0
-        prev_loss = np.inf
-        best_loss = np.inf
+        prev_loss = float("inf")
+        best_loss = float("inf")
 
         pbar = tqdm(
             desc=f"Running GCG Optimization",
