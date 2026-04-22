@@ -13,8 +13,8 @@ usage:
 
 """
 import sys
+import csv
 import json
-import pandas as pd
 import argparse
 
 
@@ -35,7 +35,20 @@ def make_hashable(obj):
         return obj
 
 
-def tablify(report_path: str, output_path: str) -> None:
+COLUMN_ORDER = ["probe", "prompt", "output", "detector", "score"]
+
+
+def _write_csv(entries, output_file) -> None:
+    writer = csv.DictWriter(
+        output_file,
+        fieldnames=COLUMN_ORDER,
+        lineterminator="\n",
+    )
+    writer.writeheader()
+    writer.writerows(entries)
+
+
+def tablify(report_path: str, output_path: str | None) -> None:
     line_entries = set()
     errored_probes = set()
     errored_entries = 0
@@ -78,6 +91,7 @@ def tablify(report_path: str, output_path: str) -> None:
                     "detector_results"
                 ].items():
                     total_entries += 1
+                    output_values = outputs
                     if len(outputs) != len(detector_scores):
                         none_free_outputs = [o for o in outputs if o is not None]
                         if len(none_free_outputs) != len(detector_scores):
@@ -90,8 +104,8 @@ def tablify(report_path: str, output_path: str) -> None:
                                         f"These results will not be written."
                                     )
                         else:
-                            record["outputs"] = none_free_outputs
-                    for output, score in zip(outputs, detector_scores):
+                            output_values = none_free_outputs
+                    for output, score in zip(output_values, detector_scores):
                         entry = {
                             "probe": probe_name,
                             "prompt": prompt,
@@ -108,13 +122,14 @@ def tablify(report_path: str, output_path: str) -> None:
                     )
                 continue
     table_entries = [dict(entry) for entry in line_entries]
-    table_df = pd.DataFrame(table_entries)
-    column_order = ["probe", "prompt", "output", "detector", "score"]
-    table_df = table_df.reindex(columns=column_order)
     if output_path is not None:
-        table_df.to_csv(output_path, index=False)
+        with open(output_path, "w", encoding="utf-8", newline="") as output_file:
+            _write_csv(table_entries, output_file)
 
-        summary = f"Evaluated {total_entries} entries. Wrote {len(table_df)} lines to {output_path}."
+        summary = (
+            f"Evaluated {total_entries} entries. "
+            f"Wrote {len(table_entries)} lines to {output_path}."
+        )
         if errored_entries > 0:
             if len(errored_probes) > 1:
                 probes_with_errors = ", ".join(errored_probes)
@@ -126,7 +141,7 @@ def tablify(report_path: str, output_path: str) -> None:
             )
         print(summary)
     else:
-        table_df.to_csv(path_or_buf=sys.stdout, index=False)
+        _write_csv(table_entries, sys.stdout)
 
 
 def main(argv=None) -> None:
