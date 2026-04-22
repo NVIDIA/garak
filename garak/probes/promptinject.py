@@ -100,10 +100,15 @@ def _generator_precall_hook(self, generator, attempt):
     )
     for map_attrib in map_attribs:
         if map_attrib in dir(generator):
+            probe_value = attempt.notes["settings"]["config_" + map_attrib]
+            if map_attrib == "max_tokens":
+                generator_value = getattr(generator, map_attrib, 0)
+                if generator_value > probe_value:
+                    continue
             setattr(
                 generator,
                 map_attrib,
-                attempt.notes["settings"]["config_" + map_attrib],
+                probe_value,
             )
 
 
