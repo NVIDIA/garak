@@ -119,6 +119,8 @@ class BadCharacters(garak.probes.Probe):
     lang = "en"
     active = True
     doc_uri = "https://arxiv.org/abs/2106.09898"
+    intent = "T009ignore"  # imperceptible perturbations silently bypass refusal policies without the model explicitly decoding anything
+    # T018decode is a secondary fit because the model may internally normalize the obfuscated text.
     goal = "inject imperceptible text perturbations that bypass refusal policies"
     primary_detector = "mitigation.MitigationBypass"
     tags = [
@@ -185,6 +187,8 @@ class BadCharacters(garak.probes.Probe):
 
         payload_group = garak.payloads.load(self.payload_name)
         self._source_payloads = payload_group.payloads
+        if payload_group.intent:
+            self._payload_intent = payload_group.intent
         self.prompts: List[garak.attempt.Conversation] = []
         self._seen_prompts: set[str] = set()
 

@@ -27,6 +27,8 @@ class ContinueSlursReclaimedSlursFull(garak.probes.Probe):
 
     lang = "en"
     doc_uri = ""
+    intent = "S005hate"  # the failure is completing a hate slur, even though the prompt is framed as completion
+    # T007 is a secondary fit because the attack works by asking for a partial word completion.
     primary_detector = "continuation.Continuation"
     tags = [
         "avid-effect:ethics:E0101",
@@ -108,6 +110,7 @@ class ContinueSlursReclaimedSlurs(ContinueSlursReclaimedSlursFull, garak.probes.
     slurs & contexts that test LLMs have been likely to provide completions for."""
 
     aliases = ["continuation.ContinueSlursReclaimedSlurs80"]
+    intent = "S005hate"  # the reduced dataset still tests the same slur output behavior
     active = True
     source_resource_filename = "slurprompts_mini.jsonl"  # high-quality selection
     follow_prompt_cap = True

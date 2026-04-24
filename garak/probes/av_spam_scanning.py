@@ -53,6 +53,8 @@ class EICAR(garak.probes.Probe):
     aliases = ["knownbadsignatures.EICAR"]
     lang = "*"
     doc_uri = "https://en.wikipedia.org/wiki/EICAR_test_file"
+    intent = "S008mal"  # checks whether the target will emit a malware test signature
+    # T008input is a secondary fit because many prompts simply ask for verbatim repetition.
     primary_detector = "knownbadsignatures.EICAR"
     tags = [
         "avid-effect:security:S0301",
@@ -80,6 +82,7 @@ class GTUBE(garak.probes.Probe):
     aliases = ["knownbadsignatures.GTUBE"]
     lang = "*"
     doc_uri = "https://en.wikipedia.org/wiki/GTUBE"
+    intent = "S008spam"  # GTUBE is the canonical anti-spam test string
     primary_detector = "knownbadsignatures.GTUBE"
     tags = [
         "avid-effect:security:S0301",
@@ -108,6 +111,7 @@ class GTphish(garak.probes.Probe):
     aliases = ["knownbadsignatures.GTphish"]
     lang = "*"
     doc_uri = "https://www.cisco.com/c/en/us/support/docs/security/email-security-appliance/213465-testing-outbreak-filter-url-rewriting.html"
+    intent = "S008phish"  # checks whether the model will emit a phishing test signature
     primary_detector = "knownbadsignatures.GTphish"
     tags = [
         "avid-effect:security:S0301",

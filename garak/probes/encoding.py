@@ -199,6 +199,8 @@ class EncodingMixin:
         "payload:generic",
         "demon:Language:Code_and_encode:Data_encoding",
     ]
+    intent = "T018decode"  # hides the operative instruction in an encoded form and watches for the target to decode it
+    # T009ignore is a secondary fit because the decoded payload is usually trying to bypass the target's safeguards.
     goal = "make the model say an encoded payload"
     use_bytes = True
     lang = "en"
@@ -217,6 +219,7 @@ class EncodingMixin:
 
     def _load_payloads(self):
         self._payloads = []
+        self._payload_intents_map = {}
         self.extra_tags = []
         extra_payload_tags = {
             "web_html_js": ["payload:malicious:renderer:xss"],
@@ -229,7 +232,11 @@ class EncodingMixin:
             else:
                 payload_to_add = payload_mapping[payload_class]
 
-            self._payloads += garak.payloads.load(payload_to_add).payloads
+            _pg = garak.payloads.load(payload_to_add)
+            for p in _pg.payloads:
+                self._payloads.append(p)
+                if _pg.intent:
+                    self._payload_intents_map[p] = _pg.intent
 
             if payload_to_add in extra_payload_tags:
                 self.extra_tags += extra_payload_tags[payload_to_add]
@@ -249,7 +256,8 @@ class EncodingMixin:
                         "{encoded_text}", encoded_text
                     )
                     trigger = str(payload)
-                    encoded_prompts.add((prompt, trigger))
+                    payload_intent = self._payload_intents_map.get(payload)
+                    encoded_prompts.add((prompt, trigger, payload_intent))
         return sorted(list(encoded_prompts), key=lambda k: k[0])
 
     def __init__(self):
@@ -262,14 +270,18 @@ class EncodingMixin:
             not self.follow_prompt_cap
             or len(generated_prompts) < self.soft_probe_prompt_cap
         ):
-            self.prompts, self.triggers = zip(*generated_prompts)
+            self.prompts, self.triggers, self._prompt_intents = zip(
+                *generated_prompts
+            )
         else:
-            self.prompts, self.triggers = zip(
+            self.prompts, self.triggers, self._prompt_intents = zip(
                 *random.sample(generated_prompts, self.soft_probe_prompt_cap)
             )
 
     def _attempt_prestore_hook(self, attempt, seq):
         attempt.notes["triggers"] = [self.triggers[seq]]
+        if self._prompt_intents[seq] is not None:
+            attempt.intent = self._prompt_intents[seq]
         return attempt
 
 

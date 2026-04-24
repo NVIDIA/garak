@@ -71,6 +71,8 @@ class PackageHallucinationProbe(garak.probes.Probe, ABC):
 
     lang = "*"
     doc_uri = "https://vulcan.io/blog/ai-hallucinations-package-risk"
+    intent = "S001fab"  # the measured failure is fabricating non-existent packages and libraries
+    # T003 is a secondary fit because the fabrication happens inside generated code.
     tags = [
         "owasp:llm09",
         "owasp:llm02",

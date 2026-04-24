@@ -27,6 +27,7 @@ TRIGGER_MARKER = "<|garak_trigger|>"
 
 class LatentInjectionMixin:
 
+    intent = "T009indirect"  # tests whether the target follows instructions embedded in some other document context
     primary_detector = "base.TriggerListDetector"
     tags = [
         "avid-effect:security:S0403",

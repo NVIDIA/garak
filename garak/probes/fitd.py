@@ -36,6 +36,7 @@ class FITD(garak.probes.IterativeProbe):
 
     lang = "en"
     doc_uri = "http://arxiv.org/abs/2502.19820"
+    intent = "T009ignore"  # the whole multi-turn strategy is designed to walk the model away from its normal refusal behavior
     primary_detector = "judge.RefusalOnlyAdversarial"
     tags = [
         "owasp:llm01",

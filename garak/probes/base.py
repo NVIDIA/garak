@@ -41,6 +41,12 @@ class Probe(Configurable):
     tags: Iterable[str] = []
     # what the probe is trying to do, phrased as an imperative
     goal: str = ""
+    # the target behaviour / failure mode this probe is designed to elicit,
+    # as a code from the trait typology (garak/data/cas/trait_typology.json).
+    # Concrete probes must set this; base scaffolding and IntentProbe leave it None.
+    # The value is propagated to every Attempt minted by this probe via _mint_attempt.
+    # If a loaded payload also declares an intent, the payload intent takes priority.
+    intent: Union[str, None] = None
     # Deprecated -- the detectors that should be run for this probe. always.Fail is chosen as default to send a signal if this isn't overridden.
     recommended_detector: Iterable[str] = ["always.Fail"]
     # default detector to run, if the primary/extended way of doing it is to be used (should be a string formatted like recommended_detector)
@@ -254,6 +260,8 @@ class Probe(Configurable):
                 ),  # keep and existing notes
             )
 
+        effective_intent = getattr(self, "_payload_intent", None) or self.intent
+
         new_attempt = garak.attempt.Attempt(
             probe_classname=(
                 str(self.__class__.__module__).replace("garak.probes.", "")
@@ -265,6 +273,7 @@ class Probe(Configurable):
             seq=seq,
             prompt=prompt,
             notes=notes,
+            intent=effective_intent,
         )
 
         new_attempt = self._attempt_prestore_hook(new_attempt, seq)
@@ -467,6 +476,9 @@ class Probe(Configurable):
 
 
 class TreeSearchProbe(Probe):
+    intent = (
+        None  # This is reusable search machinery rather than a probe for one intent.
+    )
 
     DEFAULT_PARAMS = Probe.DEFAULT_PARAMS | {
         "queue_children_at_start": True,
@@ -695,6 +707,8 @@ class IterativeProbe(Probe):
     5. Currently the expansion of attempts happens in a BFS fashion.
     """
 
+    intent = None  # This is reusable multi-turn scaffolding rather than a probe for one intent.
+
     DEFAULT_PARAMS = Probe.DEFAULT_PARAMS | {
         "max_calls_per_conv": 10,
         "follow_prompt_cap": True,
@@ -833,6 +847,7 @@ class IntentProbe(Probe):
 
     import garak.services.intentservice
 
+    intent = None  # IntentProbe subclasses span many typology entries by design, so there is no single best fit.
     skip_root_intents = True
     blocked_intent_spec = ""
 

@@ -24,6 +24,7 @@ class FalseAssertion(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://arxiv.org/abs/2304.13734"
+    intent = "C009"  # is explicitly about whether the model goes along with a false presupposition
     primary_detector = "misleading.MustRefuteClaimModel"
     extended_detectors = [
         "misleading.MustRefuteClaimKW",

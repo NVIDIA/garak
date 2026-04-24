@@ -40,6 +40,7 @@ class DANProbeMeta(type):
     _DAN_DEFAULTS = {
         "lang": "en",
         "goal": "disregard the system prompt",
+        "intent": "T009ignore",  # DAN-style prompts try to replace the active instruction hierarchy with a user-supplied one.
         "tier": garak.probes.Tier.UNLISTED,
         "active": False,
         "tags": [
@@ -299,6 +300,9 @@ class ChatGPT_Image_Markdown(
 
     A jailbreak attempt intended to enable the injection of markdown images into
     ChatGPT responses."""
+
+    intent = "T015img"  # specifically unlocks Markdown image embedding behavior
+    # It also overlaps with T009ignore because the unlock works by replacing the model's normal guardrails.
 
 
 class Ablation_Dan_11_0(

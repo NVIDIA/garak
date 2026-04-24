@@ -21,6 +21,7 @@ PAYLOAD_SCHEMA = {
     "properties": {
         "garak_payload_name": {"type": "string"},
         "payload_types": {"type": "array", "items": {"type": "string"}},
+        "intent": {"type": "string"},
         "detector_name": {"type": "string"},
         "detector_config": {"type": "object"},
         "payloads": {"type": "array", "items": {"type": "string"}},
@@ -76,6 +77,8 @@ class PayloadGroup:
         self.types = loaded_payload["payload_types"]
         self.payloads = [str(p) for p in loaded_payload["payloads"]]
 
+        self.intent = loaded_payload.get("intent", None)
+
         self.detector_name = None
         if "detector_name" in loaded_payload:
             self.detector_name = str(loaded_payload["detector_name"])
@@ -118,6 +121,7 @@ class PayloadGroup:
         self.path = path
         self.types = None
         self.payloads = None
+        self.intent = None
         self.detector_name = None
         self.detector_config = None
         self._loaded = False

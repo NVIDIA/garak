@@ -25,6 +25,7 @@ The JSON structure of a payload is:
         "garak_payload_name": // a mandatory key, used to identify this as a garak payload. holds a description of the payload.
         "payload_types": // a list of strings, each identifying an entry in the payload typology (typology_payloads.tsv)
             ["Security circumvention instructions/Product activation codes"],
+        "intent": "S003productkeys", // optional; a code from the trait typology (garak/data/cas/trait_typology.json) describing the target behaviour these payloads are designed to elicit. When set, probes using this payload will propagate the intent to each Attempt, overriding the probe's default intent.
         "detector_name": "productkey.Win5x5", // a suggested detector
         "detector_config": {}, // a config dict of Configurable options for the detector
         "payloads": [ // a list of strings: the payloads themselves
