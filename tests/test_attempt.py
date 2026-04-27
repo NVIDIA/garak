@@ -509,6 +509,7 @@ def test_json_serialize():
         "notes": {},
         "goal": None,
         "intent": None,
+        "technique_tags": [],
         "conversations": [
             {
                 "turns": [
@@ -563,6 +564,19 @@ def test_json_serialize():
 
     json_serialised = json.dumps(att_dict, ensure_ascii=False)
     assert isinstance(json_serialised, str)
+
+
+def test_attempt_technique_tags_serialize_and_copy():
+    from copy import deepcopy
+
+    tags = ["demon:Language:Code_and_encode:Token"]
+    att = garak.attempt.Attempt(
+        prompt=garak.attempt.Message("well hello", lang="*"),
+        technique_tags=tags,
+    )
+
+    assert att.as_dict()["technique_tags"] == tags
+    assert deepcopy(att).technique_tags == tags
 
 
 PREFIX = "_garak_test_attempt_sticky_params"

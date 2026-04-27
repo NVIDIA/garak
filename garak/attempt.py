@@ -198,7 +198,9 @@ class Attempt:
     :param reverse_translation_outputs: The reverse translation of output based on the original language of the probe
     :type reverse_translation_outputs: List(str)
     :param intent: None, or the primary intent type in this attempt
-    :type notes: str|None
+    :type intent: str|None
+    :param technique_tags: Ordered technique tags for this attempt
+    :type technique_tags: list[str]
 
 
     Typical use:
@@ -238,6 +240,7 @@ class Attempt:
         seq=-1,
         reverse_translation_outputs=None,
         intent=None,
+        technique_tags=None,
     ) -> None:
         self.uuid = uuid.uuid4()
         if prompt is not None:
@@ -264,6 +267,7 @@ class Attempt:
             {} if reverse_translation_outputs is None else reverse_translation_outputs
         )
         self.intent = intent
+        self.technique_tags = [] if technique_tags is None else list(technique_tags)
 
     def as_dict(self) -> dict:
         """Converts the attempt to a dictionary."""
@@ -298,6 +302,7 @@ class Attempt:
                 for output in self.reverse_translation_outputs
             ],
             "intent": self.intent,
+            "technique_tags": self.technique_tags,
         }
 
     @property

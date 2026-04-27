@@ -17,6 +17,7 @@ import garak.attempt
 import garak.buffs.base
 import garak.evaluators.base
 import garak.harnesses.base
+import garak.probes.base
 
 from garak.detectors.mitigation import MitigationBypass
 
@@ -113,6 +114,7 @@ def test_evaluator_detector_naming(mitigation_outputs: Tuple[List[str], List[str
             assert not detector.startswith("detector")
 
 
+
 def _read_report_records(entry_type=None):
     report_filename_path = Path(garak._config.transient.report_filename)
     assert report_filename_path.exists()
@@ -197,3 +199,142 @@ def test_digest_uses_harness_emitted_plugin_cache(mocker, tmp_path):
     digest = garak.analyze.report_digest.build_digest(str(report_path))
 
     assert digest["meta"]["plugin_cache_source"] == garak.__version__
+
+def test_probe_mint_attempt_technique_tags():
+    class TechniqueProbe(garak.probes.base.Probe):
+        lang = "en"
+        tags = [
+            "owasp:llm01",
+            "demon:Language:Prompt_injection:Stop_sequences",
+            "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        ]
+
+    attempt = TechniqueProbe()._mint_attempt("prompt", seq=0)
+
+    assert attempt.technique_tags == [
+        "demon:Language:Prompt_injection:Stop_sequences",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+    ]
+
+
+def test_probe_mint_attempt_empty_technique_tags():
+    class NoTechniqueProbe(garak.probes.base.Probe):
+        lang = "en"
+        tags = ["owasp:llm01"]
+
+    attempt = NoTechniqueProbe()._mint_attempt("prompt", seq=0)
+
+    assert attempt.technique_tags == []
+
+
+def test_probe_mint_attempt_technique_tags_with_hook_override():
+    class OverrideHookProbe(garak.probes.base.Probe):
+        lang = "en"
+        tags = ["demon:Language:Code_and_encode:Token"]
+
+        def _attempt_prestore_hook(self, attempt, seq):
+            attempt.notes["hook_ran"] = True
+            return attempt
+
+    attempt = OverrideHookProbe()._mint_attempt("prompt", seq=0)
+
+    assert attempt.notes["hook_ran"] is True
+    assert attempt.technique_tags == ["demon:Language:Code_and_encode:Token"]
+
+
+def test_evaluator_emits_eval_technique():
+    attempt = garak.attempt.Attempt(
+        prompt=garak.attempt.Message("prompt", lang="*"),
+        technique_tags=["demon:Language:Code_and_encode:Token"],
+    )
+    attempt.outputs = [garak.attempt.Message("output")]
+    attempt.detector_results["always.Fail"] = [0.0]
+    attempt.probe_classname = "test.TechniqueProbe"
+
+    evaluator = garak.evaluators.base.Evaluator()
+    evaluator.evaluate([attempt])
+
+    report_filename_path = Path(garak._config.transient.report_filename)
+    report_json = [
+        json.loads(line) for line in report_filename_path.read_text().splitlines()
+    ]
+    technique_records = [
+        record for record in report_json if record["entry_type"] == "eval_technique"
+    ]
+
+    assert len(technique_records) == 1
+    assert (
+        technique_records[0]["technique"]
+        == "demon:Language:Code_and_encode:Token"
+    )
+    assert technique_records[0]["probe"] == "test.TechniqueProbe"
+
+
+def test_evaluator_skips_eval_technique_for_empty_tags():
+    attempt = garak.attempt.Attempt(
+        prompt=garak.attempt.Message("prompt", lang="*"),
+        technique_tags=[],
+    )
+    attempt.outputs = [garak.attempt.Message("output")]
+    attempt.detector_results["always.Fail"] = [0.0]
+    attempt.probe_classname = "test.NoTechniqueProbe"
+
+    evaluator = garak.evaluators.base.Evaluator()
+    evaluator.evaluate([attempt])
+
+    report_filename_path = Path(garak._config.transient.report_filename)
+    report_json = [
+        json.loads(line) for line in report_filename_path.read_text().splitlines()
+    ]
+
+    assert any(record["entry_type"] == "eval" for record in report_json)
+    assert not any(
+        record["entry_type"] == "eval_technique" for record in report_json
+    )
+
+
+def test_report_attempt_rows_include_technique_tags():
+    class TechniqueProbe(garak.probes.base.Probe):
+        lang = "en"
+        prompts = ["prompt"]
+        tags = ["demon:Language:Code_and_encode:Token"]
+
+    probe = TechniqueProbe()
+    generator = garak._plugins.load_plugin("generators.test.Blank")
+
+    attempts = probe.probe(generator)
+    for attempt in attempts:
+        attempt.status = garak.attempt.ATTEMPT_COMPLETE
+        attempt.detector_results["always.Fail"] = [1.0]
+        garak._config.transient.reportfile.write(
+            json.dumps(attempt.as_dict(), ensure_ascii=False) + "\n"
+        )
+
+    report_filename_path = Path(garak._config.transient.report_filename)
+    report_json = [
+        json.loads(line) for line in report_filename_path.read_text().splitlines()
+    ]
+    attempt_records = [
+        record for record in report_json if record.get("entry_type") == "attempt"
+    ]
+    started = [record for record in attempt_records if record["status"] == 1]
+    completed = [record for record in attempt_records if record["status"] == 2]
+
+    assert started
+    assert completed
+    assert all("technique_tags" in record for record in started)
+    assert all("technique_tags" in record for record in completed)
+
+
+def test_buff_derived_attempt_preserves_technique_tags():
+    source_attempt = garak.attempt.Attempt(
+        prompt=garak.attempt.Message("prompt", lang="*"),
+        intent="S003productkeys",
+        technique_tags=["demon:Language:Code_and_encode:Token"],
+    )
+
+    buff = garak.buffs.base.Buff()
+    derived_attempt = buff._derive_new_attempt(source_attempt)
+
+    assert derived_attempt.intent == "S003productkeys"
+    assert derived_attempt.technique_tags == ["demon:Language:Code_and_encode:Token"]
