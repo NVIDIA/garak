@@ -7837,6 +7837,43 @@
     }
   },
   "generators": {
+    "generators.abliteration.AbliterationChat": {
+      "description": "Wrapper for abliteration.ai-hosted LLM models.",
+      "DEFAULT_PARAMS": {
+        "max_tokens": 150,
+        "temperature": 0.7,
+        "top_k": null,
+        "context_len": null,
+        "skip_seq_start": null,
+        "skip_seq_end": null,
+        "top_p": 1.0,
+        "uri": "https://api.abliteration.ai/v1",
+        "frequency_penalty": 0.0,
+        "presence_penalty": 0.0,
+        "seed": null,
+        "stop": [
+          "#",
+          ";"
+        ],
+        "suppressed_params": [],
+        "retry_json": true,
+        "extra_params": {}
+      },
+      "active": true,
+      "extra_dependency_names": [],
+      "generator_family_name": "abliteration.ai",
+      "modality": {
+        "in": [
+          "text"
+        ],
+        "out": [
+          "text"
+        ]
+      },
+      "parallel_capable": true,
+      "supports_multiple_generations": false,
+      "mod_time": "2026-04-10 06:41:21 +0000"
+    },
     "generators.azure.AzureOpenAIGenerator": {
       "description": "Wrapper for Azure Open AI. Expects AZURE_API_KEY, AZURE_ENDPOINT and AZURE_MODEL_NAME environment variables.",
       "DEFAULT_PARAMS": {

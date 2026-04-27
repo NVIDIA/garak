@@ -8,6 +8,7 @@ For a detailed oversight into how a generator operates, see :doc:`generators/bas
 .. toctree::
    :maxdepth: 2
 
+   generators/abliteration
    generators/azure
    generators/base
    generators/bedrock
