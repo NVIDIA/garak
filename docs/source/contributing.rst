@@ -62,6 +62,10 @@ Commit messages
 
 Commit messages should describe what is changed in the commit. Try to keep one "theme" per commit. We read commit messages to work out what the intent of the commit is. We're all trying to save time here, and clear commit messages that include context can be a great time saver. Check out this guide to writing `commit messages <https://www.freecodecamp.org/news/how-to-write-better-git-commit-messages/>`_.
 
+Garak project contribution requires commit messages to have an explicit and correct sign-off, including something like ``Signed-off-by: Elim Garak <elimgarak@tailoring4ru.space>`` at the end of each message. If you use Linux or OSX, you can use a script in ``.githooks/`` to automatically add these when committing, either by copying ``.githooks/prepare-commit-msg`` into your ``.git/hooks`` directory, or by running ``git config core.hooksPath .githooks``. Search for "git signoff" to see alternative routes for adding these messages automatically.
+
+The project maintainers recommended cryptographically signing commits. There is a built in signing mechanism within git for this, using git's ``global.signingkey``; one guide is in the git-scm documentation, `Git Tools - Signing Your Work <https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work>`__.
+
 Testing
 ~~~~~~~
 

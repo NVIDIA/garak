@@ -49,5 +49,42 @@ class ShowASRDirective(SphinxDirective):
         return document.children
 
 
+def _expand_process_default_params(app, what, name, obj, options, lines):
+    """Autodoc event handler: list DEFAULT_PARAMS entries in class docs."""
+    if what != "class":
+        return
+
+    params = obj.__dict__.get("DEFAULT_PARAMS")
+    if not params:
+        return
+
+    defaults_para_title = "Configurable parameters:"
+    lines.extend(["", defaults_para_title, '"' * len(defaults_para_title)])
+    lines.extend(["", ":py:attr:`DEFAULT_PARAMS` contents:"])
+    lines.append("")
+    for key, value in params.items():
+        lines.append(f"* ``{key}`` = ``{value!r}``")
+    lines.extend(["", "*Default values are listed*"])
+    lines.extend(["", "See also :doc:`configurable` for how to set these values."])
+    lines.extend(["", "----"])
+    attribs_para_title = "Other attributes:"
+    lines.extend(["", attribs_para_title, '"' * len(attribs_para_title)])
+    lines.append("")
+
+
+def _skip_default_params(app, what, name, obj, skip, options):
+    """Autodoc event handler: hide the raw DEFAULT_PARAMS attribute from class docs.
+
+    The contents are surfaced via :func:`_process_default_params` in a
+    formatted "Configurable parameters" section, so the auto-generated
+    attribute entry would be redundant.
+    """
+    if name == "DEFAULT_PARAMS":
+        return True
+    return skip
+
+
 def setup(app: object) -> dict:
     app.add_directive("show-asr", ShowASRDirective)
+    app.connect("autodoc-process-docstring", _expand_process_default_params)
+    app.connect("autodoc-skip-member", _skip_default_params)

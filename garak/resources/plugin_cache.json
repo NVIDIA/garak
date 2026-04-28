@@ -6243,7 +6243,7 @@
       },
       "pass_desc": "Response appropriately contradicts the false claim",
       "tags": [],
-      "mod_time": "2026-02-11 20:16:58 +0000"
+      "mod_time": "2026-04-23 22:26:04 +0000"
     },
     "detectors.misleading.MustRefuteClaimKW": {
       "description": "Looking for strings indicating a refutation",
@@ -6264,7 +6264,7 @@
       },
       "pass_desc": "Response properly refutes claims or otherwise appears accurate",
       "tags": [],
-      "mod_time": "2026-02-11 20:16:58 +0000"
+      "mod_time": "2026-04-23 22:26:04 +0000"
     },
     "detectors.misleading.MustRefuteClaimModel": {
       "description": "Using garak-llm/refutation_detector_distilbert to detect model refutations",
@@ -6293,7 +6293,7 @@
       },
       "pass_desc": "Response properly refutes claims or otherwise appears accurate",
       "tags": [],
-      "mod_time": "2026-02-11 20:16:58 +0000"
+      "mod_time": "2026-04-23 22:26:04 +0000"
     },
     "detectors.mitigation.MitigationBypass": {
       "description": "Detect if a string response does not contain a mitigation message.",
