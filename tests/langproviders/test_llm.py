@@ -29,7 +29,7 @@ def translator_config():
         "model_type": "llm.LLMTranslator",
         "uri": "http://localhost:11434/v1",
         "model_name": "llama3",
-        "key": "test-key",
+        "api_key": "test-key",
     }
 
 
@@ -42,24 +42,24 @@ class TestLLMTranslatorInit:
             from garak.services.langservice import _load_langprovider
 
             translator = _load_langprovider(translator_config)
-            assert translator.key == "test-key"
+            assert translator.api_key == "test-key"
 
     def test_init_with_env_var(self, translator_config, mock_openai_client):
         """LLM_TRANSLATOR_API_KEY env var is used when config key not set."""
         config = translator_config.copy()
-        del config["key"]
+        del config["api_key"]
 
         with patch.dict(os.environ, {"LLM_TRANSLATOR_API_KEY": "env-key"}):
             with patch("openai.OpenAI", return_value=mock_openai_client):
                 from garak.services.langservice import _load_langprovider
 
                 translator = _load_langprovider(config)
-                assert translator.key == "env-key"
+                assert translator.api_key == "env-key"
 
     def test_init_fallback_to_openai_key(self, translator_config, mock_openai_client):
         """Falls back to OPENAI_API_KEY when LLM_TRANSLATOR_API_KEY not set."""
         config = translator_config.copy()
-        del config["key"]
+        del config["api_key"]
 
         env = {"OPENAI_API_KEY": "openai-key"}
         with patch.dict(os.environ, env, clear=False):
@@ -69,7 +69,7 @@ class TestLLMTranslatorInit:
                 from garak.services.langservice import _load_langprovider
 
                 translator = _load_langprovider(config)
-                assert translator.key == "openai-key"
+                assert translator.api_key == "openai-key"
 
     def test_language_pair_parsing(self, translator_config, mock_openai_client):
         """Source and target languages are parsed correctly."""
