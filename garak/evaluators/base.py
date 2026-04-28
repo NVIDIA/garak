@@ -13,6 +13,7 @@ from typing import Iterable, Optional, Tuple, List
 from colorama import Fore, Style
 
 from garak import _config
+import garak._plugins
 import garak.attempt
 import garak.analyze.calibration
 import garak.analyze.detector_metrics
@@ -24,6 +25,23 @@ import garak.resources.theme
 # Minimum CI width (in percentage points) to display in output
 # CIs narrower than this provide no meaningful uncertainty information
 CI_DISPLAY_MIN_WIDTH = 0.001
+
+
+def _probe_plugin_path(probe_name: str) -> str:
+    if probe_name.startswith("probes."):
+        return probe_name
+    return f"probes.{probe_name}"
+
+
+def _probe_demon_tags(probe_name: str) -> list[str]:
+    tags = garak._plugins.PluginCache.plugin_info(_probe_plugin_path(probe_name))[
+        "tags"
+    ]
+    if not isinstance(tags, list):
+        raise TypeError(f"Expected list of probe tags for {probe_name}")
+    if not all(isinstance(tag, str) for tag in tags):
+        raise TypeError(f"Expected string probe tags for {probe_name}")
+    return [tag for tag in tags if tag.startswith("demon:")]
 
 
 class Evaluator:
@@ -244,11 +262,14 @@ class Evaluator:
                 )
 
             detectors_to_eval.update(attempt_detectors)
+            attempt_techniques = (
+                _probe_demon_tags(attempt.probe_classname) if attempt_detectors else []
+            )
             for attempt_detector in attempt_detectors:
                 detector_to_attempt_ids[attempt_detector].append(idx)
                 if attempt.intent:
                     intent_detector_groups[attempt.intent].add(attempt_detector)
-                for technique in attempt.technique_tags:
+                for technique in attempt_techniques:
                     technique_detector_groups[technique].add(attempt_detector)
 
         detector_results = {}

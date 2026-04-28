@@ -158,13 +158,6 @@ class Probe(Configurable):
         systematic transformation of attempts"""
         return attempt
 
-    def _get_technique_tags(self) -> List[str]:
-        return [
-            tag
-            for tag in self.tags
-            if isinstance(tag, str) and tag.startswith("demon:")
-        ]
-
     def _generator_precall_hook(self, generator, attempt=None) -> None:
         """function to be overloaded if a probe wants to take actions between
         attempt generation and posing prompts to the model"""
@@ -275,7 +268,6 @@ class Probe(Configurable):
         )
 
         new_attempt = self._attempt_prestore_hook(new_attempt, seq)
-        new_attempt.technique_tags = self._get_technique_tags()
         return new_attempt
 
     def _postprocess_attempt(self, this_attempt) -> garak.attempt.Attempt:

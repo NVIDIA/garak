@@ -58,7 +58,6 @@ class Buff(Configurable):
             goal=source_attempt.goal,
             seq=seq,
             intent=source_attempt.intent,
-            technique_tags=source_attempt.technique_tags,
         )
         new_attempt.notes["buff_creator"] = self.__class__.__name__
         new_attempt.notes["buff_source_attempt_uuid"] = str(
