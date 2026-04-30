@@ -146,6 +146,7 @@ tests = [
   "pytest_httpserver>=1.1.0",
   "pytest-asyncio>=0.21.0",
   "langcodes>=3.4.0",
+  "cryptography>=47.0.0",
 ]
 lint = [
   "black>=26.1.0",

@@ -9,6 +9,7 @@ import datetime
 import html
 import importlib
 import json
+import logging
 import markdown
 import os
 import pprint
@@ -26,6 +27,7 @@ from garak.data import path as data_path
 import garak.analyze
 import garak.analyze.calibration
 from garak.evaluators.base import CI_DISPLAY_MIN_WIDTH
+from garak.exception import ReportIncompatibleError
 
 if not _config.loaded:
     _config.load_config()
@@ -128,7 +130,15 @@ def _init_populate_result_db(evals, taxonomy=None):
         groups = []
         if taxonomy is not None:
             # get the probe tags
-            tags = garak._plugins.PluginCache.plugin_info(f"probes.{pm}.{pc}")["tags"]
+            try:
+                tags = garak._plugins.PluginCache.plugin_info(f"probes.{pm}.{pc}")[
+                    "tags"
+                ]
+            except (KeyError, TypeError, ValueError) as e:
+                raise ReportIncompatibleError(
+                    f"Report references unknown probe probes.{pm}.{pc}; "
+                    "the report was likely generated with a different garak version"
+                ) from e
             for tag in tags:
                 if tag.split(":")[0] == taxonomy:
                     groups.append(":".join(tag.split(":")[1:]))
@@ -140,7 +150,18 @@ def _init_populate_result_db(evals, taxonomy=None):
         for group in groups:
             cursor.execute(
                 "insert into results values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (pm, group, pc, detector, score, instances, passes, confidence, ci_lower, ci_upper),
+                (
+                    pm,
+                    group,
+                    pc,
+                    detector,
+                    score,
+                    instances,
+                    passes,
+                    confidence,
+                    ci_lower,
+                    ci_upper,
+                ),
             )
 
     return conn, cursor
@@ -252,9 +273,16 @@ def _get_probe_result_summaries(cursor, probe_group) -> List[tuple]:
 
 def _get_probe_info(probe_module, probe_class, absolute_score) -> dict:
     probe_classpath = f"probes.{probe_module}.{probe_class}"
-    probe_plugin_info = garak._plugins.PluginCache.plugin_info(probe_classpath)
-    probe_description = probe_plugin_info["description"]
-    probe_tags = probe_plugin_info["tags"]
+    try:
+        probe_plugin_info = garak._plugins.PluginCache.plugin_info(probe_classpath)
+        probe_description = probe_plugin_info["description"]
+        probe_tags = probe_plugin_info["tags"]
+        probe_tier = probe_plugin_info["tier"]
+    except (KeyError, TypeError, ValueError) as e:
+        raise ReportIncompatibleError(
+            f"Report references unknown probe {probe_classpath}; "
+            "the report was likely generated with a different garak version"
+        ) from e
     probe_plugin_name = f"{probe_module}.{probe_class}"
     return {
         "probe_name": probe_plugin_name,
@@ -263,7 +291,7 @@ def _get_probe_info(probe_module, probe_class, absolute_score) -> dict:
             absolute_score, garak.analyze.ABSOLUTE_DEFCON_BOUNDS
         ),
         "probe_descr": html.escape(probe_description),
-        "probe_tier": probe_plugin_info["tier"],
+        "probe_tier": probe_tier,
         "probe_tags": probe_tags,
     }
 
@@ -275,7 +303,7 @@ def _get_detectors_info(cursor, probe_group: str, probe_class: str) -> List[dict
         (probe_group, probe_class),
     )
     rows = res.fetchall()
-    
+
     return [
         {
             "detector": row[0],
@@ -302,10 +330,16 @@ def _get_probe_detector_details(
     calibration_used = False
     detector = re.sub(r"[^0-9A-Za-z_.]", "", detector)
     detector_module, detector_class = detector.split(".")
-    detector_cache_entry = garak._plugins.PluginCache.plugin_info(
-        f"detectors.{detector_module}.{detector_class}"
-    )
-    detector_description = detector_cache_entry["description"]
+    try:
+        detector_cache_entry = garak._plugins.PluginCache.plugin_info(
+            f"detectors.{detector_module}.{detector_class}"
+        )
+        detector_description = detector_cache_entry["description"]
+    except (KeyError, TypeError, ValueError) as e:
+        raise ReportIncompatibleError(
+            f"Report references unknown detector detectors.{detector_module}.{detector_class}; "
+            "the report was likely generated with a different garak version"
+        ) from e
 
     zscore = calibration.get_z_score(
         probe_module,
@@ -366,10 +400,16 @@ def _get_probe_detector_details(
         result["confidence"] = confidence
         result["absolute_confidence_lower"] = 1.0 - ci_upper  # Inverted
         result["absolute_confidence_upper"] = 1.0 - ci_lower  # Inverted
-        
+
         # Suppress zero-width CIs in HTML display (convert to 0-1 scale)
-        ci_width = abs(result["absolute_confidence_upper"] - result["absolute_confidence_lower"]) * 100
-        result["show_confidence_interval"] = (ci_width > CI_DISPLAY_MIN_WIDTH)
+        ci_width = (
+            abs(
+                result["absolute_confidence_upper"]
+                - result["absolute_confidence_lower"]
+            )
+            * 100
+        )
+        result["show_confidence_interval"] = ci_width > CI_DISPLAY_MIN_WIDTH
 
     return result
 
@@ -595,7 +635,19 @@ if __name__ == "__main__":
     digest = _get_report_digest(report_path)
     if not digest or taxonomy_specified:
         # Rebuild digest when taxonomy is specified, even if one already exists
-        digest = build_digest(report_path)
+        try:
+            digest = build_digest(report_path)
+        except ReportIncompatibleError as e:
+            print(
+                f"Report at {report_path} is not compatible with this garak install: {e}",
+                file=sys.stderr,
+            )
+            print(
+                "No HTML report was generated. "
+                "Regenerate the report with a matching garak version, or install the version that produced it.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
         if write_digest_suffix:
             with open(report_path, "a+", encoding="utf-8") as reportfile:
                 append_report_object(reportfile, digest)

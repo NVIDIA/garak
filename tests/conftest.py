@@ -79,6 +79,10 @@ def pytest_configure(config):
         "markers",
         "requires_storage(required_space_gb=1, path='/'): Skip the test if insufficient disk space.",
     )
+    config.addinivalue_line(
+        "markers",
+        "integration: Mark test as a live-server integration test (requires real network/mTLS server).",
+    )
 
 
 def check_storage(required_space_gb=1, path="/"):

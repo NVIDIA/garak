@@ -19,6 +19,9 @@ Uses the following options from ``_config.plugins.generators["rest.RestGenerator
 * ``ratelimit_codes`` - Which endpoint HTTP response codes should be caught as indicative of rate limiting and retried? ``List[int]``, default ``[429]``
 * ``skip_codes`` - Which endpoint HTTP response code should lead to the generation being treated as not possible and skipped for this query. Takes precedence over ``ratelimit_codes``.
 * ``verify_ssl`` - (optional) Enforce ssl certificate validation? Default is ``True``, a file path to a CA bundle can be provided. (bool|str)
+* ``client_cert`` - (optional) Path to a PEM-encoded client certificate file for mTLS. If the file contains both the certificate and private key, ``client_key`` is not required.
+* ``client_key`` - (optional) Path to the client private key file for mTLS. Must be set if ``client_cert`` does not contain the key. Cannot be set without ``client_cert``.
+* ``client_key_passphrase_env_var`` - (optional) Name of an environment variable holding the passphrase for an encrypted ``client_key``. The passphrase is never read from config files. If set, the named env var must be defined or startup will fail.
 
 Templates can be either a string or a JSON-serialisable Python object.
 Instance of ``$INPUT`` here are replaced with the prompt; instances of ``$KEY``
@@ -71,6 +74,48 @@ JSON file to connect to the LLM endpoint.
 
 If you need something more flexible, add a new module or class and inherit
 from RestGenerator.
+
+mTLS Client Certificate Authentication
+---------------------------------------
+
+To authenticate with a server that requires mutual TLS, provide your client certificate and (optionally)
+key. For a server-side CA bundle, use ``verify_ssl`` with a file path:
+
+.. code-block:: JSON
+
+   {
+      "rest": {
+         "RestGenerator": {
+            "name": "mTLS protected service",
+            "uri": "https://api.example.com/llm",
+            "client_cert": "/path/to/client.crt",
+            "client_key": "/path/to/client.key",
+            "client_key_passphrase_env_var": "MTLS_KEY_PASSPHRASE",
+            "verify_ssl": "/path/to/ca.crt"
+         }
+      }
+   }
+
+Set the passphrase securely via environment variable:
+
+.. code-block:: bash
+
+   export MTLS_KEY_PASSPHRASE="your_key_passphrase"
+   garak --target_type rest -G mtls_config.json --probes dan
+
+If using a combined PEM file containing both certificate and key, omit ``client_key``:
+
+.. code-block:: JSON
+
+   {
+      "rest": {
+         "RestGenerator": {
+            "uri": "https://api.example.com/llm",
+            "client_cert": "/path/to/combined.pem",
+            "verify_ssl": "/path/to/ca.crt"
+         }
+      }
+   }
 
 ----
 

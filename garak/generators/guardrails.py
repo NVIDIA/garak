@@ -10,6 +10,7 @@ from typing import List, Union
 from garak import _config
 from garak.attempt import Message, Conversation
 from garak.generators.base import Generator
+from garak.generators.openai import OpenAICompatible
 
 
 class NeMoGuardrails(Generator):
@@ -49,6 +50,39 @@ class NeMoGuardrails(Generator):
             return [content]
         else:
             return [None]
+
+
+class NeMoGuardrailsServer(OpenAICompatible):
+    """Generator for NeMo Guardrails Server
+
+    To select specific rails in a multi rail deployment set `config_ids` to match the rail configuration names
+    as documented by the `NeMo guardrails SDK <https://docs.nvidia.com/nemo/guardrails/0.21.0/run-rails/using-fastapi-server/chat-with-guardrailed-model.html#using-the-openai-python-sdk>`_.
+    """
+
+    ENV_VAR = None
+
+    supports_multiple_generations = False
+    generator_family_name = "Guardrails"
+
+    DEFAULT_PARAMS = OpenAICompatible.DEFAULT_PARAMS | {
+        "uri": "http://localhost:8000/v1/",
+        "config_ids": set(),
+    }
+
+    def __init__(self, name="", config_root=_config):
+        self.api_key = "not-used"  # suppress any api_key from being sent as the server does not utilize one
+        super().__init__(name, config_root)
+        if self.extra_params and not self.extra_params.get("extra_body"):
+            self.extra_params.append("extra_body")
+
+        guardrails = None
+        if self.config_ids:
+            guardrails = {"config_ids": self.config_ids}
+        if guardrails:
+            if hasattr(self, "extra_body") and self.extra_body and self.config_ids:
+                self.extra_body["guardrails"] = guardrails
+            else:
+                self.extra_body = {"guardrails": guardrails}
 
 
 DEFAULT_CLASS = "NeMoGuardrails"

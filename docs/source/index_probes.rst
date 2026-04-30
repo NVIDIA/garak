@@ -29,6 +29,7 @@ For a guide to writing probes, see :doc:`extending.probe`.
    probes/fileformats
    probes/fitd
    probes/glitch
+   probes/goat
    probes/goodside
    probes/grandma
    probes/latentinjection

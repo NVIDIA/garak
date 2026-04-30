@@ -109,7 +109,7 @@ class Configurable:
                 self._apply_config(plugins_config[namespaced_klass])
         self._apply_run_defaults()
         self._apply_missing_instance_defaults()
-        if hasattr(self, "ENV_VAR"):
+        if hasattr(self, "ENV_VAR") and self.ENV_VAR:
             if not hasattr(self, "key_env_var"):
                 self.key_env_var = self.ENV_VAR
         self._validate_env_var()
@@ -167,7 +167,7 @@ class Configurable:
                     setattr(self, k, v)
 
     def _validate_env_var(self):
-        if hasattr(self, "key_env_var"):
+        if hasattr(self, "key_env_var") and self.key_env_var:
             if not hasattr(self, "api_key") or self.api_key is None:
                 self.api_key = os.getenv(self.key_env_var, default=None)
                 if self.api_key is None:

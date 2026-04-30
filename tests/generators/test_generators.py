@@ -134,7 +134,12 @@ def test_instantiate_generators(classname):
 NON_CONVERSATION_GENERATORS = [
     classname
     for classname in GENERATORS
-    if not ("openai" in classname or "groq" in classname or "azure" in classname)
+    if not (
+        "openai" in classname
+        or "groq" in classname
+        or "azure" in classname
+        or "NeMoGuardrailsServer" in classname
+    )
 ]
 
 

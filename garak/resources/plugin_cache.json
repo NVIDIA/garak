@@ -2206,6 +2206,62 @@
       "tier": 3,
       "mod_time": "2026-02-06 17:58:53 +0000"
     },
+    "probes.goat.GOATAttack": {
+      "description": "Generative Offensive Agent Tester",
+      "DEFAULT_PARAMS": {
+        "max_calls_per_conv": 5,
+        "follow_prompt_cap": true,
+        "end_condition": "verify",
+        "early_stop_on": "any",
+        "red_team_model_type": "huggingface.Model",
+        "red_team_model_name": "Qwen/Qwen3-4B-Thinking-2507",
+        "red_team_model_config": {
+          "max_tokens": 4096
+        },
+        "custom_goals": [],
+        "augment_custom_goals": false,
+        "attack_hf_dataset": "JailbreakBench/JBB-Behaviors",
+        "attack_hf_dataset_load_kwargs": {
+          "split": "harmful",
+          "name": "behaviors"
+        },
+        "attack_hf_dataset_column": "Goal",
+        "num_goals": 5,
+        "custom_system_prompt": null,
+        "custom_initial_prompt": null,
+        "custom_followup_prompt": null,
+        "custom_judge_prompt": null,
+        "custom_attack_techniques": null
+      },
+      "active": false,
+      "doc_uri": "https://arxiv.org/abs/2410.01606",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "goal": "elicit a harmful, unethical, or illegal response from the model",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "judge.JailbreakOnlyAdversarial",
+      "tags": [
+        "owasp:llm01",
+        "owasp:llm09",
+        "avid-effect:security:S0403",
+        "quality:Behavioral:ContentSafety:HateHarassment",
+        "quality:Behavioral:ContentSafety:LegalGoodsServices",
+        "quality:Behavioral:ContentSafety:Profanity",
+        "quality:Behavioral:ContentSafety:Toxicity",
+        "quality:Behavioral:ContentSafety:Unauthorized",
+        "quality:Security:PromptStability",
+        "quality:Security:Adversarial",
+        "cwe:1427"
+      ],
+      "tier": 1,
+      "mod_time": "2026-04-28 16:58:26 +0000"
+    },
     "probes.goodside.Davidjl": {
       "description": "Exploit the ' davidjl' magic token",
       "DEFAULT_PARAMS": {},
@@ -5719,7 +5775,7 @@
       },
       "pass_desc": "Response does not decode the encoded payload",
       "tags": [],
-      "mod_time": "2026-02-11 20:16:58 +0000"
+      "mod_time": "2026-04-23 21:19:16 +0000"
     },
     "detectors.encoding.DecodeMatch": {
       "description": "Is there a direct decoding of anything in attempt[\"notes\"][\"triggers\"]?",
@@ -5740,7 +5796,7 @@
       },
       "pass_desc": "Response does not decode the encoded payload",
       "tags": [],
-      "mod_time": "2026-02-11 20:16:58 +0000"
+      "mod_time": "2026-04-23 21:19:16 +0000"
     },
     "detectors.exploitation.JinjaTemplateInjectionDetector": {
       "description": "Detect that a valid jinja template was provided with injected python code.",
@@ -5990,6 +6046,52 @@
       "tags": [],
       "mod_time": "2026-02-11 20:16:58 +0000"
     },
+    "detectors.judge.Jailbreak": {
+      "description": "Uses the configured model to detect if responses contain harmful content achieving the adversarial goal (JailbreakBench methodology)",
+      "DEFAULT_PARAMS": {
+        "skip": false,
+        "detector_model_type": "nim",
+        "detector_model_name": "meta/llama3-70b-instruct",
+        "detector_model_config": null,
+        "custom_system_prompt": null
+      },
+      "active": true,
+      "doc_uri": "https://github.com/JailbreakBench/jailbreakbench",
+      "extra_dependency_names": [],
+      "hit_desc": "Detector identified matching indicators of risk",
+      "lang_spec": "en",
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "pass_desc": "Detector found no issue",
+      "tags": [],
+      "mod_time": "2026-04-28 16:58:26 +0000"
+    },
+    "detectors.judge.JailbreakOnlyAdversarial": {
+      "description": "Uses the configured model to detect if responses contain harmful content achieving the adversarial goal (JailbreakBench methodology)",
+      "DEFAULT_PARAMS": {
+        "skip": false,
+        "detector_model_type": "nim",
+        "detector_model_name": "meta/llama3-70b-instruct",
+        "detector_model_config": null,
+        "custom_system_prompt": null
+      },
+      "active": true,
+      "doc_uri": "https://github.com/JailbreakBench/jailbreakbench",
+      "extra_dependency_names": [],
+      "hit_desc": "Detector identified matching indicators of risk",
+      "lang_spec": "en",
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "pass_desc": "Detector found no issue",
+      "tags": [],
+      "mod_time": "2026-04-28 16:58:26 +0000"
+    },
     "detectors.judge.ModelAsJudge": {
       "description": "Uses the configured model to detect responses that attained the probe goal",
       "DEFAULT_PARAMS": {
@@ -6012,7 +6114,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2026-02-11 20:16:58 +0000"
+      "mod_time": "2026-04-28 16:58:26 +0000"
     },
     "detectors.judge.Refusal": {
       "description": "Uses the configured model to detect if the responses is a refusal to answer",
@@ -6034,7 +6136,7 @@
       },
       "pass_desc": "Response refuses to answer",
       "tags": [],
-      "mod_time": "2026-02-11 20:16:58 +0000"
+      "mod_time": "2026-04-28 16:58:26 +0000"
     },
     "detectors.judge.RefusalOnlyAdversarial": {
       "description": "Uses the configured model to detect if the responses is a refusal to answer",
@@ -6056,7 +6158,7 @@
       },
       "pass_desc": "Response refuses adversarial prompt - safety boundaries maintained",
       "tags": [],
-      "mod_time": "2026-02-11 20:16:58 +0000"
+      "mod_time": "2026-04-28 16:58:26 +0000"
     },
     "detectors.knownbadsignatures.EICAR": {
       "description": "Is the EICAR test string present?",
@@ -8144,7 +8246,45 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-02-06 17:58:53 +0000"
+      "mod_time": "2026-04-13 17:10:30 +0000"
+    },
+    "generators.guardrails.NeMoGuardrailsServer": {
+      "description": "Generator for NeMo Guardrails Server",
+      "DEFAULT_PARAMS": {
+        "max_tokens": 150,
+        "temperature": 0.7,
+        "top_k": null,
+        "context_len": null,
+        "skip_seq_start": null,
+        "skip_seq_end": null,
+        "top_p": 1.0,
+        "uri": "http://localhost:8000/v1/",
+        "frequency_penalty": 0.0,
+        "presence_penalty": 0.0,
+        "seed": null,
+        "stop": [
+          "#",
+          ";"
+        ],
+        "suppressed_params": [],
+        "retry_json": true,
+        "extra_params": {},
+        "config_ids": []
+      },
+      "active": true,
+      "extra_dependency_names": [],
+      "generator_family_name": "Guardrails",
+      "modality": {
+        "in": [
+          "text"
+        ],
+        "out": [
+          "text"
+        ]
+      },
+      "parallel_capable": true,
+      "supports_multiple_generations": false,
+      "mod_time": "2026-04-13 17:10:30 +0000"
     },
     "generators.huggingface.InferenceAPI": {
       "description": "Get text generations from Hugging Face Inference API",
@@ -8866,7 +9006,10 @@
         "req_template": "{\"sender\": \"garak\", \"message\": \"$INPUT\"}",
         "request_timeout": 20,
         "proxies": null,
-        "verify_ssl": true
+        "verify_ssl": true,
+        "client_cert": null,
+        "client_key": null,
+        "client_key_passphrase_env_var": null
       },
       "active": true,
       "extra_dependency_names": [],
@@ -8961,7 +9104,10 @@
         "req_template": "$INPUT",
         "request_timeout": 20,
         "proxies": null,
-        "verify_ssl": true
+        "verify_ssl": true,
+        "client_cert": null,
+        "client_key": null,
+        "client_key_passphrase_env_var": null
       },
       "active": true,
       "extra_dependency_names": [],
@@ -8976,7 +9122,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-02-06 17:58:53 +0000"
+      "mod_time": "2026-04-15 11:54:13 +0000"
     },
     "generators.test.Blank": {
       "description": "This generator always returns the empty string.",
@@ -9001,7 +9147,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2026-02-06 17:58:53 +0000"
+      "mod_time": "2026-04-23 16:08:36 +0000"
     },
     "generators.test.BlankVision": {
       "description": "This text+image input generator always returns the empty string.",
@@ -9027,7 +9173,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2026-02-06 17:58:53 +0000"
+      "mod_time": "2026-04-23 16:08:36 +0000"
     },
     "generators.test.Lipsum": {
       "description": "Lorem Ipsum generator, so we can get non-zero outputs that vary",
@@ -9037,7 +9183,9 @@
         "top_k": null,
         "context_len": null,
         "skip_seq_start": null,
-        "skip_seq_end": null
+        "skip_seq_end": null,
+        "unit": "sentence",
+        "count": 1
       },
       "active": true,
       "extra_dependency_names": [],
@@ -9052,7 +9200,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-02-06 17:58:53 +0000"
+      "mod_time": "2026-04-23 16:08:36 +0000"
     },
     "generators.test.Nones": {
       "description": "This generator always returns a None for every generation.",
@@ -9077,7 +9225,38 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2026-02-06 17:58:53 +0000"
+      "mod_time": "2026-04-23 16:08:36 +0000"
+    },
+    "generators.test.ReasoningLipsum": {
+      "description": "Lorem Ipsum generator with a simulated reasoning trace, for testing",
+      "DEFAULT_PARAMS": {
+        "max_tokens": 150,
+        "temperature": null,
+        "top_k": null,
+        "context_len": null,
+        "skip_seq_start": "<think>",
+        "skip_seq_end": "</think>",
+        "unit": "sentence",
+        "count": 1,
+        "reasoning_length": 2000,
+        "output_length": 500,
+        "variance": 0.1,
+        "respect_max_tokens": false
+      },
+      "active": true,
+      "extra_dependency_names": [],
+      "generator_family_name": "Test",
+      "modality": {
+        "in": [
+          "text"
+        ],
+        "out": [
+          "text"
+        ]
+      },
+      "parallel_capable": true,
+      "supports_multiple_generations": false,
+      "mod_time": "2026-04-23 16:08:36 +0000"
     },
     "generators.test.Repeat": {
       "description": "This generator returns the last message from input that was posed to it.",
@@ -9102,7 +9281,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2026-02-06 17:58:53 +0000"
+      "mod_time": "2026-04-23 16:08:36 +0000"
     },
     "generators.test.Single": {
       "description": "This generator returns the a fixed string and does not support multiple generations.",
@@ -9127,7 +9306,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-02-06 17:58:53 +0000"
+      "mod_time": "2026-04-23 16:08:36 +0000"
     },
     "generators.watsonx.WatsonXGenerator": {
       "description": "This is a generator for watsonx.ai.",

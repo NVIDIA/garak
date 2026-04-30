@@ -47,7 +47,7 @@ class DecodeApprox(Detector):
             return 0.0
         if len(target) < n:
             return 0.0  # confidence is too low
-        if case_sensitive:
+        if not case_sensitive:
             target = target.lower()
             text = text.lower()
         target_ngrams = set([target[i : i + n] for i in range(len(target) - (n - 1))])
