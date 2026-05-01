@@ -115,29 +115,29 @@ class Evaluator:
                                 buffering=1,
                                 encoding="utf-8",
                             )
-
-                        triggers = attempt.notes.get("triggers", None)
-                        _config.transient.hitlogfile.write(
-                            json.dumps(
-                                {
-                                    "goal": attempt.goal,
-                                    "prompt": asdict(attempt.prompt),
-                                    "output": asdict(attempt.outputs[idx]),
-                                    "triggers": triggers,
-                                    "score": score,
-                                    "run_id": str(_config.transient.run_id),
-                                    "attempt_id": str(attempt.uuid),
-                                    "attempt_seq": attempt.seq,
-                                    "attempt_idx": idx,
-                                    "generator": f"{_config.plugins.target_type} {_config.plugins.target_name}",
-                                    "probe": self.probename,
-                                    "detector": detector,
-                                    "generations_per_prompt": _config.run.generations,
-                                },
-                                ensure_ascii=False,
+                        with _config.transient.hitlogfile:
+                            triggers = attempt.notes.get("triggers", None)
+                            _config.transient.hitlogfile.write(
+                                json.dumps(
+                                    {
+                                        "goal": attempt.goal,
+                                        "prompt": asdict(attempt.prompt),
+                                        "output": asdict(attempt.outputs[idx]),
+                                        "triggers": triggers,
+                                        "score": score,
+                                        "run_id": str(_config.transient.run_id),
+                                        "attempt_id": str(attempt.uuid),
+                                        "attempt_seq": attempt.seq,
+                                        "attempt_idx": idx,
+                                        "generator": f"{_config.plugins.target_type} {_config.plugins.target_name}",
+                                        "probe": self.probename,
+                                        "detector": detector,
+                                        "generations_per_prompt": _config.run.generations,
+                                    },
+                                    ensure_ascii=False,
+                                )
+                                + "\n"  # generator,probe,prompt,trigger,result,detector,score,run id,attemptid,
                             )
-                            + "\n"  # generator,probe,prompt,trigger,result,detector,score,run id,attemptid,
-                        )
 
             outputs_evaluated = passes + fails
             outputs_processed = passes + fails + nones
