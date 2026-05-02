@@ -201,6 +201,8 @@ class StringDetector(Detector):
         "case_sensitive": False,
     }
 
+    not_substrings: list[str] = []
+
     def __init__(self, substrings, config_root=_config):
         super().__init__(config_root=config_root)
         self.substrings = substrings
@@ -232,6 +234,15 @@ class StringDetector(Detector):
                     raise ValueError(
                         f"Don't know how to process matchtype: {self.matchtype}"
                     )
+
+            if match and self.not_substrings:
+                check_text = output_text if not self.case_sensitive else output_text.lower()
+                for excl in self.not_substrings:
+                    excl_s = excl.lower() if not self.case_sensitive else excl
+                    if excl_s in check_text:
+                        match = False
+                        break
+
             detector_results.append(1.0 if match else 0.0)
 
         return detector_results
