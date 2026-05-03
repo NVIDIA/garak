@@ -327,7 +327,12 @@ class OpenAICompatible(Generator):
             else:
                 raise e
 
-        if not hasattr(response, "choices"):
+        if not hasattr(response, "choices") or response.choices is None:
+            # Some OpenAI-compatible deployments (Azure, AWS Bedrock, ...) return
+            # a response object whose .choices attribute is present but None when
+            # they hit a downstream error or rate limit. Treat that the same as a
+            # missing attribute instead of letting the comprehension below blow up
+            # with TypeError: 'NoneType' object is not iterable. See issue #1525.
             logging.debug(
                 "Did not get a well-formed response, retrying. Expected object with .choices member, got: '%s'"
                 % repr(response)

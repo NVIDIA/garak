@@ -99,3 +99,53 @@ def test_reasoning_switch():
         generator = OpenAIGenerator(
             name="o1-mini"
         )  # o1 models should use ReasoningGenerator
+
+
+class _FakeResponseChoicesNone:
+    """OpenAI-compatible response stub whose .choices attribute is None.
+
+    Some hosted endpoints (Azure, AWS Bedrock, ...) hand back this shape on
+    upstream errors, which used to crash _call_model with TypeError.
+    """
+
+    choices = None
+
+
+@pytest.mark.usefixtures("set_fake_env")
+def test_call_model_handles_none_choices(monkeypatch):
+    """Regression test for issue #1525.
+
+    When the upstream response object has ``choices = None`` (rather than the
+    attribute being absent), _call_model should fall through the
+    'no .choices member' path and return [None] / raise GeneratorBackoffTrigger
+    depending on retry_json — never iterate None directly.
+    """
+    generator = OpenAIGenerator(name="gpt-3.5-turbo-instruct")
+    generator._load_unsafe = lambda: None  # don't try to actually open a client
+
+    class _FakeChatCompletions:
+        @staticmethod
+        def create(**_kwargs):
+            return _FakeResponseChoicesNone()
+
+    class _FakeClient:
+        completions = object()  # sentinel: chat path is taken because != generator
+        chat = type("_Chat", (), {"completions": _FakeChatCompletions})()
+
+    fake_client = _FakeClient()
+    monkeypatch.setattr(generator, "client", fake_client, raising=False)
+    monkeypatch.setattr(generator, "generator", _FakeChatCompletions, raising=False)
+
+    # retry_json False → should return [None] without raising.
+    monkeypatch.setattr(generator, "retry_json", False, raising=False)
+    out = generator._call_model(
+        Conversation([Turn("user", Message("hi"))]), generations_this_call=1
+    )
+    assert out == [None]
+
+    # retry_json True → should raise GeneratorBackoffTrigger to retry.
+    monkeypatch.setattr(generator, "retry_json", True, raising=False)
+    with pytest.raises(garak.exception.GeneratorBackoffTrigger):
+        generator._call_model(
+            Conversation([Turn("user", Message("hi"))]), generations_this_call=1
+        )
