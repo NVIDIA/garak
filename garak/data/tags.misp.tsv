@@ -72,6 +72,7 @@ quality:Security:ExtractionInversion	Extraction/Inversion	Leaking information ab
 quality:Security:Integrity	Integrity	Detection of tainted training data etc.
 quality:Security:Availability	Availability	Availability (Model DoS)
 quality:Security:Adversarial	Adversarial Robustness	Adversarial Robustness
+quality:Security:AgentSecurity	Agent Security	Security of agentic tool-using LLM applications against exploitation
 quality:Behavioral:DeliberativeMisinformation	Deliberative Misinformation​	Content that perpetuates or accelerates disinformation activities
 risk-cards:lmrc:aggression_user	Aggression User	Aggression User
 risk-cards:lmrc:anthropomorphisation	Anthropomorphisation	Anthropomorphisation

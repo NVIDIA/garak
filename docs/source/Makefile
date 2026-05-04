@@ -1,8 +1,9 @@
 outdir := html
+SPHINXOPTS ?=
 
 doc:
 	@echo "Building docs to '`pwd`/$(outdir)'"
-	python -m sphinx -T -E -b html -d _build/doctrees -D language=en ./ $(outdir)
+	python -m sphinx -T -E -b html -d _build/doctrees -D language=en $(SPHINXOPTS) ./ $(outdir)
 
 clean:
 	@echo "Clearing docs output"

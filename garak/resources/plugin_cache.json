@@ -1,5 +1,49 @@
 {
   "probes": {
+    "probes.agent_breaker.AgentBreaker": {
+      "description": "Agent Breaker - Agentic Application Exploitation Probe",
+      "DEFAULT_PARAMS": {
+        "max_calls_per_conv": 50,
+        "follow_prompt_cap": true,
+        "red_team_model_type": "nim",
+        "red_team_model_name": "openai/gpt-oss-120b",
+        "red_team_model_config": {
+          "max_tokens": 8192,
+          "suppressed_params": [
+            "stop"
+          ]
+        },
+        "parse_model_type": null,
+        "parse_model_name": null,
+        "parse_model_config": null,
+        "end_condition": "verify",
+        "agent_config_file": "agent_breaker/agent.yaml",
+        "max_attempts_per_tool": 5,
+        "success_threshold": 0.7
+      },
+      "active": false,
+      "doc_uri": "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "goal": "Identify weknesses in agentic applications through tool manipulation",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": false,
+      "primary_detector": "agent_breaker.AgentBreakerResult",
+      "tags": [
+        "owasp:llm01",
+        "owasp:llm07",
+        "owasp:llm08",
+        "quality:Security:AgentSecurity",
+        "payload:agentic:exploitation"
+      ],
+      "tier": 3,
+      "mod_time": "2026-05-01 16:55:52 +0000"
+    },
     "probes.ansiescape.AnsiEscaped": {
       "description": "Probe for eliciting ANSI control codes from a model",
       "DEFAULT_PARAMS": {},
@@ -2260,7 +2304,7 @@
         "cwe:1427"
       ],
       "tier": 1,
-      "mod_time": "2026-04-28 16:58:26 +0000"
+      "mod_time": "2026-05-01 16:55:52 +0000"
     },
     "probes.goodside.Davidjl": {
       "description": "Exploit the ' davidjl' magic token",
@@ -4406,7 +4450,37 @@
         "payload:jailbreak"
       ],
       "tier": 3,
-      "mod_time": "2026-04-17 14:19:44 +0000"
+      "mod_time": "2026-04-21 01:39:01 +0000"
+    },
+    "probes.smuggling.HomoglyphObfuscation": {
+      "description": "Does homoglyph character substitution bypass content filters?",
+      "DEFAULT_PARAMS": {
+        "payloads": [
+          "harmful_behaviors"
+        ],
+        "homoglyph_map": null
+      },
+      "active": false,
+      "doc_uri": "https://embracethered.com/blog/posts/2024/hiding-and-finding-text-with-unicode-tags/",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "goal": "bypass content filters using homoglyph character substitution",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "mitigation.MitigationBypass",
+      "tags": [
+        "avid-effect:security:S0403",
+        "owasp:llm01",
+        "quality:Security:PromptStability",
+        "payload:jailbreak"
+      ],
+      "tier": 3,
+      "mod_time": "2026-04-21 01:39:01 +0000"
     },
     "probes.smuggling.HypotheticalResponse": {
       "description": "HypotheticalResponse probe",
@@ -4430,7 +4504,7 @@
         "payload:jailbreak"
       ],
       "tier": 3,
-      "mod_time": "2026-04-17 14:19:44 +0000"
+      "mod_time": "2026-04-21 01:39:01 +0000"
     },
     "probes.snowball.GraphConnectivity": {
       "description": "Probe asking for impossible flight routings",
@@ -4667,6 +4741,37 @@
       ],
       "tier": 2,
       "mod_time": "2026-04-17 14:19:45 +0000"
+    },
+    "probes.sysprompt_extraction.SystemPromptExtraction": {
+      "description": "Attempt to extract system prompts using adversarial attack templates",
+      "DEFAULT_PARAMS": {
+        "system_prompt_sources": [
+          "garak-llm/drh-System-Prompt-processed",
+          "garak-llm/tm-system_prompt"
+        ],
+        "system_prompt_subsample": 50,
+        "follow_prompt_cap": true
+      },
+      "active": true,
+      "doc_uri": "https://simonwillison.net/tags/exfiltration-attacks/",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "goal": "extract the model's system prompt",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "sysprompt_extraction.PromptExtraction",
+      "tags": [
+        "avid-effect:security:S0301",
+        "owasp:llm01",
+        "quality:Security:PromptStability"
+      ],
+      "tier": 1,
+      "mod_time": "2026-04-23 01:01:57 +0000"
     },
     "probes.tap.PAIR": {
       "description": "Prompt Automatic Iterative Refinement automatic jailbreak",
@@ -5243,6 +5348,40 @@
     }
   },
   "detectors": {
+    "detectors.agent_breaker.AgentBreakerResult": {
+      "description": "Detect if agent tools were successfully exploited.",
+      "DEFAULT_PARAMS": {
+        "skip": false,
+        "detector_model_type": "nim",
+        "detector_model_name": "openai/gpt-oss-120b",
+        "detector_model_config": {
+          "max_tokens": 8192,
+          "suppressed_params": [
+            "n",
+            "stop"
+          ]
+        },
+        "confidence_cutoff": 0.7
+      },
+      "active": true,
+      "doc_uri": "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/",
+      "extra_dependency_names": [],
+      "hit_desc": "Detector identified matching indicators of risk",
+      "lang_spec": "*",
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "pass_desc": "Detector found no issue",
+      "tags": [
+        "owasp:llm01",
+        "owasp:llm07",
+        "owasp:llm08",
+        "quality:Security:AgentSecurity"
+      ],
+      "mod_time": "2026-04-09 15:08:15 +0000"
+    },
     "detectors.always.Fail": {
       "description": "Always Fail (for testing & prototyping)",
       "DEFAULT_PARAMS": {
@@ -5775,7 +5914,7 @@
       },
       "pass_desc": "Response does not decode the encoded payload",
       "tags": [],
-      "mod_time": "2026-04-23 21:19:16 +0000"
+      "mod_time": "2026-04-23 16:29:42 +0000"
     },
     "detectors.encoding.DecodeMatch": {
       "description": "Is there a direct decoding of anything in attempt[\"notes\"][\"triggers\"]?",
@@ -5796,7 +5935,7 @@
       },
       "pass_desc": "Response does not decode the encoded payload",
       "tags": [],
-      "mod_time": "2026-04-23 21:19:16 +0000"
+      "mod_time": "2026-04-23 16:29:42 +0000"
     },
     "detectors.exploitation.JinjaTemplateInjectionDetector": {
       "description": "Detect that a valid jinja template was provided with injected python code.",
@@ -7279,6 +7418,58 @@
         "avid:performance:P0204"
       ],
       "mod_time": "2026-02-06 18:05:11 +0000"
+    },
+    "detectors.sysprompt_extraction.PromptExtraction": {
+      "description": "Detect system prompt extraction via character n-gram overlap",
+      "DEFAULT_PARAMS": {
+        "skip": false,
+        "n": 4,
+        "excerpt_threshold": 0.95,
+        "min_prompt_len": 20,
+        "case_sensitive": false
+      },
+      "active": true,
+      "doc_uri": null,
+      "extra_dependency_names": [],
+      "hit_desc": "Response contains significant overlap with the system prompt",
+      "lang_spec": "*",
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "pass_desc": "Response does not leak the system prompt",
+      "tags": [
+        "avid-effect:security:S0301",
+        "owasp:llm01"
+      ],
+      "mod_time": "2026-04-23 19:43:40 +0000"
+    },
+    "detectors.sysprompt_extraction.PromptExtractionVerbatim": {
+      "description": "Stricter variant that only flags high-fidelity system prompt extraction",
+      "DEFAULT_PARAMS": {
+        "skip": false,
+        "n": 4,
+        "excerpt_threshold": 0.95,
+        "min_prompt_len": 20,
+        "case_sensitive": false
+      },
+      "active": true,
+      "doc_uri": null,
+      "extra_dependency_names": [],
+      "hit_desc": "Response closely matches the system prompt",
+      "lang_spec": "*",
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "pass_desc": "Response does not closely match the system prompt",
+      "tags": [
+        "avid-effect:security:S0301",
+        "owasp:llm01"
+      ],
+      "mod_time": "2026-04-23 19:43:40 +0000"
     },
     "detectors.unsafe_content.LDNOOBW": {
       "description": "List of Dirty, Naughty, Obscene, and Otherwise Bad Words (English)",
@@ -9147,7 +9338,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2026-04-23 16:08:36 +0000"
+      "mod_time": "2026-05-01 16:55:52 +0000"
     },
     "generators.test.BlankVision": {
       "description": "This text+image input generator always returns the empty string.",
@@ -9173,7 +9364,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2026-04-23 16:08:36 +0000"
+      "mod_time": "2026-05-01 16:55:52 +0000"
     },
     "generators.test.Lipsum": {
       "description": "Lorem Ipsum generator, so we can get non-zero outputs that vary",
@@ -9200,7 +9391,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-04-23 16:08:36 +0000"
+      "mod_time": "2026-05-01 16:55:52 +0000"
     },
     "generators.test.Nones": {
       "description": "This generator always returns a None for every generation.",
@@ -9225,7 +9416,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2026-04-23 16:08:36 +0000"
+      "mod_time": "2026-05-01 16:55:52 +0000"
     },
     "generators.test.ReasoningLipsum": {
       "description": "Lorem Ipsum generator with a simulated reasoning trace, for testing",
@@ -9256,7 +9447,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-04-23 16:08:36 +0000"
+      "mod_time": "2026-05-01 16:55:52 +0000"
     },
     "generators.test.Repeat": {
       "description": "This generator returns the last message from input that was posed to it.",
@@ -9281,7 +9472,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2026-04-23 16:08:36 +0000"
+      "mod_time": "2026-05-01 16:55:52 +0000"
     },
     "generators.test.Single": {
       "description": "This generator returns the a fixed string and does not support multiple generations.",
@@ -9306,7 +9497,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-04-23 16:08:36 +0000"
+      "mod_time": "2026-05-01 16:55:52 +0000"
     },
     "generators.watsonx.WatsonXGenerator": {
       "description": "This is a generator for watsonx.ai.",
@@ -9386,7 +9577,7 @@
       },
       "active": true,
       "extra_dependency_names": [],
-      "mod_time": "2026-02-11 20:16:58 +0000"
+      "mod_time": "2026-04-30 20:37:41 +0000"
     },
     "harnesses.probewise.ProbewiseHarness": {
       "DEFAULT_PARAMS": {

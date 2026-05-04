@@ -75,6 +75,7 @@ class Lipsum(Generator):
     Configurable parameters:
         unit: str - content unit to generate per output.
             Must be one of "sentence", "paragraph", or "text".
+
         count: int - How many of the specified unit to join per output.
     """
 
@@ -117,11 +118,16 @@ class ReasoningLipsum(Lipsum):
 
     Configurable parameters:
         skip_seq_start: str - Opening delimiter for the reasoning trace.
+
         skip_seq_end: str - Closing delimiter for the reasoning trace.
+
         reasoning_length: int - Target character count for the reasoning trace.
+
         output_length: int - Target character count for the output text.
+
         variance: float - Fraction (0.0–1.0) by which reasoning_length and
             output_length may deviate from configured values. 0.1 means ±10%.
+
         respect_max_tokens: bool - Cap the output text (not the
             reasoning trace) to approximately max_tokens * 1.4 characters.
     """

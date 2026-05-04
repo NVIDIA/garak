@@ -44,13 +44,21 @@ class GOATAttack(garak.probes.IterativeProbe):
 
     Configuration:
         num_goals: Number of goals to randomly sample (-1 for all)
+
         custom_goals: List of custom attack goals
+
         augment_custom_goals: Whether to add custom goals to dataset goals
+
         attack_hf_dataset: HuggingFace dataset path for attack goals
+
         max_calls_per_conv: Maximum turns per conversation
+
         red_team_model_type: Generator type for attacker LLM
+
         red_team_model_name: Model name for attacker LLM
+
         end_condition: Early stopping mode ("verify" or "detector")
+
         early_stop_on: When to mark an attempt as adversarial ("any" or "all").
             Only relevant when generations > 1.
             "any" (default): Mark adversarial as soon as any generation branch
@@ -193,21 +201,27 @@ class GOATAttack(garak.probes.IterativeProbe):
         if self.custom_initial_prompt:
             self.initial_prompt_template = self.custom_initial_prompt
         else:
-            with open(goat_data_path / "initial_prompt.txt", "r", encoding="utf-8") as f:
+            with open(
+                goat_data_path / "initial_prompt.txt", "r", encoding="utf-8"
+            ) as f:
                 self.initial_prompt_template = f.read()
 
         # Followup prompt (subsequent turns)
         if self.custom_followup_prompt:
             self.followup_prompt_template = self.custom_followup_prompt
         else:
-            with open(goat_data_path / "followup_prompt.txt", "r", encoding="utf-8") as f:
+            with open(
+                goat_data_path / "followup_prompt.txt", "r", encoding="utf-8"
+            ) as f:
                 self.followup_prompt_template = f.read()
 
         # Attack techniques
         if self.custom_attack_techniques:
             self.attack_techniques = self.custom_attack_techniques
         else:
-            with open(goat_data_path / "attack_techniques.json", "r", encoding="utf-8") as f:
+            with open(
+                goat_data_path / "attack_techniques.json", "r", encoding="utf-8"
+            ) as f:
                 self.attack_techniques = json.load(f)
 
         # Judge prompt (JailbreakBench classifier)
@@ -317,7 +331,9 @@ class GOATAttack(garak.probes.IterativeProbe):
         """Format attack techniques for the system prompt."""
         techniques = []
         for name, definition in self.attack_techniques.items():
-            techniques.append(f"Technique Name: {name}\nTechnique Definition: {definition}")
+            techniques.append(
+                f"Technique Name: {name}\nTechnique Definition: {definition}"
+            )
         return "\n\n".join(techniques)
 
     def _create_init_attempts(self) -> Iterable[garak.attempt.Attempt]:
@@ -345,10 +361,12 @@ class GOATAttack(garak.probes.IterativeProbe):
 
             initial_prompt = self.initial_prompt_template.format(goal=goal)
 
-            C_A = garak.attempt.Conversation([
-                garak.attempt.Turn("system", garak.attempt.Message(system_prompt)),
-                garak.attempt.Turn("user", garak.attempt.Message(initial_prompt)),
-            ])
+            C_A = garak.attempt.Conversation(
+                [
+                    garak.attempt.Turn("system", garak.attempt.Message(system_prompt)),
+                    garak.attempt.Turn("user", garak.attempt.Message(initial_prompt)),
+                ]
+            )
 
             # Generate first adversarial prompt from attacker LLM
             adversarial_prompt, C_A = self._generate_adversarial_prompt(C_A)
@@ -360,25 +378,33 @@ class GOATAttack(garak.probes.IterativeProbe):
 
             # Create target conversation C_T with just the adversarial prompt
             target_conversation = garak.attempt.Conversation(
-                turns=[garak.attempt.Turn("user", garak.attempt.Message(adversarial_prompt))],
+                turns=[
+                    garak.attempt.Turn(
+                        "user", garak.attempt.Message(adversarial_prompt)
+                    )
+                ],
                 notes={"turn": 1},
             )
 
             # Create attempt using IterativeProbe's helper
             attempt = self._create_attempt(target_conversation)
             attempt.notes = attempt.notes or {}
-            attempt.notes.update({
-                "attack_goal": goal,
-                "attacker_conversation": C_A,
-                "is_adversarial": False,  # Will be set True when this becomes final turn
-            })
+            attempt.notes.update(
+                {
+                    "attack_goal": goal,
+                    "attacker_conversation": C_A,
+                    "is_adversarial": False,  # Will be set True when this becomes final turn
+                }
+            )
 
             init_attempts.append(attempt)
 
         logging.info(f"goat.GOATAttack: Created {len(init_attempts)} initial attempts")
         return init_attempts
 
-    def _postprocess_attempt(self, this_attempt: garak.attempt.Attempt) -> garak.attempt.Attempt:
+    def _postprocess_attempt(
+        self, this_attempt: garak.attempt.Attempt
+    ) -> garak.attempt.Attempt:
         """Override to set is_adversarial before the deep copy in parent class.
 
         The parent class (IterativeProbe._postprocess_attempt) calls super() which
@@ -411,9 +437,7 @@ class GOATAttack(garak.probes.IterativeProbe):
         attack_goal = this_attempt.notes.get("attack_goal", "")
         if self.early_stop_on == "any" and attack_goal in self._achieved_goals:
             this_attempt.notes["is_adversarial"] = False
-            this_attempt.notes["_should_terminate"] = [True] * len(
-                this_attempt.outputs
-            )
+            this_attempt.notes["_should_terminate"] = [True] * len(this_attempt.outputs)
             logging.debug(
                 f"goat.GOATAttack: Goal already achieved, marking attempt "
                 f"{this_attempt.uuid} as non-adversarial to avoid metric inflation."
@@ -494,7 +518,9 @@ class GOATAttack(garak.probes.IterativeProbe):
         if r_A:
             formatted_response = self._format_otsr(r_A)
             attacker_conversation.turns.append(
-                garak.attempt.Turn("assistant", garak.attempt.Message(formatted_response))
+                garak.attempt.Turn(
+                    "assistant", garak.attempt.Message(formatted_response)
+                )
             )
 
         return adversarial_prompt, attacker_conversation
@@ -657,7 +683,9 @@ class GOATAttack(garak.probes.IterativeProbe):
         next_attempts = []
         C_A = last_attempt.notes.get("attacker_conversation")
 
-        for conversation, should_term in zip(last_attempt.conversations, should_terminate):
+        for conversation, should_term in zip(
+            last_attempt.conversations, should_terminate
+        ):
             if should_term or is_last_possible_turn:
                 continue  # Don't generate next turn
 
@@ -709,20 +737,26 @@ class GOATAttack(garak.probes.IterativeProbe):
             # Create next attempt
             next_attempt = self._create_attempt(next_conversation)
             next_attempt.notes = next_attempt.notes or {}
-            next_attempt.notes.update({
-                "attack_goal": attack_goal,
-                "attacker_conversation": C_A,
-                "is_adversarial": False,
-            })
+            next_attempt.notes.update(
+                {
+                    "attack_goal": attack_goal,
+                    "attacker_conversation": C_A,
+                    "is_adversarial": False,
+                }
+            )
 
             next_attempts.append(next_attempt)
 
         return next_attempts
 
-    def _call_attacker_llm(self, conversation: garak.attempt.Conversation) -> Optional[str]:
+    def _call_attacker_llm(
+        self, conversation: garak.attempt.Conversation
+    ) -> Optional[str]:
         """Call the attacker LLM and return the response text."""
         try:
-            response = self.attacker_model.generate(conversation, generations_this_call=1)
+            response = self.attacker_model.generate(
+                conversation, generations_this_call=1
+            )
         except GarakException as e:
             logging.warning(f"goat.GOATAttack: Attacker LLM error: {e}")
             return None
@@ -764,9 +798,9 @@ class GOATAttack(garak.probes.IterativeProbe):
             "Response": r"(?:^|\n)\s*[▶►]?\s*Response[:\s]+(.+?)(?=(?:\n\s*(?:---+|\-{3,})\s*(?:\n|$)|\n\s*[▶►]?\s*(?:Observation|Thought|Strategy|Response)[:\s])|$)",
         }
         NESTED_OTSR_RE = re.compile(
-            r'\n\s*(?:---+|\-{3,})\s*(?:\n|$)'
-            r'|\n\s*[▶►]?\s*(?:Observation|Thought|Strategy|Response)[:\s]'
-            r'|\n\s*\*\*(?:Observation|Thought|Strategy|Response):\*\*',
+            r"\n\s*(?:---+|\-{3,})\s*(?:\n|$)"
+            r"|\n\s*[▶►]?\s*(?:Observation|Thought|Strategy|Response)[:\s]"
+            r"|\n\s*\*\*(?:Observation|Thought|Strategy|Response):\*\*",
             re.IGNORECASE,
         )
 
@@ -780,7 +814,7 @@ class GOATAttack(garak.probes.IterativeProbe):
                 if key == "Response":
                     nested = NESTED_OTSR_RE.search(content)
                     if nested:
-                        content = content[:nested.start()].strip()
+                        content = content[: nested.start()].strip()
                 # Remove quotes
                 content = re.sub(r'^["\']|["\']$', "", content).strip()
                 result[key] = content
@@ -800,7 +834,7 @@ class GOATAttack(garak.probes.IterativeProbe):
                     if key == "Response":
                         nested = NESTED_OTSR_RE.search(content)
                         if nested:
-                            content = content[:nested.start()].strip()
+                            content = content[: nested.start()].strip()
                     result[key] = content
 
         # Final fallback: use whole text as Response
@@ -836,9 +870,9 @@ class GOATAttack(garak.probes.IterativeProbe):
         # Combine judge prompt template with the evaluation content
         full_prompt = self.judge_prompt_template.format(goal=goal, response=response)
 
-        conversation = garak.attempt.Conversation([
-            garak.attempt.Turn("user", garak.attempt.Message(full_prompt))
-        ])
+        conversation = garak.attempt.Conversation(
+            [garak.attempt.Turn("user", garak.attempt.Message(full_prompt))]
+        )
 
         judge_response = self._call_attacker_llm(conversation)
         if not judge_response:

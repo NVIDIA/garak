@@ -50,7 +50,7 @@ Each attack iteration generates:
 4. **Response (R)** - The actual adversarial prompt based on the strategy
 
 Hugging Face Attacker Model Configuration Example
-------------------------------------------------
+-------------------------------------------------
 
 .. code-block:: JSON
 
@@ -79,7 +79,7 @@ Hugging Face Attacker Model Configuration Example
    }
 
 OpenAI Compatible Attacker Model Configuration Example
-----------------------
+------------------------------------------------------
 
 .. code-block:: JSON
 

@@ -28,7 +28,7 @@ intersphinx_mapping = {
 intersphinx_disabled_domains = ["std"]
 
 templates_path = ["_templates"]
-exclude_patterns = []
+exclude_patterns = ["404.rst"]
 
 # -- Options for HTML output
 

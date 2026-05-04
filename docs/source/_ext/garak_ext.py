@@ -65,10 +65,9 @@ def _expand_process_default_params(app, what, name, obj, options, lines):
     for key, value in params.items():
         lines.append(f"* ``{key}`` = ``{value!r}``")
     lines.extend(["", "*Default values are listed*"])
-    lines.extend(["", "See also :doc:`configurable` for how to set these values."])
-    lines.extend(["", "----"])
+    lines.extend(["", "See also :doc:`/configurable` for how to set these values."])
     attribs_para_title = "Other attributes:"
-    lines.extend(["", attribs_para_title, '"' * len(attribs_para_title)])
+    lines.extend(["", f".. rubric:: " + attribs_para_title])
     lines.append("")
 
 

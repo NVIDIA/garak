@@ -52,6 +52,7 @@ def _parse_report(reportfile: IO):
     payloads = []
     setup = defaultdict(str)
     init = {}
+    plugin_cache = None
 
     for record in [json.loads(line.strip()) for line in reportfile if line.strip()]:
         if record["entry_type"] == "eval":
@@ -70,11 +71,29 @@ def _parse_report(reportfile: IO):
                 + "  "
                 + pprint.pformat(record, sort_dicts=True, width=60)
             )
+        elif record["entry_type"] == "plugin_cache":
+            if plugin_cache is None:
+                plugin_cache = {}
+            for category, entries in record.get("plugin_cache", {}).items():
+                if category == "version":
+                    plugin_cache["version"] = entries
+                    continue
+                plugin_cache.setdefault(category, {}).update(entries)
 
-    return init, setup, payloads, evals
+    if plugin_cache is None or len(plugin_cache) <= 0:
+        from copy import deepcopy
+        plugin_cache = deepcopy(garak._plugins.PluginCache.instance())
+        plugin_cache["version"] = garak.__version__
+    return init, setup, payloads, evals, plugin_cache
 
 
 def _report_header_content(report_path, init, setup, payloads, config=_config) -> dict:
+    target_type = setup.get(
+        "plugins.target_type", setup.get("plugins.model_type", None)
+    )
+    target_name = setup.get(
+        "plugins.target_name", setup.get("plugins.model_name", None)
+    )
     header_content = {
         "reportfile": report_path.split(os.sep)[-1],
         "garak_version": init["garak_version"],
@@ -82,8 +101,8 @@ def _report_header_content(report_path, init, setup, payloads, config=_config) -
         "run_uuid": init["run_uuid"],
         "setup": setup,
         "probespec": setup["plugins.probe_spec"],
-        "target_type": setup["plugins.target_type"],
-        "target_name": setup["plugins.target_name"],
+        "target_type": target_type,
+        "target_name": target_name,
         "payloads": payloads,
         "group_aggregation_function": config.reporting.group_aggregation_function,
         "report_digest_time": datetime.datetime.now().isoformat(),
@@ -92,7 +111,27 @@ def _report_header_content(report_path, init, setup, payloads, config=_config) -
     return header_content
 
 
-def _init_populate_result_db(evals, taxonomy=None):
+def _resolve_plugin_info(plugin_classpath, report_plugin_cache, required_fields=None):
+
+    category = plugin_classpath.split(".")[0]
+    meta = report_plugin_cache.get(category, {}).get(plugin_classpath)
+    if meta is None:
+        raise ValueError(f"plugin_cache missing metadata for {plugin_classpath}")
+
+    missing = [
+        field
+        for field in (required_fields or ())
+        if field not in meta or meta[field] is None
+    ]
+    if missing:
+        raise ValueError(
+            f"plugin_cache metadata for {plugin_classpath} missing fields: {missing}"
+        )
+
+    return meta
+
+
+def _init_populate_result_db(evals, taxonomy=None, report_plugin_cache=None):
 
     conn = sqlite3.connect(":memory:")
     cursor = conn.cursor()
@@ -119,7 +158,7 @@ def _init_populate_result_db(evals, taxonomy=None):
         pm, pc = eval["probe"].split(".")
         detector = eval["detector"].replace("detector.", "")
         passes = eval["passed"]
-        instances = eval["total_evaluated"]
+        instances = eval.get("total_evaluated", eval.get("total", None))
         score = passes / instances if instances else 0
 
         # Extract CI fields if present
@@ -131,9 +170,12 @@ def _init_populate_result_db(evals, taxonomy=None):
         if taxonomy is not None:
             # get the probe tags
             try:
-                tags = garak._plugins.PluginCache.plugin_info(f"probes.{pm}.{pc}")[
-                    "tags"
-                ]
+                meta = _resolve_plugin_info(
+                    f"probes.{pm}.{pc}",
+                    report_plugin_cache,
+                    required_fields=("tags",),
+                )
+                tags = meta["tags"]
             except (KeyError, TypeError, ValueError) as e:
                 raise ReportIncompatibleError(
                     f"Report references unknown probe probes.{pm}.{pc}; "
@@ -271,10 +313,16 @@ def _get_probe_result_summaries(cursor, probe_group) -> List[tuple]:
     return res.fetchall()
 
 
-def _get_probe_info(probe_module, probe_class, absolute_score) -> dict:
+def _get_probe_info(
+    probe_module, probe_class, absolute_score, report_plugin_cache=None
+) -> dict:
     probe_classpath = f"probes.{probe_module}.{probe_class}"
     try:
-        probe_plugin_info = garak._plugins.PluginCache.plugin_info(probe_classpath)
+        probe_plugin_info = _resolve_plugin_info(
+            probe_classpath,
+            report_plugin_cache,
+            required_fields=("description", "tags", "tier"),
+        )
         probe_description = probe_plugin_info["description"]
         probe_tags = probe_plugin_info["tags"]
         probe_tier = probe_plugin_info["tier"]
@@ -326,13 +374,16 @@ def _get_probe_detector_details(
     confidence=None,
     ci_lower=None,
     ci_upper=None,
+    report_plugin_cache=None,
 ) -> dict:
     calibration_used = False
     detector = re.sub(r"[^0-9A-Za-z_.]", "", detector)
     detector_module, detector_class = detector.split(".")
     try:
-        detector_cache_entry = garak._plugins.PluginCache.plugin_info(
-            f"detectors.{detector_module}.{detector_class}"
+        detector_cache_entry = _resolve_plugin_info(
+            f"detectors.{detector_module}.{detector_class}",
+            report_plugin_cache,
+            required_fields=("description",),
         )
         detector_description = detector_cache_entry["description"]
     except (KeyError, TypeError, ValueError) as e:
@@ -455,7 +506,7 @@ def build_digest(report_filename: str, config=_config):
     }
 
     with open(report_filename, "r", encoding="utf-8") as reportfile:
-        init, setup, payloads, evals = _parse_report(reportfile)
+        init, setup, payloads, evals, report_plugin_cache = _parse_report(reportfile)
 
     calibration = garak.analyze.calibration.Calibration()
     calibration_used = False
@@ -465,7 +516,7 @@ def build_digest(report_filename: str, config=_config):
     )
     report_digest["meta"] = header_content
 
-    conn, cursor = _init_populate_result_db(evals, taxonomy)
+    conn, cursor = _init_populate_result_db(evals, taxonomy, report_plugin_cache)
     group_names = _get_report_grouping(cursor)
 
     aggregation_unknown = False
@@ -486,7 +537,10 @@ def build_digest(report_filename: str, config=_config):
             report_digest["eval"][probe_group][f"{probe_module}.{probe_class}"] = {}
 
             probe_info = _get_probe_info(
-                probe_module, probe_class, group_absolute_score
+                probe_module,
+                probe_class,
+                group_absolute_score,
+                report_plugin_cache,
             )
 
             report_digest["eval"][probe_group][f"{probe_module}.{probe_class}"][
@@ -511,6 +565,7 @@ def build_digest(report_filename: str, config=_config):
                     confidence,
                     ci_lower,
                     ci_upper,
+                    report_plugin_cache,
                 )
 
                 # add counts for detector (using original field names from eval records)
@@ -534,6 +589,9 @@ def build_digest(report_filename: str, config=_config):
     report_digest["meta"]["setup"]["reporting.taxonomy"] = taxonomy
     report_digest["meta"]["calibration_used"] = calibration_used
     report_digest["meta"]["aggregation_unknown"] = aggregation_unknown
+    report_digest["meta"]["plugin_cache_source"] = (
+        report_plugin_cache["version"]
+    )
     if calibration_used:
         report_digest["meta"]["calibration"] = _get_calibration_info(calibration)
 
