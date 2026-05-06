@@ -40,6 +40,7 @@ For a guide to writing probes, see :doc:`extending.probe`.
    probes/misleading
    probes/packagehallucination
    probes/phrasing
+   probes/pii
    probes/promptinject
    probes/realtoxicityprompts
    probes/sata
