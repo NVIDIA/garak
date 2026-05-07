@@ -201,16 +201,9 @@ class StringDetector(Detector):
     cancelled when any phrase in ``not_substrings`` is also present in the
     same response, allowing subclasses to suppress false positives where the
     model quotes or explains a trigger phrase while actually refusing to
-    comply.
-
-    Attributes:
-        substrings (list[str]): Phrases whose presence in a response scores 1.0.
-        not_substrings (list[str]): Phrases that cancel an otherwise-positive
-            match, scoring it back to 0.0. Defaults to empty (no exclusions).
-        matchtype (str): One of ``"str"`` (substring), ``"word"`` (whole word),
-            or ``"startswith"``. Defaults to ``"str"``.
-        case_sensitive (bool): Whether matching is case-sensitive.
-            Defaults to ``False``.
+    comply. ``matchtype`` controls how substrings are matched (``"str"``,
+    ``"word"``, or ``"startswith"``); ``case_sensitive`` defaults to
+    ``False``.
     """
 
     DEFAULT_PARAMS = Detector.DEFAULT_PARAMS | {
