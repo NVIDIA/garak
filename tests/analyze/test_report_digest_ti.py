@@ -69,7 +69,15 @@ def test_parse_report_collects_ti_eval_rows():
         "\n".join(json.dumps(record, ensure_ascii=False) for record in records)
     )
 
-    *_, intent_evals, technique_evals = report_digest._parse_report(report)
+    (
+        _init,
+        _setup,
+        _payloads,
+        _evals,
+        intent_evals,
+        technique_evals,
+        _plugin_cache,
+    ) = report_digest._parse_report(report)
 
     assert intent_evals[0]["intent"] == "S009deep"
     assert technique_evals[0]["technique"].startswith("demon:")
