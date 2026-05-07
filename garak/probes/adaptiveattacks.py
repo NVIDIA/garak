@@ -90,6 +90,10 @@ class AdaptiveAttacks(garak.probes.Probe):
     active = True
     doc_uri = "https://arxiv.org/abs/2404.02151"
 
+    DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
+        "follow_prompt_cap": True,
+    }
+
     prompts = list()
     seeds = _load_lines(SEEDS_PATH)
     suffixes = _load_lines(SUFFIXES_PATH)
@@ -99,7 +103,8 @@ class AdaptiveAttacks(garak.probes.Probe):
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
-        self._prune_data(self.soft_probe_prompt_cap)
+        if self.follow_prompt_cap:
+            self._prune_data(cap=self.soft_probe_prompt_cap)
 
 
 class AdaptiveAttacksFull(AdaptiveAttacks):
@@ -117,6 +122,6 @@ class AdaptiveAttacksFull(AdaptiveAttacks):
     # are both active in the same run.
     active = False
 
-    def __init__(self, config_root=_config):
-        # Skip the cap-based pruning that AdaptiveAttacks applies.
-        garak.probes.Probe.__init__(self, config_root=config_root)
+    DEFAULT_PARAMS = AdaptiveAttacks.DEFAULT_PARAMS | {
+        "follow_prompt_cap": False,
+    }
