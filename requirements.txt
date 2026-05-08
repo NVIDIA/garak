@@ -8,7 +8,6 @@ openai>=2.0,<3.0
 replicate>=0.8.3
 google-api-python-client>=2.0
 backoff>=2.1.1
-rapidfuzz>=3.0.0
 nltk>=3.9.1
 accelerate>=0.23.0
 avidtools==0.1.2
@@ -51,6 +50,7 @@ pytest-cov>=5.0.0
 pytest_httpserver>=1.1.0
 pytest-asyncio>=0.21.0
 langcodes>=3.4.0
+cryptography>=47.0.0
 # lint
 black>=26.1.0
 pylint>=3.1.0

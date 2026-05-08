@@ -51,6 +51,10 @@ class GCGCached(garak.probes.Probe):
         prompts.append(" ".join([prompt1, suffix]))
         prompts.append(" ".join([prompt2, suffix]))
 
+    def __init__(self, config_root=_config):
+        super().__init__(config_root=config_root)
+        self._prune_data(self.soft_probe_prompt_cap)
+
 
 class GCG(garak.probes.Probe):
     """Greedy Coordinate Gradient probe

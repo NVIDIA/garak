@@ -82,6 +82,7 @@ def test_aggregate_executes() -> None:
                 "reportfile",
                 "report_digest_time",
                 "calibration",
+                "plugin_cache_source",
             ]:
                 ref_rec["meta"].pop(key, None)
                 agg_rec["meta"].pop(key, None)

@@ -1,5 +1,5 @@
-garak.payloads
-==============
+payloads
+========
 
 This module co-ordinates and provides for dynamic switching of "payloads"
 with ``garak``. Payloads are items intended for inserting in prompts, that

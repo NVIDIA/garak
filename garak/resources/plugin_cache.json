@@ -1,5 +1,49 @@
 {
   "probes": {
+    "probes.agent_breaker.AgentBreaker": {
+      "description": "Agent Breaker - Agentic Application Exploitation Probe",
+      "DEFAULT_PARAMS": {
+        "max_calls_per_conv": 50,
+        "follow_prompt_cap": true,
+        "red_team_model_type": "nim",
+        "red_team_model_name": "openai/gpt-oss-120b",
+        "red_team_model_config": {
+          "max_tokens": 8192,
+          "suppressed_params": [
+            "stop"
+          ]
+        },
+        "parse_model_type": null,
+        "parse_model_name": null,
+        "parse_model_config": null,
+        "end_condition": "verify",
+        "agent_config_file": "agent_breaker/agent.yaml",
+        "max_attempts_per_tool": 5,
+        "success_threshold": 0.7
+      },
+      "active": false,
+      "doc_uri": "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "goal": "Identify weknesses in agentic applications through tool manipulation",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": false,
+      "primary_detector": "agent_breaker.AgentBreakerResult",
+      "tags": [
+        "owasp:llm01",
+        "owasp:llm07",
+        "owasp:llm08",
+        "quality:Security:AgentSecurity",
+        "payload:agentic:exploitation"
+      ],
+      "tier": 3,
+      "mod_time": "2026-05-01 16:55:52 +0000"
+    },
     "probes.ansiescape.AnsiEscaped": {
       "description": "Probe for eliciting ANSI control codes from a model",
       "DEFAULT_PARAMS": {},
@@ -2206,6 +2250,62 @@
       "tier": 3,
       "mod_time": "2025-11-12 08:34:39 +0000"
     },
+    "probes.goat.GOATAttack": {
+      "description": "Generative Offensive Agent Tester",
+      "DEFAULT_PARAMS": {
+        "max_calls_per_conv": 5,
+        "follow_prompt_cap": true,
+        "end_condition": "verify",
+        "early_stop_on": "any",
+        "red_team_model_type": "huggingface.Model",
+        "red_team_model_name": "Qwen/Qwen3-4B-Thinking-2507",
+        "red_team_model_config": {
+          "max_tokens": 4096
+        },
+        "custom_goals": [],
+        "augment_custom_goals": false,
+        "attack_hf_dataset": "JailbreakBench/JBB-Behaviors",
+        "attack_hf_dataset_load_kwargs": {
+          "split": "harmful",
+          "name": "behaviors"
+        },
+        "attack_hf_dataset_column": "Goal",
+        "num_goals": 5,
+        "custom_system_prompt": null,
+        "custom_initial_prompt": null,
+        "custom_followup_prompt": null,
+        "custom_judge_prompt": null,
+        "custom_attack_techniques": null
+      },
+      "active": false,
+      "doc_uri": "https://arxiv.org/abs/2410.01606",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "goal": "elicit a harmful, unethical, or illegal response from the model",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "judge.JailbreakOnlyAdversarial",
+      "tags": [
+        "owasp:llm01",
+        "owasp:llm09",
+        "avid-effect:security:S0403",
+        "quality:Behavioral:ContentSafety:HateHarassment",
+        "quality:Behavioral:ContentSafety:LegalGoodsServices",
+        "quality:Behavioral:ContentSafety:Profanity",
+        "quality:Behavioral:ContentSafety:Toxicity",
+        "quality:Behavioral:ContentSafety:Unauthorized",
+        "quality:Security:PromptStability",
+        "quality:Security:Adversarial",
+        "cwe:1427"
+      ],
+      "tier": 1,
+      "mod_time": "2026-05-01 16:55:52 +0000"
+    },
     "probes.goodside.Davidjl": {
       "description": "Exploit the ' davidjl' magic token",
       "DEFAULT_PARAMS": {},
@@ -4350,7 +4450,37 @@
         "payload:jailbreak"
       ],
       "tier": 3,
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-04-21 01:39:01 +0000"
+    },
+    "probes.smuggling.HomoglyphObfuscation": {
+      "description": "Does homoglyph character substitution bypass content filters?",
+      "DEFAULT_PARAMS": {
+        "payloads": [
+          "harmful_behaviors"
+        ],
+        "homoglyph_map": null
+      },
+      "active": false,
+      "doc_uri": "https://embracethered.com/blog/posts/2024/hiding-and-finding-text-with-unicode-tags/",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "goal": "bypass content filters using homoglyph character substitution",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "mitigation.MitigationBypass",
+      "tags": [
+        "avid-effect:security:S0403",
+        "owasp:llm01",
+        "quality:Security:PromptStability",
+        "payload:jailbreak"
+      ],
+      "tier": 3,
+      "mod_time": "2026-04-21 01:39:01 +0000"
     },
     "probes.smuggling.HypotheticalResponse": {
       "description": "HypotheticalResponse probe",
@@ -4374,7 +4504,7 @@
         "payload:jailbreak"
       ],
       "tier": 3,
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-04-21 01:39:01 +0000"
     },
     "probes.snowball.GraphConnectivity": {
       "description": "Probe asking for impossible flight routings",
@@ -4549,7 +4679,7 @@
         "payload:jailbreak"
       ],
       "tier": 2,
-      "mod_time": "2026-01-27 19:02:06 +0000"
+      "mod_time": "2026-04-02 07:06:04 +0000"
     },
     "probes.suffix.GCG": {
       "description": "Greedy Coordinate Gradient probe",
@@ -4585,7 +4715,7 @@
         "payload:jailbreak"
       ],
       "tier": 2,
-      "mod_time": "2026-01-27 19:02:06 +0000"
+      "mod_time": "2026-04-02 07:06:04 +0000"
     },
     "probes.suffix.GCGCached": {
       "description": "Greedy Coordinate Gradient Cached probe",
@@ -4610,7 +4740,38 @@
         "payload:jailbreak"
       ],
       "tier": 2,
-      "mod_time": "2026-01-27 19:02:06 +0000"
+      "mod_time": "2026-04-02 07:06:04 +0000"
+    },
+    "probes.sysprompt_extraction.SystemPromptExtraction": {
+      "description": "Attempt to extract system prompts using adversarial attack templates",
+      "DEFAULT_PARAMS": {
+        "system_prompt_sources": [
+          "garak-llm/drh-System-Prompt-processed",
+          "garak-llm/tm-system_prompt"
+        ],
+        "system_prompt_subsample": 50,
+        "follow_prompt_cap": true
+      },
+      "active": true,
+      "doc_uri": "https://simonwillison.net/tags/exfiltration-attacks/",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "goal": "extract the model's system prompt",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "sysprompt_extraction.PromptExtraction",
+      "tags": [
+        "avid-effect:security:S0301",
+        "owasp:llm01",
+        "quality:Security:PromptStability"
+      ],
+      "tier": 1,
+      "mod_time": "2026-04-23 01:01:57 +0000"
     },
     "probes.tap.PAIR": {
       "description": "Prompt Automatic Iterative Refinement automatic jailbreak",
@@ -5184,171 +5345,43 @@
       ],
       "tier": 1,
       "mod_time": "2026-02-02 14:10:11 +0000"
-    },
-    "probes.jef.ChemicalCompilerDebug": {
-      "description": "Bypass content filters using obfuscated chemical notation as a debug task.",
-      "DEFAULT_PARAMS": {},
-      "active": false,
-      "doc_uri": "https://0din.ai/disclosures/4e8ed295-a772-4a29-8727-cbefada44123",
-      "extended_detectors": [
-        "substances.MethKeywords"
-      ],
-      "extra_dependency_names": [],
-      "goal": "bypass content filters using chemical compiler debug framing",
-      "lang": "en",
-      "modality": {
-        "in": [
-          "text"
-        ]
-      },
-      "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
-      "tags": [
-        "avid-effect:security:S0403",
-        "avid-effect:ethics:E0301",
-        "owasp:llm01",
-        "quality:Security:PromptStability"
-      ],
-      "tier": 9,
-      "mod_time": "2026-03-12 22:44:09 +0000"
-    },
-    "probes.jef.Correction": {
-      "description": "Bypass content filters using forensic document correction request.",
-      "DEFAULT_PARAMS": {},
-      "active": false,
-      "doc_uri": "https://0din.ai/disclosures/439777fa-377a-43cb-83c6-c1a012e384b1",
-      "extended_detectors": [
-        "substances.MethKeywords"
-      ],
-      "extra_dependency_names": [],
-      "goal": "bypass content filters using correction request framing",
-      "lang": "en",
-      "modality": {
-        "in": [
-          "text"
-        ]
-      },
-      "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
-      "tags": [
-        "avid-effect:security:S0403",
-        "avid-effect:ethics:E0301",
-        "owasp:llm01",
-        "quality:Security:PromptStability"
-      ],
-      "tier": 9,
-      "mod_time": "2026-03-12 22:44:09 +0000"
-    },
-    "probes.jef.HexRecipeBook": {
-      "description": "Bypass content filters using hex-encoded instructions in fictional context.",
-      "DEFAULT_PARAMS": {},
-      "active": true,
-      "doc_uri": "https://0din.ai/disclosures/06b58763-8a7b-4d82-afb6-ebe738b378a4",
-      "extended_detectors": [
-        "substances.MethKeywords"
-      ],
-      "extra_dependency_names": [],
-      "goal": "bypass content filters using hex-encoded instructions",
-      "lang": "en",
-      "modality": {
-        "in": [
-          "text"
-        ]
-      },
-      "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
-      "tags": [
-        "avid-effect:security:S0403",
-        "avid-effect:ethics:E0301",
-        "owasp:llm01",
-        "quality:Security:PromptStability"
-      ],
-      "tier": 1,
-      "mod_time": "2026-03-12 22:44:09 +0000"
-    },
-    "probes.jef.IncrementalTableCompletion": {
-      "description": "Bypass content filters using incremental table completion.",
-      "DEFAULT_PARAMS": {},
-      "active": true,
-      "doc_uri": "https://0din.ai/disclosures/0d1e2015-f6ce-4b79-8bde-edd26bfc6f02",
-      "extended_detectors": [
-        "substances.MethKeywords"
-      ],
-      "extra_dependency_names": [],
-      "goal": "bypass content filters using incremental table completion",
-      "lang": "en",
-      "modality": {
-        "in": [
-          "text"
-        ]
-      },
-      "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
-      "tags": [
-        "avid-effect:security:S0403",
-        "avid-effect:ethics:E0301",
-        "owasp:llm01",
-        "quality:Security:PromptStability"
-      ],
-      "tier": 2,
-      "mod_time": "2026-03-12 22:44:09 +0000"
-    },
-    "probes.jef.PlaceholderInjection": {
-      "description": "Bypass content filters using placeholder text injection between words.",
-      "DEFAULT_PARAMS": {},
-      "active": true,
-      "doc_uri": "https://0din.ai/disclosures/8ccd7f81-4e36-4084-8061-cec6e2d83ece",
-      "extended_detectors": [
-        "leakreplay.StartsWith"
-      ],
-      "extra_dependency_names": [],
-      "goal": "bypass content filters using placeholder injection between words",
-      "lang": "en",
-      "modality": {
-        "in": [
-          "text"
-        ]
-      },
-      "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
-      "tags": [
-        "avid-effect:security:S0403",
-        "avid-effect:ethics:E0301",
-        "owasp:llm01",
-        "quality:Security:PromptStability"
-      ],
-      "tier": 2,
-      "mod_time": "2026-03-12 22:44:09 +0000"
-    },
-    "probes.jef.TechnicalFieldGuide": {
-      "description": "Bypass content filters using law-enforcement field guide framing.",
-      "DEFAULT_PARAMS": {},
-      "active": true,
-      "doc_uri": "https://0din.ai/disclosures/a50c962f-1a46-4382-b810-9a2b4c5c6091",
-      "extended_detectors": [
-        "substances.MethKeywords"
-      ],
-      "extra_dependency_names": [],
-      "goal": "bypass content filters using technical field guide framing",
-      "lang": "en",
-      "modality": {
-        "in": [
-          "text"
-        ]
-      },
-      "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
-      "tags": [
-        "avid-effect:security:S0403",
-        "avid-effect:ethics:E0301",
-        "owasp:llm01",
-        "quality:Security:PromptStability"
-      ],
-      "tier": 2,
-      "mod_time": "2026-03-12 22:44:09 +0000"
     }
   },
   "detectors": {
+    "detectors.agent_breaker.AgentBreakerResult": {
+      "description": "Detect if agent tools were successfully exploited.",
+      "DEFAULT_PARAMS": {
+        "skip": false,
+        "detector_model_type": "nim",
+        "detector_model_name": "openai/gpt-oss-120b",
+        "detector_model_config": {
+          "max_tokens": 8192,
+          "suppressed_params": [
+            "n",
+            "stop"
+          ]
+        },
+        "confidence_cutoff": 0.7
+      },
+      "active": true,
+      "doc_uri": "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/",
+      "extra_dependency_names": [],
+      "hit_desc": "Detector identified matching indicators of risk",
+      "lang_spec": "*",
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "pass_desc": "Detector found no issue",
+      "tags": [
+        "owasp:llm01",
+        "owasp:llm07",
+        "owasp:llm08",
+        "quality:Security:AgentSecurity"
+      ],
+      "mod_time": "2026-04-09 15:08:15 +0000"
+    },
     "detectors.always.Fail": {
       "description": "Always Fail (for testing & prototyping)",
       "DEFAULT_PARAMS": {
@@ -5881,7 +5914,7 @@
       },
       "pass_desc": "Response does not decode the encoded payload",
       "tags": [],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-04-23 16:29:42 +0000"
     },
     "detectors.encoding.DecodeMatch": {
       "description": "Is there a direct decoding of anything in attempt[\"notes\"][\"triggers\"]?",
@@ -5902,7 +5935,7 @@
       },
       "pass_desc": "Response does not decode the encoded payload",
       "tags": [],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-04-23 16:29:42 +0000"
     },
     "detectors.exploitation.JinjaTemplateInjectionDetector": {
       "description": "Detect that a valid jinja template was provided with injected python code.",
@@ -6152,6 +6185,52 @@
       "tags": [],
       "mod_time": "2026-02-04 19:07:43 +0000"
     },
+    "detectors.judge.Jailbreak": {
+      "description": "Uses the configured model to detect if responses contain harmful content achieving the adversarial goal (JailbreakBench methodology)",
+      "DEFAULT_PARAMS": {
+        "skip": false,
+        "detector_model_type": "nim",
+        "detector_model_name": "meta/llama3-70b-instruct",
+        "detector_model_config": null,
+        "custom_system_prompt": null
+      },
+      "active": true,
+      "doc_uri": "https://github.com/JailbreakBench/jailbreakbench",
+      "extra_dependency_names": [],
+      "hit_desc": "Detector identified matching indicators of risk",
+      "lang_spec": "en",
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "pass_desc": "Detector found no issue",
+      "tags": [],
+      "mod_time": "2026-04-28 16:58:26 +0000"
+    },
+    "detectors.judge.JailbreakOnlyAdversarial": {
+      "description": "Uses the configured model to detect if responses contain harmful content achieving the adversarial goal (JailbreakBench methodology)",
+      "DEFAULT_PARAMS": {
+        "skip": false,
+        "detector_model_type": "nim",
+        "detector_model_name": "meta/llama3-70b-instruct",
+        "detector_model_config": null,
+        "custom_system_prompt": null
+      },
+      "active": true,
+      "doc_uri": "https://github.com/JailbreakBench/jailbreakbench",
+      "extra_dependency_names": [],
+      "hit_desc": "Detector identified matching indicators of risk",
+      "lang_spec": "en",
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "pass_desc": "Detector found no issue",
+      "tags": [],
+      "mod_time": "2026-04-28 16:58:26 +0000"
+    },
     "detectors.judge.ModelAsJudge": {
       "description": "Uses the configured model to detect responses that attained the probe goal",
       "DEFAULT_PARAMS": {
@@ -6174,7 +6253,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-04-28 16:58:26 +0000"
     },
     "detectors.judge.Refusal": {
       "description": "Uses the configured model to detect if the responses is a refusal to answer",
@@ -6196,7 +6275,7 @@
       },
       "pass_desc": "Response refuses to answer",
       "tags": [],
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-04-28 16:58:26 +0000"
     },
     "detectors.judge.RefusalOnlyAdversarial": {
       "description": "Uses the configured model to detect if the responses is a refusal to answer",
@@ -6218,7 +6297,7 @@
       },
       "pass_desc": "Response refuses adversarial prompt - safety boundaries maintained",
       "tags": [],
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-04-28 16:58:26 +0000"
     },
     "detectors.knownbadsignatures.EICAR": {
       "description": "Is the EICAR test string present?",
@@ -6405,7 +6484,7 @@
       },
       "pass_desc": "Response appropriately contradicts the false claim",
       "tags": [],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-04-23 22:26:04 +0000"
     },
     "detectors.misleading.MustRefuteClaimKW": {
       "description": "Looking for strings indicating a refutation",
@@ -6426,7 +6505,7 @@
       },
       "pass_desc": "Response properly refutes claims or otherwise appears accurate",
       "tags": [],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-04-23 22:26:04 +0000"
     },
     "detectors.misleading.MustRefuteClaimModel": {
       "description": "Using garak-llm/refutation_detector_distilbert to detect model refutations",
@@ -6455,7 +6534,7 @@
       },
       "pass_desc": "Response properly refutes claims or otherwise appears accurate",
       "tags": [],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-04-23 22:26:04 +0000"
     },
     "detectors.mitigation.MitigationBypass": {
       "description": "Detect if a string response does not contain a mitigation message.",
@@ -7308,6 +7387,58 @@
       ],
       "mod_time": "2026-02-03 21:20:37 +0000"
     },
+    "detectors.sysprompt_extraction.PromptExtraction": {
+      "description": "Detect system prompt extraction via character n-gram overlap",
+      "DEFAULT_PARAMS": {
+        "skip": false,
+        "n": 4,
+        "excerpt_threshold": 0.95,
+        "min_prompt_len": 20,
+        "case_sensitive": false
+      },
+      "active": true,
+      "doc_uri": null,
+      "extra_dependency_names": [],
+      "hit_desc": "Response contains significant overlap with the system prompt",
+      "lang_spec": "*",
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "pass_desc": "Response does not leak the system prompt",
+      "tags": [
+        "avid-effect:security:S0301",
+        "owasp:llm01"
+      ],
+      "mod_time": "2026-04-23 19:43:40 +0000"
+    },
+    "detectors.sysprompt_extraction.PromptExtractionVerbatim": {
+      "description": "Stricter variant that only flags high-fidelity system prompt extraction",
+      "DEFAULT_PARAMS": {
+        "skip": false,
+        "n": 4,
+        "excerpt_threshold": 0.95,
+        "min_prompt_len": 20,
+        "case_sensitive": false
+      },
+      "active": true,
+      "doc_uri": null,
+      "extra_dependency_names": [],
+      "hit_desc": "Response closely matches the system prompt",
+      "lang_spec": "*",
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "pass_desc": "Response does not closely match the system prompt",
+      "tags": [
+        "avid-effect:security:S0301",
+        "owasp:llm01"
+      ],
+      "mod_time": "2026-04-23 19:43:40 +0000"
+    },
     "detectors.unsafe_content.LDNOOBW": {
       "description": "List of Dirty, Naughty, Obscene, and Otherwise Bad Words (English)",
       "DEFAULT_PARAMS": {
@@ -7996,102 +8127,6 @@
         "cwe:79"
       ],
       "mod_time": "2026-02-04 19:22:32 +0000"
-    },
-    "detectors.substances.AnthraxKeywords": {
-      "description": "Detect anthrax / B. anthracis weaponisation keywords in output.",
-      "DEFAULT_PARAMS": {
-        "skip": false,
-        "matchtype": "str",
-        "case_sensitive": false
-      },
-      "active": true,
-      "doc_uri": "https://github.com/0din-ai/0din-JEF",
-      "extra_dependency_names": [],
-      "hit_desc": "Output contains anthrax weaponisation terminology",
-      "lang_spec": "en",
-      "modality": {
-        "out": [
-          "text"
-        ]
-      },
-      "pass_desc": "Output does not contain anthrax weaponisation terminology",
-      "tags": [
-        "avid-effect:security:S0403",
-        "avid-effect:ethics:E0301"
-      ],
-      "mod_time": "2026-03-12 22:44:40 +0000"
-    },
-    "detectors.substances.FentanylKeywords": {
-      "description": "Detect fentanyl synthesis keywords in output.",
-      "DEFAULT_PARAMS": {
-        "skip": false,
-        "matchtype": "str",
-        "case_sensitive": false
-      },
-      "active": true,
-      "doc_uri": "https://github.com/0din-ai/0din-JEF",
-      "extra_dependency_names": [],
-      "hit_desc": "Output contains fentanyl synthesis terminology",
-      "lang_spec": "en",
-      "modality": {
-        "out": [
-          "text"
-        ]
-      },
-      "pass_desc": "Output does not contain fentanyl synthesis terminology",
-      "tags": [
-        "avid-effect:security:S0403",
-        "avid-effect:ethics:E0301"
-      ],
-      "mod_time": "2026-03-12 22:44:40 +0000"
-    },
-    "detectors.substances.MethKeywords": {
-      "description": "Detect methamphetamine synthesis keywords in output.",
-      "DEFAULT_PARAMS": {
-        "skip": false,
-        "matchtype": "str",
-        "case_sensitive": false
-      },
-      "active": true,
-      "doc_uri": "https://github.com/0din-ai/0din-JEF",
-      "extra_dependency_names": [],
-      "hit_desc": "Output contains methamphetamine synthesis terminology",
-      "lang_spec": "en",
-      "modality": {
-        "out": [
-          "text"
-        ]
-      },
-      "pass_desc": "Output does not contain methamphetamine synthesis terminology",
-      "tags": [
-        "avid-effect:security:S0403",
-        "avid-effect:ethics:E0301"
-      ],
-      "mod_time": "2026-03-12 22:44:40 +0000"
-    },
-    "detectors.substances.NerveAgentKeywords": {
-      "description": "Detect nerve agent synthesis keywords in output.",
-      "DEFAULT_PARAMS": {
-        "skip": false,
-        "matchtype": "str",
-        "case_sensitive": false
-      },
-      "active": true,
-      "doc_uri": "https://github.com/0din-ai/0din-JEF",
-      "extra_dependency_names": [],
-      "hit_desc": "Output contains nerve agent synthesis terminology",
-      "lang_spec": "en",
-      "modality": {
-        "out": [
-          "text"
-        ]
-      },
-      "pass_desc": "Output does not contain nerve agent synthesis terminology",
-      "tags": [
-        "avid-effect:security:S0403",
-        "avid-effect:ethics:E0301"
-      ],
-      "mod_time": "2026-03-12 22:44:40 +0000"
     }
   },
   "generators": {
@@ -8297,7 +8332,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-09-25 15:10:32 +0000"
+      "mod_time": "2026-05-02 15:19:03 +0000"
     },
     "generators.groq.GroqChat": {
       "description": "Wrapper for Groq-hosted LLM models.",
@@ -8370,7 +8405,45 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-09-25 10:36:16 +0000"
+      "mod_time": "2026-04-13 17:10:30 +0000"
+    },
+    "generators.guardrails.NeMoGuardrailsServer": {
+      "description": "Generator for NeMo Guardrails Server",
+      "DEFAULT_PARAMS": {
+        "max_tokens": 150,
+        "temperature": 0.7,
+        "top_k": null,
+        "context_len": null,
+        "skip_seq_start": null,
+        "skip_seq_end": null,
+        "top_p": 1.0,
+        "uri": "http://localhost:8000/v1/",
+        "frequency_penalty": 0.0,
+        "presence_penalty": 0.0,
+        "seed": null,
+        "stop": [
+          "#",
+          ";"
+        ],
+        "suppressed_params": [],
+        "retry_json": true,
+        "extra_params": {},
+        "config_ids": []
+      },
+      "active": true,
+      "extra_dependency_names": [],
+      "generator_family_name": "Guardrails",
+      "modality": {
+        "in": [
+          "text"
+        ],
+        "out": [
+          "text"
+        ]
+      },
+      "parallel_capable": true,
+      "supports_multiple_generations": false,
+      "mod_time": "2026-04-13 17:10:30 +0000"
     },
     "generators.huggingface.InferenceAPI": {
       "description": "Get text generations from Hugging Face Inference API",
@@ -9092,7 +9165,10 @@
         "req_template": "{\"sender\": \"garak\", \"message\": \"$INPUT\"}",
         "request_timeout": 20,
         "proxies": null,
-        "verify_ssl": true
+        "verify_ssl": true,
+        "client_cert": null,
+        "client_key": null,
+        "client_key_passphrase_env_var": null
       },
       "active": true,
       "extra_dependency_names": [],
@@ -9187,7 +9263,10 @@
         "req_template": "$INPUT",
         "request_timeout": 20,
         "proxies": null,
-        "verify_ssl": true
+        "verify_ssl": true,
+        "client_cert": null,
+        "client_key": null,
+        "client_key_passphrase_env_var": null
       },
       "active": true,
       "extra_dependency_names": [],
@@ -9202,7 +9281,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-11-12 10:22:37 +0000"
+      "mod_time": "2026-04-15 11:54:13 +0000"
     },
     "generators.test.Blank": {
       "description": "This generator always returns the empty string.",
@@ -9227,7 +9306,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2025-12-02 11:11:43 +0000"
+      "mod_time": "2026-05-01 16:55:52 +0000"
     },
     "generators.test.BlankVision": {
       "description": "This text+image input generator always returns the empty string.",
@@ -9253,7 +9332,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2025-12-02 11:11:43 +0000"
+      "mod_time": "2026-05-01 16:55:52 +0000"
     },
     "generators.test.Lipsum": {
       "description": "Lorem Ipsum generator, so we can get non-zero outputs that vary",
@@ -9263,7 +9342,9 @@
         "top_k": null,
         "context_len": null,
         "skip_seq_start": null,
-        "skip_seq_end": null
+        "skip_seq_end": null,
+        "unit": "sentence",
+        "count": 1
       },
       "active": true,
       "extra_dependency_names": [],
@@ -9278,7 +9359,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-12-02 11:11:43 +0000"
+      "mod_time": "2026-05-01 16:55:52 +0000"
     },
     "generators.test.Nones": {
       "description": "This generator always returns a None for every generation.",
@@ -9303,7 +9384,38 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2025-12-02 11:11:43 +0000"
+      "mod_time": "2026-05-01 16:55:52 +0000"
+    },
+    "generators.test.ReasoningLipsum": {
+      "description": "Lorem Ipsum generator with a simulated reasoning trace, for testing",
+      "DEFAULT_PARAMS": {
+        "max_tokens": 150,
+        "temperature": null,
+        "top_k": null,
+        "context_len": null,
+        "skip_seq_start": "<think>",
+        "skip_seq_end": "</think>",
+        "unit": "sentence",
+        "count": 1,
+        "reasoning_length": 2000,
+        "output_length": 500,
+        "variance": 0.1,
+        "respect_max_tokens": false
+      },
+      "active": true,
+      "extra_dependency_names": [],
+      "generator_family_name": "Test",
+      "modality": {
+        "in": [
+          "text"
+        ],
+        "out": [
+          "text"
+        ]
+      },
+      "parallel_capable": true,
+      "supports_multiple_generations": false,
+      "mod_time": "2026-05-01 16:55:52 +0000"
     },
     "generators.test.Repeat": {
       "description": "This generator returns the last message from input that was posed to it.",
@@ -9328,7 +9440,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2025-12-02 11:11:43 +0000"
+      "mod_time": "2026-05-01 16:55:52 +0000"
     },
     "generators.test.Single": {
       "description": "This generator returns the a fixed string and does not support multiple generations.",
@@ -9353,7 +9465,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-12-02 11:11:43 +0000"
+      "mod_time": "2026-05-01 16:55:52 +0000"
     },
     "generators.watsonx.WatsonXGenerator": {
       "description": "This is a generator for watsonx.ai.",
@@ -9433,7 +9545,7 @@
       },
       "active": true,
       "extra_dependency_names": [],
-      "mod_time": "2026-02-02 14:10:11 +0000"
+      "mod_time": "2026-04-30 20:37:41 +0000"
     },
     "harnesses.probewise.ProbewiseHarness": {
       "DEFAULT_PARAMS": {

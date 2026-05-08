@@ -42,45 +42,51 @@ Check out the :doc:`usage` section for further information, including :doc:`inst
    FAQ <https://github.com/NVIDIA/garak/blob/main/FAQ.md>
 
 .. toctree::
-   :caption: Code Reference
+   :caption: Plugin reference
+   :maxdepth: 1
+   :hidden:
+
+   index_buffs
+   index_detectors
+   index_evaluators
+   index_generators
+   index_harnesses
+   index_probes
+
+.. toctree::
+   :caption: Code reference
    :maxdepth: 1
    :hidden:
 
    basic
+   index_analyze
    attempt
-   buffs
    cli
    command
-   detectors
-   evaluators
+   _config
    exception
-   generators
-   harnesses
    interactive
    langservice
    payloads
-   probes
-   report
-   _config
    _plugins
-   analyze
+   report
 
 .. toctree:: 
    :caption: Technologies
    :maxdepth: 1
    :hidden:
 
-   detector_metrics
-   translation
    ascii_smuggling
-   analyze.tbsa
+   detector_metrics
+   analyze/tbsa
+   translation
 
 .. toctree::
    :caption: Extending and Contributing
    :maxdepth: 1
    :hidden:
 
+   contributing
    extending
    extending.generator
    extending.probe
-   contributing

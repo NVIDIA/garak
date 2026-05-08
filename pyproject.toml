@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "garak"
-version = "0.14.2.pre1"
+version = "0.15.1.pre1"
 authors = [
   { name = "Leon Derczynski", email="lderczynski@nvidia.com" },
   { name = "Subho Majumdar", email="subho@vijil.ai" },
@@ -77,6 +77,15 @@ authors = [
   { name = "dyrtyData" },
   { name = "Leone Lage Perdigão" },
   { name = "Lucas Wang" },
+  { name = "Ian Miller" },
+  { name = "Edward Kim" },
+  { name = "Raina O'Sullivan" },
+  { name = "Christ Bowel Bouchuen" },
+  { name = "Hayato Fujihara" },
+  { name = "precognitivem0nk" },
+  { name = "Jacob J. lee" },
+  { name = "Eliya Cohen" },
+  { name = "Nathan Maine" },
 ]
 license = "Apache-2.0"
 license-files = ["LICENSE"]
@@ -101,7 +110,6 @@ dependencies = [
   "replicate>=0.8.3",
   "google-api-python-client>=2.0",
   "backoff>=2.1.1",
-  "rapidfuzz>=3.0.0",
   "nltk>=3.9.1",
   "accelerate>=0.23.0",
   "avidtools==0.1.2",
@@ -147,6 +155,7 @@ tests = [
   "pytest_httpserver>=1.1.0",
   "pytest-asyncio>=0.21.0",
   "langcodes>=3.4.0",
+  "cryptography>=47.0.0",
 ]
 lint = [
   "black>=26.1.0",

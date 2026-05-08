@@ -3,7 +3,7 @@ Detector Quality Metrics
 
 Detectors in garak attempt to identify specific failure modes in model outputs. To assess detector performance, they must be evaluated against labeled benchmark datasets where the ground truth is known. This evaluation process measures how accurately each detector identifies its target failure mode.
 
-This document explains how detectors are evaluated and ranked using F1 scores and related metrics. These measurements help assess detector quality, identify areas for improvement, and guide users in understanding detector reliability. For more information on how detectors work within garak, see :doc:`detectors` and :doc:`basic`.
+This document explains how detectors are evaluated and ranked using F1 scores and related metrics. These measurements help assess detector quality, identify areas for improvement, and guide users in understanding detector reliability. For more information on how detectors work within garak, see :doc:`index_detectors` and :doc:`basic`.
 
 What Are Hits and Passes?
 -------------------------

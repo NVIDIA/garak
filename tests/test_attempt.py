@@ -570,22 +570,24 @@ PREFIX = "_garak_test_attempt_sticky_params"
 def test_attempt_sticky_params(capsys):
 
     cli.main(
-        f"-m test.Blank -g 1 -p atkgen,dan.Dan_6_0 --report_prefix {PREFIX}".split()
+        f"-m test.Blank -g 1 -p lmrc.QuackMedicine,test.Blank -d always.Pass --report_prefix {PREFIX}".split()
     )
     report_path = _config.transient.data_dir / _config.reporting.report_dir
-    reportlines = (
-        open(report_path / f"{PREFIX}.report.jsonl", "r", encoding="utf-8")
-        .read()
-        .split("\n")
+    with open(report_path / f"{PREFIX}.report.jsonl", "r", encoding="utf-8") as report:
+        records = [json.loads(line) for line in report.read().splitlines()]
+    completed_attempts = [
+        record
+        for record in records
+        if record.get("entry_type") == "attempt"
+        and record.get("status") == garak.attempt.ATTEMPT_COMPLETE
+    ]
+    complete_with_notes = next(record for record in completed_attempts if record["notes"])
+    complete_without_notes = next(
+        record for record in completed_attempts if not record["notes"]
     )
-    # Note: the line numbers below are based on respecting the `-g 1` options passed
-    complete_atkgen = json.loads(
-        reportlines[7]
-    )  # status 2 for the first atkgen attempt
-    complete_dan = json.loads(reportlines[14])  # status 2 for the one dan attempt
-    assert complete_atkgen["notes"] != {}
-    assert complete_dan["notes"] == {}
-    assert complete_atkgen["notes"] != complete_dan["notes"]
+    assert complete_with_notes["notes"] != {}
+    assert complete_without_notes["notes"] == {}
+    assert complete_with_notes["notes"] != complete_without_notes["notes"]
 
 
 def test_prompt_for():

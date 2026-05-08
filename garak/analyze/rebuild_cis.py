@@ -82,6 +82,7 @@ def rebuild_cis_for_report(
         update_eval_entries_with_ci,
     )
     from garak.analyze.report_digest import append_report_object, build_digest
+    from garak.exception import ReportIncompatibleError
 
     resolved_output = _resolve_output_path(report_file, output_path, overwrite)
     if resolved_output:
@@ -149,6 +150,9 @@ def rebuild_cis_for_report(
 
         print(f"✅ CIs recalculated and written to: {target_file}")
 
+    except ReportIncompatibleError as e:
+        print(f"❌ Report not compatible with this garak install: {e}")
+        return 1
     except ValueError as e:
         print(f"❌ Invalid report data: {e}")
         return 1

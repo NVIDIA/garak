@@ -1,5 +1,5 @@
-garak.cli
-=========
+cli
+===
 
 .. automodule:: garak.cli
    :members:

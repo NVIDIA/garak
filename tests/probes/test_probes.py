@@ -29,6 +29,26 @@ with open(
     MISP_TAGS = [line.split("\t")[0] for line in misp_data.read().split("\n")]
 
 
+@pytest.fixture(autouse=True)
+def set_fake_env(request) -> None:
+    import os
+    from garak.generators.nim import NVOpenAIChat
+
+    stored_env = {
+        NVOpenAIChat.ENV_VAR: os.getenv(NVOpenAIChat.ENV_VAR, None),
+    }
+
+    def restore_env():
+        for k, v in stored_env.items():
+            if v is not None:
+                os.environ[k] = v
+            else:
+                del os.environ[k]
+
+    os.environ[NVOpenAIChat.ENV_VAR] = "test_value"
+    request.addfinalizer(restore_env)
+
+
 @pytest.mark.parametrize("classname", PROBES)
 def test_detector_specified(classname):  # every probe should give detector(s)
     plugin_name_parts = classname.split(".")
