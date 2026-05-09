@@ -5,6 +5,7 @@ These describe evaluators for assessing detector results.
 
 import json
 import logging
+import threading
 from pathlib import Path
 
 from typing import Iterable, Optional, Tuple, List
@@ -22,6 +23,9 @@ import garak.resources.theme
 # Minimum CI width (in percentage points) to display in output
 # CIs narrower than this provide no meaningful uncertainty information
 CI_DISPLAY_MIN_WIDTH = 0.001
+
+# Lock for thread-safe hitlog file open and write operations
+_hitlog_lock = threading.Lock()
 
 
 class Evaluator:
@@ -96,48 +100,49 @@ class Evaluator:
                         messages.append(
                             attempt.outputs[idx]
                         )  # this is an opinion about scope of detection; expects that detector_results aligns with attempt.outputs (not all_outputs)
-                        if (
-                            _config.transient.hitlogfile is None
-                            or _config.transient.hitlogfile.closed
-                        ):
-                            hitlog_mode = (
-                                "w" if _config.transient.hitlogfile is None else "a"
-                            )
-                            hitlog_filename = Path(
-                                str(_config.transient.report_filename).replace(
-                                    ".report.jsonl", ".hitlog.jsonl"
+                        with _hitlog_lock:
+                            if (
+                                _config.transient.hitlogfile is None
+                                or _config.transient.hitlogfile.closed
+                            ):
+                                hitlog_mode = (
+                                    "w" if _config.transient.hitlogfile is None else "a"
                                 )
-                            )
-                            logging.info("hit log in %s", hitlog_filename)
-                            _config.transient.hitlogfile = open(
-                                hitlog_filename,
-                                hitlog_mode,
-                                buffering=1,
-                                encoding="utf-8",
-                            )
+                                hitlog_filename = Path(
+                                    str(_config.transient.report_filename).replace(
+                                        ".report.jsonl", ".hitlog.jsonl"
+                                    )
+                                )
+                                logging.info("hit log in %s", hitlog_filename)
+                                _config.transient.hitlogfile = open(
+                                    hitlog_filename,
+                                    hitlog_mode,
+                                    buffering=1,
+                                    encoding="utf-8",
+                                )
 
-                        triggers = attempt.notes.get("triggers", None)
-                        _config.transient.hitlogfile.write(
-                            json.dumps(
-                                {
-                                    "goal": attempt.goal,
-                                    "prompt": asdict(attempt.prompt),
-                                    "output": asdict(attempt.outputs[idx]),
-                                    "triggers": triggers,
-                                    "score": score,
-                                    "run_id": str(_config.transient.run_id),
-                                    "attempt_id": str(attempt.uuid),
-                                    "attempt_seq": attempt.seq,
-                                    "attempt_idx": idx,
-                                    "generator": f"{_config.plugins.target_type} {_config.plugins.target_name}",
-                                    "probe": self.probename,
-                                    "detector": detector,
-                                    "generations_per_prompt": _config.run.generations,
-                                },
-                                ensure_ascii=False,
+                            triggers = attempt.notes.get("triggers", None)
+                            _config.transient.hitlogfile.write(
+                                json.dumps(
+                                    {
+                                        "goal": attempt.goal,
+                                        "prompt": asdict(attempt.prompt),
+                                        "output": asdict(attempt.outputs[idx]),
+                                        "triggers": triggers,
+                                        "score": score,
+                                        "run_id": str(_config.transient.run_id),
+                                        "attempt_id": str(attempt.uuid),
+                                        "attempt_seq": attempt.seq,
+                                        "attempt_idx": idx,
+                                        "generator": f"{_config.plugins.target_type} {_config.plugins.target_name}",
+                                        "probe": self.probename,
+                                        "detector": detector,
+                                        "generations_per_prompt": _config.run.generations,
+                                    },
+                                    ensure_ascii=False,
+                                )
+                                + "\n"  # generator,probe,prompt,trigger,result,detector,score,run id,attemptid,
                             )
-                            + "\n"  # generator,probe,prompt,trigger,result,detector,score,run id,attemptid,
-                        )
 
             outputs_evaluated = passes + fails
             outputs_processed = passes + fails + nones
