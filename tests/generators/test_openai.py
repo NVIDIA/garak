@@ -94,6 +94,31 @@ def test_openai_chat():
 
 
 @pytest.mark.usefixtures("set_fake_env")
+@pytest.mark.respx(base_url="https://api.openai.com/v1", assert_all_called=False)
+def test_null_choices_does_not_crash(respx_mock):
+    """API sometimes returns choices=null (content filter, empty response).
+    Generator should return [None] instead of raising TypeError."""
+    respx_mock.post("/chat/completions").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "id": "chatcmpl-null",
+                "object": "chat.completion",
+                "choices": None,
+                "created": 1677858242,
+                "model": "gpt-3.5-turbo",
+                "usage": {"prompt_tokens": 10, "total_tokens": 10},
+            },
+        )
+    )
+    generator = OpenAIGenerator(name="gpt-3.5-turbo")
+    generator.retry_json = False
+    prompt = Conversation([Turn(role="user", content=Message("test"))])
+    result = generator.generate(prompt)
+    assert result == [None]
+
+
+@pytest.mark.usefixtures("set_fake_env")
 def test_reasoning_switch():
     with pytest.raises(garak.exception.BadGeneratorException):
         generator = OpenAIGenerator(
