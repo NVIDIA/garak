@@ -111,6 +111,21 @@
          }
       }
    },
+   "null_choices" : {
+      "code" : 200,
+      "json" : {
+         "choices" : null,
+         "created" : 1677858242,
+         "id" : "chatcmpl-null-choices",
+         "model" : "gpt-3.5-turbo-0613",
+         "object" : "chat.completion",
+         "usage" : {
+            "completion_tokens" : 0,
+            "prompt_tokens" : 13,
+            "total_tokens" : 13
+         }
+      }
+   },
    "models" : {
       "code" : 200,
       "json" : {

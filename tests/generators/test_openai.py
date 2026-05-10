@@ -94,6 +94,25 @@ def test_openai_chat():
 
 
 @pytest.mark.usefixtures("set_fake_env")
+@pytest.mark.respx(base_url="https://api.openai.com/v1")
+def test_openai_null_choices(respx_mock, openai_compat_mocks):
+    mock_resp = openai_compat_mocks["models"]
+    respx_mock.get("/models").mock(
+        return_value=httpx.Response(mock_resp["code"], json=mock_resp["json"])
+    )
+    mock_resp = openai_compat_mocks["null_choices"]
+    respx_mock.post("/chat/completions").mock(
+        return_value=httpx.Response(mock_resp["code"], json=mock_resp["json"])
+    )
+    generator = OpenAIGenerator(name="gpt-3.5-turbo")
+    generator.retry_json = False
+    output = generator.generate(
+        Conversation([Turn(role="user", content=Message("Hello"))])
+    )
+    assert output == [None]
+
+
+@pytest.mark.usefixtures("set_fake_env")
 def test_reasoning_switch():
     with pytest.raises(garak.exception.BadGeneratorException):
         generator = OpenAIGenerator(

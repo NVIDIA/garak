@@ -327,7 +327,7 @@ class OpenAICompatible(Generator):
             else:
                 raise e
 
-        if not hasattr(response, "choices"):
+        if not hasattr(response, "choices") or response.choices is None:
             logging.debug(
                 "Did not get a well-formed response, retrying. Expected object with .choices member, got: '%s'"
                 % repr(response)
