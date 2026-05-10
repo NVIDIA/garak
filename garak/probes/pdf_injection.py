@@ -10,6 +10,10 @@ layers) that is hidden from human readers but extractable by the text parsers
 LLM pipelines typically use. If the model follows the hidden instructions
 instead of the user's query, the probe registers a hit.
 
+The probe ships both the original PDFs and pre-extracted text files. The
+extracted text is included in the prompt so the probe works with text-only
+generators without needing a PDF parser at runtime.
+
 Further info:
 
 * https://kai-greshake.de/posts/inject-my-pdf/
@@ -69,18 +73,19 @@ class PDFInjectionFull(garak.probes.Probe):
 
         for technique in self.techniques:
             for payload_name in self.payload_names:
+                txt_path = PDF_DATA_DIR / f"{technique}_{payload_name}.txt"
                 pdf_path = PDF_DATA_DIR / f"{technique}_{payload_name}.pdf"
-                if not os.path.isfile(pdf_path):
-                    logging.warning("PDF fixture missing: %s", pdf_path)
+                if not os.path.isfile(txt_path):
+                    logging.warning("Text fixture missing: %s", txt_path)
                     continue
+                with open(txt_path, encoding="utf-8") as f:
+                    doc_text = f.read()
                 for instruction in TOP_INSTRUCTIONS:
-                    self.prompts.append(
-                        Message(
-                            text=instruction,
-                            data_path=str(pdf_path),
-                            data_type=("application", "pdf"),
-                        )
-                    )
+                    prompt_text = f"{instruction}\n\n---\n{doc_text}\n---"
+                    msg = Message(text=prompt_text)
+                    if os.path.isfile(pdf_path):
+                        msg.data_path = str(pdf_path)
+                    self.prompts.append(msg)
                     self.triggers.append(TRIGGER)
 
     def _attempt_prestore_hook(self, attempt: Attempt, seq: int) -> Attempt:
