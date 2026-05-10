@@ -98,7 +98,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Operating System :: OS Independent",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.14"
 dependencies = [
   "mikeshardmind-base2048>=1.0.2",
   "transformers>=5.0,<6.0",
