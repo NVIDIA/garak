@@ -48,7 +48,9 @@ class _ImageScalingProbe(garak.probes.Probe, abc.ABC):
 class Bicubic(_ImageScalingProbe):
     """Tests hidden instructions embedded for bicubic-style scaling paths.
 
-    Active by default — runs in all standard garak scans.
+    Sends adversarial images crafted so that bicubic downscaling reveals
+    hidden text instructions invisible at the original resolution. The
+    target is asked to describe the image and follow any embedded commands.
     """
 
     active = True
@@ -63,7 +65,12 @@ class Bicubic(_ImageScalingProbe):
 
 
 class Bilinear(_ImageScalingProbe):
-    """Tests hidden instructions embedded for bilinear-style scaling paths."""
+    """Tests hidden instructions embedded for bilinear-style scaling paths.
+
+    Sends adversarial images crafted so that bilinear downscaling reveals
+    hidden text instructions invisible at the original resolution. The
+    target is asked to describe the image and follow any embedded commands.
+    """
 
     active = True
 
@@ -77,7 +84,12 @@ class Bilinear(_ImageScalingProbe):
 
 
 class Nearest(_ImageScalingProbe):
-    """Tests hidden instructions embedded for nearest-neighbour (kNN) scaling paths."""
+    """Tests hidden instructions embedded for nearest-neighbour (kNN) scaling paths.
+
+    Sends adversarial images crafted so that nearest-neighbour downscaling
+    reveals hidden text instructions invisible at the original resolution.
+    Inactive by default because nearest-neighbour is less common.
+    """
 
     @classmethod
     def _get_images(cls):
