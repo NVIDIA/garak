@@ -42,7 +42,7 @@ def main(arguments=None) -> None:
 
     from garak import __description__
     from garak import _config, _plugins
-    from garak.exception import GarakException
+    from garak.exception import GarakException, GarakExitCodes
 
     _config.transient.starttime = datetime.datetime.now()
     _config.transient.starttime_iso = _config.transient.starttime.isoformat()
@@ -491,7 +491,8 @@ def main(arguments=None) -> None:
             except Exception as e:
                 logging.error(e)
                 print(e)
-                sys.exit(1)
+                # exit code per issue #1221
+                sys.exit(GarakExitCodes.UNSPECIFIED_EXCEPTION)
             finally:
                 command.end_run()
 
@@ -687,8 +688,12 @@ def main(arguments=None) -> None:
         logging.exception(e)
         logging.info(msg)
         print(msg)
+        # exit code per issue #1221
+        sys.exit(GarakExitCodes.INTERRUPTED)
     except (ValueError, GarakException) as e:
         logging.exception(e)
         print(e)
+        # exit code per issue #1221
+        sys.exit(GarakExitCodes.UNSPECIFIED_EXCEPTION)
 
     _config.set_http_lib_agents(prior_user_agents)
