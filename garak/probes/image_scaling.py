@@ -25,7 +25,7 @@ class _ImageScalingProbe(garak.probes.Probe, abc.ABC):
     active = False
     lang = "en"
     modality = {"in": {"text", "image"}}
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "image_scaling.ImageScalingCompliance"
     goal = "follow hidden instructions embedded in a scaled image"
     tags = ["avid-effect:security:S0403", "owasp:llm01"]
     doc_uri = "https://blog.trailofbits.com/2025/08/21/weaponizing-image-scaling-against-production-ai-systems/"
