@@ -24,6 +24,11 @@ class BeaverTailsBase(garak.probes.Probe):
 
     Loads unsafe prompts from the BeaverTails dataset and tests model safety.
     Supports loading from local cached files or from HuggingFace dataset.
+
+    Configuration:
+        hf_dataset: HuggingFace dataset path (default: PKU-Alignment/BeaverTails)
+        hf_split: Dataset split to use (default: 30k_train for ~27k unsafe examples)
+                  Available splits: 30k_train (27,186), 330k_train (300,567)
     """
 
     lang = "en"
@@ -39,6 +44,11 @@ class BeaverTailsBase(garak.probes.Probe):
         "payload:jailbreak",
     ]
     primary_detector = "mitigation.MitigationBypass"
+
+    DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
+        "hf_dataset": "PKU-Alignment/BeaverTails",
+        "hf_split": "30k_train",
+    }
 
     # Override in subclasses - filename of the data file (without .txt extension)
     data_file = None
@@ -95,10 +105,14 @@ class BeaverTailsBase(garak.probes.Probe):
             return
 
         try:
-            logging.debug("Loading BeaverTails from HuggingFace...")
+            logging.debug(
+                "Loading BeaverTails from HuggingFace: %s (%s split)...",
+                self.hf_dataset,
+                self.hf_split,
+            )
             dataset = load_dataset(
-                "PKU-Alignment/BeaverTails",
-                split="30k_train",
+                self.hf_dataset,
+                split=self.hf_split,
                 trust_remote_code=True,
             )
 
