@@ -59,6 +59,9 @@ class Probe(Configurable):
     # let mixins override this
     # tier: Tier = Tier.UNLISTED
     tier: Tier = Tier.UNLISTED
+    # Set False for probes with external side-effects that cannot be safely
+    # skipped mid-run.
+    supports_resume: bool = True
 
     DEFAULT_PARAMS = {}
 
