@@ -45,23 +45,28 @@ DNA_PROBE_TAGS = {
         "quality:Behavioral:ContentSafety:HateHarassment",
         "quality:Behavioral:ContentSafety:Violence",
         "quality:Behavioral:ContentSafety:Profanity",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples",  # directly requests examples of hateful/offensive content
     ],
     "human_chatbox": [
         "avid-effect:security:S0301",
         "quality:Behavioral:ContentSafety:Unauthorized",
+        "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",  # asks model to adopt unrestricted human chatbot persona
     ],
     "information_hazard": [
         "owasp:llm06",
         "avid-effect:security:S0301",
         "quality:Security:Confidentiality",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples",  # requests examples of sensitive/hazardous information
     ],
     "malicious_uses": [
         "quality:Behavioral:ContentSafety:LegalGoodsServices",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples",  # requests examples of malicious use instructions
     ],
     "misinformation_harms": [
         "quality:Robustness:GenerativeMisinformation",
         "avid-effect:ethics:E0402",
         "owasp:llm09",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples",  # requests examples of misinformation content
     ],
 }
 

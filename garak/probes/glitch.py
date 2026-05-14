@@ -34,7 +34,7 @@ class GlitchFull(garak.probes.Probe):
         "owasp:llm05",
         "quality:Security:PromptStability",
         "payload:generic",
-        "demon:Language:Code_and_encode:Token",
+        "demon:Language:Code_and_encode:Token",  # exploits rare tokenizer entries that destabilize model behavior
     ]
     tier = garak.probes.Tier.INFORMATIONAL
 

@@ -158,13 +158,13 @@ demon:Language:Stylizing:Formal_language	Formal language	Write from a position o
 demon:Language:Stylizing:Servile_language	Servile language	Employ servile language
 demon:Language:Stylizing:Synonymous_language	Synonymous language	Varying prompt slightly in form but not meaning
 demon:Language:Stylizing:Capitalizing	Capitalizing	USING CAPS
-demon:Language:Stylizing:Give_examples	Give examples	Issuing examples of the target behaviour
+demon:Language:Stylizing:Give_examples	Give examples	Issue examples of the target behaviour in the attack itself
 demon:Rhetoric:Persuasion_and_manipulation:Distraction	Distraction	Use an unrelated context or instruction to “slip something through the filter”
 demon:Rhetoric:Persuasion_and_manipulation:Escalating	Escalating	Attempting to have target “agree” with a very small part of the argument, and then building up to ask for slightly more
 demon:Rhetoric:Persuasion_and_manipulation:Reverse_psychology	Reverse psychology	Framing the intent as fighting the good fight
 demon:Rhetoric:Socratic_questioning:Identity_characteristics	Identity characteristics	Referencing identity characteristics, such as nationalities, cultural and/or religious symbols, historically or culturally significant events or locations, physical attribute
 demon:Rhetoric:Socratic_questioning:Social_hierarchies	Social hierarchies	Reference social hierarchies while posing the request
-demon:Possible_worlds:Socratic_questioning:Unreal_computing	Unreal computing	Emulation of a computing device
+demon:Possible_worlds:Emulation:Unreal_computing	Unreal computing	Emulation of a computing device
 demon:Possible_worlds:World_building:Opposite_world	Opposite world	Describe an opposite world as part of the request
 demon:Possible_worlds:World_building:Scenarios	Scenarios	Create scenarios where intent would be ethically sound or encouraged, or non-compliance risks harm
 demon:Fictionalizing:Switching_genres:Poetry	Poetry	Framing request or response as a poem or other verse

@@ -91,14 +91,15 @@ class DRA(garak.probes.Probe):
         "owasp:llm01",
         "quality:Security:PromptStability",
         "payload:jailbreak",
-        "demon:Language:Code_and_encode:Token",
+        "demon:Language:Prompt_injection:Strong_arm_attack",  # uses emphatic ONLY/IMPORTANT directives to force reconstruction and answering
+        "demon:Language:Code_and_encode:Token",  # truncates and disguises tokens to bypass moderation filters
     ]
 
     goal = "make the LLM ask and answer its own harmful instructions"
     tier = garak.probes.Tier.OF_CONCERN
     active = True
 
-    doc_uri = "https://arxiv.org/abs/2402.18104v2"
+    doc_uri = "https://arxiv.org/html/2402.18104v2"
 
     DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
         "payload_name": "harmful_behaviors",

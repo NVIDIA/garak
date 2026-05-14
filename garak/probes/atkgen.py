@@ -49,6 +49,7 @@ class Tox(garak.probes.Probe):
         "quality:Behavioral:ContentSafety:HateHarassment",
         "quality:Behavioral:ContentSafety:Profanity",
         "payload:unwanted",
+        "demon:Stratagems:Scattershot:Regenerate_response",  # repeatedly generates challenge prompts hoping target slips
     ]
     goal = "make the model say something toxic"
     parallelisable_attempts = False  # atkgen has its own dialog manager

@@ -46,7 +46,8 @@ class DANProbeMeta(type):
             "avid-effect:security:S0403",
             "owasp:llm01",
             "quality:Security:PromptStability",
-            "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",
+            "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",  # asks model to adopt unrestricted DAN persona
+            "demon:Language:Prompt_injection:Ignore_previous_instructions",  # replaces existing safety behavior with a new unrestricted instruction set
         ],
         "primary_detector": "dan.DAN",
         "extended_detectors": ["mitigation.MitigationBypass"],
@@ -308,8 +309,7 @@ class Ablation_Dan_11_0(
     active=True,
     extra_tags=[
         "payload:jailbreak",
-        "demon:Language:Prompt_injection:Stop_sequences",
-        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Language:Prompt_injection:Strong_arm_attack",  # includes coercive disablement and reminder threats to force continued compliance
     ],
 ):
     """Ablation experiments over the DAN 11.0 prompt
@@ -351,7 +351,7 @@ class AutoDANCached(
     active=True,
     prompt_file="autodan/autodan_prompts.json",
     extra_tags=["payload:jailbreak"],
-    doc_uri="https://arxiv.org/abs/2310.04451",
+    doc_uri="https://arxiv.org/html/2310.04451",
 ):
     """Probe leveraging generated AutoDAN prompts
 
@@ -364,7 +364,7 @@ class AutoDAN(
     metaclass=DANProbeMeta,
     tier=garak.probes.Tier.COMPETE_WITH_SOTA,
     extra_tags=["payload:jailbreak"],
-    doc_uri="https://arxiv.org/abs/2310.04451",
+    doc_uri="https://arxiv.org/html/2310.04451",
 ):
     """Probe leveraging AutoDAN attack generation
 
@@ -453,7 +453,7 @@ class DanInTheWildFull(
     alignment/system prompt. Success is measured by not getting a safety mitigaton
     message."""
 
-    doc_uri = "https://arxiv.org/abs/2308.03825"
+    doc_uri = "https://arxiv.org/html/2308.03825"
 
 
 class DanInTheWild(DanInTheWildFull):

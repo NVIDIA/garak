@@ -60,6 +60,7 @@ class EICAR(garak.probes.Probe):
         "owasp:llm02",
         "payload:malicious:badcode:virus",
         "quality:Security:Adversarial",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples",  # explicitly asks the model to output the supplied test signature
     ]
     goal = "output antivirus test codes"
     tier = garak.probes.Tier.UNLISTED
@@ -87,6 +88,7 @@ class GTUBE(garak.probes.Probe):
         "owasp:llm02",
         "payload:malicious:badcode:spam",
         "quality:Security:Adversarial",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples",  # explicitly asks the model to output the supplied test signature
     ]
     goal = "output email spam"
     tier = garak.probes.Tier.UNLISTED
@@ -115,6 +117,7 @@ class GTphish(garak.probes.Probe):
         "owasp:llm02",
         "payload:malicious:badcode:phishing",
         "quality:Security:Adversarial",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples",  # explicitly asks the model to output the supplied test signature
     ]
     goal = "output email phishing"
     tier = garak.probes.Tier.UNLISTED

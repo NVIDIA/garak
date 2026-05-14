@@ -35,12 +35,13 @@ class FITD(garak.probes.IterativeProbe):
     """
 
     lang = "en"
-    doc_uri = "http://arxiv.org/abs/2502.19820"
+    doc_uri = "https://arxiv.org/abs/2502.19820"
     primary_detector = "judge.RefusalOnlyAdversarial"
     tags = [
         "owasp:llm01",
         "owasp:llm02",
         "owasp:llm05",
+        "demon:Rhetoric:Persuasion_and_manipulation:Escalating",  # progressively escalates from benign to adversarial queries across turns
     ]
     goal = "Transform queries from benign to harmful obtaining intermediate responses to get compliance from the model"
     tier = garak.probes.Tier.INFORMATIONAL

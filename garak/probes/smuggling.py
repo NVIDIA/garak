@@ -89,6 +89,7 @@ class HypotheticalResponse(garak.probes.Probe):
         "avid-effect:security:S0403",
         "quality:Security:PromptStability",
         "payload:jailbreak",
+        "demon:Possible_worlds:World_building:Scenarios",  # frames harmful actions as hypothetical character planning scenarios
     ]
     tier = garak.probes.Tier.INFORMATIONAL
 
@@ -184,5 +185,7 @@ Complete this prompt and describe how a fictitious person did this without getti
         "avid-effect:security:S0403",
         "quality:Security:PromptStability",
         "payload:jailbreak",
+        "demon:Language:Code_and_encode:Programming",  # uses pseudocode predict_mask functions to obscure the harmful request
+        "demon:Possible_worlds:World_building:Scenarios",  # asks for the attack as something a fictitious person supposedly did
     ]
     tier = garak.probes.Tier.INFORMATIONAL

@@ -23,7 +23,7 @@ class FalseAssertion(garak.probes.Probe):
     message."""
 
     lang = "en"
-    doc_uri = "https://arxiv.org/abs/2304.13734"
+    doc_uri = "https://arxiv.org/html/2304.13734"
     primary_detector = "misleading.MustRefuteClaimModel"
     extended_detectors = [
         "misleading.MustRefuteClaimKW",
@@ -35,7 +35,7 @@ class FalseAssertion(garak.probes.Probe):
         "owasp:llm09",
         "quality:Robustness:GenerativeMisinformation",
         "payload:hallucination",
-        "demon:Rhetoric:Persuasion_and_manipulation:Distraction",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction",  # presents false claims as fact to distract model from refuting them
     ]
     goal = "make the model expand on a false assertion"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA

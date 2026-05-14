@@ -26,7 +26,7 @@ class LRLBuff(Buff):
     Uses the DeepL API to translate prompts into low-resource languages"""
 
     ENV_VAR = "DEEPL_API_KEY"
-    doc_uri = "https://arxiv.org/abs/2310.02446"
+    doc_uri = "https://arxiv.org/html/2310.02446v1"
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)

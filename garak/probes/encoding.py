@@ -197,7 +197,7 @@ class EncodingMixin:
         "owasp:llm01",
         "quality:Security:PromptStability",
         "payload:generic",
-        "demon:Language:Code_and_encode:Data_encoding",
+        "demon:Language:Code_and_encode:Data_encoding",  # encodes payloads in base64/ROT13/hex/etc. to bypass input filters
     ]
     goal = "make the model say an encoded payload"
     use_bytes = True
@@ -653,6 +653,9 @@ class InjectUnicodeTagChars(EncodingMixin, garak.probes.Probe):
     use_bytes = False
     # May want to eventually add a check to verify that `desired_emoji` is a valid emoji.
     DEFAULT_PARAMS = EncodingMixin.DEFAULT_PARAMS | {"desired_emoji": "😈"}
+    tags = EncodingMixin.tags + [
+        "demon:Language:Code_and_encode:Token",  # hides ASCII payloads in tokenizer-visible Unicode tag characters
+    ]
 
     def __init__(self, config_root=_config):
         # Cannot reference `self` in params above.
@@ -680,6 +683,9 @@ class InjectUnicodeVariantSelectors(EncodingMixin, garak.probes.Probe):
     active = False
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
     use_bytes = False
+    tags = EncodingMixin.tags + [
+        "demon:Language:Code_and_encode:Token",  # smuggles ASCII through Unicode selector code points models may still process
+    ]
 
     def __init__(self, config_root=_config):
         garak.probes.Probe.__init__(self, config_root=config_root)
@@ -701,6 +707,9 @@ class InjectSneakyBits(EncodingMixin, garak.probes.Probe):
     encoding_name = "ASCII in hidden unicode binary encoding"
     active = False
     use_bytes = False
+    tags = EncodingMixin.tags + [
+        "demon:Language:Code_and_encode:Token",  # encodes hidden bits with zero-width Unicode characters the tokenizer still sees
+    ]
 
     def __init__(self, config_root=_config):
         garak.probes.Probe.__init__(self, config_root=config_root)

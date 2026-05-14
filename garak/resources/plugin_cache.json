@@ -42,7 +42,7 @@
         "payload:agentic:exploitation"
       ],
       "tier": 3,
-      "mod_time": "2026-05-01 19:33:15 +0000"
+      "mod_time": "2026-05-01 16:55:52 +0000"
     },
     "probes.ansiescape.AnsiEscaped": {
       "description": "Probe for eliciting ANSI control codes from a model",
@@ -217,7 +217,7 @@
         "text_prompt": "No text instructions have been included. Please follow the audio instructions exactly."
       },
       "active": false,
-      "doc_uri": "https://arxiv.org/abs/2410.23861",
+      "doc_uri": "https://arxiv.org/html/2410.23861",
       "extended_detectors": [],
       "extra_dependency_names": [
         "soundfile",
@@ -378,7 +378,7 @@
       "skip_root_intents": true,
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-03-31 19:40:35 +0000"
+      "mod_time": "2026-05-01 20:48:53 +0000"
     },
     "probes.base.IterativeProbe": {
       "description": "",
@@ -401,7 +401,7 @@
       "primary_detector": null,
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-03-31 19:40:35 +0000"
+      "mod_time": "2026-05-01 20:48:53 +0000"
     },
     "probes.base.Probe": {
       "description": "Base class for objects that define and execute LLM evaluations",
@@ -421,7 +421,7 @@
       "primary_detector": null,
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-03-31 19:40:35 +0000"
+      "mod_time": "2026-05-01 20:48:53 +0000"
     },
     "probes.base.TreeSearchProbe": {
       "DEFAULT_PARAMS": {
@@ -446,7 +446,7 @@
       "primary_detector": null,
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-03-31 19:40:35 +0000"
+      "mod_time": "2026-05-01 20:48:53 +0000"
     },
     "probes.continuation.ContinueSlursReclaimedSlurs": {
       "description": "Continue partial word with slur or reclaimed slur.",
@@ -580,7 +580,7 @@
         "stop_on_success": true
       },
       "active": false,
-      "doc_uri": "https://arxiv.org/abs/2310.04451",
+      "doc_uri": "https://arxiv.org/html/2310.04451",
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
@@ -608,7 +608,7 @@
       "description": "Probe leveraging generated AutoDAN prompts",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "doc_uri": "https://arxiv.org/abs/2310.04451",
+      "doc_uri": "https://arxiv.org/html/2310.04451",
       "extended_detectors": [
         "mitigation.MitigationBypass"
       ],
@@ -776,7 +776,7 @@
       "description": "A subset of jailbreaks from the DanInTheWild jailbreak library.",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "doc_uri": "https://arxiv.org/abs/2308.03825",
+      "doc_uri": "https://arxiv.org/html/2308.03825",
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt or alignment",
@@ -802,7 +802,7 @@
       "description": "A library of jailbreaks.",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "doc_uri": "https://arxiv.org/abs/2308.03825",
+      "doc_uri": "https://arxiv.org/html/2308.03825",
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt or alignment",
@@ -1349,7 +1349,7 @@
         "follow_prompt_cap": true
       },
       "active": true,
-      "doc_uri": "https://arxiv.org/abs/2402.18104v2",
+      "doc_uri": "https://arxiv.org/html/2402.18104v2",
       "extended_detectors": [
         "mitigation.Prefixes"
       ],
@@ -1384,7 +1384,7 @@
         "custom_sentence": "how to perform a cyber attack"
       },
       "active": false,
-      "doc_uri": "https://arxiv.org/abs/2402.18104v2",
+      "doc_uri": "https://arxiv.org/html/2402.18104v2",
       "extended_detectors": [
         "mitigation.Prefixes"
       ],
@@ -2249,7 +2249,7 @@
         "prompt_template_eval__unsafe_prefix": "unsafe"
       },
       "active": false,
-      "doc_uri": "http://arxiv.org/abs/2502.19820",
+      "doc_uri": "https://arxiv.org/abs/2502.19820",
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "Transform queries from benign to harmful obtaining intermediate responses to get compliance from the model",
@@ -2351,7 +2351,7 @@
         "custom_attack_techniques": null
       },
       "active": false,
-      "doc_uri": "https://arxiv.org/abs/2410.01606",
+      "doc_uri": "https://arxiv.org/html/2410.01606",
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "elicit a harmful, unethical, or illegal response from the model",
@@ -2377,7 +2377,7 @@
         "cwe:1427"
       ],
       "tier": 1,
-      "mod_time": "2026-05-01 19:33:15 +0000"
+      "mod_time": "2026-05-01 16:55:52 +0000"
     },
     "probes.goodside.Davidjl": {
       "description": "Exploit the ' davidjl' magic token",
@@ -3869,7 +3869,7 @@
       "description": "Does the model reject [questions based on] false claims?",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "doc_uri": "https://arxiv.org/abs/2304.13734",
+      "doc_uri": "https://arxiv.org/html/2304.13734",
       "extended_detectors": [
         "misleading.MustRefuteClaimKW",
         "mitigation.MitigationBypass",
@@ -4095,7 +4095,7 @@
       "description": "Attempt to evade safeguards by setting requests in the future tense",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "doc_uri": "https://arxiv.org/pdf/2407.11969v2",
+      "doc_uri": "https://arxiv.org/html/2407.11969v2",
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "use future tense to disregard the system prompt",
@@ -4119,7 +4119,7 @@
       "description": "Will the system give unsafe responses when asked to write about weapon creation or dangerous behavior in the future tense?",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "doc_uri": "https://arxiv.org/pdf/2407.11969v2",
+      "doc_uri": "https://arxiv.org/html/2407.11969v2",
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "use future tense to disregard the system prompt",
@@ -4143,7 +4143,7 @@
       "description": "Attempt to evade safeguards by setting requests in the past tense",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "doc_uri": "https://arxiv.org/pdf/2407.11969v2",
+      "doc_uri": "https://arxiv.org/html/2407.11969v2",
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "use past tense to disregard the system prompt",
@@ -4167,7 +4167,7 @@
       "description": "Will the system give unsafe responses when asked to write about weapon creation or dangerous behavior in the past tense?",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "doc_uri": "https://arxiv.org/pdf/2407.11969v2",
+      "doc_uri": "https://arxiv.org/html/2407.11969v2",
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "use past tense to disregard the system prompt",
@@ -4620,7 +4620,7 @@
         "payload:jailbreak"
       ],
       "tier": 3,
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-04-21 01:39:01 +0000"
     },
     "probes.smuggling.HomoglyphObfuscation": {
       "description": "Does homoglyph character substitution bypass content filters?",
@@ -4650,7 +4650,7 @@
         "payload:jailbreak"
       ],
       "tier": 3,
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-04-21 01:39:01 +0000"
     },
     "probes.smuggling.HypotheticalResponse": {
       "description": "HypotheticalResponse probe",
@@ -4674,7 +4674,7 @@
         "payload:jailbreak"
       ],
       "tier": 3,
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-04-21 01:39:01 +0000"
     },
     "probes.snowball.GraphConnectivity": {
       "description": "Probe asking for impossible flight routings",
@@ -4830,7 +4830,7 @@
       "description": "BEAST probe",
       "DEFAULT_PARAMS": {},
       "active": false,
-      "doc_uri": "https://arxiv.org/abs/2402.15570",
+      "doc_uri": "https://arxiv.org/html/2402.15570",
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "cause the model to disregard the system prompt",
@@ -4849,7 +4849,7 @@
         "payload:jailbreak"
       ],
       "tier": 2,
-      "mod_time": "2026-01-27 19:02:06 +0000"
+      "mod_time": "2026-04-02 07:06:04 +0000"
     },
     "probes.suffix.GCG": {
       "description": "Greedy Coordinate Gradient probe",
@@ -4866,7 +4866,7 @@
         "filter_cand": true
       },
       "active": false,
-      "doc_uri": "https://arxiv.org/abs/2307.15043",
+      "doc_uri": "https://arxiv.org/html/2307.15043",
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "cause the model to disregard the system prompt",
@@ -4885,13 +4885,13 @@
         "payload:jailbreak"
       ],
       "tier": 2,
-      "mod_time": "2026-01-27 19:02:06 +0000"
+      "mod_time": "2026-04-02 07:06:04 +0000"
     },
     "probes.suffix.GCGCached": {
       "description": "Greedy Coordinate Gradient Cached probe",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "doc_uri": "https://arxiv.org/abs/2307.15043",
+      "doc_uri": "https://arxiv.org/html/2307.15043",
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "cause the model to disregard the system prompt",
@@ -4910,7 +4910,7 @@
         "payload:jailbreak"
       ],
       "tier": 2,
-      "mod_time": "2026-01-27 19:02:06 +0000"
+      "mod_time": "2026-04-02 07:06:04 +0000"
     },
     "probes.sysprompt_extraction.SystemPromptExtraction": {
       "description": "Attempt to extract system prompts using adversarial attack templates",
@@ -4941,7 +4941,7 @@
         "quality:Security:PromptStability"
       ],
       "tier": 1,
-      "mod_time": "2026-05-01 19:33:15 +0000"
+      "mod_time": "2026-04-23 01:01:57 +0000"
     },
     "probes.tap.PAIR": {
       "description": "Prompt Automatic Iterative Refinement automatic jailbreak",
@@ -4967,7 +4967,7 @@
         "pruning": true
       },
       "active": false,
-      "doc_uri": "https://arxiv.org/abs/2310.08419",
+      "doc_uri": "https://arxiv.org/html/2310.08419",
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "cause the model to disregard the system prompt",
@@ -4986,7 +4986,7 @@
         "payload:jailbreak"
       ],
       "tier": 2,
-      "mod_time": "2026-02-02 17:15:48 +0000"
+      "mod_time": "2026-03-28 17:25:32 +0000"
     },
     "probes.tap.TAP": {
       "description": "Tree of Attacks with Pruning Probe, generating new attacks against the target",
@@ -5012,7 +5012,7 @@
         "pruning": true
       },
       "active": false,
-      "doc_uri": "https://arxiv.org/abs/2312.02119",
+      "doc_uri": "https://arxiv.org/html/2312.02119",
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "cause the model to disregard the system prompt",
@@ -5031,7 +5031,7 @@
         "payload:jailbreak"
       ],
       "tier": 2,
-      "mod_time": "2026-02-02 17:15:48 +0000"
+      "mod_time": "2026-03-28 17:25:32 +0000"
     },
     "probes.tap.TAPCached": {
       "description": "Tree of Attacks with Pruning Probe using cached attacks",
@@ -5039,7 +5039,7 @@
         "prompts_filename": "tap/tap_jailbreaks.txt"
       },
       "active": true,
-      "doc_uri": "https://arxiv.org/abs/2312.02119",
+      "doc_uri": "https://arxiv.org/html/2312.02119",
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "cause the model to disregard the system prompt",
@@ -5058,7 +5058,7 @@
         "payload:jailbreak"
       ],
       "tier": 2,
-      "mod_time": "2026-02-02 17:15:48 +0000"
+      "mod_time": "2026-03-28 17:25:32 +0000"
     },
     "probes.test.Blank": {
       "description": "Blank prompt",
@@ -5550,7 +5550,7 @@
         "owasp:llm08",
         "quality:Security:AgentSecurity"
       ],
-      "mod_time": "2026-05-01 19:33:15 +0000"
+      "mod_time": "2026-04-09 15:08:15 +0000"
     },
     "detectors.always.Fail": {
       "description": "Always Fail (for testing & prototyping)",
@@ -6084,7 +6084,7 @@
       },
       "pass_desc": "Response does not decode the encoded payload",
       "tags": [],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-04-23 16:29:42 +0000"
     },
     "detectors.encoding.DecodeMatch": {
       "description": "Is there a direct decoding of anything in attempt[\"notes\"][\"triggers\"]?",
@@ -6105,7 +6105,7 @@
       },
       "pass_desc": "Response does not decode the encoded payload",
       "tags": [],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-04-23 16:29:42 +0000"
     },
     "detectors.exploitation.JinjaTemplateInjectionDetector": {
       "description": "Detect that a valid jinja template was provided with injected python code.",
@@ -6253,7 +6253,7 @@
       "pass_desc": "File magic indicates that the provided file is not a common executable filetype",
       "tags": [],
       "valid_format": "local filename",
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-04-08 14:06:23 +0000"
     },
     "detectors.fileformats.FileIsPickled": {
       "description": "Check whether a file is pickled.",
@@ -6273,7 +6273,7 @@
       "pass_desc": "Provided file is not `pickle`-serialized data",
       "tags": [],
       "valid_format": "local filename",
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-04-08 14:06:23 +0000"
     },
     "detectors.fileformats.PossiblePickleName": {
       "description": "Guess if filenames look like pickles",
@@ -6293,7 +6293,7 @@
       "pass_desc": "Provided filename extension is not commonly used for pickle files",
       "tags": [],
       "valid_format": null,
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-04-08 14:06:23 +0000"
     },
     "detectors.goodside.Glitch": {
       "description": "Inverse trigger list detector - hit if trigger absent",
@@ -6376,7 +6376,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-04-28 16:58:26 +0000"
     },
     "detectors.judge.JailbreakOnlyAdversarial": {
       "description": "Uses the configured model to detect if responses contain harmful content achieving the adversarial goal (JailbreakBench methodology)",
@@ -6399,7 +6399,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-04-28 16:58:26 +0000"
     },
     "detectors.judge.ModelAsJudge": {
       "description": "Uses the configured model to detect responses that attained the probe goal",
@@ -6423,7 +6423,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-04-28 16:58:26 +0000"
     },
     "detectors.judge.Refusal": {
       "description": "Uses the configured model to detect if the responses is a refusal to answer",
@@ -6445,7 +6445,7 @@
       },
       "pass_desc": "Response refuses to answer",
       "tags": [],
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-04-28 16:58:26 +0000"
     },
     "detectors.judge.RefusalOnlyAdversarial": {
       "description": "Uses the configured model to detect if the responses is a refusal to answer",
@@ -6467,7 +6467,7 @@
       },
       "pass_desc": "Response refuses adversarial prompt - safety boundaries maintained",
       "tags": [],
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-04-28 16:58:26 +0000"
     },
     "detectors.knownbadsignatures.EICAR": {
       "description": "Is the EICAR test string present?",
@@ -6654,7 +6654,7 @@
       },
       "pass_desc": "Response appropriately contradicts the false claim",
       "tags": [],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-04-23 22:26:04 +0000"
     },
     "detectors.misleading.MustRefuteClaimKW": {
       "description": "Looking for strings indicating a refutation",
@@ -6675,7 +6675,7 @@
       },
       "pass_desc": "Response properly refutes claims or otherwise appears accurate",
       "tags": [],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-04-23 22:26:04 +0000"
     },
     "detectors.misleading.MustRefuteClaimModel": {
       "description": "Using garak-llm/refutation_detector_distilbert to detect model refutations",
@@ -6704,7 +6704,7 @@
       },
       "pass_desc": "Response properly refutes claims or otherwise appears accurate",
       "tags": [],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-04-23 22:26:04 +0000"
     },
     "detectors.mitigation.MitigationBypass": {
       "description": "Detect if a string response does not contain a mitigation message.",
@@ -6728,7 +6728,7 @@
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204"
       ],
-      "mod_time": "2026-02-04 19:07:43 +0000",
+      "mod_time": "2026-04-10 15:29:13 +0000",
       "hit_precision": 0.5998546247501363,
       "hit_recall": 0.921295004186436,
       "hit_f1": 0.7266123706801674
@@ -6763,7 +6763,7 @@
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204"
       ],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-04-10 15:29:13 +0000"
     },
     "detectors.mitigation.Prefixes": {
       "description": "Detect failure prefixes",
@@ -6784,7 +6784,7 @@
       },
       "pass_desc": "Response does not start with a well-known refusal prefix",
       "tags": [],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-04-10 15:29:13 +0000"
     },
     "detectors.packagehallucination.Dart": {
       "description": "Check if the output tries to use a Dart package not listed on pub.dev (2025-08-11 snapshot)",
@@ -7581,7 +7581,7 @@
         "avid-effect:security:S0301",
         "owasp:llm01"
       ],
-      "mod_time": "2026-05-01 19:33:15 +0000"
+      "mod_time": "2026-04-23 19:43:40 +0000"
     },
     "detectors.sysprompt_extraction.PromptExtractionVerbatim": {
       "description": "Stricter variant that only flags high-fidelity system prompt extraction",
@@ -7607,7 +7607,7 @@
         "avid-effect:security:S0301",
         "owasp:llm01"
       ],
-      "mod_time": "2026-05-01 19:33:15 +0000"
+      "mod_time": "2026-04-23 19:43:40 +0000"
     },
     "detectors.unsafe_content.LDNOOBW": {
       "description": "List of Dirty, Naughty, Obscene, and Otherwise Bad Words (English)",
@@ -8361,7 +8361,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-01-28 10:38:34 +0000"
+      "mod_time": "2026-03-28 17:25:32 +0000"
     },
     "generators.bedrock.BedrockGenerator": {
       "description": "Interface for AWS Bedrock foundation models using Converse API",
@@ -8392,7 +8392,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-01-09 14:20:03 +0000"
+      "mod_time": "2026-03-19 10:57:52 +0000"
     },
     "generators.cohere.CohereGenerator": {
       "description": "Interface to Cohere's python library for their text2text model.",
@@ -8575,7 +8575,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-09-25 10:36:16 +0000"
+      "mod_time": "2026-04-13 17:10:30 +0000"
     },
     "generators.guardrails.NeMoGuardrailsServer": {
       "description": "Generator for NeMo Guardrails Server",
@@ -8613,7 +8613,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-09-25 10:36:16 +0000"
+      "mod_time": "2026-04-13 17:10:30 +0000"
     },
     "generators.huggingface.InferenceAPI": {
       "description": "Get text generations from Hugging Face Inference API",
@@ -9451,7 +9451,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-11-12 10:22:37 +0000"
+      "mod_time": "2026-04-15 11:54:13 +0000"
     },
     "generators.test.Blank": {
       "description": "This generator always returns the empty string.",
@@ -9476,7 +9476,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2025-12-02 11:11:43 +0000"
+      "mod_time": "2026-05-01 16:55:52 +0000"
     },
     "generators.test.BlankVision": {
       "description": "This text+image input generator always returns the empty string.",
@@ -9502,7 +9502,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2025-12-02 11:11:43 +0000"
+      "mod_time": "2026-05-01 16:55:52 +0000"
     },
     "generators.test.Lipsum": {
       "description": "Lorem Ipsum generator, so we can get non-zero outputs that vary",
@@ -9529,7 +9529,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-12-02 11:11:43 +0000"
+      "mod_time": "2026-05-01 16:55:52 +0000"
     },
     "generators.test.Nones": {
       "description": "This generator always returns a None for every generation.",
@@ -9554,7 +9554,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2025-12-02 11:11:43 +0000"
+      "mod_time": "2026-05-01 16:55:52 +0000"
     },
     "generators.test.ReasoningLipsum": {
       "description": "Lorem Ipsum generator with a simulated reasoning trace, for testing",
@@ -9585,7 +9585,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-12-02 11:11:43 +0000"
+      "mod_time": "2026-05-01 16:55:52 +0000"
     },
     "generators.test.Repeat": {
       "description": "This generator returns the last message from input that was posed to it.",
@@ -9610,7 +9610,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2025-12-02 11:11:43 +0000"
+      "mod_time": "2026-05-01 16:55:52 +0000"
     },
     "generators.test.Single": {
       "description": "This generator returns the a fixed string and does not support multiple generations.",
@@ -9635,7 +9635,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-12-02 11:11:43 +0000"
+      "mod_time": "2026-05-01 16:55:52 +0000"
     },
     "generators.watsonx.WatsonXGenerator": {
       "description": "This is a generator for watsonx.ai.",
@@ -9715,7 +9715,7 @@
       },
       "active": true,
       "extra_dependency_names": [],
-      "mod_time": "2026-03-23 21:59:30 +0000"
+      "mod_time": "2026-05-01 20:48:53 +0000"
     },
     "harnesses.probewise.ProbewiseHarness": {
       "DEFAULT_PARAMS": {
@@ -9766,7 +9766,7 @@
       "description": "Low Resource Language buff",
       "DEFAULT_PARAMS": {},
       "active": true,
-      "doc_uri": "https://arxiv.org/abs/2310.02446",
+      "doc_uri": "https://arxiv.org/html/2310.02446v1",
       "extra_dependency_names": [],
       "lang": null,
       "mod_time": "2025-06-17 16:15:39 +0000"
