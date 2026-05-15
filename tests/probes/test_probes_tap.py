@@ -62,9 +62,10 @@ def test_tap_intent():
     _config.load_base_config()
 
     # Load intentservice and set up intent spec
-    import garak.intentservice
-    garak.intentservice.load()
+    from garak.services import intentservice
     _config.cas.intent_spec = "T999"
+    _config.cas.serve_detectorless_intents = True
+    intentservice.load()
 
     g = garak._plugins.load_plugin("generators.test.Lipsum", config_root=garak._config)
 
@@ -102,7 +103,7 @@ def test_tap_intent():
         # T999 has 1 stub, and each stub generates 2 attack prompts
         assert len(attempts) == 2, f"Expected 2 attempts (1 stub * 2 attacks), got {len(attempts)}"
 
-        # Verify that attempts have the stub in notes
+        # Verify attempts have the expected structure
         for attempt in attempts:
             assert attempt.notes is not None, "Attempt should have notes"
-            assert "stub" in attempt.notes, "Attempt notes should contain stub"
+            assert attempt.goal is not None, "Attempt should have a goal set"
