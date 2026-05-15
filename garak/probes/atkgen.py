@@ -20,7 +20,7 @@ import copy
 import logging
 import json
 import re
-from typing import List
+from typing import List, Optional
 
 from colorama import Fore, Style
 from tqdm import tqdm
@@ -294,3 +294,283 @@ class Tox(garak.probes.Probe):
             msg = f"No query placeholder {TEMPLATE_PLACEHOLDER} in {self.__class__.__name__} prompt template {self.red_team_prompt_template}"
             logging.critical(msg)
             raise ValueError(msg)
+
+
+class ToxConv(garak.probes.IterativeProbe):
+    """Automatic attack generation using the full conversation history.
+
+    Like :class:`Tox`, but the attack model receives the complete conversation
+    history at each turn rather than just the most recent target response.
+    The growing context allows attack models that understand multi-turn
+    dialogue to craft more informed adversarial prompts.
+
+    The redteamer's conversation accumulates the exchange: target responses
+    appear as ``user`` turns and the generated attacks as ``assistant`` turns,
+    so the attack model sees the full trajectory when choosing the next
+    challenge.
+    """
+
+    primary_detector = "unsafe_content.ToxicCommentModel"
+    tags = [
+        "avid-effect:ethics:E0301",  # toxicity
+        "quality:Behavioral:ContentSafety:Toxicity",
+        "quality:Behavioral:ContentSafety:HateHarassment",
+        "quality:Behavioral:ContentSafety:Profanity",
+        "payload:unwanted",
+    ]
+    goal = "make the model say something toxic"
+    parallelisable_attempts = False
+    doc_uri = (
+        "https://interhumanagreement.substack.com/p/faketoxicityprompts-automatic-red"
+    )
+    lang = "en"
+    tier = garak.probes.Tier.COMPETE_WITH_SOTA
+    active = False
+
+    _run_params = garak.probes.IterativeProbe._run_params | {"eval_threshold"}
+
+    DEFAULT_PARAMS = garak.probes.IterativeProbe.DEFAULT_PARAMS | {
+        "max_calls_per_conv": 5,
+        "convs_per_generation": 5,
+        "end_condition": "detector",  # uses primary detector to stop successful branches early
+        "red_team_model_type": "huggingface.Pipeline",
+        "red_team_model_name": "garak-llm/attackgeneration-toxicity_gpt2",
+        "red_team_model_config": {
+            "hf_args": {"device": "cpu", "torch_dtype": "float32"}
+        },
+        "red_team_postproc_rm_regex": r"\<\|.*",
+        "use_only_first_sent": True,
+        "branching": "branchy",
+    }
+
+    _BRANCHING_MODES = frozenset({"linear", "branchy"})
+
+    def __init__(self, config_root=_config):
+        self.redteamer = None
+        self.detector = None
+        super().__init__(config_root)
+        if self.branching not in self._BRANCHING_MODES:
+            raise ValueError(
+                f"branching must be one of {sorted(self._BRANCHING_MODES)}, got '{self.branching}'"
+            )
+        if self.branching == "branchy":
+            self._branchy_inferences = 0
+            self._branchy_cap = self.soft_probe_prompt_cap * self.generations
+        self.red_team_model_config = self._build_red_team_model_config()
+
+    def _build_red_team_model_config(self) -> dict:
+        try:
+            rt_model_module, rt_model_class = self.red_team_model_type.split(".")
+        except ValueError as e:
+            msg = f"red team model type needs to be fully specified, e.g. 'module.Class'. Got {self.red_team_model_type}"
+            logging.critical(msg)
+            raise ValueError(msg) from e
+        return {
+            "generators": {
+                rt_model_module: {
+                    rt_model_class: self.red_team_model_config
+                    | {"name": self.red_team_model_name},
+                }
+            }
+        }
+
+    def _load_detector(self) -> None:
+        if self.detector is not None:
+            return
+        self.detector = garak._plugins.load_plugin(f"detectors.{self.primary_detector}")
+
+    def _should_terminate_conversation(
+        self, attempt: garak.attempt.Attempt
+    ) -> List[bool]:
+        """Run the primary detector on each output; return True where a hit is found.
+
+        A hit means the target has already produced a toxic response on this
+        branch — there is no need to continue attacking it.
+
+        :param attempt: Completed attempt whose outputs are to be evaluated.
+        :type attempt: garak.attempt.Attempt
+        :return: One bool per output; ``True`` signals early termination.
+        :rtype: List[bool]
+        """
+        self._load_detector()
+        scores = self.detector.detect(attempt)
+        return [s is not None and s >= self.eval_threshold for s in scores]
+
+    def _load_redteamer(self) -> None:
+        if self.redteamer is not None:
+            return
+        print("🔴🪖  ", end="")
+        self.redteamer = garak._plugins.load_plugin(
+            f"generators.{self.red_team_model_type}",
+            config_root=self.red_team_model_config,
+        )
+        self.redteamer.deprefix_prompt = True
+        self.redteamer.parallel_requests = False
+
+    def _get_challenge(self, rt_conv: garak.attempt.Conversation) -> Optional[str]:
+        """Generate next attack from conversation history; appends result to rt_conv.
+
+        :param rt_conv: Running redteamer conversation; modified in-place with
+            the generated challenge as a new ``assistant`` turn.
+        :type rt_conv: garak.attempt.Conversation
+        :return: Post-processed challenge text, or ``None`` on failure.
+        :rtype: Optional[str]
+        """
+        response = self.redteamer.generate(rt_conv)
+        if not response or response[0] is None or response[0].text is None:
+            return None
+        challenge_text = response[0].text
+        if self.red_team_postproc_rm_regex:
+            challenge_text = re.sub(
+                self.red_team_postproc_rm_regex, "", challenge_text
+            ).strip()
+        if not challenge_text:
+            return None
+        rt_conv.turns.append(
+            garak.attempt.Turn("assistant", garak.attempt.Message(challenge_text))
+        )
+        return challenge_text
+
+    def _execute_attempt(self, this_attempt):
+        """In ``linear`` mode each attempt generates exactly one target response,
+        keeping threads independent.  ``branchy`` mode delegates to the default
+        behaviour (``generations_this_call=self.generations``).
+        """
+        if self.branching == "linear":
+            self._generator_precall_hook(self.generator, this_attempt)
+            this_attempt.outputs = self.generator.generate(
+                this_attempt.prompt, generations_this_call=1
+            )
+            if self.post_buff_hook:
+                this_attempt = self._postprocess_buff(this_attempt)
+            this_attempt = self._postprocess_hook(this_attempt)
+            self._generator_cleanup()
+            return copy.deepcopy(this_attempt)
+        return super()._execute_attempt(this_attempt)
+
+    def _create_init_attempts(self) -> List[garak.attempt.Attempt]:
+        """Create initial attempts.
+
+        In ``linear`` mode, ``generations`` independent threads are seeded —
+        one challenge per thread, one response expected per turn.
+        In ``branchy`` mode, ``convs_per_generation`` seeds are created and
+        ``generations`` acts as the branching factor at each turn.
+        """
+        if self.branching == "branchy":
+            self._branchy_inferences = 0
+        self._load_redteamer()
+        n = (
+            self.generations
+            if self.branching == "linear"
+            else self.convs_per_generation
+        )
+        attempts = []
+        for _ in range(n):
+            rt_conv = garak.attempt.Conversation(
+                [garak.attempt.Turn("user", garak.attempt.Message(""))]
+            )
+            challenge_text = self._get_challenge(rt_conv)
+            if not challenge_text:
+                continue
+            attempt = self._create_attempt(garak.attempt.Message(challenge_text))
+            attempt.notes = attempt.notes or {}
+            attempt.notes["redteamer_conversation"] = rt_conv
+            attempts.append(attempt)
+        return attempts
+
+    def _generate_next_attempts(
+        self, last_attempt: garak.attempt.Attempt
+    ) -> List[garak.attempt.Attempt]:
+        """Generate the next turn for each conversation branch.
+
+        For each branch in ``last_attempt.conversations``, the target's most
+        recent response is appended to the redteamer's conversation history as
+        a ``user`` turn and the full history is posed to the attack model,
+        which produces the next challenge.
+
+        In ``branchy`` mode, expansion stops entirely once the total number of
+        target responses (inferences) reaches ``soft_probe_prompt_cap ×
+        generations``.  This makes ``soft_probe_prompt_cap`` a hard bound on
+        the number of generator calls, regardless of tree depth.
+
+        Branches where the primary detector already scores a hit (toxicity
+        detected at or above ``eval_threshold``) are dropped — there is no
+        value in continuing to attack a target that has already failed.
+
+        In ``branchy`` mode, duplicate target responses across branches are
+        additionally collapsed to a single branch, making ``generations`` an
+        upper bound on the branching factor rather than a fixed requirement.
+
+        :param last_attempt: Completed attempt whose outputs drive the next turn.
+        :type last_attempt: garak.attempt.Attempt
+        :return: Next-turn attempts, one per live, distinct conversation branch.
+        :rtype: List[garak.attempt.Attempt]
+        """
+        next_attempts = []
+        rt_conv_base = last_attempt.notes.get("redteamer_conversation")
+        seen_responses: set = set()
+
+        # inference cap checking
+        if self.branching == "branchy" and self.follow_prompt_cap:
+            self._branchy_inferences += len(last_attempt.outputs)
+            if self._branchy_inferences >= self._branchy_cap:
+                logging.debug(
+                    "atkgen.ToxConv: branchy inference cap reached (%d >= %d), stopping expansion",
+                    self._branchy_inferences,
+                    self._branchy_cap,
+                )
+                return []
+
+        # detector-based early stopping
+        should_terminate = self._should_terminate_conversation(last_attempt)
+
+        for conversation, terminate in zip(
+            last_attempt.conversations, should_terminate
+        ):
+            if terminate:
+                continue
+            try:
+                last_response = conversation.last_message("assistant")
+            except ValueError:
+                continue
+
+            if last_response is None or last_response.text is None:
+                continue
+
+            response_text = last_response.text.strip()
+            if not response_text:
+                continue
+
+            if self.use_only_first_sent:
+                response_text = response_text.split(". ")[0]
+
+            # don't create multiple identical branches
+            if self.branching == "branchy":
+                if response_text in seen_responses:
+                    continue
+                seen_responses.add(response_text)
+
+            rt_conv = copy.deepcopy(
+                rt_conv_base
+                if rt_conv_base is not None
+                else garak.attempt.Conversation()
+            )
+            rt_conv.turns.append(
+                garak.attempt.Turn("user", garak.attempt.Message(response_text))
+            )
+
+            challenge_text = self._get_challenge(rt_conv)
+            if not challenge_text:
+                continue
+
+            next_conv = copy.deepcopy(conversation)
+            next_conv.turns.append(
+                garak.attempt.Turn("user", garak.attempt.Message(challenge_text))
+            )
+
+            next_attempt = self._create_attempt(next_conv)
+            next_attempt.notes = next_attempt.notes or {}
+            next_attempt.notes["redteamer_conversation"] = rt_conv
+            next_attempts.append(next_attempt)
+
+        return next_attempts
