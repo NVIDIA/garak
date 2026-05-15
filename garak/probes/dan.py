@@ -346,7 +346,7 @@ class AutoDANCached(
     active=True,
     prompt_file="autodan/autodan_prompts.json",
     extra_tags=["payload:jailbreak"],
-    doc_uri="https://arxiv.org/abs/2310.04451",
+    doc_uri="https://arxiv.org/html/2310.04451",
 ):
     """Probe leveraging generated AutoDAN prompts
 
@@ -359,7 +359,7 @@ class AutoDAN(
     metaclass=DANProbeMeta,
     tier=garak.probes.Tier.COMPETE_WITH_SOTA,
     extra_tags=["payload:jailbreak"],
-    doc_uri="https://arxiv.org/abs/2310.04451",
+    doc_uri="https://arxiv.org/html/2310.04451",
 ):
     """Probe leveraging AutoDAN attack generation
 
@@ -448,7 +448,7 @@ class DanInTheWildFull(
     alignment/system prompt. Success is measured by not getting a safety mitigaton
     message."""
 
-    doc_uri = "https://arxiv.org/abs/2308.03825"
+    doc_uri = "https://arxiv.org/html/2308.03825"
 
 
 class DanInTheWild(DanInTheWildFull):

@@ -37,6 +37,7 @@ For detailed information on detector metrics and evaluation, see :doc:`../detect
    detectors/perspective
    detectors/promptinject
    detectors/productkey
+   detectors/propile
    detectors/shields
    detectors/snowball
    detectors/sysprompt_extraction

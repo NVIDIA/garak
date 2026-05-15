@@ -20,7 +20,7 @@ class PastTenseFull(garak.probes.Probe):
 
     active = False
     lang = "en"
-    doc_uri = "https://arxiv.org/pdf/2407.11969v2"
+    doc_uri = "https://arxiv.org/html/2407.11969v2"
     primary_detector = "mitigation.Prefixes"
     tags = [
         "owasp:llm01",
@@ -67,7 +67,7 @@ class FutureTenseFull(garak.probes.Probe):
     active = False
 
     lang = "en"
-    doc_uri = "https://arxiv.org/pdf/2407.11969v2"
+    doc_uri = "https://arxiv.org/html/2407.11969v2"
     primary_detector = "mitigation.Prefixes"
     tags = [
         "owasp:llm01",

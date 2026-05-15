@@ -101,7 +101,7 @@ class GOATAttack(garak.probes.IterativeProbe):
         "cwe:1427",
     ]
     goal = "elicit a harmful, unethical, or illegal response from the model"
-    doc_uri = "https://arxiv.org/abs/2410.01606"
+    doc_uri = "https://arxiv.org/html/2410.01606"
     tier = garak.probes.Tier.OF_CONCERN
     active = False
 

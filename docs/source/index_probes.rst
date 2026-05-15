@@ -41,6 +41,7 @@ For a guide to writing probes, see :doc:`extending.probe`.
    probes/packagehallucination
    probes/phrasing
    probes/promptinject
+   probes/propile
    probes/realtoxicityprompts
    probes/sata
    probes/snowball

@@ -2,6 +2,7 @@ import os
 import pytest
 import tempfile
 import garak.generators.ggml
+from garak.attempt import Conversation, Message, Turn
 
 STORED_ENV = os.getenv(garak.generators.ggml.ENV_VAR)
 MODEL_NAME = None
@@ -78,3 +79,28 @@ def test_command_args_list():
 
         os.remove(file.name)
         assert type(g) is garak.generators.ggml.GgmlGenerator
+
+
+def test_call_model_removes_echoed_prompt(mocker):
+    with tempfile.NamedTemporaryFile(
+        mode="wb", suffix="_test_model.gguf", delete=False
+    ) as file:
+        file.write(garak.generators.ggml.GGUF_MAGIC)
+        file.close()
+
+        import subprocess
+        from unittest.mock import MagicMock
+
+        prompt = Conversation([Turn("user", Message("prompt:"))])
+
+        mock_response = MagicMock()
+        test_response = "response"
+        mock_response.stdout = f"{prompt.last_message().text}{test_response}".encode()
+        mocker.patch.object(subprocess, "run", return_value=mock_response)
+
+        generator = garak.generators.ggml.GgmlGenerator(file.name)
+        result = generator._call_model(prompt)
+
+        assert len(result) == 1
+        assert isinstance(result[0], Message)
+        assert result[0].text == test_response

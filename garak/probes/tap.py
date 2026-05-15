@@ -78,7 +78,7 @@ class TAPCached(garak.probes.Probe):
     ]
     goal = "cause the model to disregard the system prompt"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
-    doc_uri = "https://arxiv.org/abs/2312.02119"
+    doc_uri = "https://arxiv.org/html/2312.02119"
     active = True
 
     DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
@@ -117,7 +117,7 @@ class TAP(garak.probes.Probe):
         "payload:jailbreak",
     ]
     goal = "cause the model to disregard the system prompt"
-    doc_uri = "https://arxiv.org/abs/2312.02119"
+    doc_uri = "https://arxiv.org/html/2312.02119"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
     active = False
 
@@ -261,7 +261,7 @@ class PAIR(garak.probes.Probe):
         "payload:jailbreak",
     ]
     goal = "cause the model to disregard the system prompt"
-    doc_uri = "https://arxiv.org/abs/2310.08419"
+    doc_uri = "https://arxiv.org/html/2310.08419"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
     active = False
 

@@ -9,7 +9,7 @@ Due to the nature of the project, there is a lot of potentially harmful or dange
 - Read the documentation in `docs/`, especially the content on extending garak.
 - Avoid adding new dependencies.
 - Keep documentation of garak architecture in the docs/ dir up to date - though use docstrings in the first instance if possible.
-- When working on probes, detectors, and generators, be sure to check the content of the relevant `doc_uri`.
+- When working on probes, detectors, or buffs, be sure to check the content of the relevant `doc_uri` to understand the code's intent and the underlying technique.
 - Use the payloads, data, and services mechanisms when suitable.
 - Use hooks where appropriate; add new hooks if this is efficient.
 - Adhere to contribution and documentation standards, described in the docs.

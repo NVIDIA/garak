@@ -23,7 +23,7 @@ class FalseAssertion(garak.probes.Probe):
     message."""
 
     lang = "en"
-    doc_uri = "https://arxiv.org/abs/2304.13734"
+    doc_uri = "https://arxiv.org/html/2304.13734"
     primary_detector = "misleading.MustRefuteClaimModel"
     extended_detectors = [
         "misleading.MustRefuteClaimKW",
