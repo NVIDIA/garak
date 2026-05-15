@@ -19,6 +19,7 @@ For a guide to writing probes, see :doc:`extending.probe`.
    probes/av_spam_scanning
    probes/badchars
    probes/base
+   probes/context_compliance
    probes/continuation
    probes/dan
    probes/divergence
