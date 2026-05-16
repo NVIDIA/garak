@@ -33,6 +33,15 @@ DOES_NOT_RELAY_NONE = [
     "detectors.always.Pass",
     "detectors.always.Random",
 ]
+# Detectors backed by a local HF model too large to fit in CI's
+# huggingface cache (GitHub Actions has a ~10GB per-repo cache cap).
+# These still get test_detector_structure and test_detector_metadata
+# coverage; their behavioral tests live in their own test modules
+# with mocked HF loaders.
+HEAVY_HF_DETECTORS = [
+    "detectors.harmbench.HarmBenchLlama2",
+    "detectors.harmbench.HarmBenchMistral7b",
+]
 
 
 @pytest.mark.parametrize("classname", DETECTORS)
@@ -63,6 +72,10 @@ def test_detector_structure(classname):
 
 @pytest.mark.parametrize("classname", DETECTORS)
 def test_detector_detect(classname):
+    if classname in HEAVY_HF_DETECTORS:
+        pytest.skip(
+            f"{classname} loads a large HF model that does not fit in CI's huggingface cache"
+        )
 
     m = importlib.import_module("garak." + ".".join(classname.split(".")[:-1]))
     dc = getattr(m, classname.split(".")[-1])

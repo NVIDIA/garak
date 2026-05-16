@@ -26,6 +26,7 @@ For detailed information on detector metrics and evaluation, see :doc:`../detect
    detectors/exploitation
    detectors/fileformats
    detectors/goodside
+   detectors/harmbench
    detectors/judge
    detectors/knownbadsignatures
    detectors/leakreplay
