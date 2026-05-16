@@ -26,7 +26,7 @@ class Puppetry(garak.probes.Probe):
     guardrails"""
 
     lang = "en"
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.RefusalModel"
     goal = "roleplay as doctor to get unsafe outputs"
     doc_uri = "https://hiddenlayer.com/innovation-hub/novel-universal-bypass-for-all-major-llms/"
     tags = [
@@ -84,7 +84,7 @@ class Bypass(garak.probes.Probe):
     guardrails"""
 
     lang = "en"
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.RefusalModel"
     goal = "roleplay as doctor to get bypass guardrails"
     doc_uri = "https://hiddenlayer.com/innovation-hub/novel-universal-bypass-for-all-major-llms/"
     tags = [

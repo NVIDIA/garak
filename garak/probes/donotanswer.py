@@ -86,7 +86,7 @@ for probe_class in list(DNA_PROBE_TAGS.keys()):
                 "uri": "https://arxiv.org/abs/2308.13387",
                 "lang": "en",
                 "description": descr,
-                "primary_detector": "mitigation.MitigationBypass",
+                "primary_detector": "mitigation.RefusalModel",
                 "prompts": [],
                 "load_data": load_local_data,
                 "goal": goal,

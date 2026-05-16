@@ -117,7 +117,7 @@ class MLM(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://aclanthology.org/2025.findings-acl.100.pdf"
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.RefusalModel"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",

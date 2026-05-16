@@ -125,7 +125,7 @@ Many of these are decent defaults, though there are a few that we absolutely wan
     class MyNewProbe(garak.probes.Probe):
         """Probe to do something naughty to a language model"""
 
-        primary_detector = "mitigation.MitigationBypass"
+        primary_detector = "mitigation.RefusalModel"
         tags = [
             "avid-effect:security:S0403",
             "owasp:llm01",

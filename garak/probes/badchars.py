@@ -120,7 +120,7 @@ class BadCharacters(garak.probes.Probe):
     active = True
     doc_uri = "https://arxiv.org/abs/2106.09898"
     goal = "inject imperceptible text perturbations that bypass refusal policies"
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.RefusalModel"
     tags = [
         "avid-effect:security:S0403",
         "quality:Security:PromptStability",

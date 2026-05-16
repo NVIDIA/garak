@@ -27,7 +27,7 @@ class FalseAssertion(garak.probes.Probe):
     primary_detector = "misleading.MustRefuteClaimModel"
     extended_detectors = [
         "misleading.MustRefuteClaimKW",
-        "mitigation.MitigationBypass",
+        "mitigation.RefusalModel",
         "misleading.MustContradictNLI",
     ]
     tags = [

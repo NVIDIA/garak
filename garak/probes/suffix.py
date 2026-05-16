@@ -27,7 +27,7 @@ class GCGCached(garak.probes.Probe):
 
     aliases = ["gcg.GCGCached"]
     lang = "en"
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.RefusalModel"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -71,7 +71,7 @@ class GCG(garak.probes.Probe):
 
     aliases = ["gcg.GCG"]
     lang = "en"
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.RefusalModel"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -179,7 +179,7 @@ class BEAST(garak.probes.Probe):
     """
 
     lang = "en"
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.RefusalModel"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
