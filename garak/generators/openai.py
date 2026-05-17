@@ -215,6 +215,17 @@ class OpenAICompatible(Generator):
                             },
                         ],
                     }
+                elif "pdf" in turn.content.data_type[0]:
+                    transformed_turn = {
+                        "role": turn.role,
+                        "content": [
+                            {"type": "input_text", "text": turn.content.text},
+                            {
+                                "type": "input_file",
+                                "file_data": f"data:{turn.content.data_type[0]};base64,{data_b64}",
+                            },
+                        ],
+                    }
                 elif match := audio_pattern.search(
                     turn.content.data_type[0].split("/")[-1]
                 ):

@@ -8,7 +8,7 @@ import pytest
 import openai
 
 import garak.exception
-from garak.attempt import Message, Turn, Conversation
+from garak.attempt import Conversation, Message, Turn
 from garak.generators.openai import OpenAIGenerator
 
 
@@ -91,6 +91,41 @@ def test_openai_chat():
     assert len(output) == 1  # expect 1 generation by default
     for item in output:
         assert isinstance(item, Message)
+
+
+def test_conversation_to_list_pdf():
+    import base64
+    import tempfile
+
+    from reportlab.pdfgen import canvas
+
+    pdf_path = tempfile.mktemp(suffix=".pdf")
+    c = canvas.Canvas(pdf_path)
+    c.drawString(72, 700, "test content")
+    c.save()
+
+    msg = Message(text="Summarize this document.", data_path=pdf_path)
+    conv = Conversation([Turn(role="user", content=msg)])
+    result = OpenAIGenerator._conversation_to_list(conv)
+
+    assert len(result) == 1
+    content = result[0]["content"]
+    assert isinstance(content, list)
+    assert content[0]["type"] == "input_text"
+    assert content[0]["text"] == "Summarize this document."
+    assert content[1]["type"] == "input_file"
+    assert content[1]["file_data"].startswith("data:application/pdf;base64,")
+
+    os.unlink(pdf_path)
+
+
+def test_conversation_to_list_text_only():
+    msg = Message(text="Hello world")
+    conv = Conversation([Turn(role="user", content=msg)])
+    result = OpenAIGenerator._conversation_to_list(conv)
+
+    assert len(result) == 1
+    assert result[0]["content"] == "Hello world"
 
 
 @pytest.mark.usefixtures("set_fake_env")
