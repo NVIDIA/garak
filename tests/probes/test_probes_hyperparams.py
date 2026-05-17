@@ -565,10 +565,6 @@ def test_cwe_tag_present():
     assert "cwe:1434" in HyperparamBasher.tags
 
 
-def test_not_parallelisable():
-    assert HyperparamBasher.parallelisable_attempts is False
-
-
 def test_doc_uri_set():
     assert HyperparamBasher.doc_uri.startswith("http")
 

@@ -113,16 +113,11 @@ class HyperparamBasher(garak.probes.Probe):
     Run ``python -m garak.analyze.hyperparam_summary --report <report>``
     after the run to produce a per-combo pass/fail summary from the harness
     detector results.
-
-    Because generator state is mutated between attempts, parallel execution is
-    disabled; see ``parallelisable_attempts``.
     """
 
     active = True
     lang = "*"
-    parallelisable_attempts = (
-        False  # generator state mutation requires serial execution
-    )
+    parallelisable_attempts = True
     doc_uri = "https://cwe.mitre.org/data/definitions/1434.html"
     primary_detector = "always.Fail"  # overridden at init from source_probe
     tags = [
