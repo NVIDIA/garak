@@ -109,14 +109,10 @@ class HyperparamBasher(garak.probes.Probe):
 
     * ``attempt.notes["hyperparam_combo"]`` – the params applied this attempt
     * ``attempt.notes["hyperparam_original"]`` – the pre-sweep original values
-    * ``attempt.notes["hyperparam_detector_results"]`` – per-output detection
-      scores written by ``_summarise_by_combo`` at the end of ``probe()``;
-      these survive JSONL serialisation because ``attempt.notes`` is not
-      overwritten by the harness (unlike ``attempt.detector_results``)
 
-    A per-combo pass/fail breakdown is printed to the terminal and logged at
-    ``INFO`` level at the end of each run so results are visible without
-    post-processing the JSONL report.
+    Run ``python -m garak.analyze.hyperparam_summary --report <report>``
+    after the run to produce a per-combo pass/fail summary from the harness
+    detector results.
 
     Because generator state is mutated between attempts, parallel execution is
     disabled; see ``parallelisable_attempts``.
@@ -336,7 +332,7 @@ class HyperparamBasher(garak.probes.Probe):
             # After expansion: prompts = [p0, p1, …, pN, p0, p1, …, pN, …]
             # so seq % n_base gives the correct index into the source's data arrays.
             base_seq = seq % self._source_n_base_prompts
-            self._source_prestore_hook(attempt, base_seq)
+            attempt = self._source_prestore_hook(attempt, base_seq)
 
         combo_idx = seq % len(self._param_combos) if self._param_combos else 0
         # These keys are distinct from any notes set by the source hook above.
@@ -365,65 +361,6 @@ class HyperparamBasher(garak.probes.Probe):
             if hasattr(self.generator, param):
                 setattr(self.generator, param, value)
         return attempt
-
-    def _summarise_by_combo(self, attempts: list[Attempt]) -> None:
-        """Run primary detector once across all completed attempts.
-
-        Logs a per-combo pass/fail summary and stores per-attempt detection
-        results in ``attempt.notes["hyperparam_detector_results"]`` so they
-        survive into the JSONL report (attempt entries are serialised before
-        harness detection runs, so ``attempt.detector_results`` is always empty
-        at that point).
-
-        The harness will re-run detection after ``probe()`` returns; results are
-        identical for deterministic detectors so double detection is idempotent.
-        """
-        if not attempts or self.primary_detector == "always.Fail":
-            return
-        try:
-            detector = _plugins.load_plugin(f"detectors.{self.primary_detector}")
-        except Exception as exc:
-            logging.debug(
-                "%s: could not load detector for combo summary: %s",
-                self.__class__.__name__,
-                exc,
-            )
-            return
-
-        combo_stats: dict[str, dict[str, int]] = {}
-        for attempt in attempts:
-            combo_key = str(attempt.notes.get("hyperparam_combo", {}))
-            combo_stats.setdefault(combo_key, {"pass": 0, "fail": 0})
-            try:
-                results = detector.detect(attempt)
-                attempt.notes["hyperparam_detector_results"] = results
-                for r in results:
-                    if r:
-                        combo_stats[combo_key]["pass"] += 1
-                    else:
-                        combo_stats[combo_key]["fail"] += 1
-            except Exception as exc:
-                logging.debug(
-                    "%s: detection failed for attempt: %s",
-                    self.__class__.__name__,
-                    exc,
-                )
-
-        logging.info("%s — per-combo detection summary:", self.__class__.__name__)
-        if not (hasattr(_config, "system") and getattr(_config.system, "narrow_output", False)):
-            print(f"\n{self.__class__.__name__} — per-combo detection summary:")
-        for combo_key, stats in sorted(combo_stats.items()):
-            total = stats["pass"] + stats["fail"]
-            rate = 100 * stats["pass"] / total if total else 0
-            logging.info(
-                "  %s → %d/%d failed (%.0f%% attack success rate)",
-                combo_key,
-                stats["fail"],
-                total,
-                rate,
-            )
-            if not (hasattr(_config, "system") and getattr(_config.system, "narrow_output", False)):
-                print(f"  {combo_key} → {stats['fail']}/{total} failed ({rate:.0f}% attack success rate)")
 
     def _build_prompt_list(self) -> list:
         """Return the cross-product of prompts × parameter combos."""
@@ -465,5 +402,15 @@ class HyperparamBasher(garak.probes.Probe):
             self.prompts = original_prompts
             self._param_combos = original_combos
 
-        self._summarise_by_combo(result)
+        if not (hasattr(_config, "system") and getattr(_config.system, "narrow_output", False)):
+            try:
+                report = getattr(_config.transient, "report_filename", None)
+            except AttributeError:
+                report = None
+            report_hint = f" --report {report}" if report else ""
+            print(
+                f"\n{self.__class__.__name__}: run"
+                f" `python -m garak.analyze.hyperparam_summary{report_hint}`"
+                " to view per-combo results."
+            )
         return result

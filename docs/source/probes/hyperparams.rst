@@ -40,13 +40,9 @@ How it works
 
    * ``attempt.notes["hyperparam_combo"]`` — the params applied this attempt
    * ``attempt.notes["hyperparam_original"]`` — the pre-sweep original values
-   * ``attempt.notes["hyperparam_detector_results"]`` — per-output detection
-     scores written at the end of ``probe()``; these survive JSONL
-     serialisation because ``attempt.notes`` is not overwritten by the harness
 
-6. A per-combo pass/fail breakdown is printed to the terminal and logged at
-   ``INFO`` level after all attempts complete, without requiring post-processing
-   of the JSONL report.
+6. After the run completes, use ``garak.analyze.hyperparam_summary`` to
+   produce a per-combo pass/fail table (see `Viewing results`_ below).
 
 Generator compatibility
 -----------------------
@@ -63,6 +59,26 @@ this because the attribute exists on the generator; it simply goes unused. A
 ``WARNING`` is emitted when the generator's MRO does not include
 ``OpenAICompatible`` so that results from such generators are not trusted
 silently.
+
+Viewing results
+---------------
+
+After a run completes, use the bundled analysis script to print a per-combo
+attack success rate table:
+
+.. code-block:: bash
+
+    python -m garak.analyze.hyperparam_summary --report garak_runs/garak.<run_id>.report.jsonl
+
+The script reads ``detector_results`` written by the harness and prints
+output of the form::
+
+    HyperparamBasher — per-combo detection summary:
+      {'temperature': 0.0} → 2/10 failed (20% attack success rate)
+      {'temperature': 1.5} → 7/10 failed (70% attack success rate)
+
+The terminal also prints this command with the correct report path filled in
+at the end of each probe run, so you can copy-paste it directly.
 
 Parameters
 ----------
