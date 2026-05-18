@@ -3,6 +3,8 @@
 
 import pytest
 
+pytest.importorskip("reportlab")
+
 from garak import _plugins
 from garak.attempt import Attempt, Message
 from garak.detectors.base import TriggerListDetector
@@ -69,6 +71,7 @@ def test_compact_is_subset():
 
 
 def test_generated_pdfs_contain_hidden_trigger():
+    pypdf = pytest.importorskip("pypdf")
     from pypdf import PdfReader
 
     p = _plugins.load_plugin("probes.pdf_injection.PDFInjection")

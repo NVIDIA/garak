@@ -60,3 +60,6 @@ scipy>=1.14.0
 soundfile>=0.13.1
 librosa>=0.10.2
 detoxify>=0.5.0
+# pdf
+reportlab>=4.0
+pypdf>=4.0
