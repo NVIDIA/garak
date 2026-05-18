@@ -3,14 +3,13 @@
 
 """LLM-based translator using OpenAI-compatible API endpoints."""
 
+import copy
 import logging
-import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Callable
 
-from garak import _config
+from garak import _config, _plugins
 from garak.attempt import Conversation, Turn, Message
-from garak.generators.openai import OpenAICompatible
 from garak.langproviders.base import LangProvider, _initialize_words
 
 
@@ -72,85 +71,58 @@ LANGUAGE_NAMES = {
 }
 
 
-def _create_translation_generator(name: str, uri: str, api_key: str, temperature: float) -> OpenAICompatible:
-    """Create an OpenAICompatible generator configured for translation."""
-    config_root = {
-        "generators": {
-            "openai": {
-                "api_key": api_key,
-                "uri": uri,
-                "temperature": temperature,
-                "top_p": 1.0,
-                "suppressed_params": {"stop", "frequency_penalty", "presence_penalty", "max_tokens"},
-            }
-        }
-    }
-    return OpenAICompatible(name=name, config_root=config_root)
-
-
 class LLMTranslator(LangProvider):
-    """Translation using any OpenAI-compatible endpoint.
+    """Translation using any generator-compatible endpoint.
 
-    Uses Garak's OpenAICompatible generator internally for API calls.
+    Uses Garak's plugin system to load the configured generator for API calls.
     Supports parallel requests via ThreadPoolExecutor for improved throughput.
-    Works with Ollama, vLLM, OpenAI, or any OpenAI-compatible API.
+    Works with any generator type (Ollama, vLLM, OpenAI, NIM, etc.).
 
     Configuration:
-        api_key: API key for the endpoint (can also use env vars)
-        uri: API endpoint URL (default: http://localhost:11434/v1)
-        model_name: Model to use for translation (default: llama3)
-        temperature: Sampling temperature (default: 0.1)
+        translation_model_type: Generator plugin type (default: openai.OpenAICompatible)
+        translation_model_name: Model name passed to the generator (default: llama3)
+        translation_model_config: Dict of generator config options, e.g.:
+            uri: API endpoint URL
+            max_tokens: Max tokens to generate
+            temperature: Sampling temperature
+            key_env_var: Env var name for API key (overrides generator default)
+            suppressed_params: Set of param names to omit from API requests
         max_concurrent_requests: Thread pool size (default: inherits from
             system.parallel_attempts if set, otherwise 10)
         system_prompt: Custom system prompt (default: built-in translation prompt)
-
-    Key resolution order:
-        1. Config field 'api_key'
-        2. LLM_TRANSLATOR_API_KEY environment variable
-        3. OPENAI_API_KEY environment variable (fallback)
     """
 
-    ENV_VAR = "LLM_TRANSLATOR_API_KEY"
-
     DEFAULT_PARAMS = {
-        "api_key": None,
-        "uri": "http://localhost:11434/v1",
-        "model_name": "llama3",
-        "temperature": 0.1,
+        "translation_model_type": "openai.OpenAICompatible",
+        "translation_model_name": "llama3",
+        "translation_model_config": {
+            "uri": "http://localhost:11434/v1",
+            "max_tokens": 4096,
+            "temperature": 0.1,
+            "top_p": 1.0,
+            "suppressed_params": {"stop", "frequency_penalty", "presence_penalty"},
+        },
         "max_concurrent_requests": None,
         "system_prompt": None,
     }
 
     _unsafe_attributes = ["_generator"]
 
-    def _validate_env_var(self):
-        """Override to support fallback to OPENAI_API_KEY and local endpoints."""
-        if hasattr(self, "api_key") and self.api_key is not None:
-            return
-
-        self.api_key = os.getenv(self.ENV_VAR, default=None)
-        if self.api_key is not None:
-            return
-
-        self.api_key = os.getenv("OPENAI_API_KEY", default=None)
-        if self.api_key is not None:
-            logging.debug(f"{self.ENV_VAR} not set, using OPENAI_API_KEY as fallback")
-            return
-
-        # For local endpoints like Ollama, API key may not be required
-        self.api_key = "not-required"
-        logging.debug(
-            f"No API key found in {self.ENV_VAR} or OPENAI_API_KEY. "
-            f"Using placeholder for local endpoints."
-        )
-
     def _load_langprovider(self):
-        """Initialize the generator."""
-        self._generator = _create_translation_generator(
-            name=self.model_name,
-            uri=self.uri,
-            api_key=self.api_key,
-            temperature=self.temperature,
+        """Initialize the generator using the configured translation_model_type."""
+        model_root = {"generators": {}}
+        conf_root = model_root["generators"]
+        for part in self.translation_model_type.split("."):
+            if part not in conf_root:
+                conf_root[part] = {}
+            conf_root = conf_root[part]
+        if self.translation_model_config is not None:
+            conf_root |= copy.deepcopy(self.translation_model_config)
+        if self.translation_model_name:
+            conf_root["name"] = self.translation_model_name
+
+        self._generator = _plugins.load_plugin(
+            f"generators.{self.translation_model_type}", config_root=model_root
         )
 
         # Resolve max_concurrent_requests from system.parallel_attempts if not set
