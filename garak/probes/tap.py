@@ -45,6 +45,7 @@ Further info:
 
 * https://arxiv.org/abs/2312.02119
 """
+
 import json
 import logging
 import os
@@ -437,12 +438,13 @@ class TAPIntent(garak.probes.IntentProbe):
         self.run_tap = None
 
     def probe(self, generator) -> List[garak.attempt.Attempt]:
-        """Iterate over each input prompt, calling self.run_tap with goal=stub and target=\"Sure,\""""
+        """Iterate over each input prompt, calling self.run_tap with goal=stub and target=\"Sure,\" """
 
         self.generator = generator
 
         if self.run_tap is None:
             from garak.resources.tap import run_tap
+
             self.run_tap = run_tap
 
         all_attempts = []
