@@ -48,6 +48,22 @@ def _write_csv(entries, output_file) -> None:
     writer.writerows(entries)
 
 
+def get_last(convs: list[dict]) -> tuple[list[str], list[str]]:
+    user = list()
+    assistant = list()
+    for conv in convs:
+        turns = conv["turns"]
+        for turn in reversed(turns):
+            if turn["role"] == "user":
+                user.append(turn["content"]["text"])
+            elif turn["role"] == "assistant":
+                assistant.append(turn["content"]["text"])
+            if len(user) == len(assistant):
+                break
+
+    return user, assistant
+
+
 def tablify(report_path: str, output_path: str | None) -> None:
     line_entries = set()
     errored_probes = set()
@@ -84,16 +100,21 @@ def tablify(report_path: str, output_path: str | None) -> None:
 
             # At this point, we should have only completed runs with detector results.
             probe_name = record["probe_classname"]
-            prompt = record["prompt"]
-            outputs = record["outputs"]
+            conversations = record["conversations"]
             try:
                 for detector_name, detector_scores in record[
                     "detector_results"
                 ].items():
                     total_entries += 1
-                    output_values = outputs
+                    prompts, outputs = get_last(conversations)
+                    if len(outputs) != len(prompts):
+                        print(
+                            f"Got {len(outputs)} outputs and {len(prompts)} prompts for {probe_name}. "
+                            f"Results might be weird."
+                        )
                     if len(outputs) != len(detector_scores):
                         none_free_outputs = [o for o in outputs if o is not None]
+                        prompts = [p for p, o in zip(prompts, outputs) if o is not None]
                         if len(none_free_outputs) != len(detector_scores):
                             errored_entries += 1
                             if probe_name not in errored_probes:
@@ -104,8 +125,8 @@ def tablify(report_path: str, output_path: str | None) -> None:
                                         f"These results will not be written."
                                     )
                         else:
-                            output_values = none_free_outputs
-                    for output, score in zip(output_values, detector_scores):
+                            outputs = none_free_outputs
+                    for prompt, output, score in zip(prompts, outputs, detector_scores):
                         entry = {
                             "probe": probe_name,
                             "prompt": prompt,
