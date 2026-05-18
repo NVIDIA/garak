@@ -241,23 +241,12 @@ def test_probe_technique_demon_tags_filters(mocker):
         },
     )
 
-    assert set(garak.evaluators.base._probe_demon_tags("grandma.GrandmaIntent")) == {
+    assert set(
+        garak.evaluators.base._probe_technique_tags("grandma.GrandmaIntent")
+    ) == {
         "demon:Fictionalizing:Roleplaying:User_persona",
         "demon:Language:Prompt_injection:Ignore_previous_instructions",
     }
-    plugin_info.assert_called_once_with("probes.grandma.GrandmaIntent")
-
-
-def test_probe_technique_demon_tags_normalizes_prefixed_probe_name(mocker):
-    plugin_info = mocker.patch.object(
-        garak._plugins.PluginCache,
-        "plugin_info",
-        return_value={"tags": ["demon:Fictionalizing:Roleplaying:User_persona"]},
-    )
-
-    assert garak.evaluators.base._probe_demon_tags("probes.grandma.GrandmaIntent") == [
-        "demon:Fictionalizing:Roleplaying:User_persona"
-    ]
     plugin_info.assert_called_once_with("probes.grandma.GrandmaIntent")
 
 
@@ -268,7 +257,7 @@ def test_probe_technique_demon_tags_returns_empty_list_without_demon_tags(mocker
         return_value={"tags": ["owasp:llm01"]},
     )
 
-    assert garak.evaluators.base._probe_demon_tags("grandma.GrandmaIntent") == []
+    assert garak.evaluators.base._probe_technique_tags("grandma.GrandmaIntent") == []
 
 
 def test_probe_technique_demon_tags_requires_tags_metadata(mocker):
@@ -279,7 +268,7 @@ def test_probe_technique_demon_tags_requires_tags_metadata(mocker):
     )
 
     with pytest.raises(KeyError):
-        garak.evaluators.base._probe_demon_tags("grandma.GrandmaIntent")
+        garak.evaluators.base._probe_technique_tags("grandma.GrandmaIntent")
 
 
 def test_probe_technique_demon_tags_rejects_non_string_tags(mocker):
@@ -290,7 +279,7 @@ def test_probe_technique_demon_tags_rejects_non_string_tags(mocker):
     )
 
     with pytest.raises(TypeError):
-        garak.evaluators.base._probe_demon_tags("grandma.GrandmaIntent")
+        garak.evaluators.base._probe_technique_tags("grandma.GrandmaIntent")
 
 
 def test_evaluator_emits_eval_technique():

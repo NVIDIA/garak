@@ -27,21 +27,24 @@ import garak.resources.theme
 CI_DISPLAY_MIN_WIDTH = 0.001
 
 
-def _probe_plugin_path(probe_name: str) -> str:
-    if probe_name.startswith("probes."):
-        return probe_name
-    return f"probes.{probe_name}"
+# Prefixes of probe tags that count as technique tags for `eval_technique` reporting.
+# Currently only the `demon:` taxonomy is treated as a technique; this list is expected
+# to grow as additional taxonomies are adopted.
+TECHNIQUE_PREFIXES = ["demon:"]
 
 
-def _probe_demon_tags(probe_name: str) -> list[str]:
-    tags = garak._plugins.PluginCache.plugin_info(_probe_plugin_path(probe_name))[
-        "tags"
-    ]
+def _probe_technique_tags(probe_name: str) -> list[str]:
+    """Return probe tags that match an active technique taxonomy prefix."""
+    tags = garak._plugins.PluginCache.plugin_info(f"probes.{probe_name}")["tags"]
     if not isinstance(tags, list):
         raise TypeError(f"Expected list of probe tags for {probe_name}")
     if not all(isinstance(tag, str) for tag in tags):
         raise TypeError(f"Expected string probe tags for {probe_name}")
-    return [tag for tag in tags if tag.startswith("demon:")]
+    return [
+        tag
+        for tag in tags
+        if any(tag.startswith(prefix) for prefix in TECHNIQUE_PREFIXES)
+    ]
 
 
 class Evaluator:
@@ -263,7 +266,9 @@ class Evaluator:
 
             detectors_to_eval.update(attempt_detectors)
             attempt_techniques = (
-                _probe_demon_tags(attempt.probe_classname) if attempt_detectors else []
+                _probe_technique_tags(attempt.probe_classname)
+                if attempt_detectors
+                else []
             )
             for attempt_detector in attempt_detectors:
                 detector_to_attempt_ids[attempt_detector].append(idx)
