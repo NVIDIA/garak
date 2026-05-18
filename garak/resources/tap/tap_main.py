@@ -10,8 +10,8 @@ from tqdm import tqdm
 from logging import getLogger
 
 import garak.generators.openai
-from garak.attempt import Conversation, Message, Attempt
-from garak import _plugins, _config
+from garak.attempt import Conversation, Message
+from garak import _plugins
 
 from garak.resources.red_team.conversation import (
     prune,
@@ -294,7 +294,6 @@ def run_tap(
     pruning: bool = True,
     save_results: bool = SAVE_RESULTS,
     outfile: Path = resources_tap_data_file,
-    probe_classname: str = "probes.tap.tap_main"
 ):
     """Function for generating attacks using TAP where a generator has already been instantiated.
 
@@ -318,7 +317,6 @@ def run_tap(
     pruning : Whether to enable pruning -- Turning this off with branching_factor = 1 gives the PAIR attack.
     save_results : Whether to save results to outfile
     outfile : Location to write successful generated attacks
-    probe_classname: Name of probe class to use for logging
     """
     # Initialize attack parameters
     attack_params = {
