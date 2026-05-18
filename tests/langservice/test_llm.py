@@ -39,7 +39,9 @@ class TestLLMTranslatorInit:
 
     def test_language_pair_parsing(self, mock_generator):
         """Source and target languages are parsed correctly."""
-        with patch("garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator):
+        with patch(
+            "garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator
+        ):
             from garak.langproviders.llm import LLMTranslator
 
             translator = LLMTranslator(config_root=make_config_root())
@@ -98,24 +100,32 @@ class TestLLMTranslatorInit:
             openai_conf = config_root["generators"]["openai"]["OpenAICompatible"]
             assert openai_conf["key_env_var"] == "MY_CUSTOM_KEY"
 
-    def test_max_concurrent_requests_inherits_from_parallel_attempts(self, mock_generator):
+    def test_max_concurrent_requests_inherits_from_parallel_attempts(
+        self, mock_generator
+    ):
         """max_concurrent_requests inherits from system.parallel_attempts."""
         mock_system = MagicMock()
         mock_system.parallel_attempts = 32
 
-        with patch("garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator):
+        with patch(
+            "garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator
+        ):
             with patch("garak.langproviders.llm._config.system", mock_system):
                 from garak.langproviders.llm import LLMTranslator
 
                 translator = LLMTranslator(config_root=make_config_root())
                 assert translator.max_concurrent_requests == 32
 
-    def test_max_concurrent_requests_explicit_overrides_parallel_attempts(self, mock_generator):
+    def test_max_concurrent_requests_explicit_overrides_parallel_attempts(
+        self, mock_generator
+    ):
         """Explicit max_concurrent_requests overrides system.parallel_attempts."""
         mock_system = MagicMock()
         mock_system.parallel_attempts = 32
 
-        with patch("garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator):
+        with patch(
+            "garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator
+        ):
             with patch("garak.langproviders.llm._config.system", mock_system):
                 from garak.langproviders.llm import LLMTranslator
 
@@ -131,7 +141,9 @@ class TestLLMTranslatorInit:
         mock_system = MagicMock()
         mock_system.parallel_attempts = False
 
-        with patch("garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator):
+        with patch(
+            "garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator
+        ):
             with patch("garak.langproviders.llm._config.system", mock_system):
                 from garak.langproviders.llm import LLMTranslator
 
@@ -144,7 +156,9 @@ class TestLLMTranslatorTranslate:
 
     def test_translate_success(self, mock_generator):
         """Successful translation returns LLM response."""
-        with patch("garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator):
+        with patch(
+            "garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator
+        ):
             from garak.langproviders.llm import LLMTranslator
 
             translator = LLMTranslator(config_root=make_config_root())
@@ -153,7 +167,9 @@ class TestLLMTranslatorTranslate:
 
     def test_translate_empty_text(self, mock_generator):
         """Empty text returns unchanged."""
-        with patch("garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator):
+        with patch(
+            "garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator
+        ):
             from garak.langproviders.llm import LLMTranslator
 
             translator = LLMTranslator(config_root=make_config_root())
@@ -164,7 +180,9 @@ class TestLLMTranslatorTranslate:
         """On error, original text is returned."""
         mock_generator._call_model.side_effect = Exception("API error")
 
-        with patch("garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator):
+        with patch(
+            "garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator
+        ):
             from garak.langproviders.llm import LLMTranslator
 
             translator = LLMTranslator(config_root=make_config_root())
@@ -175,7 +193,9 @@ class TestLLMTranslatorTranslate:
         """Empty LLM response returns original text."""
         mock_generator._call_model.return_value = []
 
-        with patch("garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator):
+        with patch(
+            "garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator
+        ):
             from garak.langproviders.llm import LLMTranslator
 
             translator = LLMTranslator(config_root=make_config_root())
@@ -199,7 +219,9 @@ class TestLLMTranslatorGetText:
 
         mock_generator._call_model.side_effect = mock_call_model
 
-        with patch("garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator):
+        with patch(
+            "garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator
+        ):
             from garak.langproviders.llm import LLMTranslator
 
             translator = LLMTranslator(config_root=make_config_root())
@@ -225,7 +247,9 @@ class TestLLMTranslatorGetText:
 
         mock_generator._call_model.side_effect = mock_call_model
 
-        with patch("garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator):
+        with patch(
+            "garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator
+        ):
             from garak.langproviders.llm import LLMTranslator
 
             translator = LLMTranslator(config_root=make_config_root())
@@ -243,7 +267,9 @@ class TestLLMTranslatorGetText:
 
     def test_get_text_empty_list(self, mock_generator):
         """Empty prompt list returns empty list."""
-        with patch("garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator):
+        with patch(
+            "garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator
+        ):
             from garak.langproviders.llm import LLMTranslator
 
             translator = LLMTranslator(config_root=make_config_root())
@@ -258,7 +284,9 @@ class TestLLMTranslatorGetText:
             nonlocal callback_count
             callback_count += 1
 
-        with patch("garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator):
+        with patch(
+            "garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator
+        ):
             from garak.langproviders.llm import LLMTranslator
 
             translator = LLMTranslator(config_root=make_config_root())
@@ -269,7 +297,9 @@ class TestLLMTranslatorGetText:
 
     def test_get_text_with_none_prompt(self, mock_generator):
         """None prompts are handled gracefully."""
-        with patch("garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator):
+        with patch(
+            "garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator
+        ):
             from garak.langproviders.llm import LLMTranslator
 
             translator = LLMTranslator(config_root=make_config_root())
@@ -285,7 +315,9 @@ class TestLLMTranslatorSystemPrompt:
 
     def test_default_system_prompt(self, mock_generator):
         """Default system prompt includes target language name."""
-        with patch("garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator):
+        with patch(
+            "garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator
+        ):
             from garak.langproviders.llm import LLMTranslator
 
             translator = LLMTranslator(config_root=make_config_root())
@@ -294,11 +326,15 @@ class TestLLMTranslatorSystemPrompt:
 
     def test_custom_system_prompt(self, mock_generator):
         """Custom system prompt uses human-readable language name."""
-        with patch("garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator):
+        with patch(
+            "garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator
+        ):
             from garak.langproviders.llm import LLMTranslator
 
             translator = LLMTranslator(
-                config_root=make_config_root({"system_prompt": "Translate to {target_lang}"})
+                config_root=make_config_root(
+                    {"system_prompt": "Translate to {target_lang}"}
+                )
             )
             assert translator._system_prompt == "Translate to Chinese"
 
@@ -308,7 +344,9 @@ class TestLLMTranslatorPickle:
 
     def test_unsafe_attributes(self, mock_generator):
         """Generator is marked as unsafe for serialization."""
-        with patch("garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator):
+        with patch(
+            "garak.langproviders.llm._plugins.load_plugin", return_value=mock_generator
+        ):
             from garak.langproviders.llm import LLMTranslator
 
             translator = LLMTranslator(config_root=make_config_root())
