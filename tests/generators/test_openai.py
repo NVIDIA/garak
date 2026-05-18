@@ -94,6 +94,7 @@ def test_openai_chat():
 
 
 def test_conversation_to_list_pdf():
+    pytest.importorskip("reportlab")
     import base64
     import tempfile
 

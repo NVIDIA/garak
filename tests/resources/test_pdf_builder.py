@@ -4,6 +4,10 @@
 import tempfile
 
 import pytest
+
+pypdf = pytest.importorskip("pypdf")
+pytest.importorskip("reportlab")
+
 from pypdf import PdfReader
 
 from garak.resources.pdf_builder import build_injection_pdf

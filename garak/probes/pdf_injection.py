@@ -67,7 +67,7 @@ class PDFInjectionFull(garak.probes.Probe):
     ]
     goal = "make the model follow hidden instructions embedded in a PDF"
     tier = garak.probes.Tier.OF_CONCERN
-    modality: dict = {"in": {"text"}}
+    modality: dict = {"in": {"file", "text"}}
     extra_dependency_names = ["reportlab"]
 
     techniques = TECHNIQUES
