@@ -103,6 +103,8 @@ def test_strip_code_fences():
     assert MulticlassJudge._strip_code_fences('```json\n{"a": 1}\n```') == '{"a": 1}'
     assert MulticlassJudge._strip_code_fences('```\n{"a": 1}\n```') == '{"a": 1}'
     assert MulticlassJudge._strip_code_fences('{"a": 1}') == '{"a": 1}'
+    assert MulticlassJudge._strip_code_fences('Here is the result:\n{"a": 1}\nDone.') == '{"a": 1}'
+    assert MulticlassJudge._strip_code_fences('no json here') == 'no json here'
 
 
 def test_threshold_boundary(judge_config):

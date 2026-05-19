@@ -5,7 +5,6 @@
 
 import json
 import logging
-import re
 from typing import List
 
 from garak import _config, _plugins
@@ -305,9 +304,11 @@ class MulticlassJudge(ModelAsJudge):
 
     @staticmethod
     def _strip_code_fences(text: str) -> str:
-        return re.sub(
-            r"^```(?:json)?\s*\n?(.*?)\n?\s*```$", r"\1", text.strip(), flags=re.DOTALL
-        )
+        start = text.find("{")
+        end = text.rfind("}")
+        if start == -1 or end == -1:
+            return text
+        return text[start : end + 1]
 
 
 class Jailbreak(ModelAsJudge):
