@@ -10,7 +10,12 @@ import re
 from typing import Union
 
 
-from garak.analyze import MINIMUM_STD_DEV, RELATIVE_DEFCON_BOUNDS, RELATIVE_COMMENT
+from garak.analyze import (
+    MINIMUM_STD_DEV,
+    RELATIVE_DEFCON_BOUNDS,
+    RELATIVE_COMMENT,
+    score_to_defcon,
+)
 from garak.data import path as data_path
 
 
@@ -75,6 +80,10 @@ class Calibration:
     def _calc_z(self, mu: float, sigma: float, score: float) -> float:
         zscore = (score - mu) / sigma
         return zscore
+
+    def defcon_and_comment(self, zscore: float, comments=RELATIVE_COMMENT) -> tuple:
+        defcon = score_to_defcon(zscore, RELATIVE_DEFCON_BOUNDS)
+        return defcon, comments[defcon]
 
     def get_z_score(
         self,

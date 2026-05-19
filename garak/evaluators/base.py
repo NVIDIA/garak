@@ -13,6 +13,7 @@ from colorama import Fore, Style
 
 from garak import _config
 import garak.attempt
+import garak.analyze
 import garak.analyze.calibration
 import garak.analyze.detector_metrics
 from garak.analyze.bootstrap_ci import calculate_bootstrap_ci
@@ -231,9 +232,11 @@ class Evaluator:
         )
         zrating_symbol = ""
         if zscore is not None:
-            _defcon, zrating_symbol = self.calibration.defcon_and_comment(
-                zscore, self.SYMBOL_SET
-            )
+            zrating_symbol = self.SYMBOL_SET[
+                garak.analyze.score_to_defcon(
+                    zscore, garak.analyze.RELATIVE_DEFCON_BOUNDS
+                )
+            ]
         return zscore, zrating_symbol
 
     def print_results_wide(
