@@ -1,17 +1,28 @@
-import requests
-from datetime import datetime, timezone
-import csv
-import backoff
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
+import sys
 
-TIME_FORMAT = "%Y-%m-%d %H:%M:%S %z"
+import backoff
+import requests
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from _common import configure_argparse, emit_record, write_jsonl  # noqa: E402
+
+DEFAULT_OUTPUT_FILE = "pypi_packages.jsonl"
 
 
 def get_all_packages():
     url = "https://pypi.org/simple/"
-    response = requests.get(url)
+    response = requests.get(url, timeout=30)
+    response.raise_for_status()
     packages = response.text.split("\n")
     return [pkg.split("/")[2] for pkg in packages if "a href" in pkg]
+
+
+def get_packages_from_file(input_file):
+    with Path(input_file).open("r", encoding="utf-8") as source_file:
+        return [line.strip() for line in source_file if line.strip()]
 
 
 @backoff.on_exception(
@@ -21,85 +32,90 @@ def get_all_packages():
 )
 def get_package_first_seen(package_name):
     url = f"https://pypi.org/pypi/{package_name}/json"
-    response = requests.get(url)
+    response = requests.get(url, timeout=30)
     response.raise_for_status()
     data = response.json()
     releases = data.get("releases", {})
-    if releases:
-        oldest_release = min(
-            releases.keys(),
-            key=lambda x: (
-                releases[x][0]["upload_time"] if releases[x] else "9999-99-99"
-            ),
-        )
-        if releases[oldest_release] and releases[oldest_release][0].get("upload_time"):
-            # Parse the upload time and format it according to TIME_FORMAT
-            upload_time = releases[oldest_release][0]["upload_time"]
-            try:
-                # Parse the time (PyPI times are in UTC)
-                dt = datetime.fromisoformat(upload_time)
-                dt = dt.replace(tzinfo=timezone.utc)
-                return dt.strftime(TIME_FORMAT)
-            except ValueError:
-                return None
-    return None
+    upload_times = [
+        release_file.get("upload_time")
+        for release_files in releases.values()
+        for release_file in release_files
+        if release_file.get("upload_time")
+    ]
+    if not upload_times:
+        return None
+    return min(upload_times)
 
 
-def main():
-    output_file = "pypi_20241007_NEW.tsv"
-    packages = get_all_packages()
-    processed = 0
+def build_records(packages, batch_size=1000):
     total_packages = len(packages)
-    print(f"Starting to process {total_packages} PyPI packages...")
-
-    batch_size = 1000
+    processed = 0
+    records = []
     batches = [
         packages[i : i + batch_size] for i in range(0, total_packages, batch_size)
     ]
 
-    try:
-        with open(output_file, "a", newline="") as outfile:
-            tsv_writer = csv.writer(outfile, delimiter="\t")
-            tsv_writer.writerow(["text", "package_first_seen"])
+    for batch in batches:
+        batch_results = []
+        with ThreadPoolExecutor(max_workers=batch_size) as executor:
+            future_to_package = {
+                executor.submit(get_package_first_seen, package): package
+                for package in batch
+            }
 
-            for batch in batches:
-                batch_results = []
-                with ThreadPoolExecutor(max_workers=batch_size) as executor:
-                    future_to_package = {
-                        executor.submit(get_package_first_seen, package): package
-                        for package in batch
-                    }
+            for future in as_completed(future_to_package):
+                package = future_to_package[future]
+                try:
+                    creation_date = future.result()
+                except (
+                    requests.RequestException,
+                    ValueError,
+                    KeyError,
+                    TypeError,
+                ) as e:
+                    print(f"Error processing package '{package}': {e}", file=sys.stderr)
+                    creation_date = None
 
-                    for future in as_completed(future_to_package):
-                        package = future_to_package[future]
-                        try:
-                            creation_date = future.result()
-                            batch_results.append((package, creation_date))
-                            processed += 1
-                            if processed % 100 == 0:
-                                print(
-                                    f"Processed: {processed}/{total_packages} ({processed/total_packages*100:.2f}%)"
-                                )
-                        except Exception as e:
-                            print(f"Error processing {package}: {str(e)}")
+                batch_results.append((package, creation_date))
+                processed += 1
+                if processed % 100 == 0 or processed == total_packages:
+                    print(
+                        f"Processed: {processed}/{total_packages} ({processed/total_packages*100:.2f}%)"
+                    )
 
-                for package, creation_date in batch_results:
-                    if creation_date:
-                        tsv_writer.writerow([package, creation_date])
-                    else:
-                        print(f"No creation date found for {package}")
+        records.extend(
+            emit_record(package, creation_date)
+            for package, creation_date in batch_results
+        )
+        print(
+            f"Batch completed. Total processed: {processed}/{total_packages} ({processed/total_packages*100:.2f}%)"
+        )
+        print("*" * 50)
 
-                outfile.flush()
-                print(
-                    f"Batch completed. Total processed: {processed}/{total_packages} ({processed/total_packages*100:.2f}%)"
-                )
-                print("*" * 50)
+    return records
 
-    except IOError as e:
-        print(f"Error writing to file: {str(e)}")
 
-    print(f"Done! Results saved in {output_file}")
+def main(argv=None):
+    parser = configure_argparse(
+        "Build a PyPI package hallucination dataset.",
+        DEFAULT_OUTPUT_FILE,
+    )
+    args = parser.parse_args(argv)
+
+    packages = get_packages_from_file(args.input) if args.input else get_all_packages()
+    if not packages:
+        print(
+            "No PyPI packages found; refusing to write an empty dataset.",
+            file=sys.stderr,
+        )
+        return 1
+
+    print(f"Starting to process {len(packages)} PyPI packages...")
+    records = build_records(packages)
+    write_jsonl(records, args.output)
+    print(f"Done! Results saved in {args.output}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
