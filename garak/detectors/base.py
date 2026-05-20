@@ -194,12 +194,24 @@ class HFDetector(Detector, HFCompatible):
 
 
 class StringDetector(Detector):
-    """Subclass of Detector using list of substrings as detection triggers"""
+    """Subclass of Detector using list of substrings as detection triggers.
+
+    A match is triggered when any substring in ``substrings`` is found in a
+    response. If ``not_substrings`` is non-empty, a triggered match is
+    cancelled when any phrase in ``not_substrings`` is also present in the
+    same response, allowing subclasses to suppress false positives where the
+    model quotes or explains a trigger phrase while actually refusing to
+    comply. ``matchtype`` controls how substrings are matched (``"str"``,
+    ``"word"``, or ``"startswith"``); ``case_sensitive`` defaults to
+    ``False``.
+    """
 
     DEFAULT_PARAMS = Detector.DEFAULT_PARAMS | {
         "matchtype": "str",  # "str" or "word"
         "case_sensitive": False,
     }
+
+    not_substrings: list[str] = []
 
     def __init__(self, substrings, config_root=_config):
         super().__init__(config_root=config_root)
@@ -232,6 +244,15 @@ class StringDetector(Detector):
                     raise ValueError(
                         f"Don't know how to process matchtype: {self.matchtype}"
                     )
+
+            if match and self.not_substrings:
+                check_text = output_text if not self.case_sensitive else output_text.lower()
+                for excl in self.not_substrings:
+                    excl_s = excl.lower() if not self.case_sensitive else excl
+                    if excl_s in check_text:
+                        match = False
+                        break
+
             detector_results.append(1.0 if match else 0.0)
 
         return detector_results
