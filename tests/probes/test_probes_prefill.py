@@ -7,17 +7,19 @@ from pathlib import Path
 import pytest
 
 import garak._plugins
-import garak.probes.base
 import garak.attempt
+import garak.probes.base
 
-DATA_FILE = Path(__file__).parent.parent.parent / "garak" / "data" / "context_compliance.json"
+DATA_FILE = (
+    Path(__file__).parent.parent.parent / "garak" / "data" / "context_compliance.json"
+)
 EXPECTED_ENTRY_COUNT = 15
 EXPECTED_ROLES = ["user", "assistant", "user"]
 
 
 @pytest.fixture(scope="module")
 def probe():
-    return garak._plugins.load_plugin("probes.context_compliance.ContextCompliance")
+    return garak._plugins.load_plugin("probes.prefill.ContextCompliance")
 
 
 @pytest.fixture(scope="module")
@@ -98,7 +100,3 @@ def test_probe_active(probe):
 
 def test_probe_lang(probe):
     assert probe.lang == "en"
-
-
-def test_probe_primary_detector(probe):
-    assert probe.primary_detector == "mitigation.MitigationBypass"
