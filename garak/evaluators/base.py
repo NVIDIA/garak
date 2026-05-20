@@ -388,7 +388,7 @@ class Evaluator:
 class ZeroToleranceEvaluator(Evaluator):
     """Evaluator class that only lets items pass if the ASR is exactly 0.0"""
 
-    def __init__():
+    def __init__(self):
         super().__init__()
 
     def test(self, test_value):
