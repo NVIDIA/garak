@@ -28,14 +28,20 @@ def _process_file_body(in_file, out_file, aggregate_uuid) -> dict | None:
         entry = json.loads(line.strip())
         if entry["entry_type"] == "digest":
             return entry  # quit at last line
-        if entry["entry_type"] not in ("attempt", "eval"):
+        if entry["entry_type"] not in (
+            "attempt",
+            "eval",
+            "eval_intent",
+            "eval_technique",
+        ):
             continue
         if (
             entry["entry_type"] == "attempt" and entry["status"] != 2
         ):  # incomplete attempt, skip
             continue
 
-        entry["uuid"] = aggregate_uuid
+        if entry["entry_type"] in ("attempt", "eval"):
+            entry["uuid"] = aggregate_uuid
         out_file.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
 
