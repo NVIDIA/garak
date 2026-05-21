@@ -198,7 +198,7 @@ class Attempt:
     :param reverse_translation_outputs: The reverse translation of output based on the original language of the probe
     :type reverse_translation_outputs: List(str)
     :param intent: None, or the primary intent type in this attempt
-    :type notes: str|None
+    :type intent: str|None
 
 
     Typical use:

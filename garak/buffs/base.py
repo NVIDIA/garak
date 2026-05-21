@@ -57,6 +57,7 @@ class Buff(Configurable):
             detector_results=source_attempt.detector_results,
             goal=source_attempt.goal,
             seq=seq,
+            intent=source_attempt.intent,
         )
         new_attempt.notes["buff_creator"] = self.__class__.__name__
         new_attempt.notes["buff_source_attempt_uuid"] = str(

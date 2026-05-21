@@ -13,6 +13,7 @@ from typing import Iterable, Optional, Tuple, List
 from colorama import Fore, Style
 
 from garak import _config
+import garak._plugins
 import garak.attempt
 import garak.analyze.calibration
 import garak.analyze.detector_metrics
@@ -24,6 +25,26 @@ import garak.resources.theme
 # Minimum CI width (in percentage points) to display in output
 # CIs narrower than this provide no meaningful uncertainty information
 CI_DISPLAY_MIN_WIDTH = 0.001
+
+
+# Prefixes of probe tags that count as technique tags for `eval_technique` reporting.
+# Currently only the `demon:` taxonomy is treated as a technique; this list is expected
+# to grow as additional taxonomies are adopted.
+TECHNIQUE_PREFIXES = ["demon:"]
+
+
+def _probe_technique_tags(probe_name: str) -> list[str]:
+    """Return probe tags that match an active technique taxonomy prefix."""
+    tags = garak._plugins.PluginCache.plugin_info(f"probes.{probe_name}")["tags"]
+    if not isinstance(tags, list):
+        raise TypeError(f"Expected list of probe tags for {probe_name}")
+    if not all(isinstance(tag, str) for tag in tags):
+        raise TypeError(f"Expected string probe tags for {probe_name}")
+    return [
+        tag
+        for tag in tags
+        if any(tag.startswith(prefix) for prefix in TECHNIQUE_PREFIXES)
+    ]
 
 
 class Evaluator:
@@ -223,6 +244,7 @@ class Evaluator:
         )  # iterable is preferred but we select them by idx later
 
         intent_detector_groups = defaultdict(set)
+        technique_detector_groups = defaultdict(set)
 
         detectors_to_eval = set()
         detector_to_attempt_ids = defaultdict(list)
@@ -244,10 +266,17 @@ class Evaluator:
                 )
 
             detectors_to_eval.update(attempt_detectors)
+            attempt_techniques = (
+                _probe_technique_tags(attempt.probe_classname)
+                if attempt_detectors
+                else []
+            )
             for attempt_detector in attempt_detectors:
                 detector_to_attempt_ids[attempt_detector].append(idx)
                 if attempt.intent:
                     intent_detector_groups[attempt.intent].add(attempt_detector)
+                for technique in attempt_techniques:
+                    technique_detector_groups[technique].add(attempt_detector)
 
         detector_results = {}
 
@@ -292,6 +321,39 @@ class Evaluator:
             }
 
             _config.transient.reportfile.write(json.dumps(intent_log_entry) + "\n")
+
+        for technique in technique_detector_groups:
+            evaluation_count = 0
+            pass_rates = []
+            technique_relevant_detectors = technique_detector_groups[technique]
+            for detector_name in technique_relevant_detectors:
+                total_evaluated = detector_results[detector_name]["total_evaluated"]
+                evaluation_count += total_evaluated
+                if total_evaluated > 0:
+                    pass_rate = (
+                        detector_results[detector_name]["passed"] / total_evaluated
+                    )
+                    pass_rates.append(pass_rate)
+
+            if len(pass_rates):
+                technique_score, _ = garak.resources.scoring.aggregate(
+                    pass_rates, _config.reporting.group_aggregation_function
+                )
+            else:
+                technique_score = None
+
+            technique_log_entry = {
+                "entry_type": "eval_technique",
+                "probe": self.probename,
+                "technique": technique,
+                "score": technique_score,
+                "aggregation": _config.reporting.group_aggregation_function,
+                "n_detectors": len(pass_rates),
+                "n_evaluations": evaluation_count,
+                "detectors_used": list(technique_relevant_detectors),
+            }
+
+            _config.transient.reportfile.write(json.dumps(technique_log_entry) + "\n")
 
     def get_z_rating(self, probe_name, detector_name, asr_pct) -> str:
         probe_module, probe_classname = probe_name.split(".")
