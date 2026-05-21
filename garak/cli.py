@@ -137,6 +137,13 @@ def main(arguments=None) -> None:
     parser.add_argument(
         "--config", type=str, default=None, help="YAML or JSON config file for this run"
     )
+    parser.add_argument(
+        "--resume",
+        type=str,
+        default=None,
+        metavar="RUN_ID",
+        help="resume an interrupted scan by run_id",
+    )
 
     ## PLUGINS
     # generators
@@ -663,7 +670,11 @@ def main(arguments=None) -> None:
 
             if parsed_specs["detector"] == []:
                 command.probewise_run(
-                    generator, parsed_specs["probe"], evaluator, parsed_specs["buff"]
+                    generator,
+                    parsed_specs["probe"],
+                    evaluator,
+                    parsed_specs["buff"],
+                    resume_id=args.resume,
                 )
             else:
                 command.pxd_run(
