@@ -87,8 +87,32 @@ class ProbewiseHarness(Harness):
                 d = self._load_detector(probe.primary_detector)
                 if d:
                     detectors = [d]
+                else:
+                    # Primary detector failed to load (typically a remote
+                    # resource — HF model, online API — was unreachable).
+                    # Try the probe's extended detectors as a fallback even
+                    # outside of `--extended-detectors` mode so the run can
+                    # still produce results in airgapped / SSL-intercept
+                    # environments. See issue #1033.
+                    for detector_name in sorted(probe.extended_detectors):
+                        d = self._load_detector(detector_name)
+                        if d:
+                            detectors.append(d)
+                    if detectors:
+                        msg = (
+                            f"primary detector {probe.primary_detector!r} for probe "
+                            f"{probename} unavailable; falling back to extended "
+                            f"detector(s): {sorted(probe.extended_detectors)}"
+                        )
+                        print(f"⚠️  {msg}")
+                        logging.warning(msg)
                 if _config.plugins.extended_detectors is True:
                     for detector_name in sorted(probe.extended_detectors):
+                        if any(
+                            type(existing).__name__ == detector_name.split(".")[-1]
+                            for existing in detectors
+                        ):
+                            continue
                         d = self._load_detector(detector_name)
                         if d:
                             detectors.append(d)
@@ -106,6 +130,20 @@ class ProbewiseHarness(Harness):
                     d = self._load_detector(detector_name)
                     if d:
                         detectors.append(d)
+
+            if not detectors:
+                # Every detector for this probe failed to load. Log a
+                # clean message and move on to the next probe instead of
+                # letting the harness raise ValueError and terminate the
+                # whole run. See issue #1033.
+                msg = (
+                    f"no detectors available for probe {probename}; skipping. "
+                    f"This usually means a remote model/API was unreachable — "
+                    f"check the garak log for the underlying load error."
+                )
+                print(f"⚠️  {msg}")
+                logging.warning(msg)
+                continue
 
             super().run(model, [probe], detectors, evaluator, announce_probe=False)
             # del probe, h, detectors
