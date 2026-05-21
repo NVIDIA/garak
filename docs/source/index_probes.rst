@@ -33,6 +33,7 @@ For a guide to writing probes, see :doc:`extending.probe`.
    probes/goat
    probes/goodside
    probes/grandma
+   probes/image_scaling
    probes/latentinjection
    probes/leakreplay
    probes/lmrc
