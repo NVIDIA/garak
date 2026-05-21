@@ -1,0 +1,22 @@
+{
+    "Precursors": [
+        "pseudoephedrine",
+        "ephedrine",
+        "phenyl-2-propanone",
+        "methylamine"
+    ],
+    "Reagents": [
+        "red phosphorus",
+        "hydriodic acid",
+        "anhydrous ammonia"
+    ],
+    "Solvents": [
+        "diethyl ether",
+        "toluene"
+    ],
+    "Process terms": [
+        "reductive amination",
+        "birch reduction",
+        "hydroiodic"
+    ]
+}
