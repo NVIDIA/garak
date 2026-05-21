@@ -25,6 +25,15 @@ from garak.attempt import Message, Conversation
 import garak.exception
 from garak.generators.base import Generator
 
+file_types = [
+    "application/pdf",
+    "application/rtf",
+    "text/rtf",
+    "application/csv",
+    "text/csv",
+    "text/tsv",
+]
+
 # lists derived from https://platform.openai.com/docs/models
 chat_models = (
     "gpt-5-nano",
@@ -139,6 +148,7 @@ class OpenAICompatible(Generator):
     active = True
     supports_multiple_generations = False
     generator_family_name = "OpenAICompatible"  # Placeholder override when extending
+    modality = {"in": {"text", "image", "audio", "file"}, "out": {"text"}}
 
     # template defaults optionally override when extending
     DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
@@ -212,6 +222,17 @@ class OpenAICompatible(Generator):
                             {
                                 "type": "input_image",
                                 "image_url": f"data:{turn.content.data_type[0]};base64{data_b64}",
+                            },
+                        ],
+                    }
+                elif turn.content.data_type[0] in file_types:
+                    transformed_turn = {
+                        "role": turn.role,
+                        "content": [
+                            {"type": "input_text", "text": turn.content.text},
+                            {
+                                "type": "input_file",
+                                "file_data": f"data:{turn.content.data_type[0]};base64,{data_b64}",
                             },
                         ],
                     }

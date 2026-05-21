@@ -157,6 +157,7 @@ tests = [
   "pytest-asyncio>=0.21.0",
   "langcodes>=3.4.0",
   "cryptography>=47.0.0",
+  "pypdf>=4.0",
 ]
 lint = [
   "black>=26.1.0",
@@ -168,6 +169,9 @@ calibration = [
 audio = [
   "soundfile>=0.13.1",
   "librosa>=0.10.2"
+]
+pdf = [
+  "reportlab>=4.0",
 ]
 dra = [
   "detoxify>=0.5.0"
