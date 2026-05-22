@@ -15,6 +15,7 @@ from pytest_httpserver import HTTPServer
 
 from garak import _config
 import garak.cli
+from garak.exception import ExitCode
 
 SITE_YAML_FILENAME = "TESTONLY.site.yaml.bak"
 CONFIGURABLE_YAML = """
@@ -838,15 +839,10 @@ def test_site_yaml_overrides_max_workers(capsys):
         _config.system.max_workers == 2
     ), "Site config worker count should override core config if loaded correctly"
 
-    with pytest.raises(SystemExit) as exc_info:
-        garak.cli.main("--parallel_attempts 3 -m test -p test.Test".split())
-        result = capsys.readouterr()
-        assert (
-            result.split("\n")[-1]
-            == "ValueError: Parallel worker count capped at 2 (config.system.max_workers)"
-        )
-        assert exc_info.type == SystemExit
-        assert exc_info.value.code == 1
+    ret = garak.cli.main("--parallel_attempts 3 -m test -p test.Test".split())
+    result = capsys.readouterr()
+    assert "Parallel worker count capped at 2 (config.system.max_workers)" in result.out
+    assert ret == int(ExitCode.UNSPECIFIED_EXCEPTION)
 
 
 model_target_data = [
@@ -1004,11 +1000,10 @@ reporting: {}
     test_yaml_path.write_text(yaml_config_content)
 
     # Extension-less should error when only YAML exists
-    with pytest.raises(SystemExit) as exc_info:
-        garak.cli.main(["--config", "test_yaml_only", "--list_config"])
+    ret = garak.cli.main(["--config", "test_yaml_only", "--list_config"])
 
     # Verify exit code and error message
-    assert exc_info.value.code == 1
+    assert ret == int(ExitCode.UNSPECIFIED_EXCEPTION)
     captured = capsys.readouterr()
     assert "YAML needs explicit .yaml/.yml extension" in captured.out
 
