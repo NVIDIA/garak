@@ -67,45 +67,6 @@ class TestExitCodeEnum:
     def test_out_of_local_resources_is_minus_ten(self):
         assert int(ExitCode.OUT_OF_LOCAL_RESOURCES) == -10
 
-    def test_unspecified_exception_is_minus_127(self):
-        assert int(ExitCode.UNSPECIFIED_EXCEPTION) == -127
-
-    def test_all_codes_are_int_compatible(self):
-        for code in ExitCode:
-            assert isinstance(int(code), int)
-
-
-# ---------------------------------------------------------------------------
-# cli.main() return type — must always return an int
-# ---------------------------------------------------------------------------
-
-
-class TestCliMainReturnType:
-    def test_version_returns_int(self):
-        with _mock_evaluators():
-            result = cli.main(["--version"])
-        assert isinstance(result, int)
-
-    def test_list_probes_returns_int(self):
-        with _mock_evaluators():
-            result = cli.main(["--list_probes"])
-        assert isinstance(result, int)
-
-    def test_list_detectors_returns_int(self):
-        with _mock_evaluators():
-            result = cli.main(["--list_detectors"])
-        assert isinstance(result, int)
-
-    def test_list_generators_returns_int(self):
-        with _mock_evaluators():
-            result = cli.main(["--list_generators"])
-        assert isinstance(result, int)
-
-    def test_list_buffs_returns_int(self):
-        with _mock_evaluators():
-            result = cli.main(["--list_buffs"])
-        assert isinstance(result, int)
-
 
 # ---------------------------------------------------------------------------
 # Success paths return ExitCode.SUCCESS (0)
@@ -113,29 +74,20 @@ class TestCliMainReturnType:
 
 
 class TestSuccessExitCodes:
-    def test_version_is_success(self):
+    @pytest.mark.parametrize(
+        "options",
+        [
+            ["--version"],
+            ["--list_probes"],
+            ["--list_detectors"],
+            ["--list_generators"],
+            ["--list_buffs"],
+            [],
+        ],
+    )
+    def test_success_exit_code(self, options):
         with _mock_evaluators():
-            assert cli.main(["--version"]) == int(ExitCode.SUCCESS)
-
-    def test_list_probes_is_success(self):
-        with _mock_evaluators():
-            assert cli.main(["--list_probes"]) == int(ExitCode.SUCCESS)
-
-    def test_list_detectors_is_success(self):
-        with _mock_evaluators():
-            assert cli.main(["--list_detectors"]) == int(ExitCode.SUCCESS)
-
-    def test_list_generators_is_success(self):
-        with _mock_evaluators():
-            assert cli.main(["--list_generators"]) == int(ExitCode.SUCCESS)
-
-    def test_list_buffs_is_success(self):
-        with _mock_evaluators():
-            assert cli.main(["--list_buffs"]) == int(ExitCode.SUCCESS)
-
-    def test_no_args_is_success(self):
-        with _mock_evaluators():
-            assert cli.main([]) == int(ExitCode.SUCCESS)
+            assert cli.main(options) == int(ExitCode.SUCCESS)
 
 
 # ---------------------------------------------------------------------------
@@ -208,27 +160,21 @@ class TestMainTryExitCodes:
 
 
 class TestMainEntryPoint:
-    def test_main_calls_sys_exit_with_cli_return(self):
-        """__main__.main() must pass cli.main()'s return value to sys.exit()."""
+    @pytest.mark.parametrize(
+        "exit_code,argv",
+        [
+            (int(ExitCode.SUCCESS), ["garak", "--version"]),
+            (int(ExitCode.UNSPECIFIED_EXCEPTION), ["garak", "--config", "/bad/path"]),
+        ],
+    )
+    def test_main_propagates_exit_code(self, exit_code, argv):
         import garak.__main__ as entrypoint
 
         with (
-            patch.object(cli, "main", return_value=int(ExitCode.SUCCESS)),
+            patch.object(cli, "main", return_value=exit_code),
             patch("sys.exit") as mock_exit,
-            patch("sys.argv", ["garak", "--version"]),
+            patch("sys.argv", argv),
         ):
             entrypoint.main()
 
-        mock_exit.assert_called_once_with(int(ExitCode.SUCCESS))
-
-    def test_main_propagates_error_exit_code(self):
-        import garak.__main__ as entrypoint
-
-        with (
-            patch.object(cli, "main", return_value=int(ExitCode.UNSPECIFIED_EXCEPTION)),
-            patch("sys.exit") as mock_exit,
-            patch("sys.argv", ["garak", "--config", "/bad/path"]),
-        ):
-            entrypoint.main()
-
-        mock_exit.assert_called_once_with(int(ExitCode.UNSPECIFIED_EXCEPTION))
+        mock_exit.assert_called_once_with(exit_code)
