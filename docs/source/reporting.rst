@@ -21,7 +21,7 @@ When present, ``eval_intent`` and ``eval_technique`` entries are summarized in t
 These summaries are keyed by intent value or technique value and include ``score``, ``n_evaluations``, ``probes``, ``detectors_used``, and ``aggregation``.
 The ``score`` field follows the configured aggregation over source row scores.
 When source rows record their own aggregation method, the digest also includes ``source_aggregations``.
-A technique value of ``null`` is shown as ``_untagged``; missing technique fields are treated as malformed input.
+Missing or ``null`` technique fields are treated as malformed input.
 
 Confidence Intervals (Optional)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

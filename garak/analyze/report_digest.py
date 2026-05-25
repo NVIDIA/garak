@@ -484,7 +484,7 @@ def _summarize_ti_evals(
             raise ValueError(f"{record['entry_type']} missing {value_key}")
         value = record[value_key]
         if value_key == "technique" and value is None:
-            value = "_untagged"
+            raise ValueError(f"{record['entry_type']} has null technique")
 
         item = summary.setdefault(
             value,

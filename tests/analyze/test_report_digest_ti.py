@@ -108,7 +108,7 @@ def test_build_digest_includes_intent_summary(tmp_path):
     assert digest["intent"]["S009deep"]["source_aggregations"] == ["lower_quartile"]
 
 
-def test_build_digest_includes_empty_technique_bucket(tmp_path):
+def test_digest_rejects_null_technique(tmp_path):
     report_path = _write_ti_report(
         tmp_path,
         technique_rows=[
@@ -124,11 +124,8 @@ def test_build_digest_includes_empty_technique_bucket(tmp_path):
         ],
     )
 
-    digest = report_digest.build_digest(str(report_path))
-
-    assert "_untagged" in digest["technique"]
-    assert digest["technique"]["_untagged"]["score"] == pytest.approx(1.0)
-    assert digest["technique"]["_untagged"]["n_evaluations"] == 3
+    with pytest.raises(ValueError, match="eval_technique has null technique"):
+        report_digest.build_digest(str(report_path))
 
 
 def test_digest_summary_allows_intent_and_multi_technique_coexistence(tmp_path):
