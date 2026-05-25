@@ -205,6 +205,29 @@ class Evaluator:
 
         return eval_record
 
+    def _summarize_detector_attempts(
+        self, attempts: Iterable[garak.attempt.Attempt], detector_name: str
+    ) -> dict:
+        """Compute detector pass/fail counts without report side effects."""
+        passes = 0
+        fails = 0
+        nones = 0
+
+        for attempt in attempts:
+            for score in attempt.detector_results[detector_name]:
+                if score is None:
+                    nones += 1
+                elif self.test(float(score)):
+                    passes += 1
+                else:
+                    fails += 1
+
+        return {
+            "passed": passes,
+            "total_evaluated": passes + fails,
+            "total_processed": passes + fails + nones,
+        }
+
     def evaluate(self, attempts: Iterable[garak.attempt.Attempt]) -> None:
         """evaluate feedback from detectors
 
@@ -223,6 +246,7 @@ class Evaluator:
         )  # iterable is preferred but we select them by idx later
 
         intent_detector_groups = defaultdict(set)
+        technique_intent_detector_attempt_ids = defaultdict(lambda: defaultdict(list))
 
         detectors_to_eval = set()
         detector_to_attempt_ids = defaultdict(list)
@@ -243,10 +267,24 @@ class Evaluator:
                 )
 
             detectors_to_eval.update(attempt_detectors)
+            attempt_techniques = []
+            if attempt_detectors:
+                probe_technique_resolver = globals().get("_probe_technique_tags")
+                if callable(probe_technique_resolver):
+                    try:
+                        attempt_techniques = probe_technique_resolver(
+                            attempt.probe_classname
+                        )
+                    except (ValueError, TypeError, KeyError):
+                        attempt_techniques = []
             for attempt_detector in attempt_detectors:
                 detector_to_attempt_ids[attempt_detector].append(idx)
                 if attempt.intent:
                     intent_detector_groups[attempt.intent].add(attempt_detector)
+                    for technique in attempt_techniques:
+                        technique_intent_detector_attempt_ids[
+                            (technique, attempt.intent)
+                        ][attempt_detector].append(idx)
 
         detector_results = {}
 
@@ -291,6 +329,45 @@ class Evaluator:
             }
 
             _config.transient.reportfile.write(json.dumps(intent_log_entry) + "\n")
+
+        for technique, intent in sorted(
+            technique_intent_detector_attempt_ids.keys(), key=lambda pair: pair
+        ):
+            evaluation_count = 0
+            pass_rates = []
+            detector_attempt_ids = technique_intent_detector_attempt_ids[
+                (technique, intent)
+            ]
+            for detector_name in sorted(detector_attempt_ids.keys()):
+                attempt_subset = [attempts[i] for i in detector_attempt_ids[detector_name]]
+                detector_summary = self._summarize_detector_attempts(
+                    attempt_subset, detector_name
+                )
+                total_evaluated = detector_summary["total_evaluated"]
+                evaluation_count += total_evaluated
+                if total_evaluated > 0:
+                    pass_rates.append(detector_summary["passed"] / total_evaluated)
+
+            if len(pass_rates):
+                technique_intent_score, _ = garak.resources.scoring.aggregate(
+                    pass_rates, _config.reporting.group_aggregation_function
+                )
+            else:
+                technique_intent_score = None
+
+            technique_intent_log_entry = {
+                "entry_type": "eval_technique_intent",
+                "technique": technique,
+                "intent": intent,
+                "score": technique_intent_score,
+                "aggregation": _config.reporting.group_aggregation_function,
+                "n_detectors": len(pass_rates),
+                "n_evaluations": evaluation_count,
+                "detectors_used": sorted(detector_attempt_ids.keys()),
+            }
+            _config.transient.reportfile.write(
+                json.dumps(technique_intent_log_entry) + "\n"
+            )
 
     def get_z_rating(self, probe_name, detector_name, asr_pct) -> str:
         probe_module, probe_classname = probe_name.split(".")

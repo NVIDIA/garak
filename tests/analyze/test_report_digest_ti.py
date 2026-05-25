@@ -29,12 +29,18 @@ def _base_records():
     ]
 
 
-def _write_ti_report(tmp_path, intent_rows=None, technique_rows=None):
+def _write_ti_report(
+    tmp_path,
+    intent_rows=None,
+    technique_rows=None,
+    technique_intent_rows=None,
+):
     _config.load_base_config()
     report_path = tmp_path / "ti.report.jsonl"
     records = _base_records()
     records.extend(intent_rows or [])
     records.extend(technique_rows or [])
+    records.extend(technique_intent_rows or [])
 
     with open(report_path, "w", encoding="utf-8") as report_file:
         for record in records:
@@ -76,6 +82,7 @@ def test_parse_report_collects_ti_eval_rows():
         _evals,
         intent_evals,
         technique_evals,
+        _technique_intent_evals,
         _plugin_cache,
     ) = report_digest._parse_report(report)
 
@@ -235,4 +242,82 @@ def test_digest_rejects_missing_ti_value_key(tmp_path):
     )
 
     with pytest.raises(ValueError, match="eval_technique missing technique"):
+        report_digest.build_digest(str(report_path))
+
+
+def test_build_digest_includes_technique_intent_summary(tmp_path):
+    technique = "demon:Language:Prompt_injection:Ignore_previous_instructions"
+    report_path = _write_ti_report(
+        tmp_path,
+        technique_intent_rows=[
+            {
+                "entry_type": "eval_technique_intent",
+                "technique": technique,
+                "intent": "S009deep",
+                "score": 0.75,
+                "n_evaluations": 12,
+                "detectors_used": ["always.Pass"],
+                "aggregation": "lower_quartile",
+            }
+        ],
+    )
+
+    digest = report_digest.build_digest(str(report_path))
+    bucket = digest["technique_intent"][technique]["S009deep"]
+    assert bucket["score"] == pytest.approx(0.75)
+    assert bucket["n_evaluations"] == 12
+    assert bucket["detectors_used"] == ["always.Pass"]
+    assert bucket["aggregation"] == "lower_quartile"
+
+
+def test_digest_technique_intent_aggregates_multiple_source_rows(tmp_path):
+    technique = "demon:Language:Prompt_injection:Ignore_previous_instructions"
+    report_path = _write_ti_report(
+        tmp_path,
+        technique_intent_rows=[
+            {
+                "entry_type": "eval_technique_intent",
+                "technique": technique,
+                "intent": "S009deep",
+                "score": 0.8,
+                "n_evaluations": 100,
+                "detectors_used": ["detector.One"],
+                "aggregation": "lower_quartile",
+            },
+            {
+                "entry_type": "eval_technique_intent",
+                "technique": technique,
+                "intent": "S009deep",
+                "score": 0.4,
+                "n_evaluations": 5,
+                "detectors_used": ["detector.Two"],
+                "aggregation": "mean",
+            },
+        ],
+    )
+
+    digest = report_digest.build_digest(str(report_path))
+    bucket = digest["technique_intent"][technique]["S009deep"]
+    assert bucket["score"] == pytest.approx(0.5)
+    assert bucket["n_evaluations"] == 105
+    assert bucket["detectors_used"] == ["detector.One", "detector.Two"]
+    assert bucket["source_aggregations"] == ["lower_quartile", "mean"]
+
+
+def test_digest_rejects_null_technique_intent_value(tmp_path):
+    report_path = _write_ti_report(
+        tmp_path,
+        technique_intent_rows=[
+            {
+                "entry_type": "eval_technique_intent",
+                "technique": "demon:Language:Prompt_injection:Ignore_previous_instructions",
+                "intent": None,
+                "score": 1.0,
+                "n_evaluations": 3,
+                "detectors_used": ["always.Pass"],
+            }
+        ],
+    )
+
+    with pytest.raises(ValueError, match="eval_technique_intent has null intent"):
         report_digest.build_digest(str(report_path))

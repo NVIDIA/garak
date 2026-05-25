@@ -45,6 +45,14 @@ def _write_ti_aggregate_report(tmp_path, filename, probe, intent, technique):
             "n_evaluations": 12,
             "detectors_used": ["always.Pass"],
         },
+        {
+            "entry_type": "eval_technique_intent",
+            "technique": technique,
+            "intent": intent,
+            "score": 0.75,
+            "n_evaluations": 12,
+            "detectors_used": ["always.Pass"],
+        },
     ]
 
     with open(report_path, "w", encoding="utf-8") as report_file:
@@ -79,6 +87,7 @@ def test_aggregate_executes() -> None:
     assert digest != False, "digest record missing from aggregated jsonl"
     assert "intent" in digest
     assert "technique" in digest
+    assert "technique_intent" in digest
 
     agg_digest_eval_keys = set(digest["eval"].keys())
     assert agg_digest_eval_keys == {
@@ -120,7 +129,7 @@ def test_aggregate_executes() -> None:
             )  # key not found in agg rec means agg rec is out of sync (test fail)
 
         if ref_rec["entry_type"] == "digest":
-            for key in ["intent", "technique"]:
+            for key in ["intent", "technique", "technique_intent"]:
                 ref_rec.pop(key, None)
                 agg_rec.pop(key, None)
             for key in [
@@ -241,15 +250,20 @@ def test_aggregate_preserves_ti_eval_rows(tmp_path) -> None:
     ]
     intent_rows = [row for row in rows if row["entry_type"] == "eval_intent"]
     technique_rows = [row for row in rows if row["entry_type"] == "eval_technique"]
-    ti_rows = intent_rows + technique_rows
+    technique_intent_rows = [
+        row for row in rows if row["entry_type"] == "eval_technique_intent"
+    ]
+    ti_rows = intent_rows + technique_rows + technique_intent_rows
 
     assert len(intent_rows) == 2
     assert len(technique_rows) == 2
+    assert len(technique_intent_rows) == 2
     assert all("uuid" not in row for row in ti_rows)
 
     digest = garak.analyze.report_digest._get_report_digest(str(output_path))
     assert digest["intent"]["S009deep"]["n_evaluations"] == 24
     assert digest["technique"][technique]["n_evaluations"] == 24
+    assert digest["technique_intent"][technique]["S009deep"]["n_evaluations"] == 24
 
 
 def test_digest_handles_mixed_eval_ci_format(tmp_path) -> None:

@@ -17,11 +17,12 @@ Different entry types have different other fields.
 Attempt-type entries have uuid and status fields.
 Status can be 0 (not sent to target), 1 (with target response but not evaluated), or 2 (with response and evaluation).
 Eval-type entries are added after each probe/detector pair completes, and list the results used to compute the score.
-When present, ``eval_intent`` and ``eval_technique`` entries are summarized in the report digest's ``intent`` and ``technique`` sections.
+When present, ``eval_intent``, ``eval_technique``, and ``eval_technique_intent`` entries are summarized in the report digest's ``intent``, ``technique``, and ``technique_intent`` sections.
 These summaries are keyed by intent value or technique value and include ``score``, ``n_evaluations``, ``probes``, ``detectors_used``, and ``aggregation``.
 The ``score`` field follows the configured aggregation over source row scores.
-When source rows record their own aggregation method, the digest also includes ``source_aggregations``.
-Missing or ``null`` technique fields are treated as malformed input.
+The ``technique_intent`` section is keyed as ``technique -> intent`` and includes ``score``, ``n_evaluations``, ``detectors_used``, and ``aggregation``.
+When source rows record their own aggregation method, digest sections also include ``source_aggregations``.
+Missing or ``null`` technique/intent fields are treated as malformed input.
 
 Confidence Intervals (Optional)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

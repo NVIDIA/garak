@@ -52,6 +52,7 @@ def _parse_report(reportfile: IO):
     evals = []
     intent_evals = []
     technique_evals = []
+    technique_intent_evals = []
     payloads = []
     setup = defaultdict(str)
     init = {}
@@ -64,6 +65,8 @@ def _parse_report(reportfile: IO):
             intent_evals.append(record)
         elif record["entry_type"] == "eval_technique":
             technique_evals.append(record)
+        elif record["entry_type"] == "eval_technique_intent":
+            technique_intent_evals.append(record)
         elif record["entry_type"] == "init":
             init = {
                 "garak_version": record["garak_version"],
@@ -92,7 +95,16 @@ def _parse_report(reportfile: IO):
         plugin_cache = deepcopy(garak._plugins.PluginCache.instance())
         plugin_cache["version"] = garak.__version__
 
-    return init, setup, payloads, evals, intent_evals, technique_evals, plugin_cache
+    return (
+        init,
+        setup,
+        payloads,
+        evals,
+        intent_evals,
+        technique_evals,
+        technique_intent_evals,
+        plugin_cache,
+    )
 
 
 def _report_header_content(report_path, init, setup, payloads, config=_config) -> dict:
@@ -530,6 +542,73 @@ def _summarize_ti_evals(
     return finalized_summary, aggregation_unknown
 
 
+def _summarize_ti_nested_evals(
+    records: list[dict],
+    outer_key: str,
+    inner_key: str,
+    aggregation_function: str,
+) -> tuple[dict, bool]:
+    summary = {}
+
+    for record in records:
+        if outer_key not in record:
+            raise ValueError(f"{record['entry_type']} missing {outer_key}")
+        if inner_key not in record:
+            raise ValueError(f"{record['entry_type']} missing {inner_key}")
+        outer_value = record[outer_key]
+        inner_value = record[inner_key]
+        if outer_value is None:
+            raise ValueError(f"{record['entry_type']} has null {outer_key}")
+        if inner_value is None:
+            raise ValueError(f"{record['entry_type']} has null {inner_key}")
+
+        outer_bucket = summary.setdefault(outer_value, {})
+        item = outer_bucket.setdefault(
+            inner_value,
+            {
+                "scores": [],
+                "n_evaluations": 0,
+                "detectors_used": set(),
+                "source_aggregations": set(),
+            },
+        )
+        if record.get("score") is not None:
+            item["scores"].append(record["score"])
+        item["n_evaluations"] += record.get("n_evaluations", 0)
+        item["detectors_used"].update(record.get("detectors_used", []))
+        if record.get("aggregation") is not None:
+            item["source_aggregations"].add(record["aggregation"])
+
+    finalized_summary = {}
+    aggregation_unknown = False
+    for outer_value in sorted(summary.keys(), key=str):
+        finalized_inner = {}
+        for inner_value in sorted(summary[outer_value].keys(), key=str):
+            item = summary[outer_value][inner_value]
+            score = None
+            if item["scores"]:
+                score, unknown_function = garak.resources.scoring.aggregate(
+                    item["scores"], aggregation_function
+                )
+                if unknown_function:
+                    aggregation_unknown = True
+
+            finalized_item = {
+                "score": score,
+                "n_evaluations": item["n_evaluations"],
+                "detectors_used": sorted(item["detectors_used"]),
+                "aggregation": aggregation_function,
+            }
+            if item["source_aggregations"]:
+                finalized_item["source_aggregations"] = sorted(
+                    item["source_aggregations"]
+                )
+            finalized_inner[inner_value] = finalized_item
+        finalized_summary[outer_value] = finalized_inner
+
+    return finalized_summary, aggregation_unknown
+
+
 def build_digest(report_filename: str, config=_config):
 
     # taxonomy = config.reporting.taxonomy
@@ -550,6 +629,7 @@ def build_digest(report_filename: str, config=_config):
             evals,
             intent_evals,
             technique_evals,
+            technique_intent_evals,
             report_plugin_cache,
         ) = _parse_report(reportfile)
 
@@ -566,13 +646,26 @@ def build_digest(report_filename: str, config=_config):
     technique_summary, technique_aggregation_unknown = _summarize_ti_evals(
         technique_evals, "technique", group_aggregation_function
     )
+    technique_intent_summary, technique_intent_aggregation_unknown = (
+        _summarize_ti_nested_evals(
+            technique_intent_evals,
+            outer_key="technique",
+            inner_key="intent",
+            aggregation_function=group_aggregation_function,
+        )
+    )
     report_digest["intent"] = intent_summary
     report_digest["technique"] = technique_summary
+    report_digest["technique_intent"] = technique_intent_summary
 
     conn, cursor = _init_populate_result_db(evals, taxonomy, report_plugin_cache)
     group_names = _get_report_grouping(cursor)
 
-    aggregation_unknown = intent_aggregation_unknown or technique_aggregation_unknown
+    aggregation_unknown = (
+        intent_aggregation_unknown
+        or technique_aggregation_unknown
+        or technique_intent_aggregation_unknown
+    )
 
     for probe_group in group_names:
         report_digest["eval"][probe_group] = {}

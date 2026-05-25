@@ -33,6 +33,7 @@ def _process_file_body(in_file, out_file, aggregate_uuid) -> dict | None:
             "eval",
             "eval_intent",
             "eval_technique",
+            "eval_technique_intent",
         ):
             continue
         if (

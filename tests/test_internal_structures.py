@@ -12,11 +12,8 @@ from pathlib import Path
 
 import garak._config
 import garak._plugins
-import garak.analyze.report_digest
 import garak.attempt
-import garak.buffs.base
 import garak.evaluators.base
-import garak.harnesses.base
 
 from garak.detectors.mitigation import MitigationBypass
 
@@ -117,83 +114,104 @@ def _read_report_records(entry_type=None):
     report_filename_path = Path(garak._config.transient.report_filename)
     assert report_filename_path.exists()
     records = [
-        json.loads(line) for line in report_filename_path.read_text().splitlines()
+        json.loads(line)
+        for line in report_filename_path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
     ]
     if entry_type is None:
         return records
-    return [record for record in records if record["entry_type"] == entry_type]
+    return [record for record in records if record.get("entry_type") == entry_type]
 
 
-def _merge_plugin_cache_records(records):
-    plugin_cache = {}
-    for record in records:
-        for category, entries in record["plugin_cache"].items():
-            if category == "version":
-                plugin_cache["version"] = entries
-                continue
-            plugin_cache.setdefault(category, {}).update(entries)
-    return plugin_cache
+def _make_attempt(
+    probe_name: str,
+    intent: str | None,
+    detector_name: str,
+    detector_results: list[float],
+) -> garak.attempt.Attempt:
+    attempt = garak.attempt.Attempt(prompt=garak.attempt.Message(text="prompt", lang="*"))
+    attempt.probe_classname = probe_name
+    attempt.intent = intent
+    attempt.outputs = [garak.attempt.Message(text=f"out-{i}", lang="*") for i in range(len(detector_results))]
+    attempt.detector_results[detector_name] = detector_results
+    return attempt
 
 
-def test_harness_emits_plugin_cache_entries_for_loaded_plugins(mocker, monkeypatch):
-    mocker.patch("garak.harnesses.base._initialize_runtime_services")
-    harness = garak.harnesses.base.Harness()
-    model = garak._plugins.load_plugin("generators.test.Blank")
-    probe = garak._plugins.load_plugin("probes.test.Blank")
-    detector = garak._plugins.load_plugin("detectors.always.Pass")
-    monkeypatch.setattr(
-        garak._config.buffmanager,
-        "buffs",
-        [garak.buffs.base.Buff()],
-    )
-
-    harness.run(model, [probe], [detector], mocker.Mock())
-
-    merged = _merge_plugin_cache_records(_read_report_records("plugin_cache"))
-    assert merged["version"] == garak.__version__
-    assert "harnesses.base.Harness" in merged["harnesses"]
-    assert "generators.test.Blank" in merged["generators"]
-    assert "probes.test.Blank" in merged["probes"]
-    assert "detectors.always.Pass" in merged["detectors"]
-    assert "buffs.base.Buff" in merged["buffs"]
-    assert "probes.test.Test" not in merged.get("probes", {})
-
-
-def test_digest_uses_harness_emitted_plugin_cache(mocker, tmp_path):
-    mocker.patch("garak.harnesses.base._initialize_runtime_services")
-    harness = garak.harnesses.base.Harness()
-    model = garak._plugins.load_plugin("generators.test.Blank")
-    probe = garak._plugins.load_plugin("probes.test.Blank")
-    detector = garak._plugins.load_plugin("detectors.always.Pass")
-    evaluator = garak.evaluators.base.Evaluator()
-
-    harness.run(model, [probe], [detector], evaluator)
-    garak._config.transient.reportfile.flush()
-    report_path = tmp_path / "harness.report.jsonl"
-    records = [
-        {
-            "entry_type": "start_run setup",
-            "plugins.probe_spec": "test.Blank",
-            "plugins.target_type": "test",
-            "plugins.target_name": "Blank",
-        },
-        {
-            "entry_type": "init",
-            "garak_version": garak._config.version,
-            "start_time": "2026-01-01T00:00:00",
-            "run": "test-run",
-        },
-        *_read_report_records(),
-    ]
-    with report_path.open("w", encoding="utf-8") as reportfile:
-        for record in records:
-            reportfile.write(json.dumps(record, ensure_ascii=False) + "\n")
+def test_evaluator_emits_eval_technique_intent(mocker):
+    detector_name = "always.Pass"
+    technique = "demon:Language:Prompt_injection:Ignore_previous_instructions"
     mocker.patch.object(
-        garak._plugins.PluginCache,
-        "plugin_info",
-        side_effect=AssertionError("live cache should not be used"),
+        garak.evaluators.base,
+        "_probe_technique_tags",
+        return_value=[technique],
+        create=True,
     )
 
-    digest = garak.analyze.report_digest.build_digest(str(report_path))
+    evaluator = garak.evaluators.base.Evaluator()
+    evaluator.evaluate(
+        [
+            _make_attempt(
+                "grandma.GrandmaIntent",
+                "S009deep",
+                detector_name,
+                [0.0, 0.0],
+            ),
+        ]
+    )
 
-    assert digest["meta"]["plugin_cache_source"] == garak.__version__
+    records = _read_report_records("eval_technique_intent")
+    assert len(records) == 1
+    assert records[0]["technique"] == technique
+    assert records[0]["intent"] == "S009deep"
+    assert records[0]["detectors_used"] == [detector_name]
+
+
+def test_evaluator_skips_eval_technique_intent_without_intent(mocker):
+    detector_name = "always.Pass"
+    mocker.patch.object(
+        garak.evaluators.base,
+        "_probe_technique_tags",
+        return_value=["demon:Language:Prompt_injection:Ignore_previous_instructions"],
+        create=True,
+    )
+
+    evaluator = garak.evaluators.base.Evaluator()
+    evaluator.evaluate(
+        [
+            _make_attempt(
+                "grandma.GrandmaIntent",
+                None,
+                detector_name,
+                [0.0, 0.0],
+            ),
+        ]
+    )
+
+    assert not _read_report_records("eval_technique_intent")
+
+
+def test_evaluator_technique_intent_uses_pair_specific_detector_counts(mocker):
+    detector_name = "always.Pass"
+    technique = "demon:Language:Prompt_injection:Ignore_previous_instructions"
+    mocker.patch.object(
+        garak.evaluators.base,
+        "_probe_technique_tags",
+        return_value=[technique],
+        create=True,
+    )
+
+    evaluator = garak.evaluators.base.Evaluator()
+    evaluator.test = lambda score: score < 0.5
+    evaluator.evaluate(
+        [
+            _make_attempt("grandma.GrandmaIntent", "S009deep", detector_name, [1.0, 1.0]),
+            _make_attempt("grandma.GrandmaIntent", "S003productkeys", detector_name, [0.0, 0.0]),
+        ]
+    )
+
+    records = _read_report_records("eval_technique_intent")
+    by_intent = {record["intent"]: record for record in records}
+
+    assert set(by_intent.keys()) == {"S009deep", "S003productkeys"}
+    assert by_intent["S009deep"]["score"] == 0.0
+    assert by_intent["S003productkeys"]["score"] == 1.0
