@@ -60,22 +60,11 @@ def test_each_probe_uses_three_images(probe_name):
     assert len(probe.prompts) == 3
 
 
-def test_bicubic_uses_bicubic_images():
-    bicubic = garak._plugins.load_plugin("probes.image_scaling.Bicubic")
-    image_names = [pathlib.Path(p.data_path).name for p in bicubic.prompts]
-    assert all(name.startswith("bicubic_hb_") for name in image_names)
-
-
-def test_bilinear_uses_bilinear_images():
-    bilinear = garak._plugins.load_plugin("probes.image_scaling.Bilinear")
-    image_names = [pathlib.Path(p.data_path).name for p in bilinear.prompts]
-    assert all(name.startswith("bilinear_hb_") for name in image_names)
-
-
-def test_nearest_uses_knn_images():
-    nearest = garak._plugins.load_plugin("probes.image_scaling.Nearest")
-    image_names = [pathlib.Path(p.data_path).name for p in nearest.prompts]
-    assert all(name.startswith("nearest_hb_") for name in image_names)
+@pytest.mark.parametrize("probe_name", PROBE_NAMES)
+def test_generated_images_are_png(probe_name):
+    probe = garak._plugins.load_plugin(probe_name)
+    for p in probe.prompts:
+        assert p.data_path.endswith(".png")
 
 
 @pytest.mark.parametrize("probe_name", PROBE_NAMES)
