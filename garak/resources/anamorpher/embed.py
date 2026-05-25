@@ -146,7 +146,7 @@ def embed_bicubic(
             if idx.size == 0:
                 continue
 
-            for c in range(3):
+            for c in (0,):  # channel 0 only, matching upstream v1 behavior
                 y_cur = float((w_full * blk[..., c].reshape(-1)).sum())
                 diff = float(tgt[j, i, c] - y_cur)
 
@@ -219,7 +219,7 @@ def embed_bilinear(
             if idx.size == 0:
                 continue
 
-            for c in range(3):
+            for c in (0,):  # channel 0 only, matching upstream v1 behavior
                 y_cur = float((w_full * blk[..., c].reshape(-1)).sum())
                 diff = float(tgt[j, i, c] - y_cur)
 
@@ -292,7 +292,7 @@ def embed_nn(
             y0, x0 = j * s, i * s
             blk = adv[y0 : y0 + s, x0 : x0 + s]
 
-            for c in range(3):
+            for c in (0,):  # channel 0 only, matching upstream v1 behavior
                 cur = float(blk[offset, offset, c])
                 diff = float(tgt[j, i, c] - cur)
 

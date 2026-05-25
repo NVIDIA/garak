@@ -48,7 +48,7 @@ GENERATION_PARAMS = {
         "dark_frac": 0.3,
     },
     "bilinear": {
-        "lam": 0.25,
+        "lam": 1.0,
         "gamma_target": 0.9,
         "dark_frac": 0.3,
     },
@@ -59,7 +59,7 @@ GENERATION_PARAMS = {
     },
 }
 
-_DEFAULT_FONT_SIZE = 48
+_DEFAULT_FONT_SIZE = 32
 _TEXT_BG_COLOR = "#333333"
 _TEXT_FG_COLOR = "#00b002"
 _TEXT_MARGIN = 10

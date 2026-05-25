@@ -17,8 +17,11 @@ Reference:
 
 import abc
 
+import tqdm
+
 import garak.payloads
 import garak.probes
+import garak.resources.theme
 from garak import _config
 from garak.attempt import Message
 from garak.resources.image_scaling import (
@@ -57,17 +60,25 @@ class _ImageScalingProbe(garak.probes.Probe, abc.ABC):
     decoy_keys: tuple = tuple(DECOY_IMAGES.keys())
 
     DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
-        "payload_name": "python_code_execution"
+        "payload_name": "harmful_behaviors"
     }
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
         payloads = self._load_payloads()
         self.prompts = []
+        preparation_bar = tqdm.tqdm(
+            total=len(self.decoy_keys),
+            leave=False,
+            colour=f"#{garak.resources.theme.PROBE_RGB}",
+        )
+        preparation_bar.set_description(f"image-scaling/{self.algo} - Generating adversarial images")
         for idx, decoy_key in enumerate(self.decoy_keys):
             text = payloads[idx % len(payloads)]
             image_path = generate_adversarial_image(self.algo, text, decoy_key)
             self.prompts.append(Message(text=_PROMPT_TEXT, data_path=str(image_path)))
+            preparation_bar.update(1)
+        preparation_bar.close()
 
     def _load_payloads(self):
         """Load and filter the payload strings used for embedding."""
