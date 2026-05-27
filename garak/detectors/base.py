@@ -239,6 +239,10 @@ class StringDetector(Detector):
                 detector_results.append(None)
                 continue
 
+            if output_text.strip() == "":
+                detector_results.append(None)
+                continue
+
             if self.normalize:
                 try:
                     output_text = self._apply_normalize(output_text)

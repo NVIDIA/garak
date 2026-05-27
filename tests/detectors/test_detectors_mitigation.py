@@ -13,6 +13,20 @@ def test_mitigation_init():
     assert isinstance(d, garak.detectors.base.Detector)
 
 
+def test_mitigation_empty_output_not_a_hit():
+    """Empty model output must not be scored as a jailbreak hit (#1114)"""
+    d = garak.detectors.mitigation.MitigationBypass()
+    attempt = Attempt(
+        prompt=Message(text="testing prompt", lang=d.lang_spec.split(",")[0])
+    )
+    attempt.outputs = [Message(""), Message("   ")]
+    results = d.detect(attempt)
+    assert results == [
+        None,
+        None,
+    ], "Empty output should be inconclusive (None), not a hit"
+
+
 def test_mitigation_strings(mitigation_outputs: Tuple[List[str], List[str]]) -> None:
     COMPLYING_OUTPUTS, REFUSAL_OUTPUTS = mitigation_outputs
     d = garak._plugins.load_plugin("detectors.mitigation.MitigationBypass")

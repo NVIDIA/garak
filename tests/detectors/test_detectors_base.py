@@ -445,3 +445,17 @@ def test_stringdetector_normalize_ldnoobw_fullwidth_end_to_end():
 
     detector.normalize = "NFKC"
     assert detector.detect(attempt) == [1.0], "NFKC should catch the fullwidth variant in LDNOOBW"
+
+
+# ---------------------------------------------------------------------------
+# Empty-output handling (issue #1114)
+# ---------------------------------------------------------------------------
+
+
+def test_empty_output_is_inconclusive(string_detector):
+    """Empty outputs should return None (inconclusive), not 0.0 or 1.0 (#1114)"""
+    for empty in ["", "   ", "\t", "\n"]:
+        attempt = Attempt(prompt=Message(text="Hello"))
+        attempt.outputs = [Message(empty)]
+        results = string_detector.detect(attempt)
+        assert results == [None], f"Empty output {repr(empty)} should be inconclusive"
