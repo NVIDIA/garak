@@ -42,7 +42,14 @@ def main(arguments=None) -> None:
 
     from garak import __description__
     from garak import _config, _plugins
-    from garak.exception import GarakException
+    from garak import exception
+    from garak.exception import (
+        BadGeneratorException,
+        ConfigFailure,
+        GarakException,
+        PluginConfigurationError,
+        ReportIncompatibleError,
+    )
 
     _config.transient.starttime = datetime.datetime.now()
     _config.transient.starttime_iso = _config.transient.starttime.isoformat()
@@ -491,7 +498,7 @@ def main(arguments=None) -> None:
             except Exception as e:
                 logging.error(e)
                 print(e)
-                sys.exit(1)
+                sys.exit(exception.EXIT_UNSPECIFIED)
             finally:
                 command.end_run()
 
@@ -687,8 +694,26 @@ def main(arguments=None) -> None:
         logging.exception(e)
         logging.info(msg)
         print(msg)
-    except (ValueError, GarakException) as e:
+        sys.exit(exception.EXIT_INTERRUPTED)
+    except ReportIncompatibleError as e:
         logging.exception(e)
         print(e)
+        sys.exit(exception.EXIT_REPORTING_ERROR)
+    except BadGeneratorException as e:
+        logging.exception(e)
+        print(e)
+        sys.exit(exception.EXIT_GENERATOR_ERROR)
+    except (ConfigFailure, PluginConfigurationError) as e:
+        logging.exception(e)
+        print(e)
+        sys.exit(exception.EXIT_CONFIG_ERROR)
+    except GarakException as e:
+        logging.exception(e)
+        print(e)
+        sys.exit(exception.EXIT_UNSPECIFIED)
+    except ValueError as e:
+        logging.exception(e)
+        print(e)
+        sys.exit(exception.EXIT_UNSPECIFIED)
 
     _config.set_http_lib_agents(prior_user_agents)
