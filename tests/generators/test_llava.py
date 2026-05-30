@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 
 from garak.attempt import Conversation, Turn, Message
 from garak._config import GarakSubConfig
-from garak.exception import TargetNameMissingError
+from garak.exception import GarakException, TargetNameMissingError
 
 try:
     from PIL import Image, ImageDraw
@@ -132,3 +132,40 @@ def test_llava_supported_models_list():
     assert len(SUPPORTED_MODELS) > 0
     for model in SUPPORTED_MODELS:
         assert model.startswith("llava-hf/")
+
+
+def _model_mock(hf_device_map):
+    """Fake model whose `.to` is observable; `hf_device_map` mimics accelerate
+    dispatch (a dict) or no dispatch (None)."""
+    model = MagicMock(name="Model")
+    model.to = MagicMock(name="to")
+    model.hf_device_map = hf_device_map
+    return model
+
+
+@pytest.mark.parametrize(
+    "hf_device_map, should_move", [({"": "cpu"}, False), (None, True)]
+)
+def test_llava_model_move_respects_device_map(
+    llava_config, monkeypatch, hf_device_map, should_move
+):
+    """__init__ must not call `model.to()` when accelerate dispatched the
+    model (`hf_device_map` set) — that raises on offloaded models — but must move
+    it when accelerate did not place it."""
+    model = _model_mock(hf_device_map)
+    monkeypatch.setattr(
+        "transformers.LlavaNextForConditionalGeneration.from_pretrained",
+        lambda name, **kw: model,
+    )
+    llava = LLaVA(name=SUPPORTED_MODELS[0], config_root=llava_config)
+    if should_move:
+        model.to.assert_called_once_with(llava.device)
+    else:
+        model.to.assert_not_called()
+
+
+def test_llava_error_on_text_only_prompt(llava_config):
+    """Text-only prompt (`data_path is None`) raises a GarakException correctly."""
+    llava = LLaVA(name=SUPPORTED_MODELS[0], config_root=llava_config)
+    with pytest.raises(GarakException):
+        llava.generate(Conversation([Turn("user", Message(text="foo"))]))
