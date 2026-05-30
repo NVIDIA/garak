@@ -1,18 +1,15 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Tests for garak.probes.agentharm."""
+"""Tests for AgentHarm probes (garak.probes.promptinject)."""
 
 from unittest.mock import patch
 
 import pytest
 
-import garak.probes.agentharm as agentharm_module
+import garak.probes.promptinject as promptinject_module
 from garak import _plugins
-from garak.probes.agentharm import CATEGORIES
-
-# Capture the real implementation before the autouse fixture replaces the name.
-_real_fetch_all_rows = agentharm_module._fetch_all_rows
+from garak.probes.promptinject import CATEGORIES
 
 # ---------------------------------------------------------------------------
 # Minimal mock dataset — one base row + one augmented row per category so
@@ -21,7 +18,6 @@ _real_fetch_all_rows = agentharm_module._fetch_all_rows
 
 _MOCK_ROWS = []
 for _i, _cat in enumerate(CATEGORIES):
-    # base row: no hint, no detail
     _MOCK_ROWS.append(
         {
             "id": f"{_cat.lower()}_base",
@@ -35,7 +31,6 @@ for _i, _cat in enumerate(CATEGORIES):
             "grading_function": "",
         }
     )
-    # augmented row: hint + detail
     _MOCK_ROWS.append(
         {
             "id": f"{_cat.lower()}_aug",
@@ -53,12 +48,12 @@ for _i, _cat in enumerate(CATEGORIES):
 
 @pytest.fixture(autouse=True)
 def mock_hf_dataset():
-    """Patch _fetch_all_rows so no real network call is made."""
+    """Patch datasets.load_dataset so no real network call is made."""
     with patch(
-        "garak.probes.agentharm._fetch_all_rows",
+        "datasets.load_dataset",
         return_value=list(_MOCK_ROWS),
-    ) as mock_fetch:
-        yield mock_fetch
+    ) as mock_load:
+        yield mock_load
 
 
 # ---------------------------------------------------------------------------
@@ -68,11 +63,11 @@ def mock_hf_dataset():
 
 class TestAgentHarmBase:
     def test_instantiates(self):
-        p = _plugins.load_plugin("probes.agentharm.AgentHarm")
+        p = _plugins.load_plugin("probes.promptinject.AgentHarm")
         assert p is not None
 
     def test_has_required_attributes(self):
-        p = _plugins.load_plugin("probes.agentharm.AgentHarm")
+        p = _plugins.load_plugin("probes.promptinject.AgentHarm")
         assert p.lang == "en"
         assert isinstance(p.primary_detector, str)
         assert isinstance(p.tags, list) and len(p.tags) > 0
@@ -80,17 +75,24 @@ class TestAgentHarmBase:
 
     def test_prompts_count_equals_categories(self):
         """Base probe loads one row per category (mock has one base row each)."""
-        p = _plugins.load_plugin("probes.agentharm.AgentHarm")
+        p = _plugins.load_plugin("probes.promptinject.AgentHarm")
         assert len(p.prompts) == len(CATEGORIES)
 
     def test_no_duplicate_prompts(self):
-        p = _plugins.load_plugin("probes.agentharm.AgentHarm")
+        p = _plugins.load_plugin("probes.promptinject.AgentHarm")
         assert len(p.prompts) == len(set(p.prompts)), "Duplicate prompts found"
 
     def test_prompts_are_strings(self):
-        p = _plugins.load_plugin("probes.agentharm.AgentHarm")
+        p = _plugins.load_plugin("probes.promptinject.AgentHarm")
         for prompt in p.prompts:
             assert isinstance(prompt, str) and len(prompt) > 0
+
+    def test_has_default_params(self):
+        """dataset_path, dataset_config, dataset_split must be in DEFAULT_PARAMS."""
+        params = promptinject_module.AgentHarm.DEFAULT_PARAMS
+        assert "dataset_path" in params
+        assert "dataset_config" in params
+        assert "dataset_split" in params
 
 
 # ---------------------------------------------------------------------------
@@ -100,17 +102,17 @@ class TestAgentHarmBase:
 
 class TestAgentHarmAugmented:
     def test_instantiates(self):
-        p = _plugins.load_plugin("probes.agentharm.AgentHarmAugmented")
+        p = _plugins.load_plugin("probes.promptinject.AgentHarmAugmented")
         assert p is not None
 
     def test_more_prompts_than_base(self):
         """Augmented probe loads all rows; should have more than base probe."""
-        base = _plugins.load_plugin("probes.agentharm.AgentHarm")
-        aug = _plugins.load_plugin("probes.agentharm.AgentHarmAugmented")
+        base = _plugins.load_plugin("probes.promptinject.AgentHarm")
+        aug = _plugins.load_plugin("probes.promptinject.AgentHarmAugmented")
         assert len(aug.prompts) > len(base.prompts)
 
     def test_prompts_count_equals_all_mock_rows(self):
-        p = _plugins.load_plugin("probes.agentharm.AgentHarmAugmented")
+        p = _plugins.load_plugin("probes.promptinject.AgentHarmAugmented")
         assert len(p.prompts) == len(_MOCK_ROWS)
 
 
@@ -122,14 +124,14 @@ class TestAgentHarmAugmented:
 class TestCategoryProbes:
     @pytest.mark.parametrize("category", CATEGORIES)
     def test_category_probe_instantiates(self, category):
-        p = _plugins.load_plugin(f"probes.agentharm.{category}")
+        p = _plugins.load_plugin(f"probes.promptinject.{category}")
         assert p is not None
 
     @pytest.mark.parametrize("category", CATEGORIES)
     def test_category_probe_prompts_subset_of_base(self, category):
         """Each category probe's prompts must be a subset of the base probe's."""
-        base = _plugins.load_plugin("probes.agentharm.AgentHarm")
-        cat = _plugins.load_plugin(f"probes.agentharm.{category}")
+        base = _plugins.load_plugin("probes.promptinject.AgentHarm")
+        cat = _plugins.load_plugin(f"probes.promptinject.{category}")
         for prompt in cat.prompts:
             assert (
                 prompt in base.prompts
@@ -137,15 +139,15 @@ class TestCategoryProbes:
 
     @pytest.mark.parametrize("category", CATEGORIES)
     def test_category_probe_prompts_not_empty(self, category):
-        p = _plugins.load_plugin(f"probes.agentharm.{category}")
+        p = _plugins.load_plugin(f"probes.promptinject.{category}")
         assert len(p.prompts) > 0, f"{category} probe returned no prompts"
 
     def test_category_probes_cover_all_categories(self):
         """Union of all category probes must equal the full base prompt set."""
-        base = _plugins.load_plugin("probes.agentharm.AgentHarm")
+        base = _plugins.load_plugin("probes.promptinject.AgentHarm")
         all_cat_prompts = set()
         for cat in CATEGORIES:
-            p = _plugins.load_plugin(f"probes.agentharm.{cat}")
+            p = _plugins.load_plugin(f"probes.promptinject.{cat}")
             all_cat_prompts.update(p.prompts)
         assert all_cat_prompts == set(base.prompts)
 
@@ -157,28 +159,32 @@ class TestCategoryProbes:
 
 class TestCrossCategory:
     def test_instantiates(self):
-        p = _plugins.load_plugin("probes.agentharm.CrossCategory")
+        p = _plugins.load_plugin("probes.promptinject.CrossCategory")
         assert p is not None
 
-    def test_prompt_count_equals_curated_pairs(self):
-        """CrossCategory should have exactly as many prompts as curated pairs."""
-        from garak.probes.agentharm import _CROSS_CATEGORY_PROMPTS
+    def test_prompt_count_matches_json(self):
+        """CrossCategory should have as many prompts as entries in cross_category.json."""
+        entries = promptinject_module._load_cross_category()
+        p = _plugins.load_plugin("probes.promptinject.CrossCategory")
+        assert len(p.prompts) == len(entries)
 
-        p = _plugins.load_plugin("probes.agentharm.CrossCategory")
-        assert len(p.prompts) == len(_CROSS_CATEGORY_PROMPTS)
-
-    def test_each_prompt_has_attack_goal(self):
-        """Every curated pair must have a non-empty attack_goal."""
-        from garak.probes.agentharm import _CROSS_CATEGORY_PROMPTS
-
-        for cat_a, cat_b, prompt, goal in _CROSS_CATEGORY_PROMPTS:
-            assert isinstance(goal, str) and len(goal) > 0
-            assert cat_a in CATEGORIES, f"Unknown category: {cat_a}"
-            assert cat_b in CATEGORIES, f"Unknown category: {cat_b}"
-            assert cat_a != cat_b, f"Same category in pair: {cat_a}"
+    def test_each_entry_has_attack_goal(self):
+        """Every entry in cross_category.json must have a non-empty attack_goal."""
+        entries = promptinject_module._load_cross_category()
+        for entry in entries:
+            assert (
+                isinstance(entry["attack_goal"], str) and len(entry["attack_goal"]) > 0
+            )
+            assert (
+                entry["category_a"] in CATEGORIES
+            ), f"Unknown category: {entry['category_a']}"
+            assert (
+                entry["category_b"] in CATEGORIES
+            ), f"Unknown category: {entry['category_b']}"
+            assert entry["category_a"] != entry["category_b"]
 
     def test_no_duplicate_prompts(self):
-        p = _plugins.load_plugin("probes.agentharm.CrossCategory")
+        p = _plugins.load_plugin("probes.promptinject.CrossCategory")
         assert len(p.prompts) == len(set(p.prompts))
 
 
@@ -188,20 +194,21 @@ class TestCrossCategory:
 
 
 class TestLoadPromptsGracefulFailure:
-    def test_network_error_makes_fetch_return_empty(self):
-        """When urllib raises (network down), _fetch_all_rows returns [] not an exception."""
-        import urllib.request
-
-        # Call the real function (captured before autouse replaced the name) so
-        # the try/except inside it is exercised rather than the autouse mock.
-        with patch.object(
-            urllib.request, "urlopen", side_effect=OSError("unreachable")
+    def test_dataset_error_returns_empty(self):
+        """When load_dataset raises, _load_prompts returns [] not an exception."""
+        with patch(
+            "datasets.load_dataset",
+            side_effect=Exception("network down"),
         ):
-            result = _real_fetch_all_rows()
+            result = promptinject_module._load_prompts(
+                "ai-safety-institute/AgentHarm", "harmful", "test_public"
+            )
             assert result == []
 
-    def test_empty_fetch_propagates_to_load_prompts(self):
-        """When _fetch_all_rows returns [], _load_prompts also returns []."""
-        with patch("garak.probes.agentharm._fetch_all_rows", return_value=[]):
-            result = agentharm_module._load_prompts()
+    def test_empty_dataset_propagates_to_load_prompts(self):
+        """When load_dataset returns empty, _load_prompts also returns []."""
+        with patch("datasets.load_dataset", return_value=[]):
+            result = promptinject_module._load_prompts(
+                "ai-safety-institute/AgentHarm", "harmful", "test_public"
+            )
             assert result == []

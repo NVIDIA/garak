@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Tests for garak.detectors.agentharm."""
+"""Tests for AgentHarm detectors (garak.detectors.mitigation)."""
 
 import pytest
 
@@ -18,7 +18,7 @@ def _make_attempt(response_text: str) -> garak.attempt.Attempt:
 
 
 # ---------------------------------------------------------------------------
-# Refusal detector
+# AgentRefusal detector
 # ---------------------------------------------------------------------------
 
 REFUSAL_PHRASES = [
@@ -39,29 +39,29 @@ COMPLIANCE_PHRASES = [
 ]
 
 
-class TestRefusal:
+class TestAgentRefusal:
     def test_instantiates(self):
-        d = _plugins.load_plugin("detectors.agentharm.Refusal")
+        d = _plugins.load_plugin("detectors.mitigation.AgentRefusal")
         assert d is not None
 
     def test_has_required_attributes(self):
-        d = _plugins.load_plugin("detectors.agentharm.Refusal")
+        d = _plugins.load_plugin("detectors.mitigation.AgentRefusal")
         assert isinstance(d.lang_spec, str)
         assert isinstance(d.hit_desc, str) and len(d.hit_desc) > 0
         assert isinstance(d.pass_desc, str) and len(d.pass_desc) > 0
 
     @pytest.mark.parametrize("text", REFUSAL_PHRASES)
     def test_returns_zero_for_refusal(self, text):
-        """Refusal present → attack failed → score should be 0.0."""
-        d = _plugins.load_plugin("detectors.agentharm.Refusal")
+        """Refusal present -> attack failed -> score should be 0.0."""
+        d = _plugins.load_plugin("detectors.mitigation.AgentRefusal")
         a = _make_attempt(text)
         results = d.detect(a)
         assert results == [0.0], f"Expected 0.0 (refusal) for: '{text}', got {results}"
 
     @pytest.mark.parametrize("text", COMPLIANCE_PHRASES)
     def test_returns_one_for_compliance(self, text):
-        """No refusal phrase → attack succeeded → score should be 1.0."""
-        d = _plugins.load_plugin("detectors.agentharm.Refusal")
+        """No refusal phrase -> attack succeeded -> score should be 1.0."""
+        d = _plugins.load_plugin("detectors.mitigation.AgentRefusal")
         a = _make_attempt(text)
         results = d.detect(a)
         assert results == [
@@ -69,7 +69,7 @@ class TestRefusal:
         ], f"Expected 1.0 (compliance) for: '{text}', got {results}"
 
     def test_none_output_returns_none(self):
-        d = _plugins.load_plugin("detectors.agentharm.Refusal")
+        d = _plugins.load_plugin("detectors.mitigation.AgentRefusal")
         a = _make_attempt("placeholder")
         # Manually corrupt the output to None
         a.conversations[0].turns[1].content = None
@@ -77,18 +77,18 @@ class TestRefusal:
         assert results == [None]
 
     def test_multiple_outputs(self):
-        d = _plugins.load_plugin("detectors.agentharm.Refusal")
+        d = _plugins.load_plugin("detectors.mitigation.AgentRefusal")
         a = garak.attempt.Attempt()
         a.prompt = garak.attempt.Message(text="task", lang="en")
         a.outputs = [
-            "I cannot help with that.",  # refusal → 0.0
-            "Sure, here's how you do it.",  # compliance → 1.0
+            "I cannot help with that.",  # refusal -> 0.0
+            "Sure, here's how you do it.",  # compliance -> 1.0
         ]
         results = d.detect(a)
         assert results == [0.0, 1.0]
 
     def test_result_in_range(self):
-        d = _plugins.load_plugin("detectors.agentharm.Refusal")
+        d = _plugins.load_plugin("detectors.mitigation.AgentRefusal")
         for text in REFUSAL_PHRASES + COMPLIANCE_PHRASES:
             a = _make_attempt(text)
             for score in d.detect(a):
@@ -97,7 +97,7 @@ class TestRefusal:
 
 
 # ---------------------------------------------------------------------------
-# TaskCompletion detector
+# AgentTaskCompletion detector
 # ---------------------------------------------------------------------------
 
 COMPLETION_SIGNALS = [
@@ -118,21 +118,21 @@ NO_COMPLETION_SIGNALS = [
 ]
 
 
-class TestTaskCompletion:
+class TestAgentTaskCompletion:
     def test_instantiates(self):
-        d = _plugins.load_plugin("detectors.agentharm.TaskCompletion")
+        d = _plugins.load_plugin("detectors.mitigation.AgentTaskCompletion")
         assert d is not None
 
     def test_has_required_attributes(self):
-        d = _plugins.load_plugin("detectors.agentharm.TaskCompletion")
+        d = _plugins.load_plugin("detectors.mitigation.AgentTaskCompletion")
         assert isinstance(d.lang_spec, str)
         assert isinstance(d.hit_desc, str) and len(d.hit_desc) > 0
         assert isinstance(d.pass_desc, str) and len(d.pass_desc) > 0
 
     @pytest.mark.parametrize("text", COMPLETION_SIGNALS)
     def test_returns_one_for_compliance_signals(self, text):
-        """Compliance phrase present → attack succeeded → score should be 1.0."""
-        d = _plugins.load_plugin("detectors.agentharm.TaskCompletion")
+        """Compliance phrase present -> attack succeeded -> score should be 1.0."""
+        d = _plugins.load_plugin("detectors.mitigation.AgentTaskCompletion")
         a = _make_attempt(text)
         results = d.detect(a)
         assert results == [
@@ -141,8 +141,8 @@ class TestTaskCompletion:
 
     @pytest.mark.parametrize("text", NO_COMPLETION_SIGNALS)
     def test_returns_zero_for_refusal_text(self, text):
-        """No compliance phrase → score should be 0.0."""
-        d = _plugins.load_plugin("detectors.agentharm.TaskCompletion")
+        """No compliance phrase -> score should be 0.0."""
+        d = _plugins.load_plugin("detectors.mitigation.AgentTaskCompletion")
         a = _make_attempt(text)
         results = d.detect(a)
         assert results == [
@@ -150,7 +150,7 @@ class TestTaskCompletion:
         ], f"Expected 0.0 (no compliance signal) for: '{text}', got {results}"
 
     def test_result_in_range(self):
-        d = _plugins.load_plugin("detectors.agentharm.TaskCompletion")
+        d = _plugins.load_plugin("detectors.mitigation.AgentTaskCompletion")
         for text in COMPLETION_SIGNALS + NO_COMPLETION_SIGNALS:
             a = _make_attempt(text)
             for score in d.detect(a):

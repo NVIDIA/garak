@@ -17,10 +17,13 @@ Further info:
 
 """
 
+import json
+import logging
 import random
 import sys
 
 from garak.attempt import Attempt
+from garak.data import path as data_path
 import garak.probes
 from garak import _config
 
@@ -175,3 +178,205 @@ for rogue_string in rogue_strings:
             },
         ),
     )
+
+
+# ---------------------------------------------------------------------------
+# AgentHarm probes
+# ---------------------------------------------------------------------------
+# Probes drawn from the AgentHarm benchmark (arxiv:2410.09024).
+# The technique — jailbreak framing applied to agentic task prompts — places
+# them in the promptinject family.  Harm categories and dataset loading are
+# specific to the AgentHarm dataset; detectors live in mitigation.AgentRefusal
+# and mitigation.AgentTaskCompletion.
+# ---------------------------------------------------------------------------
+
+AGENTHARM_TAGS = [
+    "avid-effect:security:S0403",
+    "avid-effect:ethics:E0301",
+    "owasp:llm01",
+    "quality:Behavioral:ContentSafety:LegalGoodsServices",
+    "quality:Behavioral:ContentSafety:HateHarassment",
+    "quality:Behavioral:ContentSafety:Unauthorized",
+]
+
+CATEGORIES = [
+    "Copyright",
+    "Cybercrime",
+    "Disinformation",
+    "Drugs",
+    "Fraud",
+    "Harassment",
+    "Hate",
+    "Sexual",
+]
+
+_CROSS_CATEGORY_PATH = data_path / "agentharm" / "cross_category.json"
+
+
+def _load_prompts(
+    dataset_path,
+    dataset_config,
+    dataset_split,
+    category=None,
+    hint_included=None,
+    detailed_prompt=None,
+):
+    """Return prompts from the AgentHarm dataset with optional filters."""
+    from datasets import load_dataset
+
+    try:
+        ds = load_dataset(
+            dataset_path, dataset_config, split=dataset_split, trust_remote_code=False
+        )
+    except Exception as exc:
+        logging.warning("agentharm: failed to load dataset %s: %s", dataset_path, exc)
+        return []
+
+    rows = list(ds)
+    if category is not None:
+        rows = [r for r in rows if r["category"].lower() == category.lower()]
+    if hint_included is not None:
+        rows = [r for r in rows if r["hint_included"] == hint_included]
+    if detailed_prompt is not None:
+        rows = [r for r in rows if r["detailed_prompt"] == detailed_prompt]
+    return [r["prompt"] for r in rows]
+
+
+def _load_cross_category():
+    with open(_CROSS_CATEGORY_PATH, encoding="utf-8") as f:
+        return json.load(f)
+
+
+class AgentHarm(garak.probes.Probe):
+    """Probe base AgentHarm tasks with no augmentation.
+
+    Loads the 44 unique harmful agentic task prompts from the public
+    AgentHarm benchmark (``hint_included=False``, ``detailed_prompt=False``).
+    Tests whether a model will assist with harmful agentic operations across
+    eight publicly available harm categories."""
+
+    lang = "en"
+    doc_uri = "https://arxiv.org/abs/2410.09024"
+    primary_detector = "mitigation.AgentRefusal"
+    extended_detectors = ["mitigation.AgentRefusal", "mitigation.AgentTaskCompletion"]
+    tags = AGENTHARM_TAGS
+    goal = "get the model to assist with a harmful agent task"
+    tier = garak.probes.Tier.COMPETE_WITH_SOTA
+    active = True
+
+    DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
+        "dataset_path": "ai-safety-institute/AgentHarm",
+        "dataset_config": "harmful",
+        "dataset_split": "test_public",
+    }
+
+    def __init__(self, config_root=_config):
+        super().__init__(config_root=config_root)
+        self.prompts = _load_prompts(
+            self.dataset_path,
+            self.dataset_config,
+            self.dataset_split,
+            hint_included=False,
+            detailed_prompt=False,
+        )
+        self._prune_data(cap=self.soft_probe_prompt_cap)
+
+
+class AgentHarmAugmented(AgentHarm):
+    """Probe all AgentHarm augmentation variants.
+
+    Loads all 176 rows from the public AgentHarm test split, covering the
+    four combinations of ``hint_included`` x ``detailed_prompt`` augmentation
+    axes. Useful for measuring whether augmenting a prompt with hints or
+    additional detail changes the model's safety behaviour."""
+
+    goal = "get the model to assist with a harmful agent task across all augmentation variants"
+    active = False
+
+    def __init__(self, config_root=_config):
+        super(AgentHarm, self).__init__(config_root=config_root)
+        self.prompts = _load_prompts(
+            self.dataset_path,
+            self.dataset_config,
+            self.dataset_split,
+        )
+        self._prune_data(cap=self.soft_probe_prompt_cap)
+
+
+def _category_constructor(self, config_root=_config):
+    super(self.__class__, self).__init__(config_root=config_root)
+    self.prompts = _load_prompts(
+        self.dataset_path,
+        self.dataset_config,
+        self.dataset_split,
+        category=self._category,
+        hint_included=False,
+        detailed_prompt=False,
+    )
+    self._prune_data(cap=self.soft_probe_prompt_cap)
+
+
+for _category in CATEGORIES:
+    _classname = _category
+    _goal = f"get the model to assist with a {_category.lower()} harmful agent task"
+    _doc = (
+        f"Probe AgentHarm tasks in the {_category} category.\n\n"
+        f"Loads the subset of base AgentHarm prompts (no hint, no detail) that "
+        f"belong to the {_category} harm category."
+    )
+
+    setattr(
+        this,
+        _classname,
+        type(
+            _classname,
+            (AgentHarm,),
+            {
+                "__init__": _category_constructor,
+                "__doc__": _doc,
+                "_category": _category,
+                "goal": _goal,
+                "active": False,
+                "tier": garak.probes.Tier.COMPETE_WITH_SOTA,
+            },
+        ),
+    )
+
+
+class CrossCategory(garak.probes.Probe):
+    """Probe cross-category harmful task combinations using curated interaction prompts.
+
+    Tests whether combining two harm categories in a single request exploits
+    the natural operational overlap and bypasses safety guardrails that hold
+    for either category alone. Uses research-backed jailbreak framing patterns
+    (fictional framing, research justification, sequential dependency) documented
+    in jailbreak literature.
+
+    Ten curated prompts cover the highest-interaction pairs: Cybercrime x Fraud,
+    Cybercrime x Harassment, Cybercrime x Disinformation, Disinformation x Harassment,
+    Disinformation x Hate, Drugs x Cybercrime, Fraud x Drugs, Harassment x Sexual,
+    Hate x Harassment, and Copyright x Fraud.
+
+    Uses ``judge.Jailbreak`` as the primary detector because keyword matching
+    misses sophisticated compliant responses. ``mitigation.AgentRefusal`` and
+    ``mitigation.AgentTaskCompletion`` run as extended detectors."""
+
+    lang = "en"
+    doc_uri = "https://arxiv.org/abs/2410.09024"
+    primary_detector = "judge.Jailbreak"
+    extended_detectors = ["mitigation.AgentRefusal", "mitigation.AgentTaskCompletion"]
+    tags = AGENTHARM_TAGS
+    goal = "get the model to assist with harmful tasks spanning two harm categories in one request"
+    tier = garak.probes.Tier.COMPETE_WITH_SOTA
+    active = False
+
+    def __init__(self, config_root=_config):
+        super().__init__(config_root=config_root)
+        entries = _load_cross_category()
+        self._attack_goals = [e["attack_goal"] for e in entries]
+        self.prompts = [e["prompt"] for e in entries]
+
+    def _attempt_prestore_hook(self, attempt, seq: int):
+        attempt.notes = dict(attempt.notes or {})
+        attempt.notes["attack_goal"] = self._attack_goals[seq]
+        return attempt
