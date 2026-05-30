@@ -1,0 +1,45 @@
+---
+system:
+  verbose: 0
+  narrow_output: false
+  parallel_requests: false
+  parallel_attempts: false
+  lite: true
+  show_z: false
+  enable_experimental: false
+  max_workers: 500
+
+run:
+  seed:
+  deprefix: true
+  eval_threshold: 0.5
+  generations: 5
+  probe_tags:
+  user_agent: "garak/{version} (LLM vulnerability scanner https://garak.ai)"
+  soft_probe_prompt_cap: 256
+
+plugins:
+  target_type:
+  target_name:
+  probe_spec: all
+  detector_spec: auto
+  extended_detectors: true
+  buff_spec:
+  buffs_include_original_prompt: false
+  buff_max: 
+  detectors: {}
+  generators: {}
+  buffs: {}
+  harnesses: {}
+
+reporting:
+  report_prefix:
+  taxonomy:
+  report_dir: garak_runs
+  show_100_pass_modules: true
+  show_top_group_score: true
+  group_aggregation_function: lower_quartile
+  confidence_interval_method: bootstrap
+  bootstrap_num_iterations: 10000
+  bootstrap_confidence_level: 0.95
+  bootstrap_min_sample_size: 30

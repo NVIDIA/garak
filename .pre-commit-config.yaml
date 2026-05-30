@@ -1,0 +1,18 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+    - id: mixed-line-ending
+      files: ^docs/source/
+    - id: trailing-whitespace
+      files: ^docs/source/
+    - id: end-of-file-fixer
+      files: ^docs/source/
+    - id: check-yaml
+      files: ^docs/source/
+    - id: check-json
+      files: ^docs/source/
+  - repo: https://github.com/psf/black
+    rev: 25.1.0
+    hooks:
+      - id: black

@@ -1,0 +1,39 @@
+name: Stale issues
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: none
+  checks: none
+  contents: none
+  deployments: none
+  id-token: none
+  # This action can update/close issues
+  issues: write
+  discussions: none
+  packages: none
+  pages: none
+  # disable updating PRs for now
+  pull-requests: none
+  repository-projects: none
+  security-events: none
+  statuses: none
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Handle stale issues
+        uses: actions/stale@v9.1.0
+        with:
+          days-before-stale: 90
+          days-before-close: 14
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
+          stale-issue-label: "stale"
+          close-issue-label: "closed"
+          exempt-issue-labels: "good first issue,bug,dontautoclose,high priority"
+          stale-issue-message: "This issue has been automatically marked as stale because it has not had recent activity. If you are still interested in this issue, please respond to keep it open. Thank you!"

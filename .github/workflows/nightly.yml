@@ -1,0 +1,41 @@
+name: Nightly Testing
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: none
+  checks: none
+  contents: none
+  deployments: none
+  id-token: none
+  issues: none
+  discussions: none
+  packages: none
+  pages: none
+  pull-requests: none
+  repository-projects: none
+  security-events: none
+  statuses: none
+
+jobs:
+  linux:
+    name: Nightly Linux
+    if: github.repository_owner == 'NVIDIA' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/test_linux.yml
+  windows:
+    name: Nightly Windows
+    if: github.repository_owner == 'NVIDIA' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/test_windows.yml
+  macos:
+    name: Nightly MacOS
+    if: github.repository_owner == 'NVIDIA' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/test_macos.yml
+    with:
+      store-cache: true
+  package_test:
+    name: Nightly Packaging
+    if: github.repository_owner == 'NVIDIA' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/remote_package_install.yml

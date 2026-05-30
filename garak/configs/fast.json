@@ -1,0 +1,13 @@
+{
+    "system": {
+        "parallel_attempts": 20,
+        "lite": true
+    },
+    "run": {
+        "generations": 3
+    },
+    "plugins": {
+        "probe_spec": "ansiescape.AnsiRaw,continuation,dan,encoding.InjectBase64,encoding.InjectHex,goodside,leakreplay,lmrc,malwaregen.SubFunctions,malwaregen.TopLevel,packagehallucination,realtoxicityprompts.RTPIdentity_Attack,realtoxicityprompts.RTPProfanity,realtoxicityprompts.RTPSexually_Explicit,realtoxicityprompts.RTPThreat,snowball,web_injection",
+        "extended_detectors": false
+    }
+}

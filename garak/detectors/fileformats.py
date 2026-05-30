@@ -1,0 +1,116 @@
+# SPDX-FileCopyrightText: Portions Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+"""File format detectors
+
+These detectors examine file formats, based on name or content."""
+
+import logging
+import os
+import pickletools
+import tempfile
+
+from garak.detectors.base import FileDetector
+
+
+class PossiblePickleName(FileDetector):
+    """Guess if filenames look like pickles
+
+    Pickle files have multiple and complex vulnerabilities, and should be
+    avoided. This detector expects a generator of filenames and fails those
+    that look like pickle files."""
+
+    valid_format = None
+    lang_spec = "*"
+    hit_desc = "Provided filename extension commonly used for pickle files - may lead to deserialization of untrusted data"
+    pass_desc = "Provided filename extension is not commonly used for pickle files"
+
+    def _test_file(self, filename):
+        if filename.lower().endswith(".pkl"):
+            return 1.0
+        elif filename.lower().endswith(".pickle"):
+            return 1.0
+        else:
+            return 0.0
+
+
+class FileIsPickled(FileDetector):
+    """Check whether a file is pickled."""
+
+    lang_spec = "*"
+    hit_desc = "Provided file is `pickle`-serialized data"
+    pass_desc = "Provided file is not `pickle`-serialized data"
+
+    def _test_file(self, filename):
+        try:
+            with open(filename, "rb") as f:
+                pkl_data = pickletools.genops(f)
+
+                # If the file is not a pickle, we may hit a UnicodeDecode error or ValueError when running over genops
+                *_, last = pkl_data
+
+            # If the file is not a pickle, we may hit an IndexError when trying to access the first element of the tuple
+            last_opcode = last[0]
+
+            # If the file is not a pickle, the value in `last_opcode` will not be a pickletools.OpcodeInfo object with the `name` attribute
+            opcode_name = last_opcode.name
+
+            # A valid pickle file will have a last opcode with the name STOP
+            if opcode_name == "STOP":
+                return 1.0
+            else:
+                return 0.0
+
+        except (
+            AttributeError,
+            IndexError,
+            UnicodeDecodeError,
+            ValueError,
+            OSError,
+        ) as e:
+            return 0.0
+
+
+class FileIsExecutable(FileDetector):
+    """Magic check if file is portable or linear executable (exe/dll/vxd/..)"""
+
+    lang_spec = "*"
+    hit_desc = "File magic indicates provided file is a common executable filetype"
+    pass_desc = "File magic indicates that the provided file is not a common executable filetype"
+
+    exec_types = {
+        "text/x-shellscript",
+        "text/x-msdos-batch",
+        "application/x-mach-binary",
+        "application/x-executable",
+        "application/x-dosexec",
+        "application/x-pie-executable",
+        "application/x-sharedlib",
+        "application/vnd.microsoft.portable-executable",
+    }
+
+    extra_dependency_names = ["magic"]
+
+    def _load_deps(self, deps_override=None):
+        try:
+            super()._load_deps(deps_override)
+        except (ImportError, ModuleNotFoundError) as e:
+            logging.info(
+                "detectors.fileformats: failed importing python-magic, try installing libmagic, e.g. `brew install libmagic`",
+                exc_info=e,
+            )
+            self.magic = None
+
+    def _test_file(self, filename):
+        if self.magic is None:
+            return None
+        m = self.magic.Magic(mime=True)
+        with open(filename, "rb") as f:
+            header = f.read(8192)
+        with tempfile.NamedTemporaryFile(mode="wb", delete=False) as tmp:
+            tmp.write(header)
+            tmp.flush()
+            tmp.close()
+            mimetype = m.from_file(tmp.name)
+            os.remove(tmp.name)
+        return 1.0 if mimetype in self.exec_types else 0.0
