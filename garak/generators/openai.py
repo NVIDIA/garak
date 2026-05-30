@@ -226,13 +226,23 @@ class OpenAICompatible(Generator):
                         ],
                     }
                 elif turn.content.data_type[0] in file_types:
+                    import os
+
+                    filename = (
+                        os.path.basename(turn.content.data_path)
+                        if turn.content.data_path
+                        else "document"
+                    )
                     transformed_turn = {
                         "role": turn.role,
                         "content": [
-                            {"type": "input_text", "text": turn.content.text},
+                            {"type": "text", "text": turn.content.text},
                             {
-                                "type": "input_file",
-                                "file_data": f"data:{turn.content.data_type[0]};base64,{data_b64}",
+                                "type": "file",
+                                "file": {
+                                    "filename": filename,
+                                    "file_data": f"data:{turn.content.data_type[0]};base64,{data_b64}",
+                                },
                             },
                         ],
                     }

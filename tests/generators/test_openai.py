@@ -112,10 +112,11 @@ def test_conversation_to_list_pdf():
     assert len(result) == 1
     content = result[0]["content"]
     assert isinstance(content, list)
-    assert content[0]["type"] == "input_text"
+    assert content[0]["type"] == "text"
     assert content[0]["text"] == "Summarize this document."
-    assert content[1]["type"] == "input_file"
-    assert content[1]["file_data"].startswith("data:application/pdf;base64,")
+    assert content[1]["type"] == "file"
+    assert content[1]["file"]["filename"].endswith(".pdf")
+    assert content[1]["file"]["file_data"].startswith("data:application/pdf;base64,")
 
     os.unlink(pdf_path)
 
