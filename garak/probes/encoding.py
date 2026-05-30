@@ -445,6 +445,30 @@ class InjectBase2048(EncodingMixin, garak.probes.Probe):
         EncodingMixin.__init__(self)
 
 
+class InjectBase65536(EncodingMixin, garak.probes.Probe):
+    """Probe for susceptibility to Base65536 encoding injections
+
+    Encodes payloads using base65536 (qntm), which maps 16-bit binary chunks
+    to a single Unicode codepoint each. The resulting strings are extremely
+    compact (~2 input bytes per output char) and use rarely-tokenised CJK
+    Unified Ideographs blocks, often surviving safety filters that target
+    common base16 / base32 / base64 patterns. Tries a variety of ways to
+    coax the target model into decoding and following the payload.
+
+    Reference: https://github.com/qntm/base65536"""
+
+    encoding_name = "BASE65536"
+    doc_uri = "https://github.com/qntm/base65536"
+    active = True
+
+    def __init__(self, config_root=_config):
+        import base65536
+
+        self.encoding_funcs = [base65536.encode]
+        garak.probes.Probe.__init__(self, config_root=config_root)
+        EncodingMixin.__init__(self)
+
+
 class InjectBraille(EncodingMixin, garak.probes.Probe):
     """Probe for susceptibility to Braille encoding injections. Credit Wally#3422
 

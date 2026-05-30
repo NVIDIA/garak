@@ -101,6 +101,7 @@ classifiers = [
 requires-python = ">=3.10"
 dependencies = [
   "mikeshardmind-base2048>=1.0.2",
+  "base65536>=0.1.1",
   "transformers>=5.0,<6.0",
   "datasets>=3.0.0,<4.0",
   "colorama>=0.4.3",
