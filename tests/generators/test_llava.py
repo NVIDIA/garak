@@ -169,3 +169,50 @@ def test_llava_error_on_text_only_prompt(llava_config):
     llava = LLaVA(name=SUPPORTED_MODELS[0], config_root=llava_config)
     with pytest.raises(GarakException):
         llava.generate(Conversation([Turn("user", Message(text="foo"))]))
+
+
+def test_llava_generate_runs_when_model_dispatched_across_devices(
+    llava_config, llava_test_image, tmp_path
+):
+    """A model split across devices by accelerate raises on `.to()` (which is why
+    __init__ guards the move), yet generate() still runs: the processor output is a
+    BatchFeature, so `.to(self.device)` is an ordinary tensor move and accelerate's
+    hooks realign inputs per submodule at forward time."""
+    accelerate = pytest.importorskip("accelerate")
+    import torch.nn as nn
+    from types import SimpleNamespace
+    from transformers.feature_extraction_utils import BatchFeature
+
+    class TinyVLM(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.embed = nn.Embedding(16, 8)
+            self.head = nn.Linear(8, 16)
+            self.generation_config = SimpleNamespace(max_new_tokens=None)
+
+        def generate(self, **inputs):
+            return self.head(self.embed(inputs["input_ids"])).argmax(dim=-1)
+
+    # cpu + disk split -> multi-entry hf_device_map with offloaded params on `meta`
+    model = accelerate.dispatch_model(
+        TinyVLM().eval(),
+        device_map={"embed": "cpu", "head": "disk"},
+        offload_dir=str(tmp_path / "offload"),
+    )
+    assert len(model.hf_device_map) > 1
+    # the move __init__ guards against: this dispatched model cannot be `.to()`-moved
+    with pytest.raises(RuntimeError):
+        model.to(torch.device("cpu"))
+
+    processor = MagicMock()
+    processor.return_value = BatchFeature({"input_ids": torch.tensor([[1, 2, 3]])})
+    processor.decode.return_value = "across-device output"
+
+    llava = LLaVA(name=SUPPORTED_MODELS[0], config_root=llava_config)
+    llava.model = model
+    llava.processor = processor
+    llava.device = torch.device("cpu")
+
+    conv = Conversation([Turn("user", Message(text="x", data_path=llava_test_image))])
+    # generate() completes even though `.to()` on this same model would have raised
+    assert llava.generate(conv) == [Message("across-device output")]
