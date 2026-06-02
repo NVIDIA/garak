@@ -646,3 +646,22 @@ def test_attempt_prompt_no_str():
 def test_attempt_asdict():
     a = garak.attempt.Attempt()
     a.as_dict()
+
+
+def test_asdict_always_includes_reverse_translation_outputs():
+    # reverse_translation_outputs must always be present in as_dict() output,
+    # even when empty, so consumers can rely on a stable schema (issue #1201).
+    a = garak.attempt.Attempt()
+    d = a.as_dict()
+    assert "reverse_translation_outputs" in d
+    assert d["reverse_translation_outputs"] == []
+
+
+def test_asdict_reverse_translation_outputs_empty_when_no_translation():
+    # When no translation is active (lang stays at default), as_dict() must
+    # serialize reverse_translation_outputs as [] — not omitted, not populated
+    # with spurious values (regression guard for issue #1201).
+    a = garak.attempt.Attempt()
+    a.prompt = garak.attempt.Message("test prompt", lang="en")
+    d = a.as_dict()
+    assert d["reverse_translation_outputs"] == []
