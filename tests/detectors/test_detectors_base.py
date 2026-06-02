@@ -221,10 +221,11 @@ def test_stringdetector_startswith():
         ], f"startswith match failed for '{text}', expected {match}"
 
 
-def test_empty_output_is_inconclusive(string_detector):
-    """Empty outputs should return None (inconclusive), not 0.0 or 1.0 (#1114)"""
+def test_empty_output_is_miss(string_detector):
+    """StringDetector: empty/whitespace outputs are a definite miss (0.0), not inconclusive.
+    An empty string cannot contain any substring, so the result is unambiguous."""
     for empty in ["", "   ", "\t", "\n"]:
         attempt = Attempt(prompt=Message(text="Hello"))
         attempt.outputs = [Message(empty)]
         results = string_detector.detect(attempt)
-        assert results == [None], f"Empty output {repr(empty)} should be inconclusive"
+        assert results == [0.0], f"Empty output {repr(empty)} should be a miss (0.0) in StringDetector"

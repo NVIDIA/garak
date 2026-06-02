@@ -214,9 +214,6 @@ class StringDetector(Detector):
             if output_text is None or output.text is None:
                 detector_results.append(None)
                 continue
-            if output_text.strip() == "":
-                detector_results.append(None)
-                continue
             match = False
             for s in self.substrings:
                 if not self.case_sensitive:
