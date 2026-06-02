@@ -49,6 +49,9 @@ currently supports:
 
 ### Standard install with `pip`
 
+garak requires Python **>=3.10,<3.14**. Python 3.14 is not yet supported due to
+missing wheels for core dependencies (`torch`, `transformers`).
+
 Just grab it from PyPI and you should be good to go:
 
 ```
