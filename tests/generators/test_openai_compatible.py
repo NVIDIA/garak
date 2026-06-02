@@ -19,7 +19,11 @@ from collections.abc import Iterable
 import garak.exception
 from garak.attempt import Message, Turn, Conversation
 import garak.generators.openai as openai_generator
-from garak.generators.openai import OpenAICompatible, OpenAIGenerator
+from garak.generators.openai import (
+    OpenAICompatible,
+    OpenAIGenerator,
+    OpenAIResponsesGenerator,
+)
 from garak.generators.rest import RestGenerator
 
 # TODO: expand this when we have faster loading, currently to process all generator costs 30s for 3 tests
@@ -88,6 +92,8 @@ def compatible() -> Iterable[OpenAICompatible]:
                 if module_klass == OpenAICompatible:
                     continue
                 if module_klass == RestGenerator:
+                    continue
+                if module_klass == OpenAIResponsesGenerator:
                     continue
                 if hasattr(module_klass, "ENV_VAR"):
                     class_instance = build_test_instance(module_klass)
