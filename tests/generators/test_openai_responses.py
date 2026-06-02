@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import json
-import logging
 import os
 import pytest
 from dataclasses import asdict
@@ -89,10 +88,9 @@ def test_defaults(set_fake_env, mock_openai_client):
     assert gen.name == "my-model"
     assert gen.tools == []
     assert gen.instructions is None
-    assert gen.max_output_tokens == 1024
+    assert gen.max_tokens == 150
     assert gen.uri is None
     assert gen.extra_params == {}
-    assert gen.output_types == ["message"]
 
 
 def test_custom_uri_and_tools(set_fake_env, mock_openai_client):
@@ -140,6 +138,19 @@ def test_call_model_passes_create_args(generator):
     assert kwargs["model"] == "test-model"
     assert kwargs["tools"][0]["type"] == "mcp"
     assert kwargs["instructions"] == "You are a banking assistant."
+    assert kwargs["max_output_tokens"] == generator.max_tokens
+
+
+def test_call_model_max_tokens_mapped_to_max_output_tokens(generator):
+    """garak's max_tokens is passed to the API as max_output_tokens."""
+    generator.max_tokens = 512
+    generator.client.responses.create.return_value = _make_response("ok")
+
+    generator._call_model(Conversation([Turn(role="user", content=Message("hi"))]))
+
+    kwargs = generator.client.responses.create.call_args[1]
+    assert kwargs["max_output_tokens"] == 512
+    assert "max_tokens" not in kwargs
 
 
 def test_call_model_empty_output_returns_none(generator):
@@ -217,9 +228,10 @@ def test_call_model_explicit_instructions_takes_precedence(generator):
     assert kwargs["instructions"] == "Explicit instruction."
 
 
-# ── output_types ──────────────────────────────────────────────────────────────
+# ── reasoning ─────────────────────────────────────────────────────────────────
 
-def test_output_types_default_excludes_reasoning(generator):
+def test_reasoning_excluded_from_text(generator):
+    """Reasoning summaries do not appear in Message.text."""
     generator.client.responses.create.return_value = _make_response_with_reasoning(
         "Answer", "My reasoning"
     )
@@ -231,8 +243,8 @@ def test_output_types_default_excludes_reasoning(generator):
     assert result[0].text == "Answer"
 
 
-def test_output_types_message_and_reasoning(generator):
-    generator.output_types = ["reasoning", "message"]
+def test_reasoning_stored_in_notes(generator):
+    """Reasoning summaries are stored in Message.notes['reasoning'], not in text."""
     generator.client.responses.create.return_value = _make_response_with_reasoning(
         "Answer", "My reasoning"
     )
@@ -241,27 +253,24 @@ def test_output_types_message_and_reasoning(generator):
         Conversation([Turn(role="user", content=Message("Think hard"))])
     )
 
-    assert "My reasoning" in result[0].text
-    assert "Answer" in result[0].text
+    assert result[0].notes["reasoning"] == "My reasoning"
+    assert result[0].text == "Answer"
 
 
-def test_output_types_generic_fallback_warns(generator, caplog):
-    """Non-call item types with no .text attribute produce no output and emit a warning."""
+def test_unknown_output_item_type_ignored(generator):
+    """Output items that are not message, reasoning, or *_call are silently ignored."""
     custom_item = MagicMock(spec=["type"])
     custom_item.type = "image_generation"
 
     response = MagicMock()
     response.output = [custom_item]
-    generator.output_types = ["image_generation"]
     generator.client.responses.create.return_value = response
 
-    with caplog.at_level(logging.WARNING, logger="garak.generators.openai"):
-        result = generator._call_model(
-            Conversation([Turn(role="user", content=Message("Generate an image"))])
-        )
+    result = generator._call_model(
+        Conversation([Turn(role="user", content=Message("Generate an image"))])
+    )
 
     assert result == [None]
-    assert any("image_generation" in r.message for r in caplog.records)
 
 
 def test_tool_calls_stored_in_notes_and_serializable(generator):
@@ -379,18 +388,3 @@ def test_tool_calls_only_returns_message_not_none(generator):
     assert result[0].text is None
     assert result[0].notes["tool_calls"][0]["name"] == "get_balance"
 
-
-def test_custom_output_types_via_config(set_fake_env, mock_openai_client):
-    gen = OpenAIResponsesGenerator(
-        name="my-model",
-        config_root={
-            "generators": {
-                "openai": {
-                    "OpenAIResponsesGenerator": {
-                        "output_types": ["message", "reasoning"],
-                    }
-                }
-            }
-        },
-    )
-    assert gen.output_types == ["message", "reasoning"]

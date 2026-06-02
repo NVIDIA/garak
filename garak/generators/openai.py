@@ -180,9 +180,10 @@ class OpenAICompatible(Generator):
         if self.generator not in (
             self.client.chat.completions,
             self.client.completions,
+            self.client.responses,
         ):
             raise ValueError(
-                "Unsupported model at generation time in generators/openai.py; expected chat or completion, got neither"
+                "Unsupported model at generation time in generators/openai.py; expected chat, completion, or responses, got neither"
             )
 
         self._validate_config()
@@ -431,7 +432,7 @@ class OpenAIReasoningGenerator(OpenAIGenerator):
     }
 
 
-class OpenAIResponsesGenerator(Generator):
+class OpenAIResponsesGenerator(OpenAICompatible):
     """Generator using the OpenAI Responses API with server-side tool orchestration.
 
     Supports MCP servers and function tools via the ``tools`` parameter.
@@ -445,66 +446,36 @@ class OpenAIResponsesGenerator(Generator):
     generator_family_name = "OpenAIResponses"
     supports_multiple_generations = False
 
-    DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
+    DEFAULT_PARAMS = OpenAICompatible.DEFAULT_PARAMS | {
         "uri": None,
         "instructions": None,
         "tools": [],
-        "max_output_tokens": 1024,
-        "extra_params": {},
-        # response.output item types to collect into the final text.
-        # "message" captures standard assistant text; "reasoning" captures
-        # the model's reasoning summary (ResponseReasoningItem).
-        "output_types": ["message"],
+        "suppressed_params": {"n", "temperature", "top_p", "frequency_penalty", "presence_penalty", "seed", "stop"},
     }
-
-    _unsafe_attributes = ["client"]
 
     def _load_unsafe(self):
         kwargs = {"api_key": getattr(self, "api_key", None)}
         if getattr(self, "uri", None):
             kwargs["base_url"] = self.uri
         self.client = openai.OpenAI(**kwargs)
-
-    def __init__(self, name="", config_root=_config):
-        self.name = name
-        self._load_config(config_root)
-        self.fullname = f"{self.generator_family_name} {self.name}"
-        self.key_env_var = self.ENV_VAR
-        self._load_unsafe()
-        super().__init__(self.name, config_root=config_root)
+        self.generator = self.client.responses
 
     @staticmethod
-    def _build_input(prompt: Union[Conversation, str]):
-        """Convert a Conversation (or raw string) to the Responses API input format.
+    def _build_input(prompt: Conversation):
+        """Convert a Conversation to the Responses API input format.
 
         System turns are excluded — callers should promote them to ``instructions``
         via :meth:`_extract_system_prompt` before calling this method.
         """
-        if isinstance(prompt, str):
-            return prompt
-        non_system = [t for t in prompt.turns if t.role != "system"]
-        if len(non_system) == 1:
-            return non_system[0].content.text
-        items = []
-        for turn in non_system:
-            content_type = "output_text" if turn.role == "assistant" else "input_text"
-            items.append(
-                {
-                    "type": "message",
-                    "role": turn.role,
-                    "content": [{"type": content_type, "text": turn.content.text}],
-                }
-            )
-        return items
+        turns = OpenAICompatible._conversation_to_list(prompt)
+        non_system = [t for t in turns if t.get("role") != "system"]
+        if len(non_system) == 1 and isinstance(non_system[0].get("content"), str):
+            return non_system[0]["content"]
+        return non_system
 
     @staticmethod
-    def _extract_system_prompt(prompt: Union[Conversation, str]) -> Union[str, None]:
-        """Return system turn text from a Conversation as a single string, or None.
-
-        Multiple system turns are joined with a newline so no content is lost.
-        """
-        if not isinstance(prompt, Conversation):
-            return None
+    def _extract_system_prompt(prompt: Conversation) -> Union[str, None]:
+        """Return system turn text from a Conversation as a single string, or None."""
         system_texts = [t.content.text for t in prompt.turns if t.role == "system"]
         return "\n".join(system_texts) if system_texts else None
 
@@ -520,7 +491,7 @@ class OpenAIResponsesGenerator(Generator):
         max_value=70,
     )
     def _call_model(
-        self, prompt: Union[Conversation, str], generations_this_call: int = 1
+        self, prompt: Union[Conversation, List[dict]], generations_this_call: int = 1
     ) -> List[Union[Message, None]]:
         if self.client is None:
             self._load_unsafe()
@@ -529,7 +500,7 @@ class OpenAIResponsesGenerator(Generator):
         create_args = {
             "model": self.name,
             "input": self._build_input(prompt),
-            "max_output_tokens": self.max_output_tokens,
+            "max_output_tokens": self.max_tokens,
         }
         if instructions:
             create_args["instructions"] = instructions
@@ -549,20 +520,15 @@ class OpenAIResponsesGenerator(Generator):
             raise garak.exception.GeneratorBackoffTrigger from e
 
         text_parts = []
+        reasoning_parts = []
         tool_calls = []
 
-        # Manually iterate response.output rather than using response.output_text so
-        # that output_types can include non-message items such as reasoning summaries.
         _TOOL_CALL_ATTRS = (
             "call_id", "name", "arguments", "input", "output",
             "error", "status", "server_label",
         )
         for item in response.output:
             item_type = getattr(item, "type", None)
-            # Any item whose type ends with "_call" is treated as a tool invocation and
-            # captured in tool_calls. This covers all current
-            # (function_call, mcp_call, web_search_call, file_search_call, computer_call)
-            # and future tool types without needing per-type handling.
             if item_type is not None and item_type.endswith("_call"):
                 entry = {"type": item_type, "id": getattr(item, "id", None)}
                 for attr in _TOOL_CALL_ATTRS:
@@ -571,9 +537,6 @@ class OpenAIResponsesGenerator(Generator):
                         entry[attr] = val
                 tool_calls.append(entry)
                 continue
-            # Only attributes that are present on the item are included, so the dict shape varies by type.
-            if item_type not in self.output_types:
-                continue
             if item_type == "message":
                 for part in item.content:
                     if getattr(part, "type", None) == "output_text":
@@ -581,19 +544,16 @@ class OpenAIResponsesGenerator(Generator):
             elif item_type == "reasoning":
                 for summary in getattr(item, "summary", []):
                     if getattr(summary, "type", None) == "summary_text":
-                        text_parts.append(summary.text)
-            else:
-                text = getattr(item, "text", None)
-                if text is not None:
-                    text_parts.append(text)
-                else:
-                    logging.warning("No text extraction defined for output item type %r", item_type)
+                        reasoning_parts.append(summary.text)
 
         text = "\n".join(text_parts) if text_parts else None
-        notes = {"tool_calls": tool_calls} if tool_calls else {}
-        # Responses API doesn't support multiple choices, we'll always return a list of one Message.
-        # Return a Message whenever there is text or tool call metadata; None only when both are absent.
-        if text is not None or tool_calls:
+        notes = {}
+        if tool_calls:
+            notes["tool_calls"] = tool_calls
+        if reasoning_parts:
+            notes["reasoning"] = "\n".join(reasoning_parts)
+
+        if text is not None or notes:
             return [Message(text, notes=notes)]
         return [None]
 
