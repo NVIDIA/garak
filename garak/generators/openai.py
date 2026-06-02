@@ -166,6 +166,9 @@ class OpenAICompatible(Generator):
             )
         self.generator = self.client.chat.completions
 
+    def _generator_is_valid(self) -> bool:
+        return self.generator in (self.client.chat.completions, self.client.completions)
+
     def _validate_config(self):
         pass
 
@@ -177,13 +180,9 @@ class OpenAICompatible(Generator):
 
         self._load_unsafe()
 
-        if self.generator not in (
-            self.client.chat.completions,
-            self.client.completions,
-            self.client.responses,
-        ):
+        if not self._generator_is_valid():
             raise ValueError(
-                "Unsupported model at generation time in generators/openai.py; expected chat, completion, or responses, got neither"
+                "Unsupported model at generation time in generators/openai.py; expected chat or completion, got neither"
             )
 
         self._validate_config()
@@ -452,6 +451,9 @@ class OpenAIResponsesGenerator(OpenAICompatible):
         "tools": [],
         "suppressed_params": {"n", "temperature", "top_p", "frequency_penalty", "presence_penalty", "seed", "stop"},
     }
+
+    def _generator_is_valid(self) -> bool:
+        return self.generator == self.client.responses
 
     def _load_unsafe(self):
         kwargs = {"api_key": getattr(self, "api_key", None)}
