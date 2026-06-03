@@ -6,6 +6,15 @@ This document covers the key points of how to develop a new probe.
 
 For information on how to contribute to garak, and how we build and manage our code, see :doc:`extending`.
 
+Scope
+*****
+
+Garak targets can be attacked in many different ways. That makes for an almost unlimited number of possible probes. However, each probe the garak maintainers accept takes time, through careful review and continuous code management; and impacts garak users in inference time and cost every time they run it. Therefore, care needs to be applied when selecting new probes.
+
+Probes that offer novel, demonstrated, substantial function are in scope.
+
+Novelty is defined by how similar a probe is to garak's existing probes. For a probe to be demonstrated, there should be a research article or experiments showing that the probe works and unlocks something somewhere that wasn't unlocked without it. For substance, the probe should generate a reasonable number of prompts; see `Substance` below.
+
 Naming
 ******
 

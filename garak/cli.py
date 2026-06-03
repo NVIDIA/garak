@@ -628,6 +628,21 @@ def main(arguments=None) -> None:
                 )
                 parsed_specs[spec_type] = names
                 if rejected is not None and len(rejected) > 0:
+                    # separate rejected clauses that refer to a module whose
+                    # plugins are all marked inactive from clauses that name
+                    # nothing recognised at all - see issue #830
+                    inactive_only_modules = []
+                    truly_unknown = []
+                    all_plugins = _plugins.enumerate_plugins(category=spec_namespace)
+                    for clause in rejected:
+                        if "." not in clause and any(
+                            p.startswith(f"{spec_namespace}.{clause}.")
+                            for p, _active in all_plugins
+                        ):
+                            inactive_only_modules.append(clause)
+                        else:
+                            truly_unknown.append(clause)
+
                     if hasattr(args, "skip_unknown"):  # attribute only set when True
                         header = f"Unknown {spec_namespace}:"
                         skip_msg = Fore.LIGHTYELLOW_EX + "SKIP" + Style.RESET_ALL
@@ -636,9 +651,26 @@ def main(arguments=None) -> None:
                         )
                         logging.warning(f"{header} " + ",".join(rejected))
                         print(msg)
+                    elif inactive_only_modules and not truly_unknown:
+                        module_list = ",".join(inactive_only_modules)
+                        raise ValueError(
+                            f"❌ all {spec_namespace} in '{module_list}' are marked "
+                            f"inactive; select one or more by name "
+                            f"(e.g. --{spec_namespace} {inactive_only_modules[0]}.SomeName) to continue"
+                        )
                     else:
-                        msg_list = ",".join(rejected)
-                        raise ValueError(f"❌Unknown {spec_namespace}❌: {msg_list}")
+                        msg_parts = []
+                        if truly_unknown:
+                            msg_parts.append(
+                                f"❌Unknown {spec_namespace}❌: " + ",".join(truly_unknown)
+                            )
+                        if inactive_only_modules:
+                            module_list = ",".join(inactive_only_modules)
+                            msg_parts.append(
+                                f"all {spec_namespace} in '{module_list}' are marked "
+                                f"inactive; select one or more by name to continue"
+                            )
+                        raise ValueError("; ".join(msg_parts))
 
             evaluator = garak.evaluators.ThresholdEvaluator(_config.run.eval_threshold)
 

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import csv
+import json
 import tempfile
 import types
 
@@ -79,6 +80,22 @@ def test_non_json_direct_load():
             garak.exception.PayloadFailure
         ):  # blank file aint valid json
             garak.payloads.Director._load_payload("jkasfohgi", t.name)
+
+
+def test_scan_payload_dir_skips_invalid(tmp_path):
+    # An invalid payload (malformed JSON or missing payload_types) must be
+    # skipped, not crash the scan or leak a previous file's types.
+    (tmp_path / "bad.json").write_text("{not valid json", encoding="utf-8")
+    (tmp_path / "nokey.json").write_text(json.dumps({"foo": "bar"}), encoding="utf-8")
+    (tmp_path / "good.json").write_text(
+        json.dumps({"payload_types": ["Security circumvention instructions"]}),
+        encoding="utf-8",
+    )
+
+    found = garak.payloads.Director()._scan_payload_dir(tmp_path)
+
+    assert set(found.keys()) == {"good"}
+    assert found["good"]["types"] == ["Security circumvention instructions"]
 
 
 OK_PAYLOADS = [

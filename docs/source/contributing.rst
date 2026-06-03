@@ -26,8 +26,9 @@ If you're going to contribute, it's a really good idea to reach out, so you have
 There are a number of ways you can reach out to us:
 
 * GitHub discussions: `<https://github.com/NVIDIA/garak/discussions>`_
-* Twitter: `<https://twitter.com/garak_llm>`_
 * Discord: `<https://discord.gg/uVch4puUCs>`_
+* LinkedIn: `<https://www.linkedin.com/company/garakllm/>`_
+* X: `<https://x.com/garak_llm>`_
 
 We'd love to help, and we're always interested to hear how you're using garak.
 

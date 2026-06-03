@@ -7,7 +7,7 @@ All types of contributions are encouraged and valued. See the [Table of Contents
 
 And if you like the project, but just don't have time to contribute, that's fine. There are other easy ways to support the project and show your appreciation, which we would also be very happy about:
 - Star the project
-- Post about it on LinkedIn
+- Post about it on your favorite social media platform
 - Tweet about it
 - Refer this project in your project's readme
 - Mention the project at local meetups and tell your friends/colleagues
@@ -121,26 +121,6 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/NVIDIA
 So you'd like to send us some code? Wonderful! Check out our [guide to contributing garak code](https://reference.garak.ai/en/latest/contributing.html).
 
 Please be mindful of the risk of harm involved in publishing exploits. Only responsibly disclosed vulnerabilities are welcome in garak. OWASP maintain a great guide to [vulnerability disclosure](https://cheatsheetseries.owasp.org/cheatsheets/Vulnerability_Disclosure_Cheat_Sheet.html), which you should check out when contributing probes or data.
-<!-- TODO
-include Setup of env, IDE and typical getting started instructions?
 
--->
-
-<!-- ### Improving The Documentation -->
-<!-- TODO
-Updating, improving and correcting the documentation
-
--->
-
-<!-- ## Styleguides -->
-<!-- ### Commit Messages -->
-<!-- TODO
-
--->
-
-<!-- ## Join The Project Team -->
-<!-- TODO -->
-
-<!-- omit in toc -->
 ## Attribution
 This guide is based on the **contributing-gen**. [Make your own](https://github.com/bttger/contributing-gen)!

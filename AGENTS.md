@@ -23,13 +23,13 @@ gh pr list --repo nvidia/garak --state open --search "<short area keywords>"
 - If an open PR already addresses the same fix, do not open another.
 - If your approach is materially different, explain the difference in the issue.
 
-### No low-value busywork PRs
+### Issues to avoid
 
-Do not open one-off PRs for tiny edits (single typo, isolated style change, one mutable default, etc.). Mechanical cleanups are acceptable only when bundled with substantive work.
+If an issue description is short (e.g. three or fewer sentences), ask for clarification in the issue comments before proceeding.
 
-### Cohesive PRs
+Avoid issues labelled "preliminary" or "needs more information".
 
-Each PR should have a clear focus. Only update files related to the topic of that PR.
+Avoid bug issues that have no assignment or are not labelled `bug-verified`, unless you can build a working test case confirming the bug that does not conflict with project tests.
 
 ### Accountability
 
@@ -39,6 +39,19 @@ Each PR should have a clear focus. Only update files related to the topic of tha
     - Why this is not duplicating an existing PR.
     - Test commands run and results.
     - Clear statement that AI assistance was used.
+- Only add an SPDX header when directly importing code from elsewhere under license that permits this and is compatible with the project.
+
+### PR style
+
+Don't add issue numbers in PR titles; it's OK to include these in the description.
+
+### No low-value busywork PRs
+
+Do not open one-off PRs for tiny edits (single typo, isolated style change, one mutable default, etc.). Mechanical cleanups are acceptable only when bundled with substantive work.
+
+### Cohesive PRs
+
+Each PR should have a clear focus. Only update files related to the topic of that PR.
 
 ### Fail-closed behavior
 
@@ -46,7 +59,12 @@ If work is duplicate/trivial busywork, **do not proceed**. Return a short explan
 
 ### Project Guides
 
-Check the docs on "Contributing" and "Extending", in `docs/source`, and follow these.
+Follow the documentation on contributing too and extending garak. See:
+
+* For selecting contributions: `docs/source/contributing.rst`
+* For writing code: `docs/source/extending.rst`
+* When writing a probe: `docs/source/extending.probe.rst`
+* When writing a generator: `docs/source/extending.generator.rst`
 
 ### Commit messages
 
@@ -65,6 +83,7 @@ Signed-off-by: Your Name <your.email@example.com>
 ## Development requirements
 
 ### Coding guide
+- Follow the project guide docs linked above.
 - Always avoid adding new dependencies. Use the `extra_dependency_names` functionality if essential.
 - Keep documentation of garak architecture in the docs/ dir up to date - though use docstrings in the first instance if possible.
 - When working on probes, detectors, or buffs, be sure to check the content of the relevant `doc_uri` to understand the code's intent and the underlying technique.
@@ -88,6 +107,7 @@ Signed-off-by: Your Name <your.email@example.com>
 - Don't add tests for functionality already covered by tests of parent classes.
 - Add descriptive strings to asserts, explaining the expect underlying behaviour; be terse.
 - Check that tests work. If `pytest` or other project dependencies are not available, the environment has not been set up correctly; give the user this problem.
+- Re-use/parametrize tests where appropriate.
 
 ### Code primitives
 - Avoid updating `attempt` or any base classes (`probes.base.*`, `generators.base.*`, `detectors.base.*`) frivolously.

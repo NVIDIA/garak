@@ -65,6 +65,17 @@ def test_run_all_active_probes(capsys):
     assert re.match("^✔️  garak run complete in [0-9]+\\.[0-9]+s$", last_line)
 
 
+def test_module_with_only_inactive_probes_gives_clear_message(capsys):
+    # issue #830: -p test names a module whose probes are all marked inactive,
+    # so the user should get a clear "all inactive" message rather than the
+    # generic "Unknown probes" error
+    cli.main(["-m", "test", "-p", "test", "-g", "1", "--narrow_output"])
+    result = capsys.readouterr()
+    output = ANSI_ESCAPE.sub("", result.out)
+    assert "inactive" in output
+    assert "Unknown probes" not in output
+
+
 def test_run_all_active_detectors(capsys):
     cli.main(
         [
