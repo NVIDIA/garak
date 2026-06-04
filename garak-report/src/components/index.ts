@@ -27,6 +27,12 @@ export { default as DefconSummaryPanel } from "./DefconSummaryPanel";
 export { default as ProbesChart } from "./ProbesChart";
 export { default as DetectorsView } from "./DetectorsView";
 
+// Technique & intent components (garak#1705)
+export { default as TechniqueIntentSection } from "./TechniqueIntentSection";
+export { default as TechniquesView } from "./TechniquesView";
+export { default as IntentsView } from "./IntentsView";
+export { default as TechniqueIntentMatrix } from "./TechniqueIntentMatrix";
+
 // Subcomponent exports
 export { ProbeChartHeader, ProbeTagsList, ProbeBarChart } from "./ProbeChart";
 export { DetectorChartHeader, DetectorFilters, DetectorLollipopChart } from "./DetectorChart";
