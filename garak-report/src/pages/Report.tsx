@@ -16,6 +16,7 @@ import ReportDetails from "../components/ReportDetails";
 import SummaryStatsCard from "../components/SummaryStatsCard";
 import ReportFilterBar from "../components/ReportFilterBar";
 import ModuleAccordion from "../components/ModuleAccordion";
+import TechniqueIntentSection from "../components/TechniqueIntentSection";
 import ErrorBoundary from "../components/ErrorBoundary";
 import useFlattenedModules from "../hooks/useFlattenedModules";
 import { useReportData } from "../hooks/useReportData";
@@ -120,6 +121,14 @@ function Report({ onThemeChange, currentTheme = "system" }: ReportProps) {
             slotSubheading="Try changing the filters or sorting options"
           />
         )}
+
+        {/* Technique & Intent matrix (garak#1705); renders only when present */}
+        <ErrorBoundary fallbackMessage="Failed to load the technique & intent matrix.">
+          <TechniqueIntentSection
+            matrix={selectedReport.technique_intent_matrix}
+            isDark={isDark}
+          />
+        </ErrorBoundary>
       </Flex>
 
       <Footer />
