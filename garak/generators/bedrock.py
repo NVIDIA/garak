@@ -185,7 +185,10 @@ class BedrockGenerator(Generator):
         if hasattr(self, "max_tokens") and self.max_tokens is not None:
             inference_config["maxTokens"] = int(self.max_tokens)
         if self.top_p is not None:
-            inference_config["topP"] = float(self.top_p)
+            # Anthropic Claude models on Bedrock reject requests that set both
+            # temperature and top_p. Skip top_p when temperature is present.
+            if "temperature" not in inference_config or "anthropic" not in self.name.lower():
+                inference_config["topP"] = float(self.top_p)
         if self.stop:
             inference_config["stopSequences"] = self.stop
 
