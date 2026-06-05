@@ -24,12 +24,10 @@ from garak.detectors.base import Detector
 
 logger = logging.getLogger(__name__)
 
-_RULES_FILENAME = "rules.json"
-
 
 def _load_rules() -> dict[str, list[list[str]]]:
     """Load ATR rules from garak's data directory."""
-    rules_path = data_path / __name__.split(".")[-1] / _RULES_FILENAME
+    rules_path = data_path / "atr" / "rules.json"
     if not rules_path.exists():
         logger.warning("ATR rules file not found: %s", rules_path)
         return {}
@@ -88,7 +86,7 @@ class ATRDetector(Detector):
 
 
 class AgentThreats(ATRDetector):
-    """Detect all 9 categories of AI agent threats (736 patterns).
+    """Detect all 9 categories of AI agent threats (1,597 patterns).
 
     Comprehensive scan covering prompt injection, tool poisoning,
     credential exfiltration, privilege escalation, excessive autonomy,
