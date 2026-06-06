@@ -196,9 +196,16 @@ class Harness(Configurable):
                 attempt_iterator = tqdm.tqdm(attempt_results, leave=False)
                 detector_probe_name = d.detectorname.replace("garak.detectors.", "")
                 attempt_iterator.set_description("detectors." + detector_probe_name)
+                if d.skip:
+                    reason = getattr(d, "skip_reason", None) or "disabled via config"
+                    logging.info(
+                        "skipping detector %s on probe %s: %s",
+                        detector_probe_name,
+                        probe.probename,
+                        reason,
+                    )
+                    continue
                 for attempt in attempt_iterator:
-                    if d.skip:
-                        continue
                     attempt.detector_results[detector_probe_name] = list(
                         d.detect(attempt)
                     )

@@ -42,6 +42,10 @@ class Detector(Configurable):
         "skip": False,
     }
 
+    skip_reason: str = None
+    """Human-readable reason why this detector was skipped. Set when ``skip`` is
+    True to help users understand why a detector did not run on a probe."""
+
     _run_params = {"seed"}
 
     def _set_description(self):
