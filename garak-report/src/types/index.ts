@@ -44,6 +44,19 @@ export type {
   EnrichedProbeData,
 } from "./ProbesChart";
 
+// Technique & intent matrix types (garak#1704 / #1705)
+export type {
+  TechniqueIntentMatrix,
+  TechniqueIntentCell,
+  TechniqueRow,
+  TechniqueSummary,
+  Technique,
+  Intent,
+  TechniquesViewProps,
+  IntentsViewProps,
+} from "./TechniqueIntent";
+export { SUMMARY_KEY } from "./TechniqueIntent";
+
 // Detector grouping types
 export type { GroupedDetectorEntry, GroupedDetectors } from "./Detector";
 

@@ -10,6 +10,7 @@
 
 import type { ModuleData } from "./Module";
 import type { EvalData } from "./Eval";
+import type { TechniqueIntentMatrix } from "./TechniqueIntent";
 
 /**
  * Root structure for a Garak report digest.
@@ -43,6 +44,11 @@ export type ReportEntry = {
   };
   eval: EvalData;
   results?: ModuleData[];
+  /**
+   * Technique×intent pass-rate matrix (garak#1704). Absent for reports
+   * generated before the field was added; consumers must guard accordingly.
+   */
+  technique_intent_matrix?: TechniqueIntentMatrix;
 };
 
 /**
