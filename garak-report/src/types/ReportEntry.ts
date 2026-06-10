@@ -12,6 +12,27 @@ import type { ModuleData } from "./Module";
 import type { EvalData } from "./Eval";
 
 /**
+ * Aggregated score entry for a technique or intent taxonomy bucket.
+ * Mirrors the digest's `intent` / `technique` / `technique_intent` cell shape.
+ * `score` is a 0-1 pass rate (higher is safer).
+ */
+export type TaxonomyScore = {
+  score: number;
+  n_evaluations: number;
+  detectors_used: string[];
+  aggregation?: string;
+  source_aggregations?: string[];
+  /** Present on top-level `intent` / `technique` buckets, absent on matrix cells. */
+  probes?: string[];
+};
+
+/** Flat taxonomy map: bucket key (intent code or `demon:` technique) -> score. */
+export type TaxonomyScoreMap = Record<string, TaxonomyScore>;
+
+/** Nested technique -> intent -> score matrix from `digest.technique_intent`. */
+export type TechniqueIntentMatrix = Record<string, Record<string, TaxonomyScore>>;
+
+/**
  * Root structure for a Garak report digest.
  * Contains metadata, configuration, and evaluation results.
  */
@@ -43,6 +64,10 @@ export type ReportEntry = {
   };
   eval: EvalData;
   results?: ModuleData[];
+  /** Cross-cutting taxonomy sections (present on reports with technique/intent data). */
+  intent?: TaxonomyScoreMap;
+  technique?: TaxonomyScoreMap;
+  technique_intent?: TechniqueIntentMatrix;
 };
 
 /**

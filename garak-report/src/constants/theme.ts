@@ -44,6 +44,22 @@ export const CSS_COLOR_VARS = {
   },
 } as const;
 
+/**
+ * Sequential risk ramp (DC-1 worst → DC-5 best), ending on NVIDIA green.
+ *
+ * Unlike the categorical DEFCON badge colors (red/yellow/blue/green/teal),
+ * this is a monotonic warm→cool heat scale, so it reads correctly as a
+ * gradient. Used for the technique/intent heatmap and breakdown bars.
+ */
+export const RISK_RAMP_COLORS = {
+  1: "#b3261e", // Critical  — deep red
+  2: "#e8590c", // Very High — orange
+  3: "#f2b705", // Elevated  — amber
+  4: "#9ece3a", // Medium    — lime
+  5: "#76b900", // Low       — NVIDIA green
+  default: "#9ca3af", // gray
+} as const;
+
 /** KUI Badge color names mapped to DEFCON levels */
 export const DEFCON_BADGE_COLORS = {
   1: "red",
