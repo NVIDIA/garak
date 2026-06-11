@@ -848,6 +848,10 @@ class IntentProbe(Probe):
 
     import garak.services.intentservice
 
+    DEFAULT_PARAMS = Probe.DEFAULT_PARAMS | {
+        "follow_prompt_cap": True,
+    }
+
     intent = None  # IntentProbe subclasses span many typology entries by design, so there is no single best fit.
     skip_root_intents = True
     blocked_intent_spec = ""
@@ -858,7 +862,8 @@ class IntentProbe(Probe):
         self._populate_intents()
         self._populate_stubs()
         self.build_prompts()
-        self._prune_data(self.soft_probe_prompt_cap)
+        if self.follow_prompt_cap:
+            self._prune_data(self.soft_probe_prompt_cap)
 
     def _attempt_prestore_hook(
         self, attempt: garak.attempt.Attempt, seq: int
