@@ -54,10 +54,10 @@ CLI reference for garak
     --generations GENERATIONS, -g GENERATIONS
                           number of generations per prompt
     --config CONFIG       YAML or JSON config file for this run
-    --target_type TARGET_TYPE, -t TARGET_TYPE, --model_type TARGET_TYPE, -m TARGET_TYPE
+    --target_type TARGET_TYPE, -t TARGET_TYPE
                           module and optionally also class of the generator,
                           e.g. 'huggingface', or 'openai'
-    --target_name TARGET_NAME, --model_name TARGET_NAME, -n TARGET_NAME
+    --target_name TARGET_NAME, -n TARGET_NAME
                           name of the target, e.g.
                           'timdettmers/guanaco-33b-merged'
     --probes PROBES, -p PROBES

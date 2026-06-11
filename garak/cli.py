@@ -143,14 +143,11 @@ def main(arguments=None) -> None:
     parser.add_argument(
         "--target_type",
         "-t",
-        "--model_type",
-        "-m",
         type=str,
         help="module and optionally also class of the generator, e.g. 'huggingface', or 'openai'",
     )
     parser.add_argument(
         "--target_name",
-        "--model_name",
         "-n",
         type=str,
         default=None,
@@ -320,11 +317,6 @@ def main(arguments=None) -> None:
 
     args = parser.parse_args(arguments)
     logging.debug("args - full argparse: %s", args)
-
-    for deprecated_model_option in {"-m", "--model_name", "--model_type"}.intersection(
-        set(arguments)
-    ):
-        command.deprecation_notice(f"{deprecated_model_option} on CLI", "0.13.1.pre1")
 
     # load site config before loading CLI config
     _cli_config_supplied = args.config is not None

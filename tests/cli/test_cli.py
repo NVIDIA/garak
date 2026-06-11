@@ -58,7 +58,7 @@ def test_buff_list(capsys):
 
 def test_run_all_active_probes(capsys):
     cli.main(
-        ["-m", "test", "-p", "all", "-d", "always.Pass", "-g", "1", "--narrow_output"]
+        ["-t", "test", "-p", "all", "-d", "always.Pass", "-g", "1", "--narrow_output"]
     )
     result = capsys.readouterr()
     last_line = result.out.strip().split("\n")[-1]
@@ -69,7 +69,7 @@ def test_module_with_only_inactive_probes_gives_clear_message(capsys):
     # issue #830: -p test names a module whose probes are all marked inactive,
     # so the user should get a clear "all inactive" message rather than the
     # generic "Unknown probes" error
-    cli.main(["-m", "test", "-p", "test", "-g", "1", "--narrow_output"])
+    cli.main(["-t", "test", "-p", "test", "-g", "1", "--narrow_output"])
     result = capsys.readouterr()
     output = ANSI_ESCAPE.sub("", result.out)
     assert "inactive" in output
@@ -79,7 +79,7 @@ def test_module_with_only_inactive_probes_gives_clear_message(capsys):
 def test_run_all_active_detectors(capsys):
     cli.main(
         [
-            "-m",
+            "-t",
             "test",
             "-p",
             "blank.BlankPrompt",

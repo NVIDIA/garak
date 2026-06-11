@@ -571,7 +571,7 @@ PREFIX = "_garak_test_attempt_sticky_params"
 def test_attempt_sticky_params(capsys):
 
     cli.main(
-        f"-m test.Blank -g 1 -p lmrc.QuackMedicine,test.Blank -d always.Pass --report_prefix {PREFIX}".split()
+        f"-t test.Blank -g 1 -p lmrc.QuackMedicine,test.Blank -d always.Pass --report_prefix {PREFIX}".split()
     )
     report_path = _config.transient.data_dir / _config.reporting.report_dir
     with open(report_path / f"{PREFIX}.report.jsonl", "r", encoding="utf-8") as report:

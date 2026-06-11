@@ -16,7 +16,7 @@ TEMP_PREFIX = "_garak_internal_test_temp"
 
 @pytest.fixture(autouse=True)
 def garak_tiny_run() -> None:
-    cli.main(["-m", "test.Blank", "-p", "test.Blank", "--report_prefix", TEMP_PREFIX])
+    cli.main(["-t", "test.Blank", "-p", "test.Blank", "--report_prefix", TEMP_PREFIX])
 
 
 def test_analyze_log_runs():

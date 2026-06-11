@@ -14,7 +14,7 @@ def passed_function_multi(prompt: str, generations: int, **kwargs):
 def test_function_single(capsys):
 
     args = [
-        "-m",
+        "-t",
         "function",
         "-n",
         f"{__name__}#passed_function",
@@ -30,7 +30,7 @@ def test_function_single(capsys):
 def test_function_multiple(capsys):
 
     args = [
-        "-m",
+        "-t",
         "function.Multiple",
         "-n",
         f"{__name__}#passed_function_multi",
