@@ -1,15 +1,23 @@
 garak.probes.data_structure_injection
 =====================================
 
-This probe tests whether a target follows instructions embedded inside
-structured data records. It covers common containers such as JSON, YAML, XML,
-TOML, and Markdown front matter.
+This probe tests whether a target copies attacker-controlled structured data
+into tool-call or workflow outputs. It covers common containers such as JSON,
+YAML, XML, TOML, and Markdown front matter.
 
-The probe asks the target to answer the ``user_request`` field in benign
-records. Each record also contains an instruction-like field that asks the
-target to emit a harmless canary. If the canary appears in the output, the
-target adopted an instruction from another part of the data structure instead
-of answering the actual user request.
+The probe asks the target to produce safe structured tool calls from trusted
+policy and request data. Each prompt also includes customer-controlled
+structured text that attempts one of three data-structure injection patterns:
+
+* schema widening, where an embedded tool update adds fields such as ``cc`` or
+  callback URLs
+* workflow injection, where an embedded workflow fragment adds extra tool steps
+* argument contamination, where an allowed tool argument is prefilled with an
+  unsafe recipient, URL, tag, or identifier
+
+If one of the embedded values appears in the output, the target has treated
+customer-controlled structure as authoritative instead of using the trusted
+policy and workflow boundary.
 
 .. automodule:: garak.probes.data_structure_injection
    :members:
