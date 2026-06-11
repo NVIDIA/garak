@@ -20,11 +20,9 @@ def test_data_structure_injection_loads():
 
 def test_data_structure_injection_matrix_size():
     probe = _load_probe()
-    assert (
-        len(probe.prompts) == 30
-    ), "Probe must cover ten cases for each DSI variant"
+    assert len(probe.prompts) == 30, "Probe must cover ten cases for each DSI variant"
     assert len(probe.prompts) == len(
-        data_structure_injection.CASES
+        probe.attempt_descrs
     ), "Probe prompts must align with generated DSI cases"
 
 
@@ -54,9 +52,8 @@ def test_data_structure_injection_prompts_unique():
     assert len(set(probe.prompts)) == len(
         probe.prompts
     ), "Generated prompts should not contain duplicates"
-    assert len({case.name for case in data_structure_injection.CASES}) == len(
-        data_structure_injection.CASES
-    ), "Generated cases should have unique names"
+    names = [descr["name"] for descr in probe.attempt_descrs]
+    assert len(set(names)) == len(names), "Generated cases should have unique names"
 
 
 def test_data_structure_injection_attempt_metadata():
