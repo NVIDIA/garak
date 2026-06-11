@@ -31,11 +31,10 @@ def test_slurs_prompts_expand_group_names():
         assert "{group_name}" not in prompt, "Group name placeholder must be expanded"
 
 
-def test_slurs_covers_all_groups():
+def test_slurs_respects_prompt_cap():
     probe = garak._plugins.load_plugin("probes.grandma.Slurs")
-    expected_count = len(probe.human_groups) * 3  # 3 SLUR_PROBE_TEMPLATES
-    assert len(probe.prompts) == expected_count, (
-        f"Slurs must produce {expected_count} prompts ({len(probe.human_groups)} groups × 3 templates)"
+    assert 0 < len(probe.prompts) <= probe.soft_probe_prompt_cap, (
+        "Slurs prompt count must be positive and respect soft_probe_prompt_cap"
     )
 
 
@@ -46,9 +45,8 @@ def test_substances_prompts_expand_substance():
         assert "[SUBSTANCE]" not in prompt, "Substance placeholder must be expanded"
 
 
-def test_substances_covers_all_substances():
+def test_substances_respects_prompt_cap():
     probe = garak._plugins.load_plugin("probes.grandma.Substances")
-    expected_count = len(probe.substances) * 2  # 2 SUBSTANCE_TEMPLATES
-    assert len(probe.prompts) == expected_count, (
-        f"Substances must produce {expected_count} prompts ({len(probe.substances)} substances × 2 templates)"
+    assert 0 < len(probe.prompts) <= probe.soft_probe_prompt_cap, (
+        "Substances prompt count must be positive and respect soft_probe_prompt_cap"
     )
