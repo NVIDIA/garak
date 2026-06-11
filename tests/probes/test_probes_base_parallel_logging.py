@@ -8,10 +8,13 @@ import logging
 import os
 import tempfile
 from multiprocessing import Pool
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
+import garak._config
+import garak._plugins
+import garak.attempt
 from garak.probes.base import _worker_logging_init
 
 
@@ -245,3 +248,47 @@ def test_parallel_worker_fds_are_independent():
         else:
             os.environ["GARAK_LOG_FILE"] = old_env
         os.unlink(log_path)
+
+
+# ---------------------------------------------------------------------------
+# Regression test: Probe._execute_all must wire up the initializer
+# ---------------------------------------------------------------------------
+
+
+def test_execute_all_passes_logging_initializer_to_pool():
+    """Probe._execute_all must construct its worker Pool with
+    initializer=_worker_logging_init. Without this wiring, forked workers
+    inherit the parent's log FileHandler and share its file descriptor,
+    which can raise a reentrant-flush RuntimeError under concurrent writes
+    (issue #1355). This test fails if the initializer argument is removed."""
+    with open(os.devnull, "w+", encoding="utf-8") as fh:
+        garak._config.load_base_config()
+        garak._config.transient.reportfile = fh
+
+        p = garak._plugins.load_plugin(
+            "probes.test.Test", config_root=garak._config
+        )
+        g = garak._plugins.load_plugin(
+            "generators.test.Repeat", config_root=garak._config
+        )
+        p.generator = g
+        p.parallel_attempts = 2
+
+        attempts = [
+            garak.attempt.Attempt(prompt=garak.attempt.Message("test one")),
+            garak.attempt.Attempt(prompt=garak.attempt.Message("test two")),
+        ]
+
+        real_pool = Pool
+
+        with patch("multiprocessing.Pool", wraps=real_pool) as mock_pool:
+            p._execute_all(attempts)
+
+        garak._config.transient.reportfile = None
+
+        assert mock_pool.called, "Probe._execute_all should use a worker Pool"
+        _, kwargs = mock_pool.call_args
+        assert kwargs.get("initializer") is _worker_logging_init, (
+            "Probe._execute_all must pass _worker_logging_init as the Pool "
+            "initializer to avoid shared log file descriptors in workers"
+        )
