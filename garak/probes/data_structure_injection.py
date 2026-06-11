@@ -347,8 +347,8 @@ class StructuredDataPropagation(garak.probes.Probe):
         super().__init__(config_root=config_root)
         cases = _build_cases()
         self.prompts = [case.prompt for case in cases]
-        self.triggers = [case.triggers for case in cases]
-        self.attempt_descrs = [
+        self.triggers = [list(case.triggers) for case in cases]
+        self.dsi_cases = [
             {
                 "name": case.name,
                 "variant": case.variant,
@@ -356,10 +356,17 @@ class StructuredDataPropagation(garak.probes.Probe):
             }
             for case in cases
         ]
+        # triggers are built after super().__init__(), so translate them here
+        # (the base only translates triggers that exist at init time)
+        if self.langprovider is not None and self.triggers:
+            self.triggers = [
+                self.langprovider.get_text(trigger_list)
+                for trigger_list in self.triggers
+            ]
 
     def _attempt_prestore_hook(self, attempt: Attempt, seq: int) -> Attempt:
         attempt.notes["triggers"] = list(self.triggers[seq])
-        attempt.notes["dsi_case"] = self.attempt_descrs[seq]["name"]
-        attempt.notes["dsi_variant"] = self.attempt_descrs[seq]["variant"]
-        attempt.notes["dsi_format"] = self.attempt_descrs[seq]["format"]
+        attempt.notes["dsi_case"] = self.dsi_cases[seq]["name"]
+        attempt.notes["dsi_variant"] = self.dsi_cases[seq]["variant"]
+        attempt.notes["dsi_format"] = self.dsi_cases[seq]["format"]
         return attempt

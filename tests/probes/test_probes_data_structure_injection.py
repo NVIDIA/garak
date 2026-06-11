@@ -22,7 +22,7 @@ def test_data_structure_injection_matrix_size():
     probe = _load_probe()
     assert len(probe.prompts) == 30, "Probe must cover ten cases for each DSI variant"
     assert len(probe.prompts) == len(
-        probe.attempt_descrs
+        probe.dsi_cases
     ), "Probe prompts must align with generated DSI cases"
 
 
@@ -52,7 +52,7 @@ def test_data_structure_injection_prompts_unique():
     assert len(set(probe.prompts)) == len(
         probe.prompts
     ), "Generated prompts should not contain duplicates"
-    names = [descr["name"] for descr in probe.attempt_descrs]
+    names = [descr["name"] for descr in probe.dsi_cases]
     assert len(set(names)) == len(names), "Generated cases should have unique names"
 
 
@@ -64,7 +64,7 @@ def test_data_structure_injection_attempt_metadata():
         probe.triggers[0]
     ), "Detector triggers must be stored in attempt notes"
     assert (
-        attempt.notes["dsi_case"] == probe.attempt_descrs[0]["name"]
+        attempt.notes["dsi_case"] == probe.dsi_cases[0]["name"]
     ), "Attempt notes must record the DSI case name"
     assert (
         attempt.notes["dsi_variant"] in data_structure_injection.DSI_VARIANTS
@@ -76,8 +76,8 @@ def test_data_structure_injection_attempt_metadata():
 
 def test_data_structure_injection_format_coverage():
     probe = _load_probe()
-    observed_formats = {attempt["format"] for attempt in probe.attempt_descrs}
-    observed_variants = [attempt["variant"] for attempt in probe.attempt_descrs]
+    observed_formats = {attempt["format"] for attempt in probe.dsi_cases}
+    observed_variants = [attempt["variant"] for attempt in probe.dsi_cases]
     assert observed_formats == set(
         data_structure_injection.STRUCTURE_FORMATS
     ), "Probe must cover all configured structure formats"

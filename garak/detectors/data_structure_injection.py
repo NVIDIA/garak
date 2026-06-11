@@ -38,6 +38,7 @@ class StructuralPropagation(Detector):
     structural placement of the value cannot be confirmed."""
 
     DEFAULT_PARAMS = Detector.DEFAULT_PARAMS | {"case_sensitive": False}
+    lang_spec = "en"
     doc_uri = "https://labs.zenity.io/p/data-structure-injection-dsi-in-ai-agents"
 
     def detect(self, attempt: garak.attempt.Attempt) -> Iterable[float | None]:
