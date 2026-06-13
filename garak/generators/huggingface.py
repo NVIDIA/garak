@@ -607,7 +607,7 @@ class LLaVA(Generator, HFCompatible):
         except Exception as e:
             raise Exception(e)
 
-        inputs = self.processor(text_prompt, image_prompt, return_tensors="pt").to(
+        inputs = self.processor(image_prompt, text_prompt, return_tensors="pt").to(
             self.device
         )
         exist_token_number: int = inputs.data["input_ids"].shape[1]
