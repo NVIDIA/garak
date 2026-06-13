@@ -104,6 +104,28 @@ def test_llava_generate_returns_decoded_text(
     assert isinstance(out, list) and out == [Message("decoded output")]
 
 
+def test_llava_processor_called_image_then_text(llava_config, llava_test_image):
+    """LlavaNextProcessor.__call__ takes (images, text); the wrong order makes it
+    treat the prompt text as an image source and fail to open the image (#1374)."""
+    fake_proc = MagicMock()
+    fake_proc.decode.return_value = "decoded output"
+    fake_model = MagicMock()
+    fake_model.generate.return_value = torch.tensor([[0, 1, 2]])
+
+    llava = LLaVA(name=SUPPORTED_MODELS[0], config_root=llava_config)
+    llava.processor = fake_proc
+    llava.model = fake_model
+
+    conv = Conversation(
+        [Turn("user", Message(text="describe this", data_path=llava_test_image))]
+    )
+    llava.generate(conv)
+
+    args, _ = fake_proc.call_args
+    assert isinstance(args[0], Image.Image)
+    assert args[1] == "describe this"
+
+
 def test_llava_error_on_missing_image(llava_config):
     llava = LLaVA(name=SUPPORTED_MODELS[0], config_root=llava_config)
     conv = Conversation(
