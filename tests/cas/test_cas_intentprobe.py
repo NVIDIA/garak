@@ -14,7 +14,7 @@ def test_intentprobe_load():
 
 def test_intentprobe_root_intents():
     garak._config.load_config()
-    garak._config.cas.intent_spec = "S"
+    garak._config.transient.intent_spec = "S"
     garak._config.cas.serve_detectorless_intents = True
     garak.services.intentservice.load()
     i = garak._plugins.load_plugin("probes.base.IntentProbe")
@@ -28,7 +28,7 @@ def test_intentprobe_root_intents():
 
 def test_intentprobe_consistency():
     garak._config.load_config()
-    garak._config.cas.intent_spec = "S"
+    garak._config.transient.intent_spec = "S"
     garak.services.intentservice.load()
     i = garak._plugins.load_plugin("probes.base.IntentProbe")
     assert len(i.stubs) == len(i.stub_intents), "should be 1 stub intent per stub "

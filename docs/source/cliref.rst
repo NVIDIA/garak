@@ -20,7 +20,7 @@ CLI reference for garak
                          [--generator_option_file GENERATOR_OPTION_FILE | --generator_options GENERATOR_OPTIONS]
                          [--harness_option_file HARNESS_OPTION_FILE | --harness_options HARNESS_OPTIONS]
                          [--probe_option_file PROBE_OPTION_FILE | --probe_options PROBE_OPTIONS]
-                         [--intents INTENTS] [--taxonomy TAXONOMY]
+                         [--taxonomy TAXONOMY]
                          [--confidence_interval_method {bootstrap,none}]
                          [--bootstrap_num_iterations BOOTSTRAP_NUM_ITERATIONS]
                          [--bootstrap_confidence_level BOOTSTRAP_CONFIDENCE_LEVEL]
@@ -104,9 +104,6 @@ CLI reference for garak
                           path to JSON file containing options to pass to probe
     --probe_options PROBE_OPTIONS
                           options to pass to probe, formatted as a JSON dict
-    --intents INTENTS, -i INTENTS
-                          comma-separated list of intents & intent prefixes to
-                          use. Default is empty, for all
     --taxonomy TAXONOMY   specify a MISP top-level taxonomy to be used for
                           grouping probes in reporting. e.g. 'avid-effect',
                           'owasp'

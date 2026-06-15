@@ -30,13 +30,15 @@ _CATEGORIES = ("probes", "buffs")
 class Selector:
     """A single selection clause.
 
-    ``kind`` is one of ``"plugin_path"``, ``"none"``, ``"tag"`` or ``"tier"``.
-    For ``plugin_path`` and ``none`` selectors ``value`` carries the
-    category-prefixed token (e.g. ``"probes.dan"`` / ``"probes.none"``) and
-    ``category`` is set; for ``tag``/``tier`` the filter applies to probes and
-    ``category`` is ``None``. A ``none`` selector is an explicit empty
-    selection for its category, distinct from an unspecified spec (which
-    defaults to all active probes at resolve time).
+    ``kind`` is one of ``"plugin_path"``, ``"none"``, ``"tag"``, ``"tier"`` or
+    ``"intent"``. For ``plugin_path`` and ``none`` selectors ``value`` carries
+    the category-prefixed token (e.g. ``"probes.dan"`` / ``"probes.none"``) and
+    ``category`` is set; for ``tag``/``tier``/``intent`` the selector applies to
+    a non-plugin axis and ``category`` is ``None`` (``tag``/``tier`` filter
+    probes; ``intent`` carries a raw typology code for IntentService). A
+    ``none`` selector is an explicit empty selection for its category, distinct
+    from an unspecified spec (which defaults to all active probes at resolve
+    time).
     """
 
     kind: str
@@ -76,12 +78,21 @@ class Resolution:
     lists unknown selectors; ``inactive`` lists bare-module selectors that exist
     but whose plugins are all inactive (known-but-empty, distinct from unknown -
     see issue #830); ``empty_reason`` is set when the spec resolves to no probes.
-    ``probes`` and ``buffs`` are convenience accessors over ``selected``."""
+    ``probes`` and ``buffs`` are convenience accessors over ``selected``.
+
+    The intent axis is separate: ``intents``/``blocked_intents`` are raw typology
+    codes (IntentService expands and detectorless-filters them); ``intents`` may
+    be the injected ``run.intent_spec`` default. ``intents_explicit`` flags a
+    user-supplied ``intent:`` (vs the default) to warn when no ``IntentProbe`` is
+    selected."""
 
     selected: Dict[str, List[str]]
     rejected: List[str]
     inactive: List[str] = field(default_factory=list)
     empty_reason: Optional[str] = None
+    intents: List[str] = field(default_factory=list)
+    blocked_intents: List[str] = field(default_factory=list)
+    intents_explicit: bool = False
 
     @property
     def probes(self) -> List[str]:
@@ -147,6 +158,20 @@ def _classify(token: str, include: bool) -> Selector:
         return Selector("tag", token[4:], include, None)
     if token.startswith("tier:"):
         return Selector("tier", _normalize_tier(token[5:]), include, None)
+    # intent typology code (e.g. ``intent:S``, ``intent:S001``, ``intent:S001mis``),
+    # or ``intent:*`` / ``intent:all`` for every intent. A run.spec axis consumed by
+    # IntentService, not a plugin selection; format is validated at resolve time,
+    # typology membership at IntentService load. One code per selector: a
+    # comma-separated value (e.g. an old ``cas.intent_spec: "S004,S005"`` string)
+    # is a syntax error -- use one ``intent:`` per code.
+    if token.startswith("intent:"):
+        value = token[7:].strip()
+        if "," in value:
+            raise ValueError(
+                f"run.spec intent selector {value!r}: use one intent: per code "
+                f"(e.g. 'intent:S004, intent:S005'), not a comma-separated value"
+            )
+        return Selector("intent", value, include, None)
     # explicit empty selection: bare ``none`` (probes) or ``<category>.none``
     # selects nothing for that category, distinct from an unspecified spec.
     if token.lower() == "none":

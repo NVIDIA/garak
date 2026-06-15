@@ -171,6 +171,30 @@ def resolve_spec(spec: _spec.Spec, skip_unknown: bool = False) -> _spec.Resoluti
         elif selector.kind == "tag":
             candidate = {p for p in candidate if not _has_any_tag(p, [selector.value])}
 
+    # Intent axis: a separate selection dimension consumed by IntentService, not
+    # a plugin category. Collect raw typology codes; format is validated here,
+    # typology membership + expansion + detectorless filtering happen later in
+    # IntentService. When no intent: selector is given, inject the configured
+    # default (run.intent_spec) so the intent scope survives a run.spec override.
+    from garak import _config
+    from garak.services.intentservice import validate_intent_specifier
+
+    intent_includes = [s.value for s in spec.include if s.kind == "intent"]
+    intent_excludes = [s.value for s in spec.exclude if s.kind == "intent"]
+    for code in intent_includes + intent_excludes:
+        # ``*`` / ``all`` select every intent (IntentService expands the vacuous
+        # sentinel); other codes must match the typology specifier format.
+        if code.lower() in ("*", "all"):
+            continue
+        if not validate_intent_specifier(code):
+            rejected.append(f"intent:{code}")
+    intents_explicit = bool(intent_includes or intent_excludes)
+    if intent_includes:
+        intents = list(dict.fromkeys(intent_includes))
+    else:
+        default = getattr(_config.run, "intent_spec", None)
+        intents = [c.strip() for c in str(default).split(",") if c.strip()] if default else []
+
     rejected = sorted(set(rejected))
     inactive_modules = sorted(set(inactive_modules))
     if rejected and not skip_unknown:
@@ -192,4 +216,7 @@ def resolve_spec(spec: _spec.Spec, skip_unknown: bool = False) -> _spec.Resoluti
         rejected=rejected,
         inactive=inactive_modules,
         empty_reason=empty_reason,
+        intents=intents,
+        blocked_intents=list(dict.fromkeys(intent_excludes)),
+        intents_explicit=intents_explicit,
     )

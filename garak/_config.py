@@ -41,7 +41,6 @@ system_params = (
 run_params = "seed deprefix eval_threshold generations interactive system_prompt spec".split()
 plugins_params = "target_type target_name extended_detectors".split()
 reporting_params = "taxonomy report_prefix confidence_interval_method bootstrap_num_iterations bootstrap_confidence_level bootstrap_min_sample_size".split()
-cas_params = "intent_spec".split()
 project_dir_name = "garak"
 
 
@@ -128,6 +127,7 @@ run.soft_probe_prompt_cap = 64
 run.target_lang = "en"
 run.langproviders = []
 run.spec = None  # unified selection spec; None -> implicit probes.* at resolve time
+run.intent_spec = "S"  # default intent scope, injected as intent:<value> when run.spec carries no intent: selector
 
 # placeholder
 # generator, probe, detector, buff = {}, {}, {}, {}

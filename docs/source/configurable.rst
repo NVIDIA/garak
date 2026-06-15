@@ -127,6 +127,7 @@ Run Config Items
 
 * ``system_prompt`` -- If given and not overriden by the probe itself, probes will pass the specified system prompt when possible for generators that support chat modality.
 * ``spec`` - The unified selection spec for probes and buffs (``run.spec``); see "Selecting probes and buffs with run.spec" below. If absent, the default is all active probes (``probes.*``); use ``none`` to select no probes explicitly
+* ``intent_spec`` - Default intent scope (comma-separated typology codes / prefixes) injected as the ``run.spec`` ``intent:`` selector when none is given (default ``S``). Use ``run.spec`` ``intent:`` selectors to override per run; the ``cas.*`` modifiers govern expansion / detectorless filtering
 * ``generations`` - How many times to send each prompt for inference
 * ``deprefix`` - Remove the prompt from the start of the output (some models return the prompt as part of their output)
 * ``seed`` - An optional random seed
@@ -182,6 +183,16 @@ Selectors (a category prefix is mandatory):
 * ``tier:<N|name>`` - filters probes by tier; **inclusive** ("log level"): ``tier:N``
   admits tiers ``1..N`` (``tier:1`` is the most critical). Names work too
   (``tier:of_concern`` == ``tier:1``).
+* ``intent:<code>`` - selects intent typology codes for intent-based probes
+  (e.g. ``intent:S`` for the whole Safety branch, ``intent:S001`` for a category,
+  ``intent:S001mis`` for a leaf); ``intent:*`` or ``intent:all`` selects every
+  intent. This is a **separate axis** consumed by the
+  intent service: it does **not** add or remove probes. When no ``intent:`` is
+  given, the default scope ``run.intent_spec`` (default ``S``) is used. Typology
+  expansion and detectorless filtering are governed by the ``cas.*`` modifiers
+  (``expand_intent_tree``, ``serve_detectorless_intents``). Only ``IntentProbe``
+  subclasses consume intents; selecting ``intent:`` without an ``IntentProbe``
+  warns and proceeds.
 
 Polarity: a bare selector (or ``+``) includes; a leading ``-`` removes. Note
 the asymmetry of ``tier``: ``tier:N`` is the inclusive filter, while ``-tier:N``
@@ -208,6 +219,8 @@ wildcard, so quote those specs (or use the ``all`` alias instead).
     garak --spec probes.all,probes.fitd.FITD
     # tiers {1,3}: tier:3 admits 1..3, then -tier:2 removes exactly tier 2
     garak --spec "+probes.*,+tier:3,-tier:2"
+    # an intent probe over one intent category (intents are a separate axis)
+    garak --spec probes.grandma.GrandmaIntent,intent:S004
 
 .. code-block:: yaml
 
@@ -268,7 +281,6 @@ Reporting Config Items
 CAS Config Items
 """"""""""""""""
 
-* ``intent_spec`` - Comma-separated list of intent codes / code prefixes to use with intent-based probes
 * ``expand_intent_tree`` - Flag for whether child intents should be included when parsing the intent spec
 * ``serve_detectorless_intents`` - Should the intent service provide intents for which there are no configured detectors?
 * ``trust_code_stubs`` - Execute code for stub generation, as well as use static data sources
