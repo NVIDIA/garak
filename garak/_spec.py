@@ -18,12 +18,18 @@ adapter shares the same resolution core.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
 # Plugin categories selectable via run.spec. Detectors are not selectable here
 # yet; they keep their own legacy spec surface (parse_plugin_spec).
 _CATEGORIES = ("probes", "buffs")
+
+
+def validate_intent_specifier(intent_specifier: str) -> bool:
+    """Validate a single intent typology specifier (format only)."""
+    return re.fullmatch("[CTMS]([0-9]{3}([a-z]+)?)?", intent_specifier) is not None
 
 
 @dataclass(frozen=True)
@@ -146,7 +152,7 @@ def parse_spec_file(node: Optional[dict]) -> Spec:
                     raise ValueError(
                         f"run.spec item must be a string or single-key mapping: {item!r}"
                     )
-                (key, value), = item.items()
+                ((key, value),) = item.items()
                 item = f"{key}:{value}"
             bucket.append(_classify(item, polarity == "include"))
     return out

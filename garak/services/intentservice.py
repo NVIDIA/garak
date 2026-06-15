@@ -30,12 +30,12 @@ To check the quality of the intents present in the system, see ``tools.cas.inten
 import importlib
 import json
 import logging
-import re
 from typing import List, Set
 import yaml
 
 import garak._config
 import garak.data
+from garak._spec import validate_intent_specifier
 from garak.exception import GarakException
 from garak.intents import Stub, TextStub, ConversationStub
 
@@ -314,11 +314,6 @@ def _get_stubs_code(intent_code: str) -> Set[Stub]:
         stubs = set()
 
     return stubs
-
-
-def validate_intent_specifier(intent_specifier: str) -> bool:
-    """validate a single intent specifier"""
-    return re.fullmatch("[CTMS]([0-9]{3}([a-z]+)?)?", intent_specifier) is not None
 
 
 def get_intent_parts(intent_specifier: str) -> List[str]:

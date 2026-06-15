@@ -44,7 +44,7 @@ def _resolve_plugin_paths(
             # explicit empty selection contributes nothing (and is not unknown)
             continue
         token = selector.value
-        body = token[len(prefix):] if token.startswith(prefix) else token
+        body = token[len(prefix) :] if token.startswith(prefix) else token
         if body == "*":
             names |= {p for p, active in enumerated if active is True}
         elif body.count(".") < 1:
@@ -114,9 +114,7 @@ def resolve_spec(spec: _spec.Spec, skip_unknown: bool = False) -> _spec.Resoluti
     probe_includes = [
         s for s in spec.include if s.kind == "plugin_path" and s.category == "probes"
     ]
-    probe_none = any(
-        s.kind == "none" and s.category == "probes" for s in spec.include
-    )
+    probe_none = any(s.kind == "none" and s.category == "probes" for s in spec.include)
     if probe_includes:
         candidate, rej, inact = _resolve_plugin_paths(probe_includes, "probes")
         rejected += rej
@@ -164,9 +162,7 @@ def resolve_spec(spec: _spec.Spec, skip_unknown: bool = False) -> _spec.Resoluti
             number = int(selector.value)
             removed = {p for p in candidate if _tier_of(p) == number}
             if not removed:
-                logging.debug(
-                    "run.spec: no active probe of tier %s to remove", number
-                )
+                logging.debug("run.spec: no active probe of tier %s to remove", number)
             candidate -= removed
         elif selector.kind == "tag":
             candidate = {p for p in candidate if not _has_any_tag(p, [selector.value])}
@@ -177,7 +173,6 @@ def resolve_spec(spec: _spec.Spec, skip_unknown: bool = False) -> _spec.Resoluti
     # IntentService. When no intent: selector is given, inject the configured
     # default (run.intent_spec) so the intent scope survives a run.spec override.
     from garak import _config
-    from garak.services.intentservice import validate_intent_specifier
 
     intent_includes = [s.value for s in spec.include if s.kind == "intent"]
     intent_excludes = [s.value for s in spec.exclude if s.kind == "intent"]
@@ -186,14 +181,16 @@ def resolve_spec(spec: _spec.Spec, skip_unknown: bool = False) -> _spec.Resoluti
         # sentinel); other codes must match the typology specifier format.
         if code.lower() in ("*", "all"):
             continue
-        if not validate_intent_specifier(code):
+        if not _spec.validate_intent_specifier(code):
             rejected.append(f"intent:{code}")
     intents_explicit = bool(intent_includes or intent_excludes)
     if intent_includes:
         intents = list(dict.fromkeys(intent_includes))
     else:
         default = getattr(_config.run, "intent_spec", None)
-        intents = [c.strip() for c in str(default).split(",") if c.strip()] if default else []
+        intents = (
+            [c.strip() for c in str(default).split(",") if c.strip()] if default else []
+        )
 
     rejected = sorted(set(rejected))
     inactive_modules = sorted(set(inactive_modules))
