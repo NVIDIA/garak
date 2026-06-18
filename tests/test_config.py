@@ -59,7 +59,6 @@ ANSI_ESCAPE = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 XDG_VARS = ("XDG_DATA_HOME", "XDG_CONFIG_HOME", "XDG_CACHE_HOME")
 
 OPTIONS_SOLO = [
-    #    "verbose", # not sure hot to test argparse action="count"
     #    "deprefix", # this param is weird
     "narrow_output",
     "extended_detectors",
@@ -244,6 +243,14 @@ def test_cli_spec_settings(param):
         [f"--{option}", str(value), "--list_config"]
     )  # add list_config as the action so we don't actually run
     assert getattr(_config.plugins, configname) == value
+
+
+def test_cli_verbose_is_binary():
+    # --verbose is a binary on/off switch; repeating it must not accumulate
+    garak.cli.main(["--list_config", "-v"])
+    assert _config.system.verbose == 1, "-v should turn verbose on (1)"
+    garak.cli.main(["--list_config", "-vv"])
+    assert _config.system.verbose == 1, "repeated -v should stay binary, not count up"
 
 
 # test a short-form CLI assertion

@@ -149,14 +149,14 @@ class Harness(Configurable):
         if not detectors:
             msg = "No detectors, nothing to do"
             logging.warning(msg)
-            if hasattr(_config.system, "verbose") and _config.system.verbose >= 2:
+            if hasattr(_config.system, "verbose") and _config.system.verbose > 0:
                 print(msg)
             raise ValueError(msg)
 
         if not probes:
             msg = "No probes, nothing to do"
             logging.warning(msg)
-            if hasattr(_config.system, "verbose") and _config.system.verbose >= 2:
+            if hasattr(_config.system, "verbose") and _config.system.verbose > 0:
                 print(msg)
             raise ValueError(msg)
 

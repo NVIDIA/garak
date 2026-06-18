@@ -97,7 +97,7 @@ System Config Items
 * ``parallel_attempts`` - For parallelisable generators, how many attempts should be run in parallel? Raising this is a great way of speeding up garak runs for API-based models
 * ``parallel_requests`` - For generators not supporting multiple responses per prompt: how many requests to send in parallel with the same prompt? (raising ``parallel_attempts`` generally yields higher performance, depending on how high ``generations`` is set)
 * ``lite`` - Should we display a caution message that the run might not give very thorough results?
-* ``verbose`` - Degree of verbosity (values above 0 are experimental, the report & log are authoritative)
+* ``verbose`` - Enable verbose output (0 = off, 1 = on; the report & log are authoritative)
 * ``narrow_output`` - Support output on narrower CLIs
 * ``show_z`` - Display Z-scores and visual indicators on CLI. It's good, but may be too much info until one has seen garak run a couple of times
 * ``enable_experimental`` - Enable experimental function CLI flags. Disabled by default. Experimental functions may disrupt your installation and provide unusual/unstable results. Can only be set by editing core config, so a git checkout of garak is recommended for this.

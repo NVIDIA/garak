@@ -75,9 +75,10 @@ def main(arguments=None) -> None:
     parser.add_argument(
         "--verbose",
         "-v",
-        action="count",
+        action="store_const",
+        const=1,
         default=_config.system.verbose,
-        help="add one or more times to increase verbosity of output during runtime",
+        help="increase verbosity of output during runtime",
     )
     parser.add_argument(
         "--report_prefix",
@@ -356,7 +357,7 @@ def main(arguments=None) -> None:
     # cli_args contains items specified on CLI; the rest not to be overridden
     cli_args, _ = aux_parser.parse_known_args(arguments)
 
-    # exception: action=count. only verbose uses this, let's bubble it through
+    # verbose isn't added to aux_parser above, so copy it through directly
     cli_args.verbose = args.verbose
 
     # print('ARGS', args)

@@ -122,7 +122,7 @@ class GgmlGenerator(Generator):
         # test all params for None type
         command.extend(self._command_args_list())
         command = [str(param) for param in command]
-        if getattr(_config.system, "verbose", 0) > 1:
+        if getattr(_config.system, "verbose", 0) > 0:
             print("GGML invoked with", command)
         try:
             prompt_text = prompt.last_message().text

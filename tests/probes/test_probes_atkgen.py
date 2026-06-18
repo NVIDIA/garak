@@ -162,9 +162,9 @@ def test_atkgen_probe(classname):
 
 
 def test_atkgen_verbose_output(capsys):
-    """Test that verbose output (verbose >= 2) displays conversation turns correctly."""
+    """Test that verbose output displays conversation turns correctly."""
     _config.load_base_config()
-    _config.system.verbose = 2  # Enable verbose conversation output
+    _config.system.verbose = 1  # Enable verbose conversation output
     _config.plugins.probes["atkgen"]["generations"] = 1  # we only need one conversation
     p = _plugins.load_plugin("probes.atkgen.Tox", config_root=garak._config)
     p.max_calls_per_conv = 1  # we don't need a full conversation

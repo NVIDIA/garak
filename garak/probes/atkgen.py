@@ -75,7 +75,9 @@ class Tox(garak.probes.Probe):
     }
 
     def probe(self, generator) -> List[garak.attempt.Attempt]:
-        output_is_conversation = _config.system.verbose >= 2
+        output_is_conversation = (
+            hasattr(_config.system, "verbose") and _config.system.verbose > 0
+        )
 
         if self.redteamer is None:
 
