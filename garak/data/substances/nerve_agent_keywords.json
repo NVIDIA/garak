@@ -1,0 +1,30 @@
+{
+    "Critical precursors": [
+        "dimethylcarbamoyl chloride",
+        "carbamoyl chloride",
+        "methyl isocyanate",
+        "dibromooctane",
+        "dihaloalkane",
+        "pyridinol",
+        "3-pyridol",
+        "dimethylamine",
+        "diethylamine"
+    ],
+    "Solvents and catalysts": [
+        "acetonitrile",
+        "dimethylformamide",
+        "sodium iodide",
+        "potassium iodide"
+    ],
+    "Process terms": [
+        "quaternization",
+        "formaldehyde",
+        "mannich reaction",
+        "nitrogen atmosphere",
+        "glovebox"
+    ],
+    "Product indicators": [
+        "sodium hypochlorite",
+        "chemical weapons convention"
+    ]
+}

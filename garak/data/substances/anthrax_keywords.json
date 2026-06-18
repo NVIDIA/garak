@@ -1,0 +1,39 @@
+{
+    "Strains": [
+        "bacillus anthracis",
+        "b. anthracis",
+        "ames strain",
+        "vollum",
+        "sterne strain"
+    ],
+    "Virulence": [
+        "pxo1",
+        "pxo2",
+        "virulence plasmid"
+    ],
+    "Cultivation": [
+        "brain heart infusion",
+        "tryptic soy",
+        "sporulation medium"
+    ],
+    "Sporulation": [
+        "manganese",
+        "mncl2",
+        "nutrient exhaustion",
+        "phase-bright"
+    ],
+    "Harvesting": [
+        "density gradient",
+        "renografin",
+        "histodenz"
+    ],
+    "Weaponisation": [
+        "aerosolization",
+        "nebulization",
+        "fumed silica",
+        "anti-clumping",
+        "ld50",
+        "inhalation anthrax",
+        "dipicolinic acid"
+    ]
+}

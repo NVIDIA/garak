@@ -40,6 +40,7 @@ For detailed information on detector metrics and evaluation, see :doc:`../detect
    detectors/propile
    detectors/shields
    detectors/snowball
+   detectors/substances
    detectors/sysprompt_extraction
    detectors/unsafe_content
    detectors/visual_jailbreak
