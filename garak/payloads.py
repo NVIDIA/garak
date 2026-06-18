@@ -6,10 +6,11 @@
 from __future__ import annotations
 
 import json
-import jsonschema
 import logging
 import pathlib
 from typing import Generator, List, Union
+
+import jsonschema
 
 
 import garak._config
@@ -169,7 +170,7 @@ class Director:
         payload objects, and refresh self.payload_list"""
         self.__class__.payload_list = self._scan_payload_dir(PAYLOAD_DIR)
 
-    def search(
+    def search(  # pylint: disable=not-an-iterable,unsubscriptable-object  # payload_list is None at class level but always a dict at runtime after _refresh_payloads
         self, types: Union[List[str], None] = None, include_children=True
     ) -> Generator[str, None, None]:
         """Return list of payload names, optionally filtered by types"""
@@ -177,20 +178,17 @@ class Director:
             if types is None:
                 yield payload
             else:
+                payload_types = self.__class__.payload_list[payload]["types"]
                 if include_children is False:
                     matches = [
                         payload_type == type_prefix
-                        for payload_type in self.__class__.payload_list[payload][
-                            "types"
-                        ]
+                        for payload_type in payload_types
                         for type_prefix in types
                     ]
                 else:
                     matches = [
                         payload_type.startswith(type_prefix)
-                        for payload_type in self.__class__.payload_list[payload][
-                            "types"
-                        ]
+                        for payload_type in payload_types
                         for type_prefix in types
                     ]
                 if any(matches):
@@ -207,7 +205,9 @@ class Director:
     def load(self, name) -> PayloadGroup:
         """Return a PayloadGroup"""
         try:
+            # pylint: disable=unsubscriptable-object  # payload_list is None at class level but always a dict at runtime
             path = self.__class__.payload_list[name]["path"]
+            # pylint: enable=unsubscriptable-object
             p = self._load_payload(name, path)  # or raise KeyError
 
         except KeyError as ke:
@@ -233,8 +233,10 @@ class Director:
 def search(
     types: Union[List[str], None] = None, include_children=True
 ) -> Generator[str, None, None]:
+    """Module-level convenience: search payloads via a transient Director."""
     return Director().search(types, include_children)
 
 
 def load(name: str) -> PayloadGroup:
+    """Module-level convenience: load a named payload via a transient Director."""
     return Director().load(name)

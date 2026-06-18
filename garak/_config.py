@@ -46,7 +46,7 @@ loaded = False
 
 @dataclass
 class GarakSubConfig:
-    pass
+    """Base dataclass for garak configuration sub-objects."""
 
 
 @dataclass
@@ -132,11 +132,10 @@ def _key_exists(d: dict, key: str) -> bool:
     if not isinstance(d, dict) and not isinstance(d, list):
         return False
     if isinstance(d, list):
-        return any([_key_exists(item, key) for item in d])
+        return any(_key_exists(item, key) for item in d)
     if isinstance(d, dict) and key in d.keys():
         return True
-    else:
-        return any([_key_exists(val, key) for val in d.values()])
+    return any(_key_exists(val, key) for val in d.values())
 
 
 def _set_settings(config_obj, settings_obj: dict):
@@ -187,7 +186,8 @@ def _load_config_files(settings_filenames) -> dict:
                         print(f"⚠️  {msg}")
                     else:
                         logging.info(
-                            f"API key found in {settings_filename}. Checking readability..."
+                            "API key found in %s. Checking readability...",
+                            settings_filename,
                         )
                         res = os.stat(settings_filename)
                         if res.st_mode & stat.S_IROTH or res.st_mode & stat.S_IRGRP:
@@ -228,7 +228,8 @@ def _load_config_files(settings_filenames) -> dict:
 
 
 def _store_config(settings_files) -> None:
-    global system, run, plugins, reporting, version
+    """Load config files and apply settings to the global config objects."""
+    global system, run, plugins, reporting, version  # pylint: disable=global-statement
     settings = _load_config_files(settings_files)
     system = _set_settings(system, settings["system"])
     run = _set_settings(run, settings["run"])
@@ -246,19 +247,24 @@ def _store_config(settings_files) -> None:
 REQUESTS_AGENT = ""
 
 
-def _garak_user_agent(dummy=None):
+def _garak_user_agent(_dummy=None):
+    """Return the current garak requests user-agent string.
+
+    Accepts an ignored positional arg to match the ``requests`` UA callback signature.
+    """
     return str(REQUESTS_AGENT)
 
 
 def set_all_http_lib_agents(agent_string):
+    """Set the same user-agent string for all HTTP libraries (requests, httpx, aiohttp)."""
     set_http_lib_agents(
         {"requests": agent_string, "httpx": agent_string, "aiohttp": agent_string}
     )
 
 
 def set_http_lib_agents(agent_strings: dict):
-
-    global REQUESTS_AGENT
+    """Set per-library user-agent strings from a dict keyed by library name."""
+    global REQUESTS_AGENT  # pylint: disable=global-statement
 
     if "requests" in agent_strings:
         from requests import utils
@@ -276,6 +282,7 @@ def set_http_lib_agents(agent_strings: dict):
 
 
 def get_http_lib_agents():
+    """Return the current user-agent strings for requests, httpx, and aiohttp."""
     from requests import utils
     import httpx
     import aiohttp
@@ -289,7 +296,8 @@ def get_http_lib_agents():
 
 
 def load_base_config() -> None:
-    global loaded
+    """Load garak.core.yaml — the minimal base configuration."""
+    global loaded  # pylint: disable=global-statement
     settings_files = [str(transient.package_dir / "resources" / "garak.core.yaml")]
     logging.debug("Loading configs from: %s", ",".join(settings_files))
     _store_config(settings_files=settings_files)
@@ -299,9 +307,10 @@ def load_base_config() -> None:
 def load_config(
     site_config_filename="garak.site.yaml", run_config_filename=None
 ) -> None:
+    """Load site and run config files on top of the base config."""
     # would be good to bubble up things from run_config, e.g. generator, probe(s), detector(s)
     # and then not have cli be upset when these are not given as cli params
-    global loaded
+    global loaded  # pylint: disable=global-statement
 
     settings_files = [str(transient.package_dir / "resources" / "garak.core.yaml")]
 
@@ -318,7 +327,7 @@ def load_config(
             message = "Multiple site config files found (garak.site.json, garak.site.yaml, garak.site.yml). Please use only one site config format."
             logging.error(message)
             raise ValueError(message)
-        elif has_json:
+        if has_json:
             settings_files.append(site_config_json)
         elif has_yaml:
             settings_files.append(site_config_yaml)
@@ -378,7 +387,9 @@ def load_config(
                 if has_json and (has_yaml or has_yml):
                     yaml_ext = ".yaml" if has_yaml else ".yml"
                     logging.warning(
-                        f"Both {run_config_filename}.json and {yaml_ext} found. Using .json"
+                        "Both %s.json and %s found. Using .json",
+                        run_config_filename,
+                        yaml_ext,
                     )
                 if has_json:
                     settings_files.append(json_path)
@@ -410,6 +421,7 @@ def load_config(
 def parse_plugin_spec(
     spec: str, category: str, probe_tag_filter: str = ""
 ) -> tuple[List[str], List[str]]:
+    """Expand a plugin spec string (e.g. 'all', 'dan', 'probes.dan.AntiDAN') into lists of known and unknown plugin names."""
     from garak._plugins import enumerate_plugins
 
     if spec is None or spec.lower() in ("", "auto", "none"):
@@ -453,7 +465,7 @@ def parse_plugin_spec(
             plugin_class_name = plugin_name.split(".")[-1]
             m = importlib.import_module(f"garak.{plugin_module_name}")
             c = getattr(m, plugin_class_name)
-            if not any([tag.startswith(probe_tag_filter) for tag in c.tags]):
+            if not any(tag.startswith(probe_tag_filter) for tag in c.tags):
                 plugins_to_skip.append(
                     plugin_name
                 )  # using list.remove doesn't update for-loop position

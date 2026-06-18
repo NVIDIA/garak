@@ -11,6 +11,12 @@ HINT_CHANCE = 0.25
 
 
 def hint(msg, logging=None):
+    """Print a probabilistic hint message and optionally log it.
+
+    Uses a global HINT_CHANCE probability so hints don't appear on every run.
+    The logging parameter is passed explicitly to avoid import-order issues with
+    the thin garak logging setup.
+    """
     # sub-optimal, but because our logging setup is thin & uses the global
     # default, placing a top-level import can break logging - so we can't
     # assume `logging` is imported at this point.
@@ -22,6 +28,7 @@ def hint(msg, logging=None):
 
 
 def deprecation_notice(deprecated_item: str, version: str, logging=None):
+    """Print and optionally log a deprecation notice for the given item."""
     msg = f"DEPRECATION: {deprecated_item} is deprecated since version {version}"
     visible_msg = f"✋ {msg}"
     if logging is not None:
@@ -30,6 +37,7 @@ def deprecation_notice(deprecated_item: str, version: str, logging=None):
 
 
 def start_logging():
+    """Initialise logging and return the configured log filename."""
     from garak import _config
 
     log_filename = _config.transient.log_filename
@@ -40,6 +48,7 @@ def start_logging():
 
 
 def start_run():
+    """Set up the run UUID, reporting directory, and open the report file."""
     import logging
     import os
     import uuid
@@ -49,7 +58,7 @@ def start_run():
 
     logging.info("run started at %s", _config.transient.starttime_iso)
     # print("ASSIGN UUID", args)
-    if _config.system.lite and "probes" not in _config.transient.cli_args and _config.transient.cli_args.list_probes is None and not _config.transient.cli_args.list_detectors and not _config.transient.cli_args.list_generators and not _config.transient.cli_args.list_buffs and not _config.transient.cli_args.list_config and not _config.transient.cli_args.plugin_info and not _config.run.interactive:  # type: ignore
+    if _config.system.lite and "probes" not in _config.transient.cli_args and _config.transient.cli_args.list_probes is None and not _config.transient.cli_args.list_detectors and not _config.transient.cli_args.list_generators and not _config.transient.cli_args.list_buffs and not _config.transient.cli_args.list_config and not _config.transient.cli_args.plugin_info and not _config.run.interactive:  # type: ignore  # pylint: disable=no-member  # cli_args attrs set dynamically by argparse
         hint(
             "The current/default config is optimised for speed rather than thoroughness. Try e.g. --config full for a stronger test, or specify some probes.",
             logging=logging,
@@ -122,6 +131,7 @@ def start_run():
 
 
 def end_run():
+    """Close the report file, write a completion entry, and build the HTML digest."""
     import datetime
     import logging
 
@@ -146,9 +156,11 @@ def end_run():
 
     digest_filename = _config.transient.report_filename.replace(".jsonl", ".html")
     print(f"📜 report html summary being written to {digest_filename}")
+    # pylint: disable=broad-exception-caught  # report building must not crash the CLI run
     try:
         write_report_digest(_config.transient.report_filename, digest_filename)
     except Exception as e:
+        # pylint: enable=broad-exception-caught
         msg = "Didn't successfully build the report - JSON log preserved. " + repr(e)
         logging.exception(e)
         logging.info(msg)
@@ -163,6 +175,7 @@ def _tier_name(tier_value):
     """Convert a tier int value to its enum name string."""
     try:
         from garak.probes._tier import Tier
+
         return Tier(int(tier_value)).name
     except (ValueError, TypeError):
         return ""
@@ -171,7 +184,7 @@ def _tier_name(tier_value):
 def _truncate(text, max_len=80):
     """Truncate text to max_len, appending ellipsis if needed."""
     if len(text) > max_len:
-        return text[:max_len - 1] + "…"
+        return text[: max_len - 1] + "…"
     return text
 
 
@@ -180,7 +193,12 @@ def _truncate(text, max_len=80):
 # "name" and "active" are always included and handled separately.
 _PLUGIN_TABLE_COLUMNS = {
     "probes": [
-        ("tier", lambda info: _tier_name(info.get("tier")) if info.get("tier") is not None else ""),
+        (
+            "tier",
+            lambda info: (
+                _tier_name(info.get("tier")) if info.get("tier") is not None else ""
+            ),
+        ),
         ("description", lambda info: _truncate(info.get("description", ""))),
     ],
     # Future plugin types can define their own extra columns here, e.g.:
@@ -190,7 +208,7 @@ _PLUGIN_TABLE_COLUMNS = {
 }
 
 
-def print_plugins(prefix: str, color, selected_plugins=None, verbose: int=0):
+def print_plugins(prefix: str, color, selected_plugins=None, verbose: int = 0):
     """
     Print plugins for a category (probes/detectors/generators/buffs).
 
@@ -201,7 +219,7 @@ def print_plugins(prefix: str, color, selected_plugins=None, verbose: int=0):
         verbose: Verbosity level. 0 = plain list, >=1 = markdown table with metadata.
     """
     from colorama import Style
-    from garak._plugins import enumerate_plugins, plugin_info as get_plugin_info, PLUGIN_TYPES
+    from garak._plugins import enumerate_plugins, PLUGIN_TYPES
 
     if prefix not in PLUGIN_TYPES:
         raise ValueError(f"Requested prefix '{prefix}' is not a valid plugin type")
@@ -217,7 +235,10 @@ def print_plugins(prefix: str, color, selected_plugins=None, verbose: int=0):
             print(f"No {prefix} match the provided filter")
             return
 
-    short = [(p.replace(f"{prefix}.", ""), a, p) for p, a, *_ in [(pn, ac, pn) for pn, ac in rows]]
+    short = [
+        (p.replace(f"{prefix}.", ""), a, p)
+        for p, a, *_ in [(pn, ac, pn) for pn, ac in rows]
+    ]
     if selected_plugins is None:
         module_names = {(m.split(".")[0], True, None) for m, a, _ in short}
         short += module_names
@@ -270,7 +291,12 @@ def _print_plugins_table(sorted_items, prefix):
     print(f"{prefix}:")
     print(
         markdown_table(table_data)
-        .set_params(row_sep="markdown", padding_width=1, padding_weight="centerleft", quote=False)
+        .set_params(
+            row_sep="markdown",
+            padding_width=1,
+            padding_weight="centerleft",
+            quote=False,
+        )
         .get_markdown()
     )
 
@@ -288,18 +314,21 @@ def print_probes(selected_probes=None, verbose=0):
 
 
 def print_detectors(selected_detectors=None):
+    """Print available detectors, optionally filtered to selected_detectors."""
     from colorama import Fore
 
     print_plugins("detectors", Fore.LIGHTBLUE_EX, selected_detectors)
 
 
 def print_generators():
+    """Print all available generators."""
     from colorama import Fore
 
     print_plugins("generators", Fore.LIGHTMAGENTA_EX)
 
 
 def print_buffs():
+    """Print all available buffs."""
     from colorama import Fore
 
     print_plugins("buffs", Fore.LIGHTGREEN_EX)
@@ -307,6 +336,7 @@ def print_buffs():
 
 # describe plugin
 def plugin_info(plugin_name):
+    """Print all known metadata for the named plugin."""
     from garak._plugins import plugin_info
 
     info = plugin_info(plugin_name)
@@ -333,6 +363,7 @@ def plugin_info(plugin_name):
 
 # do a run
 def probewise_run(generator, probe_names, evaluator, buffs):
+    """Run probes one-by-one through the probewise harness."""
     import garak.harnesses.probewise
 
     probewise_h = garak.harnesses.probewise.ProbewiseHarness()
@@ -340,6 +371,7 @@ def probewise_run(generator, probe_names, evaluator, buffs):
 
 
 def pxd_run(generator, probe_names, detector_names, evaluator, buffs):
+    """Run probes through the probe-x-detector (PxD) harness."""
     import garak.harnesses.pxd
 
     pxd_h = garak.harnesses.pxd.PxD()
@@ -359,6 +391,7 @@ def _enumerate_obj_values(o):
 
 
 def list_config():
+    """Print all current garak config values to stdout."""
     from garak import _config
 
     print("_config:")
@@ -370,6 +403,7 @@ def list_config():
 
 
 def write_report_digest(report_filename, html_report_filename):
+    """Build and write the HTML digest for the given JSONL report file."""
     from garak.analyze import report_digest
 
     digest = report_digest.build_digest(report_filename)
