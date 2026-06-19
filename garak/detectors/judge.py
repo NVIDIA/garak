@@ -213,6 +213,9 @@ class MulticlassJudge(ModelAsJudge):
     Sends target outputs to a judge model and parses structured JSON responses
     to extract classification scores. Supports user-defined categories, custom
     prompts, and optional JSON schema for structured output APIs.
+
+    Note: ``confidence_cutoff`` uses a 0-100 scale (default 70), unlike the
+    parent ``ModelAsJudge`` which uses a 1-10 scale (default 7).
     """
 
     DEFAULT_PARAMS = ModelAsJudge.DEFAULT_PARAMS | {
@@ -232,8 +235,11 @@ class MulticlassJudge(ModelAsJudge):
     )
 
     def __init__(self, config_root=_config):
+        import copy
         super().__init__(config_root=config_root)
         if self.response_schema is not None:
+            # Deepcopy to avoid mutating a shared generator instance used by other detectors.
+            self.evaluation_generator = copy.deepcopy(self.evaluation_generator)
             if not hasattr(self.evaluation_generator, "extra_params"):
                 self.evaluation_generator.extra_params = {}
             self.evaluation_generator.extra_params["response_format"] = {
@@ -281,10 +287,8 @@ class MulticlassJudge(ModelAsJudge):
             score = process_output_judge_score(raw_text)
             return (score, None)
 
-        cleaned = self._strip_code_fences(raw_text)
-        try:
-            parsed = json.loads(cleaned)
-        except (json.JSONDecodeError, TypeError):
+        parsed = self._extract_json(raw_text, self.score_key)
+        if parsed is None:
             logger.warning(
                 "MulticlassJudge: failed to parse JSON response: %s",
                 raw_text[:200],
@@ -303,12 +307,31 @@ class MulticlassJudge(ModelAsJudge):
         return (score, parsed)
 
     @staticmethod
-    def _strip_code_fences(text: str) -> str:
-        start = text.find("{")
-        end = text.rfind("}")
-        if start == -1 or end == -1:
-            return text
-        return text[start : end + 1]
+    def _extract_json(text: str, required_key: str | None = None) -> dict | None:
+        """Find a valid JSON object in text using a sliding window.
+
+        Tries every {…} substring (longest-first per start position). When
+        ``required_key`` is given, prefers the first candidate that contains it
+        so that valid-but-irrelevant JSON objects in prose are not mistaken for
+        the classification result. Falls back to the first valid JSON object if
+        none contains the key (so callers still receive a partial result).
+        """
+        starts = [i for i, c in enumerate(text) if c == "{"]
+        ends = [i for i, c in enumerate(text) if c == "}"]
+        first_valid: dict | None = None
+        for start in starts:
+            for end in reversed(ends):
+                if end <= start:
+                    break
+                try:
+                    candidate = json.loads(text[start : end + 1])
+                except json.JSONDecodeError:
+                    continue
+                if required_key is None or required_key in candidate:
+                    return candidate
+                if first_valid is None:
+                    first_valid = candidate
+        return first_valid
 
 
 class Jailbreak(ModelAsJudge):

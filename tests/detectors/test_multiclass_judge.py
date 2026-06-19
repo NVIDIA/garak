@@ -99,12 +99,34 @@ def test_parse_rating_fallback(judge_config):
     assert parsed is None
 
 
-def test_strip_code_fences():
-    assert MulticlassJudge._strip_code_fences('```json\n{"a": 1}\n```') == '{"a": 1}'
-    assert MulticlassJudge._strip_code_fences('```\n{"a": 1}\n```') == '{"a": 1}'
-    assert MulticlassJudge._strip_code_fences('{"a": 1}') == '{"a": 1}'
-    assert MulticlassJudge._strip_code_fences('Here is the result:\n{"a": 1}\nDone.') == '{"a": 1}'
-    assert MulticlassJudge._strip_code_fences('no json here') == 'no json here'
+def test_extract_json():
+    assert MulticlassJudge._extract_json('```json\n{"a": 1}\n```') == {"a": 1}
+    assert MulticlassJudge._extract_json('```\n{"a": 1}\n```') == {"a": 1}
+    assert MulticlassJudge._extract_json('{"a": 1}') == {"a": 1}
+    assert MulticlassJudge._extract_json('Here is the result:\n{"a": 1}\nDone.') == {"a": 1}
+    assert MulticlassJudge._extract_json('no json here') is None
+
+
+def test_extract_json_braces_in_prose():
+    # Stray non-JSON braces before the real object should not corrupt extraction.
+    prose_with_braces = (
+        'The model used markers like { brackets } in its reasoning. '
+        'My classification: {"complied": 80, "rejected": 20, "alternative": 0, "other": 0}'
+    )
+    result = MulticlassJudge._extract_json(prose_with_braces, "complied")
+    assert result is not None
+    assert result["complied"] == 80
+
+
+def test_extract_json_valid_json_in_prose():
+    # Valid JSON before the classification object should be skipped when required_key is set.
+    prose_with_valid_json = (
+        'Context: {"source": "user"}. '
+        'My classification: {"complied": 80, "rejected": 20, "alternative": 0, "other": 0}'
+    )
+    result = MulticlassJudge._extract_json(prose_with_valid_json, "complied")
+    assert result is not None
+    assert result["complied"] == 80
 
 
 def test_threshold_boundary(judge_config):
