@@ -11,7 +11,8 @@ active/tier/tag state from ``garak._plugins``.
 same plugin-path resolution core backs the ``parse_plugin_spec`` adapter used
 for detectors.
 
-See :doc:`configurable` for the user-facing grammar and examples.
+See :doc:`configurable` for the user-facing grammar and examples, and :doc:`cas`
+for the intent selection axis (``intent:``) that ``resolve_spec`` collects.
 
 
 Code

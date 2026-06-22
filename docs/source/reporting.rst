@@ -35,6 +35,10 @@ evaluation count (attempt × detector). An intent whose outputs were all unscore
 surfaces as ``0/0`` with ``nones`` > 0, signalling that the target never produced a
 usable response for it.
 
+.. seealso::
+
+   :doc:`cas` for running intent-based scans and interpreting per-intent results.
+
 Confidence Intervals (Optional)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
