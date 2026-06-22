@@ -9,14 +9,14 @@
  */
 
 import { useEffect } from "react";
-import { Flex, Spinner, Grid, StatusMessage } from "@kui/react";
+import { Flex, Spinner, Grid, StatusMessage, Tabs } from "@kui/react";
 import Footer from "../components/Footer";
 import ReportHeader from "../components/Header";
 import ReportDetails from "../components/ReportDetails";
 import SummaryStatsCard from "../components/SummaryStatsCard";
 import ReportFilterBar from "../components/ReportFilterBar";
 import ModuleAccordion from "../components/ModuleAccordion";
-import TechniqueIntentPanel from "../components/TechniqueIntent/TechniqueIntentPanel";
+import { TechniqueIntentPanel } from "../components/TechniqueIntent";
 import ErrorBoundary from "../components/ErrorBoundary";
 import useFlattenedModules from "../hooks/useFlattenedModules";
 import { useReportData } from "../hooks/useReportData";
@@ -84,6 +84,47 @@ function Report({ onThemeChange, currentTheme = "system" }: ReportProps) {
     );
   }
 
+  // Module list (filter bar + accordion), shared between the tabbed and
+  // untabbed layouts.
+  const modulesSection = (
+    <Flex direction="col" style={{ width: "100%" }}>
+      <ReportFilterBar
+        selectedDefcons={selectedDefcons}
+        onToggleDefcon={toggleDefcon}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+      />
+      {modules.length > 0 ? (
+        <ErrorBoundary fallbackMessage="Failed to load modules. Please refresh the page.">
+          <ModuleAccordion
+            modules={modules}
+            accordionKey={selectedReport?.meta.run_uuid ?? "default"}
+            isDark={isDark}
+          />
+        </ErrorBoundary>
+      ) : (
+        <StatusMessage
+          slotMedia={<i className="nv-icons-line-warning"></i>}
+          slotHeading="No modules found in this report"
+          slotSubheading="Try changing the filters or sorting options"
+        />
+      )}
+    </Flex>
+  );
+
+  const techniqueIntentSection = (
+    <ErrorBoundary fallbackMessage="Failed to load technique/intent analysis.">
+      <Flex direction="col" padding="density-lg" style={{ width: "100%" }}>
+        <TechniqueIntentPanel
+          intent={selectedReport.intent}
+          technique={selectedReport.technique}
+          techniqueIntent={selectedReport.technique_intent}
+          isDark={isDark}
+        />
+      </Flex>
+    </ErrorBoundary>
+  );
+
   return (
     <Flex direction="col" style={{ minHeight: "100vh" }}>
       <ReportHeader onThemeToggle={toggleTheme} isDark={isDark} />
@@ -103,43 +144,22 @@ function Report({ onThemeChange, currentTheme = "system" }: ReportProps) {
           </ErrorBoundary>
         </Grid>
 
-        {/* Filter Bar */}
-        <ReportFilterBar
-          selectedDefcons={selectedDefcons}
-          onToggleDefcon={toggleDefcon}
-          sortBy={sortBy}
-          onSortChange={setSortBy}
-        />
-
-        {/* Module List */}
-        {modules.length > 0 ? (
-          <ErrorBoundary fallbackMessage="Failed to load modules. Please refresh the page.">
-            <ModuleAccordion
-              modules={modules}
-              accordionKey={selectedReport?.meta.run_uuid ?? "default"}
-              isDark={isDark}
-            />
-          </ErrorBoundary>
-        ) : (
-          <StatusMessage
-            slotMedia={<i className="nv-icons-line-warning"></i>}
-            slotHeading="No modules found in this report"
-            slotSubheading="Try changing the filters or sorting options"
+        {/* Modules + (when present) Technique/Intent, separated into tabs.
+            Older reports without TI data keep the original single view. */}
+        {hasTechniqueIntent ? (
+          <Tabs
+            defaultValue="modules"
+            items={[
+              { value: "modules", children: "Modules", slotContent: modulesSection },
+              {
+                value: "techniques",
+                children: "Techniques & Intents",
+                slotContent: techniqueIntentSection,
+              },
+            ]}
           />
-        )}
-
-        {/* Technique / Intent Taxonomy */}
-        {hasTechniqueIntent && (
-          <ErrorBoundary fallbackMessage="Failed to load technique/intent analysis.">
-            <Flex direction="col" padding="density-lg">
-              <TechniqueIntentPanel
-                intent={selectedReport.intent}
-                technique={selectedReport.technique}
-                techniqueIntent={selectedReport.technique_intent}
-                isDark={isDark}
-              />
-            </Flex>
-          </ErrorBoundary>
+        ) : (
+          modulesSection
         )}
       </Flex>
 
