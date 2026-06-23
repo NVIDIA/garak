@@ -49,14 +49,14 @@ exercises. The following selects the grandmother technique and scopes it to the
 
 .. code-block:: bash
 
-    garak --spec "probes.grandma.GrandmaIntent, intent:S005hate"
+    garak --spec "probes.grandma.GrandmaIntent,intent:S005hate"
 
 That shows the selection syntax; add a target to run. Against a small test
 target:
 
 .. code-block:: bash
 
-    garak --target_type huggingface --target_name gpt2 --spec "probes.grandma.GrandmaIntent, intent:S005hate"
+    garak --target_type huggingface --target_name gpt2 --spec "probes.grandma.GrandmaIntent,intent:S005hate"
 
 A few things to note:
 
