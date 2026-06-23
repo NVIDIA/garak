@@ -9,11 +9,20 @@
 
 import { describe, it, expect } from "vitest";
 import {
+  buildAxisGroups,
   buildMatrixView,
-  rollupTaxonomyMap,
-  restrictMapToLevelKeys,
+  findNotablePairings,
 } from "../techniqueIntentRollup";
-import type { TaxonomyScoreMap, TechniqueIntentMatrix } from "../../types/ReportEntry";
+import type { TechniqueIntentMatrix } from "../../types/ReportEntry";
+
+/** Builds a matrix from terse {technique, intent, score} triples for tests. */
+const matrixOf = (triples: { t: string; i: string; score: number; n?: number }[]) => {
+  const m: TechniqueIntentMatrix = {};
+  for (const { t, i, score, n } of triples) {
+    (m[t] ??= {})[i] = { score, n_evaluations: n ?? 100, detectors_used: [] };
+  }
+  return m;
+};
 
 // Subset of cells that exercises both row grouping (Roleplaying subcategory)
 // and worst-case pooling within a grouped cell.
@@ -113,73 +122,95 @@ describe("buildMatrixView", () => {
   });
 });
 
-describe("rollupTaxonomyMap", () => {
-  const techniqueMap: TaxonomyScoreMap = {
-    "demon:Fictionalizing:Roleplaying:DAN_and_target_persona": {
-      score: 0.25,
-      n_evaluations: 2580,
-      detectors_used: ["dan.DAN"],
-      probes: ["dan.Dan_11_0"],
-    },
-    "demon:Fictionalizing:Roleplaying:User_persona": {
-      score: 0,
-      n_evaluations: 40,
-      detectors_used: ["dan.DAN", "mitigation.Refusal"],
-      probes: ["dan.AutoDAN"],
-    },
-    "demon:Language:Code_and_encode:Token": {
-      score: 0.998,
-      n_evaluations: 1850,
-      detectors_used: ["safe.det"],
-      probes: ["encoding.InjectBase64"],
-    },
-  };
-
-  it("returns the map unchanged at leaf level (same reference)", () => {
-    expect(rollupTaxonomyMap(techniqueMap, "technique", "leaf")).toBe(techniqueMap);
+describe("buildAxisGroups", () => {
+  it("groups by technique with worst-first intents nested inside", () => {
+    const view = buildMatrixView(matrix, "grouped");
+    const groups = buildAxisGroups(view, "technique");
+    // The Roleplaying row holds the 0% cell, so it surfaces first.
+    expect(groups[0].key).toBe("demon:Fictionalizing:Roleplaying");
+    expect(groups[0].score).toBe(0); // worst child cell
+    // Children are the intent families it was probed against, worst-first.
+    expect(groups[0].cells[0].cell.score).toBe(0); // T009 (worst) before S005
+    expect(groups[0].cells.map(c => c.otherKey)).toEqual(["T009", "S005"]);
   });
 
-  it("pools sibling techniques into a subcategory by their worst (min) score", () => {
-    const rolled = rollupTaxonomyMap(techniqueMap, "technique", "grouped");
-    // The two Roleplaying leaves collapse; Code_and_encode stays on its own.
-    expect(Object.keys(rolled)).toHaveLength(2);
-    const roleplaying = rolled["demon:Fictionalizing:Roleplaying"];
-    expect(roleplaying.score).toBe(0); // worst of 0.25 and 0
-    expect(roleplaying.n_evaluations).toBe(2620); // 2580 + 40 summed
-    expect(roleplaying.detectors_used).toEqual(["dan.DAN", "mitigation.Refusal"]); // unioned
-    expect(roleplaying.probes).toEqual(["dan.Dan_11_0", "dan.AutoDAN"]); // unioned
+  it("sums evaluations across a group's cells", () => {
+    const view = buildMatrixView(matrix, "grouped");
+    const roleplaying = buildAxisGroups(view, "technique").find(
+      g => g.key === "demon:Fictionalizing:Roleplaying",
+    );
+    // T009 cell (2620) + S005 cell (120) pooled.
+    expect(roleplaying!.nEvaluations).toBe(2620 + 120);
   });
 
-  it("pools intent codes into their hazard family", () => {
-    const intentMap: TaxonomyScoreMap = {
-      S004lewd: { score: 0.9, n_evaluations: 100, detectors_used: [] },
-      S004erotica: { score: 0.4, n_evaluations: 50, detectors_used: [] },
-      S005hate: { score: 1, n_evaluations: 200, detectors_used: [] },
-    };
-    const rolled = rollupTaxonomyMap(intentMap, "intent", "grouped");
-    expect(rolled.S004.score).toBe(0.4); // worst of the S004 variants
-    expect(rolled.S004.n_evaluations).toBe(150);
-    expect(rolled.S005.score).toBe(1);
+  it("groups by intent with techniques nested inside", () => {
+    const view = buildMatrixView(matrix, "grouped");
+    const groups = buildAxisGroups(view, "intent");
+    const t009 = groups.find(g => g.key === "T009");
+    expect(t009).toBeDefined();
+    // Only the Roleplaying subcategory pairs with T009 in the fixture.
+    expect(t009!.cells.map(c => c.otherKey)).toEqual(["demon:Fictionalizing:Roleplaying"]);
+    expect(t009!.score).toBe(0);
+  });
+
+  it("returns no groups for an empty matrix", () => {
+    expect(buildAxisGroups(buildMatrixView({}, "grouped"), "technique")).toHaveLength(0);
   });
 });
 
-describe("restrictMapToLevelKeys", () => {
-  // A technique present in the marginal but absent from the matrix (no intent
-  // pairing) must be dropped so the bars match the heatmap rows.
-  const techniqueMap: TaxonomyScoreMap = {
-    "demon:Fictionalizing:Roleplaying:User_persona": { score: 0, n_evaluations: 40, detectors_used: [] },
-    "demon:Language:Stylizing:Leetspeak": { score: 0.8, n_evaluations: 90, detectors_used: [] },
-  };
-
-  it("drops grouped keys that aren't heatmap rows", () => {
-    const allowed = new Set(["demon:Fictionalizing:Roleplaying"]); // matrix only has this row
-    const restricted = restrictMapToLevelKeys(techniqueMap, "technique", "grouped", allowed);
-    expect(Object.keys(restricted)).toEqual(["demon:Fictionalizing:Roleplaying:User_persona"]);
+describe("findNotablePairings", () => {
+  it("flags a combination that fails far worse than its row and column do elsewhere", () => {
+    // Technique A is safe against X but collapses on Y; everything else is fine.
+    const view = buildMatrixView(
+      matrixOf([
+        { t: "demon:Cat:Sub:A", i: "X", score: 1 },
+        { t: "demon:Cat:Sub:A", i: "Y", score: 0 },
+        { t: "demon:Cat:Other:B", i: "X", score: 0.95 },
+        { t: "demon:Cat:Other:B", i: "Y", score: 0.9 },
+      ]),
+      "leaf",
+    );
+    const notable = findNotablePairings(view);
+    expect(notable).toHaveLength(1); // only the A×Y interaction
+    expect(notable[0].rowKey).toBe("demon:Cat:Sub:A");
+    expect(notable[0].colKey).toBe("Y");
+    expect(notable[0].gap).toBeCloseTo(0.9); // min(rowBest 1, colBest 0.9) - 0
   });
 
-  it("matches on the leaf key itself at leaf level", () => {
-    const allowed = new Set(["demon:Language:Stylizing:Leetspeak"]);
-    const restricted = restrictMapToLevelKeys(techniqueMap, "technique", "leaf", allowed);
-    expect(Object.keys(restricted)).toEqual(["demon:Language:Stylizing:Leetspeak"]);
+  it("returns nothing for a separable matrix (intent drives the score)", () => {
+    // Both techniques behave identically; Y is bad for everyone -> no interaction.
+    const view = buildMatrixView(
+      matrixOf([
+        { t: "demon:Cat:Sub:A", i: "X", score: 1 },
+        { t: "demon:Cat:Sub:A", i: "Y", score: 0 },
+        { t: "demon:Cat:Other:B", i: "X", score: 1 },
+        { t: "demon:Cat:Other:B", i: "Y", score: 0 },
+      ]),
+      "leaf",
+    );
+    expect(findNotablePairings(view)).toHaveLength(0);
+  });
+
+  it("never flags single-cell rows/columns (no 'elsewhere' to compare)", () => {
+    const view = buildMatrixView(matrixOf([{ t: "demon:Cat:Sub:A", i: "X", score: 0 }]), "leaf");
+    expect(findNotablePairings(view)).toHaveLength(0);
+  });
+
+  it("orders by surprise (largest gap first) and respects the limit", () => {
+    const view = buildMatrixView(
+      matrixOf([
+        { t: "demon:Cat:Sub:A", i: "X", score: 1 },
+        { t: "demon:Cat:Sub:A", i: "Y", score: 0.1 }, // gap ~0.8
+        { t: "demon:Cat:Other:B", i: "X", score: 1 },
+        { t: "demon:Cat:Other:B", i: "Y", score: 0.9 },
+        { t: "demon:Cat:Third:C", i: "X", score: 1 }, // gives C an "elsewhere"
+        { t: "demon:Cat:Third:C", i: "Y", score: 0 }, // gap ~0.9 (vs colBest 0.9)
+      ]),
+      "leaf",
+    );
+    const notable = findNotablePairings(view, { limit: 1 });
+    expect(notable).toHaveLength(1);
+    expect(notable[0].colKey).toBe("Y");
+    expect(notable[0].rowKey).toBe("demon:Cat:Third:C"); // largest gap surfaces first
   });
 });

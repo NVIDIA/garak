@@ -28,13 +28,8 @@ export { default as ProbesChart } from "./ProbesChart";
 export { default as DetectorsView } from "./DetectorsView";
 
 // Technique/Intent taxonomy components
-export {
-  TechniqueIntentPanel,
-  TechniqueIntentHeatmap,
-  TaxonomyBreakdownChart,
-  TechniqueIntentDetailPanel,
-} from "./TechniqueIntent";
-export type { TechniqueIntentPanelProps, TaxonomyDetail } from "./TechniqueIntent";
+export { TechniqueIntentPanel, TaxonomyAxisList, FlatTaxonomyList } from "./TechniqueIntent";
+export type { TechniqueIntentPanelProps } from "./TechniqueIntent";
 
 // Subcomponent exports
 export { ProbeChartHeader, ProbeTagsList, ProbeBarChart } from "./ProbeChart";

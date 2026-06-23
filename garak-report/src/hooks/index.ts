@@ -49,8 +49,5 @@ export { useProbeChartOptions } from "./useProbeChartOptions";
 export type { EnrichedProbeData } from "./useProbeChartOptions";
 export { useDetectorChartOptions } from "./useDetectorChartOptions";
 export type { DetectorChartOptionsResult } from "./useDetectorChartOptions";
-export { useTechniqueIntentHeatmapOptions } from "./useTechniqueIntentHeatmapOptions";
-export type { HeatmapCell } from "./useTechniqueIntentHeatmapOptions";
-export { useTaxonomyBreakdownChartOptions } from "./useTaxonomyBreakdownChartOptions";
-export type { BarDatum } from "./useTaxonomyBreakdownChartOptions";
+export { useTaxonomyCellChartOptions } from "./useTaxonomyCellChartOptions";
 

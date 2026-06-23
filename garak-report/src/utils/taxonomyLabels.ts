@@ -60,3 +60,17 @@ export function intentGroupKey(code: string): string {
   const match = code.match(/^[A-Za-z]\d{3}/);
   return match ? match[0] : code;
 }
+
+/**
+ * Splits a CamelCase / snake_case detector name into readable words.
+ *
+ * @example
+ * humanizeDetectorName("SurgeProfanityAnimalReferences") // "Surge Profanity Animal References"
+ */
+export function humanizeDetectorName(name: string): string {
+  return name
+    .replace(/_/g, " ")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
+    .trim();
+}

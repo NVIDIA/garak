@@ -12,7 +12,7 @@
  * @license Apache-2.0
  */
 
-import type { TaxonomyScoreMap, TechniqueIntentMatrix } from "../types/ReportEntry";
+import type { TechniqueIntentMatrix } from "../types/ReportEntry";
 import {
   techniqueGroupKey,
   techniqueGroupLabel,
@@ -62,77 +62,6 @@ export interface MatrixView {
   reducible: boolean;
 }
 
-/**
- * Rolls a flat taxonomy map up to the heatmap's active level so the 1D
- * breakdown bars share the heatmap's categories. At `leaf` level the map is
- * returned unchanged; at `grouped` level, sibling leaves are pooled by their
- * group key using the same **conservative (worst-leaf) score** the matrix uses,
- * with evaluations summed and probes/detectors unioned. Keeping both views on
- * one aggregation is what makes a bar line up with its heatmap row/column.
- *
- * @param data - Flat technique or intent score map
- * @param kind - Which group-key function to fold by
- * @param level - Target roll-up level
- */
-export function rollupTaxonomyMap(
-  data: TaxonomyScoreMap,
-  kind: "technique" | "intent",
-  level: MatrixLevel,
-): TaxonomyScoreMap {
-  if (level === "leaf") return data;
-  const groupKeyOf = kind === "technique" ? techniqueGroupKey : intentGroupKey;
-  const rolled: TaxonomyScoreMap = {};
-  const uniqueInto = (target: string[], extra?: string[]) => {
-    for (const item of extra ?? []) if (!target.includes(item)) target.push(item);
-  };
-  for (const [key, entry] of Object.entries(data)) {
-    const groupKey = groupKeyOf(key);
-    const existing = rolled[groupKey];
-    if (!existing) {
-      rolled[groupKey] = {
-        score: entry.score,
-        n_evaluations: entry.n_evaluations,
-        detectors_used: [...(entry.detectors_used ?? [])],
-        aggregation: entry.aggregation,
-        probes: [...(entry.probes ?? [])],
-      };
-    } else {
-      existing.score = Math.min(existing.score, entry.score); // conservative: worst leaf
-      existing.n_evaluations += entry.n_evaluations;
-      uniqueInto(existing.detectors_used, entry.detectors_used);
-      uniqueInto(existing.probes!, entry.probes);
-    }
-  }
-  return rolled;
-}
-
-/**
- * Drops entries from a flat taxonomy map whose active-level key isn't one of
- * `allowed` (the heatmap's row/column keys). The 1D marginal (`digest.technique`
- * / `digest.intent`) can cover techniques/intents that never co-occur as a
- * technique×intent pair, so it can list more buckets than the matrix has
- * rows/columns; restricting it keeps the bars and heatmap on the same universe.
- *
- * @param data - Flat technique or intent score map (leaf-keyed)
- * @param kind - Which group-key function maps a leaf key to its active-level key
- * @param level - Active roll-up level
- * @param allowed - Active-level keys present in the heatmap (rows or columns)
- */
-export function restrictMapToLevelKeys(
-  data: TaxonomyScoreMap,
-  kind: "technique" | "intent",
-  level: MatrixLevel,
-  allowed: Set<string>,
-): TaxonomyScoreMap {
-  const keyOf =
-    level === "grouped" ? (kind === "technique" ? techniqueGroupKey : intentGroupKey) : (k: string) => k;
-  const restricted: TaxonomyScoreMap = {};
-  for (const [key, entry] of Object.entries(data)) {
-    if (allowed.has(keyOf(key))) restricted[key] = entry;
-  }
-  return restricted;
-}
-
 const flatten = (matrix: TechniqueIntentMatrix): MatrixLeaf[] => {
   const leaves: MatrixLeaf[] = [];
   for (const technique of Object.keys(matrix)) {
@@ -151,6 +80,158 @@ const flatten = (matrix: TechniqueIntentMatrix): MatrixLeaf[] => {
   }
   return leaves;
 };
+
+/** Which taxonomy axis a list is organised by (the other axis nests inside). */
+export type TaxonomyAxis = "technique" | "intent";
+
+/** One nested (cross-axis) entry under an {@link AxisGroup}. */
+export interface AxisCell {
+  /** Cross-axis key (the intent under a technique, or technique under an intent). */
+  otherKey: string;
+  /** Display label for the cross-axis key. */
+  otherLabel: string;
+  /** The underlying matrix cell for this pairing. */
+  cell: MatrixCell;
+}
+
+/**
+ * A primary-axis entry for the accordion lists: a technique (with its intents)
+ * or an intent (with its techniques). Scored conservatively — the group score
+ * is its worst child cell — to stay consistent with the heatmap.
+ */
+export interface AxisGroup {
+  /** Active-level primary key (row or column key). */
+  key: string;
+  /** Display label for the primary key. */
+  label: string;
+  /** Worst (minimum) child-cell score — the conservative summary. */
+  score: number;
+  /** Total evaluations pooled across the group's cells. */
+  nEvaluations: number;
+  /** Worst-first cross-axis entries. */
+  cells: AxisCell[];
+}
+
+/**
+ * Reshapes a {@link MatrixView} into worst-first {@link AxisGroup}s for the
+ * accordion lists. With `axis="technique"` each group is a technique row and its
+ * cells are the intents it was probed against; with `axis="intent"` the roles
+ * swap. The primary order follows the view's own worst-first axis ordering, and
+ * each group's cells are sorted worst-first, so the most-vulnerable items surface
+ * first in both dimensions.
+ *
+ * @param view - A built matrix view (leaf or grouped)
+ * @param axis - Which axis to make primary
+ */
+export function buildAxisGroups(view: MatrixView, axis: TaxonomyAxis): AxisGroup[] {
+  const primaries = axis === "technique" ? view.rows : view.cols;
+  const secondaries = axis === "technique" ? view.cols : view.rows;
+  const primaryLabel = axis === "technique" ? view.rowLabel : view.colLabel;
+  const secondaryLabel = axis === "technique" ? view.colLabel : view.rowLabel;
+  const cellOf = (primary: string, secondary: string) =>
+    axis === "technique" ? view.cell(primary, secondary) : view.cell(secondary, primary);
+
+  const groups: AxisGroup[] = [];
+  for (const primary of primaries) {
+    const cells: AxisCell[] = [];
+    for (const secondary of secondaries) {
+      const cell = cellOf(primary, secondary);
+      if (cell) cells.push({ otherKey: secondary, otherLabel: secondaryLabel(secondary), cell });
+    }
+    if (!cells.length) continue;
+    cells.sort((a, b) => a.cell.score - b.cell.score);
+    groups.push({
+      key: primary,
+      label: primaryLabel(primary),
+      score: Math.min(...cells.map(c => c.cell.score)),
+      nEvaluations: cells.reduce((sum, c) => sum + c.cell.nEvaluations, 0),
+      cells,
+    });
+  }
+  return groups;
+}
+
+/** A technique×intent pairing that fails far worse than either axis usually does. */
+export interface NotablePairing {
+  /** Row (technique) key. */
+  rowKey: string;
+  /** Column (intent) key. */
+  colKey: string;
+  /** Display label for the technique. */
+  rowLabel: string;
+  /** Display label for the intent. */
+  colLabel: string;
+  /** This pairing's pass rate (0-1). */
+  score: number;
+  /** Evaluations behind the pairing. */
+  nEvaluations: number;
+  /** Best pass rate the technique reaches against any intent. */
+  rowBest: number;
+  /** Best pass rate the intent reaches against any technique. */
+  colBest: number;
+  /** How far below `min(rowBest, colBest)` this pairing sits (the "surprise"). */
+  gap: number;
+}
+
+/**
+ * Finds **interaction** pairings: cells that score far worse than either their
+ * technique or their intent manages elsewhere. These are the only thing a 2D
+ * matrix reveals that the two 1D lists can't — a combination that's uniquely
+ * dangerous even though the technique is usually fine and the intent is usually
+ * resisted. When the matrix is separable (the common case, where the intent
+ * drives the score and techniques behave alike), this returns nothing.
+ *
+ * A pairing is notable when `min(rowBest, colBest) - score >= margin`, i.e. both
+ * its row and its column reach a much safer score somewhere else. Single-cell
+ * rows/columns can never qualify (there's no "elsewhere" to compare against).
+ *
+ * @param view - A built matrix view (typically leaf level, for concrete combos)
+ * @param opts - `margin` (default 0.5) and `limit` (default 5, worst-surprise first)
+ */
+export function findNotablePairings(
+  view: MatrixView,
+  opts?: { margin?: number; limit?: number },
+): NotablePairing[] {
+  const margin = opts?.margin ?? 0.5;
+  const limit = opts?.limit ?? 5;
+
+  const cells: MatrixCell[] = [];
+  for (const row of view.rows) {
+    for (const col of view.cols) {
+      const cell = view.cell(row, col);
+      if (cell) cells.push(cell);
+    }
+  }
+
+  const rowBest = new Map<string, number>();
+  const colBest = new Map<string, number>();
+  for (const cell of cells) {
+    rowBest.set(cell.row, Math.max(rowBest.get(cell.row) ?? 0, cell.score));
+    colBest.set(cell.col, Math.max(colBest.get(cell.col) ?? 0, cell.score));
+  }
+
+  const notable: NotablePairing[] = [];
+  for (const cell of cells) {
+    const rb = rowBest.get(cell.row) ?? 0;
+    const cb = colBest.get(cell.col) ?? 0;
+    const gap = Math.min(rb, cb) - cell.score;
+    if (gap >= margin) {
+      notable.push({
+        rowKey: cell.row,
+        colKey: cell.col,
+        rowLabel: view.rowLabel(cell.row),
+        colLabel: view.colLabel(cell.col),
+        score: cell.score,
+        nEvaluations: cell.nEvaluations,
+        rowBest: rb,
+        colBest: cb,
+        gap,
+      });
+    }
+  }
+  notable.sort((a, b) => b.gap - a.gap);
+  return notable.slice(0, limit);
+}
 
 /**
  * Builds a {@link MatrixView} from a raw technique_intent matrix at the given
