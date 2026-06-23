@@ -227,7 +227,7 @@ The target structure for garak ``Probe`` class docstrings include the following 
 Writing an IntentProbe
 **********************
 
-Most probes bind one technique to one intent. An ``IntentProbe`` instead runs a
+Many probes bind one technique to one intent. An ``IntentProbe`` instead runs a
 single technique across a *range* of intents supplied at run time by the intent
 service. Reach for one when your technique is intent-agnostic -- a wrapper that
 can carry many different target behaviours -- rather than tied to a specific
