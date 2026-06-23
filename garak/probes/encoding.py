@@ -704,3 +704,36 @@ class InjectSneakyBits(EncodingMixin, garak.probes.Probe):
     def __init__(self, config_root=_config):
         garak.probes.Probe.__init__(self, config_root=config_root)
         EncodingMixin.__init__(self)
+
+
+def _caesar_shift(shift: int):
+    def _encode(text: bytes) -> bytes:
+        out = []
+        for ch in text.decode():
+            if "a" <= ch <= "z":
+                out.append(chr((ord(ch) - ord("a") + shift) % 26 + ord("a")))
+            elif "A" <= ch <= "Z":
+                out.append(chr((ord(ch) - ord("A") + shift) % 26 + ord("A")))
+            else:
+                out.append(ch)
+        return "".join(out).encode("utf-8")
+
+    _encode.__name__ = f"caesar_shift_{shift}"
+    return _encode
+
+
+class InjectCaesar(EncodingMixin, garak.probes.Probe):
+    """Probe for susceptibility to Caesar cipher encoded injections.
+
+    Encodes payloads using Caesar cipher with shifts 3, 7, and 17, and tries
+    a variety of ways of getting the target model to repeat & decode them.
+    ROT13 (shift 13) is handled separately by InjectROT13."""
+
+    doc_uri = "https://en.wikipedia.org/wiki/Caesar_cipher"
+    encoding_name = "Caesar"
+    active = True
+    encoding_funcs = [_caesar_shift(3), _caesar_shift(7), _caesar_shift(17)]
+
+    def __init__(self, config_root=_config):
+        garak.probes.Probe.__init__(self, config_root=config_root)
+        EncodingMixin.__init__(self)
