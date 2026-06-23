@@ -5,6 +5,7 @@
 race conditions under parallel probe execution (issue #1355)."""
 
 import logging
+import multiprocessing
 import os
 import tempfile
 from multiprocessing import Pool
@@ -237,12 +238,113 @@ def test_parallel_worker_fds_are_independent():
         valid_fds = [fd for fd in worker_fds if fd != -1]
         if valid_fds:
             assert all(fd != parent_fd for fd in valid_fds), (
-                "Worker file descriptors must differ from the parent's fd — "
+                "Worker file descriptors must differ from the parent's fd - "
                 "shared fds cause the reentrant-flush race condition"
             )
     finally:
         parent_handler.close()
         root.removeHandler(parent_handler)
+        if old_env is None:
+            os.environ.pop("GARAK_LOG_FILE", None)
+        else:
+            os.environ["GARAK_LOG_FILE"] = old_env
+        os.unlink(log_path)
+
+
+# ---------------------------------------------------------------------------
+# Deterministic fork-based regression test: this is the test that actually
+# exercises the bug fixed by this PR. It must FAIL if _worker_logging_init is
+# bypassed (simulating the pre-fix code) and PASS with it wired up.
+# ---------------------------------------------------------------------------
+
+
+_FORK_AVAILABLE = "fork" in multiprocessing.get_all_start_methods()
+
+
+@pytest.mark.skipif(
+    not _FORK_AVAILABLE,
+    reason=(
+        "This test requires the 'fork' multiprocessing start method to "
+        "reproduce fd inheritance; platforms that only support 'spawn' "
+        "(e.g. Windows) never inherit the parent's open file handles, so "
+        "the underlying bug cannot manifest there."
+    ),
+)
+def test_worker_inherits_parent_fd_without_initializer_but_not_with_it():
+    """Demonstrates the actual bug fixed by this PR (issue #1355).
+
+    Root cause: when :mod:`multiprocessing` *forks* worker processes, each
+    worker inherits the parent's exact, shared file descriptor for any open
+    ``logging.FileHandler``. Concurrent writes -- or reentrant flushes
+    triggered by third-party destructors -- on that shared fd can raise
+    ``RuntimeError: reentrant call inside <_io.BufferedWriter>``.
+
+    This test runs the *same* worker function through a fork-context Pool
+    twice:
+
+    1. WITHOUT any initializer (simulating the code before this PR) -- the
+       worker must report the identical fd number as the parent's open
+       FileHandler, proving the dangerous fd-sharing actually happens.
+    2. WITH ``_worker_logging_init`` as the Pool initializer (the fix in
+       this PR) -- the worker must report a *different* fd, proving each
+       worker now owns a private file descriptor.
+
+    If ``_worker_logging_init`` is removed or not passed to ``Pool(...)``,
+    step 2 will report the same (shared) fd as step 1 and this test fails.
+    """
+    ctx = multiprocessing.get_context("fork")
+
+    with tempfile.NamedTemporaryFile(suffix=".log", delete=False) as f:
+        log_path = f.name
+
+    root = logging.getLogger()
+    original_handlers = root.handlers[:]
+    for h in original_handlers:
+        root.removeHandler(h)
+
+    old_env = os.environ.get("GARAK_LOG_FILE")
+    os.environ["GARAK_LOG_FILE"] = log_path
+
+    parent_handler = logging.FileHandler(log_path)
+    root.addHandler(parent_handler)
+    parent_fd = parent_handler.stream.fileno()
+
+    try:
+        # Step 1: no initializer -- forked worker inherits the parent's fd
+        # table, so it must report the SAME fd as the parent. This is the
+        # exact pre-fix condition that allows concurrent/reentrant writes
+        # on a shared underlying file description to race.
+        with ctx.Pool(processes=1) as pool:
+            (fd_without_initializer,) = pool.map(_log_from_worker, [log_path])
+
+        assert fd_without_initializer == parent_fd, (
+            "Sanity check failed: a forked worker without any logging "
+            "initializer was expected to inherit the parent's exact file "
+            f"descriptor ({parent_fd}), but got {fd_without_initializer}. "
+            "If this fails, the fd-inheritance precondition for issue "
+            "#1355 is not being reproduced on this platform/Python version."
+        )
+
+        # Step 2: with _worker_logging_init -- the worker must close the
+        # inherited handler and open its own, so its fd must differ from
+        # the parent's.
+        with ctx.Pool(processes=1, initializer=_worker_logging_init) as pool:
+            (fd_with_initializer,) = pool.map(_log_from_worker, [log_path])
+
+        assert fd_with_initializer != parent_fd, (
+            "Worker process shared the parent's file descriptor "
+            f"({parent_fd}) even though _worker_logging_init was used as "
+            "the Pool initializer. This is the exact race condition from "
+            "issue #1355: without a fresh, private fd per worker, "
+            "concurrent or reentrant flushes on the shared handle can "
+            "raise 'RuntimeError: reentrant call inside "
+            "<_io.BufferedWriter>'."
+        )
+    finally:
+        parent_handler.close()
+        root.removeHandler(parent_handler)
+        for h in original_handlers:
+            root.addHandler(h)
         if old_env is None:
             os.environ.pop("GARAK_LOG_FILE", None)
         else:
