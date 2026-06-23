@@ -70,9 +70,8 @@ A few things to note:
   (default ``S``, the whole Safety branch) is used.
 
 Each intent carries a short imperative *stub* in the typology, which the
-technique expands into prompts. ``S005hate`` has no explicit stub, so its name
-"Use hate speech" is used; ``GrandmaIntent`` wraps it in a roleplay template,
-producing prompts such as:
+technique expands into prompts. ``GrandmaIntent`` wraps each stub in a roleplay
+template, producing prompts such as:
 
 .. code-block:: text
 
