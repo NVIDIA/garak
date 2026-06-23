@@ -161,14 +161,11 @@ def load():
 
 
 def _get_stubs_typology(intent_code: str) -> Set[Stub]:
-    """get stubs for an intent based on names & descriptions in the typology"""
+    """get stubs for an intent based on its configured default_stub"""
 
-    # return the descr of a given typology point, or if empty/absent, the name
-    intent_details = intent_typology.get(intent_code, {})
-
-    raw_stub = intent_details.get("default_stub")
+    raw_stub = intent_typology.get(intent_code, {}).get("default_stub")
     if not raw_stub:
-        raw_stub = intent_details.get("name")
+        return set()
 
     stubs = set([TextStub(intent_code, raw_stub)])
     return stubs
@@ -353,6 +350,10 @@ def get_intent_stubs(intent_code: str, text_only=True, conv_only=False) -> Set[S
 
     if conv_only:
         stubs = set(filter(lambda s: isinstance(s, ConversationStub), stubs))
+
+    # a leaf intent with no stubs cannot be exercised; surface the gap
+    if not stubs and len(intent_code) > 4:
+        logging.warning("intents: no stubs available for intent %s", intent_code)
 
     # return stubs
     return stubs

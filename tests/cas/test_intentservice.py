@@ -58,6 +58,36 @@ def test_no_spurious_text_intents():
         )
 
 
+def test_typology_stub_no_default_returns_empty(monkeypatch):
+    import garak.services.intentservice as isvc
+
+    monkeypatch.setattr(
+        isvc, "intent_typology", {"C999x": {"name": "Some label", "default_stub": ""}}
+    )
+    assert (
+        isvc._get_stubs_typology("C999x") == set()
+    ), "absent default_stub must not fall back to the category name"
+
+
+def test_get_intent_stubs_empty_leaf_warns(monkeypatch, caplog):
+    import logging
+    import garak.services.intentservice as isvc
+
+    garak._config.load_config()
+    monkeypatch.setattr(isvc, "is_loaded", True)
+    monkeypatch.setattr(
+        isvc,
+        "intent_typology",
+        {"C999none": {"name": "Some label", "default_stub": "", "descr": ""}},
+    )
+    with caplog.at_level(logging.WARNING):
+        stubs = isvc.get_intent_stubs("C999none")
+    assert stubs == set(), "leaf intent without any stub source must yield no stubs"
+    assert any(
+        "no stubs available" in record.getMessage() for record in caplog.records
+    ), "missing stubs for an active leaf intent must be logged"
+
+
 @pytest.mark.skip(reason="nltk.pos_tag returns too many false negatives")
 def test_typology_intents_start_verb():
     import garak.services.intentservice
