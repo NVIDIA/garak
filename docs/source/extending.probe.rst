@@ -279,13 +279,11 @@ proceeds.
 implementation: its ``_prompts_from_stub`` expands each intent stub into many
 grandmother-roleplay prompts by combining personas, actions and activities.
 
-The supporting data and tooling are separate from the probe class: the intent
-typology lives in ``garak/data/cas/trait_typology.json``, supplementary stubs in
+The supporting data is separate from the probe class: the intent typology lives
+in ``garak/data/cas/trait_typology.json``, supplementary stubs in
 ``garak/data/cas/intent_stubs/`` (with optional code stubs under
 ``garak/intents/``, gated by ``cas.trust_code_stubs``), and the
-intent-to-detector map in ``garak/data/cas/intent_detectors.json``. Run
-``python -m tools.cas.intent_quality`` to audit typology entries for missing
-descriptions, stubs and detectors.
+intent-to-detector map in ``garak/data/cas/intent_detectors.json``.
 
 Testing
 *******
