@@ -31,7 +31,7 @@ def test_intentprobe_load():
 def test_intentprobe_root_intents():
     garak._config.load_config()
     garak._config.transient.intent_spec = "S"
-    garak._config.cas.serve_detectorless_intents = True
+    garak._config.run.serve_detectorless_intents = True
     garak.services.intentservice.load()
     i = garak._plugins.load_plugin("probes.base.IntentProbe")
     assert (

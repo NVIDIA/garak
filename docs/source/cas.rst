@@ -165,15 +165,15 @@ Configuration
 The intent scope and its behaviour are controlled by a few settings, documented
 in full in :doc:`configurable`:
 
-* ``cas.expand_intent_tree`` -- whether a category code expands to all of its
+* ``run.expand_intent_tree`` -- whether a category code expands to all of its
   leaves.
-* ``cas.serve_detectorless_intents`` -- whether to include intents that have no
+* ``run.serve_detectorless_intents`` -- whether to include intents that have no
   mapped detector.
 
 When no ``intent:`` selector is given, the default scope ``S`` is injected at
 resolve time; override it with ``run.spec`` ``intent:`` selectors.
 
-(``cas.trust_code_stubs`` enables code-generated stubs and is covered in the
+(``run.trust_code_stubs`` enables code-generated stubs and is covered in the
 developer guide.)
 
 Reading results

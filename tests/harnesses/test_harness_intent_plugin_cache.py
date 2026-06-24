@@ -61,7 +61,7 @@ def intent_report(tmp_path, monkeypatch):
     garak._config.load_config()
     garak._config.run.generations = 1
     garak._config.transient.intent_spec = MAPPED_INTENT
-    garak._config.cas.serve_detectorless_intents = False
+    garak._config.run.serve_detectorless_intents = False
 
     report_path = tmp_path / "intent_plugin_cache.report.jsonl"
     garak._config.transient.report_filename = str(report_path)
