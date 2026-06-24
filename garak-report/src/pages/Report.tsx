@@ -55,8 +55,8 @@ function Report({ onThemeChange, currentTheme = "system" }: ReportProps) {
   const { isDark, toggleTheme } = useThemeMode(currentTheme, onThemeChange);
 
   const hasTechniqueIntent =
-    !!(selectedReport?.technique_intent &&
-      Object.keys(selectedReport.technique_intent).length > 0) ||
+    !!(selectedReport?.technique_intent_matrix &&
+      Object.keys(selectedReport.technique_intent_matrix).length > 0) ||
     !!(selectedReport?.technique && Object.keys(selectedReport.technique).length > 0) ||
     !!(selectedReport?.intent && Object.keys(selectedReport.intent).length > 0);
 
