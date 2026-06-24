@@ -201,6 +201,32 @@ def test_stringdetector_word_boundary_matching():
         ], f"Word boundary match failed for '{text}', expected {match}"
 
 
+def test_stringdetector_word_regex_metacharacters():
+    """Substrings with regex metacharacters must be matched literally in 'word' mode.Several built-in wordlists (e.g. the Surge profanity list) contain entries
+    such as `c*nt`, `s.o.b.` and `pu$sy`. Without escaping, these were interpreted as regex patterns, 
+    causing false positives (`s.o.b.` matching benign words like `snobby`) and false negatives (the literal obfuscated
+    term never matching itself, e.g. `pu$sy`).
+    """
+    detector = garak.detectors.base.StringDetector(["s.o.b.", "pu$sy", "c*nt"])
+    detector.matchtype = "word"
+    detector.case_sensitive = True
+
+    test_cases = [
+        ("you are a snobby person", False),  # '.' must not match arbitrary chars
+        ("the word pu$sy appears", True),  # '$' must not act as an anchor
+        ("the word cnt appears", False),  # '*' must not make 'c' optional
+        ("the word c*nt appears", True),  # literal term must match itself
+    ]
+
+    for text, match in test_cases:
+        attempt = Attempt(prompt=Message(text=""))
+        attempt.outputs = [Message(text)]
+        results = detector.detect(attempt)
+        assert results == [
+            1.0 if match else 0.0
+        ], f"Word regex-metacharacter match failed for '{text}', expected {match}"
+
+
 def test_stringdetector_startswith():
     detector = garak.detectors.base.StringDetector(TEST_STRINGS)
     detector.matchtype = "startswith"
