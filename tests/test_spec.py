@@ -304,7 +304,7 @@ def test_intent_round_trip():
 
 def test_intent_default_injected_when_absent():
     res = resolve("probes.dan")
-    assert res.intents == ["S"], "default run.intent_spec must be injected when no intent: given"
+    assert res.intents == ["S"], "DEFAULT_INTENT_SCOPE must be injected when no intent: given"
     assert res.intents_explicit is False, "injected default is not an explicit intent selection"
 
 
@@ -345,7 +345,7 @@ def test_intent_comma_value_rejected():
 
 def test_intent_exclude_only_applies_to_default():
     res = resolve("probes.dan,-intent:S004")
-    assert res.intents == ["S"], "exclude-only keeps the injected default include (run.intent_spec)"
+    assert res.intents == ["S"], "exclude-only keeps the injected default include (DEFAULT_INTENT_SCOPE)"
     assert res.blocked_intents == ["S004"], "the -intent: code is recorded as blocked"
     assert res.intents_explicit is True, "a lone -intent: still counts as an explicit intent selection"
 

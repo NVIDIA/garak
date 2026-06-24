@@ -170,10 +170,8 @@ def resolve_spec(spec: _spec.Spec, skip_unknown: bool = False) -> _spec.Resoluti
     # Intent axis: a separate selection dimension consumed by IntentService, not
     # a plugin category. Collect raw typology codes; format is validated here,
     # typology membership + expansion + detectorless filtering happen later in
-    # IntentService. When no intent: selector is given, inject the configured
-    # default (run.intent_spec) so the intent scope survives a run.spec override.
-    from garak import _config
-
+    # IntentService. When no intent: selector is given, inject the default scope
+    # (_spec.DEFAULT_INTENT_SCOPE) so the intent scope survives a run.spec override.
     intent_includes = [s.value for s in spec.include if s.kind == "intent"]
     intent_excludes = [s.value for s in spec.exclude if s.kind == "intent"]
     for code in intent_includes + intent_excludes:
@@ -187,10 +185,9 @@ def resolve_spec(spec: _spec.Spec, skip_unknown: bool = False) -> _spec.Resoluti
     if intent_includes:
         intents = list(dict.fromkeys(intent_includes))
     else:
-        default = getattr(_config.run, "intent_spec", None)
-        intents = (
-            [c.strip() for c in str(default).split(",") if c.strip()] if default else []
-        )
+        intents = [
+            c.strip() for c in _spec.DEFAULT_INTENT_SCOPE.split(",") if c.strip()
+        ]
 
     rejected = sorted(set(rejected))
     inactive_modules = sorted(set(inactive_modules))

@@ -35,7 +35,7 @@ import yaml
 
 import garak._config
 import garak.data
-from garak._spec import validate_intent_specifier
+from garak._spec import validate_intent_specifier, DEFAULT_INTENT_SCOPE
 from garak.exception import GarakException
 from garak.intents import Stub, TextStub, ConversationStub
 
@@ -184,15 +184,15 @@ def load():
 
     The active intents come from the resolved ``run.spec`` (``intent:`` axis),
     stashed on ``_config.transient`` by the CLI. When that is absent (e.g. a
-    direct service load that did not resolve a spec), fall back to the default
-    scope in ``run.intent_spec``."""
+    direct service load that did not resolve a spec), fall back to
+    :data:`garak._spec.DEFAULT_INTENT_SCOPE`."""
     global is_loaded
     _load_intent_typology()
     _load_intent_detector_mapping()
     intent_spec = getattr(garak._config.transient, "intent_spec", None)
     blocked_spec = getattr(garak._config.transient, "blocked_intent_spec", None)
     if intent_spec is None:
-        intent_spec = getattr(garak._config.run, "intent_spec", None)
+        intent_spec = DEFAULT_INTENT_SCOPE
     _populate_intents(intent_spec, blocked_spec or "")
     is_loaded = True
 

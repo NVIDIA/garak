@@ -26,6 +26,9 @@ from typing import Dict, List, Optional
 # yet; they keep their own legacy spec surface (parse_plugin_spec).
 _CATEGORIES = ("probes", "buffs")
 
+# Default intent scope (Safety branch), injected when run.spec has no intent:
+DEFAULT_INTENT_SCOPE = "S"
+
 
 def validate_intent_specifier(intent_specifier: str) -> bool:
     """Validate a single intent typology specifier (format only)."""
@@ -88,7 +91,7 @@ class Resolution:
 
     The intent axis is separate: ``intents``/``blocked_intents`` are raw typology
     codes (IntentService expands and detectorless-filters them); ``intents`` may
-    be the injected ``run.intent_spec`` default. ``intents_explicit`` flags a
+    be the injected :data:`DEFAULT_INTENT_SCOPE`. ``intents_explicit`` flags a
     user-supplied ``intent:`` (vs the default) to warn when no ``IntentProbe`` is
     selected."""
 

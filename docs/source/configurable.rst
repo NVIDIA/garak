@@ -126,8 +126,7 @@ Run Config Items
 """"""""""""""""
 
 * ``system_prompt`` -- If given and not overriden by the probe itself, probes will pass the specified system prompt when possible for generators that support chat modality.
-* ``spec`` - The unified selection spec for probes and buffs (``run.spec``); see "Selecting probes and buffs with run.spec" below. If absent, the default is all active probes (``probes.*``); use ``none`` to select no probes explicitly
-* ``intent_spec`` - Default intent scope (comma-separated typology codes / prefixes) injected as the ``run.spec`` ``intent:`` selector when none is given (default ``S``). Use ``run.spec`` ``intent:`` selectors to override per run; the ``cas.*`` modifiers govern expansion / detectorless filtering
+* ``spec`` - The unified selection spec for probes and buffs (``run.spec``); see "Selecting probes and buffs with run.spec" below. If absent, the default is all active probes (``probes.*``); use ``none`` to select no probes explicitly. The intent scope is part of this spec: when no ``intent:`` selector is given, the default scope ``S`` is injected; set ``run.spec`` ``intent:`` selectors to override
 * ``generations`` - How many times to send each prompt for inference
 * ``deprefix`` - Remove the prompt from the start of the output (some models return the prompt as part of their output)
 * ``seed`` - An optional random seed
@@ -188,7 +187,8 @@ Selectors (a category prefix is mandatory):
   ``intent:S001mis`` for a leaf); ``intent:*`` or ``intent:all`` selects every
   intent. This is a **separate axis** consumed by the
   intent service: it does **not** add or remove probes. When no ``intent:`` is
-  given, the default scope ``run.intent_spec`` (default ``S``) is used. Typology
+  given, the default scope ``S`` (the Safety branch) is injected at resolve
+  time. Typology
   expansion and detectorless filtering are governed by the ``cas.*`` modifiers
   (``expand_intent_tree``, ``serve_detectorless_intents``). Only ``IntentProbe``
   subclasses consume intents; selecting ``intent:`` without an ``IntentProbe``

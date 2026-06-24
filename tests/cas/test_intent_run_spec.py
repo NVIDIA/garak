@@ -45,10 +45,10 @@ def test_blocked_intent_removed():
 
 
 def test_default_fallback_when_transient_unset():
-    # transient unset -> fall back to the run.intent_spec default (S)
+    # transient unset -> fall back to DEFAULT_INTENT_SCOPE (S)
     fallback = _load(None)
     explicit_s = _load("S")
-    assert fallback == explicit_s, "unset transient must fall back to run.intent_spec default (S)"
+    assert fallback == explicit_s, "unset transient must fall back to DEFAULT_INTENT_SCOPE (S)"
     assert fallback, "default S scope must resolve to a non-empty active set"
 
 

@@ -18,8 +18,8 @@ which defaults to ``probes.*``). A leading ``-`` excludes; ``tier:N`` is
 inclusive ("log level": tiers ``1..N``).
 
 ``intent:`` is a separate selection axis consumed by the intent service. When no
-``intent:`` selector is given, the configured default scope ``run.intent_spec``
-(default ``S``, the top-level *Safety* branch of the intent typology) is injected
+``intent:`` selector is given, the default scope ``S`` (the top-level *Safety*
+branch of the intent typology, ``garak._spec.DEFAULT_INTENT_SCOPE``) is injected
 at resolve time. Typology expansion (child codes) and detectorless filtering
 happen in the intent service, governed by the ``cas.*`` modifiers.
 

@@ -127,7 +127,6 @@ run.soft_probe_prompt_cap = 64
 run.target_lang = "en"
 run.langproviders = []
 run.spec = None  # unified selection spec; None -> implicit probes.* at resolve time
-run.intent_spec = "S"  # default intent scope, injected as intent:<value> when run.spec carries no intent: selector
 
 # placeholder
 # generator, probe, detector, buff = {}, {}, {}, {}
