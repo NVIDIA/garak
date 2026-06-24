@@ -67,7 +67,7 @@ export type ReportEntry = {
   /** Cross-cutting taxonomy sections (present on reports with technique/intent data). */
   intent?: TaxonomyScoreMap;
   technique?: TaxonomyScoreMap;
-  technique_intent?: TechniqueIntentMatrix;
+  technique_intent_matrix?: TechniqueIntentMatrix;
 };
 
 /**
