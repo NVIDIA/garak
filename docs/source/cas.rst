@@ -66,8 +66,8 @@ A few things to note:
   as ``intent:S005`` ("Toxicity") instead expands, with ``cas.expand_intent_tree``
   (on by default), to all of its leaves (``S005hate``, ``S005bully``,
   ``S005profanity``).
-* If you give no ``intent:`` selector, the default scope ``run.intent_spec``
-  (default ``S``, the whole Safety branch) is used.
+* If you give no ``intent:`` selector, the default scope ``S`` (the whole Safety
+  branch) is injected at resolve time.
 
 Each intent carries a short imperative *stub* in the typology, which the
 technique expands into prompts. ``GrandmaIntent`` wraps each stub in a roleplay
@@ -94,12 +94,13 @@ Configuration
 The intent scope and its behaviour are controlled by a few settings, documented
 in full in :doc:`configurable`:
 
-* ``run.intent_spec`` -- the default intent scope used when no ``intent:``
-  selector is given.
 * ``cas.expand_intent_tree`` -- whether a category code expands to all of its
   leaves.
 * ``cas.serve_detectorless_intents`` -- whether to include intents that have no
   mapped detector.
+
+When no ``intent:`` selector is given, the default scope ``S`` is injected at
+resolve time; override it with ``run.spec`` ``intent:`` selectors.
 
 (``cas.trust_code_stubs`` enables code-generated stubs and is covered in the
 developer guide.)
