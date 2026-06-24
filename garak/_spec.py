@@ -168,8 +168,8 @@ def _classify(token: str, include: bool) -> Selector:
     # or ``intent:*`` / ``intent:all`` for every intent. A run.spec axis consumed by
     # IntentService, not a plugin selection; format is validated at resolve time,
     # typology membership at IntentService load. One code per selector: a
-    # comma-separated value (e.g. an old ``cas.intent_spec: "S004,S005"`` string)
-    # is a syntax error -- use one ``intent:`` per code.
+    # comma-separated value (e.g. ``intent:S004,S005``) is a syntax error --
+    # use one ``intent:`` per code.
     if token.startswith("intent:"):
         value = token[7:].strip()
         if "," in value:
