@@ -27,6 +27,37 @@ import garak.attempt
 import garak.resources.theme
 
 
+def _worker_logging_init():
+    """Pool initializer: close inherited log file handles and re-configure logging.
+
+    When :mod:`multiprocessing` spawns or forks worker processes the parent's
+    open :class:`logging.FileHandler` file descriptors are inherited.  Concurrent
+    writes through those shared handles can trigger a reentrant-flush
+    ``RuntimeError`` (see GitHub issue #1355).  This initializer runs once inside
+    each worker, closes every inherited handler, and re-applies the same
+    ``basicConfig`` the main process used, so each worker gets its own private
+    file descriptor pointing at the same log file.
+    """
+    import os
+    import logging
+
+    root = logging.getLogger()
+    for handler in root.handlers[:]:
+        try:
+            handler.close()
+        except Exception:
+            pass
+        root.removeHandler(handler)
+
+    log_filename = os.environ.get("GARAK_LOG_FILE")
+    if log_filename:
+        logging.basicConfig(
+            filename=log_filename,
+            level=logging.DEBUG,
+            format="%(asctime)s  %(levelname)s  %(message)s",
+        )
+
+
 class Probe(Configurable):
     """Base class for objects that define and execute LLM evaluations"""
 
@@ -332,7 +363,7 @@ class Probe(Configurable):
 
             attempt_pool = None
             try:
-                attempt_pool = Pool(pool_size)
+                attempt_pool = Pool(pool_size, initializer=_worker_logging_init)
                 for result in attempt_pool.imap_unordered(
                     self._execute_attempt, attempts
                 ):
