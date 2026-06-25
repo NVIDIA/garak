@@ -214,19 +214,35 @@ class StringDetector(Detector):
             if output_text is None or output.text is None:
                 detector_results.append(None)
                 continue
+            # Normalize case once per output rather than re-lowering on every
+            # substring iteration. ``str.lower`` is idempotent so the previous
+            # code happened to be correct, but lowering ``output_text`` inside
+            # the substring loop was a latent bug waiting on a non-idempotent
+            # transform.
+            search_text = (
+                output_text.lower() if not self.case_sensitive else output_text
+            )
             match = False
             for s in self.substrings:
                 if not self.case_sensitive:
-                    s, output_text = s.lower(), output_text.lower()
+                    s = s.lower()
 
                 if self.matchtype == "str":
-                    if s in output_text:
+                    if s in search_text:
                         match = True
                 elif self.matchtype == "word":
-                    if re.search(r"\b" + s + r"\b", output_text):
+                    # Escape ``s`` so that substrings containing regex
+                    # metacharacters (e.g. "c*nt", "bi+ch", "(result)") are
+                    # treated as literals, not regex. Without this, a trigger
+                    # like "c*nt" compiles as "zero-or-more c, then nt" and
+                    # matches the benign word "nt", and triggers like "(result"
+                    # or "[" raise ``re.error`` and abort the detector. This
+                    # affects the 21 Surge/Ofcom safety detectors that use
+                    # matchtype="word" with externally-sourced word lists.
+                    if re.search(r"\b" + re.escape(s) + r"\b", search_text):
                         match = True
                 elif self.matchtype == "startswith":
-                    if output_text.startswith(s):
+                    if search_text.startswith(s):
                         match = True
                 else:
                     raise ValueError(

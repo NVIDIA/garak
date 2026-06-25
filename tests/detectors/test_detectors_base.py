@@ -219,3 +219,95 @@ def test_stringdetector_startswith():
         assert results == [
             1.0 if match else 0.0
         ], f"startswith match failed for '{text}', expected {match}"
+
+
+# ---------------------------------------------------------------------------
+# Regex-metacharacter handling in word-match mode (re.escape fix).
+#
+# The word matchtype builds a regex via r"\b" + substring + r"\b". Substrings
+# containing regex metacharacters (as real Surge profanity-list entries do --
+# e.g. "c*nt", "bi+ch") must be escaped so they are matched literally, not
+# compiled as regex. Without re.escape: "c*nt" matches the benign word "nt"
+# (c* = zero-or-more c), and "(" or "[" crash the detector with re.error.
+# ---------------------------------------------------------------------------
+
+# Substrings that are invalid regexes and would crash without re.escape.
+INVALID_REGEX_SUBSTRINGS = ["(result", "(", "[", "a{2,1}", "(*"]
+
+
+@pytest.mark.parametrize("trigger", INVALID_REGEX_SUBSTRINGS)
+def test_word_match_does_not_crash_on_invalid_regex(trigger):
+    detector = garak.detectors.base.StringDetector([trigger])
+    detector.matchtype = "word"
+    attempt = Attempt(prompt=Message(text=""))
+    attempt.outputs = [Message("some benign model output")]
+    results = detector.detect(attempt)
+    assert results == [0.0], f"trigger {trigger!r} should be a non-matching literal"
+
+
+def test_word_match_c_star_nt_does_not_match_benign_nt():
+    """The Surge-list term 'c*nt' compiled as 'c*' (0+ c) + 'nt', so the word
+    boundary regex matched the benign word 'nt'. After re.escape it matches
+    only the literal 'c*nt'."""
+    detector = garak.detectors.base.StringDetector(["c*nt"])
+    detector.matchtype = "word"
+    detector.case_sensitive = False
+
+    attempt = Attempt(prompt=Message(text=""))
+    attempt.outputs = [Message("nt"), Message("c*nt")]
+    results = detector.detect(attempt)
+    assert results == [0.0, 1.0], "c*nt should match only the literal, not 'nt'"
+
+
+def test_word_match_bi_plus_ch_does_not_match_bich():
+    """The Surge-list term 'bi+ch' compiled as 'bi+' (1+ i) + 'ch', matching
+    'bich'/'biich'. After re.escape it matches only the literal 'bi+ch'."""
+    detector = garak.detectors.base.StringDetector(["bi+ch"])
+    detector.matchtype = "word"
+    detector.case_sensitive = False
+
+    attempt = Attempt(prompt=Message(text=""))
+    attempt.outputs = [Message("bich"), Message("biich"), Message("bi+ch")]
+    results = detector.detect(attempt)
+    assert results == [0.0, 0.0, 1.0]
+
+
+def test_word_match_s_o_b_dot_not_treated_as_any_char():
+    """The Surge-list term 's.o.b.' compiled with '.' as any-char. After
+    re.escape the dots are literal; 'sxobx' no longer matches. Note: under
+    word-boundary semantics a term ending in a non-word char ('.') does not
+    match its own literal either -- this is a pre-existing property of the
+    word matchtype, not changed by re.escape. The key assertion is the
+    false-positive 'sxobx' is no longer matched."""
+    detector = garak.detectors.base.StringDetector(["s.o.b."])
+    detector.matchtype = "word"
+    detector.case_sensitive = False
+
+    attempt = Attempt(prompt=Message(text=""))
+    attempt.outputs = [Message("sxobx")]
+    results = detector.detect(attempt)
+    assert results == [0.0], "s.o.b. should not match 'sxobx' after escaping"
+
+
+def test_word_match_plain_term_still_matches_after_escape():
+    """Backward compatibility: a plain substring like 'secret' must still
+    match under word mode after re.escape is applied."""
+    detector = garak.detectors.base.StringDetector(["secret"])
+    detector.matchtype = "word"
+
+    attempt = Attempt(prompt=Message(text=""))
+    attempt.outputs = [Message("a secret message"), Message("nothing here")]
+    results = detector.detect(attempt)
+    assert results == [1.0, 0.0]
+
+
+def test_str_matchtype_unaffected_by_escape():
+    """The 'str' matchtype uses ``in`` (no regex) and is unaffected by the
+    re.escape fix; confirm it still handles metachar substrings literally."""
+    detector = garak.detectors.base.StringDetector(["c*nt"])
+    detector.matchtype = "str"
+
+    attempt = Attempt(prompt=Message(text=""))
+    attempt.outputs = [Message("c*nt"), Message("cnt")]
+    results = detector.detect(attempt)
+    assert results == [1.0, 0.0]
