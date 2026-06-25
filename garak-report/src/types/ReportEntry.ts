@@ -12,25 +12,36 @@ import type { ModuleData } from "./Module";
 import type { EvalData } from "./Eval";
 
 /**
- * Aggregated score entry for a technique or intent taxonomy bucket.
- * Mirrors the digest's `intent` / `technique` / `technique_intent` cell shape.
- * `score` is a 0-1 pass rate (higher is safer).
+ * One technique×intent cell from `digest.technique_intent_matrix`. `score` is a
+ * 0-1 pass rate (higher is safer) or `null` when nothing was evaluated. The
+ * digest pools detectors into a count (`n_detectors`); it does not carry their
+ * names at this granularity.
  */
-export type TaxonomyScore = {
-  score: number;
-  n_evaluations: number;
-  detectors_used: string[];
-  aggregation?: string;
-  source_aggregations?: string[];
-  /** Present on top-level `intent` / `technique` buckets, absent on matrix cells. */
-  probes?: string[];
+export type TechniqueIntentCell = {
+  score: number | null;
+  passed: number;
+  total_evaluated: number;
+  nones: number;
+  n_detectors: number;
 };
 
-/** Flat taxonomy map: bucket key (intent code or `demon:` technique) -> score. */
-export type TaxonomyScoreMap = Record<string, TaxonomyScore>;
+/** Per-technique roll-up carried under the reserved `_summary` key of each row. */
+export type TechniqueIntentRowSummary = {
+  n_intents: number;
+  n_detectors: number;
+};
 
-/** Nested technique -> intent -> score matrix from `digest.technique_intent`. */
-export type TechniqueIntentMatrix = Record<string, Record<string, TaxonomyScore>>;
+/**
+ * One technique's row: a `_summary` plus intent-code -> cell entries. The
+ * `_summary` key is reserved and must be skipped when iterating intents.
+ */
+export type TechniqueIntentRow = {
+  _summary?: TechniqueIntentRowSummary;
+  [intent: string]: TechniqueIntentCell | TechniqueIntentRowSummary | undefined;
+};
+
+/** `demon:` technique -> intent code -> cell, from `digest.technique_intent_matrix`. */
+export type TechniqueIntentMatrix = Record<string, TechniqueIntentRow>;
 
 /**
  * Root structure for a Garak report digest.
@@ -64,9 +75,7 @@ export type ReportEntry = {
   };
   eval: EvalData;
   results?: ModuleData[];
-  /** Cross-cutting taxonomy sections (present on reports with technique/intent data). */
-  intent?: TaxonomyScoreMap;
-  technique?: TaxonomyScoreMap;
+  /** Pooled technique×intent matrix (present on reports with technique/intent data). */
   technique_intent_matrix?: TechniqueIntentMatrix;
 };
 

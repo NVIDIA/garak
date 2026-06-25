@@ -54,11 +54,10 @@ function Report({ onThemeChange, currentTheme = "system" }: ReportProps) {
   // Theme mode
   const { isDark, toggleTheme } = useThemeMode(currentTheme, onThemeChange);
 
-  const hasTechniqueIntent =
-    !!(selectedReport?.technique_intent_matrix &&
-      Object.keys(selectedReport.technique_intent_matrix).length > 0) ||
-    !!(selectedReport?.technique && Object.keys(selectedReport.technique).length > 0) ||
-    !!(selectedReport?.intent && Object.keys(selectedReport.intent).length > 0);
+  const hasTechniqueIntent = !!(
+    selectedReport?.technique_intent_matrix &&
+    Object.keys(selectedReport.technique_intent_matrix).length > 0
+  );
 
   // Update document title with target name
   useEffect(() => {
@@ -116,9 +115,7 @@ function Report({ onThemeChange, currentTheme = "system" }: ReportProps) {
     <ErrorBoundary fallbackMessage="Failed to load technique/intent analysis.">
       <Flex direction="col" style={{ width: "100%" }}>
         <TechniqueIntentPanel
-          intent={selectedReport.intent}
-          technique={selectedReport.technique}
-          techniqueIntent={selectedReport.technique_intent}
+          techniqueIntent={selectedReport.technique_intent_matrix}
           isDark={isDark}
         />
       </Flex>

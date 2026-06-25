@@ -12,7 +12,7 @@
  * @license Apache-2.0
  */
 
-import type { TechniqueIntentMatrix } from "../types/ReportEntry";
+import type { TechniqueIntentCell, TechniqueIntentMatrix } from "../types/ReportEntry";
 import {
   techniqueGroupKey,
   techniqueGroupLabel,
@@ -27,9 +27,14 @@ export type MatrixLevel = "grouped" | "leaf";
 export interface MatrixLeaf {
   technique: string;
   intent: string;
+  /** 0-1 pass rate. Pairings the digest left unevaluated (null) are dropped. */
   score: number;
   nEvaluations: number;
-  detectors: string[];
+  passed: number;
+  /** Undetermined evaluations (detector returned no verdict). */
+  nones: number;
+  /** Detectors that scored this pairing (a count; the digest carries no names). */
+  nDetectors: number;
 }
 
 /** An aggregated (or single-leaf) matrix cell. */
@@ -40,10 +45,14 @@ export interface MatrixCell {
   score: number;
   /** Total evaluations pooled into the cell. */
   nEvaluations: number;
+  /** Passing evaluations pooled into the cell. */
+  passed: number;
+  /** Undetermined evaluations pooled into the cell. */
+  nones: number;
+  /** Most detectors any pooled leaf was scored by. */
+  nDetectors: number;
   /** Number of leaf pairs pooled into the cell. */
   leafCount: number;
-  /** Union of detectors across the pooled leaves. */
-  detectors: string[];
   /** The underlying leaf pairs (worst-first). */
   leaves: MatrixLeaf[];
 }
@@ -67,14 +76,19 @@ const flatten = (matrix: TechniqueIntentMatrix): MatrixLeaf[] => {
   for (const technique of Object.keys(matrix)) {
     const row = matrix[technique];
     for (const intent of Object.keys(row)) {
-      const entry = row[intent];
-      if (!entry) continue;
+      if (intent === "_summary") continue; // reserved per-row roll-up, not a cell
+      const cell = row[intent] as TechniqueIntentCell | undefined;
+      // A null score (or nothing evaluated) means this pairing was never probed —
+      // drop it so it can't land in the severity bands or worst-first ordering.
+      if (!cell || cell.score == null || cell.total_evaluated === 0) continue;
       leaves.push({
         technique,
         intent,
-        score: entry.score,
-        nEvaluations: entry.n_evaluations,
-        detectors: entry.detectors_used ?? [],
+        score: cell.score,
+        nEvaluations: cell.total_evaluated,
+        passed: cell.passed,
+        nones: cell.nones,
+        nDetectors: cell.n_detectors,
       });
     }
   }
@@ -260,18 +274,20 @@ export function buildMatrixView(matrix: TechniqueIntentMatrix, level: MatrixLeve
         col,
         score: leaf.score,
         nEvaluations: leaf.nEvaluations,
+        passed: leaf.passed,
+        nones: leaf.nones,
+        nDetectors: leaf.nDetectors,
         leafCount: 1,
-        detectors: [...leaf.detectors],
         leaves: [leaf],
       });
     } else {
       existing.score = Math.min(existing.score, leaf.score); // conservative: worst leaf
       existing.nEvaluations += leaf.nEvaluations;
+      existing.passed += leaf.passed;
+      existing.nones += leaf.nones;
+      existing.nDetectors = Math.max(existing.nDetectors, leaf.nDetectors);
       existing.leafCount += 1;
       existing.leaves.push(leaf);
-      for (const d of leaf.detectors) {
-        if (!existing.detectors.includes(d)) existing.detectors.push(d);
-      }
     }
   }
 

@@ -9,4 +9,4 @@
 
 export { default as TechniqueIntentPanel } from "./TechniqueIntentPanel";
 export type { TechniqueIntentPanelProps } from "./TechniqueIntentPanel";
-export { default as TaxonomyAxisList, FlatTaxonomyList } from "./TaxonomyAxisList";
+export { default as TaxonomyAxisList } from "./TaxonomyAxisList";

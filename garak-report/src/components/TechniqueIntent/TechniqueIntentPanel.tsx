@@ -23,7 +23,7 @@ import {
   Tabs,
   Text,
 } from "@kui/react";
-import type { TaxonomyScoreMap, TechniqueIntentMatrix } from "../../types/ReportEntry";
+import type { TechniqueIntentMatrix } from "../../types/ReportEntry";
 import { DEFCON_LABELS, DEFCON_LEVELS, scoreToDefcon } from "../../constants";
 import { formatRate } from "../../utils/formatPercentage";
 import {
@@ -37,15 +37,11 @@ import useSeverityColor from "../../hooks/useSeverityColor";
 import DefconBadge from "../DefconBadge";
 import ErrorBoundary from "../ErrorBoundary";
 import ReportFilterBar from "../ReportFilterBar";
-import TaxonomyAxisList, { FlatTaxonomyList } from "./TaxonomyAxisList";
+import TaxonomyAxisList from "./TaxonomyAxisList";
 
 /** Props for TechniqueIntentPanel component */
 export interface TechniqueIntentPanelProps {
-  /** Flat intent -> score map (`digest.intent`) */
-  intent?: TaxonomyScoreMap;
-  /** Flat technique -> score map (`digest.technique`) */
-  technique?: TaxonomyScoreMap;
-  /** Nested technique -> intent -> score matrix (`digest.technique_intent`) */
+  /** Pooled technique×intent matrix (`digest.technique_intent_matrix`) */
   techniqueIntent?: TechniqueIntentMatrix;
   /** Theme mode for styling (unused now the charts are gone; kept for the API) */
   isDark?: boolean;
@@ -185,14 +181,9 @@ const NotablePairings = ({ items }: { items: NotablePairing[] }) => (
 
 /**
  * Renders the technique/intent taxonomy view. Shows a graceful empty state when
- * none of the three sections are present (e.g. older reports).
+ * the report carries no technique×intent matrix (e.g. older reports).
  */
-const TechniqueIntentPanel = ({
-  intent,
-  technique,
-  techniqueIntent,
-  isDark,
-}: TechniqueIntentPanelProps) => {
+const TechniqueIntentPanel = ({ techniqueIntent, isDark }: TechniqueIntentPanelProps) => {
   const [level, setLevel] = useState<MatrixLevel>("leaf");
   const [selectedDefcons, setSelectedDefcons] = useState<number[]>([...DEFCON_LEVELS]);
   const [sortBy, setSortBy] = useState<SortOption>("defcon");
@@ -210,8 +201,6 @@ const TechniqueIntentPanel = ({
   const activeView = activeLevel === "grouped" ? viewGrouped : viewLeaf;
 
   const hasMatrix = hasEntries(techniqueIntent);
-  const hasTechnique = hasEntries(technique);
-  const hasIntent = hasEntries(intent);
 
   // Summary + interaction signal are derived from the concrete leaf pairings so
   // they stay stable regardless of the Grouped/Leaf toggle below.
@@ -248,7 +237,7 @@ const TechniqueIntentPanel = ({
     setIntentOpen("");
   }, []);
 
-  if (!hasMatrix && !hasTechnique && !hasIntent) {
+  if (!hasMatrix) {
     return (
       <StatusMessage
         size="medium"
@@ -258,103 +247,57 @@ const TechniqueIntentPanel = ({
     );
   }
 
-  const tabItems = hasMatrix
-    ? [
-        {
-          value: "technique",
-          children: "By technique",
-          slotContent: (
-            // KUI tab panels align children to flex-start, so the list must
-            // claim full width explicitly (the same trick the Modules tab uses).
-            <Flex direction="col" style={{ width: "100%" }}>
-              <ErrorBoundary fallbackMessage="Failed to load the technique list.">
-                <TaxonomyAxisList
-                  view={activeView}
-                  axis="technique"
-                  selectedDefcons={selectedDefcons}
-                  sortBy={sortBy}
-                  openValue={techOpen}
-                  onOpenChange={setTechOpen}
-                  isDark={isDark}
-                />
-              </ErrorBoundary>
-            </Flex>
-          ),
-        },
-        {
-          value: "intent",
-          children: "By intent",
-          slotContent: (
-            <Flex direction="col" style={{ width: "100%" }}>
-              <ErrorBoundary fallbackMessage="Failed to load the intent list.">
-                <TaxonomyAxisList
-                  view={activeView}
-                  axis="intent"
-                  selectedDefcons={selectedDefcons}
-                  sortBy={sortBy}
-                  openValue={intentOpen}
-                  onOpenChange={setIntentOpen}
-                  isDark={isDark}
-                />
-              </ErrorBoundary>
-            </Flex>
-          ),
-        },
-      ]
-    : [
-        hasTechnique && {
-          value: "technique",
-          children: "By technique",
-          slotContent: (
-            <Flex direction="col" style={{ width: "100%" }}>
-              <ErrorBoundary fallbackMessage="Failed to load the technique list.">
-                <FlatTaxonomyList
-                  data={technique!}
-                  axis="technique"
-                  selectedDefcons={selectedDefcons}
-                  sortBy={sortBy}
-                  openValue={techOpen}
-                  onOpenChange={setTechOpen}
-                />
-              </ErrorBoundary>
-            </Flex>
-          ),
-        },
-        hasIntent && {
-          value: "intent",
-          children: "By intent",
-          slotContent: (
-            <Flex direction="col" style={{ width: "100%" }}>
-              <ErrorBoundary fallbackMessage="Failed to load the intent list.">
-                <FlatTaxonomyList
-                  data={intent!}
-                  axis="intent"
-                  selectedDefcons={selectedDefcons}
-                  sortBy={sortBy}
-                  openValue={intentOpen}
-                  onOpenChange={setIntentOpen}
-                />
-              </ErrorBoundary>
-            </Flex>
-          ),
-        },
-      ].filter(Boolean);
-
-  // Keep the active tab valid for marginal-only reports that may lack one axis.
-  const tabValue = tabItems.some(t => t && t.value === activeTab)
-    ? activeTab
-    : (tabItems[0] && tabItems[0].value) || "technique";
+  const tabItems = [
+    {
+      value: "technique",
+      children: "By technique",
+      slotContent: (
+        // KUI tab panels align children to flex-start, so the list must
+        // claim full width explicitly (the same trick the Modules tab uses).
+        <Flex direction="col" style={{ width: "100%" }}>
+          <ErrorBoundary fallbackMessage="Failed to load the technique list.">
+            <TaxonomyAxisList
+              view={activeView}
+              axis="technique"
+              selectedDefcons={selectedDefcons}
+              sortBy={sortBy}
+              openValue={techOpen}
+              onOpenChange={setTechOpen}
+              isDark={isDark}
+            />
+          </ErrorBoundary>
+        </Flex>
+      ),
+    },
+    {
+      value: "intent",
+      children: "By intent",
+      slotContent: (
+        <Flex direction="col" style={{ width: "100%" }}>
+          <ErrorBoundary fallbackMessage="Failed to load the intent list.">
+            <TaxonomyAxisList
+              view={activeView}
+              axis="intent"
+              selectedDefcons={selectedDefcons}
+              sortBy={sortBy}
+              openValue={intentOpen}
+              onOpenChange={setIntentOpen}
+              isDark={isDark}
+            />
+          </ErrorBoundary>
+        </Flex>
+      ),
+    },
+  ];
 
   return (
     <Flex direction="col" gap="density-2xl" style={{ width: "100%" }}>
-      {hasMatrix && (
-        <SeveritySummary
-          counts={stats.counts}
-          total={stats.total}
-          techniques={stats.techniques}
-          intents={stats.intents}
-        />
-      )}
+      <SeveritySummary
+        counts={stats.counts}
+        total={stats.total}
+        techniques={stats.techniques}
+        intents={stats.intents}
+      />
 
       {notable.length > 0 && <NotablePairings items={notable} />}
 
@@ -367,15 +310,9 @@ const TechniqueIntentPanel = ({
           slotEnd={reducible ? <LevelToggle level={activeLevel} onChange={changeLevel} /> : undefined}
         />
         <Tabs
-          value={tabValue}
+          value={activeTab}
           onValueChange={value => setActiveTab(value as AxisTab)}
-          items={
-            tabItems.filter(Boolean) as {
-              value: string;
-              children: string;
-              slotContent: ReactNode;
-            }[]
-          }
+          items={tabItems as { value: string; children: string; slotContent: ReactNode }[]}
         />
       </Flex>
     </Flex>

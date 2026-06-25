@@ -18,8 +18,9 @@ export type {
   ReportEntry,
   CalibrationData,
   ReportDetailsProps,
-  TaxonomyScore,
-  TaxonomyScoreMap,
+  TechniqueIntentCell,
+  TechniqueIntentRow,
+  TechniqueIntentRowSummary,
   TechniqueIntentMatrix,
 } from "./ReportEntry";
 

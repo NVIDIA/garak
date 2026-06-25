@@ -19,7 +19,14 @@ import type { TechniqueIntentMatrix } from "../../types/ReportEntry";
 const matrixOf = (triples: { t: string; i: string; score: number; n?: number }[]) => {
   const m: TechniqueIntentMatrix = {};
   for (const { t, i, score, n } of triples) {
-    (m[t] ??= {})[i] = { score, n_evaluations: n ?? 100, detectors_used: [] };
+    const total = n ?? 100;
+    (m[t] ??= {})[i] = {
+      score,
+      passed: Math.round(score * total),
+      total_evaluated: total,
+      nones: 0,
+      n_detectors: 1,
+    };
   }
   return m;
 };
@@ -38,8 +45,10 @@ const matrix: TechniqueIntentMatrix = {};
 for (const c of cells) {
   (matrix[c.t] ??= {})[c.i] = {
     score: c.passed / c.total,
-    n_evaluations: c.total,
-    detectors_used: [],
+    passed: c.passed,
+    total_evaluated: c.total,
+    nones: 0,
+    n_detectors: 1,
   };
 }
 
@@ -110,7 +119,7 @@ describe("buildMatrixView", () => {
     it("is not reducible when every group already holds a single leaf", () => {
       const flat: TechniqueIntentMatrix = {
         "demon:Language:Code_and_encode:Token": {
-          S005hate: { score: 0.9, n_evaluations: 100, detectors_used: [] },
+          S005hate: { score: 0.9, passed: 90, total_evaluated: 100, nones: 0, n_detectors: 1 },
         },
       };
       const grouped = buildMatrixView(flat, "grouped");
@@ -119,6 +128,46 @@ describe("buildMatrixView", () => {
       expect(grouped.rows).toHaveLength(1);
       expect(buildMatrixView(flat, "leaf").rows).toHaveLength(1);
     });
+
+    it("skips the reserved per-row _summary key", () => {
+      const withSummary: TechniqueIntentMatrix = {
+        "demon:Cat:Sub:A": {
+          _summary: { n_intents: 1, n_detectors: 2 },
+          X: { score: 0.5, passed: 50, total_evaluated: 100, nones: 0, n_detectors: 2 },
+        },
+      };
+      const view = buildMatrixView(withSummary, "leaf");
+      expect(view.cols).toEqual(["X"]); // _summary must not become a column
+      expect(view.cell("demon:Cat:Sub:A", "X")!.nDetectors).toBe(2);
+    });
+
+    it("drops cells the digest left unevaluated (null score or zero evals)", () => {
+      const sparse: TechniqueIntentMatrix = {
+        "demon:Cat:Sub:A": {
+          X: { score: null, passed: 0, total_evaluated: 0, nones: 0, n_detectors: 0 },
+          Y: { score: 0.4, passed: 40, total_evaluated: 100, nones: 0, n_detectors: 1 },
+        },
+      };
+      const view = buildMatrixView(sparse, "leaf");
+      expect(view.cols).toEqual(["Y"]); // the null-score X pairing is excluded
+      expect(view.cell("demon:Cat:Sub:A", "X")).toBeUndefined();
+    });
+  });
+
+  it("pools passed / undetermined counts and keeps the worst detector count", () => {
+    const pooled: TechniqueIntentMatrix = {
+      "demon:Cat:Sub:A": {
+        S005hate: { score: 0.2, passed: 20, total_evaluated: 100, nones: 5, n_detectors: 3 },
+      },
+      "demon:Cat:Sub:B": {
+        S005erotica: { score: 0.6, passed: 60, total_evaluated: 100, nones: 1, n_detectors: 2 },
+      },
+    };
+    const cell = buildMatrixView(pooled, "grouped").cell("demon:Cat:Sub", "S005")!;
+    expect(cell.score).toBe(0.2); // worst leaf
+    expect(cell.passed).toBe(80); // summed
+    expect(cell.nones).toBe(6); // summed
+    expect(cell.nDetectors).toBe(3); // max across pooled leaves
   });
 });
 

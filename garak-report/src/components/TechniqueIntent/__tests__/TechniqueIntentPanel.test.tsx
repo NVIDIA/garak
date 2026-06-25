@@ -2,7 +2,7 @@
  * @file TechniqueIntentPanel.test.tsx
  * @description Integration tests for the Techniques & Intents tab: the severity
  *              summary, notable-pairings callout, filter/sort/level controls, and
- *              the matrix vs marginal-only rendering paths.
+ *              the empty state for reports without a matrix.
  *
  * @copyright NVIDIA Corporation 2023-2026
  * @license Apache-2.0
@@ -12,7 +12,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import type { ReactNode } from "react";
 import TechniqueIntentPanel from "../TechniqueIntentPanel";
-import type { TechniqueIntentMatrix, TaxonomyScoreMap } from "../../../types/ReportEntry";
+import type { TechniqueIntentMatrix } from "../../../types/ReportEntry";
 import type {
   MockAccordionProps,
   MockBadgeProps,
@@ -106,7 +106,13 @@ vi.mock("echarts-for-react", () => ({
   default: () => <div data-testid="echarts" />,
 }));
 
-const score = (s: number) => ({ score: s, n_evaluations: 100, detectors_used: ["dan.DAN"] });
+const score = (s: number) => ({
+  score: s,
+  passed: Math.round(s * 100),
+  total_evaluated: 100,
+  nones: 0,
+  n_detectors: 1,
+});
 
 // Two leaf techniques in one subcategory (so grouping is reducible) and an
 // interaction pairing: (one × i1) fails at 0 while both its row and column reach
@@ -114,13 +120,6 @@ const score = (s: number) => ({ score: s, n_evaluations: 100, detectors_used: ["
 const matrix: TechniqueIntentMatrix = {
   "demon:T:Sub:one": { i1: score(0), i2: score(1) },
   "demon:T:Sub:two": { i1: score(1) },
-};
-
-const techniqueMap: TaxonomyScoreMap = {
-  "demon:T:Sub:one": { ...score(0.3), probes: ["p.a", "p.b"] },
-};
-const intentMap: TaxonomyScoreMap = {
-  i1: { ...score(1), probes: [] },
 };
 
 describe("TechniqueIntentPanel", () => {
@@ -154,19 +153,5 @@ describe("TechniqueIntentPanel", () => {
     fireEvent.click(screen.getByTestId("tab-intent"));
 
     expect(screen.getByTestId("tabs"), "panel stays mounted through interactions").toBeInTheDocument();
-  });
-
-  it("falls back to flat marginal lists when no matrix is present", () => {
-    render(<TechniqueIntentPanel technique={techniqueMap} intent={intentMap} />);
-    expect(screen.queryByText("Pairing severity"), "no summary bar without a matrix").not.toBeInTheDocument();
-    expect(screen.getByTestId("tab-technique")).toBeInTheDocument();
-    expect(screen.getByTestId("tab-intent")).toBeInTheDocument();
-  });
-
-  it("keeps the active tab valid when an axis is missing", () => {
-    // Intent-only: the default "technique" tab is absent, so it falls back.
-    render(<TechniqueIntentPanel intent={intentMap} />);
-    expect(screen.getByTestId("tab-intent")).toBeInTheDocument();
-    expect(screen.queryByTestId("tab-technique")).not.toBeInTheDocument();
   });
 });
