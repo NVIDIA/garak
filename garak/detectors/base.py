@@ -286,11 +286,19 @@ class FileDetector(Detector):
 
         for local_filename in attempt.outputs:
             if not local_filename or not local_filename.text:
+                # Yield None so detector_results stays length-aligned with
+                # attempt.outputs. The evaluator indexes attempt.outputs by
+                # position (see evaluators.base.Evaluator.evaluate); skipping
+                # silently via ``continue`` here would shift later results
+                # onto the wrong outputs and misattribute detector hits in
+                # the hitlog.
+                yield None
                 continue
             if not os.path.isfile(
                 local_filename.text
             ):  # skip missing files but also pipes, devices, etc
                 logging.info("Skipping non-file path %s", local_filename)
+                yield None
                 continue
 
             else:
