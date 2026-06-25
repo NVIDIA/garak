@@ -49,8 +49,9 @@ def _make_attempt(intent_code: str) -> garak.attempt.Attempt:
     return a
 
 
-@pytest.fixture
-def intent_report(tmp_path, monkeypatch):
+def _run_intent_harness(
+    tmp_path, monkeypatch, primary_detector=None, harness_detector="always.Pass"
+):
     """Run the harness over an IntentProbe with the real intentservice and
     return the path to the produced report.jsonl.
 
@@ -99,10 +100,11 @@ def intent_report(tmp_path, monkeypatch):
 
     model = garak._plugins.load_plugin("generators.test.Repeat")
     probe = garak._plugins.load_plugin(INTENT_PROBE)
+    probe.primary_detector = primary_detector
     monkeypatch.setattr(
         probe, "probe", lambda generator: [_make_attempt(MAPPED_INTENT)]
     )
-    detector = garak._plugins.load_plugin("detectors.always.Pass")
+    detector = garak._plugins.load_plugin(f"detectors.{harness_detector}")
 
     harness = garak.harnesses.base.Harness()
     harness.run(model, [probe], [detector], ThresholdEvaluator())
@@ -110,6 +112,26 @@ def intent_report(tmp_path, monkeypatch):
     garak._config.transient.reportfile.flush()
     # config_cleanup finalizer closes the reportfile and reloads _config
     return report_path
+
+
+@pytest.fixture
+def intent_report(tmp_path, monkeypatch):
+    """Default IntentProbe run: no probe-level primary_detector, so detectors
+    are resolved purely via the intent path."""
+    return _run_intent_harness(tmp_path, monkeypatch)
+
+
+def _attempt_detector_keys(report_path) -> set:
+    """detectors that actually scored attempts, read from the report's
+    ``entry_type == "attempt"`` records (``detector_results`` keys)."""
+    keys = set()
+    for line in report_path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        record = json.loads(line)
+        if record.get("entry_type") == "attempt":
+            keys.update(record.get("detector_results", {}))
+    return keys
 
 
 def _plugin_cache_detectors(report_path) -> set:
@@ -143,3 +165,30 @@ def test_report_digest_completes_for_intent_run(intent_report):
             f"missing from plugin_cache): {e}"
         )
     assert digest is not None, "build_digest returned no digest for intent run"
+
+
+def test_technique_and_intent_detectors_union(tmp_path, monkeypatch):
+    """Issue #1875: when an IntentProbe declares a primary_detector, that
+    technique detector must run *as well as* the intent-mapped detector, not be
+    discarded once an intent mapping exists."""
+    report_path = _run_intent_harness(
+        tmp_path, monkeypatch, primary_detector="always.Pass", harness_detector="always.Pass"
+    )
+    keys = _attempt_detector_keys(report_path)
+    assert "always.Pass" in keys, f"technique detector discarded; ran: {sorted(keys)}"
+    assert INTENT_DETECTOR.replace("detectors.", "") in keys, (
+        f"intent-mapped detector missing; ran: {sorted(keys)}"
+    )
+
+
+def test_pure_intent_probe_excludes_fallback_sentinel(tmp_path, monkeypatch):
+    """Issue #1875: a purely intent-driven IntentProbe (no primary_detector)
+    must not have the always.Fail fallback sentinel unioned into its run."""
+    report_path = _run_intent_harness(
+        tmp_path, monkeypatch, primary_detector=None, harness_detector="always.Fail"
+    )
+    keys = _attempt_detector_keys(report_path)
+    assert INTENT_DETECTOR.replace("detectors.", "") in keys, (
+        f"intent-mapped detector missing; ran: {sorted(keys)}"
+    )
+    assert "always.Fail" not in keys, f"fallback sentinel ran; ran: {sorted(keys)}"

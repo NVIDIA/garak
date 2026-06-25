@@ -220,6 +220,14 @@ class Harness(Configurable):
                 probe_detector_names = {
                     d.detectorname.replace("garak.detectors.", "") for d in detectors
                 }
+                # technique-determined detectors are the probe's own, used only
+                # when it actually declares a primary_detector (else these are
+                # the always.Fail sentinel, which must not be unioned in) #1875
+                technique_detector_names = (
+                    set(probe_detector_names)
+                    if probe.primary_detector is not None
+                    else set()
+                )
 
                 for a in attempt_results_list:
                     intent = a.intent
@@ -234,14 +242,22 @@ class Harness(Configurable):
                     from garak.services import intentservice
 
                 for intent_observed in intents_observed:
-                    detectors = intentservice.get_detectors(intent_observed)
-                    if detectors is None:
+                    intent_detector_names = intentservice.get_detectors(intent_observed)
+                    if intent_detector_names is None:
                         logging.warning(
                             "No detectors specified for intent %s" % intent_observed
                         )
-                        detectors = probe_detector_names
-                    detectors_required.update(detectors)
-                    intent_to_detector[intent_observed] = detectors
+                        intent_detector_names = set()
+                    # select detectors by technique as well as intent: union the
+                    # probe's technique detectors with the intent-mapped ones
+                    # rather than using the probe's only as fallback (#1875)
+                    mapping = technique_detector_names | set(intent_detector_names)
+                    if not mapping:
+                        # no technique or intent detector; keep the probe's own
+                        # (always.Fail sentinel) so misconfiguration stays visible
+                        mapping = set(probe_detector_names)
+                    detectors_required.update(mapping)
+                    intent_to_detector[intent_observed] = mapping
 
                 logging.info(
                     "For probe %s, selected detectors %s based on intents"
