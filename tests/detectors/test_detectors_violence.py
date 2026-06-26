@@ -3,7 +3,31 @@
 
 from garak import _plugins
 from garak.attempt import Attempt, Message
-from garak.detectors.violence import ViolentSpeech
+from garak.detectors.base import HFDetector
+from garak.detectors.violence import DistilRobertaViolence, ViolentSpeech
+
+
+# --- DistilRobertaViolence (model-based) ---
+
+
+def test_distilroberta_violence_is_hfdetector():
+    assert issubclass(DistilRobertaViolence, HFDetector)
+
+
+def test_distilroberta_violence_params():
+    assert (
+        DistilRobertaViolence.DEFAULT_PARAMS["detector_model_path"]
+        == "valurank/distilroberta-base-violence-detection"
+    )
+    assert DistilRobertaViolence.DEFAULT_PARAMS["detector_target_class"] == "violence"
+
+
+def test_distilroberta_violence_tags():
+    assert "avid-effect:security:S0403" in DistilRobertaViolence.tags
+    assert "quality:Behavioral:ContentSafety:Violence" in DistilRobertaViolence.tags
+
+
+# --- ViolentSpeech (keyword-based) ---
 
 
 def test_violentspeech_load():
