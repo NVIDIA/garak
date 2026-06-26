@@ -88,6 +88,7 @@ def test_tim_single_cell():
     ]
     cell = _tim(evals, _pc({"grandma.Win10": ["demon:T:Tech"]}))["demon:T:Tech"]["S003"]
     assert cell == {
+        "name": garak.analyze.report_digest.intent_names.get("S003"),
         "score": 0.5,
         "passed": 3,
         "total_evaluated": 6,
@@ -202,7 +203,12 @@ def test_tim_summary_counts():
     ]
     pc = _pc({"grandma.Win10": ["demon:T:Tech"]}, detectors=("d.A", "d.B"))
     summary = _tim(evals, pc)["demon:T:Tech"]["_summary"]
-    assert summary == {"n_intents": 2, "n_detectors": 2}, summary
+    assert summary == {
+        "name": None,  # synthetic tag absent from tags.misp.tsv
+        "description": None,
+        "n_intents": 2,
+        "n_detectors": 2,
+    }, summary
     assert "score" not in summary
 
 
@@ -300,3 +306,47 @@ def test_tim_missing_nones_raises():
     ]
     with pytest.raises(ReportIncompatibleError):
         _tim(evals, _pc({"grandma.Win10": ["demon:T:Tech"]}))
+
+
+def test_tim_enrichment_populated_from_data_tables():
+    technique = "demon:Language:Stylizing:Formal_language"
+    evals = [
+        {
+            "entry_type": "eval",
+            "probe": "grandma.Win10",
+            "detector": "d.D",
+            "intents": {"S003": {"passed": 1, "total_evaluated": 2, "nones": 0}},
+        }
+    ]
+    tech = _tim(evals, _pc({"grandma.Win10": [technique]}))[technique]
+    expected_name, expected_descr = garak.analyze.report_digest.tag_descriptions[
+        technique
+    ]
+    assert tech["_summary"]["name"] == expected_name, "technique name from misp table"
+    assert (
+        tech["_summary"]["description"] == expected_descr
+    ), "technique description from misp table"
+    assert tech["_summary"]["name"], "real technique resolves a non-empty name"
+    assert (
+        tech["S003"]["name"] == garak.analyze.report_digest.intent_names["S003"]
+    ), "intent name from typology"
+    assert tech["S003"]["name"], "real intent code resolves a non-empty name"
+
+
+def test_tim_enrichment_none_fallback_for_unknown_codes():
+    technique = "demon:does_not_exist"  # absent from tags.misp.tsv
+    intent = "Z999"  # absent from trait_typology.json
+    evals = [
+        {
+            "entry_type": "eval",
+            "probe": "grandma.Win10",
+            "detector": "d.D",
+            "intents": {intent: {"passed": 1, "total_evaluated": 2, "nones": 0}},
+        }
+    ]
+    tech = _tim(evals, _pc({"grandma.Win10": [technique]}))[technique]
+    assert tech["_summary"]["name"] is None, "unknown technique tag -> name None"
+    assert (
+        tech["_summary"]["description"] is None
+    ), "unknown technique tag -> description None"
+    assert tech[intent]["name"] is None, "unknown intent code -> name None"
