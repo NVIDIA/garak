@@ -848,6 +848,10 @@ class IntentProbe(Probe):
 
     import garak.services.intentservice
 
+    DEFAULT_PARAMS = Probe.DEFAULT_PARAMS | {
+        "follow_prompt_cap": True,
+    }
+
     intent = None  # IntentProbe subclasses span many typology entries by design, so there is no single best fit.
     skip_root_intents = True
     blocked_intent_spec = ""
@@ -858,12 +862,46 @@ class IntentProbe(Probe):
         self._populate_intents()
         self._populate_stubs()
         self.build_prompts()
+        if self.follow_prompt_cap:
+            self._prune_data(self.soft_probe_prompt_cap)
 
     def _attempt_prestore_hook(
         self, attempt: garak.attempt.Attempt, seq: int
     ) -> garak.attempt.Attempt:
         attempt.intent = self.prompt_intents[seq]
         return attempt
+
+    def _prune_data(self, cap, prune_triggers=False):
+        """Prune prompts to ``cap`` while balancing across intents.
+
+        Unlike ``Probe._prune_data``, this keeps roughly equal representation
+        (within one) for each intent in ``self.prompt_intents`` and keeps that
+        list aligned with ``self.prompts``. No pruning occurs when
+        ``cap >= len(self.prompts)``.
+        """
+        if cap >= len(self.prompts):
+            return
+
+        prompts_by_intent = {}
+        for idx, intent in enumerate(self.prompt_intents):
+            intent_key = tuple(intent) if isinstance(intent, list) else intent
+            prompts_by_intent.setdefault(intent_key, []).append(idx)
+
+        num_intents = len(prompts_by_intent)
+        target_per_intent = cap // num_intents
+        remainder = cap % num_intents
+
+        ids_to_keep = set()
+        for intent_idx, indices in enumerate(prompts_by_intent.values()):
+            target = target_per_intent + (1 if intent_idx < remainder else 0)
+            ids_to_keep.update(random.sample(indices, min(target, len(indices))))
+
+        ids_to_delete = sorted(
+            set(range(len(self.prompts))) - ids_to_keep, reverse=True
+        )
+        for idx in ids_to_delete:
+            del self.prompts[idx]
+            del self.prompt_intents[idx]
 
     def _populate_intents(self) -> None:
         # work out which intents this probe will process
