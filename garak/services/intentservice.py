@@ -30,12 +30,12 @@ To check the quality of the intents present in the system, see ``tools.cas.inten
 import importlib
 import json
 import logging
-import re
 from typing import List, Set
 import yaml
 
 import garak._config
 import garak.data
+from garak._spec import validate_intent_specifier, DEFAULT_INTENT_SCOPE
 from garak.exception import GarakException
 from garak.intents import Stub, TextStub, ConversationStub
 
@@ -91,7 +91,7 @@ def _expand_intent_spec(
 
     expanded_intents = set()
 
-    if intent_spec is None or intent_spec in ("*", "all", ""):
+    if intent_spec in (None, "*", "all", ""):
         expanded_intents.update(intent_typology.keys())
     else:
         for intent_prefix in intent_spec.split(","):
@@ -122,18 +122,46 @@ def _expand_intent_specifier_children(intent_specifier: str) -> Set[str]:
     return intent_codes_to_lookup
 
 
-def _populate_intents(intent_spec: str | None) -> None:
-    """set the active intents according to an intent spec and the
-    loaded typology."""
+def _validate_intent_codes(intent_spec: str | None) -> None:
+    """Fail-closed when a requested include code is well-formed but absent from
+    the loaded typology (e.g. ``S999``). Vacuous specs (``None``/``*``/``all``/
+    ``""``) select everything and are not validated."""
+
+    if intent_spec in (None, "*", "all", ""):
+        return
+    for code in (c.strip() for c in intent_spec.split(",")):
+        if code and code not in intent_typology:
+            raise GarakException(
+                f"intent code '{code}' is not in the loaded intent typology"
+            )
+
+
+def _populate_intents(intent_spec: str | None, blocked_spec: str | None = "") -> None:
+    """Set the active intents from an include spec minus a blocked spec.
+
+    Both are comma-separated typology codes or prefixes. Requested include codes
+    must exist in the loaded typology (fail-closed). Non-leaf codes expand to
+    their children when ``cas.expand_intent_tree`` is set; intents without a
+    mapped detector are dropped unless ``cas.serve_detectorless_intents``."""
 
     global intents_active
 
-    if intent_spec is None or intent_spec in ("*", "all", ""):
+    _validate_intent_codes(intent_spec)
+
+    if intent_spec in (None, "*", "all", ""):
         intents_active = _expand_intent_spec(intent_spec)
     else:
         intents_active = _expand_intent_spec(
             intent_spec, expand_subnodes=garak._config.cas.expand_intent_tree
         )
+
+    if blocked_spec:
+        blocked = _expand_intent_spec(blocked_spec, expand_subnodes=True)
+        if not (intents_active & blocked):
+            logging.debug(
+                "run.spec: no active intent to remove for -intent spec %r", blocked_spec
+            )
+        intents_active.difference_update(blocked)
 
     if not garak._config.cas.serve_detectorless_intents:
         detectorless_intents = set()
@@ -152,11 +180,20 @@ def _populate_intents(intent_spec: str | None) -> None:
 
 
 def load():
-    """load the intentservice"""
+    """load the intentservice.
+
+    The active intents come from the resolved ``run.spec`` (``intent:`` axis),
+    stashed on ``_config.transient`` by the CLI. When that is absent (e.g. a
+    direct service load that did not resolve a spec), fall back to
+    :data:`garak._spec.DEFAULT_INTENT_SCOPE`."""
     global is_loaded
     _load_intent_typology()
     _load_intent_detector_mapping()
-    _populate_intents(garak._config.cas.intent_spec)
+    intent_spec = getattr(garak._config.transient, "intent_spec", None)
+    blocked_spec = getattr(garak._config.transient, "blocked_intent_spec", None)
+    if intent_spec is None:
+        intent_spec = DEFAULT_INTENT_SCOPE
+    _populate_intents(intent_spec, blocked_spec or "")
     is_loaded = True
 
 
@@ -277,11 +314,6 @@ def _get_stubs_code(intent_code: str) -> Set[Stub]:
         stubs = set()
 
     return stubs
-
-
-def validate_intent_specifier(intent_specifier: str) -> bool:
-    """validate a single intent specifier"""
-    return re.fullmatch("[CTMS]([0-9]{3}([a-z]+)?)?", intent_specifier) is not None
 
 
 def get_intent_parts(intent_specifier: str) -> List[str]:

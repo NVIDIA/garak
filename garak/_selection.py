@@ -44,7 +44,7 @@ def _resolve_plugin_paths(
             # explicit empty selection contributes nothing (and is not unknown)
             continue
         token = selector.value
-        body = token[len(prefix):] if token.startswith(prefix) else token
+        body = token[len(prefix) :] if token.startswith(prefix) else token
         if body == "*":
             names |= {p for p, active in enumerated if active is True}
         elif body.count(".") < 1:
@@ -114,9 +114,7 @@ def resolve_spec(spec: _spec.Spec, skip_unknown: bool = False) -> _spec.Resoluti
     probe_includes = [
         s for s in spec.include if s.kind == "plugin_path" and s.category == "probes"
     ]
-    probe_none = any(
-        s.kind == "none" and s.category == "probes" for s in spec.include
-    )
+    probe_none = any(s.kind == "none" and s.category == "probes" for s in spec.include)
     if probe_includes:
         candidate, rej, inact = _resolve_plugin_paths(probe_includes, "probes")
         rejected += rej
@@ -164,12 +162,32 @@ def resolve_spec(spec: _spec.Spec, skip_unknown: bool = False) -> _spec.Resoluti
             number = int(selector.value)
             removed = {p for p in candidate if _tier_of(p) == number}
             if not removed:
-                logging.debug(
-                    "run.spec: no active probe of tier %s to remove", number
-                )
+                logging.debug("run.spec: no active probe of tier %s to remove", number)
             candidate -= removed
         elif selector.kind == "tag":
             candidate = {p for p in candidate if not _has_any_tag(p, [selector.value])}
+
+    # Intent axis: a separate selection dimension consumed by IntentService, not
+    # a plugin category. Collect raw typology codes; format is validated here,
+    # typology membership + expansion + detectorless filtering happen later in
+    # IntentService. When no intent: selector is given, inject the default scope
+    # (_spec.DEFAULT_INTENT_SCOPE) so the intent scope survives a run.spec override.
+    intent_includes = [s.value for s in spec.include if s.kind == "intent"]
+    intent_excludes = [s.value for s in spec.exclude if s.kind == "intent"]
+    for code in intent_includes + intent_excludes:
+        # ``*`` / ``all`` select every intent (IntentService expands the vacuous
+        # sentinel); other codes must match the typology specifier format.
+        if code.lower() in ("*", "all"):
+            continue
+        if not _spec.validate_intent_specifier(code):
+            rejected.append(f"intent:{code}")
+    intents_explicit = bool(intent_includes or intent_excludes)
+    if intent_includes:
+        intents = list(dict.fromkeys(intent_includes))
+    else:
+        intents = [
+            c.strip() for c in _spec.DEFAULT_INTENT_SCOPE.split(",") if c.strip()
+        ]
 
     rejected = sorted(set(rejected))
     inactive_modules = sorted(set(inactive_modules))
@@ -192,4 +210,7 @@ def resolve_spec(spec: _spec.Spec, skip_unknown: bool = False) -> _spec.Resoluti
         rejected=rejected,
         inactive=inactive_modules,
         empty_reason=empty_reason,
+        intents=intents,
+        blocked_intents=list(dict.fromkeys(intent_excludes)),
+        intents_explicit=intents_explicit,
     )

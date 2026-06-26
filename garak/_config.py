@@ -41,7 +41,6 @@ system_params = (
 run_params = "seed deprefix eval_threshold generations interactive system_prompt spec".split()
 plugins_params = "target_type target_name extended_detectors".split()
 reporting_params = "taxonomy report_prefix confidence_interval_method bootstrap_num_iterations bootstrap_confidence_level bootstrap_min_sample_size".split()
-cas_params = "intent_spec".split()
 project_dir_name = "garak"
 
 

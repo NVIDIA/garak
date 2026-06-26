@@ -219,15 +219,6 @@ def main(arguments=None) -> None:
             help=f"options to pass to {plugin_type}, formatted as a JSON dict",
         )
 
-    ## CAS
-    parser.add_argument(
-        "--intents",
-        "-i",
-        type=str,
-        default=_config.cas.intent_spec,
-        help="comma-separated list of intents & intent prefixes to use. Default is empty, for all",
-    )
-
     ## REPORTING
     parser.add_argument(
         "--taxonomy",
@@ -718,6 +709,10 @@ def main(arguments=None) -> None:
                 parse_spec_file(_config.run.spec), skip_unknown=True
             )
             _check_selection(resolved.rejected, "run.spec", resolved.inactive)
+            # stash the resolved intent axis for IntentService (consumed at harness load)
+            _config.transient.intent_spec = ",".join(resolved.intents)
+            _config.transient.blocked_intent_spec = ",".join(resolved.blocked_intents)
+            _config.transient.intents_explicit = resolved.intents_explicit
             # --skip_unknown tolerates an empty selection (e.g. every include was an
             # unknown selector that was skipped); only guard when not skipping.
             if (
@@ -761,6 +756,8 @@ def main(arguments=None) -> None:
 
             command.start_run()  # start the run now that all config validation is complete
             print(f"📜 reporting to {_config.transient.report_filename}")
+
+            command.warn_unconsumed_intents(parsed_specs["probe"])
 
             if parsed_specs["detector"] == []:
                 command.probewise_run(

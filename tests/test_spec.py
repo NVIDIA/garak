@@ -277,10 +277,77 @@ def test_prefix_required():
         parse_spec_string("dan")
 
 
-@pytest.mark.parametrize("token", ["detectors.always.Pass", "intent:S"])
+@pytest.mark.parametrize("token", ["detectors.always.Pass"])
 def test_out_of_scope_kinds_raise(token):
     with pytest.raises(ValueError):
         parse_spec_string(token)
+
+
+@pytest.mark.parametrize("code", ["S", "S001", "S001mis"])
+def test_intent_classify(code):
+    (selector,) = parse_spec_string(f"intent:{code}").include
+    assert selector.kind == "intent", "intent: token must classify as the intent kind"
+    assert selector.value == code, "intent value must be the raw typology code"
+    assert selector.category is None, "intent is a non-plugin axis (no category)"
+
+
+def test_intent_round_trip():
+    spec = parse_spec_string("intent:S004,-intent:S005profanity")
+    assert spec.to_file_dict() == {
+        "include": [{"intent": "S004"}],
+        "exclude": [{"intent": "S005profanity"}],
+    }, "intent selectors must serialise to single-key {intent: code} mappings"
+    again = parse_spec_file(spec.to_file_dict())
+    assert (again.include[0].kind, again.include[0].value) == ("intent", "S004")
+    assert (again.exclude[0].kind, again.exclude[0].value) == ("intent", "S005profanity")
+
+
+def test_intent_default_injected_when_absent():
+    res = resolve("probes.dan")
+    assert res.intents == ["S"], "DEFAULT_INTENT_SCOPE must be injected when no intent: given"
+    assert res.intents_explicit is False, "injected default is not an explicit intent selection"
+
+
+def test_intent_explicit_overrides_default():
+    res = resolve("probes.dan,intent:S004,-intent:S005profanity")
+    assert res.intents == ["S004"], "explicit intent: replaces the injected default"
+    assert res.blocked_intents == ["S005profanity"], "-intent: codes recorded as blocked"
+    assert res.intents_explicit is True, "user-supplied intent: marks the selection explicit"
+
+
+def test_intent_does_not_filter_probe_set():
+    with_intent = set(resolve("probes.dan,intent:S004").probes)
+    without = set(resolve("probes.dan").probes)
+    assert with_intent == without, "intent: must not add or remove probes (separate axis)"
+
+
+def test_intent_invalid_format_rejected():
+    res = resolve("intent:zzz", skip_unknown=True)
+    assert "intent:zzz" in res.rejected, "malformed intent code recorded in rejected"
+    with pytest.raises(ValueError, match="unknown run.spec"):
+        resolve("intent:zzz")
+
+
+@pytest.mark.parametrize("token", ["intent:*", "intent:all"])
+def test_intent_all_selector_not_rejected(token):
+    res = resolve(f"probes.dan,{token}")
+    assert res.rejected == [], "intent:* / intent:all are valid (all intents), not rejected"
+    assert res.intents and res.intents[0].lower() in (
+        "*",
+        "all",
+    ), "all-intents sentinel passes through to IntentService"
+
+
+def test_intent_comma_value_rejected():
+    with pytest.raises(ValueError, match="one intent: per code"):
+        parse_spec_file({"include": [{"intent": "S004,S005"}]})
+
+
+def test_intent_exclude_only_applies_to_default():
+    res = resolve("probes.dan,-intent:S004")
+    assert res.intents == ["S"], "exclude-only keeps the injected default include (DEFAULT_INTENT_SCOPE)"
+    assert res.blocked_intents == ["S004"], "the -intent: code is recorded as blocked"
+    assert res.intents_explicit is True, "a lone -intent: still counts as an explicit intent selection"
 
 
 # --- T9: unknown / skip_unknown -------------------------------------------

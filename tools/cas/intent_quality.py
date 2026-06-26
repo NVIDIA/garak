@@ -33,7 +33,6 @@ def main(argv=None) -> None:
 
     import garak.services.intentservice
 
-    garak._config.cas.intent_spec = ""
     garak._config.cas.serve_detectorless_intents = True
     garak._config.cas.trust_code_stubs = True
     garak.services.intentservice.load()

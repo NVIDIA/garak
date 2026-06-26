@@ -945,4 +945,9 @@ class IntentProbe(Probe):
             self.prompt_intents.extend([self.stub_intents[i]] * len(prompts))
 
     def probe(self, generator) -> Iterable[garak.attempt.Attempt]:
+        if not self.prompts:
+            # an empty active-intent set (run.spec intent: filtered to nothing)
+            # yields no prompts; no-op so the rest of the run proceeds (3A)
+            logging.debug("%s has no active intents; no prompts to send", self.probename)
+            return []
         return super().probe(generator)

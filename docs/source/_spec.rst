@@ -11,9 +11,17 @@ both transports parse to.
 
 Selectors carry a category-prefixed plugin path (``probes.<module>[.<Class>]``,
 ``buffs.<module>[.<Class>]``), a probe filter (``tag:<prefix>``,
-``tier:<N|name>``), or the explicit empty selection ``none`` / ``probes.none``
-(distinct from an unspecified spec, which defaults to ``probes.*``). A leading
-``-`` excludes; ``tier:N`` is inclusive ("log level": tiers ``1..N``).
+``tier:<N|name>``), an intent typology code (``intent:<code>``, or
+``intent:*`` / ``intent:all`` for every intent), or the explicit
+empty selection ``none`` / ``probes.none`` (distinct from an unspecified spec,
+which defaults to ``probes.*``). A leading ``-`` excludes; ``tier:N`` is
+inclusive ("log level": tiers ``1..N``).
+
+``intent:`` is a separate selection axis consumed by the intent service. When no
+``intent:`` selector is given, the default scope ``S`` (the top-level *Safety*
+branch of the intent typology, ``garak._spec.DEFAULT_INTENT_SCOPE``) is injected
+at resolve time. Typology expansion (child codes) and detectorless filtering
+happen in the intent service, governed by the ``cas.*`` modifiers.
 
 ``garak/_spec.py`` covers the grammar: parsing and serialisation. Resolving a
 ``Spec`` to concrete plugin names (against active/tier/tag state) is done by
