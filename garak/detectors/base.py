@@ -197,8 +197,9 @@ class StringDetector(Detector):
     """Subclass of Detector using list of substrings as detection triggers"""
 
     DEFAULT_PARAMS = Detector.DEFAULT_PARAMS | {
-        "matchtype": "str",  # "str" or "word"
+        "matchtype": "str",  # "str", "word", "startswith", or "fullmatch"
         "case_sensitive": False,
+        "strip": False,  # strip whitespace from output before matching
     }
 
     def __init__(self, substrings, config_root=_config):
@@ -214,6 +215,8 @@ class StringDetector(Detector):
             if output_text is None or output.text is None:
                 detector_results.append(None)
                 continue
+            if self.strip:
+                output_text = output_text.strip()
             match = False
             for s in self.substrings:
                 if not self.case_sensitive:
@@ -227,6 +230,9 @@ class StringDetector(Detector):
                         match = True
                 elif self.matchtype == "startswith":
                     if output_text.startswith(s):
+                        match = True
+                elif self.matchtype == "fullmatch":
+                    if output_text == s:
                         match = True
                 else:
                     raise ValueError(
