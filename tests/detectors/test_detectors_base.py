@@ -306,11 +306,11 @@ def test_stringdetector_normalize_strip_format_catches_zwj():
 
 
 def test_stringdetector_normalize_invalid_value():
-    """An unrecognised normalize value raises ValueError"""
+    """An unrecognised normalize value logs a warning and returns None (does not raise)"""
     detector = garak.detectors.base.StringDetector([TRIGGER_WORD])
     detector.normalize = "NFC"  # not a supported tier
 
     attempt = Attempt(prompt=Message(text=""))
     attempt.outputs = [Message(TRIGGER_WORD)]
-    with pytest.raises(ValueError, match="normalize"):
-        detector.detect(attempt)
+    results = list(detector.detect(attempt))
+    assert results == [None], "Unknown normalize value should return None, not raise"

@@ -228,7 +228,14 @@ class StringDetector(Detector):
                 continue
 
             if self.normalize:
-                output_text = self._apply_normalize(output_text)
+                try:
+                    output_text = self._apply_normalize(output_text)
+                except ValueError as e:
+                    logging.warning(
+                        "StringDetector: %s; returning None for this output", e
+                    )
+                    detector_results.append(None)
+                    continue
 
             match = False
             for s in self.substrings:
