@@ -381,10 +381,20 @@ class RestGenerator(Generator):
             len(self.response_json_field) > 0
         ), "response_json_field needs to be complete if response_json is true; ValueError should have been raised in constructor"
         if self.response_json_field[0] != "$":
-            if isinstance(response_object, list):
-                response = [item[self.response_json_field] for item in response_object]
-            else:
-                response = [response_object[self.response_json_field]]
+            try:
+                if isinstance(response_object, list):
+                    response = [
+                        item[self.response_json_field] for item in response_object
+                    ]
+                else:
+                    response = [response_object[self.response_json_field]]
+            except (KeyError, TypeError) as e:
+                raise BadGeneratorException(
+                    "RestGenerator could not read response_json_field %r from the "
+                    "endpoint response; the response JSON shape does not match the "
+                    "configured response_json_field. Response content: %s"
+                    % (self.response_json_field, repr(resp.content)[:500])
+                ) from e
         else:
             field_path_expr = jsonpath_ng.parse(self.response_json_field)
             responses = field_path_expr.find(response_object)
@@ -394,6 +404,11 @@ class RestGenerator(Generator):
                     response = [response_value]
                 elif isinstance(response_value, list):
                     response = response_value
+                else:
+                    # not text/list (e.g. a nested object); surface a clear
+                    # error via the type validation below instead of silently
+                    # returning an empty result
+                    response = [response_value]
             elif len(responses) > 1:
                 response = [r.value for r in responses]
             else:
@@ -402,6 +417,24 @@ class RestGenerator(Generator):
                     % repr(resp.content)
                 )
                 return [None]
+
+        # the targeted field must resolve to text before it is wrapped in a
+        # Message; a mismatched response_json_field can match a dict/list/number
+        # (e.g. an Azure-style nested response object), which previously surfaced
+        # downstream as an opaque "'dict' object has no attribute 'lower'" in
+        # detectors rather than an actionable configuration error. See #1888.
+        for value in response:
+            if value is not None and not isinstance(value, str):
+                raise BadGeneratorException(
+                    "RestGenerator response_json_field %r matched a %s, not text. "
+                    "Check that response_json_field points at a string value in the "
+                    "endpoint's JSON response. Offending value: %s"
+                    % (
+                        self.response_json_field,
+                        type(value).__name__,
+                        repr(value)[:500],
+                    )
+                )
 
         return [Message(r) for r in response]
 
