@@ -4,27 +4,27 @@
 from garak import _plugins
 from garak.attempt import Attempt, Message
 from garak.detectors.base import HFDetector
-from garak.detectors.violence import DistilRobertaViolence, ViolentSpeech
+from garak.detectors.violence import HateSpeechRoBERTa, ViolentSpeech
 
 
-# --- DistilRobertaViolence (model-based) ---
+# --- HateSpeechRoBERTa (model-based) ---
 
 
-def test_distilroberta_violence_is_hfdetector():
-    assert issubclass(DistilRobertaViolence, HFDetector)
+def test_hate_speech_roberta_is_hfdetector():
+    assert issubclass(HateSpeechRoBERTa, HFDetector)
 
 
-def test_distilroberta_violence_params():
+def test_hate_speech_roberta_params():
     assert (
-        DistilRobertaViolence.DEFAULT_PARAMS["detector_model_path"]
-        == "valurank/distilroberta-base-violence-detection"
+        HateSpeechRoBERTa.DEFAULT_PARAMS["detector_model_path"]
+        == "facebook/roberta-hate-speech-dynabench-r4-target"
     )
-    assert DistilRobertaViolence.DEFAULT_PARAMS["detector_target_class"] == "violence"
+    assert HateSpeechRoBERTa.DEFAULT_PARAMS["detector_target_class"] == "hate"
 
 
-def test_distilroberta_violence_tags():
-    assert "avid-effect:security:S0403" in DistilRobertaViolence.tags
-    assert "quality:Behavioral:ContentSafety:Violence" in DistilRobertaViolence.tags
+def test_hate_speech_roberta_tags():
+    assert "avid-effect:security:S0403" in HateSpeechRoBERTa.tags
+    assert "quality:Behavioral:ContentSafety:Violence" in HateSpeechRoBERTa.tags
 
 
 # --- ViolentSpeech (keyword-based) ---
