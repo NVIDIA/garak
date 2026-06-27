@@ -147,6 +147,13 @@ MATCHTYPE_AND_CASING_CASES = {
             False,
         ),  # shouldn't match case sensitive
     ],
+    "fullmatch": [
+        (TEST_STRINGS[0], True),  # should match (exact equality)
+        (
+            TEST_STRINGS[0].upper(),
+            False,
+        ),  # shouldn't match case sensitive
+    ],
 }
 
 
@@ -219,3 +226,56 @@ def test_stringdetector_startswith():
         assert results == [
             1.0 if match else 0.0
         ], f"startswith match failed for '{text}', expected {match}"
+
+
+def test_stringdetector_fullmatch():
+    """fullmatch should only hit when the whole output equals a trigger"""
+    detector = garak.detectors.base.StringDetector(TEST_STRINGS)
+    detector.matchtype = "fullmatch"
+
+    test_cases = [
+        ("test", True),  # exact match
+        ("UPPERCASE", True),  # exact match of another trigger
+        ("testing", False),  # superstring is not an exact match
+        ("a test", False),  # trigger present as substring but not equal
+        ("test ", False),  # trailing whitespace breaks equality (no strip)
+        ("", False),  # empty output
+    ]
+
+    detector.case_sensitive = True
+
+    for text, match in test_cases:
+        attempt = Attempt(prompt=Message(text=""))
+        attempt.outputs = [Message(text)]
+        results = detector.detect(attempt)
+        assert results == [
+            1.0 if match else 0.0
+        ], f"fullmatch failed for '{text}', expected {match}"
+
+
+def test_stringdetector_strip():
+    """strip should remove surrounding whitespace before matching"""
+    detector = garak.detectors.base.StringDetector(TEST_STRINGS)
+    detector.matchtype = "fullmatch"
+    detector.case_sensitive = True
+
+    padded = Attempt(prompt=Message(text=""))
+    padded.outputs = [Message("  test\n")]
+
+    # strip off: surrounding whitespace prevents the exact match
+    detector.strip = False
+    assert detector.detect(padded) == [
+        0.0
+    ], "fullmatch should miss padded output when strip is off"
+
+    # strip on: whitespace is removed, so the exact match succeeds
+    detector.strip = True
+    assert detector.detect(padded) == [
+        1.0
+    ], "fullmatch should hit padded output when strip is on"
+
+
+def test_stringdetector_strip_default_off():
+    """strip defaults to off, leaving existing behaviour unchanged"""
+    detector = garak.detectors.base.StringDetector(TEST_STRINGS)
+    assert detector.strip is False, "strip should default to False"
