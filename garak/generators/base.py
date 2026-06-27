@@ -4,6 +4,7 @@ All `garak` generators must inherit from this.
 """
 
 import logging
+import pickle
 import random
 import re
 from typing import List, Union
@@ -193,6 +194,21 @@ class Generator(Configurable):
                     self.parallel_requests,
                     self.max_workers,
                 )
+
+                # multiprocessing.Pool pickles the work callable to ship it to
+                # worker processes; a generator carrying unpicklable state fails
+                # deep inside multiprocessing with an opaque traceback. Check up
+                # front and fail with an actionable message instead (see #361).
+                try:
+                    pickle.dumps(self._call_model)
+                except (pickle.PicklingError, TypeError, AttributeError) as e:
+                    msg = (
+                        f"Generator '{self.fullname}' cannot be run with "
+                        "parallel_requests (it is not picklable). Re-run without "
+                        "--parallel_requests (or set parallel_requests to 1)."
+                    )
+                    logging.error(msg)
+                    raise GarakException(msg) from e
 
                 pool = None
                 try:

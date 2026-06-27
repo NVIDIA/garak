@@ -8,6 +8,7 @@ import re
 
 from garak import _config, _plugins
 from garak.attempt import Turn, Conversation, Message, Attempt
+from garak.exception import GarakException
 import garak.probes
 
 PROBES = [classname for (classname, active) in _plugins.enumerate_plugins("probes")]
@@ -160,6 +161,41 @@ def test_probe_prune_alignment():
     assert len(p.triggers) == _config.run.soft_probe_prompt_cap
     assert p.triggers[0] in p.prompts[0]
     assert p.triggers[-1] in p.prompts[-1]
+
+
+def test_parallel_attempts_unpicklable_probe_fails_helpfully():
+    """An unpicklable probe under parallel_attempts must fail politely.
+
+    _execute_all() dispatches attempts to a multiprocessing.Pool, which pickles
+    the probe's bound method (and thus the probe) to ship it to workers.  A probe
+    carrying unpicklable state (here, a lambda) makes that pickling fail with a
+    raw PicklingError/TypeError traceback that gives the user no clue what to do
+    (issue #361).  garak should instead raise a clear GarakException naming the
+    probe and the flag to drop.
+    """
+    probe = _plugins.load_plugin("probes.test.Test")
+    probe.parallel_attempts = 2
+    probe.max_workers = 2
+    probe._unpicklable = lambda x: x  # local closures cannot be pickled
+
+    generator = _plugins.load_plugin("generators.test.Blank")
+    probe.generator = generator
+
+    attempts = [
+        probe._mint_attempt(Message(text="one"), seq=0),
+        probe._mint_attempt(Message(text="two"), seq=1),
+    ]
+
+    with pytest.raises(GarakException) as exc_info:
+        probe._execute_all(attempts)
+
+    error_text = str(exc_info.value)
+    assert (
+        "parallel_attempts" in error_text
+    ), "error should point the user at the parallel_attempts flag"
+    assert (
+        probe.probename in error_text
+    ), "error should name the offending probe"
 
 
 PROMPT_EXAMPLES = [

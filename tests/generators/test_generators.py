@@ -9,6 +9,7 @@ from typing import List, Union
 
 from garak import _plugins
 from garak import _config
+from garak.exception import GarakException
 
 from garak.attempt import Message, Turn, Conversation
 from garak.generators.base import Generator
@@ -38,6 +39,36 @@ def test_parallel_requests():
     assert all(
         len(item.text) > 0 for item in result
     ), "All generated Message texts should be non-empty"
+
+
+def test_parallel_requests_unpicklable_generator_fails_helpfully():
+    """An unpicklable generator under parallel_requests must fail politely.
+
+    multiprocessing.Pool pickles the work callable to ship it to worker
+    processes; a generator carrying unpicklable state (here, a lambda) makes
+    that pickling fail deep in multiprocessing with a raw PicklingError/TypeError
+    traceback that gives the user no idea what to do (see issue #361).  garak
+    should instead raise a clear GarakException naming the generator and the
+    flag to drop.
+    """
+    parallel_count = 2
+    _config.system.parallel_requests = parallel_count
+    _config.system.max_workers = parallel_count
+
+    g = _plugins.load_plugin("generators.test.Lipsum")
+    g._unpicklable = lambda x: x  # local closures cannot be pickled
+    prompt = Conversation(Turn("user", [Message("this is a test")]))
+
+    with pytest.raises(GarakException) as exc_info:
+        g.generate(prompt=prompt, generations_this_call=3)
+
+    error_text = str(exc_info.value)
+    assert (
+        "parallel_requests" in error_text
+    ), "error should point the user at the parallel_requests flag"
+    assert (
+        g.fullname in error_text or g.name in error_text
+    ), "error should name the offending generator"
 
 
 @pytest.mark.parametrize("classname", GENERATORS)

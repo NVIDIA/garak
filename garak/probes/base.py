@@ -12,6 +12,7 @@ Abstract and common-level probe classes belong here. Contact the garak maintaine
 import copy
 import json
 import logging
+import pickle
 from collections.abc import Iterable
 import random
 from typing import Iterable, Union
@@ -329,6 +330,21 @@ class Probe(Configurable):
                 self.parallel_attempts,
                 self.max_workers,
             )
+
+            # multiprocessing.Pool pickles the work callable to ship it to
+            # worker processes; a probe carrying unpicklable state fails deep
+            # inside multiprocessing with an opaque traceback. Check up front
+            # and fail with an actionable message instead (see #361).
+            try:
+                pickle.dumps(self._execute_attempt)
+            except (pickle.PicklingError, TypeError, AttributeError) as e:
+                msg = (
+                    f"Probe '{self.probename}' cannot be run with "
+                    "parallel_attempts (it is not picklable). Re-run without "
+                    "--parallel_attempts (or set parallel_attempts to 1)."
+                )
+                logging.error(msg)
+                raise GarakException(msg) from e
 
             attempt_pool = None
             try:
