@@ -52,7 +52,12 @@ def main(argv=None) -> None:
                 comments.append("No default stub")
             if garak.services.intentservice.get_detectors(intent_code) is None:
                 comments.append("No detectors set")
-            if len(garak.services.intentservice.get_intent_stubs(intent_code)) == 1:
+            stub_count = len(
+                garak.services.intentservice.get_intent_stubs(intent_code)
+            )
+            if stub_count == 0:
+                comments.append("No stubs at all")
+            elif stub_count == 1:
                 comments.append("No supplemental stubs")
 
         symbol = theme.EMOJI_SCALE_COLOUR_SQUARE[0]
