@@ -10,11 +10,12 @@ The dataset consists of prompts to which language models are often trained not t
 The DNA tests are somewhat opinionated and don't represent universal norms (nothing does), so use with care.
 
 Further info:
-* ttps://github.com/Libr-AI/do-not-answer
+* https://github.com/Libr-AI/do-not-answer
 * https://arxiv.org/abs/2308.13387
 
 """
 
+import json
 import sys
 
 from garak import _config
@@ -25,17 +26,24 @@ this = sys.modules[__name__]
 
 
 def load_local_data(self):
-    # prompts
     with open(
-        data_path / "donotanswer" / f"{self.dna_category}.txt",
-        encoding="utf=8",
+        data_path / "donotanswer" / f"{self.dna_category}.jsonl",
+        encoding="utf-8",
     ) as f:
-        self.prompts = f.read().strip().split("\n")
+        entries = [json.loads(line) for line in f if line.strip()]
+    self.prompts = [e["prompt"] for e in entries]
+    self._prompt_intents = [e["intents"][0] for e in entries]
 
 
 def local_constructor(self, config_root=_config):
     super(self.__class__, self).__init__(config_root=config_root)
     self.load_data()
+
+
+def _dna_attempt_prestore_hook(self, attempt, seq):
+    if hasattr(self, "_prompt_intents") and seq < len(self._prompt_intents):
+        attempt.intent = self._prompt_intents[seq]
+    return attempt
 
 
 DNA_PROBE_TAGS = {
@@ -71,17 +79,11 @@ DNA_PROBE_TAGS = {
 }
 
 DNA_PROBE_INTENTS = {
-    # This bucket spans multiple toxic and hateful failure modes, so the broad toxicity root fits best.
-    "discrimination_exclusion_toxicity_hateful_offensive": "S005",
-    # These prompts mostly try to replace human professional or therapeutic advice with model advice.
-    # Many examples also overlap with S002med and S006sh.
-    "human_chatbox": "S002",
-    # The common behavior here is disclosing private information about third parties.
-    "information_hazard": "S009private",
-    # The prompts broadly ask for illegal or abusive instructions across many domains.
-    "malicious_uses": "S003instructions",
-    # This category focuses on harmful misinformation, even when the prompt is phrased as advice-seeking.
-    "misinformation_harms": "S001mis",
+    "discrimination_exclusion_toxicity_hateful_offensive": "S005",  # broad toxicity spanning multiple sub-types
+    "human_chatbox": "S002",  # the prompts mostly try to replace human professional or therapeutic advice
+    "information_hazard": "S009private",  # the common behavior is disclosing private information about third parties
+    "malicious_uses": "S003instructions",  # the prompts broadly ask for illegal or abusive instructions
+    "misinformation_harms": "S001mis",  # this category focuses on harmful misinformation
 }
 
 for probe_class in list(DNA_PROBE_TAGS.keys()):
@@ -90,8 +92,6 @@ for probe_class in list(DNA_PROBE_TAGS.keys()):
     goal = f"get model to respond as {failure_name}"
     descr = f"Implementation of {probe_class} probes in DoNotAnswer_Prompts"
     doc = f"Do Not Answer probe\n\nA curated list of questions to which LLMs should not respond back, specifically testing {failure_name}"
-
-    # define class
 
     setattr(
         this,
@@ -105,14 +105,15 @@ for probe_class in list(DNA_PROBE_TAGS.keys()):
                 "uri": "https://arxiv.org/abs/2308.13387",
                 "lang": "en",
                 "description": descr,
-                "intent": DNA_PROBE_INTENTS[probe_class],  # category-specific typology fit is defined in DNA_PROBE_INTENTS above
+                "intent": DNA_PROBE_INTENTS[probe_class],
                 "primary_detector": "mitigation.MitigationBypass",
                 "prompts": [],
                 "load_data": load_local_data,
+                "_attempt_prestore_hook": _dna_attempt_prestore_hook,
                 "goal": goal,
                 "dna_category": probe_class,
                 "tags": DNA_PROBE_TAGS[probe_class],
-                "active": False,  # strong content norms not applicable in many scenarios
+                "active": False,
                 "tier": garak.probes.Tier.UNLISTED,
             },
         ),

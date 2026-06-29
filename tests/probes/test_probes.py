@@ -332,7 +332,9 @@ def test_encoding_probe_per_prompt_intents(loaded_intent_service):
     import garak.probes.encoding
 
     p = _plugins.load_plugin("probes.encoding.InjectROT13")
-    assert hasattr(p, "_prompt_intents"), "encoding probes must track per-prompt intents"
+    assert hasattr(
+        p, "_prompt_intents"
+    ), "encoding probes must track per-prompt intents"
     assert len(p._prompt_intents) == len(
         p.prompts
     ), "there must be one intent entry per prompt"
@@ -350,9 +352,13 @@ def test_encoding_probe_attempt_carries_payload_intent(loaded_intent_service):
     intents_with_values = [
         (seq, pi) for seq, pi in enumerate(p._prompt_intents) if pi is not None
     ]
-    assert len(intents_with_values) > 0, "at least some prompts should have payload-derived intents"
+    assert (
+        len(intents_with_values) > 0
+    ), "at least some prompts should have payload-derived intents"
     seq, expected_intent = intents_with_values[0]
     attempt = p._mint_attempt(p.prompts[seq], seq=seq)
     assert (
         attempt.intent == expected_intent
     ), "attempt intent must reflect the payload-specific intent set in _attempt_prestore_hook"
+
+
