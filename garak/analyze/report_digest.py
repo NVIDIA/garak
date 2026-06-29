@@ -41,6 +41,14 @@ if os.path.isfile(misp_resource_file):
             key, title, descr = line.strip().split("\t")
             tag_descriptions[key] = (title, descr)
 
+# human-readable intent names, keyed by intent code; empty names normalized to None
+intent_typology_file = data_path / "cas" / "trait_typology.json"
+intent_names = {}
+if intent_typology_file.is_file():
+    with open(intent_typology_file, "r", encoding="utf-8") as f:
+        for code, details in json.load(f).items():
+            intent_names[code] = details.get("name") or None
+
 # probe tag namespace that defines a technique for the technique_intent_matrix
 TECHNIQUE_TAG_PREFIX = "demon:"
 
@@ -546,14 +554,20 @@ def _compute_technique_intent_matrix(evals: list, report_plugin_cache: dict) -> 
             cell = intents[intent]
             technique_detectors |= cell["detectors"]
             cells[intent] = {
+                "name": intent_names.get(intent),
                 "score": (cell["passed"] / cell["total"]) if cell["total"] else None,
                 "passed": cell["passed"],
                 "total_evaluated": cell["total"],
                 "nones": cell["nones"],
                 "n_detectors": len(cell["detectors"]),
             }
+        technique_name, technique_description = tag_descriptions.get(
+            technique, (None, None)
+        )
         matrix[technique] = {
             "_summary": {
+                "name": technique_name or None,
+                "description": technique_description or None,
                 "n_intents": len(intents),
                 "n_detectors": len(technique_detectors),
             },
