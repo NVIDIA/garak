@@ -11,6 +11,83 @@ This page is a guide to running and understanding intent-based scans. For the
 configuration reference see :doc:`configurable`; for the selection grammar see
 :doc:`_spec`; the :mod:`garak.cas` API is at the end of this page.
 
+Models are often deployed in systems. Those systems and contexts have varying requirements.
+Context-aware scanning is garak's approach to recognising that variation, by supporting
+different model traits and different attack intents. This includes the concept of a policy
+that described which traits a model does and does not (or should and should not) exhibit.
+
+Context-aware scanning is experimental and incomplete as of July 2026.
+
+Policy in garak describes how a model behaves without using any adversarial techniques.
+The idea is that in order to know that an attack makes a difference, we need to know
+if the model will offer up the target behaviour when no adversarial technique is applied.
+If we can get the target behaviour out-of-the-box, then we say that the model's *policy*
+is to offer that behaviour.
+
+We implement policy with two, separate concepts:
+1. A set of functions/behaviours that models could potentially exhibit (traits)
+2. Data on whether the target model exhibits each of these traits
+
+The first comes from a typology, which is externally defined. There's some JSON that tracks
+this. It's the categories of model behaviour we're interested in. This is not exhaustive and
+not intended to be exhaustive - rather, it's constrained to model behaviours that have been
+either helpful in aiding attacks, or the targets of attacks, in the literature, as well as
+items that aligners have discussed.
+
+The second is derived by testing each trait. We don't have complete tests for all the
+points at launch; that's a lot of detectors, and a lot to validate.
+
+
+Policy metadata
+---------------
+The total set of traits in the behaviour typology can be represented as a dictionary. 
+Definitions of names, descriptions, and behaviours are stored in a JSON data file
+
+* Key: trait identifier - format is TDDDs*
+	* T: a single **root** letter, one of **C**\ hat, **T**\ asks, **M**\ eta or
+  **S**\ afety;
+	* D: a three-digit **category**, for example ``S005`` ("Toxicity");
+	* s*: (optional) **leaf** suffix, for example ``S005hate`` ("Use hate speech").
+
+* Value: a dict describing a trait
+    * “name”: A short name of what is permitted when this behaviour is allowed
+    * “description”: (optional) a deeper description of this behaviour
+
+The structure of the identifiers describes the hierarchical structure.
+
+Nomenclature
+------------
+* ``trait`` - a behavioural trait of a model
+* ``policy`` - a hierarchy of traits including descriptions of whether each trait should be enabled
+* ``observed policy`` - a policy describing how the target was observed to behave
+* ``policy point`` - any point in a policy. This subsumes traits and groups of traits
+* ``trait typology`` - a structured set of traits, including and descriptions
+
+
+Policy expectations / examples
+------------------------------
+
+We might like to define an example policy for an LLM. This can be done in JSON.
+
+* Key: behaviour identifier
+* Value: True if this is allowed, False if this is not allowed, None if no stance is taken
+
+If leaf behaviours are not included, the parent's value is assumed to apply, rather than the leaf taking a default like None.
+
+Denoting policy
+---------------
+
+Object: `Policy`
+
+Methods: 
+
+.. code-block:: text
+
+    policy.permitted(trait) -> True/False/None
+    policy.compare(another_policy) -> list of policy points where there's a difference
+    policy.set(prefix, value) -> set prefix to value
+    policy.settree(prefix, value) -> set this and all sub-points in the policy to value
+
 Technique and intent
 --------------------
 
@@ -29,13 +106,7 @@ The CTMS typology
 -----------------
 
 Intent codes come from the trait typology in
-``garak/data/cas/trait_typology.json``, which is the source of truth. A code has
-up to three nested levels:
-
-* a single **root** letter, one of **C**\ hat, **T**\ asks, **M**\ eta or
-  **S**\ afety;
-* a three-digit **category**, for example ``S005`` ("Toxicity");
-* an optional **leaf** suffix, for example ``S005hate`` ("Use hate speech").
+``garak/data/cas/trait_typology.json``, which is the source of truth for defined trait identifiers.
 
 Formally a code matches ``[CTMS]([0-9]{3}([a-z]+)?)?``. Browse the typology file
 to discover the codes and their descriptions.
