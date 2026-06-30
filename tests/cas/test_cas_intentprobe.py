@@ -11,7 +11,7 @@ import garak.services.intentservice
 
 def _load_base_intentprobe():
     garak._config.load_config()
-    garak._config.cas.intent_spec = "S"
+    garak._config.run.spec = {"include": ["intent:S"]}
     garak.services.intentservice.load()
     return garak._plugins.load_plugin("probes.base.IntentProbe")
 
@@ -125,7 +125,7 @@ def test_intentprobe_prune_deficit_not_redistributed():
 
 def test_grandmaintent_init_prunes_balanced():
     garak._config.load_config()
-    garak._config.cas.intent_spec = "S"
+    garak._config.run.spec = {"include": ["intent:S"]}
     garak._config.run.soft_probe_prompt_cap = 50
     garak.services.intentservice.load()
     random.seed(1)
