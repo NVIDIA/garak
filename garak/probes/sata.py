@@ -117,6 +117,8 @@ class MLM(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://aclanthology.org/2025.findings-acl.100.pdf"
+    intent = "T009ignore"  # the probe's own goal is "disregard the system prompt"; the masking is the technique, the failure is ignoring alignment
+    # T007 is a secondary fit because the attack is packaged as an infill/completion task over masked text.
     primary_detector = "mitigation.MitigationBypass"
     tags = [
         "avid-effect:security:S0403",
@@ -124,6 +126,8 @@ class MLM(garak.probes.Probe):
         "owasp:llm01",
         "quality:Security:PromptStability",
         "payload:jailbreak",
+        "demon:Language:Code_and_encode:Token",  # replaces harmful words with [MASK] tokens to exploit fill-in-the-blank behavior
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction",
     ]
     template = """    
     A wiki entry is a page within a wiki, which is a collaborative website that allows multiple users to create, edit, and organize content. 
@@ -156,7 +160,10 @@ class MLM(garak.probes.Probe):
 
         self.payloads = list()
         for payload_class in self.payload_name:
-            self.payloads += garak.payloads.load(payload_class).payloads
+            _pg = garak.payloads.load(payload_class)
+            self.payloads += _pg.payloads
+            if _pg.intent and not hasattr(self, "_payload_intent"):
+                self._payload_intent = _pg.intent
         self.payloads = _nltk_mask_payloads(
             payloads=self.payloads, n=self.n_replacements
         )

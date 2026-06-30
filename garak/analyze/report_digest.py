@@ -14,7 +14,6 @@ import markdown
 import os
 import pprint
 import re
-import statistics
 import sys
 from typing import IO, List
 
@@ -26,10 +25,12 @@ import garak._plugins
 from garak.data import path as data_path
 import garak.analyze
 import garak.analyze.calibration
+import garak.resources.scoring
 from garak.evaluators.base import CI_DISPLAY_MIN_WIDTH
 from garak.exception import ReportIncompatibleError
 
-if not _config.loaded:
+
+if not _config.is_loaded:
     _config.load_config()
 
 misp_resource_file = data_path / "tags.misp.tsv"
@@ -39,6 +40,17 @@ if os.path.isfile(misp_resource_file):
         for line in f:
             key, title, descr = line.strip().split("\t")
             tag_descriptions[key] = (title, descr)
+
+# human-readable intent names, keyed by intent code; empty names normalized to None
+intent_typology_file = data_path / "cas" / "trait_typology.json"
+intent_names = {}
+if intent_typology_file.is_file():
+    with open(intent_typology_file, "r", encoding="utf-8") as f:
+        for code, details in json.load(f).items():
+            intent_names[code] = details.get("name") or None
+
+# probe tag namespace that defines a technique for the technique_intent_matrix
+TECHNIQUE_TAG_PREFIX = "demon:"
 
 
 def plugin_docstring_to_description(docstring):
@@ -82,9 +94,33 @@ def _parse_report(reportfile: IO):
 
     if plugin_cache is None or len(plugin_cache) <= 0:
         from copy import deepcopy
+
         plugin_cache = deepcopy(garak._plugins.PluginCache.instance())
         plugin_cache["version"] = garak.__version__
     return init, setup, payloads, evals, plugin_cache
+
+
+def _runspec_to_probespec(setup: dict) -> str:
+    """Render the run.spec from a start_run setup into a display probespec string.
+
+    ``run.spec`` is ``None`` by default (implicit ``probes.*``); otherwise the
+    include/exclude selectors are rendered (excludes prefixed with ``-``).
+    """
+    run_spec = setup.get("run.spec")
+    if not run_spec:
+        # backward compatibility: reports predating run.spec carry plugins.probe_spec
+        return setup.get("plugins.probe_spec") or "probes.*"
+    if isinstance(run_spec, str):  # aggregated reports store a pre-rendered string
+        return run_spec
+
+    def _token(item):
+        if isinstance(item, str):
+            return item
+        return ":".join(str(part) for part in next(iter(item.items())))
+
+    parts = [_token(item) for item in run_spec.get("include", []) or []]
+    parts += ["-" + _token(item) for item in run_spec.get("exclude", []) or []]
+    return ", ".join(parts) or "probes.*"
 
 
 def _report_header_content(report_path, init, setup, payloads, config=_config) -> dict:
@@ -100,7 +136,7 @@ def _report_header_content(report_path, init, setup, payloads, config=_config) -
         "start_time": init["start_time"],
         "run_uuid": init["run_uuid"],
         "setup": setup,
-        "probespec": setup["plugins.probe_spec"],
+        "probespec": _runspec_to_probespec(setup),
         "target_type": target_type,
         "target_name": target_name,
         "payloads": payloads,
@@ -227,7 +263,6 @@ def _get_group_aggregate_score(
     cursor, probe_group, aggregation_function
 ) -> tuple[float, bool]:
 
-    unknown_function = False
     group_score = None  # range 0.0--1.0
     res = cursor.execute(
         "select score as s from results where probe_group = ?;",
@@ -235,39 +270,13 @@ def _get_group_aggregate_score(
     )
     probe_scores = [i[0] for i in res.fetchall()]
 
-    # main aggregation function here
-    match aggregation_function:
-        # get all the scores
-
-        case "mean":
-            group_score = statistics.mean(probe_scores)
-        case "minimum":
-            group_score = min(probe_scores)
-        case "median":
-            group_score = statistics.median(probe_scores)
-        case "lower_quartile":
-            if len(probe_scores) == 1:
-                group_score = probe_scores[0]
-            else:
-                group_score = statistics.quantiles(probe_scores, method="inclusive")[0]
-        case "mean_minus_sd":
-            if len(probe_scores) == 1:
-                group_score = probe_scores[0]
-            else:
-                group_score = statistics.mean(probe_scores) - statistics.stdev(
-                    probe_scores
-                )
-        case "proportion_passing":
-            group_score = len(
-                [
-                    p
-                    for p in probe_scores
-                    if p > garak.analyze.ABSOLUTE_DEFCON_BOUNDS.BELOW_AVG
-                ]
-            ) / len(probe_scores)
-        case _:
-            group_score = min(probe_scores)  # minimum as default
-            unknown_function = True
+    if len(probe_scores):
+        group_score, unknown_function = garak.resources.scoring.aggregate(
+            probe_scores, aggregation_function
+        )
+    else:
+        group_score = None
+        unknown_function = None
 
     return (group_score, unknown_function)
 
@@ -493,6 +502,80 @@ def append_report_object(reportfile: IO, object: dict):
     reportfile.write(json.dumps(object, ensure_ascii=False))
 
 
+def _compute_technique_intent_matrix(evals: list, report_plugin_cache: dict) -> dict:
+    """Pool eval intent counts into a demon:* technique -> intent matrix.
+
+    Counts are pooled across contributing probes and detectors, so
+    ``total_evaluated`` is an evaluation count (attempt x detector).
+    """
+    acc = defaultdict(
+        lambda: defaultdict(
+            lambda: {"passed": 0, "total": 0, "nones": 0, "detectors": set()}
+        )
+    )
+
+    for eval in evals:
+        if "intents" not in eval:
+            continue
+        probe = eval["probe"].replace("probes.", "")
+        try:
+            tags = _resolve_plugin_info(
+                f"probes.{probe}", report_plugin_cache, required_fields=("tags",)
+            )["tags"]
+        except (KeyError, TypeError, ValueError) as e:
+            raise ReportIncompatibleError(
+                f"Report references unknown probe probes.{probe}; "
+                "the report was likely generated with a different garak version"
+            ) from e
+        techniques = [tag for tag in tags if tag.startswith(TECHNIQUE_TAG_PREFIX)]
+        for intent, counts in eval["intents"].items():
+            try:
+                passed = counts["passed"]
+                total = counts["total_evaluated"]
+                nones = counts["nones"]
+            except (KeyError, TypeError) as e:
+                raise ReportIncompatibleError(
+                    f"Report intent counts for probes.{probe} are malformed; "
+                    "the report was likely generated with a different garak version"
+                ) from e
+            for technique in techniques:
+                cell = acc[technique][intent]
+                cell["passed"] += passed
+                cell["total"] += total
+                cell["nones"] += nones
+                cell["detectors"].add(eval["detector"])
+
+    matrix = {}
+    for technique in sorted(acc):
+        intents = acc[technique]
+        technique_detectors: set = set()
+        cells = {}
+        for intent in sorted(intents):
+            cell = intents[intent]
+            technique_detectors |= cell["detectors"]
+            cells[intent] = {
+                "name": intent_names.get(intent),
+                "score": (cell["passed"] / cell["total"]) if cell["total"] else None,
+                "passed": cell["passed"],
+                "total_evaluated": cell["total"],
+                "nones": cell["nones"],
+                "n_detectors": len(cell["detectors"]),
+            }
+        technique_name, technique_description = tag_descriptions.get(
+            technique, (None, None)
+        )
+        matrix[technique] = {
+            "_summary": {
+                "name": technique_name or None,
+                "description": technique_description or None,
+                "n_intents": len(intents),
+                "n_detectors": len(technique_detectors),
+            },
+            **cells,
+        }
+    return matrix
+
+
 def build_digest(report_filename: str, config=_config):
 
     # taxonomy = config.reporting.taxonomy
@@ -589,11 +672,14 @@ def build_digest(report_filename: str, config=_config):
     report_digest["meta"]["setup"]["reporting.taxonomy"] = taxonomy
     report_digest["meta"]["calibration_used"] = calibration_used
     report_digest["meta"]["aggregation_unknown"] = aggregation_unknown
-    report_digest["meta"]["plugin_cache_source"] = (
-        report_plugin_cache["version"]
-    )
+    report_digest["meta"]["plugin_cache_source"] = report_plugin_cache["version"]
     if calibration_used:
         report_digest["meta"]["calibration"] = _get_calibration_info(calibration)
+
+    # technique -> intent breakdown, pooled from each eval's intents field
+    report_digest["technique_intent_matrix"] = _compute_technique_intent_matrix(
+        evals, report_plugin_cache
+    )
 
     return report_digest
 

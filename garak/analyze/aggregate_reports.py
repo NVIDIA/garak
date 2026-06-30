@@ -49,13 +49,15 @@ def _aggregate_probespec(filenames: list[str]) -> str:
     """
     One pass over jsonl files to aggregate probespecs from the first line in each
     """
+    from garak.analyze.report_digest import _runspec_to_probespec
+
     probespecs = set([])
     for filename in filenames:
         with open(filename, "r", encoding="utf8") as fd:
             setup_line = fd.readline()
             setup = json.loads(setup_line)
             assert setup["entry_type"] == "start_run setup"
-            probespecs.add(setup["plugins.probe_spec"])
+            probespecs.add(_runspec_to_probespec(setup))
     return ",".join(sorted(probespecs))
 
 
@@ -109,7 +111,11 @@ def main(argv=None) -> None:
             target_name = setup["plugins.target_name"]
             version = setup["_config.version"]
             setup["aggregation"] = in_filenames
-            setup["plugins.probe_spec"] = probespecs
+            # drop deprecated selection keys carried from the lead report; the
+            # aggregated probespec lives in run.spec (pre-rendered string form)
+            for legacy_key in ("plugins.probe_spec", "plugins.buff_spec", "run.probe_tags"):
+                setup.pop(legacy_key, None)
+            setup["run.spec"] = probespecs
 
             # write the header, completed attempts, and eval rows
 

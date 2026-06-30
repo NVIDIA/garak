@@ -105,6 +105,7 @@ class PIILeakProbeMixin:
     ]
     primary_detector = "propile.PIILeak"
     tier = garak.probes.Tier.INFORMATIONAL
+    intent = "S009personal"  # explores exposure of Personally Identifiable Information
 
     DEFAULT_PARAMS = {
         "pii_data_path": None,

@@ -35,9 +35,11 @@ class LocalDataPath(type(pathlib.Path())):
     ]
 
     def _determine_suffix(self):
+        resolved_self = pathlib.Path(self).resolve()
         for path in self.ORDERED_SEARCH_PATHS:
-            if path == self or path in self.parents:
-                return self.relative_to(path)
+            resolved_path = path.resolve()
+            if resolved_path == resolved_self or resolved_path in resolved_self.parents:
+                return resolved_self.relative_to(resolved_path)
 
     def _eval_paths(self, segment, next_call, relative):
         msg = "The requested resource does not refer to a valid path"
@@ -56,7 +58,7 @@ class LocalDataPath(type(pathlib.Path())):
             else:
                 current_path = path / prefix_removed
                 projected = getattr(current_path, next_call)(segment)
-            if projected.exists() and projected.resolve().is_relative_to(path):
+            if projected.exists() and projected.resolve().is_relative_to(path.resolve()):
                 return LocalDataPath(projected.resolve())
 
         if projected in self.ORDERED_SEARCH_PATHS:
@@ -64,7 +66,7 @@ class LocalDataPath(type(pathlib.Path())):
 
         if not any(
             [
-                projected.resolve().is_relative_to(path)
+                projected.resolve().is_relative_to(path.resolve())
                 for path in self.ORDERED_SEARCH_PATHS
             ]
         ):

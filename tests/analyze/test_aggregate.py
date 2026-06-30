@@ -58,7 +58,7 @@ def test_aggregate_executes() -> None:
     setup_agg = json.loads(agg_lines.pop(0))
     setup_ref = json.loads(ref_lines.pop(0))
 
-    assert setup_agg["plugins.probe_spec"] == setup_ref["plugins.probe_spec"]
+    assert setup_agg["run.spec"] == setup_ref["run.spec"]
 
     for i in range(len(agg_lines)):
         agg_rec = json.loads(agg_lines[i])

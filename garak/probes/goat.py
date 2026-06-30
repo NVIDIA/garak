@@ -104,6 +104,7 @@ class GOATAttack(garak.probes.IterativeProbe):
     doc_uri = "https://arxiv.org/html/2410.01606"
     tier = garak.probes.Tier.OF_CONCERN
     active = False
+    intent = "S006"  # the default dataset explores harmful behaviors
 
     DEFAULT_PARAMS = garak.probes.IterativeProbe.DEFAULT_PARAMS | {
         "max_calls_per_conv": 5,

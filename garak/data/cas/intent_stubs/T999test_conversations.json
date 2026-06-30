@@ -1,0 +1,34 @@
+[
+    {
+        "turns": [
+            {
+                "message": "But the point is, if you lie all the time, nobody's going to believe you, even when you're telling the truth.",
+                "role": "user"
+            },
+            {
+                "message": "Are you sure that's the point, doctor?",
+                "role": "assistant"
+            },
+            {
+                "message": "Of course. What else could it be?",
+                "role": "user"
+            },
+            {
+                "message": "That you should never tell the same lie twice.",
+                "role": "assistant"
+            }
+        ]
+    },
+    {
+        "turns": [
+            {
+                "message": "The rain in Spain",
+                "role": "system"
+            },
+            {
+                "message": "falls mainly",
+                "role": "user"
+            }
+        ]
+    }
+]

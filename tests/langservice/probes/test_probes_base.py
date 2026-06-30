@@ -108,7 +108,7 @@ RESPONSE_SAMPLES = [
 @pytest.mark.parametrize("responses, classname", RESPONSE_SAMPLES)
 def test_base_postprocess_attempt(responses, mocker):
     """Validate processing of reverse translation for various response cases"""
-    import garak.langservice
+    import garak.services.langservice
     import garak.probes.base
     from garak.langproviders.local import Passthru
 
@@ -123,7 +123,7 @@ def test_base_postprocess_attempt(responses, mocker):
     )
 
     mocker.patch.object(
-        garak.langservice, "get_langprovider", return_value=null_provider
+        garak.services.langservice, "get_langprovider", return_value=null_provider
     )
 
     prompt_mock = mocker.patch.object(
@@ -153,7 +153,7 @@ Skip probes.tap.PAIR because it needs openai api key and large gpu resource
 @pytest.mark.parametrize("classname", ATKGEN_PROMPT_PROBES)
 def test_atkgen_probe_translation(classname, mocker):
     # how can tests for atkgen probes be expanded to ensure translation is called?
-    import garak.langservice
+    import garak.services.langservice
     from garak.langproviders.local import Passthru
 
     null_provider = Passthru(
@@ -167,7 +167,7 @@ def test_atkgen_probe_translation(classname, mocker):
     )
 
     mocker.patch.object(
-        garak.langservice, "get_langprovider", return_value=null_provider
+        garak.services.langservice, "get_langprovider", return_value=null_provider
     )
 
     prompt_mock = mocker.patch.object(
@@ -204,7 +204,7 @@ def test_atkgen_probe_translation(classname, mocker):
 
 @pytest.mark.parametrize("classname", VISUAL_PROBES)
 def test_multi_modal_probe_translation(classname, mocker):
-    import garak.langservice
+    import garak.services.langservice
     from garak.langproviders.local import Passthru
 
     null_provider = Passthru(
@@ -219,7 +219,7 @@ def test_multi_modal_probe_translation(classname, mocker):
     )
 
     mocker.patch.object(
-        garak.langservice, "get_langprovider", return_value=null_provider
+        garak.services.langservice, "get_langprovider", return_value=null_provider
     )
 
     prompt_mock = mocker.patch.object(
@@ -266,7 +266,7 @@ def test_probe_prompt_translation(classname, mocker):
     # this standard pattern. Any probe that needs to call translation more than once during probing
     # should have a unique validation that translation is called in the correct runtime stage
 
-    import garak.langservice
+    import garak.services.langservice
     from garak.langproviders.local import Passthru
 
     null_provider = Passthru(
@@ -281,7 +281,7 @@ def test_probe_prompt_translation(classname, mocker):
     )
 
     mocker.patch.object(
-        garak.langservice, "get_langprovider", return_value=null_provider
+        garak.services.langservice, "get_langprovider", return_value=null_provider
     )
 
     prompt_mock = mocker.patch.object(

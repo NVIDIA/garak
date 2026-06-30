@@ -39,7 +39,8 @@ def clear_langprovider_state(request):
     def clear_langprovider_state():
         import gc
         import importlib
-        from garak import langservice, _config
+        from garak import _config
+        from garak.services import langservice
 
         for _, v in langservice.langproviders.items():
             del v

@@ -17,6 +17,27 @@ Different entry types have different other fields.
 Attempt-type entries have uuid and status fields.
 Status can be 0 (not sent to target), 1 (with target response but not evaluated), or 2 (with response and evaluation).
 Eval-type entries are added after each probe/detector pair completes, and list the results used to compute the score.
+When the probe is an ``IntentProbe`` (and therefore tags each attempt with an intent),
+the corresponding ``eval`` entry also carries an optional ``intents`` field mapping
+each intent name to its ``passed``, ``total_evaluated`` and ``nones`` counts
+(``nones`` are unscoreable outputs, mirroring the top-level ``nones`` and excluded
+from ``total_evaluated``).
+
+The ``digest`` entry (added by ``report_digest``) carries a
+``technique_intent_matrix`` field built from those ``eval`` ``intents`` counts: a
+``technique -> intent`` cross-tab keyed on each probe's ``demon:*`` tags
+(independent of ``reporting.taxonomy``). Each intent cell holds ``score``
+(``passed / total_evaluated``, or ``null`` when ``total_evaluated`` is 0),
+``passed``, ``total_evaluated``, ``nones`` and ``n_detectors``, plus a per-technique
+``_summary`` of ``n_intents`` and ``n_detectors``. Counts are micro-averaged
+(pooled) across contributing probes and detectors, so ``total_evaluated`` is an
+evaluation count (attempt × detector). An intent whose outputs were all unscoreable
+surfaces as ``0/0`` with ``nones`` > 0, signalling that the target never produced a
+usable response for it.
+
+.. seealso::
+
+   :doc:`cas` for running intent-based scans and interpreting per-intent results.
 
 Confidence Intervals (Optional)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
