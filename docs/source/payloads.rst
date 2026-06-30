@@ -36,6 +36,11 @@ The JSON structure of a payload is:
     }
 
 
+.. seealso::
+
+   :doc:`cas` for the trait typology that the ``intent`` field draws on.
+
+
 .. automodule:: garak.payloads
    :members:
    :undoc-members:
