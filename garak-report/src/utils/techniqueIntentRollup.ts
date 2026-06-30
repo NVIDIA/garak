@@ -27,6 +27,12 @@ export type MatrixLevel = "grouped" | "leaf";
 export interface MatrixLeaf {
   technique: string;
   intent: string;
+  /** Human-readable technique name (falls back to the key when absent). */
+  techniqueName?: string;
+  /** Technique description from the taxonomy, when available. */
+  techniqueDescription?: string;
+  /** Human-readable intent name (falls back to the code when absent). */
+  intentName?: string;
   /** 0-1 pass rate. Pairings the digest left unevaluated (null) are dropped. */
   score: number;
   nEvaluations: number;
@@ -64,6 +70,8 @@ export interface MatrixView {
   cols: string[];
   rowLabel: (key: string) => string;
   colLabel: (key: string) => string;
+  /** Technique description for a row key, when the taxonomy provides one. */
+  rowDescription: (key: string) => string | undefined;
   cell: (row: string, col: string) => MatrixCell | undefined;
   /** Total leaf pairs across the whole matrix. */
   leafCount: number;
@@ -75,6 +83,7 @@ const flatten = (matrix: TechniqueIntentMatrix): MatrixLeaf[] => {
   const leaves: MatrixLeaf[] = [];
   for (const technique of Object.keys(matrix)) {
     const row = matrix[technique];
+    const summary = row._summary;
     for (const intent of Object.keys(row)) {
       if (intent === "_summary") continue; // reserved per-row roll-up, not a cell
       const cell = row[intent] as TechniqueIntentCell | undefined;
@@ -84,6 +93,9 @@ const flatten = (matrix: TechniqueIntentMatrix): MatrixLeaf[] => {
       leaves.push({
         technique,
         intent,
+        techniqueName: summary?.name ?? undefined,
+        techniqueDescription: summary?.description ?? undefined,
+        intentName: cell.name ?? undefined,
         score: cell.score,
         nEvaluations: cell.total_evaluated,
         passed: cell.passed,
@@ -118,6 +130,8 @@ export interface AxisGroup {
   key: string;
   /** Display label for the primary key. */
   label: string;
+  /** Taxonomy description for the primary key (technique axis only, when known). */
+  description?: string;
   /** Worst (minimum) child-cell score — the conservative summary. */
   score: number;
   /** Total evaluations pooled across the group's cells. */
@@ -142,6 +156,8 @@ export function buildAxisGroups(view: MatrixView, axis: TaxonomyAxis): AxisGroup
   const secondaries = axis === "technique" ? view.cols : view.rows;
   const primaryLabel = axis === "technique" ? view.rowLabel : view.colLabel;
   const secondaryLabel = axis === "technique" ? view.colLabel : view.rowLabel;
+  // Only techniques carry a taxonomy description.
+  const primaryDescription = axis === "technique" ? view.rowDescription : undefined;
   const cellOf = (primary: string, secondary: string) =>
     axis === "technique" ? view.cell(primary, secondary) : view.cell(secondary, primary);
 
@@ -157,6 +173,7 @@ export function buildAxisGroups(view: MatrixView, axis: TaxonomyAxis): AxisGroup
     groups.push({
       key: primary,
       label: primaryLabel(primary),
+      description: primaryDescription?.(primary),
       score: Math.min(...cells.map(c => c.cell.score)),
       nEvaluations: cells.reduce((sum, c) => sum + c.cell.nEvaluations, 0),
       cells,
@@ -256,9 +273,24 @@ export function buildMatrixView(matrix: TechniqueIntentMatrix, level: MatrixLeve
 
   const rowKeyOf = (l: MatrixLeaf) => (level === "grouped" ? techniqueGroupKey(l.technique) : l.technique);
   const colKeyOf = (l: MatrixLeaf) => (level === "grouped" ? intentGroupKey(l.intent) : l.intent);
+
+  // Readable names/descriptions only resolve at the leaf level, where a key maps
+  // to a single technique/intent; grouped keys are prefixes spanning many, so
+  // they fall back to the formatted key.
+  const techniqueNames = new Map<string, string>();
+  const techniqueDescriptions = new Map<string, string>();
+  const intentNames = new Map<string, string>();
+  for (const leaf of leaves) {
+    if (leaf.techniqueName) techniqueNames.set(leaf.technique, leaf.techniqueName);
+    if (leaf.techniqueDescription) techniqueDescriptions.set(leaf.technique, leaf.techniqueDescription);
+    if (leaf.intentName) intentNames.set(leaf.intent, leaf.intentName);
+  }
   const rowLabel = (key: string) =>
-    level === "grouped" ? techniqueGroupLabel(key) : shortenTechnique(key);
-  const colLabel = (key: string) => key;
+    level === "grouped" ? techniqueGroupLabel(key) : techniqueNames.get(key) ?? shortenTechnique(key);
+  const colLabel = (key: string) =>
+    level === "grouped" ? key : intentNames.get(key) ?? key;
+  const rowDescription = (key: string) =>
+    level === "grouped" ? undefined : techniqueDescriptions.get(key);
 
   // Aggregate leaves into cells keyed by "row\u0000col".
   const cellMap = new Map<string, MatrixCell>();
@@ -323,6 +355,7 @@ export function buildMatrixView(matrix: TechniqueIntentMatrix, level: MatrixLeve
     cols,
     rowLabel,
     colLabel,
+    rowDescription,
     cell: (row, col) => cellMap.get(cellKey(row, col)),
     leafCount: leaves.length,
     reducible,

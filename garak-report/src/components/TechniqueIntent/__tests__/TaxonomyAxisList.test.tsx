@@ -109,6 +109,7 @@ const view: MatrixView = {
   cols: ["i1", "i2", "i3"],
   rowLabel: key => key,
   colLabel: key => key,
+  rowDescription: key => (key === "techB" ? "What techB does" : undefined),
   cell: (row, col) => cellMap[`${row}|${col}`],
   leafCount: 6,
   reducible: false,
@@ -152,6 +153,11 @@ describe("TaxonomyAxisList", () => {
   it("renders the clean 'no failures' state for a 100% cell", () => {
     renderList();
     expect(screen.getByText("No failures recorded"), "clean single-child cell shows the safe state").toBeInTheDocument();
+  });
+
+  it("shows the technique description under the group label when present", () => {
+    renderList();
+    expect(screen.getByText("What techB does"), "technique-axis groups surface the taxonomy description").toBeInTheDocument();
   });
 
   it("supports the intent axis and alphabetical sort", () => {

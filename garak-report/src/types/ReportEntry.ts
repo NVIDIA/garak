@@ -18,6 +18,8 @@ import type { EvalData } from "./Eval";
  * names at this granularity.
  */
 export type TechniqueIntentCell = {
+  /** Human-readable intent name from the taxonomy (null when untitled). */
+  name?: string | null;
   score: number | null;
   passed: number;
   total_evaluated: number;
@@ -27,6 +29,10 @@ export type TechniqueIntentCell = {
 
 /** Per-technique roll-up carried under the reserved `_summary` key of each row. */
 export type TechniqueIntentRowSummary = {
+  /** Human-readable technique name from the taxonomy (null when untitled). */
+  name?: string | null;
+  /** Technique description from the taxonomy (null when absent). */
+  description?: string | null;
   n_intents: number;
   n_detectors: number;
 };
