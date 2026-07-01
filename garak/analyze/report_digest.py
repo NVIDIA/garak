@@ -510,7 +510,16 @@ def _compute_technique_intent_matrix(evals: list, report_plugin_cache: dict) -> 
     """
     acc = defaultdict(
         lambda: defaultdict(
-            lambda: {"passed": 0, "total": 0, "nones": 0, "detectors": set()}
+            lambda: {
+                "passed": 0,
+                "total": 0,
+                "nones": 0,
+                "detectors": set(),
+                # prompts per contributing probe: a probe's detectors all score the
+                # same attempts, so take the max within a probe and sum across probes
+                # to avoid re-counting prompts once per detector.
+                "attempts_by_probe": defaultdict(int),
+            }
         )
     )
 
@@ -544,6 +553,9 @@ def _compute_technique_intent_matrix(evals: list, report_plugin_cache: dict) -> 
                 cell["total"] += total
                 cell["nones"] += nones
                 cell["detectors"].add(eval["detector"])
+                cell["attempts_by_probe"][probe] = max(
+                    cell["attempts_by_probe"][probe], counts.get("n_attempts", 0)
+                )
 
     matrix = {}
     for technique in sorted(acc):
@@ -559,6 +571,7 @@ def _compute_technique_intent_matrix(evals: list, report_plugin_cache: dict) -> 
                 "passed": cell["passed"],
                 "total_evaluated": cell["total"],
                 "nones": cell["nones"],
+                "n_attempts": sum(cell["attempts_by_probe"].values()),
                 "n_detectors": len(cell["detectors"]),
             }
         technique_name, technique_description = tag_descriptions.get(
