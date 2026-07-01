@@ -8,9 +8,7 @@ from typing import List, Callable
 import re
 import unicodedata
 import string
-import logging
 from garak.resources.api import nltk
-from langdetect import detect, DetectorFactory, LangDetectException
 
 _intialized_words = False
 
@@ -104,20 +102,21 @@ def contains_invisible_unicode(text: str) -> bool:
 
 def is_meaning_string(text: str) -> bool:
     """Check if the input text is a meaningless sequence or invalid for translation."""
-    DetectorFactory.seed = 0
-
-    # Detect Language: Skip if no valid language is detected
-    try:
-        lang = detect(text)
-    except LangDetectException:
-        logging.debug("langdetect failed to detect a valid language.")
-        return False
-
-    if lang == "en":
-        return False
+    # Imported lazily so the langid model is only loaded when language
+    # detection is actually needed (e.g. reverse-translation judging).
+    import langid
 
     # Length and pattern checks: Skip if it's too short or repetitive
-    if len(text) < 3 or re.match(r"(.)\1{3,}", text):  # e.g., "aaaa" or "123123"
+    if len(text) < 3 or re.match(r"(.)\1{3,}", text):  # e.g., "aaaa" (4+ repeats)
+        return False
+
+    # Skip if there is no linguistic content to detect a language from
+    if not any(char.isalpha() for char in text):
+        return False
+
+    # Detect Language: Skip if the text is English (no translation needed)
+    lang, _ = langid.classify(text)
+    if lang == "en":
         return False
 
     return True
