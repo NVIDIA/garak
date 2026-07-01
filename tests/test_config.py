@@ -14,6 +14,7 @@ import tempfile
 from pytest_httpserver import HTTPServer
 
 from garak import _config
+from garak.exception import GarakExitCodes
 import garak.cli
 
 SITE_YAML_FILENAME = "TESTONLY.site.yaml.bak"
@@ -607,13 +608,23 @@ def test_blank_generator_instance_loads_yaml_config():
             ).encode("utf-8")
         )
         tmp.close()
-        garak.cli.main(
-            ["--config", tmp.name, "--target_type", generator_name, "--probes", "none"]
-        )
-        os.remove(tmp.name)
-    gen = garak._plugins.load_plugin(f"generators.{generator_name}")
-    assert gen.temperature == revised_temp
-    assert gen.test_val == "test_blank_value"
+        with pytest.raises(SystemExit) as exc_info:
+            garak.cli.main(
+                [
+                    "--config",
+                    tmp.name,
+                    "--target_type",
+                    generator_name,
+                    "--probes",
+                    "none",
+                ]
+            )
+            os.remove(tmp.name)
+            gen = garak._plugins.load_plugin(f"generators.{generator_name}")
+            assert gen.temperature == revised_temp
+            assert gen.test_val == "test_blank_value"
+            assert exc_info.type == SystemExit
+            assert exc_info.value.code == GarakExitCodes.UNSPECIFIED_EXCEPTION
 
 
 # check that generator picks up cli config items
@@ -637,9 +648,12 @@ def test_blank_generator_instance_loads_cli_config():
         .replace(" ", "")
         .strip(),
     ]
-    garak.cli.main(args)
-    gen = garak._plugins.load_plugin(f"generators.{generator_name}")
-    assert gen.temperature == revised_temp
+    with pytest.raises(SystemExit) as exc_info:
+        garak.cli.main(args)
+        gen = garak._plugins.load_plugin(f"generators.{generator_name}")
+        assert gen.temperature == revised_temp
+        assert exc_info.type == SystemExit
+        assert exc_info.value.code == GarakExitCodes.UNSPECIFIED_EXCEPTION
 
 
 # test parsing of probespec
