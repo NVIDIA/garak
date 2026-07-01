@@ -42,10 +42,24 @@ class Generator(Configurable):
     # legal element for str list `modality['in']`: 'text', 'image', 'audio', 'video', '3d'
     # refer to Table 1 in https://arxiv.org/abs/2401.13601
     modality: dict = {"in": {"text"}, "out": {"text"}}
+    audio_formats: set[str] = set()
+    image_formats: set[str] = set()
+    video_formats: set[str] = set()
+    file_formats: set[str] = set()
 
     supports_multiple_generations = (
         False  # can more than one generation be extracted per request?
     )
+
+    @classmethod
+    def supported_formats(cls, modality: str) -> set[str]:
+        """Return supported input formats for a modality.
+
+        Format values should be lowercase bare extensions without a leading dot,
+        such as ``"wav"``, or MIME types, such as ``"audio/wav"``.
+        """
+
+        return set(getattr(cls, f"{modality}_formats", set()))
 
     def __init__(self, name="", config_root=_config):
         self._load_config(config_root)
