@@ -12,6 +12,46 @@ import type { ModuleData } from "./Module";
 import type { EvalData } from "./Eval";
 
 /**
+ * One technique×intent cell from `digest.technique_intent_matrix`. `score` is a
+ * 0-1 pass rate (higher is safer) or `null` when nothing was evaluated. The
+ * digest pools detectors into a count (`n_detectors`); it does not carry their
+ * names at this granularity.
+ */
+export type TechniqueIntentCell = {
+  /** Human-readable intent name from the taxonomy (null when untitled). */
+  name?: string | null;
+  score: number | null;
+  passed: number;
+  total_evaluated: number;
+  nones: number;
+  /** Distinct prompts (attempts) for this pairing; `total_evaluated` is prompts × detectors. Absent on older reports. */
+  n_attempts?: number;
+  n_detectors: number;
+};
+
+/** Per-technique roll-up carried under the reserved `_summary` key of each row. */
+export type TechniqueIntentRowSummary = {
+  /** Human-readable technique name from the taxonomy (null when untitled). */
+  name?: string | null;
+  /** Technique description from the taxonomy (null when absent). */
+  description?: string | null;
+  n_intents: number;
+  n_detectors: number;
+};
+
+/**
+ * One technique's row: a `_summary` plus intent-code -> cell entries. The
+ * `_summary` key is reserved and must be skipped when iterating intents.
+ */
+export type TechniqueIntentRow = {
+  _summary?: TechniqueIntentRowSummary;
+  [intent: string]: TechniqueIntentCell | TechniqueIntentRowSummary | undefined;
+};
+
+/** `demon:` technique -> intent code -> cell, from `digest.technique_intent_matrix`. */
+export type TechniqueIntentMatrix = Record<string, TechniqueIntentRow>;
+
+/**
  * Root structure for a Garak report digest.
  * Contains metadata, configuration, and evaluation results.
  */
@@ -43,6 +83,8 @@ export type ReportEntry = {
   };
   eval: EvalData;
   results?: ModuleData[];
+  /** Pooled technique×intent matrix (present on reports with technique/intent data). */
+  technique_intent_matrix?: TechniqueIntentMatrix;
 };
 
 /**

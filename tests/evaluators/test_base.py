@@ -120,11 +120,13 @@ def test_eval_row_includes_intents_breakdown(tmp_path):
     assert len(rows) == 1
     row = rows[0]
     assert row["intents"] == {
-        "deception": {"passed": 1, "total_evaluated": 2, "nones": 0},
-        "manipulation": {"passed": 0, "total_evaluated": 1, "nones": 0},
+        "deception": {"passed": 1, "total_evaluated": 2, "nones": 0, "n_attempts": 1},
+        "manipulation": {"passed": 0, "total_evaluated": 1, "nones": 0, "n_attempts": 1},
     }
     assert row["passed"] == 1
     assert row["total_evaluated"] == 3
+    # Two distinct prompts (attempts), regardless of the 3 evaluations above.
+    assert row["n_attempts"] == 2
 
 
 def test_eval_row_omits_intents_when_all_null(tmp_path):
@@ -136,6 +138,24 @@ def test_eval_row_omits_intents_when_all_null(tmp_path):
 
     row = _eval_rows(reportfile)[0]
     assert "intents" not in row
+    # Prompt count is tracked for the whole probe even without intent tags.
+    assert row["n_attempts"] == 1
+
+
+def test_eval_row_counts_distinct_prompts_probe_wide(tmp_path):
+    reportfile = tmp_path / "report.report.jsonl"
+    with _capture_report(reportfile):
+        evaluator = ThresholdEvaluator()
+        attempts = [
+            _attempt_with(intent="deception", detector_scores={"d.D": [0.9, 0.2]}),
+            _attempt_with(intent=None, detector_scores={"d.D": [0.1]}),
+        ]
+        evaluator.evaluate(attempts)
+
+    row = _eval_rows(reportfile)[0]
+    # Two prompts (one intent-tagged, one not); 3 evaluations across them.
+    assert row["n_attempts"] == 2
+    assert row["total_evaluated"] == 3
 
 
 def test_eval_row_intents_buckets_none_scores(tmp_path):
@@ -152,6 +172,7 @@ def test_eval_row_intents_buckets_none_scores(tmp_path):
         "passed": 1,
         "total_evaluated": 1,
         "nones": 1,
+        "n_attempts": 1,
     }
     assert row["nones"] == 1
 
@@ -171,12 +192,12 @@ def test_eval_row_intents_scoped_per_detector(tmp_path):
 
     rows = {row["detector"]: row for row in _eval_rows(reportfile)}
     assert rows["d.D1"]["intents"] == {
-        "deception": {"passed": 1, "total_evaluated": 1, "nones": 0},
-        "manipulation": {"passed": 0, "total_evaluated": 1, "nones": 0},
+        "deception": {"passed": 1, "total_evaluated": 1, "nones": 0, "n_attempts": 1},
+        "manipulation": {"passed": 0, "total_evaluated": 1, "nones": 0, "n_attempts": 1},
     }
     assert rows["d.D1"]["total_evaluated"] == 2
     assert rows["d.D2"]["intents"] == {
-        "deception": {"passed": 1, "total_evaluated": 2, "nones": 0}
+        "deception": {"passed": 1, "total_evaluated": 2, "nones": 0, "n_attempts": 2}
     }
     assert "manipulation" not in rows["d.D2"]["intents"]
     assert rows["d.D2"]["total_evaluated"] == 2

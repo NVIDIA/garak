@@ -1,0 +1,265 @@
+/**
+ * @file TechniqueIntentPanel.tsx
+ * @description Orchestrates the technique/intent taxonomy view. Leads with a
+ *              compact executive summary, surfaces genuine technique×intent
+ *              interactions only when they exist ("Notable pairings"), and drills
+ *              into tabbed "By technique" / "By intent" accordion lists that
+ *              expand inline (Modules-tab style). No heatmap: for the common
+ *              separable matrix it just re-encodes the two lists as a grid.
+ * @module components/TechniqueIntent
+ *
+ * @copyright NVIDIA Corporation 2023-2026
+ * @license Apache-2.0
+ */
+
+import { useCallback, useMemo, useState, type ReactNode } from "react";
+import {
+  Flex,
+  Grid,
+  Notification,
+  SegmentedControl,
+  Stack,
+  StatusMessage,
+  Tabs,
+  Text,
+} from "@kui/react";
+import type { TechniqueIntentMatrix } from "../../types/ReportEntry";
+import { DEFCON_LEVELS, scoreToDefcon } from "../../constants";
+import { formatRate } from "../../utils/formatPercentage";
+import {
+  buildMatrixView,
+  findNotablePairings,
+  type MatrixLevel,
+  type NotablePairing,
+} from "../../utils/techniqueIntentRollup";
+import type { SortOption } from "../../hooks/useModuleFilters";
+import DefconBadge from "../DefconBadge";
+import ErrorBoundary from "../ErrorBoundary";
+import ReportFilterBar from "../ReportFilterBar";
+import TaxonomyAxisList from "./TaxonomyAxisList";
+
+/** Props for TechniqueIntentPanel component */
+export interface TechniqueIntentPanelProps {
+  /** Pooled technique×intent matrix (`digest.technique_intent_matrix`) */
+  techniqueIntent?: TechniqueIntentMatrix;
+  /** Theme mode for styling (unused now the charts are gone; kept for the API) */
+  isDark?: boolean;
+}
+
+type AxisTab = "technique" | "intent";
+
+const hasEntries = (obj?: Record<string, unknown>): boolean =>
+  !!obj && Object.keys(obj).length > 0;
+
+const LEVEL_ITEMS = [
+  { value: "leaf", children: "All leaves" },
+  { value: "grouped", children: "Grouped" },
+];
+
+/** Switches the lists between grouped (worst-case roll-up) and full-leaf levels. */
+const LevelToggle = ({
+  level,
+  onChange,
+}: {
+  level: MatrixLevel;
+  onChange: (level: MatrixLevel) => void;
+}) => (
+  <Flex gap="density-sm" align="center" style={{ flexShrink: 0 }}>
+    <Text kind="label/bold/lg">Detail level:</Text>
+    <SegmentedControl
+      size="small"
+      value={level}
+      onValueChange={value => onChange(value as MatrixLevel)}
+      items={LEVEL_ITEMS}
+    />
+  </Flex>
+);
+
+/**
+ * Warning callout for genuine interactions — pairings that fail far worse than
+ * their technique or intent does elsewhere. Renders only when such pairings
+ * exist (it's silent for the common separable matrix). Each row is a shortcut
+ * that opens the pairing in the technique list below.
+ */
+const NotablePairings = ({
+  items,
+  onSelect,
+}: {
+  items: NotablePairing[];
+  onSelect: (pairing: NotablePairing) => void;
+}) => (
+  <Notification
+    status="warning"
+    density="spacious"
+    slotHeading="Notable pairings"
+    slotSubheading={
+      <Stack gap="density-lg">
+        <Text kind="body/regular/sm" className="opacity-70">
+          These combinations fail far worse than the technique or the intent does on its own — the
+          kind of interaction worth a closer look. Select one to open it in the list below.
+        </Text>
+        <Grid cols={{ base: 1, lg: 2 }} gap="density-md">
+          {items.map(p => (
+            <button
+              key={`${p.rowKey}\u0000${p.colKey}`}
+              type="button"
+              onClick={() => onSelect(p)}
+              className="w-full cursor-pointer rounded text-left transition-opacity hover:opacity-70"
+              style={{ background: "none", border: 0, padding: 0 }}
+            >
+              <Flex align="center" gap="density-sm">
+                <DefconBadge defcon={scoreToDefcon(p.score)} />
+                <Text kind="label/bold/md">{formatRate(p.score)}</Text>
+                <Text kind="body/regular/md">
+                  {p.rowLabel} × {p.colLabel}
+                </Text>
+              </Flex>
+            </button>
+          ))}
+        </Grid>
+      </Stack>
+    }
+  />
+);
+
+/**
+ * Renders the technique/intent taxonomy view. Shows a graceful empty state when
+ * the report carries no technique×intent matrix (e.g. older reports).
+ */
+const TechniqueIntentPanel = ({ techniqueIntent, isDark }: TechniqueIntentPanelProps) => {
+  const [level, setLevel] = useState<MatrixLevel>("leaf");
+  const [selectedDefcons, setSelectedDefcons] = useState<number[]>([...DEFCON_LEVELS]);
+  const [sortBy, setSortBy] = useState<SortOption>("defcon");
+  const [activeTab, setActiveTab] = useState<AxisTab>("technique");
+  const [techOpen, setTechOpen] = useState<string>("");
+  const [intentOpen, setIntentOpen] = useState<string>("");
+  // Intent to auto-open inside the currently-open technique (set when a notable
+  // pairing is clicked; cleared on any manual accordion interaction).
+  const [focusIntent, setFocusIntent] = useState<string>("");
+  // Bumped on every notable-pairing click so re-clicking the same one re-scrolls.
+  const [focusNonce, setFocusNonce] = useState(0);
+
+  const viewGrouped = useMemo(
+    () => buildMatrixView(techniqueIntent ?? {}, "grouped"),
+    [techniqueIntent],
+  );
+  const viewLeaf = useMemo(() => buildMatrixView(techniqueIntent ?? {}, "leaf"), [techniqueIntent]);
+  const reducible = viewGrouped.reducible;
+  const activeLevel: MatrixLevel = reducible ? level : "leaf";
+  const activeView = activeLevel === "grouped" ? viewGrouped : viewLeaf;
+
+  const hasMatrix = hasEntries(techniqueIntent);
+
+  // The interaction signal is derived from the concrete leaf pairings so it
+  // stays stable regardless of the Grouped/Leaf toggle below.
+  const notable = useMemo(() => findNotablePairings(viewLeaf), [viewLeaf]);
+
+  const toggleDefcon = useCallback((defcon: number) => {
+    setSelectedDefcons(prev =>
+      prev.includes(defcon) ? prev.filter(d => d !== defcon) : [...prev, defcon],
+    );
+  }, []);
+
+  // Switching level remaps every key (grouped vs leaf), so clear stale open rows.
+  const changeLevel = useCallback((next: MatrixLevel) => {
+    setLevel(next);
+    setTechOpen("");
+    setIntentOpen("");
+  }, []);
+
+  // Manual open/close on the technique list drops any pending notable-pairing focus.
+  const handleTechOpen = useCallback((next: string) => {
+    setTechOpen(next);
+    setFocusIntent("");
+  }, []);
+
+  // Jump from a notable pairing to its detail: technique tab, leaf level (so the
+  // accordion key matches the leaf pairing), open that technique and pre-select
+  // the intent. The opened detail box reveals itself once the accordion finishes
+  // animating (see scrollBoxIntoView in TaxonomyAxisList).
+  const handleNotableSelect = useCallback((pairing: NotablePairing) => {
+    setActiveTab("technique");
+    setLevel("leaf");
+    setTechOpen(pairing.rowKey);
+    setFocusIntent(pairing.colKey);
+    setFocusNonce(n => n + 1);
+  }, []);
+
+  if (!hasMatrix) {
+    return (
+      <StatusMessage
+        size="medium"
+        slotHeading="No technique/intent data in this report"
+        slotSubheading="This report was generated without technique and intent taxonomy tags."
+      />
+    );
+  }
+
+  const tabItems = [
+    {
+      value: "technique",
+      children: "By technique",
+      slotContent: (
+        // KUI tab panels align children to flex-start, so the list must
+        // claim full width explicitly (the same trick the Modules tab uses).
+        <Flex direction="col" style={{ width: "100%" }}>
+          <ErrorBoundary fallbackMessage="Failed to load the technique list.">
+            <TaxonomyAxisList
+              view={activeView}
+              axis="technique"
+              selectedDefcons={selectedDefcons}
+              sortBy={sortBy}
+              openValue={techOpen}
+              onOpenChange={handleTechOpen}
+              focusSecondaryKey={focusIntent}
+              focusNonce={focusNonce}
+              isDark={isDark}
+            />
+          </ErrorBoundary>
+        </Flex>
+      ),
+    },
+    {
+      value: "intent",
+      children: "By intent",
+      slotContent: (
+        <Flex direction="col" style={{ width: "100%" }}>
+          <ErrorBoundary fallbackMessage="Failed to load the intent list.">
+            <TaxonomyAxisList
+              view={activeView}
+              axis="intent"
+              selectedDefcons={selectedDefcons}
+              sortBy={sortBy}
+              openValue={intentOpen}
+              onOpenChange={setIntentOpen}
+              isDark={isDark}
+            />
+          </ErrorBoundary>
+        </Flex>
+      ),
+    },
+  ];
+
+  return (
+    <Flex direction="col" gap="density-2xl" style={{ width: "100%" }}>
+      {notable.length > 0 && <NotablePairings items={notable} onSelect={handleNotableSelect} />}
+
+      <Flex direction="col" gap="density-sm">
+        <ReportFilterBar
+          selectedDefcons={selectedDefcons}
+          onToggleDefcon={toggleDefcon}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+          slotEnd={reducible ? <LevelToggle level={activeLevel} onChange={changeLevel} /> : undefined}
+        />
+        <Tabs
+          value={activeTab}
+          onValueChange={value => setActiveTab(value as AxisTab)}
+          items={tabItems as { value: string; children: string; slotContent: ReactNode }[]}
+        />
+      </Flex>
+    </Flex>
+  );
+};
+
+export default TechniqueIntentPanel;
