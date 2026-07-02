@@ -847,6 +847,20 @@ def test_site_yaml_overrides_max_workers(capsys):
         assert exc_info.value.code == 1
 
 
+# a run with parallel_attempts set should complete without error, for both the
+# serial case (1) and a parallel case (>1). uses the cheap CPU-only test
+# generator and the multi-prompt test.Test probe so that the >1 case actually
+# reaches the multiprocessing path in garak.probes.base.Probe._execute_all
+@pytest.mark.parametrize("parallel_attempts", [1, 4])
+def test_parallel_attempts_run_completes(parallel_attempts):
+    args = (
+        f"--parallel_attempts {parallel_attempts} -m test.Blank -p test.Test -g 1"
+    ).split()
+    garak.cli.main(args)
+
+    assert _config.system.parallel_attempts == parallel_attempts
+
+
 model_target_data = [
     ("model_type", "model_name"),
     ("model_type", "target_name"),
