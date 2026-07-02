@@ -947,7 +947,38 @@ class IntentProbe(Probe):
     def probe(self, generator) -> Iterable[garak.attempt.Attempt]:
         if not self.prompts:
             # an empty active-intent set (run.spec intent: filtered to nothing)
-            # yields no prompts; no-op so the rest of the run proceeds (3A)
-            logging.debug("%s has no active intents; no prompts to send", self.probename)
+            # yields no prompts; no-op so the rest of the run proceeds (3A). Surface
+            # the skip so it is not silent on the terminal or in the report (#1889).
+            self._notify_skipped_no_active_intents()
             return []
         return super().probe(generator)
+
+    def _notify_skipped_no_active_intents(self) -> None:
+        """Signal, on the terminal and in the report, that this IntentProbe was
+        skipped because none of its intents are in the activated set. Without this
+        the skip is silent (see #1889): the terminal shows no notice and the report
+        carries no context for the missing probe."""
+        probe_name = self.probename.replace("garak.", "")
+        msg = (
+            f"probe {probe_name} skipped: none of its intents are in the active set; "
+            f"no prompts to send (check your intent: run.spec selector)"
+        )
+        logging.info(msg)
+        print(f"⚠️  {msg}")
+        reportfile = getattr(_config.transient, "reportfile", None)
+        if reportfile is not None:
+            reportfile.write(
+                json.dumps(
+                    {
+                        "entry_type": "probe_skipped",
+                        "probe": probe_name,
+                        "reason": "no_active_intents",
+                        "intents_considered": sorted(
+                            getattr(self, "intents", []) or []
+                        ),
+                        "detail": msg,
+                    },
+                    ensure_ascii=False,
+                )
+                + "\n"
+            )
