@@ -13,6 +13,7 @@ import {
   buildMatrixView,
   findNotablePairings,
 } from "../techniqueIntentRollup";
+import { intentName, intentDescription } from "../taxonomyLabels";
 import type { TechniqueIntentMatrix } from "../../types/ReportEntry";
 
 /** Builds a matrix from terse {technique, intent, score} triples for tests. */
@@ -154,31 +155,80 @@ describe("buildMatrixView", () => {
     });
   });
 
-  it("exposes readable technique/intent names and descriptions at the leaf level", () => {
+  it("names and describes leaf intents from the bundled trait typology", () => {
+    const code = "C001"; // a real intent code present in the typology
     const named: TechniqueIntentMatrix = {
       "demon:Cat:Sub:A": {
         _summary: { name: "Alpha technique", description: "Does alpha things", n_intents: 1, n_detectors: 1 },
-        S005hate: { name: "Hate speech", score: 0.5, passed: 50, total_evaluated: 100, nones: 0, n_detectors: 1 },
+        [code]: {
+          name: "digest name (ignored when the typology knows the code)",
+          score: 0.5,
+          passed: 50,
+          total_evaluated: 100,
+          nones: 0,
+          n_detectors: 1,
+        },
       },
     };
     const view = buildMatrixView(named, "leaf");
     expect(view.rowLabel("demon:Cat:Sub:A")).toBe("Alpha technique");
-    expect(view.colLabel("S005hate")).toBe("Hate speech");
+    expect(view.colLabel(code), "intent label comes from the typology").toBe(intentName(code));
     expect(view.rowDescription("demon:Cat:Sub:A")).toBe("Does alpha things");
-    // Grouped keys span many techniques/intents, so names don't apply there.
+    expect(view.colDescription(code), "intent description comes from the typology").toBe(
+      intentDescription(code),
+    );
+    // Grouped keys span many techniques, so technique names don't apply there.
     expect(buildMatrixView(named, "grouped").rowDescription("demon:Cat:Sub")).toBeUndefined();
   });
 
-  it("attaches the technique description to technique-axis groups only", () => {
+  it("falls back to the digest name then the raw code when the typology is silent", () => {
+    const unknown: TechniqueIntentMatrix = {
+      "demon:Cat:Sub:A": {
+        Znovel: { name: "Digest Only", score: 0.5, passed: 50, total_evaluated: 100, nones: 0, n_detectors: 1 },
+        Zbare: { score: 0.5, passed: 50, total_evaluated: 100, nones: 0, n_detectors: 1 },
+      },
+    };
+    const view = buildMatrixView(unknown, "leaf");
+    expect(view.colLabel("Znovel"), "unknown code with a digest name uses it").toBe("Digest Only");
+    expect(view.colLabel("Zbare"), "unknown code with no name falls back to the code").toBe("Zbare");
+    expect(view.colDescription("Znovel"), "unknown code has no typology description").toBeUndefined();
+  });
+
+  it("labels grouped intent families with the typology name, not the raw code", () => {
+    const family = "C002"; // family/subcategory code present in the typology
+    const leaf = "C002deny"; // a leaf that rolls up into the C002 family
+    const named: TechniqueIntentMatrix = {
+      "demon:Cat:Sub:A": {
+        [leaf]: { name: "x", score: 0.5, passed: 50, total_evaluated: 100, nones: 0, n_detectors: 1 },
+      },
+    };
+    const grouped = buildMatrixView(named, "grouped");
+    expect(grouped.cols, "leaf rolls up to its hazard family").toContain(family);
+    expect(grouped.colLabel(family), "grouped column uses the family name").toBe(intentName(family));
+    expect(grouped.colLabel(family), "the raw code is not shown").not.toBe(family);
+    expect(grouped.colDescription(family)).toBe(intentDescription(family));
+  });
+
+  it("attaches taxonomy descriptions to both technique and intent axis groups", () => {
+    const code = "C001";
     const named: TechniqueIntentMatrix = {
       "demon:Cat:Sub:A": {
         _summary: { name: "Alpha", description: "Alpha desc", n_intents: 1, n_detectors: 1 },
-        S005hate: { name: "Hate", score: 0.5, passed: 50, total_evaluated: 100, nones: 0, n_detectors: 1 },
+        [code]: {
+          score: 0.5,
+          passed: 50,
+          total_evaluated: 100,
+          nones: 0,
+          n_detectors: 1,
+        },
       },
     };
     const view = buildMatrixView(named, "leaf");
     expect(buildAxisGroups(view, "technique")[0].description).toBe("Alpha desc");
-    expect(buildAxisGroups(view, "intent")[0].description, "intents have no description").toBeUndefined();
+    expect(
+      buildAxisGroups(view, "intent")[0].description,
+      "intent groups surface the typology description",
+    ).toBe(intentDescription(code));
   });
 
   it("pools passed / undetermined counts and keeps the worst detector count", () => {

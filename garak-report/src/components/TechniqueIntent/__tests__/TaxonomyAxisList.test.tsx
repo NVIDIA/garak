@@ -111,6 +111,7 @@ const view: MatrixView = {
   rowLabel: key => key,
   colLabel: key => key,
   rowDescription: key => (key === "techB" ? "What techB does" : undefined),
+  colDescription: () => undefined,
   cell: (row, col) => cellMap[`${row}|${col}`],
   leafCount: 6,
   reducible: false,

@@ -18,6 +18,8 @@ import {
   techniqueGroupLabel,
   intentGroupKey,
   shortenTechnique,
+  intentName as typologyIntentName,
+  intentDescription as typologyIntentDescription,
 } from "./taxonomyLabels";
 
 /** Roll-up level for the matrix: subcategory/family grouping vs. raw leaves. */
@@ -76,6 +78,8 @@ export interface MatrixView {
   colLabel: (key: string) => string;
   /** Technique description for a row key, when the taxonomy provides one. */
   rowDescription: (key: string) => string | undefined;
+  /** Intent description for a column key (leaf intent or hazard family), when known. */
+  colDescription: (key: string) => string | undefined;
   cell: (row: string, col: string) => MatrixCell | undefined;
   /** Total leaf pairs across the whole matrix. */
   leafCount: number;
@@ -163,8 +167,8 @@ export function buildAxisGroups(view: MatrixView, axis: TaxonomyAxis): AxisGroup
   const secondaries = axis === "technique" ? view.cols : view.rows;
   const primaryLabel = axis === "technique" ? view.rowLabel : view.colLabel;
   const secondaryLabel = axis === "technique" ? view.colLabel : view.rowLabel;
-  // Only techniques carry a taxonomy description.
-  const primaryDescription = axis === "technique" ? view.rowDescription : undefined;
+  // Both axes now carry a taxonomy description (technique rows, intent columns).
+  const primaryDescription = axis === "technique" ? view.rowDescription : view.colDescription;
   const cellOf = (primary: string, secondary: string) =>
     axis === "technique" ? view.cell(primary, secondary) : view.cell(secondary, primary);
 
@@ -282,9 +286,12 @@ export function buildMatrixView(matrix: TechniqueIntentMatrix, level: MatrixLeve
   const rowKeyOf = (l: MatrixLeaf) => (level === "grouped" ? techniqueGroupKey(l.technique) : l.technique);
   const colKeyOf = (l: MatrixLeaf) => (level === "grouped" ? intentGroupKey(l.intent) : l.intent);
 
-  // Readable names/descriptions only resolve at the leaf level, where a key maps
-  // to a single technique/intent; grouped keys are prefixes spanning many, so
-  // they fall back to the formatted key.
+  // Technique names/descriptions only resolve at the leaf level, where a key maps
+  // to a single technique; grouped technique keys are prefixes spanning many, so
+  // they fall back to the formatted key. Intent labels come from the bundled
+  // trait typology, which names every level (leaf, family, category), so grouped
+  // columns like "C002" read as their taxonomy name rather than a raw code. The
+  // digest-supplied intent name is kept only as a fallback for unknown codes.
   const techniqueNames = new Map<string, string>();
   const techniqueDescriptions = new Map<string, string>();
   const intentNames = new Map<string, string>();
@@ -296,9 +303,10 @@ export function buildMatrixView(matrix: TechniqueIntentMatrix, level: MatrixLeve
   const rowLabel = (key: string) =>
     level === "grouped" ? techniqueGroupLabel(key) : techniqueNames.get(key) ?? shortenTechnique(key);
   const colLabel = (key: string) =>
-    level === "grouped" ? key : intentNames.get(key) ?? key;
+    typologyIntentName(key) ?? intentNames.get(key) ?? key;
   const rowDescription = (key: string) =>
     level === "grouped" ? undefined : techniqueDescriptions.get(key);
+  const colDescription = (key: string) => typologyIntentDescription(key);
 
   // Aggregate leaves into cells keyed by "row\u0000col".
   const cellMap = new Map<string, MatrixCell>();
@@ -366,6 +374,7 @@ export function buildMatrixView(matrix: TechniqueIntentMatrix, level: MatrixLeve
     rowLabel,
     colLabel,
     rowDescription,
+    colDescription,
     cell: (row, col) => cellMap.get(cellKey(row, col)),
     leafCount: leaves.length,
     reducible,
