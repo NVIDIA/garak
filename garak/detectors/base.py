@@ -221,6 +221,20 @@ class StringDetector(Detector):
         detector_results = []
         all_outputs = attempt.outputs_for(self.lang_spec)
 
+        # Trigger substrings are independent of the model output, so normalize
+        # them once up front. An invalid ``normalize`` config raises ValueError
+        # from _apply_normalize; treat that as "cannot detect" and return None
+        # for every output rather than letting it terminate the whole run.
+        substrings = self.substrings
+        if self.normalize:
+            try:
+                substrings = [self._apply_normalize(s) for s in self.substrings]
+            except ValueError as e:
+                logging.warning(
+                    "StringDetector: %s; returning None for all outputs", e
+                )
+                return [None] * len(all_outputs)
+
         for output in all_outputs:
             output_text = output.text if output else None
             if output_text is None or output.text is None:
@@ -238,10 +252,7 @@ class StringDetector(Detector):
                     continue
 
             match = False
-            for s in self.substrings:
-                if self.normalize:
-                    s = self._apply_normalize(s)
-
+            for s in substrings:
                 if not self.case_sensitive:
                     s, output_text = s.lower(), output_text.lower()
 
