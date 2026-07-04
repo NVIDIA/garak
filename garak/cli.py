@@ -25,13 +25,13 @@ def parse_cli_plugin_config(plugin_type, args):
         elif opts_file in args:
             file_arg = getattr(args, opts_file)
             if not os.path.isfile(file_arg):
-                raise FileNotFoundError(f"Path provided is not a file: {opts_file}")
+                raise FileNotFoundError(f"Path provided is not a file: {file_arg}")
             with open(file_arg, encoding="utf-8") as f:
                 options_json = f.read().strip()
             try:
                 opts_cli_config = json.loads(options_json)
             except json.decoder.JSONDecodeError as e:
-                logging.warning("Failed to parse JSON %s: %s", opts_file, {e.args[0]})
+                logging.warning("Failed to parse JSON %s: %s", file_arg, e.args[0])
                 raise e
     return opts_cli_config
 

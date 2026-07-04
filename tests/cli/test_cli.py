@@ -1,3 +1,6 @@
+import argparse
+import json
+import logging
 import re
 import pytest
 import os
@@ -94,3 +97,34 @@ def test_run_all_active_detectors(capsys):
     result = capsys.readouterr()
     last_line = result.out.strip().split("\n")[-1]
     assert re.match("^✔️  garak run complete in [0-9]+\\.[0-9]+s$", last_line)
+
+
+def test_plugin_option_file_missing_reports_path():
+    # a missing --<plugin>_option_file must name the offending path, not the flag,
+    # so the user can find the file they meant
+    bad_path = os.path.join("no", "such", "options.json")
+    args = argparse.Namespace(generator_option_file=bad_path)
+    with pytest.raises(FileNotFoundError) as excinfo:
+        cli.parse_cli_plugin_config("generator", args)
+    message = str(excinfo.value)
+    assert bad_path in message, "error should name the offending path"
+    assert (
+        "generator_option_file" not in message
+    ), "error should not name the argparse flag instead of the path"
+
+
+def test_plugin_option_file_bad_json_warning_is_wellformed(tmp_path, caplog):
+    # a malformed --<plugin>_option_file must warn with the file path and the raw
+    # parser message, with no stray set-literal braces around the error
+    options_file = tmp_path / "options.json"
+    options_file.write_text("this is not json", encoding="utf-8")
+    args = argparse.Namespace(generator_option_file=str(options_file))
+    with caplog.at_level(logging.WARNING):
+        with pytest.raises(json.JSONDecodeError):
+            cli.parse_cli_plugin_config("generator", args)
+    message = caplog.text
+    assert str(options_file) in message, "warning should name the file path"
+    assert (
+        "generator_option_file" not in message
+    ), "warning should name the file path, not the argparse flag"
+    assert "{" not in message, "warning should not wrap the error in a set literal"
