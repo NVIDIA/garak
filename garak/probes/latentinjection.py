@@ -130,7 +130,7 @@ class TranslationMixin:
 
     def __init__(self):
         if self.target_lang_name_en is None:
-            msg = f"{self.__class__.__name__}: Probe cannot operate with target_lang_name_en being set"
+            msg = f"{self.__class__.__name__}: Probe cannot operate without target_lang_name_en being set"
             logging.error(msg)
             raise ValueError(msg)
         self.top_instructions = [
