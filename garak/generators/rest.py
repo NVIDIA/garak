@@ -28,6 +28,22 @@ from garak.exception import (
 from garak.generators.base import Generator
 
 
+def _coerce_response_text(value):
+    """Coerce a value extracted from a JSON response into text for a Message.
+
+    ``response_json_field`` / a JSONPath can resolve to a dict, list, number, or
+    bool rather than a string (observed with some Azure OpenAI response shapes).
+    Downstream detectors call string methods such as ``.lower()`` on the response,
+    so a non-string value must be normalised here rather than raising an
+    ``AttributeError`` after every subtest has run.
+    """
+    if value is None or isinstance(value, str):
+        return value
+    if isinstance(value, (dict, list)):
+        return json.dumps(value, ensure_ascii=False)
+    return str(value)
+
+
 class RestGenerator(Generator):
     """Generic API interface for REST models
 
@@ -394,6 +410,11 @@ class RestGenerator(Generator):
                     response = [response_value]
                 elif isinstance(response_value, list):
                     response = response_value
+                else:
+                    # dict / number / bool — a valid JSONPath match that isn't a
+                    # string (e.g. some Azure OpenAI response shapes). Keep it and
+                    # coerce to text below rather than silently dropping to [None].
+                    response = [response_value]
             elif len(responses) > 1:
                 response = [r.value for r in responses]
             else:
@@ -403,7 +424,11 @@ class RestGenerator(Generator):
                 )
                 return [None]
 
-        return [Message(r) for r in response]
+        # A response_json_field / JSONPath can resolve to a dict, list, or scalar
+        # rather than a string (seen with some Azure OpenAI response shapes).
+        # Downstream detectors expect text, so normalise here instead of letting a
+        # non-string value reach them and raise e.g. AttributeError on .lower().
+        return [Message(_coerce_response_text(r)) for r in response]
 
 
 class _MtlsAdapter(requests.adapters.HTTPAdapter):
