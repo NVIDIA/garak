@@ -33,7 +33,7 @@
 
 ## LLM support
 
-currently supports:
+Currently supports:
 * [hugging face hub](https://huggingface.co/models) generative models
 * [replicate](https://replicate.com/) text models
 * [openai api](https://platform.openai.com/docs/introduction) chat & continuation models
@@ -65,7 +65,7 @@ python -m pip install -U git+https://github.com/NVIDIA/garak.git@main
 
 ### Clone from source
 
-`garak` has its own dependencies. You can to install `garak` in its own Conda environment:
+`garak` has its own dependencies. You can install `garak` in its own Conda environment:
 
 ```
 conda create --name garak "python>=3.10,<=3.12"
@@ -106,7 +106,7 @@ Probe a commercial model for encoding-based prompt injection (OSX/\*nix) (replac
  
 ```
 export OPENAI_API_KEY="sk-123XXXXXXXXXXXX"
-python3 -m garak --target_type openai --target_name gpt-5-nano --probes encoding
+python3 -m garak --target_type openai --target_name gpt-3.5-turbo --probes encoding
 ```
 
 See if the Hugging Face version of GPT2 is vulnerable to DAN 11.0
