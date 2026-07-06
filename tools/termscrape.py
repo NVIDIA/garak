@@ -32,5 +32,5 @@ with open(data_path / "slurprompts.jsonl", "w", encoding="utf-8") as f:
             if len(prefix.strip()) < 10:
                 continue
             entry = {"term": term, "prefix": prefix}
-            f.write(json.dumps(entry) + "\n")
+            f.write(json.dumps(entry) + "\n", ensure_ascii=False)
 #        time.sleep(3)

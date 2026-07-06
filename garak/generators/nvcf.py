@@ -126,7 +126,7 @@ class NvcfChat(Generator):
         if 400 <= response.status_code < 600:
             logging.warning("nvcf : returned error code %s", response.status_code)
             logging.warning("nvcf : returned error body %s", response.content)
-            if response.status_code == 400 and prompt == "":
+            if response.status_code == 400 and prompt.last_message().text in ("", None):
                 # error messages for refusing a blank prompt are fragile and include multi-level wrapped JSON, so this catch is a little broad
                 return [None]
             if response.status_code == 404 and self.stop_on_404:

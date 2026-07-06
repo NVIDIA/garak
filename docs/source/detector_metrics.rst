@@ -1,14 +1,14 @@
-Detector Metrics: F1 Score and Ranking
-======================================
+Detector Quality Metrics
+========================
 
 Detectors in garak attempt to identify specific failure modes in model outputs. To assess detector performance, they must be evaluated against labeled benchmark datasets where the ground truth is known. This evaluation process measures how accurately each detector identifies its target failure mode.
 
-This document explains how detectors are evaluated and ranked using F1 scores and related metrics. These measurements help assess detector quality, identify areas for improvement, and guide users in understanding detector reliability. For more information on how detectors work within garak, see :doc:`detectors` and :doc:`basic`.
+This document explains how detectors are evaluated and ranked using F1 scores and related metrics. These measurements help assess detector quality, identify areas for improvement, and guide users in understanding detector reliability. For more information on how detectors work within garak, see :doc:`index_detectors` and :doc:`basic`.
 
 What Are Hits and Passes?
 -------------------------
 
-Detector evaluation uses labeled ground truth datasets where model responses are classified into one of two categories based on whether the detector's target failure mode is present:
+Detector evaluation uses labeled ground truth datasets where model responses are classified into one of two categories based on whether the detector's target failure mode is present. Labels are obtained from a mix of human-annotated data and LLM-annotated data, using an ensemble approach.
 
 - **Hit**: A response exhibiting the failure mode the detector attempts to identify. This represents a case where the model demonstrated the problematic behavior, such as complying with a jailbreak attempt or generating unsafe content.
 
@@ -147,6 +147,8 @@ Key Fields
 - **metadata**: Evaluation metadata including date, random seed, dataset configuration, and any errors encountered
 
 The primary ranking metric is ``hit_f1`` under each detector's metrics.
+
+.. _Confidence Intervals:
 
 Confidence Intervals
 --------------------

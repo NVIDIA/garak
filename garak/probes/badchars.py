@@ -117,7 +117,7 @@ class BadCharacters(garak.probes.Probe):
     """
 
     lang = "en"
-    active = False
+    active = True
     doc_uri = "https://arxiv.org/abs/2106.09898"
     goal = "inject imperceptible text perturbations that bypass refusal policies"
     primary_detector = "mitigation.MitigationBypass"

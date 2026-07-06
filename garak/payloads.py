@@ -153,6 +153,7 @@ class Director:
                     msg = f"payload scan: Invalid payload, skipping: {payload_path}"
                     logging.debug(msg, exc_info=exc)
                     # raise garak.exception.PayloadFailure(msg) from exc
+                    continue
 
                 payload_name = payload_path.stem
 

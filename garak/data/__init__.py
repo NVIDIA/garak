@@ -35,11 +35,14 @@ class LocalDataPath(type(pathlib.Path())):
     ]
 
     def _determine_suffix(self):
+        resolved_self = pathlib.Path(self).resolve()
         for path in self.ORDERED_SEARCH_PATHS:
-            if path == self or path in self.parents:
-                return self.relative_to(path)
+            resolved_path = path.resolve()
+            if resolved_path == resolved_self or resolved_path in resolved_self.parents:
+                return resolved_self.relative_to(resolved_path)
 
     def _eval_paths(self, segment, next_call, relative):
+        msg = "The requested resource does not refer to a valid path"
         if self in self.ORDERED_SEARCH_PATHS and segment == relative:
             raise GarakException(
                 f"The requested resource does not refer to a valid path"
@@ -48,20 +51,26 @@ class LocalDataPath(type(pathlib.Path())):
         prefix_removed = self._determine_suffix()
         if prefix_removed is None:
             # if LocalDataPath is instantiated using a path not in ORDERED_SEARCH_PATHS
-            raise GarakException(
-                f"The requested resource does not refer to a valid path: {self}"
-            )
+            raise GarakException(f"{msg}: {self}")
         for path in self.ORDERED_SEARCH_PATHS:
             if segment == relative:
                 projected = (path / prefix_removed).parent
             else:
                 current_path = path / prefix_removed
                 projected = getattr(current_path, next_call)(segment)
-            if projected.exists():
-                return LocalDataPath(projected)
+            if projected.exists() and projected.resolve().is_relative_to(path.resolve()):
+                return LocalDataPath(projected.resolve())
 
         if projected in self.ORDERED_SEARCH_PATHS:
             return LocalDataPath(projected)
+
+        if not any(
+            [
+                projected.resolve().is_relative_to(path.resolve())
+                for path in self.ORDERED_SEARCH_PATHS
+            ]
+        ):
+            raise GarakException(msg)
 
         raise GarakException(f"The resource requested does not exist {segment}")
 

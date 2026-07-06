@@ -11,9 +11,11 @@ The probes check in the model background for file types that may have known weak
 """
 
 import logging
+from pathlib import Path
 from typing import Iterable
 
 import huggingface_hub
+from huggingface_hub.errors import HFValidationError, OfflineModeIsEnabled
 import tqdm
 
 from garak import _config
@@ -54,6 +56,26 @@ class HF_Files(garak.probes.Probe):
         self._load_config(config_root)
         super().__init__(config_root=config_root)
 
+    @staticmethod
+    def _get_local_files(model_name: str) -> list[str] | None:
+        """Return local model files when model_name points to the filesystem."""
+        model_path = Path(model_name).expanduser()
+        if not model_path.exists():
+            return None
+
+        model_path = model_path.resolve()
+        if model_path.is_file():
+            return [str(model_path)]
+
+        if model_path.is_dir():
+            return [
+                str(local_path)
+                for local_path in sorted(model_path.rglob("*"))
+                if local_path.is_file()
+            ]
+
+        return []
+
     def probe(self, generator) -> Iterable[garak.attempt.Attempt]:
         """attempt to gather target generator model file list, returning a list of results"""
         logging.debug("probe execute: %s", self)
@@ -65,18 +87,44 @@ class HF_Files(garak.probes.Probe):
             return []
         attempt = self._mint_attempt(generator.name)
 
-        repo_filenames = huggingface_hub.list_repo_files(generator.name)
-        local_filenames = []
-        for repo_filename in tqdm.tqdm(
-            repo_filenames,
-            leave=False,
-            desc=f"Gathering files in {generator.name}",
-            colour=f"#{garak.resources.theme.PROBE_RGB}",
-        ):
-            local_filename = huggingface_hub.hf_hub_download(
-                generator.name, repo_filename, force_download=False
+        local_filenames = self._get_local_files(generator.name)
+        if local_filenames is None:
+            try:
+                repo_filenames = huggingface_hub.list_repo_files(generator.name)
+            except OfflineModeIsEnabled:
+                logging.warning(
+                    "File enumeration is not available when offline mode is enabled."
+                )
+                return []
+            except HFValidationError:
+                logging.info(
+                    "Skipping Hugging Face file probe for non-Hub model name: %s",
+                    generator.name,
+                )
+                return []
+
+            local_filenames = []
+            for repo_filename in tqdm.tqdm(
+                repo_filenames,
+                leave=False,
+                desc=f"Gathering files in {generator.name}",
+                colour=f"#{garak.resources.theme.PROBE_RGB}",
+            ):
+                local_filename = huggingface_hub.hf_hub_download(
+                    generator.name, repo_filename, force_download=False
+                )
+                local_filenames.append(local_filename)
+
+        else:
+            logging.debug(
+                "Gathered %s files directly from local Hugging Face model path: %s",
+                len(local_filenames),
+                generator.name,
             )
-            local_filenames.append(local_filename)
+
+        if not local_filenames:
+            logging.debug("probe return: %s with no filenames", self)
+            return []
 
         attempt.notes["format"] = "local filename"
         attempt.outputs = local_filenames

@@ -80,7 +80,15 @@ class PackageHallucinationDetector(Detector, ABC):
                         )
                         if first_seen <= cutoff:
                             filtered_packages.append(pkg)
-                    except ValueError as e:
+                    except (TypeError, ValueError) as e:
+                        # The dataset can contain rows whose package_first_seen field is
+                        # missing (None) or carries an upstream registry error message
+                        # ("Error: 404 Client Error: ...") instead of an ISO date. The log
+                        # text below has long claimed we keep these packages with an
+                        # unknown creation date; this branch now actually does that, so
+                        # genuine packages are not flagged as hallucinations just because
+                        # their dataset metadata is incomplete.
+                        filtered_packages.append(pkg)
                         if not invalid_pkg_date_seen_flag:
                             logging.debug(
                                 "Invalid %s package date format: %s. Keeping package %s with unknown creation date. Only logging first package"

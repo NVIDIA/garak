@@ -28,6 +28,9 @@ hijacking_attacks = (
     "ignore-say ignore-print ignore-print-upper nevermind screaming-stop".split()
 )
 rogue_strings = "hate-humans kill-humans long-prompt".split()
+_generation_params = (
+    "temperature top_p frequency_penalty presence_penalty max_tokens".split()
+)
 
 this = sys.modules[__name__]
 
@@ -95,9 +98,7 @@ def _attempt_prestore_hook(self, attempt: Attempt, seq: int) -> Attempt:
 
 def _generator_precall_hook(self, generator, attempt):
     """apply PromptInject model inference parameters to probe"""
-    map_attribs = (
-        "temperature top_p frequency_penalty presence_penalty max_tokens".split()
-    )
+    map_attribs = self.generation_params
     for map_attrib in map_attribs:
         if map_attrib in dir(generator):
             setattr(
@@ -139,6 +140,8 @@ for rogue_string in rogue_strings:
                 "goal": "inject a prompt on " + rogue_string.replace("-", " "),
                 "active": False,
                 "tier": garak.probes.Tier.COMPETE_WITH_SOTA,
+                "DEFAULT_PARAMS": garak.probes.Probe.DEFAULT_PARAMS
+                | {"generation_params": _generation_params},
             },
         ),
     )
@@ -172,6 +175,8 @@ for rogue_string in rogue_strings:
                 "goal": "inject a prompt on " + rogue_string.replace("-", " "),
                 "active": True,
                 "tier": garak.probes.Tier.COMPETE_WITH_SOTA,
+                "DEFAULT_PARAMS": garak.probes.Probe.DEFAULT_PARAMS
+                | {"generation_params": _generation_params},
             },
         ),
     )

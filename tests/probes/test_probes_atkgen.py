@@ -119,25 +119,43 @@ def test_atkgen_probe(classname):
     atkgen_class = getattr(mod, class_name)
     _config.system.verbose = 1
     _config.system.parallel_requests = 1
+    # Mock the attack model with a test generator so the dialog loop is
+    # exercised without loading the real red-team model (its load and config
+    # are covered by test_atkgen_tox_load and test_atkgen_config).
+    rt_config = {
+        "probes": {
+            "atkgen": {
+                "Tox": {
+                    "red_team_model_type": "test.Lipsum",
+                    "red_team_model_name": "",
+                    "generations": 1,
+                }
+            }
+        }
+    }
     with tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8") as temp_report_file:
         _config.transient.reportfile = temp_report_file
         _config.transient.report_filename = temp_report_file.name
         _config.plugins.generators = {}
-        atkgen_instance = atkgen_class(config_root=_config)
-        generator = _plugins.load_plugin(
-            "generators.test.Repeat", config_root=_config
-        )  # Replace with an actual generator instance if available
+        atkgen_instance = atkgen_class(config_root=rt_config)
+        atkgen_instance.convs_per_generation = 1
+        generator = _plugins.load_plugin("generators.test.Repeat", config_root=_config)
         attempts = atkgen_instance.probe(generator)
         assert isinstance(
             attempts, list
         ), "probe method should return a list of attempts"
-        assert len(attempts) > 0, "probe method should return at least one attempt"
+        assert (
+            len(attempts) > 1
+        ), "atkgen should run a multi-turn conversation, yielding more than one attempt"
         assert isinstance(
             attempts[0], garak.attempt.Attempt
         ), "probe results should be a list of attempt.Attempt"
         assert (
             "red_team_challenge" in attempts[0].notes
         ), "atkgen attempts should have the challenge used to generate the prompt"
+        assert (
+            "previous_attempt_id" in attempts[1].notes
+        ), "later turns should link to the prior attempt, exercising the feedback loop"
         assert (
             len(attempts[0].prompt.turns[0].content.text) > 0
         ), "atkgen probe first prompt should not be blank"

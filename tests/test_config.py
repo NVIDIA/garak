@@ -575,7 +575,8 @@ def test_blank_probe_instance_loads_cli_config():
         json.dumps(
             {
                 probe_namespace: {probe_klass: {"goal": revised_goal, "generations": 5}}
-            }  # generations is required when cli called without a model
+            },  # generations is required when cli called without a model
+            ensure_ascii=False,
         ),
     ]
     garak.cli.main(args)
@@ -630,7 +631,8 @@ def test_blank_generator_instance_loads_cli_config():
         "none",
         "--generator_options",
         json.dumps(
-            {generator_namespace: {generator_klass: {"temperature": revised_temp}}}
+            {generator_namespace: {generator_klass: {"temperature": revised_temp}}},
+            ensure_ascii=False,
         )
         .replace(" ", "")
         .strip(),
@@ -1190,3 +1192,32 @@ reporting: {}
     garak.cli.main(["--config", "test_mixedcase.Yaml", "--list_config"])
 
     assert _config.run.generations == 18
+
+
+# ---------------------------------------------------------------------------
+# Regression test for issue #1249: config_files must not contain duplicates
+# after load_base_config() + load_config() are both called (as the CLI does).
+# ---------------------------------------------------------------------------
+
+
+def test_core_config_not_duplicated_in_config_files():
+    """garak.core.yaml must appear exactly once in _config.config_files.
+
+    Previously, calling load_base_config() followed by load_config() caused
+    garak.core.yaml to be appended twice, so it appeared twice in HTML reports.
+    Fixed in PR #1544; this test guards against regression.
+    """
+    import importlib
+
+    importlib.reload(_config)
+
+    _config.load_base_config()
+    _config.load_config()
+
+    core_yaml = str(_config.transient.package_dir / "resources" / "garak.core.yaml")
+    occurrences = _config.config_files.count(core_yaml)
+    assert occurrences == 1, (
+        f"garak.core.yaml appeared {occurrences} time(s) in _config.config_files "
+        f"after load_base_config() + load_config(); expected exactly 1. "
+        f"See https://github.com/NVIDIA/garak/issues/1249"
+    )

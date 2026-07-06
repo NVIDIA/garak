@@ -215,6 +215,31 @@ def main(arguments=None) -> None:
         default=_config.reporting.taxonomy,
         help="specify a MISP top-level taxonomy to be used for grouping probes in reporting. e.g. 'avid-effect', 'owasp' ",
     )
+    parser.add_argument(
+        "--confidence_interval_method",
+        type=str,
+        default=None,
+        choices=["bootstrap", "none"],
+        help="method for CI calculation: 'bootstrap' (default) or 'none' to disable",
+    )
+    parser.add_argument(
+        "--bootstrap_num_iterations",
+        type=int,
+        default=None,
+        help="number of bootstrap iterations for CI calculation (overrides config)",
+    )
+    parser.add_argument(
+        "--bootstrap_confidence_level",
+        type=float,
+        default=None,
+        help="confidence level for bootstrap CIs, e.g. 0.95 or 0.99 (overrides config)",
+    )
+    parser.add_argument(
+        "--bootstrap_min_sample_size",
+        type=int,
+        default=None,
+        help="minimum sample size required for bootstrap CI calculation (overrides config)",
+    )
 
     ## COMMANDS
     # items placed here also need to be listed in command_options below
@@ -226,7 +251,8 @@ def main(arguments=None) -> None:
     parser.add_argument(
         "--list_probes",
         action="store_true",
-        help="list all available probes. Usage: combine with --probes/-p to filter for probes that will be activated based on a `probe_spec`, e.g. '--list_probes -p dan' to show only active 'dan' family probes.",
+        help="list available probes. Use -v for a detailed markdown table with tier and description. "
+        "Combine with --probes/-p to filter by probe_spec, e.g. '--list_probes -p dan'.",
     )
     parser.add_argument(
         "--list_detectors",
@@ -399,6 +425,31 @@ def main(arguments=None) -> None:
             _config.system.parallel_requests = worker_count_validation(
                 _config.system.parallel_requests
             )
+
+        if (
+            _config.reporting.bootstrap_num_iterations is not None
+            and _config.reporting.bootstrap_num_iterations <= 0
+        ):
+            raise ValueError(
+                f"bootstrap_num_iterations must be > 0, got {_config.reporting.bootstrap_num_iterations}"
+            )
+
+        if (
+            _config.reporting.bootstrap_confidence_level is not None
+            and not (0.0 < _config.reporting.bootstrap_confidence_level < 1.0)
+        ):
+            raise ValueError(
+                f"bootstrap_confidence_level must be in (0, 1), got {_config.reporting.bootstrap_confidence_level}"
+            )
+
+        if (
+            _config.reporting.bootstrap_min_sample_size is not None
+            and _config.reporting.bootstrap_min_sample_size <= 0
+        ):
+            raise ValueError(
+                f"bootstrap_min_sample_size must be > 0, got {_config.reporting.bootstrap_min_sample_size}"
+            )
+
     except ValueError as e:
         logging.exception(e)
         print(e)
@@ -455,7 +506,7 @@ def main(arguments=None) -> None:
             probe_spec = getattr(args, "probes", None)
             if probe_spec and probe_spec.lower() not in ("", "auto", "all", "*"):
                 selected_probes, _ = _config.parse_plugin_spec(probe_spec, "probes")
-            command.print_probes(selected_probes)
+            command.print_probes(selected_probes, verbose=_config.system.verbose)
 
         elif args.list_detectors:
             selected_detectors = None
@@ -577,6 +628,21 @@ def main(arguments=None) -> None:
                 )
                 parsed_specs[spec_type] = names
                 if rejected is not None and len(rejected) > 0:
+                    # separate rejected clauses that refer to a module whose
+                    # plugins are all marked inactive from clauses that name
+                    # nothing recognised at all - see issue #830
+                    inactive_only_modules = []
+                    truly_unknown = []
+                    all_plugins = _plugins.enumerate_plugins(category=spec_namespace)
+                    for clause in rejected:
+                        if "." not in clause and any(
+                            p.startswith(f"{spec_namespace}.{clause}.")
+                            for p, _active in all_plugins
+                        ):
+                            inactive_only_modules.append(clause)
+                        else:
+                            truly_unknown.append(clause)
+
                     if hasattr(args, "skip_unknown"):  # attribute only set when True
                         header = f"Unknown {spec_namespace}:"
                         skip_msg = Fore.LIGHTYELLOW_EX + "SKIP" + Style.RESET_ALL
@@ -585,9 +651,26 @@ def main(arguments=None) -> None:
                         )
                         logging.warning(f"{header} " + ",".join(rejected))
                         print(msg)
+                    elif inactive_only_modules and not truly_unknown:
+                        module_list = ",".join(inactive_only_modules)
+                        raise ValueError(
+                            f"❌ all {spec_namespace} in '{module_list}' are marked "
+                            f"inactive; select one or more by name "
+                            f"(e.g. --{spec_namespace} {inactive_only_modules[0]}.SomeName) to continue"
+                        )
                     else:
-                        msg_list = ",".join(rejected)
-                        raise ValueError(f"❌Unknown {spec_namespace}❌: {msg_list}")
+                        msg_parts = []
+                        if truly_unknown:
+                            msg_parts.append(
+                                f"❌Unknown {spec_namespace}❌: " + ",".join(truly_unknown)
+                            )
+                        if inactive_only_modules:
+                            module_list = ",".join(inactive_only_modules)
+                            msg_parts.append(
+                                f"all {spec_namespace} in '{module_list}' are marked "
+                                f"inactive; select one or more by name to continue"
+                            )
+                        raise ValueError("; ".join(msg_parts))
 
             evaluator = garak.evaluators.ThresholdEvaluator(_config.run.eval_threshold)
 

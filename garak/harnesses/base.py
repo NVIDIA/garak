@@ -47,6 +47,37 @@ def _initialize_runtime_services():
             raise e
 
 
+def _emit_plugin_cache_entry(*plugin_instances) -> None:
+    snapshot = {}
+    for plugin_instance in plugin_instances:
+        if plugin_instance is None:
+            continue
+        classpath = (
+            f"{plugin_instance.__class__.__module__}."
+            f"{plugin_instance.__class__.__name__}"
+        ).replace("garak.", "")
+        category = classpath.split(".")[0]
+        meta = _plugins.PluginCache.plugin_info(classpath)
+        snapshot.setdefault(category, {})[classpath] = meta
+
+    if not snapshot:
+        return
+
+    snapshot["version"] = garak.__version__
+    _config.transient.reportfile.write(
+        json.dumps(
+            {
+                "entry_type": "plugin_cache",
+                "run": _config.transient.run_id,
+                "plugin_cache": snapshot,
+            },
+            cls=_plugins.PluginEncoder,
+            ensure_ascii=False,
+        )
+        + "\n"
+    )
+
+
 class Harness(Configurable):
     """Class to manage the whole process of probing, detecting and evaluating"""
 
@@ -130,6 +161,13 @@ class Harness(Configurable):
             raise ValueError(msg)
 
         self._start_run_hook()
+        _emit_plugin_cache_entry(
+            self,
+            model,
+            *probes,
+            *detectors,
+            *_config.buffmanager.buffs,
+        )
 
         for probe in probes:
             logging.debug("harness: probe start for %s", probe.probename)

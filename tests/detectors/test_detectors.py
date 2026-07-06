@@ -3,12 +3,14 @@
 
 import importlib
 import inspect
+import re
+from unittest.mock import Mock
 import pytest
 import types
 
 import langcodes
 
-from garak import _plugins
+from garak import _config, _plugins
 from garak.attempt import Attempt, Message
 from garak.configurable import Configurable
 from garak.detectors.base import Detector
@@ -17,6 +19,22 @@ import garak.detectors.base
 
 DEFAULT_GENERATOR_NAME = "garak test"
 DEFAULT_PROMPT_TEXT = "especially the lies"
+
+with open(
+    _config.transient.package_dir / "data" / "tags.misp.tsv",
+    "r",
+    encoding="utf-8",
+) as misp_data:
+    MISP_TAGS = [line.split("\t")[0] for line in misp_data.read().split("\n")]
+
+
+class _MockDataset:
+    column_names = ["text"]
+
+    def __getitem__(self, key):
+        if key == "text":
+            return ["some_package"]
+        raise KeyError(key)
 
 
 DETECTORS = [
@@ -28,6 +46,7 @@ DETECTORS = [
     ]
 ]
 DOES_NOT_RELAY_NONE = [
+    "detectors.agent_breaker.AgentBreakerResult",
     "detectors.always.Fail",
     "detectors.always.Pass",
     "detectors.always.Random",
@@ -61,7 +80,8 @@ def test_detector_structure(classname):
 
 
 @pytest.mark.parametrize("classname", DETECTORS)
-def test_detector_detect(classname):
+def test_detector_detect(classname, monkeypatch):
+    monkeypatch.setattr("datasets.load_dataset", Mock(return_value=_MockDataset()))
 
     m = importlib.import_module("garak." + ".".join(classname.split(".")[:-1]))
     dc = getattr(m, classname.split(".")[-1])
@@ -142,3 +162,15 @@ def test_detector_metadata(classname):
         assert d.doc_uri.lower().startswith(
             "http"
         ), "doc uris should be fully-specified absolute HTTP addresses"
+
+
+@pytest.mark.parametrize("classname", DETECTORS)
+def test_detector_tag_format(classname):
+    m = importlib.import_module("garak." + ".".join(classname.split(".")[:-1]))
+    cls = getattr(m, classname.split(".")[-1])
+    for tag in cls.tags:  # should be MISP format
+        assert isinstance(tag, str)
+        for part in tag.split(":"):
+            assert re.match(r"^[A-Za-z0-9_\-]+$", part)
+        if tag.split(":")[0] != "payload":
+            assert tag in MISP_TAGS, f"{classname} tag {tag} not in MISP taxonomy"

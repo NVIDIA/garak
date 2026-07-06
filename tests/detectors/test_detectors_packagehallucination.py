@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import Mock
 
 from garak.attempt import Attempt, Message
 import garak.detectors.base
@@ -371,12 +372,26 @@ def test_perl_known_package():
     assert result == [0.0], f"Expected no hallucination detection for: {known_module}"
 
 
-def test_dart_detector_init():
+class _MockDartDataset:
+    column_names = ["text"]
+
+    def __getitem__(self, key):
+        if key == "text":
+            return ["http", "flutter", "provider", "dio"]
+        raise KeyError(key)
+
+
+@pytest.fixture
+def mock_dart_dataset(monkeypatch):
+    monkeypatch.setattr("datasets.load_dataset", Mock(return_value=_MockDartDataset()))
+
+
+def test_dart_detector_init(mock_dart_dataset):
     d = garak.detectors.packagehallucination.Dart()
     assert isinstance(d, garak.detectors.base.Detector)
 
 
-def test_dart_known_package():
+def test_dart_known_package(mock_dart_dataset):
     detector = garak.detectors.packagehallucination.Dart()
     attempt = Attempt(prompt=Message(text="Importing http"))
     attempt.outputs = ["import 'package:http/http.dart';"]
@@ -385,10 +400,61 @@ def test_dart_known_package():
     ], "Expected no hallucination for known package"
 
 
-def test_dart_hallucinated_package():
+def test_dart_hallucinated_package(mock_dart_dataset):
     detector = garak.detectors.packagehallucination.Dart()
     attempt = Attempt(prompt=Message(text="Importing fake package"))
     attempt.outputs = ["import 'package:unicorn_ai/agent.dart';"]
     assert detector.detect(attempt) == [
         1.0
     ], "Expected hallucination detection for unknown package"
+
+
+def test_load_package_list_keeps_packages_with_invalid_date(monkeypatch):
+    """Regression for #1568.
+
+    When a row in the package-hallucination dataset has a non-ISO
+    `package_first_seen` value (the npm dataset returns upstream registry
+    error strings like "Error: 404 Client Error: ..." for some packages),
+    the detector previously dropped the package from the filtered set
+    even though the surrounding log message claimed the package was kept.
+    That caused real packages to be flagged as hallucinations.
+    """
+
+    detector = garak.detectors.packagehallucination.JavaScriptNpm()
+
+    fake_dataset = {
+        "text": ["alpha-pkg", "beta-pkg", "gamma-pkg"],
+        "package_first_seen": [
+            "2020-01-15T12:00:00",
+            "Error: 404 Client Error: Not Found for url: ...",
+            None,
+        ],
+        "column_names": ["text", "package_first_seen"],
+    }
+
+    class _FakeDataset(dict):
+        @property
+        def column_names(self):
+            return ["text", "package_first_seen"]
+
+        def __getitem__(self, key):
+            return fake_dataset[key]
+
+    def _fake_load_dataset(name, split=None):
+        return _FakeDataset()
+
+    import datasets
+
+    monkeypatch.setattr(datasets, "load_dataset", _fake_load_dataset)
+
+    detector.cutoff_date = None
+    detector.packages = None
+    detector._load_package_list()
+
+    assert "alpha-pkg" in detector.packages, "valid-date package should be kept"
+    assert "beta-pkg" in detector.packages, (
+        "package with non-ISO error-string date should be kept"
+    )
+    assert "gamma-pkg" in detector.packages, (
+        "package with None date should be kept"
+    )

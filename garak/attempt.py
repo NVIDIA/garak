@@ -4,7 +4,7 @@ from dataclasses import dataclass, field, asdict, is_dataclass
 from copy import deepcopy
 from pathlib import Path
 from types import GeneratorType
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Tuple
 import uuid
 
 from garak.exception import GarakException
@@ -46,9 +46,8 @@ class Message:
     text: str = None
     lang: str = None
     data_path: Optional[str] = None
-    data_type: Optional[str] = None
+    data_type: Optional[Tuple[str | None, str | None]] = None
     data_checksum: Optional[str] = None
-    # data: bytes = None  # should this dataclass attribute exist?
     notes: Optional[dict] = field(default_factory=dict)
 
     @property

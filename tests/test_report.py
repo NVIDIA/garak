@@ -46,7 +46,7 @@ def sample_report_without_metadata(tmp_path):
 
     with open(report_file, "w") as f:
         for line in lines:
-            f.write(json.dumps(line) + "\n")
+            f.write(json.dumps(line, ensure_ascii=False) + "\n")
 
     return str(report_file)
 
@@ -142,7 +142,7 @@ def test_get_evaluations_raises_error_when_no_evals(tmp_path):
 
     with open(report_file, "w") as f:
         for line in lines:
-            f.write(json.dumps(line) + "\n")
+            f.write(json.dumps(line, ensure_ascii=False) + "\n")
 
     r = Report(report_location=str(report_file))
     r.load()

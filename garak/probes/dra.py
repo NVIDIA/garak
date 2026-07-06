@@ -97,7 +97,7 @@ class DRA(garak.probes.Probe):
     tier = garak.probes.Tier.OF_CONCERN
     active = True
 
-    doc_uri = "https://arxiv.org/abs/2402.18104v2"
+    doc_uri = "https://arxiv.org/html/2402.18104v2"
 
     DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
         "payload_name": "harmful_behaviors",

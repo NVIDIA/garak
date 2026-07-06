@@ -7,6 +7,8 @@ import tiktoken
 from garak.attempt import Message, Turn, Conversation
 from garak.generators.openai import context_lengths
 
+FALLBACK_MODEL_NAME = "gpt-4"
+
 
 def get_evaluator_prompt(attack_prompt, target_response):
     prompt = f"[PROMPT]:{attack_prompt}\n[ASSISTANT'S RESPONSE]: {target_response}"
@@ -44,7 +46,10 @@ def process_output_on_topic_score(raw_output) -> float:
 
 
 def token_count(string: str, model_name: str) -> int:
-    encoding = tiktoken.encoding_for_model(model_name)
+    try:
+        encoding = tiktoken.encoding_for_model(model_name)
+    except KeyError as e:
+        encoding = tiktoken.encoding_for_model(FALLBACK_MODEL_NAME)
     num_tokens = len(encoding.encode(string))
     return num_tokens
 

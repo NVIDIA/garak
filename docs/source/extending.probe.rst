@@ -2,7 +2,40 @@ Writing a Probe
 ###############
 
 Probes are, in some ways, the essence of garak's functionality -- they serve as the abstraction that encapsulates attacks against AI models and systems.
-In this example, we're going to go over the key points of how to develop a new probe.
+This document covers the key points of how to develop a new probe.
+
+For information on how to contribute to garak, and how we build and manage our code, see :doc:`extending`.
+
+Scope
+*****
+
+Garak targets can be attacked in many different ways. That makes for an almost unlimited number of possible probes. However, each probe the garak maintainers accept takes time, through careful review and continuous code management; and impacts garak users in inference time and cost every time they run it. Therefore, care needs to be applied when selecting new probes.
+
+Probes that offer novel, demonstrated, substantial function are in scope.
+
+Novelty is defined by how similar a probe is to garak's existing probes. For a probe to be demonstrated, there should be a research article or experiments showing that the probe works and unlocks something somewhere that wasn't unlocked without it. For substance, the probe should generate a reasonable number of prompts; see `Substance` below.
+
+Naming
+******
+
+Naming is one of the hardest problems in computer science. Here are some tips explaining how to work out probe naming in garak.
+
+Probe module files should ideally be named after the technique they implement, instead of the effect they elicit. For example, the ``encoding`` module contains problems where various encodings are used to as part of the attack.
+
+Probe classes should avoid duplicating the probe module name. This is already available when loading the probe. It should describe a technique variant that the particular attack is going for.
+
+The goal of the attack should not be in the name. Garak aims to decouple the target failure mode from the technique used to elicit it. If this is possible, naming should focus on the technique. So for a probe using character swapping to get a violent content, prefer something like ``swap.Character`` instead of ``violence.Violence``. Though the latter is almost a good name for a detector (in the ``unsafe_content`` module).
+
+Substance
+*********
+
+Scores are reported at per-probe level. Each probe gets a percentage score regardless of how many prompts were issued or how many times. A probe that runs only one prompt might get a high or low score - but with only one prompt, this isn't so useful. A sample size of one makes for poor statistics.
+
+For a probe to be worth including, it should have a decent number of prompts, with good variation. Thirty is a reasonable minimum bar. As well as other techniques, it's acceptable for prompts to be dynamically generated on-the-fly or via templating.
+
+Garak should have some respect for inference time, and try to cover new bases with the prompting budget that it consumes. New probes that cover very similar ground to existing ones should be evaluated carefully.
+
+For a probe to be worth including, it should add something new to garak. Novelty is a factor used when considering merging a new probe into the code base.
 
 Inheritance
 ***********

@@ -194,14 +194,15 @@ class Generator(Configurable):
                     self.max_workers,
                 )
 
+                pool = None
                 try:
-                    with Pool(pool_size) as pool:
-                        for result in pool.imap_unordered(
-                            self._call_model, [prompt] * generations_this_call
-                        ):
-                            self._verify_target_result(result)
-                            outputs.append(result[0])
-                            multi_generator_bar.update(1)
+                    pool = Pool(pool_size)
+                    for result in pool.imap_unordered(
+                        self._call_model, [prompt] * generations_this_call
+                    ):
+                        self._verify_target_result(result)
+                        outputs.append(result[0])
+                        multi_generator_bar.update(1)
                 except OSError as o:
                     if o.errno == 24:
                         msg = "Parallelisation limit hit. Try reducing parallel_requests or raising limit (e.g. ulimit -n 4096)"
@@ -209,6 +210,10 @@ class Generator(Configurable):
                         raise GarakException(msg) from o
                     else:
                         raise (o)
+                finally:
+                    if pool is not None:
+                        pool.close()
+                        pool.join()
 
             else:
                 generation_iterator = tqdm.tqdm(

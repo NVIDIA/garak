@@ -3,7 +3,7 @@ CLI reference for garak
 
 ::
 
-  garak LLM vulnerability scanner v0.14.1.pre1 ( https://github.com/NVIDIA/garak ) at 2026-02-04T10:33:09.200847
+  garak LLM vulnerability scanner v0.15.1.pre1 ( https://github.com/NVIDIA/garak ) at 2026-05-01T13:01:25.835551
   usage: python -m garak [-h] [--verbose] [--report_prefix REPORT_PREFIX]
                          [--narrow_output]
                          [--parallel_requests PARALLEL_REQUESTS]
@@ -20,10 +20,15 @@ CLI reference for garak
                          [--generator_option_file GENERATOR_OPTION_FILE | --generator_options GENERATOR_OPTIONS]
                          [--harness_option_file HARNESS_OPTION_FILE | --harness_options HARNESS_OPTIONS]
                          [--probe_option_file PROBE_OPTION_FILE | --probe_options PROBE_OPTIONS]
-                         [--taxonomy TAXONOMY] [--plugin_info PLUGIN_INFO]
-                         [--list_probes] [--list_detectors] [--list_generators]
-                         [--list_buffs] [--list_config] [--version]
-                         [--report REPORT] [--interactive] [--fix]
+                         [--taxonomy TAXONOMY]
+                         [--confidence_interval_method {bootstrap,none}]
+                         [--bootstrap_num_iterations BOOTSTRAP_NUM_ITERATIONS]
+                         [--bootstrap_confidence_level BOOTSTRAP_CONFIDENCE_LEVEL]
+                         [--bootstrap_min_sample_size BOOTSTRAP_MIN_SAMPLE_SIZE]
+                         [--plugin_info PLUGIN_INFO] [--list_probes]
+                         [--list_detectors] [--list_generators] [--list_buffs]
+                         [--list_config] [--version] [--report REPORT]
+                         [--interactive] [--fix]
   
   LLM safety & security scanning tool
   
@@ -95,13 +100,25 @@ CLI reference for garak
     --taxonomy TAXONOMY   specify a MISP top-level taxonomy to be used for
                           grouping probes in reporting. e.g. 'avid-effect',
                           'owasp'
+    --confidence_interval_method {bootstrap,none}
+                          method for CI calculation: 'bootstrap' (default) or
+                          'none' to disable
+    --bootstrap_num_iterations BOOTSTRAP_NUM_ITERATIONS
+                          number of bootstrap iterations for CI calculation
+                          (overrides config)
+    --bootstrap_confidence_level BOOTSTRAP_CONFIDENCE_LEVEL
+                          confidence level for bootstrap CIs, e.g. 0.95 or 0.99
+                          (overrides config)
+    --bootstrap_min_sample_size BOOTSTRAP_MIN_SAMPLE_SIZE
+                          minimum sample size required for bootstrap CI
+                          calculation (overrides config)
     --plugin_info PLUGIN_INFO
                           show info about one plugin; format as
                           type.plugin.class, e.g. probes.lmrc.Profanity
-    --list_probes         list all available probes. Usage: combine with
-                          --probes/-p to filter for probes that will be
-                          activated based on a `probe_spec`, e.g. '--list_probes
-                          -p dan' to show only active 'dan' family probes.
+    --list_probes         list available probes. Use -v for a detailed markdown
+                          table with tier and description. Combine with
+                          --probes/-p to filter by probe_spec, e.g. '--
+                          list_probes -p dan'.
     --list_detectors      list available detectors. Usage: combine with
                           --detectors/-d to filter for detectors that will be
                           activated based on a `detector_spec`, e.g. '--

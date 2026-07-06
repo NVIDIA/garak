@@ -75,7 +75,12 @@ class Repeat(garak.probes.Probe):
         return attempt
 
     def _generator_precall_hook(self, generator, attempt=None):
-        if self.override_maxlen and self.generator.max_tokens < self.new_max_tokens:
+        # Not every generator exposes max_tokens (the function generators, for
+        # example, only carry the prompt and static kwargs), so guard the
+        # attribute the same way promptinject does before overriding it.
+        if not self.override_maxlen or "max_tokens" not in dir(self.generator):
+            return
+        if self.generator.max_tokens < self.new_max_tokens:
             if self.generator_orig_tokens is None:
                 self.generator_orig_tokens = self.generator.max_tokens
             self.generator.max_tokens = self.new_max_tokens

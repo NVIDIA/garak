@@ -31,16 +31,23 @@ def random_resource_filename(request) -> None:
     return os.path.basename(tmpfile.name)
 
 
-def test_no_relative_escape():
+@pytest.mark.parametrize(
+    "test_paths",
+    [
+        [".."],  # parent of data_path
+        ["autodan", "..", "..", "configs"],  # exists but outside allowed paths
+        [
+            "autodan",
+            "../../configs",
+        ],  # exists outside allowed paths using concatenated segment
+        ["../.."],  # outside data_path using concatenated segment
+    ],
+)
+def test_no_relative_escape_joined_path(test_paths):
+    target_path = data_path
     with pytest.raises(GarakException) as exc_info:
-        data_path / ".."
-    assert "does not refer to a valid path" in str(exc_info.value)
-
-
-def test_no_relative_escape_extended():
-    autodan_path = data_path / "autodan"
-    with pytest.raises(GarakException) as exc_info:
-        autodan_path / ".." / ".." / "configs"
+        for p in test_paths:
+            target_path / p
     assert "does not refer to a valid path" in str(exc_info.value)
 
 

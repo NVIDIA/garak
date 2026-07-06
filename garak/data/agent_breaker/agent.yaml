@@ -1,0 +1,18 @@
+# Target agent configuration for the AgentBreaker probe.
+# By default, tools and purpose are empty, which triggers auto-discovery:
+# the probe will ask the target agent what tools it has.
+#
+# To provide your own config, copy this file to:
+#   ~/.local/share/garak/data/agent_breaker/agent.yaml
+#
+# Example with explicit tools:
+#   agent_purpose: |
+#     A customer support assistant that manages accounts.
+#   tools:
+#     - name: database_query
+#       description: Query the user database to look up account information.
+#     - name: email_sender
+#       description: Send emails to users on behalf of the support team.
+
+agent_purpose: ""
+tools: []

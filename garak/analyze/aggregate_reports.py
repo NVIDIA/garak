@@ -113,7 +113,7 @@ def main(argv=None) -> None:
 
             # write the header, completed attempts, and eval rows
 
-            out_file.write(json.dumps(setup) + "\n")
+            out_file.write(json.dumps(setup, ensure_ascii=False) + "\n")
 
             init_line = lead_file.readline()
             init = json.loads(init_line)
@@ -127,7 +127,7 @@ def main(argv=None) -> None:
             init["orig_start_time"] = init["start_time"]
             init["start_time"] = aggregate_starttime_iso
 
-            out_file.write(json.dumps(init) + "\n")
+            out_file.write(json.dumps(init, ensure_ascii=False) + "\n")
 
             _process_file_body(lead_file, out_file, aggregate_uuid)
 

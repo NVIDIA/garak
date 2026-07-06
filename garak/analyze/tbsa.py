@@ -25,6 +25,10 @@ import garak.resources.theme
 PROBE_DETECTOR_SEP = "+"
 
 
+def _print_hr() -> None:
+    print("─" * 50, flush=True)
+
+
 def build_tiers() -> dict:
     from garak._plugins import enumerate_plugins, plugin_info
 
@@ -74,7 +78,6 @@ def digest_to_tbsa(digest: dict, verbose=False, quiet=False) -> Tuple[float, str
     c = garak.analyze.calibration.Calibration()
     if not quiet:
         print(f"📐 Calibration was {c.calibration_filename} from {c.metadata['date']}")
-        print("─" * 50, flush=True)
     probe_detector_scores = {}
     probe_detector_defcons = {}
 
@@ -269,7 +272,7 @@ def main(argv=None) -> None:
         print(
             f"garak {garak.__description__} v{garak._config.version} ( https://github.com/NVIDIA/garak ) TBSA"
         )
-        print("─" * 50)
+        _print_hr()
         print(f"📜 Report file: {args.report_path}")
 
         if args.json_output:
@@ -299,7 +302,7 @@ def main(argv=None) -> None:
     )
 
     if not args.quiet:
-        print("─" * 50)
+        _print_hr()
 
     if not (args.quiet and args.json_output):
         print(f"📝 Probe/detector pairs contributing: {pd_count}")
@@ -317,7 +320,7 @@ def main(argv=None) -> None:
                 "infile": args.report_path,
                 "run_id": digest["meta"]["run_uuid"],
             }
-            json_outfile.write(json.dumps(results))
+            json_outfile.write(json.dumps(results, ensure_ascii=False))
 
 
 if __name__ == "__main__":
