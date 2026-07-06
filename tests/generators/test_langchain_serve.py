@@ -1,4 +1,3 @@
-import importlib
 import os
 import pytest
 
@@ -36,6 +35,35 @@ def test_langchain_serve_generation(requests_mock):
     output = generator._call_model(conv)
     assert len(output) == 1
     assert output[0] == Message("Generated text")
+
+
+@pytest.mark.usefixtures("set_env_vars")
+def test_langchain_serve_string_output(requests_mock):
+    # LangServe's /invoke returns a string/LLM chain's output directly (not
+    # wrapped in a list); the generator must return the whole string, not just
+    # its first character.
+    requests_mock.post(
+        "http://127.0.0.1:8000/invoke?config_hash=default",
+        json={"output": "Generated text", "metadata": {"run_id": "x"}},
+    )
+    generator = LangChainServeLLMGenerator()
+    conv = Conversation([Turn("user", Message("Hello LangChain!"))])
+    output = generator._call_model(conv)
+    assert output == [Message("Generated text")]
+
+
+@pytest.mark.usefixtures("set_env_vars")
+def test_langchain_serve_message_dict_output(requests_mock):
+    # Chat-model outputs are serialised by LangServe as a message dict; pull the
+    # content rather than dropping the response.
+    requests_mock.post(
+        "http://127.0.0.1:8000/invoke?config_hash=default",
+        json={"output": {"content": "Generated text", "type": "ai"}},
+    )
+    generator = LangChainServeLLMGenerator()
+    conv = Conversation([Turn("user", Message("Hello LangChain!"))])
+    output = generator._call_model(conv)
+    assert output == [Message("Generated text")]
 
 
 @pytest.mark.usefixtures("set_env_vars")

@@ -95,7 +95,19 @@ class LangChainServeLLMGenerator(Generator):
             if "output" not in response_data:
                 logging.error(f"No output found in response: {response_data}")
                 return [None]
-            return [Message(response_data.get("output")[0])]
+            output = response_data["output"]
+            # LangServe's /invoke returns the runnable's output directly: a
+            # string for string/LLM chains, or a serialised message dict (e.g.
+            # an AIMessage) for chat models. Some deployments wrap it in a
+            # single-element list. Handle each explicitly so a plain string
+            # output is not truncated to its first character.
+            if isinstance(output, list):
+                output = output[0] if output else None
+            if isinstance(output, dict):
+                output = output.get("content", output)
+            if output is None:
+                return [None]
+            return [Message(output if isinstance(output, str) else str(output))]
         except json.JSONDecodeError as e:
             logging.error(
                 f"Failed to decode JSON from response: {response.text}, error: {e}"
