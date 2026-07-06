@@ -135,9 +135,7 @@ Run Config Items
 * ``soft_probe_prompt_cap`` - For probes that auto-scale their prompt count, the preferred limit of prompts per probe
 * ``target_lang`` - A single language (as BCP47 that the target application for LLM accepts as prompt and output
 * ``langproviders`` - A list of configurations representing providers for converting from probe language to lang_spec target languages (BCP47)
-* ``expand_intent_tree`` - Flag for whether child intents should be included when parsing the intent spec
 * ``serve_detectorless_intents`` - Should the intent service provide intents for which there are no configured detectors?
-* ``trust_code_stubs`` - Execute code for stub generation, as well as use static data sources
 
 Plugins Config Items
 """"""""""""""""""""
@@ -193,7 +191,7 @@ Selectors (a category prefix is mandatory):
   given, the default scope ``S`` (the Safety branch) is injected at resolve
   time. Typology
   expansion and detectorless filtering are governed by the ``run.*`` intent
-  modifiers (``run.expand_intent_tree``, ``run.serve_detectorless_intents``).
+  modifiers (``run.serve_detectorless_intents``).
   Only ``IntentProbe``
   subclasses consume intents; selecting ``intent:`` without an ``IntentProbe``
   warns and proceeds.

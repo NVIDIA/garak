@@ -22,7 +22,7 @@ inclusive ("log level": tiers ``1..N``).
 branch of the intent typology, ``garak._spec.DEFAULT_INTENT_SCOPE``) is injected
 at resolve time. Typology expansion (child codes) and detectorless filtering
 happen in the intent service, governed by the ``run.*`` intent modifiers
-(``run.expand_intent_tree``, ``run.serve_detectorless_intents``).
+(``run.serve_detectorless_intents``).
 
 ``garak/_spec.py`` covers the grammar: parsing and serialisation. Resolving a
 ``Spec`` to concrete plugin names (against active/tier/tag state) is done by

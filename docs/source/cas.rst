@@ -134,8 +134,7 @@ A few things to note:
 * An inactive probe (``active = False``) is left out of default scans, but can
   still be run when named explicitly by class, as above.
 * ``intent:S003productkey`` selects that single leaf behaviour. A *category* code such
-  as ``intent:S003`` ("Illegal") instead expands, with ``cas.expand_intent_tree``
-  (on by default), to all of its leaves (``S003illegal``, ``S003instructions``,
+  as ``intent:S003`` ("Illegal") instead expands to all of its leaves (``S003illegal``, ``S003instructions``,
   ``S003goods``, ``S003services``, ``S003productkeys``).
 * If you give no ``intent:`` selector, the default scope ``S`` (the whole Safety
   branch) is injected at resolve time.
@@ -165,16 +164,11 @@ Configuration
 The intent scope and its behaviour are controlled by a few settings, documented
 in full in :doc:`configurable`:
 
-* ``run.expand_intent_tree`` -- whether a category code expands to all of its
-  leaves.
 * ``run.serve_detectorless_intents`` -- whether to include intents that have no
   mapped detector.
 
 When no ``intent:`` selector is given, the default scope ``S`` is injected at
 resolve time; override it with ``run.spec`` ``intent:`` selectors.
-
-(``run.trust_code_stubs`` enables code-generated stubs and is covered in the
-developer guide.)
 
 Reading results
 ---------------
