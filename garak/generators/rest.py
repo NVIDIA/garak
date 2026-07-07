@@ -403,7 +403,7 @@ class RestGenerator(Generator):
                 )
                 return [None]
 
-        return [Message(r) for r in response]
+        return [Message(str(r) if r is not None and not isinstance(r, str) else r) for r in response]
 
 
 class _MtlsAdapter(requests.adapters.HTTPAdapter):
