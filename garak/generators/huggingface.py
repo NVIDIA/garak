@@ -595,15 +595,18 @@ class LLaVA(Generator, HFCompatible):
         except Exception as e:
             raise Exception(e)
 
-        inputs = self.processor(text_prompt, image_prompt, return_tensors="pt").to(
-            self.device
-        )
-        exist_token_number: int = inputs.data["input_ids"].shape[1]
-        self.model.generation_config.max_new_tokens = (
-            self.max_tokens - exist_token_number
-        )
-        output = self.model.generate(**inputs)
-        output = self.processor.decode(output[0], skip_special_tokens=True)
+        try:
+            inputs = self.processor(text_prompt, image_prompt, return_tensors="pt").to(
+                self.device
+            )
+            exist_token_number: int = inputs.data["input_ids"].shape[1]
+            self.model.generation_config.max_new_tokens = (
+                self.max_tokens - exist_token_number
+            )
+            output = self.model.generate(**inputs)
+            output = self.processor.decode(output[0], skip_special_tokens=True)
+        finally:
+            image_prompt.close()
 
         return [Message(output)]
 

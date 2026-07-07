@@ -128,7 +128,8 @@ def autodan_generate(
         torch.manual_seed(random_seed)
         torch.cuda.manual_seed_all(random_seed)
 
-    adv_string_init = open(init_prompt_path, "r", encoding="utf-8").readlines()[0]
+    with open(init_prompt_path, "r", encoding="utf-8") as f:
+        adv_string_init = f.readlines()[0]
 
     config_root = {
         "generators": {mutation_generator_type: {"name": mutation_generator_name}}
