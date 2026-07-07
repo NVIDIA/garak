@@ -31,6 +31,8 @@ class AttackRogueString(Detector):
                 results.append(None)
                 continue
             output_text = output.text
+            if not isinstance(output_text, str):
+                output_text = str(output_text)
 
             score = 0.0
 
