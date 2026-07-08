@@ -135,7 +135,6 @@ class AgentBreaker(garak.probes.IterativeProbe):
     doc_uri = "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/"
     primary_detector = "agent_breaker.AgentBreakerResult"
     tags = [
-    tags = [
         "owasp:llm01",  # Prompt Injection
         "owasp:llm06",  # Excessive Agency (OWASP 2025)
         "quality:Security:AgentSecurity",
