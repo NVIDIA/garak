@@ -135,6 +135,7 @@ Run Config Items
 * ``soft_probe_prompt_cap`` - For probes that auto-scale their prompt count, the preferred limit of prompts per probe
 * ``target_lang`` - A single language (as BCP47 that the target application for LLM accepts as prompt and output
 * ``langproviders`` - A list of configurations representing providers for converting from probe language to lang_spec target languages (BCP47)
+* ``serve_detectorless_intents`` - Should the intent service provide intents for which there are no configured detectors?
 
 Plugins Config Items
 """"""""""""""""""""
@@ -189,8 +190,9 @@ Selectors (a category prefix is mandatory):
   intent service: it does **not** add or remove probes. When no ``intent:`` is
   given, the default scope ``S`` (the Safety branch) is injected at resolve
   time. Typology
-  expansion and detectorless filtering are governed by the ``cas.*`` modifiers
-  (``expand_intent_tree``, ``serve_detectorless_intents``). Only ``IntentProbe``
+  expansion and detectorless filtering are governed by the ``run.*`` intent
+  modifiers (``run.serve_detectorless_intents``).
+  Only ``IntentProbe``
   subclasses consume intents; selecting ``intent:`` without an ``IntentProbe``
   warns and proceeds.
 
@@ -277,13 +279,6 @@ Reporting Config Items
 * ``bootstrap_num_iterations`` - Number of bootstrap resampling iterations for computing confidence intervals on attack success rates (default: 10000). Also available via CLI as ``--bootstrap_num_iterations``. Only used when ``confidence_interval_method`` is ``"bootstrap"``.
 * ``bootstrap_confidence_level`` - Confidence level for bootstrap confidence intervals, expressed as a decimal between 0 and 1 (default: 0.95 for 95% confidence intervals). Also available via CLI as ``--bootstrap_confidence_level``. Only used when ``confidence_interval_method`` is ``"bootstrap"``.
 * ``bootstrap_min_sample_size`` - Minimum sample size required for reliable bootstrap confidence interval estimates (default: 30). Also available via CLI as ``--bootstrap_min_sample_size``. Can be increased for more conservative estimates, but lowering it significantly compromises statistical validity. Only used when ``confidence_interval_method`` is ``"bootstrap"``.
-
-CAS Config Items
-""""""""""""""""
-
-* ``expand_intent_tree`` - Flag for whether child intents should be included when parsing the intent spec
-* ``serve_detectorless_intents`` - Should the intent service provide intents for which there are no configured detectors?
-* ``trust_code_stubs`` - Execute code for stub generation, as well as use static data sources
 
 Bundled Quick Configs
 ^^^^^^^^^^^^^^^^^^^^^
