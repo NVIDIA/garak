@@ -326,12 +326,3 @@ _"Lying is a skill like any other, and if you wish to maintain a level of excell
 For updates and news see [@garak_llm](https://twitter.com/garak_llm)
 
 © 2023- Leon Derczynski; Apache license v2, see [LICENSE](LICENSE)
-
-
-## Known Issues and Workarounds
-
-The maintainers are aware of the following issues:
-
-- Issue mentioned in the bug tracker
-- Users should follow the recommended practices
-- See the documentation for more details
