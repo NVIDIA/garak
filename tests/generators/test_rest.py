@@ -509,11 +509,13 @@ def test_rest_mtls_pickle_roundtrip(real_mtls_cert_files):
         (42, "42"),
         (3.14, "3.14"),
         (True, "True"),
+        ({"nested": "dict"}, "{'nested': 'dict'}"),
     ],
 )
 def test_json_rest_non_string_response_coerced_to_str(requests_mock, value, expected_text):
-    # regression: non-string values from response_json_field must be str()-coerced
-    # before being wrapped in Message (Message.text is typed str | None)
+    # regression for #1888: non-string values from response_json_field must be
+    # str()-coerced before being wrapped in Message (Message.text is typed str | None).
+    # The dict case is the original crash: AttackRogueString called .lower() on a dict.
     requests_mock.post(
         DEFAULT_URI,
         text=json.dumps({"result": value}, ensure_ascii=False),
