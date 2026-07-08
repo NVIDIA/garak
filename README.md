@@ -106,7 +106,7 @@ Probe a commercial model for encoding-based prompt injection (OSX/\*nix) (replac
  
 ```
 export OPENAI_API_KEY="sk-123XXXXXXXXXXXX"
-python3 -m garak --target_type openai --target_name gpt-3.5-turbo --probes encoding
+python3 -m garak --target_type openai --target_name gpt-5-nano --probes encoding
 ```
 
 See if the Hugging Face version of GPT2 is vulnerable to DAN 11.0
