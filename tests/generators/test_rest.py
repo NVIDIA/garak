@@ -1,5 +1,6 @@
 import datetime
 import json
+import logging
 import ssl
 from unittest.mock import MagicMock, patch
 
@@ -107,10 +108,11 @@ def test_json_rest_deeper(requests_mock):
 
 
 @pytest.mark.usefixtures("set_rest_config")
-def test_json_rest_dict_field_raises(requests_mock):
-    """A response_json_field that resolves to a dict (rather than text) should
-    raise a clear BadGeneratorException, not an opaque AttributeError downstream
-    (e.g. "'dict' object has no attribute 'lower'"). See issue #1888."""
+def test_json_rest_dict_field_skips(requests_mock, caplog):
+    """A response_json_field that resolves to a dict (rather than text) should be
+    skipped with a clear log message and yield [None], so the run still completes
+    and presents a report, rather than crashing with an opaque AttributeError
+    downstream (e.g. "'dict' object has no attribute 'lower'"). See issue #1888."""
     requests_mock.post(
         DEFAULT_URI,
         text=json.dumps(
@@ -124,16 +126,18 @@ def test_json_rest_dict_field_raises(requests_mock):
     ] = "message"
     generator = RestGenerator()
     conv = Conversation([Turn("user", Message("Who is Enabran Tain's son?"))])
-    with pytest.raises(BadGeneratorException) as exc_info:
-        generator._call_model(conv)
-    assert "response_json_field" in str(exc_info.value)
-    assert "dict" in str(exc_info.value)
+    with caplog.at_level(logging.ERROR):
+        output = generator._call_model(conv)
+    assert output == [None]
+    assert "response_json_field" in caplog.text
+    assert "dict" in caplog.text
 
 
 @pytest.mark.usefixtures("set_rest_config")
-def test_json_rest_jsonpath_dict_raises(requests_mock):
-    """A JSONPath response_json_field that resolves to a dict should also raise a
-    clear BadGeneratorException rather than silently yielding empty output."""
+def test_json_rest_jsonpath_dict_skips(requests_mock, caplog):
+    """A JSONPath response_json_field that resolves to a dict should also be
+    skipped (yield [None]) with a clear log message rather than crashing the run
+    or silently yielding empty output."""
     requests_mock.post(
         DEFAULT_URI,
         text=json.dumps(
@@ -147,14 +151,17 @@ def test_json_rest_jsonpath_dict_raises(requests_mock):
     ] = "$.message"
     generator = RestGenerator()
     conv = Conversation([Turn("user", Message("Who is Enabran Tain's son?"))])
-    with pytest.raises(BadGeneratorException):
-        generator._call_model(conv)
+    with caplog.at_level(logging.ERROR):
+        output = generator._call_model(conv)
+    assert output == [None]
+    assert "response_json_field" in caplog.text
 
 
 @pytest.mark.usefixtures("set_rest_config")
-def test_json_rest_missing_field_raises(requests_mock):
-    """A response_json_field absent from the response JSON should raise a clear
-    BadGeneratorException rather than a bare KeyError."""
+def test_json_rest_missing_field_skips(requests_mock, caplog):
+    """A response_json_field absent from the response JSON should be skipped
+    (yield [None]) with a clear log message rather than raising a bare KeyError
+    or crashing the run."""
     requests_mock.post(
         DEFAULT_URI,
         text=json.dumps({"unexpected": DEFAULT_TEXT_RESPONSE}, ensure_ascii=False),
@@ -163,9 +170,10 @@ def test_json_rest_missing_field_raises(requests_mock):
     _config.plugins.generators["rest"]["RestGenerator"]["response_json_field"] = "text"
     generator = RestGenerator()
     conv = Conversation([Turn("user", Message("Who is Enabran Tain's son?"))])
-    with pytest.raises(BadGeneratorException) as exc_info:
-        generator._call_model(conv)
-    assert "response_json_field" in str(exc_info.value)
+    with caplog.at_level(logging.ERROR):
+        output = generator._call_model(conv)
+    assert output == [None]
+    assert "response_json_field" in caplog.text
 
 
 @pytest.mark.usefixtures("set_rest_config")

@@ -388,13 +388,18 @@ class RestGenerator(Generator):
                     ]
                 else:
                     response = [response_object[self.response_json_field]]
-            except (KeyError, TypeError) as e:
-                raise BadGeneratorException(
+            except (KeyError, TypeError):
+                # a single response whose shape does not match the configured
+                # response_json_field is a per-request failure, not necessarily a
+                # broken generator: log it and skip this generation (return None)
+                # so the run still completes and presents a report. See #1888.
+                logging.error(
                     "RestGenerator could not read response_json_field %r from the "
                     "endpoint response; the response JSON shape does not match the "
                     "configured response_json_field. Response content: %s"
                     % (self.response_json_field, repr(resp.content)[:500])
-                ) from e
+                )
+                return [None]
         else:
             field_path_expr = jsonpath_ng.parse(self.response_json_field)
             responses = field_path_expr.find(response_object)
@@ -422,10 +427,11 @@ class RestGenerator(Generator):
         # Message; a mismatched response_json_field can match a dict/list/number
         # (e.g. an Azure-style nested response object), which previously surfaced
         # downstream as an opaque "'dict' object has no attribute 'lower'" in
-        # detectors rather than an actionable configuration error. See #1888.
+        # detectors rather than an actionable message. Log and skip this
+        # generation (return None) so the run still completes. See #1888.
         for value in response:
             if value is not None and not isinstance(value, str):
-                raise BadGeneratorException(
+                logging.error(
                     "RestGenerator response_json_field %r matched a %s, not text. "
                     "Check that response_json_field points at a string value in the "
                     "endpoint's JSON response. Offending value: %s"
@@ -435,6 +441,7 @@ class RestGenerator(Generator):
                         repr(value)[:500],
                     )
                 )
+                return [None]
 
         return [Message(r) for r in response]
 
