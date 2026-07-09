@@ -91,6 +91,7 @@ class RestGenerator(Generator):
         self.retry_5xx = True
         self.key_env_var = self.ENV_VAR if hasattr(self, "ENV_VAR") else None
         self.client_key_passphrase = None
+        self._extracted_a_response = False
 
         # load configuration since super.__init__ has not been called
         self._load_config(config_root)
@@ -279,6 +280,21 @@ class RestGenerator(Generator):
                 output = output.replace("$KEY", self.api_key)
         return output.replace("$INPUT", self.escape_function(text))
 
+    def _response_extraction_failed(self, reason: str) -> List[Union[Message, None]]:
+        """Handle a response whose shape `response_json_field` cannot address.
+
+        Until one generation has been extracted successfully there is no evidence
+        that `response_json_field` can ever address this endpoint's responses, so
+        the generator is bad: fail fast rather than spend inference on a run that
+        can only produce an empty report. After the first success the same
+        mismatch is a property of this response rather than of the configuration,
+        so log it and skip the generation, letting the run finish. See #1888.
+        """
+        if not self._extracted_a_response:
+            raise BadGeneratorException(reason)
+        logging.error(reason)
+        return [None]
+
     @backoff.on_exception(
         backoff.fibo, (RateLimitHit, GeneratorBackoffTrigger), max_value=70
     )
@@ -389,17 +405,12 @@ class RestGenerator(Generator):
                 else:
                     response = [response_object[self.response_json_field]]
             except (KeyError, TypeError):
-                # a single response whose shape does not match the configured
-                # response_json_field is a per-request failure, not necessarily a
-                # broken generator: log it and skip this generation (return None)
-                # so the run still completes and presents a report. See #1888.
-                logging.error(
+                return self._response_extraction_failed(
                     "RestGenerator could not read response_json_field %r from the "
                     "endpoint response; the response JSON shape does not match the "
                     "configured response_json_field. Response content: %s"
                     % (self.response_json_field, repr(resp.content)[:500])
                 )
-                return [None]
         else:
             field_path_expr = jsonpath_ng.parse(self.response_json_field)
             responses = field_path_expr.find(response_object)
@@ -427,11 +438,10 @@ class RestGenerator(Generator):
         # Message; a mismatched response_json_field can match a dict/list/number
         # (e.g. an Azure-style nested response object), which previously surfaced
         # downstream as an opaque "'dict' object has no attribute 'lower'" in
-        # detectors rather than an actionable message. Log and skip this
-        # generation (return None) so the run still completes. See #1888.
+        # detectors rather than an actionable message
         for value in response:
             if value is not None and not isinstance(value, str):
-                logging.error(
+                return self._response_extraction_failed(
                     "RestGenerator response_json_field %r matched a %s, not text. "
                     "Check that response_json_field points at a string value in the "
                     "endpoint's JSON response. Offending value: %s"
@@ -441,8 +451,8 @@ class RestGenerator(Generator):
                         repr(value)[:500],
                     )
                 )
-                return [None]
 
+        self._extracted_a_response = True
         return [Message(r) for r in response]
 
 
