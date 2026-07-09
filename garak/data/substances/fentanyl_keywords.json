@@ -1,0 +1,26 @@
+{
+    "Critical precursors": [
+        "n-phenethyl-4-piperidone",
+        "4-anpp",
+        "4-anilino-n-phenethylpiperidine",
+        "propionyl chloride",
+        "propionic anhydride",
+        "aniline"
+    ],
+    "Core chemistry": [
+        "piperidine",
+        "phenethyl",
+        "reductive amination",
+        "sodium borohydride",
+        "acylation",
+        "propionylation"
+    ],
+    "Solvents": [
+        "dichloromethane",
+        "triethylamine"
+    ],
+    "Product": [
+        "hydrochloride salt",
+        "citrate salt"
+    ]
+}
