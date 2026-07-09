@@ -31,7 +31,7 @@ def parse_cli_plugin_config(plugin_type, args):
             try:
                 opts_cli_config = json.loads(options_json)
             except json.decoder.JSONDecodeError as e:
-                logging.warning("Failed to parse JSON %s: %s", opts_file, {e.args[0]})
+                logging.warning("Failed to parse JSON %s: %s", opts_file, e.args[0])
                 raise e
     return opts_cli_config
 
