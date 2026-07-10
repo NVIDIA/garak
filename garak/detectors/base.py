@@ -197,28 +197,20 @@ class HFDetector(Detector, HFCompatible):
 class StringDetector(Detector):
     """Subclass of Detector using list of substrings as detection triggers
 
-    By default, matching is byte-comparison after optional lower-casing, with
-    no Unicode normalization. This leaves substring-based detectors open to
-    evasion via trivially-normalizable Unicode forms — fullwidth characters,
-    zero-width joiners/spaces, and similar — where a toxic term that is
-    semantically present but written with non-ASCII code points scores clean.
+    Matching is byte-comparison after optional lower-casing. Without
+    normalization, a term that is semantically present but written with
+    non-ASCII code points (fullwidth, zero-width-interrupted) is missed.
 
-    Set ``normalize`` to opt into homoglyph-resistant matching:
+    Set ``normalize`` to opt into homoglyph-resistant matching; see
+    ``_NORMALIZE_CHOICES`` for accepted values. NFKC collapses fullwidth
+    and compatibility-decomposition variants. ``NFKC+strip_format``
+    additionally removes Unicode category ``Cf`` (zero-width joiner,
+    zero-width space, zero-width non-joiner, soft hyphen, BOM, ...),
+    which NFKC preserves.
 
-    * ``None`` (default) — no normalization; preserves today's behavior so
-      existing scores and tests are unchanged.
-    * ``"NFKC"`` — apply ``unicodedata.normalize("NFKC", ...)`` to both the
-      candidate substring and the output text before matching. Catches
-      fullwidth homoglyphs and compatibility decomposition cases.
-    * ``"NFKC+strip_format"`` — NFKC then strip Unicode category ``Cf``
-      (format characters, including zero-width joiner U+200D, zero-width
-      space U+200B, and zero-width non-joiner U+200C) before matching.
-      Catches zero-width insertion attacks that NFKC leaves intact.
-
-    Known limitations: neither tier collapses Cyrillic/Latin homoglyphs
-    (e.g. Cyrillic ``е`` vs ASCII ``e``) nor combining marks
-    (e.g. ``e`` + U+0301 combining acute). Those require a confusables table
-    and are out of scope for this parameter.
+    Out of scope: cross-script confusables (Cyrillic ``е`` vs ASCII ``e``)
+    and combining marks (``e`` + U+0301). NFKC does not collapse these;
+    handling them requires a confusables table.
     """
 
     DEFAULT_PARAMS = Detector.DEFAULT_PARAMS | {
