@@ -6,6 +6,7 @@ in `garak`. `garak` detectors must inherit from a class in here."""
 import logging
 import os
 import re
+import unicodedata
 from typing import List, Iterable, Union
 
 from colorama import Fore, Style
@@ -194,16 +195,63 @@ class HFDetector(Detector, HFCompatible):
 
 
 class StringDetector(Detector):
-    """Subclass of Detector using list of substrings as detection triggers"""
+    """Subclass of Detector using list of substrings as detection triggers
+
+    Matching is byte-comparison after optional lower-casing. Without
+    normalization, a term that is semantically present but written with
+    non-ASCII code points (fullwidth, zero-width-interrupted) is missed.
+
+    Set ``normalize`` to opt into homoglyph-resistant matching; see
+    ``_NORMALIZE_CHOICES`` for accepted values. NFKC collapses fullwidth
+    and compatibility-decomposition variants. ``NFKC+strip_format``
+    additionally removes Unicode category ``Cf`` (zero-width joiner,
+    zero-width space, zero-width non-joiner, soft hyphen, BOM, ...),
+    which NFKC preserves.
+
+    Out of scope: cross-script confusables (Cyrillic ``е`` vs ASCII ``e``)
+    and combining marks (``e`` + U+0301). NFKC does not collapse these;
+    handling them requires a confusables table.
+    """
 
     DEFAULT_PARAMS = Detector.DEFAULT_PARAMS | {
         "matchtype": "str",  # "str" or "word"
         "case_sensitive": False,
+        "normalize": None,  # None, "NFKC", or "NFKC+strip_format"
     }
+
+    _NORMALIZE_CHOICES = (None, "NFKC", "NFKC+strip_format")
 
     def __init__(self, substrings, config_root=_config):
         super().__init__(config_root=config_root)
         self.substrings = substrings
+        if self.normalize not in self._NORMALIZE_CHOICES:
+            raise ValueError(
+                f"StringDetector.normalize must be one of {self._NORMALIZE_CHOICES}, got {self.normalize!r}"
+            )
+
+    @staticmethod
+    def _apply_normalize(text: str, mode) -> str:
+        """Apply the configured Unicode normalization to ``text``.
+
+        Returns ``text`` unchanged when ``mode`` is None. For ``"NFKC"``,
+        applies compatibility decomposition followed by canonical
+        composition. For ``"NFKC+strip_format"``, additionally removes
+        Unicode general category ``Cf`` (format characters) which NFKC
+        preserves — most notably zero-width joiner, zero-width space, and
+        zero-width non-joiner.
+        """
+        if mode is None:
+            return text
+        if mode not in StringDetector._NORMALIZE_CHOICES:
+            raise ValueError(
+                f"StringDetector.normalize must be one of {StringDetector._NORMALIZE_CHOICES}, got {mode!r}"
+            )
+        normalized = unicodedata.normalize("NFKC", text)
+        if mode == "NFKC+strip_format":
+            normalized = "".join(
+                ch for ch in normalized if unicodedata.category(ch) != "Cf"
+            )
+        return normalized
 
     def detect(self, attempt: garak.attempt.Attempt) -> Iterable[float | None]:
         detector_results = []
@@ -218,6 +266,10 @@ class StringDetector(Detector):
             for s in self.substrings:
                 if not self.case_sensitive:
                     s, output_text = s.lower(), output_text.lower()
+
+                if self.normalize is not None:
+                    s = self._apply_normalize(s, self.normalize)
+                    output_text = self._apply_normalize(output_text, self.normalize)
 
                 if self.matchtype == "str":
                     if s in output_text:
