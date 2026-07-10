@@ -314,3 +314,108 @@ def test_stringdetector_normalize_invalid_value():
     attempt.outputs = [Message(TRIGGER_WORD)]
     results = list(detector.detect(attempt))
     assert results == [None], "Unknown normalize value should return None, not raise"
+
+
+# ---------------------------------------------------------------------------
+# Known limitations of the NFKC tiers, pinned so the docstring stays honest:
+# NFKC (compatibility normalization) collapses fullwidth/homoglyph *compatibility*
+# forms, but it does NOT fold cross-script confusables or combining marks to ASCII.
+# ---------------------------------------------------------------------------
+
+# Cyrillic 'е' (U+0435) and 'о' (U+043E) look like ASCII e/o but are a different
+# script; NFKC leaves them unchanged, so an ASCII trigger does not match.
+CYRILLIC_HELLO = "hеllо"
+
+# 'e' + U+0301 (combining acute). NFKC precomposes to 'é' (U+00E9), still not ASCII 'e'.
+COMBINING_HELLO = "héllo"
+
+# Fullwidth uppercase form of the trigger word.
+FULLWIDTH_HELLO_UPPER = "ＨＥＬＬＯ"
+
+
+def test_stringdetector_normalize_nfkc_cross_script_confusable_limitation():
+    """NFKC does not fold cross-script (e.g. Cyrillic) confusables to ASCII, so a
+    plain-ASCII trigger still misses them. Pinned so the docstring isn't overclaimed."""
+    detector = garak.detectors.base.StringDetector([TRIGGER_WORD])
+    detector.matchtype = "str"
+    detector.case_sensitive = True
+    detector.normalize = "NFKC"
+
+    attempt = Attempt(prompt=Message(text=""))
+    attempt.outputs = [Message(CYRILLIC_HELLO)]
+    results = detector.detect(attempt)
+    assert results == [0.0], "NFKC does not collapse Cyrillic confusables to ASCII"
+
+
+def test_stringdetector_normalize_nfkc_combining_mark_limitation():
+    """NFKC precomposes base+combining sequences (e.g. e + U+0301 -> 'é'), which still
+    is not ASCII, so an ASCII trigger does not match. Pinned as a known limitation."""
+    detector = garak.detectors.base.StringDetector([TRIGGER_WORD])
+    detector.matchtype = "str"
+    detector.case_sensitive = True
+    detector.normalize = "NFKC"
+
+    attempt = Attempt(prompt=Message(text=""))
+    attempt.outputs = [Message(COMBINING_HELLO)]
+    results = detector.detect(attempt)
+    assert results == [0.0], "NFKC precomposes combining marks; ASCII trigger still misses"
+
+
+def test_stringdetector_normalize_matchtype_word_and_startswith():
+    """normalize composes with matchtype: a fullwidth homoglyph is caught under both
+    matchtype='word' (word-boundary regex) and matchtype='startswith'."""
+    for matchtype, output in (
+        ("word", f"please say {FULLWIDTH_HELLO} now"),
+        ("startswith", FULLWIDTH_HELLO),
+    ):
+        detector = garak.detectors.base.StringDetector([TRIGGER_WORD])
+        detector.matchtype = matchtype
+        detector.case_sensitive = True
+        detector.normalize = "NFKC"
+
+        attempt = Attempt(prompt=Message(text=""))
+        attempt.outputs = [Message(output)]
+        results = detector.detect(attempt)
+        assert results == [1.0], f"NFKC should compose with matchtype={matchtype!r}"
+
+
+def test_stringdetector_normalize_case_insensitive_composition():
+    """case_sensitive=False and NFKC compose: a fullwidth UPPERCASE homoglyph matches a
+    lowercase trigger only when case-insensitive (both lower-casing and NFKC run first)."""
+    detector = garak.detectors.base.StringDetector([TRIGGER_WORD])
+    detector.matchtype = "str"
+    detector.normalize = "NFKC"
+
+    attempt = Attempt(prompt=Message(text=""))
+    attempt.outputs = [Message(FULLWIDTH_HELLO_UPPER)]
+
+    detector.case_sensitive = True
+    assert detector.detect(attempt) == [0.0], "case-sensitive should not match uppercase variant"
+
+    detector.case_sensitive = False
+    assert detector.detect(attempt) == [1.0], "case-insensitive + NFKC should match uppercase variant"
+
+
+def test_stringdetector_normalize_ldnoobw_fullwidth_end_to_end():
+    """End-to-end against the real unsafe_content.LDNOOBW detector: a fullwidth variant of
+    a word from its live wordlist evades detection without normalize and is caught with
+    normalize='NFKC'. Guards against wordlist/detector-wiring regressions."""
+    from garak.detectors.unsafe_content import LDNOOBW
+
+    detector = LDNOOBW()
+    # this test targets normalization, not language routing: match any output language
+    detector.lang_spec = "*"
+    # pick a purely-ASCII alphabetic entry from the live wordlist (no hardcoded term)
+    word = next(
+        w for w in detector.substrings if w.isascii() and w.isalpha() and len(w) >= 4
+    )
+    fullwidth = "".join(chr(ord(c) + 0xFEE0) if "a" <= c <= "z" else c for c in word)
+
+    attempt = Attempt(prompt=Message(text=""))
+    attempt.outputs = [Message(fullwidth)]
+
+    detector.normalize = None
+    assert detector.detect(attempt) == [0.0], "fullwidth variant should evade without normalize"
+
+    detector.normalize = "NFKC"
+    assert detector.detect(attempt) == [1.0], "NFKC should catch the fullwidth variant in LDNOOBW"
