@@ -219,3 +219,169 @@ def test_stringdetector_startswith():
         assert results == [
             1.0 if match else 0.0
         ], f"startswith match failed for '{text}', expected {match}"
+
+
+# ---------------------------------------------------------------------------
+# Unicode normalization (issue #1867)
+#
+# StringDetector matches by raw byte comparison after optional lower-casing.
+# Without normalization, a toxic term that is semantically present but written
+# with non-ASCII code points (fullwidth, zero-width-interrupted) scores clean.
+# The `normalize` DEFAULT_PARAM opts into homoglyph-resistant matching.
+# ---------------------------------------------------------------------------
+
+# ASCII baseline used to build the evasion variants below.
+_PHRASE = "test phrase"
+
+# Evasion variants — each is visually/semantically the same phrase as
+# _PHRASE but written with non-ASCII code points that NFKC or Cf-stripping
+# collapses back to ASCII.
+_FULLWIDTH = "ｔｅｓｔ ｐｈｒａｓｅ"  # all-fullwidth; NFKC collapses to ASCII
+_ZWJ = "te\u200dst phrase"  # zero-width joiner mid-word; only Cf-strip removes
+_ZWSP = "test phra\u200bse"  # zero-width space mid-word; only Cf-strip removes
+_ZWNJ = "test phra\u200cse"  # zero-width non-joiner mid-word; only Cf-strip removes
+
+
+@pytest.fixture
+def normalize_detector_factory():
+    """Return a callable that builds a StringDetector with a given normalize mode."""
+
+    def _make(normalize, matchtype="str"):
+        detector = garak.detectors.base.StringDetector([_PHRASE])
+        detector.matchtype = matchtype
+        detector.normalize = normalize
+        return detector
+
+    return _make
+
+
+def test_stringdetector_normalize_default_is_none():
+    """The default value of `normalize` must be None for backward compatibility."""
+    detector = garak.detectors.base.StringDetector([_PHRASE])
+    assert detector.normalize is None
+
+
+def test_stringdetector_normalize_none_leaves_evasion_unevaded(
+    normalize_detector_factory,
+):
+    """With normalize=None (default), fullwidth/zero-width evasion still bypasses.
+
+    This pins today's behavior so existing reported scores and tests remain
+    unchanged. The fix is opt-in.
+    """
+    detector = normalize_detector_factory(None)
+    for variant in (_FULLWIDTH, _ZWJ, _ZWSP, _ZWNJ):
+        attempt = Attempt(prompt=Message(text=""))
+        attempt.outputs = [Message(variant)]
+        assert detector.detect(attempt) == [
+            0.0
+        ], f"normalize=None must not collapse {variant!r} (backward compatibility)"
+
+
+def test_stringdetector_normalize_nfkc_collapses_fullwidth(normalize_detector_factory):
+    """NFKC collapses fullwidth homoglyphs to ASCII so the detector hits."""
+    detector = normalize_detector_factory("NFKC")
+    attempt = Attempt(prompt=Message(text=""))
+    attempt.outputs = [Message(_FULLWIDTH)]
+    assert detector.detect(attempt) == [1.0]
+
+
+def test_stringdetector_normalize_nfkc_does_not_strip_zero_width(
+    normalize_detector_factory,
+):
+    """NFKC preserves zero-width format chars; this is a documented limitation.
+
+    Operators who need to catch zero-width insertion attacks must opt into
+    `NFKC+strip_format`.
+    """
+    detector = normalize_detector_factory("NFKC")
+    for variant in (_ZWJ, _ZWSP, _ZWNJ):
+        attempt = Attempt(prompt=Message(text=""))
+        attempt.outputs = [Message(variant)]
+        assert detector.detect(attempt) == [
+            0.0
+        ], f"NFKC alone must not strip zero-width chars (use NFKC+strip_format): {variant!r}"
+
+
+def test_stringdetector_normalize_nfkc_strip_format_catches_zero_width(
+    normalize_detector_factory,
+):
+    """NFKC + Cf-strip removes zero-width joiners/spaces/non-joiners so the detector hits."""
+    detector = normalize_detector_factory("NFKC+strip_format")
+    for variant in (_FULLWIDTH, _ZWJ, _ZWSP, _ZWNJ):
+        attempt = Attempt(prompt=Message(text=""))
+        attempt.outputs = [Message(variant)]
+        assert detector.detect(attempt) == [
+            1.0
+        ], f"NFKC+strip_format must collapse {variant!r} to a hit"
+
+
+def test_stringdetector_normalize_works_with_word_matchtype(normalize_detector_factory):
+    """Normalization applies before word-boundary regex matching."""
+    detector = normalize_detector_factory("NFKC+strip_format", matchtype="word")
+    attempt = Attempt(prompt=Message(text=""))
+    # ZWJ inside the word would break \b matching without stripping.
+    attempt.outputs = [Message(f"prefix {_ZWJ} suffix")]
+    assert detector.detect(attempt) == [1.0]
+
+
+def test_stringdetector_normalize_works_with_startswith_matchtype(
+    normalize_detector_factory,
+):
+    """Normalization applies before startswith matching."""
+    detector = normalize_detector_factory("NFKC", matchtype="startswith")
+    attempt = Attempt(prompt=Message(text=""))
+    attempt.outputs = [Message(_FULLWIDTH + " tail")]
+    assert detector.detect(attempt) == [1.0]
+
+
+def test_stringdetector_normalize_preserves_ascii_baseline(normalize_detector_factory):
+    """ASCII matches still hit under every normalize mode."""
+    for mode in (None, "NFKC", "NFKC+strip_format"):
+        detector = normalize_detector_factory(mode)
+        attempt = Attempt(prompt=Message(text=""))
+        attempt.outputs = [Message(f"begin {_PHRASE} end")]
+        assert detector.detect(attempt) == [
+            1.0
+        ], f"ASCII baseline must hit under normalize={mode!r}"
+
+
+def test_stringdetector_normalize_preserves_no_match(normalize_detector_factory):
+    """Benign text with no target phrase stays clean under every normalize mode."""
+    benign = "a completely unrelated sentence about the weather"
+    for mode in (None, "NFKC", "NFKC+strip_format"):
+        detector = normalize_detector_factory(mode)
+        attempt = Attempt(prompt=Message(text=""))
+        attempt.outputs = [Message(benign)]
+        assert detector.detect(attempt) == [
+            0.0
+        ], f"Benign text must stay clean under normalize={mode!r}"
+
+
+def test_stringdetector_normalize_preserves_case_insensitivity(
+    normalize_detector_factory,
+):
+    """Normalization composes with case-insensitive lower-casing."""
+    detector = normalize_detector_factory("NFKC")
+    detector.case_sensitive = False
+    attempt = Attempt(prompt=Message(text=""))
+    attempt.outputs = [Message(_FULLWIDTH.upper())]
+    assert detector.detect(attempt) == [1.0]
+
+
+def test_stringdetector_normalize_invalid_value_raises():
+    """An unsupported normalize value must raise ValueError at init, not silently misbehave."""
+    detector = garak.detectors.base.StringDetector([_PHRASE])
+    detector.normalize = "INVALID"
+    attempt = Attempt(prompt=Message(text=""))
+    attempt.outputs = [Message(_PHRASE)]
+    with pytest.raises(ValueError, match="normalize"):
+        detector.detect(attempt)
+
+
+def test_stringdetector_normalize_nfkc_ascii_sanity(normalize_detector_factory):
+    """Sanity check: NFKC on already-ASCII text still hits (no regression on the helper)."""
+    detector = normalize_detector_factory("NFKC")
+    attempt = Attempt(prompt=Message(text=""))
+    attempt.outputs = [Message(_PHRASE)]
+    assert detector.detect(attempt) == [1.0]
