@@ -12,7 +12,7 @@ import pytest
 from garak.analyze.report_digest import (
     _init_populate_result_db,
     _get_group_aggregate_score,
-    _get_probe_result_summaries,
+    _get_probe_group_summaries,
     _get_detectors_info,
     _close_result_db,
 )
@@ -80,7 +80,7 @@ def test_get_probe_result_summaries_with_adversarial_group(payload):
     evals = [_make_eval(payload, "TestClass", "det.Det", passed=3, total=10)]
     conn, cursor = _init_populate_result_db(evals)
     try:
-        results = _get_probe_result_summaries(cursor, payload)
+        results = _get_probe_group_summaries(cursor, payload)
         assert len(results) == 1
         assert results[0][0] == payload  # probe_module
         assert results[0][1] == "TestClass"  # probe_class

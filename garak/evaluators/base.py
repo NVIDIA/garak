@@ -20,7 +20,6 @@ import garak.analyze.detector_metrics
 from garak.analyze.bootstrap_ci import calculate_bootstrap_ci
 import garak.resources.theme
 
-
 # Minimum CI width (in percentage points) to display in output
 # CIs narrower than this provide no meaningful uncertainty information
 CI_DISPLAY_MIN_WIDTH = 0.001
@@ -62,7 +61,7 @@ class Evaluator:
 
     def _evaluate_one_detector(
         self, attempts: Iterable[garak.attempt.Attempt], detector_name: str
-    ) -> None:
+    ) -> dict:
         passes = 0
         fails = 0
         nones = 0
@@ -240,13 +239,33 @@ class Evaluator:
             attempts
         )  # iterable is preferred but we select them by idx later
 
+        inference_counts = {
+            "total_evaluated": 0,
+            "nones": 0,
+        }
+        detection_counts = {
+            "detectors": set(),
+            "passed": 0,
+            "fails": 0,
+            "nones": 0,
+        }
+
         detectors_to_eval = set()
         detector_to_attempt_ids = defaultdict(list)
         self.probename = None  # short term clear on each call to avoid stale state, this should be refactored to avoid stored state
+
+        # build probe_summary during this loop to reference probe specific counts
+        # include:
+        #  total inference output counts (output_counts: sum(None), sum(not None)),
+        #  total detections preformed (detection_counts: sum(None), sum(hit), sum(pass))
         for idx, attempt in enumerate(attempts):
             if not self.probename:
                 self.probename = attempt.probe_classname
 
+            inference_counts["total_evaluated"] += len(attempt.outputs)
+            inference_counts["nones"] += len(attempt.outputs) - sum(
+                1 for _ in filter(lambda v: v is not None, attempt.outputs)
+            )
             attempt_detectors = set(attempt.detector_results.keys())
             if not attempt_detectors:
                 logging.warning(
@@ -267,7 +286,30 @@ class Evaluator:
             attempt_subset = [
                 attempts[i] for i in detector_to_attempt_ids[detector_to_eval]
             ]
-            self._evaluate_one_detector(attempt_subset, detector_to_eval)
+            eval_summary = self._evaluate_one_detector(attempt_subset, detector_to_eval)
+            detection_counts["detectors"].add(detector_to_eval)
+            for k, v in eval_summary.items():
+                if k in detection_counts:
+                    detection_counts[k] += v
+
+        detection_counts["detectors"] = list(
+            detection_counts["detectors"]
+        )  # cast to list for serialization
+        probe_record = {
+            "entry_type": "probe_summary",
+            "probe": self.probename,
+            "inference_counts": inference_counts,
+            "detection_counts": detection_counts,
+        }
+
+        _config.transient.reportfile.write(
+            json.dumps(probe_record, ensure_ascii=False) + "\n"
+        )
+
+        probe_record.pop("entry_type")
+        probe_record.pop("probe")
+
+        return probe_record
 
     def get_z_rating(self, probe_name, detector_name, asr_pct) -> str:
         probe_module, probe_classname = probe_name.split(".")
