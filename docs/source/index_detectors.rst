@@ -32,6 +32,7 @@ For detailed information on detector metrics and evaluation, see :doc:`../detect
    detectors/lmrc
    detectors/malwaregen
    detectors/misleading
+   detectors/misogyny
    detectors/mitigation
    detectors/packagehallucination
    detectors/perspective

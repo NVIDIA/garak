@@ -39,6 +39,7 @@ For a guide to writing probes, see :doc:`extending.probe`.
    probes/lmrc
    probes/malwaregen
    probes/misleading
+   probes/misogyny
    probes/packagehallucination
    probes/phrasing
    probes/promptinject
