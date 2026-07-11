@@ -223,7 +223,7 @@ class StringDetector(Detector):
                     if s in output_text:
                         match = True
                 elif self.matchtype == "word":
-                    if re.search(r"\b" + s + r"\b", output_text):
+                    if re.search(r"\b" + re.escape(s) + r"\b", output_text):
                         match = True
                 elif self.matchtype == "startswith":
                     if output_text.startswith(s):

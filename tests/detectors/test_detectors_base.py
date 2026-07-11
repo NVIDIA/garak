@@ -125,6 +125,25 @@ def test_none_outputs(string_detector):
     assert results == [None, 1.0, None], "Failed to handle None outputs correctly"
 
 
+def test_word_matchtype_treats_substring_as_literal():
+    """`word` matchtype must match substrings literally, not as regex.
+
+    Substrings come from literal wordlists that can contain regex
+    metacharacters. Without escaping, ``\\b`` + s + ``\\b`` interprets those
+    metacharacters: ``a.c`` matches ``abc`` (false positive) and ``c$t`` can
+    never match (false negative), producing wrong detector scores.
+    """
+    detector = garak.detectors.base.StringDetector(["a.c", "c$t"])
+    detector.matchtype = "word"
+    attempt = Attempt(prompt=Message(text="hi"))
+    attempt.outputs = [Message("abc"), Message("a.c"), Message("c$t")]
+
+    results = detector.detect(attempt)
+
+    # "abc" is not the literal "a.c"; "a.c" and "c$t" are literal matches.
+    assert results == [0.0, 1.0, 1.0]
+
+
 MATCHTYPE_AND_CASING_CASES = {
     "str": [
         (f"begin {TEST_STRINGS[0]}ing", True),  # should match
