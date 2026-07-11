@@ -11,7 +11,7 @@ import inspect
 from collections.abc import Iterable
 
 from garak.attempt import Message, Turn, Conversation
-from garak.generators.openai import OpenAICompatible
+from garak.generators.openai import OpenAICompatible, OpenAIGenerator
 from garak.generators.rest import RestGenerator
 
 # TODO: expand this when we have faster loading, currently to process all generator costs 30s for 3 tests
@@ -141,3 +141,30 @@ def test_openai_multiple_generations():
     assert (
         oai_klass.supports_multiple_generations == True
     ), "OpenAI access expected to correctly support multiple generations by default"
+
+
+def test_conversation_to_list_image_turn_is_reachable():
+    """An image turn must produce an image content part, not raise GarakException.
+
+    ``data_type`` is a ``(mimetype, encoding)`` tuple, so ``"image" in
+    turn.content.data_type`` was always False and the image branch was dead:
+    every image turn fell through to the ``else`` and raised
+    ``GarakException("Data type image/gif not supported.")``.
+    """
+    generator = build_test_instance(OpenAIGenerator)
+    conv = Conversation(
+        [
+            Turn(
+                "user",
+                Message(text="describe", data_path="tests/_assets/tinytrans.gif"),
+            )
+        ]
+    )
+
+    result = generator._conversation_to_list(conv)
+
+    content = result[0]["content"]
+    image_parts = [p for p in content if p.get("type") == "input_image"]
+    assert image_parts, "image turn did not produce an input_image content part"
+    # Well-formed base64 data URI: data:<mimetype>;base64,<data>
+    assert image_parts[0]["image_url"].startswith("data:image/gif;base64,")
