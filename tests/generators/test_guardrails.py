@@ -51,3 +51,24 @@ def test_guardrail_selection(selected_rails, respx_mock, openai_compat_mocks):
         assert "guardrails" in content
         assert "config_ids" in content
         assert rail in content
+
+
+def test_nonempty_extra_params_does_not_crash_init():
+    """Construction with a non-empty extra_params lacking 'extra_body' must not crash.
+
+    The removed block ran ``self.extra_params.append("extra_body")`` — .append
+    on a dict — which raised AttributeError during __init__ for any user who
+    set extra_params without an 'extra_body' key.
+    """
+    config_root = {
+        "generators": {
+            "guardrails": {
+                "NeMoGuardrailsServer": {
+                    "name": "UnknownModel",
+                    "extra_params": {"foo": 1},
+                }
+            }
+        }
+    }
+    g = NeMoGuardrailsServer(config_root=config_root)
+    assert g.extra_params == {"foo": 1}
