@@ -74,6 +74,14 @@ def analyze_log(report_path: str) -> None:
                             )
                         )
             elif record["entry_type"] == "eval":
+                # Older reports use "total" rather than "total_evaluated"; and
+                # total_evaluated can be 0 (a probe/detector pair with no
+                # evaluable outputs), so guard the division like the sibling
+                # analyzers (perf_stats/qual_review/report_digest/ci_calculator).
+                total_evaluated = record.get("total_evaluated", record.get("total", 0))
+                pass_rate = (
+                    record["passed"] / total_evaluated if total_evaluated else 0.0
+                )
                 print(
                     "\t".join(
                         map(
@@ -81,9 +89,8 @@ def analyze_log(report_path: str) -> None:
                             [
                                 record["probe"],
                                 record["detector"],
-                                "%0.4f"
-                                % (record["passed"] / record["total_evaluated"]),
-                                record["total_processed"],
+                                "%0.4f" % pass_rate,
+                                record.get("total_processed", total_evaluated),
                             ],
                         )
                     )
