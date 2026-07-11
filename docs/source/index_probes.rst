@@ -40,6 +40,7 @@ For a guide to writing probes, see :doc:`extending.probe`.
    probes/malwaregen
    probes/misleading
    probes/packagehallucination
+   probes/persuasion
    probes/phrasing
    probes/promptinject
    probes/propile
