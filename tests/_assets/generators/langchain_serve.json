@@ -1,0 +1,41 @@
+{
+   "string_output": {
+      "code": 200,
+      "json": { "output": "Generated text", "metadata": { "run_id": "00000000-0000-0000-0000-000000000000" } }
+   },
+   "message_dict_output": {
+      "code": 200,
+      "json": { "output": { "content": "Generated text", "type": "ai", "additional_kwargs": {} } }
+   },
+   "message_constructor_output": {
+      "code": 200,
+      "json": {
+         "output": {
+            "lc": 1,
+            "type": "constructor",
+            "id": ["langchain", "schema", "messages", "AIMessage"],
+            "kwargs": { "content": "Generated text", "type": "ai" }
+         }
+      }
+   },
+   "unexpected_dict_output": {
+      "code": 200,
+      "json": { "output": { "error": "err val" } }
+   },
+   "list_output": {
+      "code": 200,
+      "json": { "output": ["Generated text"] }
+   },
+   "missing_output_key": {
+      "code": 200,
+      "json": { "metadata": { "run_id": "00000000-0000-0000-0000-000000000000" } }
+   },
+   "client_error": {
+      "code": 400,
+      "json": { "detail": "Bad Request" }
+   },
+   "server_error": {
+      "code": 500,
+      "json": { "detail": "Internal Server Error" }
+   }
+}
