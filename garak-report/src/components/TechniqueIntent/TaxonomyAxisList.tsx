@@ -102,7 +102,8 @@ const PooledLeaves = ({ leaves }: { leaves: MatrixCell["leaves"] }) => (
           {index > 0 && <Divider />}
           <Flex align="center" justify="space-between" gap="density-sm">
             <Text kind="body/regular/md">
-              {shortenTechnique(leaf.technique)} × {leaf.intent}
+              {leaf.techniqueName ?? shortenTechnique(leaf.technique)} ×{" "}
+              {leaf.intentName ?? leaf.intent}
             </Text>
             <Flex align="center" gap="density-xs">
               <DefconBadge defcon={scoreToDefcon(leaf.score)} />
@@ -164,11 +165,14 @@ const CellDetail = ({ cell, title }: { cell: MatrixCell; title?: string }) => {
             {cell.nones > 0 && (
               <Stat label="Undetermined" value={cell.nones.toLocaleString()} />
             )}
-            <Stat label="Detectors" value={cell.nDetectors.toLocaleString()} />
             {cell.leafCount > 1 && (
               <Stat label="Pooled pairs" value={cell.leafCount.toLocaleString()} />
             )}
           </Flex>
+          <Text kind="label/regular/xs" className="opacity-60">
+            Counts are evaluations — one per attempt scored by each of{" "}
+            {pluralize(cell.nDetectors, "detector")}.
+          </Text>
         </Stack>
 
         {cell.leafCount > 1 && (
@@ -188,9 +192,7 @@ const CellDetail = ({ cell, title }: { cell: MatrixCell; title?: string }) => {
           />
         ) : (
           <Text kind="body/regular/sm" className="opacity-60">
-            {pluralize(cell.nDetectors, "detector")} scored this pairing across{" "}
-            {cell.nEvaluations.toLocaleString()} evaluations; a response counts as a failure when
-            any detector flags it.
+            A response counts as a failure when any detector flags it.
           </Text>
         )}
       </Stack>
@@ -309,11 +311,16 @@ const TaxonomyAxisList = ({
           slotTrigger: (
             <Flex gap="density-lg" align="center" style={{ width: "100%" }}>
               <ScoreBadges score={group.score} defcon={defcon} />
-              <Stack gap="density-md" align="start">
+              <Stack gap="density-xs" align="start">
                 <Text kind="label/bold/2xl">{group.label}</Text>
+                {group.description && (
+                  <Text kind="body/regular/sm" className="opacity-70">
+                    {group.description}
+                  </Text>
+                )}
                 <Text kind="label/regular/sm" className="opacity-60">
                   worst of {pluralize(group.cells.length, childNoun)} ·{" "}
-                  {group.nEvaluations.toLocaleString()} evals
+                  {group.nEvaluations.toLocaleString()} evaluations
                 </Text>
               </Stack>
             </Flex>

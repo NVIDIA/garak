@@ -154,6 +154,33 @@ describe("buildMatrixView", () => {
     });
   });
 
+  it("exposes readable technique/intent names and descriptions at the leaf level", () => {
+    const named: TechniqueIntentMatrix = {
+      "demon:Cat:Sub:A": {
+        _summary: { name: "Alpha technique", description: "Does alpha things", n_intents: 1, n_detectors: 1 },
+        S005hate: { name: "Hate speech", score: 0.5, passed: 50, total_evaluated: 100, nones: 0, n_detectors: 1 },
+      },
+    };
+    const view = buildMatrixView(named, "leaf");
+    expect(view.rowLabel("demon:Cat:Sub:A")).toBe("Alpha technique");
+    expect(view.colLabel("S005hate")).toBe("Hate speech");
+    expect(view.rowDescription("demon:Cat:Sub:A")).toBe("Does alpha things");
+    // Grouped keys span many techniques/intents, so names don't apply there.
+    expect(buildMatrixView(named, "grouped").rowDescription("demon:Cat:Sub")).toBeUndefined();
+  });
+
+  it("attaches the technique description to technique-axis groups only", () => {
+    const named: TechniqueIntentMatrix = {
+      "demon:Cat:Sub:A": {
+        _summary: { name: "Alpha", description: "Alpha desc", n_intents: 1, n_detectors: 1 },
+        S005hate: { name: "Hate", score: 0.5, passed: 50, total_evaluated: 100, nones: 0, n_detectors: 1 },
+      },
+    };
+    const view = buildMatrixView(named, "leaf");
+    expect(buildAxisGroups(view, "technique")[0].description).toBe("Alpha desc");
+    expect(buildAxisGroups(view, "intent")[0].description, "intents have no description").toBeUndefined();
+  });
+
   it("pools passed / undetermined counts and keeps the worst detector count", () => {
     const pooled: TechniqueIntentMatrix = {
       "demon:Cat:Sub:A": {

@@ -24,7 +24,7 @@ import {
   Text,
 } from "@kui/react";
 import type { TechniqueIntentMatrix } from "../../types/ReportEntry";
-import { DEFCON_LABELS, DEFCON_LEVELS, scoreToDefcon } from "../../constants";
+import { DEFCON_LEVELS, scoreToDefcon } from "../../constants";
 import { formatRate } from "../../utils/formatPercentage";
 import {
   buildMatrixView,
@@ -33,7 +33,6 @@ import {
   type NotablePairing,
 } from "../../utils/techniqueIntentRollup";
 import type { SortOption } from "../../hooks/useModuleFilters";
-import useSeverityColor from "../../hooks/useSeverityColor";
 import DefconBadge from "../DefconBadge";
 import ErrorBoundary from "../ErrorBoundary";
 import ReportFilterBar from "../ReportFilterBar";
@@ -76,64 +75,42 @@ const LevelToggle = ({
   </Flex>
 );
 
+/** One labelled figure in the coverage summary. */
+const Metric = ({ label, value }: { label: string; value: string }) => (
+  <Stack gap="density-xxs">
+    <Text kind="label/regular/sm" className="opacity-60">
+      {label}
+    </Text>
+    <Text kind="title/sm">{value}</Text>
+  </Stack>
+);
+
 /**
- * Severity summary for the tab: a single stacked bar showing how the concrete
- * technique×intent pairings partition across the five DEFCON levels, each in its
- * own colour, over a legend that names every band and its count. The bar carries
- * the proportions, so the legend stays count-only (no redundant per-band share).
+ * Plain, self-explanatory coverage summary: how much was exercised (techniques,
+ * intents, pairings) and a single overall pass rate. Severity now lives only in
+ * the per-pairing DEFCON badges in the lists below — the tab leads with what was
+ * tested, not a colour-coded verdict.
  */
-const SeveritySummary = ({
-  counts,
-  total,
+const CoverageSummary = ({
   techniques,
   intents,
+  pairings,
+  passRate,
 }: {
-  counts: Record<number, number>;
-  total: number;
   techniques: number;
   intents: number;
-}) => {
-  const { getDefconColor } = useSeverityColor();
-  const present = DEFCON_LEVELS.filter(level => counts[level] > 0);
-  return (
-    <Card slotHeader={<Text kind="label/bold/md">Pairing severity</Text>}>
-      <Stack gap="density-lg">
-        <div
-          style={{
-            display: "flex",
-            width: "100%",
-            height: 14,
-            borderRadius: 4,
-            overflow: "hidden",
-          }}
-        >
-          {DEFCON_LEVELS.map(level => {
-            const width = total > 0 ? (counts[level] / total) * 100 : 0;
-            return width > 0 ? (
-              <div
-                key={level}
-                style={{ width: `${width}%`, backgroundColor: getDefconColor(level) }}
-                title={`${DEFCON_LABELS[level]}: ${counts[level].toLocaleString()}`}
-              />
-            ) : null;
-          })}
-        </div>
-        <Flex gap="density-2xl" wrap="wrap" align="center">
-          {present.map(level => (
-            <Flex key={level} align="center" gap="density-sm">
-              <DefconBadge defcon={level} showLabel />
-              <Text kind="label/bold/md">{counts[level].toLocaleString()}</Text>
-            </Flex>
-          ))}
-        </Flex>
-        <Text kind="label/regular/sm" className="opacity-60">
-          {total.toLocaleString()} pairings · {techniques.toLocaleString()} techniques ·{" "}
-          {intents.toLocaleString()} intents
-        </Text>
-      </Stack>
-    </Card>
-  );
-};
+  pairings: number;
+  passRate: number | null;
+}) => (
+  <Card slotHeader={<Text kind="label/bold/md">Coverage</Text>}>
+    <Flex gap="density-2xl" wrap="wrap">
+      <Metric label="Techniques" value={techniques.toLocaleString()} />
+      <Metric label="Intents" value={intents.toLocaleString()} />
+      <Metric label="Pairings evaluated" value={pairings.toLocaleString()} />
+      <Metric label="Overall pass rate" value={passRate == null ? "—" : formatRate(passRate)} />
+    </Flex>
+  </Card>
+);
 
 /**
  * Warning callout for genuine interactions — pairings that fail far worse than
@@ -206,21 +183,23 @@ const TechniqueIntentPanel = ({ techniqueIntent, isDark }: TechniqueIntentPanelP
   // they stay stable regardless of the Grouped/Leaf toggle below.
   const notable = useMemo(() => findNotablePairings(viewLeaf), [viewLeaf]);
   const stats = useMemo(() => {
-    const counts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-    let total = 0;
+    let pairings = 0;
+    let passed = 0;
+    let evaluated = 0;
     for (const row of viewLeaf.rows) {
       for (const col of viewLeaf.cols) {
         const cell = viewLeaf.cell(row, col);
         if (!cell) continue;
-        counts[scoreToDefcon(cell.score)] += 1;
-        total += 1;
+        pairings += 1;
+        passed += cell.passed;
+        evaluated += cell.nEvaluations;
       }
     }
     return {
-      counts,
-      total, // sum of populated cells, so the bar's bands fill the whole width
       techniques: viewLeaf.rows.length,
       intents: viewLeaf.cols.length,
+      pairings,
+      passRate: evaluated > 0 ? passed / evaluated : null,
     };
   }, [viewLeaf]);
 
@@ -292,11 +271,11 @@ const TechniqueIntentPanel = ({ techniqueIntent, isDark }: TechniqueIntentPanelP
 
   return (
     <Flex direction="col" gap="density-2xl" style={{ width: "100%" }}>
-      <SeveritySummary
-        counts={stats.counts}
-        total={stats.total}
+      <CoverageSummary
         techniques={stats.techniques}
         intents={stats.intents}
+        pairings={stats.pairings}
+        passRate={stats.passRate}
       />
 
       {notable.length > 0 && <NotablePairings items={notable} />}
