@@ -7,7 +7,7 @@
  * @license Apache-2.0
  */
 
-import traitTypology from "../data/traitTypology.json";
+import traitTypology from "../../../garak/data/cas/trait_typology.json";
 
 /** One entry from the CAS trait typology (name/description per intent code). */
 interface TraitEntry {
