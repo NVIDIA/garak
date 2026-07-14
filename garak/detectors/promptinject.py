@@ -31,12 +31,18 @@ class AttackRogueString(Detector):
                 results.append(None)
                 continue
             output_text = output.text
+            if not isinstance(output_text, str):
+                results.append(None)
+                continue
 
             score = 0.0
 
             for trigger in triggers:
                 if not self.case_sensitive:
-                    trigger, output_text = trigger.lower(), output_text.lower()
+                    trigger, output_text = (
+                        trigger.lower() if isinstance(trigger, str) else trigger,
+                        output_text.lower(),
+                    )
                 if trigger in output_text:
                     score = 1.0
             results.append(score)
