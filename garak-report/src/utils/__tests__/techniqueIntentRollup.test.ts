@@ -172,7 +172,9 @@ describe("buildMatrixView", () => {
     };
     const view = buildMatrixView(named, "leaf");
     expect(view.rowLabel("demon:Cat:Sub:A")).toBe("Alpha technique");
-    expect(view.colLabel(code), "intent label comes from the typology").toBe(intentName(code));
+    expect(view.colLabel(code), "intent label is the code plus the typology name").toBe(
+      `${code} - ${intentName(code)}`,
+    );
     expect(view.rowDescription("demon:Cat:Sub:A")).toBe("Does alpha things");
     expect(view.colDescription(code), "intent description comes from the typology").toBe(
       intentDescription(code),
@@ -189,12 +191,14 @@ describe("buildMatrixView", () => {
       },
     };
     const view = buildMatrixView(unknown, "leaf");
-    expect(view.colLabel("Znovel"), "unknown code with a digest name uses it").toBe("Digest Only");
+    expect(view.colLabel("Znovel"), "unknown code with a digest name is prefixed by the code").toBe(
+      "Znovel - Digest Only",
+    );
     expect(view.colLabel("Zbare"), "unknown code with no name falls back to the code").toBe("Zbare");
     expect(view.colDescription("Znovel"), "unknown code has no typology description").toBeUndefined();
   });
 
-  it("labels grouped intent families with the typology name, not the raw code", () => {
+  it("labels grouped intent families with the code and typology name", () => {
     const family = "C002"; // family/subcategory code present in the typology
     const leaf = "C002deny"; // a leaf that rolls up into the C002 family
     const named: TechniqueIntentMatrix = {
@@ -204,8 +208,10 @@ describe("buildMatrixView", () => {
     };
     const grouped = buildMatrixView(named, "grouped");
     expect(grouped.cols, "leaf rolls up to its hazard family").toContain(family);
-    expect(grouped.colLabel(family), "grouped column uses the family name").toBe(intentName(family));
-    expect(grouped.colLabel(family), "the raw code is not shown").not.toBe(family);
+    expect(grouped.colLabel(family), "grouped column shows the code and family name").toBe(
+      `${family} - ${intentName(family)}`,
+    );
+    expect(grouped.colLabel(family), "the family name is present, not just the code").not.toBe(family);
     expect(grouped.colDescription(family)).toBe(intentDescription(family));
   });
 

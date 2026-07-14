@@ -302,8 +302,13 @@ export function buildMatrixView(matrix: TechniqueIntentMatrix, level: MatrixLeve
   }
   const rowLabel = (key: string) =>
     level === "grouped" ? techniqueGroupLabel(key) : techniqueNames.get(key) ?? shortenTechnique(key);
-  const colLabel = (key: string) =>
-    typologyIntentName(key) ?? intentNames.get(key) ?? key;
+  // Intent columns keep their taxonomy code visible alongside the name
+  // ("C006 - Anthropomorphise") so the slug is unambiguous; codes with no known
+  // name fall back to the bare code.
+  const colLabel = (key: string) => {
+    const name = typologyIntentName(key) ?? intentNames.get(key);
+    return name ? `${key} - ${name}` : key;
+  };
   const rowDescription = (key: string) =>
     level === "grouped" ? undefined : techniqueDescriptions.get(key);
   const colDescription = (key: string) => typologyIntentDescription(key);

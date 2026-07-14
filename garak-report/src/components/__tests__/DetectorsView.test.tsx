@@ -138,6 +138,23 @@ describe("DetectorsView", () => {
     expect(screen.getByText(/100.*prompts/)).toBeInTheDocument();
   });
 
+  it("falls back to a detector's evaluation total when prompt_count is absent", () => {
+    const probe = createMockProbe({
+      summary: {
+        probe_name: "test.Probe",
+        probe_score: 0.85,
+        probe_severity: 4,
+        probe_descr: "Test",
+        probe_tier: 1,
+        // prompt_count omitted (older report predating the digest field)
+      },
+      detectors: [createMockDetector({ total_evaluated: 250 })],
+    });
+    render(<DetectorsView probe={probe} />);
+
+    expect(screen.getByText(/250.*prompts/)).toBeInTheDocument();
+  });
+
   it("renders DEFCON badge with correct level", () => {
     const probe = createMockProbe({
       summary: {

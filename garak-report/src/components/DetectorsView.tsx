@@ -45,7 +45,11 @@ const DetectorsView = ({
 
   // Use data directly from backend - no calculations
   const probeSeverity = probe.summary?.probe_severity ?? 5;
-  const promptCount = probe.summary?.prompt_count;
+  // Prefer the digest's distinct-prompt count. Reports predating it fall back to
+  // the first detector's evaluation total, matching the bar-chart tooltip so the
+  // detail header and hover agree (regenerate the report for the exact count).
+  const promptCount =
+    probe.summary?.prompt_count ?? probe.detectors[0]?.total_evaluated;
   const severityLabel = getSeverityLabelByLevel(probeSeverity);
 
   return (
