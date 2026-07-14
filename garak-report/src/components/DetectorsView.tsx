@@ -49,7 +49,7 @@ const DetectorsView = ({
   // the first detector's evaluation total, matching the bar-chart tooltip so the
   // detail header and hover agree (regenerate the report for the exact count).
   const promptCount =
-    probe.summary?.prompt_count ?? probe.detectors[0]?.total_evaluated;
+    probe.summary?.probe_counts?.inference_counts?.total_evaluated ?? probe.detectors[0]?.total_evaluated;
   const severityLabel = getSeverityLabelByLevel(probeSeverity);
 
   return (
