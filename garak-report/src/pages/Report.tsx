@@ -16,6 +16,7 @@ import ReportDetails from "../components/ReportDetails";
 import SummaryStatsCard from "../components/SummaryStatsCard";
 import ReportFilterBar from "../components/ReportFilterBar";
 import ModuleAccordion from "../components/ModuleAccordion";
+import TechniqueIntentPanel from "../components/TechniqueIntent/TechniqueIntentPanel";
 import ErrorBoundary from "../components/ErrorBoundary";
 import useFlattenedModules from "../hooks/useFlattenedModules";
 import { useReportData } from "../hooks/useReportData";
@@ -52,6 +53,12 @@ function Report({ onThemeChange, currentTheme = "system" }: ReportProps) {
 
   // Theme mode
   const { isDark, toggleTheme } = useThemeMode(currentTheme, onThemeChange);
+
+  const hasTechniqueIntent =
+    !!(selectedReport?.technique_intent &&
+      Object.keys(selectedReport.technique_intent).length > 0) ||
+    !!(selectedReport?.technique && Object.keys(selectedReport.technique).length > 0) ||
+    !!(selectedReport?.intent && Object.keys(selectedReport.intent).length > 0);
 
   // Update document title with target name
   useEffect(() => {
@@ -119,6 +126,20 @@ function Report({ onThemeChange, currentTheme = "system" }: ReportProps) {
             slotHeading="No modules found in this report"
             slotSubheading="Try changing the filters or sorting options"
           />
+        )}
+
+        {/* Technique / Intent Taxonomy */}
+        {hasTechniqueIntent && (
+          <ErrorBoundary fallbackMessage="Failed to load technique/intent analysis.">
+            <Flex direction="col" padding="density-lg">
+              <TechniqueIntentPanel
+                intent={selectedReport.intent}
+                technique={selectedReport.technique}
+                techniqueIntent={selectedReport.technique_intent}
+                isDark={isDark}
+              />
+            </Flex>
+          </ErrorBoundary>
         )}
       </Flex>
 
