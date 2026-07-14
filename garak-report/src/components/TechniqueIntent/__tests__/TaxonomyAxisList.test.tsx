@@ -1,8 +1,8 @@
 /**
  * @file TaxonomyAxisList.test.tsx
- * @description Tests the accordion taxonomy lists: the matrix-backed
- *              TaxonomyAxisList (chart + single-child + inline detail paths) and
- *              the marginal-only FlatTaxonomyList fallback.
+ * @description Tests the matrix-backed accordion taxonomy list: the chart,
+ *              single-child, inline-detail and empty-state paths, plus the
+ *              concrete pass/fail counts the digest carries.
  *
  * @copyright NVIDIA Corporation 2023-2026
  * @license Apache-2.0
@@ -11,9 +11,8 @@
 import { render, screen, act } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import type { ComponentProps } from "react";
-import TaxonomyAxisList, { FlatTaxonomyList } from "../TaxonomyAxisList";
+import TaxonomyAxisList from "../TaxonomyAxisList";
 import type { MatrixCell, MatrixView } from "../../../utils/techniqueIntentRollup";
-import type { TaxonomyScoreMap } from "../../../types/ReportEntry";
 import type {
   MockAccordionProps,
   MockBadgeProps,
@@ -23,7 +22,6 @@ import type {
   MockStackProps,
   MockStatusMessageProps,
   MockTextProps,
-  MockTooltipProps,
 } from "../../../test-utils/mockTypes";
 
 // Render the accordion fully (trigger + content) so nested detail/chart mount.
@@ -57,12 +55,6 @@ vi.mock("@kui/react", () => ({
     </div>
   ),
   Text: ({ children }: MockTextProps) => <span>{children}</span>,
-  Tooltip: ({ children, slotContent }: MockTooltipProps) => (
-    <div>
-      {children}
-      <span data-testid="tooltip-content">{slotContent}</span>
-    </div>
-  ),
 }));
 
 interface ClickParams {
@@ -79,15 +71,15 @@ vi.mock("echarts-for-react", () => ({
   },
 }));
 
-const detectors = ["dan.DAN", "dan.AntiDAN", "toxicity"]; // two families: "dan" and "other"
-
 const cell = (over: Partial<MatrixCell>): MatrixCell => ({
   row: "techA",
   col: "i1",
   score: 0.1,
   nEvaluations: 100,
+  passed: 10,
+  nones: 0,
+  nDetectors: 3,
   leafCount: 1,
-  detectors: [],
   leaves: [],
   ...over,
 });
@@ -98,17 +90,17 @@ const cellMap: Record<string, MatrixCell> = {
   "techA|i1": cell({
     col: "i1",
     score: 0.1,
+    passed: 18,
     leafCount: 2,
-    detectors,
     leaves: [
-      { technique: "demon:A:Sub:One", intent: "i1", score: 0.1, nEvaluations: 60, detectors },
-      { technique: "demon:A:Sub:Two", intent: "i1", score: 0.3, nEvaluations: 40, detectors },
+      { technique: "demon:A:Sub:One", intent: "i1", score: 0.1, nEvaluations: 60, passed: 6, nones: 0, nDetectors: 3 },
+      { technique: "demon:A:Sub:Two", intent: "i1", score: 0.3, nEvaluations: 40, passed: 12, nones: 0, nDetectors: 2 },
     ],
   }),
-  "techA|i2": cell({ col: "i2", score: 0.5, detectors }),
-  "techA|i3": cell({ col: "i3", score: 1 }),
-  "techB|i1": cell({ row: "techB", col: "i1", score: 0.4, detectors }),
-  "techC|i1": cell({ row: "techC", col: "i1", score: 1 }),
+  "techA|i2": cell({ col: "i2", score: 0.5, passed: 50 }),
+  "techA|i3": cell({ col: "i3", score: 1, passed: 100 }),
+  "techB|i1": cell({ row: "techB", col: "i1", score: 0.4, passed: 40 }),
+  "techC|i1": cell({ row: "techC", col: "i1", score: 1, passed: 100 }),
 };
 
 const view: MatrixView = {
@@ -146,8 +138,9 @@ describe("TaxonomyAxisList", () => {
   it("renders the chart for multi-cell groups and a single-child detail otherwise", () => {
     renderList();
     expect(screen.getByTestId("echarts"), "multi-intent technique shows the bar chart").toBeInTheDocument();
-    // techB (single failing cell) renders its detail inline, including detectors.
-    expect(screen.getByText("Detectors (3)"), "single-child failing detail lists detectors").toBeInTheDocument();
+    // techB / techC single-child cells render their detail inline with the
+    // concrete pass/fail counts from the digest.
+    expect(screen.getAllByText("Passed").length, "single-child detail shows the passed count").toBeGreaterThan(0);
   });
 
   it("shows a pooled-pairs detail when a rolled-up bar is selected", () => {
@@ -170,54 +163,6 @@ describe("TaxonomyAxisList", () => {
     renderList({ selectedDefcons: [] });
     expect(screen.getByTestId("status-heading"), "filtered-out list shows an empty message").toHaveTextContent(
       "No techniques match the current filters",
-    );
-  });
-});
-
-const flatData: TaxonomyScoreMap = {
-  "demon:A:Sub:Risky": {
-    score: 0.2,
-    n_evaluations: 200,
-    detectors_used: detectors,
-    probes: ["probe.one", "probe.two"],
-  },
-  "demon:B:Sub:Safe": {
-    score: 1,
-    n_evaluations: 50,
-    detectors_used: [],
-    probes: [],
-  },
-};
-
-const renderFlat = (props: Partial<ComponentProps<typeof FlatTaxonomyList>> = {}) =>
-  render(
-    <FlatTaxonomyList
-      data={flatData}
-      axis="technique"
-      selectedDefcons={allDefcons}
-      sortBy="defcon"
-      openValue=""
-      onOpenChange={vi.fn()}
-      {...props}
-    />,
-  );
-
-describe("FlatTaxonomyList", () => {
-  it("lists detectors and probes for a failing entry", () => {
-    renderFlat();
-    expect(screen.getByText("Detectors (3)"), "failing marginal entry lists detectors").toBeInTheDocument();
-    expect(screen.getByText("Probes (2)"), "multi-probe entry lists its probes").toBeInTheDocument();
-  });
-
-  it("shows the safe state for a clean entry", () => {
-    renderFlat();
-    expect(screen.getByText("No failures recorded"), "clean marginal entry shows the safe state").toBeInTheDocument();
-  });
-
-  it("shows an empty state when nothing matches the filter", () => {
-    renderFlat({ selectedDefcons: [], sortBy: "alphabetical", axis: "intent" });
-    expect(screen.getByTestId("status-heading")).toHaveTextContent(
-      "No intents match the current filters",
     );
   });
 });

@@ -3,8 +3,9 @@
  * @description Modules-style accordion list for one taxonomy axis. Each primary
  *              entry (a technique, or an intent) expands to its worst-first
  *              cross-axis pairings, and each pairing expands again to an inline
- *              detail block — the detectors, pooled technique×intent pairs, and
- *              honest "no failures" state that used to live in a side drawer.
+ *              detail block — the pooled technique×intent pairs, concrete
+ *              pass/fail counts, and honest "no failures" state that used to
+ *              live in a side drawer.
  * @module components/TechniqueIntent
  *
  * @copyright NVIDIA Corporation 2023-2026
@@ -22,16 +23,14 @@ import {
   Stack,
   StatusMessage,
   Text,
-  Tooltip,
 } from "@kui/react";
 import { ShieldCheck } from "lucide-react";
 import { scoreToDefcon } from "../../constants";
 import { formatRate } from "../../utils/formatPercentage";
-import { humanizeDetectorName, shortenTechnique } from "../../utils/taxonomyLabels";
+import { shortenTechnique } from "../../utils/taxonomyLabels";
 import useSeverityColor from "../../hooks/useSeverityColor";
 import DefconBadge from "../DefconBadge";
 import TaxonomyCellChart from "./TaxonomyCellChart";
-import type { TaxonomyScoreMap } from "../../types/ReportEntry";
 import {
   buildAxisGroups,
   type AxisGroup,
@@ -89,88 +88,6 @@ const ScoreBadges = ({ score, defcon }: { score: number; defcon: number }) => {
   );
 };
 
-/** Generic, non-actionable chip list (e.g. the probes behind a marginal entry). */
-const ChipList = ({ label, items }: { label: string; items: string[] }) => {
-  if (!items.length) return null;
-  return (
-    <Stack gap="density-xs">
-      <Text kind="label/bold/md">
-        {label} ({items.length})
-      </Text>
-      <Flex gap="density-xs" wrap="wrap">
-        {items.map(item => (
-          <Badge key={item} color="gray" kind="outline">
-            <Text kind="label/regular/sm">{item}</Text>
-          </Badge>
-        ))}
-      </Flex>
-    </Stack>
-  );
-};
-
-/** Groups `family.Name` detector ids by family, with names sorted within each. */
-const groupDetectorsByFamily = (
-  detectors: string[],
-): { family: string; names: { full: string; label: string }[] }[] => {
-  const families = new Map<string, { full: string; label: string }[]>();
-  for (const full of detectors) {
-    const dot = full.indexOf(".");
-    const family = dot > 0 ? full.slice(0, dot) : "other";
-    const name = dot > 0 ? full.slice(dot + 1) : full;
-    if (!families.has(family)) families.set(family, []);
-    families.get(family)!.push({ full, label: humanizeDetectorName(name) });
-  }
-  return [...families.entries()]
-    .map(([family, names]) => ({
-      family,
-      names: names.sort((a, b) => a.label.localeCompare(b.label)),
-    }))
-    .sort((a, b) => a.family.localeCompare(b.family));
-};
-
-/**
- * Detectors behind a failing pairing, grouped by family (the harm category) with
- * the verbose CamelCase ids humanised. The garak digest only carries detector
- * names here — no per-detector scores — so we surface what evaluated the pairing
- * rather than inventing a breakdown.
- */
-const DetectorList = ({ detectors }: { detectors: string[] }) => {
-  const groups = useMemo(() => groupDetectorsByFamily(detectors), [detectors]);
-  if (!detectors.length) return null;
-  return (
-    <Stack gap="density-sm">
-      <Stack gap="density-xxs">
-        <Text kind="label/bold/md">Detectors ({detectors.length})</Text>
-        <Text kind="body/regular/sm" className="opacity-60">
-          Automated judges that scored responses for this pairing. A response counts as a failure
-          when any of them flags it.
-        </Text>
-      </Stack>
-      <Stack gap="density-md">
-        {groups.map(group => (
-          <Stack key={group.family} gap="density-xs">
-            <Text kind="label/bold/sm" className="opacity-70">
-              {group.family}
-            </Text>
-            <Flex gap="density-xs" wrap="wrap">
-              {group.names.map(detector => (
-                <Tooltip
-                  key={detector.full}
-                  slotContent={<Text kind="body/regular/sm">{detector.full}</Text>}
-                >
-                  <Badge color="gray" kind="outline">
-                    <Text kind="label/regular/sm">{detector.label}</Text>
-                  </Badge>
-                </Tooltip>
-              ))}
-            </Flex>
-          </Stack>
-        ))}
-      </Stack>
-    </Stack>
-  );
-};
-
 /**
  * Worst-first list of the technique×intent pairs a grouped cell pools. Makes the
  * conservative roll-up transparent: you can see exactly which pair drives the
@@ -213,14 +130,16 @@ const Stat = ({ label, value }: { label: string; value: string }) => (
 
 /**
  * Inline detail for one cross-axis pairing — the former drawer body. Leads with
- * a severity header and concrete pass/fail counts (the abstract percentage made
- * tangible), then the pooled pairs behind a rolled-up cell, then the detectors.
+ * a severity header and the concrete pass/fail counts the digest carries (the
+ * abstract percentage made tangible), then the pooled pairs behind a rolled-up
+ * cell. The digest pools detectors into a count here, so we report how many
+ * judges scored the pairing rather than inventing a per-detector breakdown.
  */
 const CellDetail = ({ cell, title }: { cell: MatrixCell; title?: string }) => {
   const { getSeverityLabelByLevel, getDefconBadgeColor } = useSeverityColor();
   const defcon = scoreToDefcon(cell.score);
   const hasFailures = cell.score < 1;
-  const failed = Math.round((1 - cell.score) * cell.nEvaluations);
+  const failed = Math.max(cell.nEvaluations - cell.passed - cell.nones, 0);
   return (
     <Panel>
       <Stack gap="density-lg">
@@ -233,11 +152,19 @@ const CellDetail = ({ cell, title }: { cell: MatrixCell; title?: string }) => {
             </Badge>
           </Flex>
           <Flex gap="density-2xl" wrap="wrap">
-            <Stat label="Pass rate" value={formatRate(cell.score)} />
             <Stat
-              label="Failed evaluations"
-              value={`${failed.toLocaleString()} of ${cell.nEvaluations.toLocaleString()}`}
+              label={cell.leafCount > 1 ? "Pass rate (worst case)" : "Pass rate"}
+              value={formatRate(cell.score)}
             />
+            <Stat
+              label="Passed"
+              value={`${cell.passed.toLocaleString()} of ${cell.nEvaluations.toLocaleString()}`}
+            />
+            <Stat label="Failed" value={failed.toLocaleString()} />
+            {cell.nones > 0 && (
+              <Stat label="Undetermined" value={cell.nones.toLocaleString()} />
+            )}
+            <Stat label="Detectors" value={cell.nDetectors.toLocaleString()} />
             {cell.leafCount > 1 && (
               <Stat label="Pooled pairs" value={cell.leafCount.toLocaleString()} />
             )}
@@ -260,7 +187,11 @@ const CellDetail = ({ cell, title }: { cell: MatrixCell; title?: string }) => {
             slotSubheading="The target passed every evaluation for this pairing. There are no attempts to inspect."
           />
         ) : (
-          <DetectorList detectors={cell.detectors} />
+          <Text kind="body/regular/sm" className="opacity-60">
+            {pluralize(cell.nDetectors, "detector")} scored this pairing across{" "}
+            {cell.nEvaluations.toLocaleString()} evaluations; a response counts as a failure when
+            any detector flags it.
+          </Text>
         )}
       </Stack>
     </Panel>
@@ -295,7 +226,7 @@ const GroupChildrenChart = ({
   return (
     <Stack gap="density-md" paddingY="density-sm">
       <Text kind="label/regular/sm" className="opacity-60">
-        Pass rate by {childNoun}. Click a bar for the detectors behind it.
+        Pass rate by {childNoun}. Click a bar for the pass/fail breakdown.
       </Text>
       <Grid cols={selectedEntry ? 2 : 1} gap="density-lg" className="items-start">
         <TaxonomyCellChart
@@ -395,102 +326,3 @@ const TaxonomyAxisList = ({
 };
 
 export default TaxonomyAxisList;
-
-/** Props for the matrix-free fallback list. */
-interface FlatTaxonomyListProps {
-  /** Flat marginal score map (`digest.technique` or `digest.intent`). */
-  data: TaxonomyScoreMap;
-  /** Which axis this is, used for labelling and the empty state. */
-  axis: TaxonomyAxis;
-  /** DEFCON levels to keep. */
-  selectedDefcons: number[];
-  /** Sort order for the entries. */
-  sortBy: SortOption;
-  /** Controlled open key. */
-  openValue: string;
-  /** Notifies the parent when the open entry changes. */
-  onOpenChange: (value: string) => void;
-}
-
-/**
- * Single-level accordion for reports that carry only the 1D marginal maps and no
- * technique×intent matrix. There are no cross-axis children to drill into, so
- * each entry expands straight to its detector context.
- */
-export const FlatTaxonomyList = ({
-  data,
-  axis,
-  selectedDefcons,
-  sortBy,
-  openValue,
-  onOpenChange,
-}: FlatTaxonomyListProps) => {
-  const labelOf = (key: string) => (axis === "technique" ? shortenTechnique(key) : key);
-  const entries = useMemo(() => {
-    const rows = Object.entries(data).map(([key, entry]) => ({
-      key,
-      label: labelOf(key),
-      score: entry.score,
-      nEvaluations: entry.n_evaluations,
-      detectors: entry.detectors_used ?? [],
-      probes: entry.probes ?? [],
-    }));
-    const filtered = rows.filter(r => selectedDefcons.includes(scoreToDefcon(r.score)));
-    filtered.sort(
-      sortBy === "alphabetical"
-        ? (a, b) => a.label.localeCompare(b.label)
-        : (a, b) => a.score - b.score || a.label.localeCompare(b.label),
-    );
-    return filtered;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, axis, selectedDefcons, sortBy]);
-
-  if (!entries.length) {
-    return (
-      <StatusMessage
-        size="small"
-        slotHeading={`No ${axis}s match the current filters`}
-        slotSubheading="Try enabling more DEFCON levels above."
-      />
-    );
-  }
-
-  return (
-    <Accordion
-      value={openValue}
-      onValueChange={value => onOpenChange(value as string)}
-      items={entries.map(entry => {
-        const defcon = scoreToDefcon(entry.score);
-        return {
-          value: entry.key,
-          slotTrigger: (
-            <Flex gap="density-lg" align="center" style={{ width: "100%" }}>
-              <ScoreBadges score={entry.score} defcon={defcon} />
-              <Stack gap="density-md" align="start">
-                <Text kind="label/bold/2xl">{entry.label}</Text>
-                <Text kind="label/regular/sm" className="opacity-60">
-                  {entry.nEvaluations.toLocaleString()} evals
-                </Text>
-              </Stack>
-            </Flex>
-          ),
-          slotContent: (
-            <Stack gap="density-md" paddingY="density-sm">
-              {entry.score < 1 ? (
-                <DetectorList detectors={entry.detectors} />
-              ) : (
-                <StatusMessage
-                  size="small"
-                  slotIcon={<ShieldCheck size={20} />}
-                  slotHeading="No failures recorded"
-                  slotSubheading={`The target passed every evaluation for this ${axis}.`}
-                />
-              )}
-              {entry.probes.length > 1 && <ChipList label="Probes" items={entry.probes} />}
-            </Stack>
-          ),
-        };
-      })}
-    />
-  );
-};
