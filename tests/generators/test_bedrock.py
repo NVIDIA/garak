@@ -252,7 +252,16 @@ def test_bedrock_reasoning_response_handling(mock_boto3):
                     }
                 }
             },
-            [Message(text="Hello, world!", lang=None, data_path=None, data_type=None, data_checksum=None, notes={})],
+            [
+                Message(
+                    text="Hello, world!",
+                    lang=None,
+                    data_path=None,
+                    data_type=None,
+                    data_checksum=None,
+                    notes={},
+                )
+            ],
         ),
     ]
 
@@ -311,3 +320,91 @@ def test_bedrock_access_denied_error_does_not_retry(mock_boto3):
     assert len(output) == 1
     assert output[0] is None
     assert mock_boto3.converse.call_count == 1
+
+
+# suppressed_params tests
+
+
+@pytest.mark.usefixtures("set_aws_env", "mock_boto3")
+def test_inference_config_unchanged_with_empty_suppressed_params(mock_boto3):
+    """T1: empty suppressed_params produces identical inferenceConfig to prior behavior."""
+    from garak.generators.bedrock import BedrockGenerator
+
+    generator = BedrockGenerator(name="claude-4-5-sonnet")
+    generator.temperature = 0.8
+    generator.max_tokens = 100
+    generator.top_p = 0.9
+    generator.stop = ["END"]
+
+    conv = Conversation([Turn(role="user", content=Message("Test prompt"))])
+    generator.generate(conv, generations_this_call=1)
+
+    mock_boto3.converse.assert_called_once()
+    inference_config = mock_boto3.converse.call_args[1]["inferenceConfig"]
+    assert inference_config["temperature"] == 0.8
+    assert inference_config["maxTokens"] == 100
+    assert inference_config["topP"] == 0.9
+    assert inference_config["stopSequences"] == ["END"]
+
+
+@pytest.mark.usefixtures("set_aws_env", "mock_boto3")
+def test_suppressed_params_blocks_top_p(mock_boto3):
+    """T2: suppressed_params={"topP"} removes topP from inferenceConfig even when top_p is set."""
+    from garak.generators.bedrock import BedrockGenerator
+
+    generator = BedrockGenerator(name="claude-4-5-sonnet")
+    generator.suppressed_params = {"top_p"}
+    generator.top_p = 0.9
+    generator.temperature = 0.7
+
+    conv = Conversation([Turn(role="user", content=Message("Test prompt"))])
+    generator.generate(conv, generations_this_call=1)
+
+    mock_boto3.converse.assert_called_once()
+    inference_config = mock_boto3.converse.call_args[1]["inferenceConfig"]
+    assert "topP" not in inference_config
+    assert "temperature" in inference_config
+
+
+@pytest.mark.usefixtures("set_aws_env", "mock_boto3")
+def test_suppression_survives_attribute_mutation(mock_boto3):
+    """T3: suppression holds even after self.top_p is mutated (simulating promptinject._generator_precall_hook)."""
+    from garak.generators.bedrock import BedrockGenerator
+
+    generator = BedrockGenerator(name="claude-4-5-sonnet")
+    generator.suppressed_params = {"top_p"}
+
+    # Simulate promptinject._generator_precall_hook overwriting top_p mid-run
+    generator.top_p = 1.0
+
+    conv = Conversation([Turn(role="user", content=Message("Test prompt"))])
+    generator.generate(conv, generations_this_call=1)
+
+    mock_boto3.converse.assert_called_once()
+    inference_config = mock_boto3.converse.call_args[1]["inferenceConfig"]
+    assert "topP" not in inference_config
+
+
+@pytest.mark.usefixtures("set_aws_env", "mock_boto3")
+def test_warn_on_unknown_suppressed_key(mock_boto3, caplog):
+    """Warn at init when suppressed_params contains a key not in _PARAM_MAP."""
+    import logging
+    from garak.generators.bedrock import BedrockGenerator
+
+    test_canary = "foo"
+    test_suppressed_params = BedrockGenerator.DEFAULT_PARAMS["suppressed_params"].copy()
+    test_suppressed_params.add(test_canary)
+    config_root = {
+        "generators": {
+            "bedrock": {
+                "BedrockGenerator": {"suppressed_params": test_suppressed_params}
+            }
+        }
+    }
+    with caplog.at_level(logging.WARNING):
+        BedrockGenerator(name="claude-4-5-sonnet", config_root=config_root)
+    matching = [r for r in caplog.records if test_canary in r.message]
+    assert matching, f"expected a WARNING mentioning '{test_canary}'"
+    assert any(
+        any(k in r.message for k in BedrockGenerator._PARAM_MAP) for r in matching
+    ), "expected WARNING to list valid keys"
