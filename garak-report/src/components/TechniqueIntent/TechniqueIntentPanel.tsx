@@ -1,31 +1,43 @@
 /**
  * @file TechniqueIntentPanel.tsx
- * @description Orchestrates the technique/intent taxonomy visualizations:
- *              a technique x intent heatmap plus 1D breakdowns for each axis.
+ * @description Orchestrates the technique/intent taxonomy view. Leads with a
+ *              compact executive summary, surfaces genuine technique×intent
+ *              interactions only when they exist ("Notable pairings"), and drills
+ *              into tabbed "By technique" / "By intent" accordion lists that
+ *              expand inline (Modules-tab style). No heatmap: for the common
+ *              separable matrix it just re-encodes the two lists as a grid.
  * @module components/TechniqueIntent
  *
  * @copyright NVIDIA Corporation 2023-2026
  * @license Apache-2.0
  */
 
-import { useMemo, useState } from "react";
-import { Flex, PageHeader, StatusMessage, Text, SegmentedControl } from "@kui/react";
-import type {
-  TaxonomyScore,
-  TaxonomyScoreMap,
-  TechniqueIntentMatrix,
-} from "../../types/ReportEntry";
-import { aggregationLabel } from "../../constants";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
+import {
+  Card,
+  Flex,
+  Grid,
+  Notification,
+  SegmentedControl,
+  Stack,
+  StatusMessage,
+  Tabs,
+  Text,
+} from "@kui/react";
+import type { TaxonomyScoreMap, TechniqueIntentMatrix } from "../../types/ReportEntry";
+import { DEFCON_LEVELS, scoreToDefcon } from "../../constants";
+import { formatRate } from "../../utils/formatPercentage";
 import {
   buildMatrixView,
-  restrictMapToLevelKeys,
+  findNotablePairings,
   type MatrixLevel,
+  type NotablePairing,
 } from "../../utils/techniqueIntentRollup";
+import type { SortOption } from "../../hooks/useModuleFilters";
+import DefconBadge from "../DefconBadge";
 import ErrorBoundary from "../ErrorBoundary";
-import TechniqueIntentHeatmap from "./TechniqueIntentHeatmap";
-import TaxonomyBreakdownChart from "./TaxonomyBreakdownChart";
-import TechniqueIntentDetailPanel from "./TechniqueIntentDetailPanel";
-import type { TaxonomyDetail, TaxonomyHover } from "./types";
+import ReportFilterBar from "../ReportFilterBar";
+import TaxonomyAxisList, { FlatTaxonomyList } from "./TaxonomyAxisList";
 
 /** Props for TechniqueIntentPanel component */
 export interface TechniqueIntentPanelProps {
@@ -35,27 +47,21 @@ export interface TechniqueIntentPanelProps {
   technique?: TaxonomyScoreMap;
   /** Nested technique -> intent -> score matrix (`digest.technique_intent`) */
   techniqueIntent?: TechniqueIntentMatrix;
-  /** Theme mode for styling */
+  /** Theme mode for styling (unused now the charts are gone; kept for the API) */
   isDark?: boolean;
 }
+
+type AxisTab = "technique" | "intent";
 
 const hasEntries = (obj?: Record<string, unknown>): boolean =>
   !!obj && Object.keys(obj).length > 0;
 
-const SectionHeading = ({ title, subtitle }: { title: string; subtitle?: string }) => (
-  <PageHeader slotHeading={title} slotDescription={subtitle} style={{ maxWidth: "75%" }} />
-);
-
 const LEVEL_ITEMS = [
-  { value: "grouped", children: "Grouped" },
   { value: "leaf", children: "All leaves" },
+  { value: "grouped", children: "Grouped" },
 ];
 
-/**
- * Two-position segmented control to switch the whole view between the grouped
- * (worst-case roll-up) and full-leaf levels. Lives in the panel header because
- * it reshapes every chart (both breakdown bars and the matrix), not just one.
- */
+/** Switches the lists between grouped (worst-case roll-up) and full-leaf levels. */
 const LevelToggle = ({
   level,
   onChange,
@@ -63,33 +69,98 @@ const LevelToggle = ({
   level: MatrixLevel;
   onChange: (level: MatrixLevel) => void;
 }) => (
-  <SegmentedControl
-    size="small"
-    value={level}
-    onValueChange={value => onChange(value as MatrixLevel)}
-    items={LEVEL_ITEMS}
-  />
+  <Flex gap="density-sm" align="center" style={{ flexShrink: 0 }}>
+    <Text kind="label/bold/md">Detail level:</Text>
+    <SegmentedControl
+      size="small"
+      value={level}
+      onValueChange={value => onChange(value as MatrixLevel)}
+      items={LEVEL_ITEMS}
+    />
+  </Flex>
 );
 
-/** Reads the `aggregation` key from the first available cell of any TI source. */
-const firstAggregation = (
-  matrix?: TechniqueIntentMatrix,
-  technique?: TaxonomyScoreMap,
-  intent?: TaxonomyScoreMap,
-): string | undefined => {
-  const fromMap = (m?: TaxonomyScoreMap): TaxonomyScore | undefined =>
-    m ? Object.values(m)[0] : undefined;
-  const fromMatrix = (m?: TechniqueIntentMatrix): TaxonomyScore | undefined => {
-    if (!m) return undefined;
-    const row = Object.values(m)[0];
-    return row ? Object.values(row)[0] : undefined;
-  };
+/** Objective count of technique×intent pairings, rendered as a Card. */
+const StatCard = ({ title, value, caption }: { title: string; value: number; caption: string }) => (
+  <Card slotHeader={<Text kind="label/regular/sm" className="opacity-70">{title}</Text>}>
+    <Stack gap="density-xxs">
+      <Text kind="title/2xl">{value.toLocaleString()}</Text>
+      <Text kind="body/regular/sm" className="opacity-60">
+        {caption}
+      </Text>
+    </Stack>
+  </Card>
+);
+
+/**
+ * Headline counts for the tab. Deliberately objective tallies (no "single worst"
+ * ranking that would need a debatable selection rule) — just how the concrete
+ * technique×intent pairings fall across severity.
+ */
+const SummaryCards = ({
+  critical,
+  atRisk,
+  clean,
+  total,
+}: {
+  critical: number;
+  atRisk: number;
+  clean: number;
+  total: number;
+}) => {
+  const of = `of ${total.toLocaleString()} technique×intent pairings`;
   return (
-    fromMatrix(matrix)?.aggregation ??
-    fromMap(technique)?.aggregation ??
-    fromMap(intent)?.aggregation
+    <Grid cols={{ base: 1, sm: 3 }} gap="density-lg">
+      <StatCard title="Critical pairings (DC-1)" value={critical} caption={of} />
+      <StatCard title="At-risk pairings (below DC-3)" value={atRisk} caption={of} />
+      <StatCard title="Clean pairings (100% pass)" value={clean} caption={of} />
+    </Grid>
   );
 };
+
+/**
+ * Warning callout for genuine interactions — pairings that fail far worse than
+ * their technique or intent does elsewhere. Renders only when such pairings
+ * exist (it's silent for the common separable matrix).
+ */
+const NotablePairings = ({ items }: { items: NotablePairing[] }) => (
+  <Notification
+    status="warning"
+    density="spacious"
+    slotHeading="Notable pairings"
+    slotSubheading={
+      <Stack gap="density-md">
+        <Text kind="body/regular/sm">
+          These combinations fail far worse than the technique or the intent does on its own — the
+          kind of interaction worth a closer look.
+        </Text>
+        <Stack gap="density-sm">
+          {items.map(p => (
+            <Flex
+              key={`${p.rowKey}\u0000${p.colKey}`}
+              justify="between"
+              align="center"
+              gap="density-md"
+              wrap="wrap"
+            >
+              <Flex align="center" gap="density-sm">
+                <DefconBadge defcon={scoreToDefcon(p.score)} />
+                <Text kind="label/bold/sm">{formatRate(p.score)}</Text>
+                <Text kind="body/regular/sm">
+                  {p.rowLabel} × {p.colLabel}
+                </Text>
+              </Flex>
+              <Text kind="label/regular/xs" className="opacity-60">
+                technique reaches {formatRate(p.rowBest, 0)} elsewhere · intent reaches{" "}
+                {formatRate(p.colBest, 0)} elsewhere
+              </Text>
+            </Flex>
+          ))}
+        </Stack>
+      </Stack>
+    }
+  />
+);
 
 /**
  * Renders the technique/intent taxonomy view. Shows a graceful empty state when
@@ -101,19 +172,18 @@ const TechniqueIntentPanel = ({
   techniqueIntent,
   isDark,
 }: TechniqueIntentPanelProps) => {
-  const [selected, setSelected] = useState<TaxonomyDetail | null>(null);
-  const [level, setLevel] = useState<MatrixLevel>("grouped");
-  // Coordinated-hover selection, shared across the two breakdown bars and the
-  // heatmap so hovering one view highlights the matching row/column elsewhere.
-  const [hovered, setHovered] = useState<TaxonomyHover | null>(null);
+  const [level, setLevel] = useState<MatrixLevel>("leaf");
+  const [selectedDefcons, setSelectedDefcons] = useState<number[]>([...DEFCON_LEVELS]);
+  const [sortBy, setSortBy] = useState<SortOption>("defcon");
+  const [activeTab, setActiveTab] = useState<AxisTab>("technique");
+  const [techOpen, setTechOpen] = useState<string>("");
+  const [intentOpen, setIntentOpen] = useState<string>("");
 
   const viewGrouped = useMemo(
     () => buildMatrixView(techniqueIntent ?? {}, "grouped"),
     [techniqueIntent],
   );
   const viewLeaf = useMemo(() => buildMatrixView(techniqueIntent ?? {}, "leaf"), [techniqueIntent]);
-  // Only offer the toggle when grouping actually collapses the grid; otherwise
-  // the two levels are identical and a control would just add noise.
   const reducible = viewGrouped.reducible;
   const activeLevel: MatrixLevel = reducible ? level : "leaf";
   const activeView = activeLevel === "grouped" ? viewGrouped : viewLeaf;
@@ -122,28 +192,38 @@ const TechniqueIntentPanel = ({
   const hasTechnique = hasEntries(technique);
   const hasIntent = hasEntries(intent);
 
-  // Keep the 1D bars on the same categories as the heatmap. The marginal maps
-  // can include techniques/intents that never appear as a technique×intent
-  // pair, so when a matrix is present we restrict each marginal to the rows/
-  // columns the heatmap actually shows. Without a matrix the marginal is shown
-  // as-is.
-  const techniqueBars = useMemo(() => {
-    if (!technique) return undefined;
-    return hasMatrix
-      ? restrictMapToLevelKeys(technique, "technique", activeLevel, new Set(activeView.rows))
-      : technique;
-  }, [technique, hasMatrix, activeLevel, activeView]);
-  const intentBars = useMemo(() => {
-    if (!intent) return undefined;
-    return hasMatrix
-      ? restrictMapToLevelKeys(intent, "intent", activeLevel, new Set(activeView.cols))
-      : intent;
-  }, [intent, hasMatrix, activeLevel, activeView]);
+  // Summary + interaction signal are derived from the concrete leaf pairings so
+  // they stay stable regardless of the Grouped/Leaf toggle below.
+  const notable = useMemo(() => findNotablePairings(viewLeaf), [viewLeaf]);
+  const stats = useMemo(() => {
+    let critical = 0;
+    let atRisk = 0;
+    let clean = 0;
+    for (const row of viewLeaf.rows) {
+      for (const col of viewLeaf.cols) {
+        const cell = viewLeaf.cell(row, col);
+        if (!cell) continue;
+        const defcon = scoreToDefcon(cell.score);
+        if (defcon === 1) critical += 1;
+        if (defcon <= 2) atRisk += 1; // "below DC-3"
+        if (cell.score >= 1) clean += 1;
+      }
+    }
+    return { critical, atRisk, clean, total: viewLeaf.leafCount };
+  }, [viewLeaf]);
 
-  const aggLabel = useMemo(
-    () => aggregationLabel(firstAggregation(techniqueIntent, technique, intent)),
-    [techniqueIntent, technique, intent],
-  );
+  const toggleDefcon = useCallback((defcon: number) => {
+    setSelectedDefcons(prev =>
+      prev.includes(defcon) ? prev.filter(d => d !== defcon) : [...prev, defcon],
+    );
+  }, []);
+
+  // Switching level remaps every key (grouped vs leaf), so clear stale open rows.
+  const changeLevel = useCallback((next: MatrixLevel) => {
+    setLevel(next);
+    setTechOpen("");
+    setIntentOpen("");
+  }, []);
 
   if (!hasMatrix && !hasTechnique && !hasIntent) {
     return (
@@ -155,102 +235,126 @@ const TechniqueIntentPanel = ({
     );
   }
 
+  const tabItems = hasMatrix
+    ? [
+        {
+          value: "technique",
+          children: "By technique",
+          slotContent: (
+            // KUI tab panels align children to flex-start, so the list must
+            // claim full width explicitly (the same trick the Modules tab uses).
+            <Flex direction="col" style={{ width: "100%" }}>
+              <ErrorBoundary fallbackMessage="Failed to load the technique list.">
+                <TaxonomyAxisList
+                  view={activeView}
+                  axis="technique"
+                  selectedDefcons={selectedDefcons}
+                  sortBy={sortBy}
+                  openValue={techOpen}
+                  onOpenChange={setTechOpen}
+                  isDark={isDark}
+                />
+              </ErrorBoundary>
+            </Flex>
+          ),
+        },
+        {
+          value: "intent",
+          children: "By intent",
+          slotContent: (
+            <Flex direction="col" style={{ width: "100%" }}>
+              <ErrorBoundary fallbackMessage="Failed to load the intent list.">
+                <TaxonomyAxisList
+                  view={activeView}
+                  axis="intent"
+                  selectedDefcons={selectedDefcons}
+                  sortBy={sortBy}
+                  openValue={intentOpen}
+                  onOpenChange={setIntentOpen}
+                  isDark={isDark}
+                />
+              </ErrorBoundary>
+            </Flex>
+          ),
+        },
+      ]
+    : [
+        hasTechnique && {
+          value: "technique",
+          children: "By technique",
+          slotContent: (
+            <Flex direction="col" style={{ width: "100%" }}>
+              <ErrorBoundary fallbackMessage="Failed to load the technique list.">
+                <FlatTaxonomyList
+                  data={technique!}
+                  axis="technique"
+                  selectedDefcons={selectedDefcons}
+                  sortBy={sortBy}
+                  openValue={techOpen}
+                  onOpenChange={setTechOpen}
+                />
+              </ErrorBoundary>
+            </Flex>
+          ),
+        },
+        hasIntent && {
+          value: "intent",
+          children: "By intent",
+          slotContent: (
+            <Flex direction="col" style={{ width: "100%" }}>
+              <ErrorBoundary fallbackMessage="Failed to load the intent list.">
+                <FlatTaxonomyList
+                  data={intent!}
+                  axis="intent"
+                  selectedDefcons={selectedDefcons}
+                  sortBy={sortBy}
+                  openValue={intentOpen}
+                  onOpenChange={setIntentOpen}
+                />
+              </ErrorBoundary>
+            </Flex>
+          ),
+        },
+      ].filter(Boolean);
+
+  // Keep the active tab valid for marginal-only reports that may lack one axis.
+  const tabValue = tabItems.some(t => t && t.value === activeTab)
+    ? activeTab
+    : (tabItems[0] && tabItems[0].value) || "technique";
+
   return (
     <Flex direction="col" gap="density-2xl" style={{ width: "100%" }}>
-      {/* Panel-level control row, mirroring the Modules tab's filter bar. The
-          detail-level toggle governs every chart below, so it sits here as a
-          labeled control rather than inside the heatmap section. The tab label
-          already names the view, so we don't repeat a title. */}
-      {reducible && (
-        <Flex gap="density-sm" align="center" wrap="wrap">
-          <Text kind="label/bold/md">Detail level:</Text>
-          <LevelToggle level={activeLevel} onChange={setLevel} />
-          <Text kind="label/regular/sm" className="opacity-60">
-            applies to every chart below
-          </Text>
-        </Flex>
-      )}
-
-      {/* 1D breakdowns: now compact vertical-bar charts, so they sit side-by-side
-          on wide screens (auto-stacking when the column gets too narrow) instead
-          of eating two full-height rows. */}
-      {(hasTechnique || hasIntent) && (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(380px, 1fr))",
-            gap: "2rem",
-          }}
-        >
-          {hasTechnique && (
-            <Flex direction="col" gap="density-md">
-              <SectionHeading
-                title="By technique"
-                subtitle={`Adversarial method, scored as the ${aggLabel} pooled across its intents (worst first). May read lower than individual cells in the matrix below.`}
-              />
-              <ErrorBoundary fallbackMessage="Failed to load the technique breakdown.">
-                <TaxonomyBreakdownChart
-                  data={techniqueBars!}
-                  kind="technique"
-                  isDark={isDark}
-                  onSelect={setSelected}
-                  aggregationLabel={aggLabel}
-                  level={activeLevel}
-                  hover={hovered}
-                  onHover={setHovered}
-                />
-              </ErrorBoundary>
-            </Flex>
-          )}
-          {hasIntent && (
-            <Flex direction="col" gap="density-md">
-              <SectionHeading
-                title="By intent"
-                subtitle={`Targeted failure mode, scored as the ${aggLabel} pooled across techniques (worst first).`}
-              />
-              <ErrorBoundary fallbackMessage="Failed to load the intent breakdown.">
-                <TaxonomyBreakdownChart
-                  data={intentBars!}
-                  kind="intent"
-                  isDark={isDark}
-                  onSelect={setSelected}
-                  aggregationLabel={aggLabel}
-                  level={activeLevel}
-                  hover={hovered}
-                  onHover={setHovered}
-                />
-              </ErrorBoundary>
-            </Flex>
-          )}
-        </div>
-      )}
-
       {hasMatrix && (
-        <Flex direction="col" gap="density-md">
-          <SectionHeading
-            title="Technique × Intent"
-            subtitle={
-              activeLevel === "grouped"
-                ? `Rows are technique subcategories, columns intent families. Each cell shows its worst pooled pair, so a cell never reads safer than its most-vulnerable technique×intent. Darker red = more vulnerable. Click a cell to see the pairs it pools.`
-                : `Each cell is the ${aggLabel} for that technique (row) × intent (column). Darker red = more vulnerable. Click a cell to drill down.`
-            }
-          />
-          <Text kind="label/regular/sm" className="opacity-60">
-            {`${activeView.rows.length} × ${activeView.cols.length} cells`}
-          </Text>
-          <ErrorBoundary fallbackMessage="Failed to load the technique/intent heatmap.">
-            <TechniqueIntentHeatmap
-              view={activeView}
-              isDark={isDark}
-              onSelect={setSelected}
-              hover={hovered}
-              onHover={setHovered}
-            />
-          </ErrorBoundary>
-        </Flex>
+        <SummaryCards
+          critical={stats.critical}
+          atRisk={stats.atRisk}
+          clean={stats.clean}
+          total={stats.total}
+        />
       )}
 
-      <TechniqueIntentDetailPanel detail={selected} onClose={() => setSelected(null)} />
+      {notable.length > 0 && <NotablePairings items={notable} />}
+
+      <Flex direction="col" gap="density-sm">
+        <ReportFilterBar
+          selectedDefcons={selectedDefcons}
+          onToggleDefcon={toggleDefcon}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+          slotEnd={reducible ? <LevelToggle level={activeLevel} onChange={changeLevel} /> : undefined}
+        />
+        <Tabs
+          value={tabValue}
+          onValueChange={value => setActiveTab(value as AxisTab)}
+          items={
+            tabItems.filter(Boolean) as {
+              value: string;
+              children: string;
+              slotContent: ReactNode;
+            }[]
+          }
+        />
+      </Flex>
     </Flex>
   );
 };

@@ -9,7 +9,4 @@
 
 export { default as TechniqueIntentPanel } from "./TechniqueIntentPanel";
 export type { TechniqueIntentPanelProps } from "./TechniqueIntentPanel";
-export { default as TechniqueIntentHeatmap } from "./TechniqueIntentHeatmap";
-export { default as TaxonomyBreakdownChart } from "./TaxonomyBreakdownChart";
-export { default as TechniqueIntentDetailPanel } from "./TechniqueIntentDetailPanel";
-export type { TaxonomyDetail } from "./types";
+export { default as TaxonomyAxisList, FlatTaxonomyList } from "./TaxonomyAxisList";
