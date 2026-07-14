@@ -134,6 +134,23 @@ class BedrockGenerator(Generator):
 
         super().__init__(self.name, config_root=config_root)
         self.suppressed_params = set(self.suppressed_params)
+        # Claude 4.x on Bedrock rejects requests that set both temperature and
+        # top_p simultaneously.  Auto-suppress top_p for these models so garak
+        # works out of the box without requiring a manual suppressed_params entry
+        # in the site config.  Users can still force top_p through by adding
+        # 'temperature' to suppressed_params instead.
+        import re as _re
+        if (
+            _re.search(r"anthropic\.claude-(?:haiku|sonnet|opus)-4[-.\.]", self.name)
+            and "top_p" not in self.suppressed_params
+        ):
+            self.suppressed_params.add("top_p")
+            logging.info(
+                "Claude 4.x model detected on Bedrock — auto-suppressing top_p "
+                "from inferenceConfig (Bedrock rejects requests that set both "
+                "temperature and top_p for this model family). To override, set "
+                "suppressed_params: [temperature] in your garak config instead."
+            )
         self._validate_env_var()
         self._load_unsafe()
         for param in self.suppressed_params:
