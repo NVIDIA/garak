@@ -519,16 +519,7 @@ def _compute_technique_intent_matrix(evals: list, report_plugin_cache: dict) -> 
     """
     acc = defaultdict(
         lambda: defaultdict(
-            lambda: {
-                "passed": 0,
-                "total": 0,
-                "nones": 0,
-                "detectors": set(),
-                # prompts per contributing probe: a probe's detectors all score the
-                # same attempts, so take the max within a probe and sum across probes
-                # to avoid re-counting prompts once per detector.
-                "attempts_by_probe": defaultdict(int),
-            }
+            lambda: {"passed": 0, "total": 0, "nones": 0, "detectors": set()}
         )
     )
 
@@ -562,9 +553,6 @@ def _compute_technique_intent_matrix(evals: list, report_plugin_cache: dict) -> 
                 cell["total"] += total
                 cell["nones"] += nones
                 cell["detectors"].add(eval["detector"])
-                cell["attempts_by_probe"][probe] = max(
-                    cell["attempts_by_probe"][probe], counts.get("n_attempts", 0)
-                )
 
     matrix = {}
     for technique in sorted(acc):
@@ -580,7 +568,6 @@ def _compute_technique_intent_matrix(evals: list, report_plugin_cache: dict) -> 
                 "passed": cell["passed"],
                 "total_evaluated": cell["total"],
                 "nones": cell["nones"],
-                "n_attempts": sum(cell["attempts_by_probe"].values()),
                 "n_detectors": len(cell["detectors"]),
             }
         technique_name, technique_description = tag_descriptions.get(
@@ -596,22 +583,6 @@ def _compute_technique_intent_matrix(evals: list, report_plugin_cache: dict) -> 
             **cells,
         }
     return matrix
-
-
-def _probe_prompt_counts(evals: list) -> dict:
-    """Max distinct-prompt count per probe across its eval records.
-
-    Detector totals count prompts x detectors, but a probe's detectors all score
-    the same attempts, so ``n_attempts`` is equal across a probe's detector eval
-    records and the max is that probe's prompt count. Keyed by each eval's
-    ``probe`` field (``probes.`` prefix already stripped by the results DB pass).
-    """
-    counts = defaultdict(int)
-    for eval in evals:
-        n_att = eval.get("n_attempts")
-        if n_att is not None:
-            counts[eval["probe"]] = max(counts[eval["probe"]], n_att)
-    return counts
 
 
 def build_digest(report_filename: str, config=_config):
@@ -642,9 +613,6 @@ def build_digest(report_filename: str, config=_config):
     conn, cursor = _init_populate_result_db(evals, taxonomy, report_plugin_cache)
     group_names = _get_report_grouping(cursor)
 
-    # Distinct prompts per probe for the Modules view (see _probe_prompt_counts).
-    prompt_counts = _probe_prompt_counts(evals)
-
     aggregation_unknown = False
 
     for probe_group in group_names:
@@ -669,10 +637,6 @@ def build_digest(report_filename: str, config=_config):
                 probe_summaries,
                 report_plugin_cache,
             )
-
-            probe_prompt_count = prompt_counts.get(f"{probe_module}.{probe_class}")
-            if probe_prompt_count is not None:
-                probe_info["prompt_count"] = probe_prompt_count
 
             report_digest["eval"][probe_group][f"{probe_module}.{probe_class}"][
                 "_summary"
