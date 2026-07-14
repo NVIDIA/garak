@@ -69,9 +69,9 @@ Some garak probes still check for traditional cybersecurity vulnerabilities with
 
 This sounds like hitting a resource limit - something external to garak, e.g. the kernel, has taken action. Does your process have access to the required system RAM and GPU memory
 
-## How can I use garak to scan a NIM of an LLM?  What should the "model_type" be? And how do we pass the NIM endpoint url to garak?
+## How can I use garak to scan a NIM of an LLM?  What should the "target_type" be? And how do we pass the NIM endpoint url to garak?
 
-`model_type` should be "nim" for chat-type models (which is most of them - this selects the right class automatically. Then, set model_name to [organisation]/[model name] from [build.nvidia.com](https://build.nvidia.com) (the JSON example is authoritative). For example, `--model_type nim --model_name meta/llama-3.1-8b-instruct`. You will need to put the API key in the `NIM_API_KEY` environment variable, or in the config.
+`target_type` should be "nim" for chat-type models (which is most of them - this selects the right class automatically. Then, set target_name to [organisation]/[model name] from [build.nvidia.com](https://build.nvidia.com) (the JSON example is authoritative). For example, `--target_type nim --target_name meta/llama-3.1-8b-instruct`. You will need to put the API key in the `NIM_API_KEY` environment variable, or in the config.
 
 ## If I have already scanned a model on HuggingFace, and I use the same model somewhere else, say in a container, is it necessary for me to scan the container with garak as well?
 

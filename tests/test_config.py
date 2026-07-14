@@ -880,7 +880,7 @@ def test_report_dir_full_path():
             )
             tmp.close()
             garak.cli.main(
-                f"-m test.Blank --report_prefix abs_path_test -p test.Blank -d always.Fail --config {tmp.name}".split()
+                f"-t test.Blank --report_prefix abs_path_test -p test.Blank -d always.Fail --config {tmp.name}".split()
             )
             os.remove(tmp.name)
             assert os.path.isfile(report_path / "abs_path_test.report.jsonl")
@@ -891,7 +891,7 @@ def test_report_dir_full_path():
 # report prefix is used only for filename, report_dir is placed in user_data_dir
 def test_report_prefix_with_hitlog_no_explode():
     garak.cli.main(
-        "-m test.Blank --report_prefix kjsfhgkjahpsfdg -p test.Blank -d always.Fail".split()
+        "-t test.Blank --report_prefix kjsfhgkjahpsfdg -p test.Blank -d always.Fail".split()
     )
     report_path = Path(_config.transient.report_filename).parent
     assert _config.reporting.report_dir in str(report_path)
@@ -987,7 +987,7 @@ def test_site_yaml_overrides_max_workers(capsys):
     ), "Site config worker count should override core config if loaded correctly"
 
     with pytest.raises(SystemExit) as exc_info:
-        garak.cli.main("--parallel_attempts 3 -m test -p test.Test".split())
+        garak.cli.main("--parallel_attempts 3 -t test -p test.Test".split())
         result = capsys.readouterr()
         assert (
             result.split("\n")[-1]
