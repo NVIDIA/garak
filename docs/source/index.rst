@@ -39,6 +39,7 @@ Check out the :doc:`usage` section for further information, including :doc:`inst
    cliref
    reporting
    faster
+   owasp_top10
    FAQ <https://github.com/NVIDIA/garak/blob/main/FAQ.md>
 
 .. toctree::
