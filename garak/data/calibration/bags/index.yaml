@@ -1,0 +1,20 @@
+current: "2026-02"
+
+releases:
+  - id: "2026-02"
+    title: "Winter 2026"
+    calibration: "calibration-2026-02.json"
+    models: "bags/2026-02/models.csv"
+    config: "bags/2026-02/config.yaml"
+    notes:
+      - "Generator-specific max_tokens, skip_seq_start, and skip_seq_end settings were applied where required."
+  - id: "2025-05"
+    title: "Spring 2025"
+    calibration: "calibration-2025-05.json"
+    models: "bags/2025-05/models.csv"
+    config: "bags/2025-05/config.yaml"
+  - id: "2024-summer"
+    title: "Summer 2024"
+    calibration: "calibration-2024-summer.json"
+    models: "bags/2024-summer/models.csv"
+    config: "bags/2024-summer/config.yaml"
