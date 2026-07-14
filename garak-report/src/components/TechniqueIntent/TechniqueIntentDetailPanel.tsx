@@ -11,11 +11,12 @@
  * @license Apache-2.0
  */
 
-import { type CSSProperties } from "react";
+import { Fragment, type CSSProperties } from "react";
 import { SidePanel, Flex, Stack, Text, Badge, StatusMessage, Divider } from "@kui/react";
 import { ShieldCheck } from "lucide-react";
-import { scoreToDefcon, DEFCON_LABELS, RISK_RAMP_COLORS, type DefconLevel } from "../../constants";
+import { scoreToDefcon } from "../../constants";
 import { formatRate } from "../../utils/formatPercentage";
+import DefconBadge from "../DefconBadge";
 import type { TaxonomyDetail } from "./types";
 
 const PANEL_STYLE = {
@@ -37,26 +38,32 @@ const HEADINGS: Record<TaxonomyDetail["kind"], string> = {
 };
 
 /**
- * Risk chip colored from the same ramp as the heatmap/bars, so a given score
- * shows the same color here as it does in the charts.
+ * Worst-first list of the technique×intent pairs a grouped cell pools. Makes the
+ * conservative roll-up transparent: you can see exactly which pair drives the
+ * (worst-case) cell score and how many pairs sit behind it. Each pair reuses the
+ * shared DefconBadge so its color matches the rest of the report.
  */
-const RiskChip = ({ defcon }: { defcon: DefconLevel }) => (
-  <span
-    style={{
-      display: "inline-flex",
-      alignItems: "center",
-      background: RISK_RAMP_COLORS[defcon],
-      color: "#fff",
-      padding: "2px 8px",
-      borderRadius: "var(--radius-sm, 6px)",
-      fontSize: 12,
-      fontWeight: 600,
-      lineHeight: 1.4,
-      whiteSpace: "nowrap",
-    }}
-  >
-    DC-{defcon} · {DEFCON_LABELS[defcon] ?? DEFCON_LABELS.default}
-  </span>
+const PooledLeaves = ({ leaves }: { leaves: NonNullable<TaxonomyDetail["leaves"]> }) => (
+  <Stack gap="density-xs">
+    <Text kind="label/bold/sm">Pooled pairs ({leaves.length})</Text>
+    <Stack gap="density-xs">
+      {leaves.map((leaf, index) => (
+        <Fragment key={leaf.label}>
+          {index > 0 && <Divider />}
+          <Flex align="center" justify="space-between" gap="density-sm">
+            <Text kind="body/regular/sm">{leaf.label}</Text>
+            <Flex align="center" gap="density-xs">
+              <DefconBadge defcon={scoreToDefcon(leaf.score)} />
+              <Text kind="label/bold/sm">{formatRate(leaf.score)}</Text>
+              <Text kind="label/regular/xs" className="opacity-50">
+                ({leaf.nEvaluations.toLocaleString()})
+              </Text>
+            </Flex>
+          </Flex>
+        </Fragment>
+      ))}
+    </Stack>
+  </Stack>
 );
 
 /** Static, non-actionable chip list (e.g. detectors or probes that contributed). */
@@ -103,18 +110,23 @@ const TechniqueIntentDetailPanel = ({ detail, onClose }: TechniqueIntentDetailPa
             {detail.subtitle}
           </Text>
         )}
-        <Flex align="center" gap="density-sm" wrap="wrap" style={{ marginTop: "var(--density-xs)" }}>
+        <Flex align="center" gap="density-sm" wrap="wrap">
           <Text kind="title/lg">{formatRate(detail.score)}</Text>
-          <RiskChip defcon={defcon} />
+          <DefconBadge defcon={defcon} showLabel />
           <Text kind="body/regular/sm" className="opacity-60">
             over {detail.nEvaluations.toLocaleString()} evaluation
             {detail.nEvaluations === 1 ? "" : "s"}
           </Text>
         </Flex>
+        {detail.leaves && detail.leaves.length > 1 && (
+          <Text kind="body/regular/sm" className="opacity-60">
+            Worst-case of {detail.leaves.length} pooled technique×intent pairs (a roll-up never reads
+            safer than its worst pair).
+          </Text>
+        )}
         {singleProbe && (
           <Text kind="body/regular/sm" className="opacity-60">
-            Probe:{" "}
-            <span style={{ fontFamily: "var(--font-family-mono, monospace)" }}>{singleProbe}</span>
+            Probe: <span className="font-mono">{singleProbe}</span>
           </Text>
         )}
       </Stack>
@@ -134,6 +146,14 @@ const TechniqueIntentDetailPanel = ({ detail, onClose }: TechniqueIntentDetailPa
         <Stack gap="density-lg">
           {renderSummary()}
           <Divider />
+
+          {/* Grouped cell: make the conservative roll-up transparent. */}
+          {detail.leaves && detail.leaves.length > 1 && (
+            <>
+              <PooledLeaves leaves={detail.leaves} />
+              <Divider />
+            </>
+          )}
 
           {/* Passing item: nothing flagged. Be explicit and positive. */}
           {!hasFailures && (
