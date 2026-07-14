@@ -73,6 +73,22 @@ class NeMoGuardrailsServer(OpenAICompatible):
         self.api_key = "not-used"  # suppress any api_key from being sent as the server does not utilize one
         super().__init__(name, config_root)
 
+        # A user-provided `extra_body` may arrive nested inside `extra_params` (the generic
+        # passthrough dict for OpenAICompatible). Left there, it would independently overwrite
+        # `self.extra_body` in `_call_model()` (extra_params is applied after the instance's own
+        # attributes), silently dropping the `guardrails` config merged in below. Pop it out and
+        # fold it into `self.extra_body` instead so the two sources combine rather than one
+        # shadowing the other.
+        if self.extra_params and "extra_body" in self.extra_params:
+            user_extra_body = self.extra_params.pop("extra_body", None)
+            if user_extra_body:
+                if not isinstance(user_extra_body, dict):
+                    raise ValueError(
+                        "NeMoGuardrailsServer: `extra_params['extra_body']` must be a dict, got "
+                        f"{type(user_extra_body).__name__}"
+                    )
+                self.extra_body = user_extra_body
+
         guardrails = None
         if self.config_ids:
             guardrails = {"config_ids": self.config_ids}

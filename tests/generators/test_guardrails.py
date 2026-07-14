@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+import json
+
 import httpx
 import pytest
 
@@ -72,3 +74,66 @@ def test_nonempty_extra_params_does_not_crash_init():
     }
     g = NeMoGuardrailsServer(config_root=config_root)
     assert g.extra_params == {"foo": 1}
+
+
+@pytest.mark.respx(base_url=NeMoGuardrailsServer.DEFAULT_PARAMS["uri"])
+def test_user_extra_body_is_merged_not_shadowed_by_guardrails_config(
+    respx_mock, openai_compat_mocks
+):
+    """A user-provided extra_body (via extra_params) must combine with, not be
+    overwritten by, the guardrails config injected into self.extra_body — and
+    must not remain in extra_params where it would independently overwrite
+    self.extra_body again in _call_model().
+    """
+    mock_response = openai_compat_mocks["chat"]
+    mock_request = respx_mock.post("chat/completions")
+    mock_request.mock(
+        return_value=httpx.Response(
+            mock_response["code"],
+            json=mock_response["json"],
+        )
+    )
+    config_root = {
+        "generators": {
+            "guardrails": {
+                "NeMoGuardrailsServer": {
+                    "name": "UnknownModel",
+                    "config_ids": ["rail1"],
+                    "extra_params": {"extra_body": {"custom_key": "custom_value"}},
+                }
+            }
+        }
+    }
+    g = NeMoGuardrailsServer(config_root=config_root)
+
+    assert "extra_body" not in g.extra_params
+    assert g.extra_body == {
+        "custom_key": "custom_value",
+        "guardrails": {"config_ids": ["rail1"]},
+    }
+
+    conv = Conversation(turns=[Turn(role="user", content=Message("Testing text"))])
+    g.generate(conv)
+    assert mock_request.called
+    sent_body = json.loads(mock_request.calls.last.request.content)
+    assert sent_body["custom_key"] == "custom_value"
+    assert sent_body["guardrails"] == {"config_ids": ["rail1"]}
+
+
+def test_non_dict_user_extra_body_raises_value_error():
+    """A non-dict extra_params['extra_body'] must raise a clear ValueError at
+    construction time rather than silently corrupting self.extra_body or
+    failing later with an unrelated error.
+    """
+    config_root = {
+        "generators": {
+            "guardrails": {
+                "NeMoGuardrailsServer": {
+                    "name": "UnknownModel",
+                    "extra_params": {"extra_body": "not-a-dict"},
+                }
+            }
+        }
+    }
+    with pytest.raises(ValueError, match="must be a dict"):
+        NeMoGuardrailsServer(config_root=config_root)
