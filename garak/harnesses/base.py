@@ -206,6 +206,16 @@ class Harness(Configurable):
                 attempt_results, (list, types.GeneratorType)
             ), "probing should always return an ordered iterable"
 
+            # A probe that produced no attempts (e.g. an IntentProbe with no
+            # active intents) is skipped here rather than running detectors over
+            # nothing (see #1889).
+            if isinstance(attempt_results, list) and len(attempt_results) == 0:
+                logging.info(
+                    "harness: probe %s produced no attempts; skipping",
+                    probe.probename,
+                )
+                continue
+
             if not isinstance(probe, garak.probes.base.IntentProbe):
                 for d in detectors:
                     self._run_detector(attempt_results, d)
