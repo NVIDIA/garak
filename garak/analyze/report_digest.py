@@ -598,6 +598,22 @@ def _compute_technique_intent_matrix(evals: list, report_plugin_cache: dict) -> 
     return matrix
 
 
+def _probe_prompt_counts(evals: list) -> dict:
+    """Max distinct-prompt count per probe across its eval records.
+
+    Detector totals count prompts x detectors, but a probe's detectors all score
+    the same attempts, so ``n_attempts`` is equal across a probe's detector eval
+    records and the max is that probe's prompt count. Keyed by each eval's
+    ``probe`` field (``probes.`` prefix already stripped by the results DB pass).
+    """
+    counts = defaultdict(int)
+    for eval in evals:
+        n_att = eval.get("n_attempts")
+        if n_att is not None:
+            counts[eval["probe"]] = max(counts[eval["probe"]], n_att)
+    return counts
+
+
 def build_digest(report_filename: str, config=_config):
 
     # taxonomy = config.reporting.taxonomy
@@ -626,6 +642,9 @@ def build_digest(report_filename: str, config=_config):
     conn, cursor = _init_populate_result_db(evals, taxonomy, report_plugin_cache)
     group_names = _get_report_grouping(cursor)
 
+    # Distinct prompts per probe for the Modules view (see _probe_prompt_counts).
+    prompt_counts = _probe_prompt_counts(evals)
+
     aggregation_unknown = False
 
     for probe_group in group_names:
@@ -650,6 +669,10 @@ def build_digest(report_filename: str, config=_config):
                 probe_summaries,
                 report_plugin_cache,
             )
+
+            probe_prompt_count = prompt_counts.get(f"{probe_module}.{probe_class}")
+            if probe_prompt_count is not None:
+                probe_info["prompt_count"] = probe_prompt_count
 
             report_digest["eval"][probe_group][f"{probe_module}.{probe_class}"][
                 "_summary"
@@ -693,6 +716,13 @@ def build_digest(report_filename: str, config=_config):
                     calibration_used = True
 
     _close_result_db(conn)
+
+    # run.spec is a structured selection object; surface the readable probespec
+    # render (already computed for meta.probespec) so the UI shows the spec string
+    # rather than a raw dict rendered as "[object Object]".
+    run_spec = report_digest["meta"]["setup"].get("run.spec")
+    if run_spec is not None and not isinstance(run_spec, str):
+        report_digest["meta"]["setup"]["run.spec"] = header_content["probespec"]
 
     report_digest["meta"]["setup"]["reporting.taxonomy"] = taxonomy
     report_digest["meta"]["calibration_used"] = calibration_used

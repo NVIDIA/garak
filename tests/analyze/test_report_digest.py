@@ -400,3 +400,47 @@ def test_tim_enrichment_none_fallback_for_unknown_codes():
         tech["_summary"]["description"] is None
     ), "unknown technique tag -> description None"
     assert tech[intent]["name"] is None, "unknown intent code -> name None"
+
+
+def test_runspec_renders_include_and_exclude_object():
+    setup = {
+        "run.spec": {
+            "include": ["probes.dan", {"probes": "encoding"}],
+            "exclude": ["probes.foo"],
+        }
+    }
+    assert (
+        garak.analyze.report_digest._runspec_to_probespec(setup)
+        == "probes.dan, probes:encoding, -probes.foo"
+    )
+
+
+def test_runspec_string_passthrough():
+    assert (
+        garak.analyze.report_digest._runspec_to_probespec({"run.spec": "probes.dan"})
+        == "probes.dan"
+    )
+
+
+def test_runspec_falls_back_when_absent():
+    assert garak.analyze.report_digest._runspec_to_probespec({}) == "probes.*"
+    assert (
+        garak.analyze.report_digest._runspec_to_probespec(
+            {"plugins.probe_spec": "probes.dan"}
+        )
+        == "probes.dan"
+    ), "reports predating run.spec fall back to the legacy probe_spec"
+
+
+def test_probe_prompt_counts_max_across_detectors_and_skips_absent():
+    evals = [
+        # same probe scored by two detectors: same attempts, so max (not sum)
+        {"probe": "grandma.Win10", "detector": "d.A", "n_attempts": 12},
+        {"probe": "grandma.Win10", "detector": "d.B", "n_attempts": 12},
+        {"probe": "other.Probe", "detector": "d.A", "n_attempts": 5},
+        {"probe": "legacy.Probe", "detector": "d.A"},  # no n_attempts -> skipped
+    ]
+    counts = garak.analyze.report_digest._probe_prompt_counts(evals)
+    assert counts["grandma.Win10"] == 12, "detectors share attempts -> max, not sum"
+    assert counts["other.Probe"] == 5
+    assert "legacy.Probe" not in counts, "records without n_attempts contribute nothing"

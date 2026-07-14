@@ -75,9 +75,13 @@ class Evaluator:
         # Distinct attempts (prompts) seen per intent, so the digest can report a
         # prompt count alongside the evaluation count (which is attempts x detectors).
         intent_attempts: dict[str, set] = defaultdict(set)
+        # Distinct attempts across the whole probe (intent-tagged or not), so the
+        # digest can show an overall prompt count per probe in the Modules view.
+        attempt_uuids: set = set()
 
         for attempt in attempts:
             intent = attempt.intent
+            attempt_uuids.add(attempt.uuid)
             if intent is not None:
                 intent_attempts[intent].add(attempt.uuid)
             for idx, score in enumerate(attempt.detector_results[detector_name]):
@@ -202,6 +206,7 @@ class Evaluator:
             "nones": nones,
             "total_evaluated": outputs_evaluated,
             "total_processed": outputs_processed,
+            "n_attempts": len(attempt_uuids),
         }
         # per-intent pass/total counts, feeds the digest technique_intent_matrix
         if intent_counts:
