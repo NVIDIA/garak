@@ -40,6 +40,7 @@ const cellOf = (otherKey: string, score: number): AxisCell => ({
     col: otherKey,
     score,
     nEvaluations: 100,
+    nAttempts: 0,
     passed: Math.round(score * 100),
     nones: 0,
     nDetectors: 1,

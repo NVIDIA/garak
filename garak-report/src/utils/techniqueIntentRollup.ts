@@ -36,6 +36,8 @@ export interface MatrixLeaf {
   /** 0-1 pass rate. Pairings the digest left unevaluated (null) are dropped. */
   score: number;
   nEvaluations: number;
+  /** Distinct prompts behind the pairing (`nEvaluations` is prompts × detectors). 0 on older reports. */
+  nAttempts: number;
   passed: number;
   /** Undetermined evaluations (detector returned no verdict). */
   nones: number;
@@ -51,6 +53,8 @@ export interface MatrixCell {
   score: number;
   /** Total evaluations pooled into the cell. */
   nEvaluations: number;
+  /** Distinct prompts pooled into the cell (0 on older reports). */
+  nAttempts: number;
   /** Passing evaluations pooled into the cell. */
   passed: number;
   /** Undetermined evaluations pooled into the cell. */
@@ -98,6 +102,7 @@ const flatten = (matrix: TechniqueIntentMatrix): MatrixLeaf[] => {
         intentName: cell.name ?? undefined,
         score: cell.score,
         nEvaluations: cell.total_evaluated,
+        nAttempts: cell.n_attempts ?? 0,
         passed: cell.passed,
         nones: cell.nones,
         nDetectors: cell.n_detectors,
@@ -136,6 +141,8 @@ export interface AxisGroup {
   score: number;
   /** Total evaluations pooled across the group's cells. */
   nEvaluations: number;
+  /** Total distinct prompts pooled across the group's cells (0 on older reports). */
+  nAttempts: number;
   /** Worst-first cross-axis entries. */
   cells: AxisCell[];
 }
@@ -176,6 +183,7 @@ export function buildAxisGroups(view: MatrixView, axis: TaxonomyAxis): AxisGroup
       description: primaryDescription?.(primary),
       score: Math.min(...cells.map(c => c.cell.score)),
       nEvaluations: cells.reduce((sum, c) => sum + c.cell.nEvaluations, 0),
+      nAttempts: cells.reduce((sum, c) => sum + c.cell.nAttempts, 0),
       cells,
     });
   }
@@ -306,6 +314,7 @@ export function buildMatrixView(matrix: TechniqueIntentMatrix, level: MatrixLeve
         col,
         score: leaf.score,
         nEvaluations: leaf.nEvaluations,
+        nAttempts: leaf.nAttempts,
         passed: leaf.passed,
         nones: leaf.nones,
         nDetectors: leaf.nDetectors,
@@ -315,6 +324,7 @@ export function buildMatrixView(matrix: TechniqueIntentMatrix, level: MatrixLeve
     } else {
       existing.score = Math.min(existing.score, leaf.score); // conservative: worst leaf
       existing.nEvaluations += leaf.nEvaluations;
+      existing.nAttempts += leaf.nAttempts;
       existing.passed += leaf.passed;
       existing.nones += leaf.nones;
       existing.nDetectors = Math.max(existing.nDetectors, leaf.nDetectors);

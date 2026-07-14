@@ -12,7 +12,7 @@
  * @license Apache-2.0
  */
 
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import {
   Accordion,
   Badge,
@@ -40,8 +40,24 @@ import {
 } from "../../utils/techniqueIntentRollup";
 import type { SortOption } from "../../hooks/useModuleFilters";
 
-/** With fewer cells than this there's nothing to compare; show the detail directly. */
-const MIN_CELLS_FOR_CHART = 2;
+/**
+ * Scrolls a detail box into view. If the enclosing accordion is mid open-animation
+ * (its 200ms height grow), scrolling now would align the still-collapsed box to the
+ * top and the growing content would then shove it away — so we wait for that
+ * animation to finish first. When nothing is animating (e.g. re-selecting an
+ * already-open pairing) we scroll immediately.
+ */
+const scrollBoxIntoView = (el: HTMLElement) => {
+  if (typeof el.scrollIntoView !== "function") return;
+  const reveal = () => el.scrollIntoView({ behavior: "smooth", block: "start" });
+  const content = el.closest<HTMLElement>(".nv-accordion-content");
+  const running = content?.getAnimations?.().find(a => a.playState === "running");
+  if (!running) {
+    reveal();
+    return;
+  }
+  running.finished.then(reveal).catch(reveal);
+};
 
 /** Props for TaxonomyAxisList component */
 interface TaxonomyAxisListProps {
@@ -57,6 +73,10 @@ interface TaxonomyAxisListProps {
   openValue: string;
   /** Notifies the parent when the open primary entry changes. */
   onOpenChange: (value: string) => void;
+  /** Nested-axis key to pre-select inside the open entry (drives notable-pairing jumps). */
+  focusSecondaryKey?: string;
+  /** Bumped on every notable-pairing click so a repeat click re-scrolls to the box. */
+  focusNonce?: number;
   /** Theme mode, forwarded to the inner pairing chart. */
   isDark?: boolean;
 }
@@ -95,7 +115,7 @@ const ScoreBadges = ({ score, defcon }: { score: number; defcon: number }) => {
  */
 const PooledLeaves = ({ leaves }: { leaves: MatrixCell["leaves"] }) => (
   <Stack gap="density-xs">
-    <Text kind="label/bold/md">Pooled pairs ({leaves.length})</Text>
+    <Text kind="label/bold/lg">Pooled pairs ({leaves.length})</Text>
     <Stack gap="density-xs">
       {leaves.map((leaf, index) => (
         <Fragment key={`${leaf.technique}\u0000${leaf.intent}`}>
@@ -108,7 +128,7 @@ const PooledLeaves = ({ leaves }: { leaves: MatrixCell["leaves"] }) => (
             <Flex align="center" gap="density-xs">
               <DefconBadge defcon={scoreToDefcon(leaf.score)} />
               <Text kind="label/bold/md">{formatRate(leaf.score)}</Text>
-              <Text kind="label/regular/sm" className="opacity-50">
+              <Text kind="label/regular/md" className="opacity-50">
                 ({leaf.nEvaluations.toLocaleString()})
               </Text>
             </Flex>
@@ -122,10 +142,10 @@ const PooledLeaves = ({ leaves }: { leaves: MatrixCell["leaves"] }) => (
 /** Single labelled figure used in the detail header's stat row. */
 const Stat = ({ label, value }: { label: string; value: string }) => (
   <Stack gap="density-xxs">
-    <Text kind="label/regular/sm" className="opacity-60">
+    <Text kind="label/regular/md" className="opacity-60">
       {label}
     </Text>
-    <Text kind="label/bold/lg">{value}</Text>
+    <Text kind="label/bold/xl">{value}</Text>
   </Stack>
 );
 
@@ -141,15 +161,16 @@ const CellDetail = ({ cell, title }: { cell: MatrixCell; title?: string }) => {
   const defcon = scoreToDefcon(cell.score);
   const hasFailures = cell.score < 1;
   const failed = Math.max(cell.nEvaluations - cell.passed - cell.nones, 0);
+  const hasPrompts = cell.nAttempts > 0; // older reports omit prompt counts
   return (
     <Panel>
-      <Stack gap="density-lg">
-        <Stack gap="density-sm">
+      <Stack gap="density-2xl" paddingY="density-sm">
+        <Stack gap="density-lg">
           <Flex gap="density-md" align="center" wrap="wrap">
             <DefconBadge defcon={defcon} />
             {title && <Text kind="title/sm">{title}</Text>}
             <Badge color={getDefconBadgeColor(defcon)} kind="outline">
-              <Text kind="label/bold/sm">{getSeverityLabelByLevel(defcon)}</Text>
+              <Text kind="label/bold/md">{getSeverityLabelByLevel(defcon)}</Text>
             </Badge>
           </Flex>
           <Flex gap="density-2xl" wrap="wrap">
@@ -165,13 +186,23 @@ const CellDetail = ({ cell, title }: { cell: MatrixCell; title?: string }) => {
             {cell.nones > 0 && (
               <Stat label="Undetermined" value={cell.nones.toLocaleString()} />
             )}
+            {hasPrompts && (
+              <Stat label="Prompts" value={cell.nAttempts.toLocaleString()} />
+            )}
             {cell.leafCount > 1 && (
               <Stat label="Pooled pairs" value={cell.leafCount.toLocaleString()} />
             )}
           </Flex>
-          <Text kind="label/regular/xs" className="opacity-60">
-            Counts are evaluations — one per attempt scored by each of{" "}
-            {pluralize(cell.nDetectors, "detector")}.
+          <Text kind="label/regular/sm" className="opacity-60">
+            {hasPrompts
+              ? `${pluralize(cell.nAttempts, "prompt")} scored by ${pluralize(
+                  cell.nDetectors,
+                  "detector",
+                )} = ${cell.nEvaluations.toLocaleString()} evaluations.`
+              : `Counts are evaluations — one per prompt scored by each of ${pluralize(
+                  cell.nDetectors,
+                  "detector",
+                )}.`}
           </Text>
         </Stack>
 
@@ -191,7 +222,7 @@ const CellDetail = ({ cell, title }: { cell: MatrixCell; title?: string }) => {
             slotSubheading="The target passed every evaluation for this pairing. There are no attempts to inspect."
           />
         ) : (
-          <Text kind="body/regular/sm" className="opacity-60">
+          <Text kind="body/regular/md" className="opacity-60">
             A response counts as a failure when any detector flags it.
           </Text>
         )}
@@ -201,33 +232,46 @@ const CellDetail = ({ cell, title }: { cell: MatrixCell; title?: string }) => {
 };
 
 /**
- * Degenerate fallback for a group with a single pairing: there's nothing to
- * compare or select, so skip the chart and show the detail straight away.
+ * Bar chart of a group's pairings with click-to-detail. Used for every group so
+ * the list stays visually consistent as it's scrolled; a single-pairing group
+ * shows its one bar and auto-selects it, so its detail is up straight away.
  */
-const GroupSingleChild = ({ group }: { group: AxisGroup }) => {
-  const only = group.cells[0];
-  return (
-    <Stack paddingY="density-sm">
-      <CellDetail cell={only.cell} title={only.otherLabel} />
-    </Stack>
-  );
-};
-
-/** Bar chart of a group's pairings with click-to-detail — default for larger groups. */
 const GroupChildrenChart = ({
   group,
   childNoun,
   isDark,
+  initialSelected,
+  focusNonce,
 }: {
   group: AxisGroup;
   childNoun: string;
   isDark?: boolean;
+  initialSelected?: string;
+  focusNonce?: number;
 }) => {
-  const [selected, setSelected] = useState<string | null>(null);
+  // With a lone pairing there's nothing to choose, so start it selected.
+  const soleKey = group.cells.length === 1 ? group.cells[0].otherKey : null;
+  const [selected, setSelected] = useState<string | null>(initialSelected ?? soleKey);
+  const boxRef = useRef<HTMLDivElement>(null);
+  // Only scroll for notable-pairing jumps (never for manual bar clicks), and
+  // scroll once per jump — even a repeat click, since focusNonce changes.
+  const scrolledNonce = useRef<number | undefined>(undefined);
+  // A notable-pairing jump can retarget an already-open group's detail.
+  useEffect(() => {
+    if (initialSelected) setSelected(initialSelected);
+  }, [initialSelected]);
   const selectedEntry = group.cells.find(c => c.otherKey === selected);
+  // Reveal the jump-selected box once it's rendered (waiting out the open
+  // animation on a fresh open; immediate when re-selecting an open pairing).
+  useEffect(() => {
+    if (!initialSelected || selected !== initialSelected || focusNonce === undefined) return;
+    if (scrolledNonce.current === focusNonce || !boxRef.current) return;
+    scrolledNonce.current = focusNonce;
+    scrollBoxIntoView(boxRef.current);
+  }, [initialSelected, selected, focusNonce]);
   return (
     <Stack gap="density-md" paddingY="density-sm">
-      <Text kind="label/regular/sm" className="opacity-60">
+      <Text kind="label/regular/md" className="opacity-60">
         Pass rate by {childNoun}. Click a bar for the pass/fail breakdown.
       </Text>
       <Grid cols={selectedEntry ? 2 : 1} gap="density-lg" className="items-start">
@@ -238,7 +282,9 @@ const GroupChildrenChart = ({
           onSelect={setSelected}
         />
         {selectedEntry && (
-          <CellDetail cell={selectedEntry.cell} title={selectedEntry.otherLabel} />
+          <div ref={boxRef} style={{ scrollMarginTop: "1rem" }}>
+            <CellDetail cell={selectedEntry.cell} title={selectedEntry.otherLabel} />
+          </div>
         )}
       </Grid>
     </Stack>
@@ -247,23 +293,30 @@ const GroupChildrenChart = ({
 
 /**
  * Inner content for an open primary entry: a worst-first bar chart of its
- * pairings with click-to-detail in a side panel (the same model both axes use),
- * collapsing to a bare detail block when there's only a single pairing.
+ * pairings with click-to-detail in a side panel (the same model both axes use).
+ * Single-pairing groups use the same chart with their one bar pre-selected.
  */
 const GroupChildren = ({
   group,
   childNoun,
   isDark,
+  initialSelected,
+  focusNonce,
 }: {
   group: AxisGroup;
   childNoun: string;
   isDark?: boolean;
-}) =>
-  group.cells.length >= MIN_CELLS_FOR_CHART ? (
-    <GroupChildrenChart group={group} childNoun={childNoun} isDark={isDark} />
-  ) : (
-    <GroupSingleChild group={group} />
-  );
+  initialSelected?: string;
+  focusNonce?: number;
+}) => (
+  <GroupChildrenChart
+    group={group}
+    childNoun={childNoun}
+    isDark={isDark}
+    initialSelected={initialSelected}
+    focusNonce={focusNonce}
+  />
+);
 
 /**
  * Renders the worst-first accordion list for one axis. Filtering and sorting are
@@ -277,6 +330,8 @@ const TaxonomyAxisList = ({
   sortBy,
   openValue,
   onOpenChange,
+  focusSecondaryKey,
+  focusNonce,
   isDark,
 }: TaxonomyAxisListProps) => {
   const groups = useMemo(() => buildAxisGroups(view, axis), [view, axis]);
@@ -314,18 +369,22 @@ const TaxonomyAxisList = ({
               <Stack gap="density-xs" align="start">
                 <Text kind="label/bold/2xl">{group.label}</Text>
                 {group.description && (
-                  <Text kind="body/regular/sm" className="opacity-70">
+                  <Text kind="body/regular/md" className="opacity-70">
                     {group.description}
                   </Text>
                 )}
-                <Text kind="label/regular/sm" className="opacity-60">
-                  worst of {pluralize(group.cells.length, childNoun)} ·{" "}
-                  {group.nEvaluations.toLocaleString()} evaluations
-                </Text>
               </Stack>
             </Flex>
           ),
-          slotContent: <GroupChildren group={group} childNoun={childNoun} isDark={isDark} />,
+          slotContent: (
+            <GroupChildren
+              group={group}
+              childNoun={childNoun}
+              isDark={isDark}
+              initialSelected={group.key === openValue ? focusSecondaryKey : undefined}
+              focusNonce={group.key === openValue ? focusNonce : undefined}
+            />
+          ),
         };
       })}
     />

@@ -92,6 +92,7 @@ def test_tim_single_cell():
         "score": 0.5,
         "passed": 3,
         "total_evaluated": 6,
+        "n_attempts": 0,
         "n_detectors": 1,
         "nones": 0,
     }, cell
@@ -144,6 +145,55 @@ def test_tim_pools_across_probes():
     cell = _tim(evals, pc)["demon:T:Tech"]["S008code"]
     assert cell["passed"] == 66 and cell["total_evaluated"] == 104, cell
     assert cell["n_detectors"] == 1, cell
+
+
+def test_tim_attempts_deduped_across_detectors():
+    # A probe's detectors all score the same prompts, so the prompt count is the
+    # max across detectors (not the sum, which would re-count once per detector).
+    evals = [
+        {
+            "entry_type": "eval",
+            "probe": "grandma.Win10",
+            "detector": "d.A",
+            "intents": {"S003": {"passed": 0, "total_evaluated": 6, "nones": 0, "n_attempts": 6}},
+        },
+        {
+            "entry_type": "eval",
+            "probe": "grandma.Win10",
+            "detector": "d.B",
+            "intents": {"S003": {"passed": 3, "total_evaluated": 6, "nones": 0, "n_attempts": 6}},
+        },
+    ]
+    pc = _pc({"grandma.Win10": ["demon:T:Tech"]}, detectors=("d.A", "d.B"))
+    cell = _tim(evals, pc)["demon:T:Tech"]["S003"]
+    assert cell["n_attempts"] == 6, cell
+
+
+def test_tim_attempts_summed_across_probes():
+    # Distinct probes generate distinct prompts, so prompt counts add up.
+    evals = [
+        {
+            "entry_type": "eval",
+            "probe": "malwaregen.Evasion",
+            "detector": "m.AnyCode",
+            "intents": {"S008code": {"passed": 37, "total_evaluated": 48, "nones": 0, "n_attempts": 48}},
+        },
+        {
+            "entry_type": "eval",
+            "probe": "malwaregen.SubFunctions",
+            "detector": "m.AnyCode",
+            "intents": {"S008code": {"passed": 29, "total_evaluated": 56, "nones": 0, "n_attempts": 56}},
+        },
+    ]
+    pc = _pc(
+        {
+            "malwaregen.Evasion": ["demon:T:Tech"],
+            "malwaregen.SubFunctions": ["demon:T:Tech"],
+        },
+        detectors=("m.AnyCode",),
+    )
+    cell = _tim(evals, pc)["demon:T:Tech"]["S008code"]
+    assert cell["n_attempts"] == 104, cell
 
 
 def test_tim_multi_tag_replicates():

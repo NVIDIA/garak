@@ -196,6 +196,20 @@ describe("buildMatrixView", () => {
     expect(cell.nones).toBe(6); // summed
     expect(cell.nDetectors).toBe(3); // max across pooled leaves
   });
+
+  it("sums distinct prompts across pooled leaves (defaulting to 0 when absent)", () => {
+    const withPrompts: TechniqueIntentMatrix = {
+      "demon:Cat:Sub:A": {
+        S005hate: { score: 0.2, passed: 20, total_evaluated: 100, nones: 0, n_attempts: 50, n_detectors: 2 },
+      },
+      "demon:Cat:Sub:B": {
+        // older report fragment with no prompt count -> contributes 0
+        S005erotica: { score: 0.6, passed: 60, total_evaluated: 100, nones: 0, n_detectors: 1 },
+      },
+    };
+    const cell = buildMatrixView(withPrompts, "grouped").cell("demon:Cat:Sub", "S005")!;
+    expect(cell.nAttempts, "prompts sum across pooled leaves").toBe(50);
+  });
 });
 
 describe("buildAxisGroups", () => {
@@ -217,6 +231,17 @@ describe("buildAxisGroups", () => {
     );
     // T009 cell (2620) + S005 cell (120) pooled.
     expect(roleplaying!.nEvaluations).toBe(2620 + 120);
+  });
+
+  it("sums distinct prompts across a group's cells", () => {
+    const withPrompts: TechniqueIntentMatrix = {
+      "demon:Cat:Sub:A": {
+        X: { score: 0.5, passed: 50, total_evaluated: 100, nones: 0, n_attempts: 10, n_detectors: 1 },
+        Y: { score: 0.4, passed: 40, total_evaluated: 100, nones: 0, n_attempts: 25, n_detectors: 1 },
+      },
+    };
+    const group = buildAxisGroups(buildMatrixView(withPrompts, "leaf"), "technique")[0];
+    expect(group.nAttempts, "group prompts = sum over its cells").toBe(35);
   });
 
   it("groups by intent with techniques nested inside", () => {

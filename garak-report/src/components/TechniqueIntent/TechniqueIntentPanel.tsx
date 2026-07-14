@@ -14,8 +14,8 @@
 
 import { useCallback, useMemo, useState, type ReactNode } from "react";
 import {
-  Card,
   Flex,
+  Grid,
   Notification,
   SegmentedControl,
   Stack,
@@ -65,7 +65,7 @@ const LevelToggle = ({
   onChange: (level: MatrixLevel) => void;
 }) => (
   <Flex gap="density-sm" align="center" style={{ flexShrink: 0 }}>
-    <Text kind="label/bold/md">Detail level:</Text>
+    <Text kind="label/bold/lg">Detail level:</Text>
     <SegmentedControl
       size="small"
       value={level}
@@ -75,82 +75,48 @@ const LevelToggle = ({
   </Flex>
 );
 
-/** One labelled figure in the coverage summary. */
-const Metric = ({ label, value }: { label: string; value: string }) => (
-  <Stack gap="density-xxs">
-    <Text kind="label/regular/sm" className="opacity-60">
-      {label}
-    </Text>
-    <Text kind="title/sm">{value}</Text>
-  </Stack>
-);
-
-/**
- * Plain, self-explanatory coverage summary: how much was exercised (techniques,
- * intents, pairings) and a single overall pass rate. Severity now lives only in
- * the per-pairing DEFCON badges in the lists below — the tab leads with what was
- * tested, not a colour-coded verdict.
- */
-const CoverageSummary = ({
-  techniques,
-  intents,
-  pairings,
-  passRate,
-}: {
-  techniques: number;
-  intents: number;
-  pairings: number;
-  passRate: number | null;
-}) => (
-  <Card slotHeader={<Text kind="label/bold/md">Coverage</Text>}>
-    <Flex gap="density-2xl" wrap="wrap">
-      <Metric label="Techniques" value={techniques.toLocaleString()} />
-      <Metric label="Intents" value={intents.toLocaleString()} />
-      <Metric label="Pairings evaluated" value={pairings.toLocaleString()} />
-      <Metric label="Overall pass rate" value={passRate == null ? "—" : formatRate(passRate)} />
-    </Flex>
-  </Card>
-);
-
 /**
  * Warning callout for genuine interactions — pairings that fail far worse than
  * their technique or intent does elsewhere. Renders only when such pairings
- * exist (it's silent for the common separable matrix).
+ * exist (it's silent for the common separable matrix). Each row is a shortcut
+ * that opens the pairing in the technique list below.
  */
-const NotablePairings = ({ items }: { items: NotablePairing[] }) => (
+const NotablePairings = ({
+  items,
+  onSelect,
+}: {
+  items: NotablePairing[];
+  onSelect: (pairing: NotablePairing) => void;
+}) => (
   <Notification
     status="warning"
     density="spacious"
     slotHeading="Notable pairings"
     slotSubheading={
-      <Stack gap="density-md">
-        <Text kind="body/regular/sm">
+      <Stack gap="density-lg">
+        <Text kind="body/regular/sm" className="opacity-70">
           These combinations fail far worse than the technique or the intent does on its own — the
-          kind of interaction worth a closer look.
+          kind of interaction worth a closer look. Select one to open it in the list below.
         </Text>
-        <Stack gap="density-sm">
+        <Grid cols={{ base: 1, lg: 2 }} gap="density-md">
           {items.map(p => (
-            <Flex
+            <button
               key={`${p.rowKey}\u0000${p.colKey}`}
-              justify="between"
-              align="center"
-              gap="density-md"
-              wrap="wrap"
+              type="button"
+              onClick={() => onSelect(p)}
+              className="w-full cursor-pointer rounded text-left transition-opacity hover:opacity-70"
+              style={{ background: "none", border: 0, padding: 0 }}
             >
               <Flex align="center" gap="density-sm">
                 <DefconBadge defcon={scoreToDefcon(p.score)} />
-                <Text kind="label/bold/sm">{formatRate(p.score)}</Text>
-                <Text kind="body/regular/sm">
+                <Text kind="label/bold/md">{formatRate(p.score)}</Text>
+                <Text kind="body/regular/md">
                   {p.rowLabel} × {p.colLabel}
                 </Text>
               </Flex>
-              <Text kind="label/regular/xs" className="opacity-60">
-                technique reaches {formatRate(p.rowBest, 0)} elsewhere · intent reaches{" "}
-                {formatRate(p.colBest, 0)} elsewhere
-              </Text>
-            </Flex>
+            </button>
           ))}
-        </Stack>
+        </Grid>
       </Stack>
     }
   />
@@ -167,6 +133,11 @@ const TechniqueIntentPanel = ({ techniqueIntent, isDark }: TechniqueIntentPanelP
   const [activeTab, setActiveTab] = useState<AxisTab>("technique");
   const [techOpen, setTechOpen] = useState<string>("");
   const [intentOpen, setIntentOpen] = useState<string>("");
+  // Intent to auto-open inside the currently-open technique (set when a notable
+  // pairing is clicked; cleared on any manual accordion interaction).
+  const [focusIntent, setFocusIntent] = useState<string>("");
+  // Bumped on every notable-pairing click so re-clicking the same one re-scrolls.
+  const [focusNonce, setFocusNonce] = useState(0);
 
   const viewGrouped = useMemo(
     () => buildMatrixView(techniqueIntent ?? {}, "grouped"),
@@ -179,29 +150,9 @@ const TechniqueIntentPanel = ({ techniqueIntent, isDark }: TechniqueIntentPanelP
 
   const hasMatrix = hasEntries(techniqueIntent);
 
-  // Summary + interaction signal are derived from the concrete leaf pairings so
-  // they stay stable regardless of the Grouped/Leaf toggle below.
+  // The interaction signal is derived from the concrete leaf pairings so it
+  // stays stable regardless of the Grouped/Leaf toggle below.
   const notable = useMemo(() => findNotablePairings(viewLeaf), [viewLeaf]);
-  const stats = useMemo(() => {
-    let pairings = 0;
-    let passed = 0;
-    let evaluated = 0;
-    for (const row of viewLeaf.rows) {
-      for (const col of viewLeaf.cols) {
-        const cell = viewLeaf.cell(row, col);
-        if (!cell) continue;
-        pairings += 1;
-        passed += cell.passed;
-        evaluated += cell.nEvaluations;
-      }
-    }
-    return {
-      techniques: viewLeaf.rows.length,
-      intents: viewLeaf.cols.length,
-      pairings,
-      passRate: evaluated > 0 ? passed / evaluated : null,
-    };
-  }, [viewLeaf]);
 
   const toggleDefcon = useCallback((defcon: number) => {
     setSelectedDefcons(prev =>
@@ -214,6 +165,24 @@ const TechniqueIntentPanel = ({ techniqueIntent, isDark }: TechniqueIntentPanelP
     setLevel(next);
     setTechOpen("");
     setIntentOpen("");
+  }, []);
+
+  // Manual open/close on the technique list drops any pending notable-pairing focus.
+  const handleTechOpen = useCallback((next: string) => {
+    setTechOpen(next);
+    setFocusIntent("");
+  }, []);
+
+  // Jump from a notable pairing to its detail: technique tab, leaf level (so the
+  // accordion key matches the leaf pairing), open that technique and pre-select
+  // the intent. The opened detail box reveals itself once the accordion finishes
+  // animating (see scrollBoxIntoView in TaxonomyAxisList).
+  const handleNotableSelect = useCallback((pairing: NotablePairing) => {
+    setActiveTab("technique");
+    setLevel("leaf");
+    setTechOpen(pairing.rowKey);
+    setFocusIntent(pairing.colKey);
+    setFocusNonce(n => n + 1);
   }, []);
 
   if (!hasMatrix) {
@@ -241,7 +210,9 @@ const TechniqueIntentPanel = ({ techniqueIntent, isDark }: TechniqueIntentPanelP
               selectedDefcons={selectedDefcons}
               sortBy={sortBy}
               openValue={techOpen}
-              onOpenChange={setTechOpen}
+              onOpenChange={handleTechOpen}
+              focusSecondaryKey={focusIntent}
+              focusNonce={focusNonce}
               isDark={isDark}
             />
           </ErrorBoundary>
@@ -271,14 +242,7 @@ const TechniqueIntentPanel = ({ techniqueIntent, isDark }: TechniqueIntentPanelP
 
   return (
     <Flex direction="col" gap="density-2xl" style={{ width: "100%" }}>
-      <CoverageSummary
-        techniques={stats.techniques}
-        intents={stats.intents}
-        pairings={stats.pairings}
-        passRate={stats.passRate}
-      />
-
-      {notable.length > 0 && <NotablePairings items={notable} />}
+      {notable.length > 0 && <NotablePairings items={notable} onSelect={handleNotableSelect} />}
 
       <Flex direction="col" gap="density-sm">
         <ReportFilterBar

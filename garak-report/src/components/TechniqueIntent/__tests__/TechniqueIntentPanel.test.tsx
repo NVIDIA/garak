@@ -8,7 +8,7 @@
  * @license Apache-2.0
  */
 
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, within } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import type { ReactNode } from "react";
 import TechniqueIntentPanel from "../TechniqueIntentPanel";
@@ -111,6 +111,7 @@ const score = (s: number) => ({
   passed: Math.round(s * 100),
   total_evaluated: 100,
   nones: 0,
+  n_attempts: 100,
   n_detectors: 1,
 });
 
@@ -130,15 +131,25 @@ describe("TechniqueIntentPanel", () => {
     );
   });
 
-  it("renders the coverage summary, tabs and notable pairings for a matrix", () => {
+  it("renders the tabs and notable pairings for a matrix", () => {
     render(<TechniqueIntentPanel techniqueIntent={matrix} />);
-    expect(screen.getByText("Coverage"), "summary card renders").toBeInTheDocument();
-    expect(screen.getByText("Overall pass rate"), "summary shows a plain pass rate").toBeInTheDocument();
     expect(screen.getByTestId("tab-technique"), "technique tab present").toBeInTheDocument();
     expect(screen.getByTestId("tab-intent"), "intent tab present").toBeInTheDocument();
     expect(screen.getByTestId("notification-heading"), "interaction callout renders").toHaveTextContent(
       "Notable pairings",
     );
+  });
+
+  it("jumps to the pairing detail when a notable pairing is clicked", () => {
+    render(<TechniqueIntentPanel techniqueIntent={matrix} />);
+    // The callout lists each interaction as a single clickable shortcut.
+    const callout = screen.getByTestId("notification");
+    const shortcut = within(callout).getByRole("button");
+    fireEvent.click(shortcut);
+    expect(
+      screen.getByTestId("tabs"),
+      "panel stays mounted after jumping to a pairing",
+    ).toBeInTheDocument();
   });
 
   it("drives the filter, sort, level and tab controls", () => {

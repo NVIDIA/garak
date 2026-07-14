@@ -76,6 +76,7 @@ const cell = (over: Partial<MatrixCell>): MatrixCell => ({
   col: "i1",
   score: 0.1,
   nEvaluations: 100,
+  nAttempts: 0,
   passed: 10,
   nones: 0,
   nDetectors: 3,
@@ -93,13 +94,13 @@ const cellMap: Record<string, MatrixCell> = {
     passed: 18,
     leafCount: 2,
     leaves: [
-      { technique: "demon:A:Sub:One", intent: "i1", score: 0.1, nEvaluations: 60, passed: 6, nones: 0, nDetectors: 3 },
-      { technique: "demon:A:Sub:Two", intent: "i1", score: 0.3, nEvaluations: 40, passed: 12, nones: 0, nDetectors: 2 },
+      { technique: "demon:A:Sub:One", intent: "i1", score: 0.1, nEvaluations: 60, nAttempts: 0, passed: 6, nones: 0, nDetectors: 3 },
+      { technique: "demon:A:Sub:Two", intent: "i1", score: 0.3, nEvaluations: 40, nAttempts: 0, passed: 12, nones: 0, nDetectors: 2 },
     ],
   }),
   "techA|i2": cell({ col: "i2", score: 0.5, passed: 50 }),
   "techA|i3": cell({ col: "i3", score: 1, passed: 100 }),
-  "techB|i1": cell({ row: "techB", col: "i1", score: 0.4, passed: 40 }),
+  "techB|i1": cell({ row: "techB", col: "i1", score: 0.4, passed: 40, nAttempts: 20 }),
   "techC|i1": cell({ row: "techC", col: "i1", score: 1, passed: 100 }),
 };
 
@@ -136,16 +137,17 @@ describe("TaxonomyAxisList", () => {
     expect(screen.getAllByTestId("accordion-item"), "a row per technique").toHaveLength(3);
   });
 
-  it("renders the chart for multi-cell groups and a single-child detail otherwise", () => {
+  it("renders a bar chart for every group and auto-shows detail for single-intent groups", () => {
     renderList();
-    expect(screen.getByTestId("echarts"), "multi-intent technique shows the bar chart").toBeInTheDocument();
-    // techB / techC single-child cells render their detail inline with the
-    // concrete pass/fail counts from the digest.
-    expect(screen.getAllByText("Passed").length, "single-child detail shows the passed count").toBeGreaterThan(0);
+    expect(screen.getAllByTestId("echarts").length, "every group renders a bar chart").toBeGreaterThan(0);
+    // techB / techC have a single intent: the lone bar is pre-selected so their
+    // detail (concrete pass/fail counts) is up without a click.
+    expect(screen.getAllByText("Passed").length, "single-intent detail shows the passed count").toBeGreaterThan(0);
   });
 
   it("shows a pooled-pairs detail when a rolled-up bar is selected", () => {
-    renderList();
+    // Scope to the multi-intent technique so there's a single chart to drive.
+    renderList({ view: { ...view, rows: ["techA"] } });
     act(() => chartClick?.({ componentType: "series", dataIndex: 0 })); // worst-first => the pooled cell
     expect(screen.getByText("Pooled pairs (2)"), "selecting a pooled cell reveals its leaves").toBeInTheDocument();
   });
@@ -153,6 +155,16 @@ describe("TaxonomyAxisList", () => {
   it("renders the clean 'no failures' state for a 100% cell", () => {
     renderList();
     expect(screen.getByText("No failures recorded"), "clean single-child cell shows the safe state").toBeInTheDocument();
+  });
+
+  it("surfaces the prompt count and a math-free evaluation breakdown when prompts are known", () => {
+    renderList();
+    // techB is a single-child cell with 20 prompts / 3 detectors / 100 evaluations.
+    expect(screen.getAllByText("Prompts").length, "detail shows a Prompts stat").toBeGreaterThan(0);
+    expect(
+      screen.getByText("20 prompts scored by 3 detectors = 100 evaluations."),
+      "caption spells out prompts × detectors = evaluations",
+    ).toBeInTheDocument();
   });
 
   it("shows the technique description under the group label when present", () => {

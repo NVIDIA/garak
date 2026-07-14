@@ -72,9 +72,14 @@ class Evaluator:
         intent_counts: dict[str, dict[str, int]] = defaultdict(
             lambda: {"passed": 0, "total_evaluated": 0, "nones": 0}
         )
+        # Distinct attempts (prompts) seen per intent, so the digest can report a
+        # prompt count alongside the evaluation count (which is attempts x detectors).
+        intent_attempts: dict[str, set] = defaultdict(set)
 
         for attempt in attempts:
             intent = attempt.intent
+            if intent is not None:
+                intent_attempts[intent].add(attempt.uuid)
             for idx, score in enumerate(attempt.detector_results[detector_name]):
                 if score is None:
                     nones += 1
@@ -201,7 +206,10 @@ class Evaluator:
         # per-intent pass/total counts, feeds the digest technique_intent_matrix
         if intent_counts:
             eval_record["intents"] = {
-                intent_key: dict(counts)
+                intent_key: {
+                    **dict(counts),
+                    "n_attempts": len(intent_attempts.get(intent_key, ())),
+                }
                 for intent_key, counts in sorted(intent_counts.items())
             }
 

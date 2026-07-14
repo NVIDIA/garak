@@ -24,6 +24,8 @@ export type TechniqueIntentCell = {
   passed: number;
   total_evaluated: number;
   nones: number;
+  /** Distinct prompts (attempts) for this pairing; `total_evaluated` is prompts × detectors. Absent on older reports. */
+  n_attempts?: number;
   n_detectors: number;
 };
 
