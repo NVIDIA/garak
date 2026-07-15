@@ -4,7 +4,7 @@
 import pytest
 
 from garak.langservice import _load_langprovider
-from garak.langproviders.base import split_input_text
+from garak.langproviders.base import is_meaning_string, split_input_text
 
 
 def test_split_input_text():
@@ -15,6 +15,52 @@ def test_split_input_text():
     input_text = "Hello\nHow are you?\nI am fine\nThank you."
     expected_output = ["Hello", "How are you?", "I am fine", "Thank you."]
     assert split_input_text(input_text) == expected_output
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Bonjour, ceci est une phrase en français.",
+        "これは日本語の文章です。",
+        "Hola mundo, esto es una frase en español.",
+    ],
+)
+def test_is_meaning_string_true_for_non_english(text):
+    # Non-English, translatable text should be flagged as meaningful
+    assert is_meaning_string(text) is True
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "This is a normal English sentence about cats.",  # English needs no translation
+        "ab",  # too short
+        "a",  # too short
+        "",  # empty
+        "aaaa",  # repetitive
+        "123123123",  # no alphabetic content
+        "12345",  # no alphabetic content
+        "!!! ??? ...",  # no alphabetic content
+        "$",  # no alphabetic content
+        "   ",  # whitespace only
+    ],
+)
+def test_is_meaning_string_false_for_meaningless_or_english(text):
+    assert is_meaning_string(text) is False
+
+
+def test_langproviders_base_uses_langid_lazily():
+    # Migration contract for issue #1208: langdetect is gone, and langid is
+    # imported lazily inside is_meaning_string rather than at module load.
+    import inspect
+
+    from garak.langproviders import base
+
+    module_source = inspect.getsource(base)
+    assert "langdetect" not in module_source
+    module_top = module_source.split("\ndef ")[0]
+    assert "import langid" not in module_top
+    assert "import langid" in inspect.getsource(base.is_meaning_string)
 
 
 @pytest.mark.parametrize(
