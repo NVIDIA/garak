@@ -500,3 +500,36 @@ def test_rest_mtls_pickle_roundtrip(real_mtls_cert_files):
     assert isinstance(
         adapter, _MtlsAdapter
     ), "Reconstructed session must have an _MtlsAdapter mounted on 'https://'"
+
+
+# Regression: a response_json_field / JSONPath that resolves to a non-string
+# (dict / number) must not crash; it is coerced to text. See issue #1888
+# (AttributeError: 'dict' object has no attribute 'lower' after all subtests run).
+@pytest.mark.usefixtures("set_rest_config")
+def test_json_rest_dict_value_is_coerced(requests_mock):
+    requests_mock.post(
+        "https://www.wikidata.org/wiki/Q22971",
+        text=json.dumps({"text": {"content": "nested reply"}}, ensure_ascii=False),
+    )
+    _config.plugins.generators["rest"]["RestGenerator"]["response_json"] = True
+    _config.plugins.generators["rest"]["RestGenerator"]["response_json_field"] = "text"
+    generator = RestGenerator()
+    conv = Conversation([Turn("user", Message("prompt"))])
+    output = generator._call_model(conv)
+    assert output == [Message(json.dumps({"content": "nested reply"}, ensure_ascii=False))]
+    assert isinstance(output[0].text, str)  # the thing detectors will call .lower() on
+
+
+@pytest.mark.usefixtures("set_rest_config")
+def test_json_rest_jsonpath_dict_value_is_coerced(requests_mock):
+    requests_mock.post(
+        "https://www.wikidata.org/wiki/Q22971",
+        text=json.dumps({"choices": [{"message": {"role": "assistant"}}]}, ensure_ascii=False),
+    )
+    _config.plugins.generators["rest"]["RestGenerator"]["response_json"] = True
+    _config.plugins.generators["rest"]["RestGenerator"]["response_json_field"] = "$.choices[0].message"
+    generator = RestGenerator()
+    conv = Conversation([Turn("user", Message("prompt"))])
+    output = generator._call_model(conv)
+    assert isinstance(output[0].text, str)
+    assert "assistant" in output[0].text
