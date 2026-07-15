@@ -3,6 +3,8 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+"""Interactive terminal mode for garak, built on cmd2."""
+
 import argparse
 from logging import getLogger
 import random
@@ -52,9 +54,10 @@ probe_parser.add_argument(
 
 
 def print_plugins(prefix, color):
+    """Print all plugins of the given category to stdout."""
     plugin_names = enumerate_plugins(category=prefix)
     plugin_names = [(p.replace(f"{prefix}.", ""), a) for p, a in plugin_names]
-    module_names = set([(m.split(".")[0], True) for m, a in plugin_names])
+    module_names = {(m.split(".")[0], True) for m, a in plugin_names}
     plugin_names += module_names
     for plugin_name, active in sorted(plugin_names):
         print(f"{Style.BRIGHT}{color}{prefix}: {Style.RESET_ALL}", end="")
@@ -68,12 +71,15 @@ def print_plugins(prefix, color):
 
 @cmd2.with_default_category("Garak Commands")
 class GarakCommands(cmd2.CommandSet):
+    """cmd2 CommandSet exposing list, probe, and other interactive garak commands."""
+
     def __init__(self):
         """Initialize the Garak Commands object."""
         super().__init__()
 
     @cmd2.with_argparser(list_parser)
     def do_list(self, args):
+        """List available probes, detectors, or generators."""
         if not args.type:
             print("Choose probes, detectors, or generators.")
 
@@ -97,14 +103,15 @@ class GarakCommands(cmd2.CommandSet):
 
     @cmd2.with_argparser(probe_parser)
     def do_probe(self, args):
+        """Run a probe against the configured target."""
         if not self._cmd.target_type or not self._cmd.target_model:
             print(
                 "Use the `set` command to set the target_type and target_model first."
             )
-            return
+            return None
         # If probe is already set, overwrite it.
         if args.probe and self._cmd.probe:
-            logger.warning(f"Probe already set. Resetting probe to {args.probe}")
+            logger.warning("Probe already set. Resetting probe to %s", args.probe)
             print(f"Executing {args.probe}")
             self._cmd.probe = args.probe
         elif not args.probe and not self._cmd.probe:
@@ -139,6 +146,7 @@ class GarakCommands(cmd2.CommandSet):
         harness.run(generator, [self._cmd.probe], evaluator)
         logger.info("Run complete, ending")
         print("Run complete!")
+        return None
 
 
 class GarakTerminal(cmd2.Cmd):
@@ -192,12 +200,11 @@ class GarakTerminal(cmd2.Cmd):
         self.remove_settable("editor")
         self.remove_settable("feedback_to_output")
 
-    def default(self, command: str) -> None:
-        """Execute when a command isn't recognized"""
-        print(f"Command does not exist.\n")
-        return None
+    def default(self, _command: str) -> None:
+        """Execute when a command isn't recognized."""
+        print("Command does not exist.\n")
 
-    def postcmd(self, stop, line):
+    def postcmd(self, stop, _line):
         """Set the prompt to reflect interaction changes."""
         target_type = self.target_type
         target_model = self.target_model
@@ -220,14 +227,19 @@ class GarakTerminal(cmd2.Cmd):
         self.register_command_set(self._cmd)
 
     @cmd2.with_argument_list
-    def do_quit(self, args):
+    def do_quit(
+        self, _args
+    ):  # pylint: disable=unused-argument  # cmd2 interface requires the parameter
+        """Quit the interactive garak terminal."""
         print(self.quit_message)
         sys.exit(0)
 
     def settings_ns_provider(self) -> argparse.Namespace:
         """Populate an argparse Namespace with current settings"""
         ns = argparse.Namespace()
-        ns.app_settings = self.settings
+        ns.app_settings = (
+            self.settings
+        )  # pylint: disable=no-member  # cmd2.Cmd sets `settings` dynamically
         return ns
 
 
