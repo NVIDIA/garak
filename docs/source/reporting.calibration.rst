@@ -7,7 +7,7 @@ Are my scores good?
 
 Garak scores are interpreted by comparing them with results from a bag of
 state-of-the-art models. The surveyed results form a distribution of possible
-garak scores. A target model's pass rate is compared with the mean and
+garak scores. A target's pass rate is compared with the mean and
 variation in that distribution to estimate how it performs relative to the
 models in the bag.
 
@@ -16,22 +16,38 @@ What models are compared against?
 
 The following factors guide the composition of a calibration model bag:
 
-* **Quantity** - The bag should contain enough models to produce usable results
-  while keeping the calibration run tractable.
-* **Recency** - Recent models keep the comparison relevant, but changing the
-  bag too often makes results harder to compare across garak runs.
-* **Size** - The bag should represent a range of parameter counts, regardless
-  of quantisation.
-* **Provider** - Provider diversity reduces the influence of any one model
-  family.
+* **Quantity** - There should be enough models in the bag to produce usable
+  results and few enough to keep the calibration run tractable.
+* **Recency** - Older models can give uncompetitive results, so recent models
+  are preferred. Updating the bag too frequently, however, makes results
+  harder to compare across garak runs.
+* **Size** - The bag should include models with 1--10B, 11--99B, and 100B+
+  parameters. Size is measured by parameter count regardless of quantisation.
+* **Provider** - Provider diversity is preferred, with no more than two models
+  per provider where practical.
 * **Openness** - Open-weight models are preferred because they are easier to
   survey reproducibly.
 
-The model list and run configuration for every published calibration are
-archived as machine-readable CSV and YAML files in the
-`calibration bag catalog <https://github.com/NVIDIA/garak/tree/main/garak/data/calibration/bags>`_.
-The catalog's ``current`` field identifies the release used by
-``calibration.json``.
+The current model list and run configuration are maintained in
+`garak/data/calibration/bag.csv <https://github.com/NVIDIA/garak/blob/main/garak/data/calibration/bag.csv>`_
+and
+`garak/configs/bag.yaml <https://github.com/NVIDIA/garak/blob/main/garak/configs/bag.yaml>`_.
+Decimal and binary size categories are derived from the recorded parameter
+count rather than maintained separately. Parameter counts use the developer's
+published total; active or non-embedding counts are retained in the source
+notes, and undisclosed counts are recorded as ``NA``. The exact report inputs
+used to calculate a release, together with its model-bag identifier, are
+recorded in the ``garak_calibration_meta`` section of its versioned
+``calibration-*.json`` file and cross-checked against the model list. Retired
+model lists and run configurations are frozen under
+`garak/data/calibration/archive <https://github.com/NVIDIA/garak/tree/main/garak/data/calibration/archive>`_.
+When report names distinguish reruns with a suffix, each suffix must form a
+complete cohort covering the reused bag's canonical report paths. Partial
+cohorts, path mismatches, and report-layout changes fail the documentation
+build.
+The reference below is generated from those sources during every documentation
+build. Historical calibration files with a null bag identifier remain visible
+with their recorded report inputs.
 
 Z-scores
 ^^^^^^^^
@@ -69,47 +85,20 @@ The first calibration was published in summer 2024. Updating the bag between
 twice a year and quarterly balances model recency with the need to compare
 results over time.
 
+Current calibration
+^^^^^^^^^^^^^^^^^^^
+
+Generator-specific values such as ``max_tokens``, ``skip_seq_start``, and
+``skip_seq_end`` may be combined with the canonical configuration when a target
+system requires them.
+
+.. calibration-data:: current
+
 Calibration archive
 ^^^^^^^^^^^^^^^^^^^
 
-Winter 2026 (current)
----------------------
+Every versioned historical calibration is included automatically. Where a
+frozen model list and run configuration are available, they are rendered with
+the calibration metadata.
 
-Generator-specific values for ``max_tokens``, ``skip_seq_start``, and
-``skip_seq_end`` were combined with this configuration where required by the
-target system.
-
-.. csv-table:: Winter 2026 model bag
-   :file: ../../garak/data/calibration/bags/2026-02/models.csv
-   :header-rows: 1
-   :widths: 13, 13, 18, 39, 17
-
-.. literalinclude:: ../../garak/data/calibration/bags/2026-02/config.yaml
-   :language: yaml
-   :caption: Winter 2026 run configuration
-
-Spring 2025
------------
-
-.. csv-table:: Spring 2025 model bag
-   :file: ../../garak/data/calibration/bags/2025-05/models.csv
-   :header-rows: 1
-   :widths: 13, 13, 18, 39, 17
-
-.. literalinclude:: ../../garak/data/calibration/bags/2025-05/config.yaml
-   :language: yaml
-   :caption: Spring 2025 run configuration
-
-Summer 2024
------------
-
-Binary size categories were not recorded for this release.
-
-.. csv-table:: Summer 2024 model bag
-   :file: ../../garak/data/calibration/bags/2024-summer/models.csv
-   :header-rows: 1
-   :widths: 13, 13, 18, 39, 17
-
-.. literalinclude:: ../../garak/data/calibration/bags/2024-summer/config.yaml
-   :language: yaml
-   :caption: Summer 2024 run configuration
+.. calibration-data:: archive

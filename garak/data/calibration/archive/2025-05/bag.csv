@@ -1,0 +1,24 @@
+report_input,provider,model,parameters_billions,source_url,notes
+abacusai/dracarys-llama-3.1-70b-instruct.report.jsonl,abacusai,dracarys-llama-3.1-70b-instruct,70,https://huggingface.co/abacusai/Dracarys-Llama-3.1-70B-Instruct,Fine-tune of Meta Llama 3.1 70B.
+ai21labs/jamba-1.5-mini-instruct.report.jsonl,ai21labs,jamba-1.5-mini-instruct,52,https://huggingface.co/ai21labs/AI21-Jamba-Mini-1.5,"MoE with 52B total and 12B active parameters."
+deepseek-ai/deepseek-r1-distill-qwen-7b.report.jsonl,deepseek-ai,deepseek-r1-distill-qwen-7b,7.62,https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B/blob/main/config.json,First-party checkpoint config gives 7.6156B parameters.
+deepseek-ai/deepseek-r1.report.jsonl,deepseek-ai,deepseek-r1,671,https://huggingface.co/deepseek-ai/DeepSeek-R1,"MoE with 671B total and 37B active parameters."
+google/gemma-3-1b-it.report.jsonl,google,gemma-3-1b-it,1,https://huggingface.co/google/gemma-3-1b-it,Google Gemma 3 1B model.
+google/gemma-3-27b-it.report.jsonl,google,gemma-3-27b-it,27,https://huggingface.co/google/gemma-3-27b-it,Google Gemma 3 27B model.
+ibm-granite/granite-3.0-3b-a800m-instruct.report.jsonl,ibm-granite,granite-3.0-3b-a800m-instruct,3.3,https://huggingface.co/ibm-granite/granite-3.0-3b-a800m-instruct,"MoE with 3.3B total and 0.8B active parameters."
+ibm-granite/granite-3.0-8b-instruct.report.jsonl,ibm-granite,granite-3.0-8b-instruct,8.1,https://huggingface.co/ibm-granite/granite-3.0-8b-instruct,Dense model with 8.1B parameters.
+meta/llama-3.1-405b-instruct.report.jsonl,meta,llama-3.1-405b-instruct,405,https://huggingface.co/meta-llama/Llama-3.1-405B-Instruct,Meta Llama 3.1 405B model.
+meta/llama-3.3-70b-instruct.report.jsonl,meta,llama-3.3-70b-instruct,70,https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct,Meta Llama 3.3 70B model.
+meta/llama-4-maverick-17b-128e-instruct.report.jsonl,meta,llama-4-maverick-17b-128e-instruct,400,https://huggingface.co/meta-llama/Llama-4-Maverick-17B-128E-Instruct,"MoE with 400B total and 17B active parameters."
+microsoft/phi-3.5-moe-instruct.report.jsonl,microsoft,phi-3.5-moe-instruct,42,https://huggingface.co/microsoft/Phi-3.5-MoE-instruct,"MoE with 42B total and 6.6B active parameters."
+microsoft/phi-4-mini-instruct.report.jsonl,microsoft,phi-4-mini-instruct,3.8,https://huggingface.co/microsoft/Phi-4-mini-instruct,Dense model with 3.8B parameters.
+mistralai/mistral-small-24b-instruct.report.jsonl,mistralai,mistral-small-24b-instruct,24,https://huggingface.co/mistralai/Mistral-Small-24B-Instruct-2501,The report stem omits the 2501 revision and is preserved unchanged.
+mistralai/mixtral-8x22b-instruct-v0.1.report.jsonl,mistralai,mixtral-8x22b-instruct-v0.1,141,https://huggingface.co/mistralai/Mixtral-8x22B-Instruct-v0.1,MoE with 141B total parameters.
+nvidia/llama-3.3-nemotron-super-49b-v1.report.jsonl,nvidia,llama-3.3-nemotron-super-49b-v1,49,https://huggingface.co/nvidia/Llama-3_3-Nemotron-Super-49B-v1,NVIDIA model identifier states 49B.
+nvidia/mistral-nemo-minitron-8b-8k-instruct.report.jsonl,nvidia,mistral-nemo-minitron-8b-8k-instruct,8,https://huggingface.co/nvidia/Mistral-NeMo-Minitron-8B-Instruct,NVIDIA reports 8B parameters.
+openai/gpt-4o.report.jsonl,openai,gpt-4o,NA,https://developers.openai.com/api/docs/models/gpt-4o,OpenAI does not disclose a parameter count.
+qwen/qwen2.5-7b-instruct.report.jsonl,qwen,qwen2.5-7b-instruct,7.61,https://huggingface.co/Qwen/Qwen2.5-7B-Instruct,"7.61B total and 6.53B non-embedding parameters."
+qwen/qwen2.5-coder-32b-instruct.report.jsonl,qwen,qwen2.5-coder-32b-instruct,32.5,https://huggingface.co/Qwen/Qwen2.5-Coder-32B-Instruct,"32.5B total and 31.0B non-embedding parameters."
+qwen/qwq-32b.report.jsonl,qwen,qwq-32b,32.5,https://huggingface.co/Qwen/QwQ-32B,"32.5B total and 31.0B non-embedding parameters."
+writer/palmyra-creative-122b.report.jsonl,writer,palmyra-creative-122b,122,https://build.nvidia.com/writer/palmyra-creative-122b/deploy,Official deployment identifier records 122B.
+zyphra/zamba2-7b-instruct.report.jsonl,zyphra,zamba2-7b-instruct,7,https://huggingface.co/Zyphra/Zamba2-7B-Instruct,Zyphra reports 7B parameters.

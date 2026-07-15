@@ -3,10 +3,65 @@
 
 import json
 
-from docutils.frontend import OptionParser
-from docutils.utils import new_document
+from calibration_data import (
+    CALIBRATION_ARCHIVE,
+    CALIBRATION_POINTER,
+    CALIBRATION_ROOT,
+    archived_calibration_releases,
+    current_calibration_release,
+    render_calibration_release,
+    resolve_current_calibration,
+)
+from docutils import nodes
+from docutils.statemachine import StringList
 from sphinx.util.docutils import SphinxDirective
-from sphinx.parsers import RSTParser
+
+
+def _parse_rst(directive: SphinxDirective, text: str) -> list:
+    """Parse generated reStructuredText into the current document."""
+    container = nodes.container()
+    directive.state.nested_parse(
+        StringList(text.splitlines()), directive.content_offset, container
+    )
+    return container.children
+
+
+class CalibrationDataDirective(SphinxDirective):
+    """Render current or archived calibration data during the docs build."""
+
+    required_arguments = 1
+    final_argument_whitespace = False
+    has_content = False
+
+    def run(self) -> list:
+        mode = self.arguments[0].strip().casefold()
+        try:
+            if mode == "current":
+                releases = [current_calibration_release()]
+                dependencies = {CALIBRATION_POINTER}
+            elif mode == "archive":
+                releases = archived_calibration_releases()
+                dependencies = {
+                    CALIBRATION_ARCHIVE,
+                    CALIBRATION_POINTER,
+                    CALIBRATION_ROOT,
+                }
+            else:
+                raise ValueError(
+                    "calibration-data expects either 'current' or 'archive'"
+                )
+
+            for release in releases:
+                dependencies.update(release.dependencies)
+            for dependency in dependencies:
+                self.env.note_dependency(str(dependency))
+            rst = "\n\n".join(
+                render_calibration_release(release) for release in releases
+            )
+        except (OSError, ValueError) as error:
+            raise self.error(f"Unable to render calibration data: {error}") from error
+
+        return _parse_rst(self, rst)
 
 
 class ShowASRDirective(SphinxDirective):
@@ -14,10 +69,11 @@ class ShowASRDirective(SphinxDirective):
 
     def run(self) -> list:
         rst = ""
-        with open(
-            "../../garak/data/calibration/calibration.json", encoding="utf-8"
-        ) as f:
-            calibration = json.load(f)
+        calibration_path = resolve_current_calibration()
+        self.env.note_dependency(str(CALIBRATION_POINTER))
+        self.env.note_dependency(str(calibration_path))
+        with calibration_path.open(encoding="utf-8") as calibration_file:
+            calibration = json.load(calibration_file)
             for key in sorted(calibration.keys()):
                 if key.startswith(self.env.docname.replace("garak.probes.", "")):
                     probe, detector = key.split("/")
@@ -25,7 +81,7 @@ class ShowASRDirective(SphinxDirective):
                     probe_ref = f":obj:`~garak.probes.{probe}`"
                     detector_ref = f":obj:`~garak.detectors.{detector}`"
 
-                    rst += f"\n* {probe_ref}: {100*(1-scores["mu"]):.1f}% with detector {detector_ref}"
+                    rst += f"\n* {probe_ref}: {100*(1-scores['mu']):.1f}% with detector {detector_ref}"
 
         if rst:
             rst = (
@@ -34,19 +90,7 @@ class ShowASRDirective(SphinxDirective):
                 + "\n\n **Note:** Not all probes are calibrated, so this data might not cover every class in the module."
             )
 
-        return self._parse_rst(rst)
-
-    def _parse_rst(self, text):
-        parser = RSTParser()
-        parser.set_application(self.env.app)
-        settings = OptionParser(
-            defaults=self.env.settings,
-            components=(RSTParser,),
-            read_config_files=True,
-        ).get_default_values()
-        document = new_document("<rst-doc>", settings=settings)
-        parser.parse(text, document)
-        return document.children
+        return _parse_rst(self, rst)
 
 
 def _expand_process_default_params(app, what, name, obj, options, lines):
@@ -84,6 +128,7 @@ def _skip_default_params(app, what, name, obj, skip, options):
 
 
 def setup(app: object) -> dict:
+    app.add_directive("calibration-data", CalibrationDataDirective)
     app.add_directive("show-asr", ShowASRDirective)
     app.connect("autodoc-process-docstring", _expand_process_default_params)
     app.connect("autodoc-skip-member", _skip_default_params)
