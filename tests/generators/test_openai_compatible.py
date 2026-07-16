@@ -144,12 +144,16 @@ def test_openai_multiple_generations():
 
 
 def test_conversation_to_list_image_turn_is_reachable():
-    """An image turn must produce an image content part, not raise GarakException.
+    """An image turn must produce a chat/completions image part, not raise.
 
     ``data_type`` is a ``(mimetype, encoding)`` tuple, so ``"image" in
     turn.content.data_type`` was always False and the image branch was dead:
     every image turn fell through to the ``else`` and raised
     ``GarakException("Data type image/gif not supported.")``.
+
+    The part types are the ones chat/completions accepts (``text`` /
+    ``image_url``); the responses API spelling (``input_text`` /
+    ``input_image``) is rejected with a 400 invalid_value.
     """
     generator = build_test_instance(OpenAIGenerator)
     conv = Conversation(
@@ -164,7 +168,9 @@ def test_conversation_to_list_image_turn_is_reachable():
     result = generator._conversation_to_list(conv)
 
     content = result[0]["content"]
-    image_parts = [p for p in content if p.get("type") == "input_image"]
-    assert image_parts, "image turn did not produce an input_image content part"
-    # Well-formed base64 data URI: data:<mimetype>;base64,<data>
-    assert image_parts[0]["image_url"].startswith("data:image/gif;base64,")
+    assert [p.get("type") for p in content] == ["text", "image_url"]
+
+    text_part, image_part = content
+    assert text_part["text"] == "describe"
+    # image_url is an object with a url key, not a bare string
+    assert image_part["image_url"]["url"].startswith("data:image/gif;base64,")
