@@ -1,8 +1,10 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+import base64
 import os
 import httpx
+import pathlib
 import respx
 import pytest
 import importlib
@@ -28,6 +30,8 @@ MODEL_NAME = "gpt-3.5-turbo-instruct"
 ENV_VAR = os.path.abspath(
     __file__
 )  # use test path as hint encase env changes are missed
+
+IMAGE_ASSET = pathlib.Path(__file__).parents[1] / "_assets" / "tinytrans.gif"
 
 
 def compatible() -> Iterable[OpenAICompatible]:
@@ -143,34 +147,29 @@ def test_openai_multiple_generations():
     ), "OpenAI access expected to correctly support multiple generations by default"
 
 
-def test_conversation_to_list_image_turn_is_reachable():
-    """An image turn must produce a chat/completions image part, not raise.
+def test_conversation_to_list_image_turn_uses_chat_completions_format():
+    """Image turns render as chat/completions content parts.
 
-    ``data_type`` is a ``(mimetype, encoding)`` tuple, so ``"image" in
-    turn.content.data_type`` was always False and the image branch was dead:
-    every image turn fell through to the ``else`` and raised
-    ``GarakException("Data type image/gif not supported.")``.
-
-    The part types are the ones chat/completions accepts (``text`` /
-    ``image_url``); the responses API spelling (``input_text`` /
-    ``input_image``) is rejected with a 400 invalid_value.
+    `data_type` is a `(mimetype, encoding)` tuple, so `"image" in
+    turn.content.data_type` never matched and the image branch was unreachable.
     """
     generator = build_test_instance(OpenAIGenerator)
     conv = Conversation(
-        [
-            Turn(
-                "user",
-                Message(text="describe", data_path="tests/_assets/tinytrans.gif"),
-            )
-        ]
+        [Turn("user", Message(text="describe", data_path=str(IMAGE_ASSET)))]
     )
 
     result = generator._conversation_to_list(conv)
 
-    content = result[0]["content"]
-    assert [p.get("type") for p in content] == ["text", "image_url"]
+    assert len(result) == 1
+    assert result[0]["role"] == "user"
 
-    text_part, image_part = content
-    assert text_part["text"] == "describe"
-    # image_url is an object with a url key, not a bare string
-    assert image_part["image_url"]["url"].startswith("data:image/gif;base64,")
+    text_part, image_part = result[0]["content"]
+    assert text_part == {"type": "text", "text": "describe"}
+    assert image_part["type"] == "image_url"
+    # chat/completions expects an object with a `url` entry, not a bare string
+    assert isinstance(image_part["image_url"], dict)
+
+    header, separator, payload = image_part["image_url"]["url"].partition(",")
+    assert header == "data:image/gif;base64"
+    assert separator == ","
+    assert base64.b64decode(payload) == IMAGE_ASSET.read_bytes()
