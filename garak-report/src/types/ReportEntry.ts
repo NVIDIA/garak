@@ -52,6 +52,27 @@ export type TechniqueIntentRow = {
 export type TechniqueIntentMatrix = Record<string, TechniqueIntentRow>;
 
 /**
+ * One intent-typology entry: a human-readable name and description for an intent
+ * code. `descr` already folds the taxonomy's `default_stub` fallback in (garak
+ * does that at digest-build time). Either field may be null when the canonical
+ * typology leaves it blank.
+ */
+export type IntentTypologyEntry = {
+  name?: string | null;
+  descr?: string | null;
+};
+
+/**
+ * Intent code -> typology entry, from `digest.intent_typology`. Sourced at
+ * report-build time from garak's (user-override-aware) trait typology, so the
+ * frontend no longer bundles or build-time-imports its own copy. Covers every
+ * intent code the matrix references plus its family ("S004") and category ("S")
+ * ancestors, so grouped columns resolve too. Absent on reports built before this
+ * field existed.
+ */
+export type IntentTypology = Record<string, IntentTypologyEntry>;
+
+/**
  * Root structure for a Garak report digest.
  * Contains metadata, configuration, and evaluation results.
  */
@@ -85,6 +106,8 @@ export type ReportEntry = {
   results?: ModuleData[];
   /** Pooled technique×intent matrix (present on reports with technique/intent data). */
   technique_intent_matrix?: TechniqueIntentMatrix;
+  /** Intent labels/descriptions for the matrix's codes (present alongside the matrix on newer reports). */
+  intent_typology?: IntentTypology;
 };
 
 /**

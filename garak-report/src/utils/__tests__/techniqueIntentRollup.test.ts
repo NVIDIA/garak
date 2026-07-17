@@ -14,7 +14,16 @@ import {
   findNotablePairings,
 } from "../techniqueIntentRollup";
 import { intentName, intentDescription } from "../taxonomyLabels";
-import type { TechniqueIntentMatrix } from "../../types/ReportEntry";
+import type { IntentTypology, TechniqueIntentMatrix } from "../../types/ReportEntry";
+
+// Stand-in for `digest.intent_typology`: names/descriptions for the codes the
+// label tests exercise, covering both a leaf-bearing family ("C002") and a plain
+// code ("C001"). The frontend no longer bundles a typology, so tests supply one.
+const typology: IntentTypology = {
+  C001: { name: "Alpha intent", descr: "Alpha intent description" },
+  C002: { name: "Bravo family", descr: "Bravo family description" },
+  C006: { name: "Charlie intent", descr: "Charlie intent description" },
+};
 
 /** Builds a matrix from terse {technique, intent, score} triples for tests. */
 const matrixOf = (triples: { t: string; i: string; score: number; n?: number }[]) => {
@@ -155,8 +164,8 @@ describe("buildMatrixView", () => {
     });
   });
 
-  it("names and describes leaf intents from the bundled trait typology", () => {
-    const code = "C001"; // a real intent code present in the typology
+  it("names and describes leaf intents from the digest intent typology", () => {
+    const code = "C001"; // a code present in the supplied typology
     const named: TechniqueIntentMatrix = {
       "demon:Cat:Sub:A": {
         _summary: { name: "Alpha technique", description: "Does alpha things", n_intents: 1, n_detectors: 1 },
@@ -170,17 +179,17 @@ describe("buildMatrixView", () => {
         },
       },
     };
-    const view = buildMatrixView(named, "leaf");
+    const view = buildMatrixView(named, "leaf", typology);
     expect(view.rowLabel("demon:Cat:Sub:A")).toBe("Alpha technique");
     expect(view.colLabel(code), "intent label is the code plus the typology name").toBe(
-      `${code} - ${intentName(code)}`,
+      `${code} - ${intentName(code, typology)}`,
     );
     expect(view.rowDescription("demon:Cat:Sub:A")).toBe("Does alpha things");
     expect(view.colDescription(code), "intent description comes from the typology").toBe(
-      intentDescription(code),
+      intentDescription(code, typology),
     );
     // Grouped keys span many techniques, so technique names don't apply there.
-    expect(buildMatrixView(named, "grouped").rowDescription("demon:Cat:Sub")).toBeUndefined();
+    expect(buildMatrixView(named, "grouped", typology).rowDescription("demon:Cat:Sub")).toBeUndefined();
   });
 
   it("falls back to the digest name then the raw code when the typology is silent", () => {
@@ -190,7 +199,7 @@ describe("buildMatrixView", () => {
         Zbare: { score: 0.5, passed: 50, total_evaluated: 100, nones: 0, n_detectors: 1 },
       },
     };
-    const view = buildMatrixView(unknown, "leaf");
+    const view = buildMatrixView(unknown, "leaf", typology);
     expect(view.colLabel("Znovel"), "unknown code with a digest name is prefixed by the code").toBe(
       "Znovel - Digest Only",
     );
@@ -206,13 +215,13 @@ describe("buildMatrixView", () => {
         [leaf]: { name: "x", score: 0.5, passed: 50, total_evaluated: 100, nones: 0, n_detectors: 1 },
       },
     };
-    const grouped = buildMatrixView(named, "grouped");
+    const grouped = buildMatrixView(named, "grouped", typology);
     expect(grouped.cols, "leaf rolls up to its hazard family").toContain(family);
     expect(grouped.colLabel(family), "grouped column shows the code and family name").toBe(
-      `${family} - ${intentName(family)}`,
+      `${family} - ${intentName(family, typology)}`,
     );
     expect(grouped.colLabel(family), "the family name is present, not just the code").not.toBe(family);
-    expect(grouped.colDescription(family)).toBe(intentDescription(family));
+    expect(grouped.colDescription(family)).toBe(intentDescription(family, typology));
   });
 
   it("attaches taxonomy descriptions to both technique and intent axis groups", () => {
@@ -229,12 +238,12 @@ describe("buildMatrixView", () => {
         },
       },
     };
-    const view = buildMatrixView(named, "leaf");
+    const view = buildMatrixView(named, "leaf", typology);
     expect(buildAxisGroups(view, "technique")[0].description).toBe("Alpha desc");
     expect(
       buildAxisGroups(view, "intent")[0].description,
       "intent groups surface the typology description",
-    ).toBe(intentDescription(code));
+    ).toBe(intentDescription(code, typology));
   });
 
   it("pools passed / undetermined counts and keeps the worst detector count", () => {

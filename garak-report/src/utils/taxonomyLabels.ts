@@ -7,39 +7,33 @@
  * @license Apache-2.0
  */
 
-import traitTypology from "../../../garak/data/cas/trait_typology.json";
+import type { IntentTypology } from "../types/ReportEntry";
 
-/** One entry from the CAS trait typology (name/description per intent code). */
-interface TraitEntry {
-  name?: string;
-  descr?: string;
-  default_stub?: string;
-}
-
-// Bundled snapshot of garak/data/cas/trait_typology.json. It's the same table
-// the report's intent codes come from and covers every level (top "C", family
-// "C002", leaf "C002deny"), so a single lookup names both leaf and grouped
-// columns without touching the digest. A drift guard test keeps this copy in
-// sync with the canonical source.
-const traitTable = traitTypology as Record<string, TraitEntry>;
+// Intent names/descriptions come from `digest.intent_typology`, sourced at
+// report-build time from garak's (user-override-aware) trait typology. The
+// frontend deliberately bundles no copy and no longer build-time-imports the
+// canonical file: either would freeze the package default into the JS bundle and
+// ignore user data overrides. The digest covers every level the matrix
+// references — leaf ("C002deny"), family ("C002"), category ("C") — so a single
+// lookup names both leaf and grouped columns.
 
 /**
- * Human-readable name for an intent code (leaf, family, or category), from the
- * bundled trait typology. Returns undefined for codes the typology doesn't know.
+ * Human-readable name for an intent code (leaf, family, or category), looked up
+ * in the digest-supplied intent typology. Returns undefined for unknown codes or
+ * when the report predates `intent_typology`.
  */
-export function intentName(code: string): string | undefined {
-  return traitTable[code]?.name || undefined;
+export function intentName(code: string, typology?: IntentTypology): string | undefined {
+  return typology?.[code]?.name || undefined;
 }
 
 /**
- * Description for an intent code from the bundled trait typology, preferring an
- * explicit `descr` and falling back to the `default_stub`. Undefined when the
- * code is unknown or carries neither.
+ * Description for an intent code from the digest-supplied intent typology. garak
+ * already collapses the taxonomy's explicit `descr` / `default_stub` fallback
+ * into a single `descr`, so this just trims it. Undefined when the code is
+ * unknown or carries no description.
  */
-export function intentDescription(code: string): string | undefined {
-  const entry = traitTable[code];
-  if (!entry) return undefined;
-  return entry.descr?.trim() || entry.default_stub?.trim() || undefined;
+export function intentDescription(code: string, typology?: IntentTypology): string | undefined {
+  return typology?.[code]?.descr?.trim() || undefined;
 }
 
 /**

@@ -116,6 +116,7 @@ function Report({ onThemeChange, currentTheme = "system" }: ReportProps) {
       <Flex direction="col" style={{ width: "100%" }}>
         <TechniqueIntentPanel
           techniqueIntent={selectedReport.technique_intent_matrix}
+          intentTypology={selectedReport.intent_typology}
           isDark={isDark}
         />
       </Flex>

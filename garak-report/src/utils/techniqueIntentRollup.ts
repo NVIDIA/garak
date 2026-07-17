@@ -12,7 +12,11 @@
  * @license Apache-2.0
  */
 
-import type { TechniqueIntentCell, TechniqueIntentMatrix } from "../types/ReportEntry";
+import type {
+  IntentTypology,
+  TechniqueIntentCell,
+  TechniqueIntentMatrix,
+} from "../types/ReportEntry";
 import {
   techniqueGroupKey,
   techniqueGroupLabel,
@@ -280,7 +284,11 @@ export function findNotablePairings(
  * Builds a {@link MatrixView} from a raw technique_intent matrix at the given
  * roll-up level.
  */
-export function buildMatrixView(matrix: TechniqueIntentMatrix, level: MatrixLevel): MatrixView {
+export function buildMatrixView(
+  matrix: TechniqueIntentMatrix,
+  level: MatrixLevel,
+  typology?: IntentTypology,
+): MatrixView {
   const leaves = flatten(matrix);
 
   const rowKeyOf = (l: MatrixLeaf) => (level === "grouped" ? techniqueGroupKey(l.technique) : l.technique);
@@ -288,10 +296,10 @@ export function buildMatrixView(matrix: TechniqueIntentMatrix, level: MatrixLeve
 
   // Technique names/descriptions only resolve at the leaf level, where a key maps
   // to a single technique; grouped technique keys are prefixes spanning many, so
-  // they fall back to the formatted key. Intent labels come from the bundled
-  // trait typology, which names every level (leaf, family, category), so grouped
+  // they fall back to the formatted key. Intent labels come from the digest's
+  // intent typology, which names every level (leaf, family, category), so grouped
   // columns like "C002" read as their taxonomy name rather than a raw code. The
-  // digest-supplied intent name is kept only as a fallback for unknown codes.
+  // matrix cell's own intent name is kept only as a fallback for unknown codes.
   const techniqueNames = new Map<string, string>();
   const techniqueDescriptions = new Map<string, string>();
   const intentNames = new Map<string, string>();
@@ -306,12 +314,12 @@ export function buildMatrixView(matrix: TechniqueIntentMatrix, level: MatrixLeve
   // ("C006 - Anthropomorphise") so the slug is unambiguous; codes with no known
   // name fall back to the bare code.
   const colLabel = (key: string) => {
-    const name = typologyIntentName(key) ?? intentNames.get(key);
+    const name = typologyIntentName(key, typology) ?? intentNames.get(key);
     return name ? `${key} - ${name}` : key;
   };
   const rowDescription = (key: string) =>
     level === "grouped" ? undefined : techniqueDescriptions.get(key);
-  const colDescription = (key: string) => typologyIntentDescription(key);
+  const colDescription = (key: string) => typologyIntentDescription(key, typology);
 
   // Aggregate leaves into cells keyed by "row\u0000col".
   const cellMap = new Map<string, MatrixCell>();

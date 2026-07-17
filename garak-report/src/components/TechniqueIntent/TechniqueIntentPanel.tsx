@@ -23,7 +23,7 @@ import {
   Tabs,
   Text,
 } from "@kui/react";
-import type { TechniqueIntentMatrix } from "../../types/ReportEntry";
+import type { IntentTypology, TechniqueIntentMatrix } from "../../types/ReportEntry";
 import { DEFCON_LEVELS, scoreToDefcon } from "../../constants";
 import { formatRate } from "../../utils/formatPercentage";
 import {
@@ -42,6 +42,8 @@ import TaxonomyAxisList from "./TaxonomyAxisList";
 export interface TechniqueIntentPanelProps {
   /** Pooled technique×intent matrix (`digest.technique_intent_matrix`) */
   techniqueIntent?: TechniqueIntentMatrix;
+  /** Intent labels/descriptions (`digest.intent_typology`) for column naming */
+  intentTypology?: IntentTypology;
   /** Theme mode for styling (unused now the charts are gone; kept for the API) */
   isDark?: boolean;
 }
@@ -126,7 +128,11 @@ const NotablePairings = ({
  * Renders the technique/intent taxonomy view. Shows a graceful empty state when
  * the report carries no technique×intent matrix (e.g. older reports).
  */
-const TechniqueIntentPanel = ({ techniqueIntent, isDark }: TechniqueIntentPanelProps) => {
+const TechniqueIntentPanel = ({
+  techniqueIntent,
+  intentTypology,
+  isDark,
+}: TechniqueIntentPanelProps) => {
   const [level, setLevel] = useState<MatrixLevel>("leaf");
   const [selectedDefcons, setSelectedDefcons] = useState<number[]>([...DEFCON_LEVELS]);
   const [sortBy, setSortBy] = useState<SortOption>("defcon");
@@ -140,10 +146,13 @@ const TechniqueIntentPanel = ({ techniqueIntent, isDark }: TechniqueIntentPanelP
   const [focusNonce, setFocusNonce] = useState(0);
 
   const viewGrouped = useMemo(
-    () => buildMatrixView(techniqueIntent ?? {}, "grouped"),
-    [techniqueIntent],
+    () => buildMatrixView(techniqueIntent ?? {}, "grouped", intentTypology),
+    [techniqueIntent, intentTypology],
   );
-  const viewLeaf = useMemo(() => buildMatrixView(techniqueIntent ?? {}, "leaf"), [techniqueIntent]);
+  const viewLeaf = useMemo(
+    () => buildMatrixView(techniqueIntent ?? {}, "leaf", intentTypology),
+    [techniqueIntent, intentTypology],
+  );
   const reducible = viewGrouped.reducible;
   const activeLevel: MatrixLevel = reducible ? level : "leaf";
   const activeView = activeLevel === "grouped" ? viewGrouped : viewLeaf;
