@@ -397,9 +397,11 @@ class Evaluator:
 
         if _config.system.verbose > 0 and messages:
             for m in messages:
+                if m is None or m.text is None:
+                    continue
                 try:
-                    print("❌", m.strip().replace("\n", " "))
-                except:
+                    print("❌", m.text.strip().replace("\n", " "))
+                except Exception:
                     pass
 
     def print_results_narrow(
@@ -472,9 +474,11 @@ class Evaluator:
 
         if _config.system.verbose > 0 and messages:
             for m in messages:
+                if m is None or m.text is None:
+                    continue
                 try:
-                    print("❌", m.strip().replace("\n", " "))
-                except:
+                    print("❌", m.text.strip().replace("\n", " "))
+                except Exception:
                     pass
 
 
