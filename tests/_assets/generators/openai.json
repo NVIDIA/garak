@@ -1,0 +1,152 @@
+{
+   "auth_fail" : {
+      "code" : 401,
+      "json" : {
+         "error" : {
+            "code" : "invalid_api_key",
+            "message" : "Incorrect API key provided: invalid_***_key. You can find your API key at https://platform.openai.com/account/api-keys.",
+            "param" : null,
+            "type" : "invalid_request_error"
+         }
+      }
+   },
+   "azure_chat_default_generations" : {
+      "code" : 200,
+      "json" : {
+         "choices" : [
+            {
+               "finish_reason" : "stop",
+               "index" : 0,
+               "logprobs" : null,
+               "message" : {
+                  "content" : "This is a test!",
+                  "role" : "assistant"
+               }
+            }
+         ],
+         "created" : 1724052469,
+         "id" : "chatcmpl-9xr5pU1EE4XQw9Bd0QOgkFZ82cAS9",
+         "model" : "gpt-4o-2024-05-13",
+         "object" : "chat.completion",
+         "prompt_filter_results" : [
+            {
+               "content_filter_results" : {
+                  "hate" : {
+                     "filtered" : false,
+                     "severity" : "safe"
+                  },
+                  "jailbreak" : {
+                     "detected" : false,
+                     "filtered" : false
+                  },
+                  "self_harm" : {
+                     "filtered" : false,
+                     "severity" : "safe"
+                  },
+                  "sexual" : {
+                     "filtered" : false,
+                     "severity" : "safe"
+                  },
+                  "violence" : {
+                     "filtered" : false,
+                     "severity" : "safe"
+                  }
+               },
+               "prompt_index" : 0
+            }
+         ],
+         "system_fingerprint" : "fp_abc28019ad",
+         "usage" : {
+            "completion_tokens" : 171,
+            "prompt_tokens" : 42,
+            "total_tokens" : 213
+         }
+      }
+   },
+   
+   "chat" : {
+      "code" : 200,
+      "json" : {
+         "choices" : [
+            {
+               "finish_reason" : "stop",
+               "index" : 0,
+               "logprobs" : null,
+               "message" : {
+                  "content" : "This is a test!",
+                  "role" : "assistant"
+               }
+            }
+         ],
+         "created" : 1677858242,
+         "id" : "chatcmpl-abc123",
+         "model" : "gpt-3.5-turbo-0613",
+         "object" : "chat.completion",
+         "usage" : {
+            "completion_tokens" : 7,
+            "prompt_tokens" : 13,
+            "total_tokens" : 20
+         }
+      }
+   },
+   "completion" : {
+      "code" : 200,
+      "json" : {
+         "choices" : [
+            {
+               "finish_reason" : "length",
+               "index" : 0,
+               "logprobs" : null,
+               "text" : "This is indeed a test"
+            }
+         ],
+         "created" : 1589478378,
+         "id" : "cmpl-uqkvlQyYK7bGYrRHQ0eXlWi7",
+         "model" : "gpt-3.5-turbo-instruct",
+         "object" : "text_completion",
+         "system_fingerprint" : "fp_44709d6fcb",
+         "usage" : {
+            "completion_tokens" : 7,
+            "prompt_tokens" : 5,
+            "total_tokens" : 12
+         }
+      }
+   },
+   "models" : {
+      "code" : 200,
+      "json" : {
+         "data" : [
+            {
+               "created" : 1686935002,
+               "id" : "model-id-0",
+               "object" : "model",
+               "owned_by" : "organization-owner"
+            },
+            {
+               "created" : 1686935002,
+               "id" : "model-id-1",
+               "object" : "model",
+               "owned_by" : "organization-owner"
+            },
+            {
+               "created" : 1686935002,
+               "id" : "model-id-2",
+               "object" : "model",
+               "owned_by" : "openai"
+            }
+         ],
+         "object" : "list"
+      }
+   },
+   "azure_chat_null_choices": {
+      "code": 200,
+      "json": {
+         "choices": null,
+         "created": 1724052469,
+         "id": "chatcmpl-9xr5pU1EE4XQw9Bd0QOgkFZ82cAS9",
+         "model": "gpt-4o-2024-05-13",
+         "object": "chat.completion"
+      }
+   }
+}
+

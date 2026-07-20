@@ -1,0 +1,100 @@
+name: Garak maintain cache
+
+on:
+  push:
+    branches:
+      - 'main'
+    paths-ignore:
+      - 'garak/resources/plugin_cache.json'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  actions: write
+  checks: none
+  contents: write
+  deployments: none
+  id-token: none
+  issues: none
+  discussions: none
+  packages: none
+  pages: none
+  pull-requests: none
+  repository-projects: none
+  security-events: none
+  statuses: read
+
+jobs:
+  build:
+    if: github.repository_owner == 'NVIDIA'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          # forcing full checkout for reflog access
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Build a local cache
+        run: |
+          export TZ=UTC
+          git ls-files garak/ -z | xargs -0 -I{} -- git log -1 --date=iso-local --format="%ad {}" {} | while read -r udate utime utz ufile ; do
+            touch -d "$udate $utime" $ufile
+          done
+          touch -d "2024-07-01" garak/resources/plugin_cache.json
+          python -m garak --list_probes
+      - name: Commit updated plugin cache if modified
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FILE_TO_COMMIT: garak/resources/plugin_cache.json
+          DESTINATION_BRANCH: ${{ github.ref_name }}
+          COMMIT_RESULT: ${{ endsWith(github.ref, '/main')}}
+        run: |
+          if [ -f $HOME/.cache/garak/resources/plugin_cache.json ]; then
+            echo "File updated from user cache"
+            cp $HOME/.cache/garak/resources/plugin_cache.json $FILE_TO_COMMIT
+          fi
+          set +e
+          git diff --exit-code $FILE_TO_COMMIT > /dev/null
+          if [ $? -ne 0 ]; then
+            set -e
+            echo "Plugin cache updates exist"
+            if [ "$COMMIT_RESULT" = true ]; then
+              export MESSAGE="automatic $FILE_TO_COMMIT update"
+              export SHA=$( git rev-parse $DESTINATION_BRANCH:$FILE_TO_COMMIT )
+          cat <<- EOF > write_request.py
+          #!python
+          import json
+          import os
+          import base64
+          with open("$FILE_TO_COMMIT", 'rb') as f:
+            content = base64.b64encode(f.read()).decode()
+          request = {
+            "message": os.environ["MESSAGE"],
+            "content": content,
+            "encoding": "base64",
+            "branch": os.environ["DESTINATION_BRANCH"],
+            "sha": os.environ["SHA"],
+          }
+          with open("request.json", "w", encoding="utf-8") as f:
+              json.dump(request, f, indent=4)
+          EOF
+              chmod +x write_request.py
+              python write_request.py
+              gh api --method PUT /repos/:owner/:repo/contents/$FILE_TO_COMMIT --input request.json
+              echo "Update committed to repo"
+            else
+              echo "Branch is not 'main' exit without commit"
+            fi
+          else
+            echo "No Plugin cache updates exit without commit"
+          fi

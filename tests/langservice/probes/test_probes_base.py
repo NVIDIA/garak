@@ -1,0 +1,374 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+import pytest
+import pathlib
+import tempfile
+import os
+
+from garak import _config, _plugins
+from garak.attempt import Message, Attempt, Conversation
+from garak.exception import GarakException
+
+NON_PROMPT_PROBES = [
+    "probes.agent_breaker.AgentBreaker",
+    "probes.dan.AutoDAN",
+    "probes.tap.TAP",
+    "probes.suffix.BEAST",
+    "probes.suffix.GCG",
+    "probes.goat.GOATAttack", # requires gpu resource to run reasonably quickly with default config
+    "probes.fitd.FITD",
+]
+ATKGEN_PROMPT_PROBES = ["probes.atkgen.Tox"]
+VISUAL_PROBES = [
+    "probes.visual_jailbreak.FigStep",
+    "probes.visual_jailbreak.FigStepFull",
+]
+AUDIO_PROBES = [
+    "probes.audio.AudioAchillesHeel",
+]
+PROBES = [
+    classname
+    for (classname, _) in _plugins.enumerate_plugins("probes")
+    if classname not in NON_PROMPT_PROBES
+    and classname not in VISUAL_PROBES
+    and classname not in ATKGEN_PROMPT_PROBES
+    and classname not in AUDIO_PROBES
+]
+openai_api_key_missing = not os.getenv("OPENAI_API_KEY")
+
+
+@pytest.fixture(autouse=True)
+def probe_pre_req(classname, request):
+    # this sets up config for probes that access _config still
+    _config.run.seed = 42
+    local_config_path = str(
+        pathlib.Path(__file__).parents[2]
+        / "_assets"
+        / "langservice"
+        / "translation_local_low.yaml"
+    )
+    if os.path.exists(local_config_path) is False:
+        pytest.skip("Local config file does not exist, skipping test.")
+    _config.load_config(run_config_filename=local_config_path)
+    # detectors run by probes write to the report file
+    temp_report_file = tempfile.NamedTemporaryFile(
+        mode="w+", delete=False, encoding="utf-8"
+    )
+    _config.transient.reportfile = temp_report_file
+    _config.transient.report_filename = temp_report_file.name
+
+    # since this does not go through cli generations must be set
+    _, module, klass = classname.split(".")
+    _config.plugins.probes[module][klass]["generations"] = 1
+
+    def close_report():
+        temp_report_file.close()
+
+    request.addfinalizer(close_report)
+
+
+RESPONSE_SAMPLES = [
+    (
+        [
+            Message("text to translate", lang="fr"),
+            Message("text to translate", lang="fr"),
+            Message("text to translate", lang="fr"),
+        ],
+        "probes.base.Probe",
+    ),
+    (
+        [
+            Message("text to translate", lang="fr"),
+            None,
+            None,
+        ],
+        "probes.base.Probe",
+    ),
+    (
+        [
+            None,
+            Message("text to translate", lang="fr"),
+            None,
+        ],
+        "probes.base.Probe",
+    ),
+    (
+        [
+            None,
+            None,
+            Message("text to translate", lang="fr"),
+            None,
+        ],
+        "probes.base.Probe",
+    ),
+]
+
+
+@pytest.mark.parametrize("responses, classname", RESPONSE_SAMPLES)
+def test_base_postprocess_attempt(responses, mocker):
+    """Validate processing of reverse translation for various response cases"""
+    import garak.langservice
+    import garak.probes.base
+    from garak.langproviders.local import Passthru
+
+    null_provider = Passthru(
+        {
+            "langproviders": {
+                "local": {
+                    "language": "en,en",
+                }
+            }
+        }
+    )
+
+    mocker.patch.object(
+        garak.langservice, "get_langprovider", return_value=null_provider
+    )
+
+    prompt_mock = mocker.patch.object(
+        null_provider,
+        "get_text",
+        wraps=null_provider.get_text,
+    )
+
+    a = Attempt(prompt=Message("just a test attempt", lang="fr"))
+    a.outputs = responses
+    p = garak.probes.base.Probe()
+    p.lang = "en"
+    r = p._postprocess_attempt(a)
+    assert prompt_mock.called
+    assert len(r.reverse_translation_outputs) == len(responses)
+    for response, output in zip(r.reverse_translation_outputs, r.outputs):
+        assert type(response) == type(
+            output
+        ), "translation index outputs should align with output types"
+
+
+@pytest.mark.parametrize("classname", ["probes.base.Probe"])
+def test_base_postprocess_attempt_preserves_output_order(classname, mocker):
+    """reverse_translation_outputs must align position-for-position with outputs.
+
+    _postprocess_attempt built reverse_translation_outputs in forward order but
+    reassembled it against `all_outputs` via list.pop() (LIFO), reversing the
+    order among non-None outputs whenever there are 2 or more of them.
+    """
+    import garak.langservice
+    import garak.probes.base
+    from garak.langproviders.local import Passthru
+
+    null_provider = Passthru(
+        {
+            "langproviders": {
+                "local": {
+                    "language": "en,en",
+                }
+            }
+        }
+    )
+
+    mocker.patch.object(
+        garak.langservice, "get_langprovider", return_value=null_provider
+    )
+
+    a = Attempt(prompt=Message("just a test attempt", lang="fr"))
+    a.outputs = [
+        Message("first", lang="fr"),
+        Message("second", lang="fr"),
+        Message("third", lang="fr"),
+    ]
+    p = garak.probes.base.Probe()
+    p.lang = "en"
+    r = p._postprocess_attempt(a)
+
+    reverse_texts = [msg.text for msg in r.reverse_translation_outputs]
+    assert reverse_texts == [
+        "first",
+        "second",
+        "third",
+    ], "reverse_translation_outputs must stay aligned with the original output order"
+
+
+"""
+Skip probes.tap.PAIR because it needs openai api key and large gpu resource
+"""
+
+
+@pytest.mark.parametrize("classname", ATKGEN_PROMPT_PROBES)
+def test_atkgen_probe_translation(classname, mocker):
+    # how can tests for atkgen probes be expanded to ensure translation is called?
+    import garak.langservice
+    from garak.langproviders.local import Passthru
+
+    null_provider = Passthru(
+        {
+            "langproviders": {
+                "local": {
+                    "language": "en,en",
+                }
+            }
+        }
+    )
+
+    mocker.patch.object(
+        garak.langservice, "get_langprovider", return_value=null_provider
+    )
+
+    prompt_mock = mocker.patch.object(
+        null_provider,
+        "get_text",
+        wraps=null_provider.get_text,
+    )
+
+    probe_instance = _plugins.load_plugin(classname)
+    # cut down test time
+    probe_instance.max_calls_per_conv = 2
+    probe_instance.convs_per_generation = 2
+    probe_instance.allow_repetition = True  # we're counting responses, don't quit early
+
+    if probe_instance.lang != "en" or classname == "probes.tap.PAIR":
+        return
+
+    generator_instance = _plugins.load_plugin("generators.test.Repeat")
+
+    probe_instance.probe(generator_instance)
+
+    expected_langprovision_calls = (
+        2 * probe_instance.max_calls_per_conv * probe_instance.convs_per_generation
+    )
+    if hasattr(probe_instance, "triggers") and probe_instance.triggers:
+        # increase prompt calls by 1 or if triggers are lists by the len of triggers
+        if isinstance(probe_instance.triggers[0], list):
+            expected_langprovision_calls += len(probe_instance.triggers)
+        else:
+            expected_langprovision_calls += 1
+
+    assert prompt_mock.call_count == expected_langprovision_calls
+
+
+@pytest.mark.parametrize("classname", VISUAL_PROBES)
+def test_multi_modal_probe_translation(classname, mocker):
+    import garak.langservice
+    from garak.langproviders.local import Passthru
+
+    null_provider = Passthru(
+        {
+            "langproviders": {
+                "local": {
+                    "language": "en,ja",
+                    # Note: differing source and target language pair here forces langprovider calls
+                }
+            }
+        }
+    )
+
+    mocker.patch.object(
+        garak.langservice, "get_langprovider", return_value=null_provider
+    )
+
+    prompt_mock = mocker.patch.object(
+        null_provider,
+        "get_text",
+        wraps=null_provider.get_text,
+    )
+
+    probe_instance = _plugins.load_plugin(classname)
+
+    if probe_instance.lang != "en":
+        pytest.skip("Probe does not engage with language provision")
+
+    generator_instance = _plugins.load_plugin("generators.test.Repeat")
+    generator_instance.modality["in"] = {"image", "text"}
+
+    probe_instance.probe(generator_instance)
+
+    expected_provision_calls = len(probe_instance.prompts) * 2
+    if hasattr(probe_instance, "triggers") and probe_instance.triggers:
+        # increase prompt calls by 1 or if triggers are lists by the len of triggers
+        if isinstance(probe_instance.triggers[0], list):
+            expected_provision_calls += len(probe_instance.triggers)
+        else:
+            expected_provision_calls += 1
+
+    if hasattr(probe_instance, "attempt_descrs"):
+        # this only exists in goodside should it be standardized in some way?
+        expected_provision_calls += len(probe_instance.attempt_descrs) * 2
+
+    assert prompt_mock.call_count == expected_provision_calls
+    for prompt in probe_instance.prompts:
+        assert isinstance(prompt.text, str)
+
+
+@pytest.mark.parametrize("classname", PROBES)
+def test_probe_prompt_translation(classname, mocker):
+    # instead of active translation this just checks that translation is called.
+    # for instance if there are triggers ensure `translate` is called at least twice
+    # if the triggers are a list call for each list then call for all actual `prompts`
+
+    # initial translation is front loaded on __init__ of a probe for triggers, simple validation
+    # of calls for translation should be sufficient as a unit test on all probes that follow
+    # this standard pattern. Any probe that needs to call translation more than once during probing
+    # should have a unique validation that translation is called in the correct runtime stage
+
+    import garak.langservice
+    from garak.langproviders.local import Passthru
+
+    null_provider = Passthru(
+        {
+            "langproviders": {
+                "local": {
+                    "language": "en,ja",
+                    # Note: differing source and target language pair here forces langprovider calls
+                }
+            }
+        }
+    )
+
+    mocker.patch.object(
+        garak.langservice, "get_langprovider", return_value=null_provider
+    )
+
+    prompt_mock = mocker.patch.object(
+        null_provider,
+        "get_text",
+        wraps=null_provider.get_text,
+    )
+
+    try:
+        probe_instance = _plugins.load_plugin(classname)
+    except GarakException:
+        pytest.skip("Probe could not be configured with available data")
+
+    if probe_instance.lang != "en" or classname == "probes.tap.PAIR":
+        pytest.skip("Probe does not engage with language provision")
+
+    generator_instance = _plugins.load_plugin("generators.test.Repeat")
+
+    probe_instance.probe(generator_instance)
+
+    prompts = probe_instance.prompts or []
+    forward_translation_calls = 0
+    if prompts:
+        if isinstance(prompts[0], str):
+            forward_translation_calls = 1
+        else:
+            # Conversation prompts trigger a translation per turn, while message prompts translate once per prompt.
+            for prompt in prompts:
+                if isinstance(prompt, Conversation):
+                    forward_translation_calls += len(prompt.turns)
+                elif isinstance(prompt, Message):
+                    forward_translation_calls += 1
+
+    expected_provision_calls = len(prompts) + forward_translation_calls
+    if hasattr(probe_instance, "triggers") and probe_instance.triggers:
+        # increase prompt calls by 1 or if triggers are lists by the len of triggers
+        if isinstance(probe_instance.triggers[0], list):
+            expected_provision_calls += len(probe_instance.triggers)
+        elif not classname.startswith(("probes.encoding", "probes.propile")):
+            expected_provision_calls += 1
+
+    if hasattr(probe_instance, "attempt_descrs"):
+        # this only exists in goodside should it be standardized in some way?
+        expected_provision_calls += len(probe_instance.attempt_descrs) * 2
+
+    assert prompt_mock.call_count == expected_provision_calls

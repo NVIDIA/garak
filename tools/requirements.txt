@@ -1,0 +1,3 @@
+# Used by package hallucination dataset creation scripts
+requests>=2.25.0
+beautifulsoup4>=4.9.0

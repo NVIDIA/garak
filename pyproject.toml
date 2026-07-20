@@ -1,0 +1,229 @@
+[build-system]
+requires = ["flit_core >=3.11,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "garak"
+version = "0.15.2.pre1"
+authors = [
+  { name = "Leon Derczynski", email="lderczynski@nvidia.com" },
+  { name = "Subho Majumdar", email="subho@vijil.ai" },
+  { name = "nv052193" },
+  { name = "Mads Kongsbak" },
+  { name = "Erick Galinkin", email="egalinkin@nvidia.com" },
+  { name = "Tianhao Li" },
+  { name = "Phyllis Poh" },
+  { name = "Razvan Dinu" },
+  { name = "Zander Mackie" },
+  { name = "Greg Stephens" },
+  { name = "Jeffrey Martin", email="jemartin@nvidia.com" },
+  { name = "Ahsan Ayub" },
+  { name = "Jonathan Liberman" },
+  { name = "Gustav Fredrikson" },
+  { name = "Oh Tien Cheng" },
+  { name = "Brain John" },
+  { name = "Naman Mishra" },
+  { name = "Soumili Nandi" },
+  { name = "Arjun Krishna" },
+  { name = "Mihailo Milenkovic" },
+  { name = "Kai Greshake" },
+  { name = "Martin Borup-Larsen" },
+  { name = "Emmanuel Ferdman" },
+  { name = "Eric Therond" },
+  { name = "Zoe Nolan" },
+  { name = "Harsh Raj" },
+  { name = "Shine-afk" },
+  { name = "Rafael Sandroni" },  
+  { name = "Eric Hacker" },
+  { name = "Blessed Uyo" },
+  { name = "Ikko Eltociear Ashimine" },
+  { name = "iamnotcj" },
+  { name = "Dwight Temple" },
+  { name = "Shane Rosse" },
+  { name = "Masaya Ogushi" },
+  { name = "Viktor T. Zetterberg" },
+  { name = "Erwan Roussel" },
+  { name = "Matthew Rowe" },
+  { name = "Aishwarya Padmakumar" },
+  { name = "Marco Rosa" },
+  { name = "Ian Chu" },
+  { name = "Mike McKiernan" },
+  { name = "Divya Chitimalla" },
+  { name = "Katherine Luna" },
+  { name = "Dave Baker" },
+  { name = "Jack Kelly" },
+  { name = "Amrit Prakash" },
+  { name = "Cássia Sampaio" },
+  { name = "Nakul Rajpal" },
+  { name = "Noah Oeksuez" },
+  { name = "Dhruv Malik" },
+  { name = "Patricia Pampanelli" },
+  { name = "Joseph Davis Chamdani" },
+  { name = "Rob Geada" },
+  { name = "Ashish RajAnand" },
+  { name = "Paulina Kalicka" },
+  { name = "Gal Moshkovitz" },
+  { name = "Jack Smith" },
+  { name = "Paul A. Parkanzky" },
+  { name = "Leif Hancox-Li" },
+  { name = "Fabrizio Rocco" },
+  { name = "Sai Chandra Pandraju" },
+  { name = "Harish Kolla" },
+  { name = "Snehal Vartak" },
+  { name = "Abhiraj Sinha" },
+  { name = "Harsh Motla" },
+  { name = "Otavio Padovani" },
+  { name = "Siddhant Mishra" },
+  { name = "dyrtyData" },
+  { name = "Leone Lage Perdigão" },
+  { name = "Lucas Wang" },
+  { name = "Ian Miller" },
+  { name = "Edward Kim" },
+  { name = "Raina O'Sullivan" },
+  { name = "Christ Bowel Bouchuen" },
+  { name = "Hayato Fujihara" },
+  { name = "precognitivem0nk" },
+  { name = "Jacob J. lee" },
+  { name = "Eliya Cohen" },
+  { name = "Nathan Maine" },
+  { name = "Boao Dong" },
+  { name = "zw5" },
+  { name = "Musaab Hasan" },
+  { name = "Stefano Amorelli" },
+  { name = "Chris Southerland Jr." },
+  { name = "Lane Poole" },
+  { name = "Aditya Singh" },
+  { name = "Pradyoth Prashanth" },
+  { name = "Oleksandr Sanin" },
+  { name = "Varun Jakkula" },
+  { name = "Kyle Zang" },
+  { name = "Minh Vu" },
+]
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+description = "LLM vulnerability scanner"
+readme = "README.md"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.10"
+dependencies = [
+  "mikeshardmind-base2048>=1.0.2",
+  "transformers>=5.0,<6.0",
+  "datasets>=3.0.0,<4.0",
+  "colorama>=0.4.3",
+  "tqdm>=4.67.1",
+  "cohere>=5.16.0",
+  "anthropic>=0.40.0",
+  "openai>=2.0,<3.0",
+  "replicate>=0.8.3",
+  "google-api-python-client>=2.0",
+  "backoff>=2.1.1",
+  "nltk>=3.9.1",
+  "accelerate>=0.23.0",
+  "avidtools==0.1.2",
+  "stdlibs>=2022.10.9",
+  "langchain>=1.2.1",
+  "cmd2==2.4.3",
+  "torch>=2.6.0",
+  "sentencepiece>=0.1.99",
+  "markdown>=3.4.3",
+  "numpy>=2.0.0",
+  "zalgolib>=0.2.2",
+  "ecoji>=0.1.1",
+  "deepl==1.17.0",
+  "litellm>=1.84.0",
+  "llm>=0.31",
+  "jsonpath-ng>=1.6.1",
+  "huggingface_hub>=1.0",
+  'python-magic-bin>=0.4.14; sys_platform == "win32"',
+  'python-magic>=0.4.21; sys_platform != "win32"',
+  "lorem==0.1.1",
+  "xdg-base-dirs>=6.0.1",
+  "wn==0.9.5",
+  "ollama>=0.4.7",
+  "nvidia-riva-client==2.16.0",
+  "google-cloud-translate>=2.0.4",
+  "grpcio-tools>=1.71.0",
+  "langdetect==1.0.9",
+  "tiktoken>=0.7.0",
+  "mistralai==1.5.2",
+  "pillow>=10.4.0",
+  "ftfy>=6.3.1",
+  "websockets>=13.0",
+  "boto3>=1.28.0",
+  "py-markdown-table>=1.2.0",
+]
+
+[project.optional-dependencies]
+tests = [
+  "pytest>=8.0",
+  "pytest-mock>=3.14.0",
+  "requests-mock==1.12.1",
+  "respx>=0.21.1",
+  "pytest-cov>=5.0.0",
+  "pytest_httpserver>=1.1.0",
+  "pytest-asyncio>=0.21.0",
+  "langcodes>=3.4.0",
+  "cryptography>=47.0.0",
+]
+lint = [
+  "black>=26.1.0",
+  "pylint>=3.1.0",
+]
+calibration = [
+  "scipy>=1.14.0",
+]
+audio = [
+  "soundfile>=0.13.1",
+  "librosa>=0.10.2"
+]
+dra = [
+  "detoxify>=0.5.0"
+]
+[project.urls]
+"Homepage" = "https://github.com/NVIDIA/garak"
+"Bug Tracker" = "https://github.com/NVIDIA/garak/issues"
+
+[project.scripts]
+garak = "garak.__main__:main"
+
+[tool.flit.module]
+name = "garak"
+
+[tool.flit.sdist]
+include = [
+  "*.md",
+  "*.txt",
+  "garak/analyze/templates/*",
+  "garak/configs/*",
+  "garak/resources/*.json",
+  "garak/resources/*.yaml",
+]
+exclude = [
+  ".pre-commit-config.yaml",
+  ".github/",
+  ".gitignore",
+  "garak-report/",
+  "tests/",
+  "doc/source/html/",
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py310']
+include = '\.pyi?$'
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore",
+    "default:::garak",
+]
+
+[tool.coverage.run]
+source = ["./garak"]
+omit = ["tests/*"]

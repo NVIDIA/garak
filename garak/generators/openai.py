@@ -1,0 +1,450 @@
+"""OpenAI API Compatible generators
+
+Supports chat + chatcompletion models. Put your API key in
+an environment variable documented in the selected generator. Put the name of the
+model you want in either the --target_name command line parameter, or
+pass it as an argument to the Generator constructor.
+
+Sources:
+
+* https://platform.openai.com/docs/models/model-endpoint-compatibility
+* https://platform.openai.com/docs/model-index-for-researchers
+"""
+
+import inspect
+import json
+import logging
+import re
+from typing import List, Union
+
+import openai
+import backoff
+
+from garak import _config
+from garak.attempt import Message, Conversation
+import garak.exception
+from garak.generators.base import Generator
+
+# lists derived from https://platform.openai.com/docs/models
+chat_models = (
+    "gpt-5-nano",
+    "gpt-5-nano-2025-08-07",
+    "gpt-5-mini",
+    "gpt-5.2",
+    "chatgpt-4o-latest",  # links to latest version
+    "gpt-3.5-turbo",  # links to latest version
+    "gpt-3.5-turbo-0125",
+    "gpt-3.5-turbo-1106",
+    "gpt-3.5-turbo-16k",
+    "gpt-4",  # links to latest version
+    "gpt-4-0125-preview",
+    "gpt-4-0314",  # legacy
+    "gpt-4-0613",
+    "gpt-4-1106-preview",
+    "gpt-4-1106-vision-preview",
+    "gpt-4-32k",  # deprecated, shutdown 2025-06-06
+    "gpt-4-32k-0314",  # deprecated, shutdown 2025-06-06
+    "gpt-4-32k-0613",  # deprecated, shutdown 2025-06-06
+    "gpt-4-turbo",  # links to latest version
+    "gpt-4-turbo-2024-04-09",
+    "gpt-4-turbo-preview",
+    "gpt-4-vision-preview",
+    "gpt-4o",  # links to latest version
+    "gpt-4o-2024-05-13",
+    "gpt-4o-2024-08-06",
+    "gpt-4o-2024-11-20",
+    "gpt-4o-audio-preview",  # links to latest version
+    "gpt-4o-audio-preview-2024-12-17",
+    "gpt-4o-audio-preview-2024-10-01",
+    "gpt-4o-mini",  # links to latest version
+    "gpt-4o-mini-2024-07-18",
+    "gpt-4o-mini-audio-preview",  # links to latest version
+    "gpt-4o-mini-audio-preview-2024-12-17",
+    "gpt-4o-mini-realtime-preview",  # links to latest version
+    "gpt-4o-mini-realtime-preview-2024-12-17",
+    "gpt-4o-realtime-preview",  # links to latest version
+    "gpt-4o-realtime-preview-2024-12-17",
+    "gpt-4o-realtime-preview-2024-10-01",
+    "o1-mini",  # links to latest version
+    "o1-mini-2024-09-12",
+    "o1-preview",  # links to latest version
+    "o1-preview-2024-09-12",
+    "o3-mini",  # links to latest version
+    "o3-mini-2025-01-31",
+    # "gpt-3.5-turbo-0613",  # deprecated, shutdown 2024-09-13
+    # "gpt-3.5-turbo-16k-0613",  # # deprecated, shutdown 2024-09-13
+)
+
+completion_models = (
+    "gpt-3.5-turbo-instruct",
+    "davinci-002",
+    "babbage-002",
+    "davinci-instruct-beta",  # unknown status
+    # "text-davinci-003", # shutdown https://platform.openai.com/docs/deprecations
+    # "text-davinci-002", # shutdown https://platform.openai.com/docs/deprecations
+    # "text-curie-001", # shutdown https://platform.openai.com/docs/deprecations
+    # "text-babbage-001", # shutdown https://platform.openai.com/docs/deprecations
+    # "text-ada-001", # shutdown https://platform.openai.com/docs/deprecations
+    # "code-davinci-002", # shutdown https://platform.openai.com/docs/deprecations
+    # "code-davinci-001", # shutdown https://platform.openai.com/docs/deprecations
+    # "davinci",  # shutdown https://platform.openai.com/docs/deprecations
+    # "curie",  # shutdown https://platform.openai.com/docs/deprecations
+    # "babbage",  # shutdown https://platform.openai.com/docs/deprecations
+    # "ada",  # shutdown https://platform.openai.com/docs/deprecations
+)
+
+context_lengths = {
+    "babbage-002": 16384,
+    "chatgpt-4o-latest": 128000,
+    "davinci-002": 16384,
+    "gpt-3.5-turbo": 16385,
+    "gpt-3.5-turbo-0125": 16385,
+    "gpt-3.5-turbo-0613": 4096,
+    "gpt-3.5-turbo-1106": 16385,
+    "gpt-3.5-turbo-16k": 16385,
+    "gpt-3.5-turbo-16k-0613": 16385,
+    "gpt-3.5-turbo-instruct": 4096,
+    "gpt-4": 8192,
+    "gpt-4-0125-preview": 128000,
+    "gpt-4-0314": 8192,
+    "gpt-4-0613": 8192,
+    "gpt-4-1106-preview": 128000,
+    "gpt-4-1106-vision-preview": 128000,
+    "gpt-4-32k": 32768,
+    "gpt-4-32k-0613": 32768,
+    "gpt-4-turbo": 128000,
+    "gpt-4-turbo-2024-04-09": 128000,
+    "gpt-4-turbo-preview": 128000,
+    "gpt-4-vision-preview": 128000,
+    "gpt-4o": 128000,
+    "gpt-4o-2024-05-13": 128000,
+    "gpt-4o-2024-08-06": 128000,
+    "gpt-4o-mini": 16384,
+    "gpt-4o-mini-2024-07-18": 16384,
+    "o1-mini": 65536,
+    "o1-mini-2024-09-12": 65536,
+    "o1-preview": 32768,
+    "o1-preview-2024-09-12": 32768,
+}
+
+audio_formats = ["wav", "mp3"]
+audio_pattern = re.compile("|".join(audio_formats))
+
+
+class OpenAICompatible(Generator):
+    """Generator base class for OpenAI compatible text2text restful API. Implements shared initialization and execution methods."""
+
+    ENV_VAR = "OpenAICompatible_API_KEY".upper()  # Placeholder override when extending
+
+    active = True
+    supports_multiple_generations = False
+    generator_family_name = "OpenAICompatible"  # Placeholder override when extending
+
+    # template defaults optionally override when extending
+    DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
+        "temperature": 0.7,
+        "top_p": 1.0,
+        "uri": "http://localhost:8000/v1/",
+        "frequency_penalty": 0.0,
+        "presence_penalty": 0.0,
+        "seed": None,
+        "stop": ["#", ";"],
+        "suppressed_params": set(),
+        "retry_json": True,
+        "extra_params": {},
+    }
+
+    _unsafe_attributes = ["client", "generator"]
+
+    def _load_unsafe(self):
+        # When extending `OpenAICompatible` this method is a likely location for target application specific
+        # customization and must populate self.generator with an openai api compliant object
+        self.client = openai.OpenAI(base_url=self.uri, api_key=self.api_key)
+        if self.name in ("", None):
+            raise ValueError(
+                f"{self.generator_family_name} requires model name to be set, e.g. --target_name org/private-model-name"
+            )
+        self.generator = self.client.chat.completions
+
+    def _validate_config(self):
+        pass
+
+    def __init__(self, name="", config_root=_config):
+        self.name = name
+        self._load_config(config_root)
+        self.fullname = f"{self.generator_family_name} {self.name}"
+        self.key_env_var = self.ENV_VAR
+
+        self._load_unsafe()
+
+        if self.generator not in (
+            self.client.chat.completions,
+            self.client.completions,
+        ):
+            raise ValueError(
+                "Unsupported model at generation time in generators/openai.py; expected chat or completion, got neither"
+            )
+
+        self._validate_config()
+
+        super().__init__(self.name, config_root=config_root)
+
+    @staticmethod
+    def _conversation_to_list(conversation: Conversation) -> list[dict]:
+        """Convert Conversation object to a list of dicts.
+
+        Overriding this method for OpenAICompatible to support multimodal:
+        https://developers.openai.com/api/docs/guides/images-vision/?format=base64-encoded#analyze-images
+        """
+
+        turn_list = []
+        for turn in conversation.turns:
+            if turn.content.data is not None and hasattr(turn.content, "data_type"):
+                import base64
+
+                data_b64 = base64.b64encode(turn.content.data).decode("utf-8")
+
+                if "image" in turn.content.data_type:
+                    transformed_turn = {
+                        "role": turn.role,
+                        "content": [
+                            {"type": "input_text", "text": turn.content.text},
+                            {
+                                "type": "input_image",
+                                "image_url": f"data:{turn.content.data_type[0]};base64{data_b64}",
+                            },
+                        ],
+                    }
+                elif match := audio_pattern.search(
+                    turn.content.data_type[0].split("/")[-1]
+                ):
+                    transformed_turn = {
+                        "role": turn.role,
+                        "content": [
+                            {"type": "text", "text": turn.content.text},
+                            {
+                                "type": "input_audio",
+                                "input_audio": {
+                                    "data": f"{data_b64}",
+                                    "format": match.group(0),
+                                },
+                            },
+                        ],
+                    }
+                else:
+                    raise garak.exception.GarakException(
+                        f"Data type {turn.content.data_type[0]} not supported."
+                    )
+            else:
+                transformed_turn = {
+                    "role": turn.role,
+                    "content": turn.content.text,
+                }
+            turn_list.append(transformed_turn)
+
+        return turn_list
+
+    # noinspection PyArgumentList
+    @backoff.on_exception(
+        backoff.fibo,
+        (
+            openai.RateLimitError,
+            openai.InternalServerError,
+            openai.APITimeoutError,
+            openai.APIConnectionError,
+            garak.exception.GeneratorBackoffTrigger,
+        ),
+        max_value=70,
+    )
+    def _call_model(
+        self, prompt: Union[Conversation, List[dict]], generations_this_call: int = 1
+    ) -> List[Union[Message, None]]:
+        if self.client is None:
+            # reload client once when consuming the generator
+            self._load_unsafe()
+
+        client = self.client
+        generator = self.generator
+        is_completion = generator == client.completions
+
+        create_args = {}
+        if self.supports_multiple_generations:
+            create_args["n"] = generations_this_call
+        elif "n" not in self.suppressed_params:
+            create_args["n"] = 1
+        for arg in inspect.signature(generator.create).parameters:
+            if arg == "model":
+                create_args[arg] = self.name
+                continue
+            if arg == "extra_params":
+                continue
+            if hasattr(self, arg) and arg not in self.suppressed_params:
+                if getattr(self, arg) is not None:
+                    create_args[arg] = getattr(self, arg)
+
+        if hasattr(self, "extra_params"):
+            for k, v in self.extra_params.items():
+                create_args[k] = v
+
+        if is_completion:
+            if not isinstance(prompt, Conversation) or len(prompt.turns) > 1:
+                msg = (
+                    f"Expected a Conversation with one Turn for {self.generator_family_name} completions model {self.name}, but got {type(prompt)}. "
+                    f"Returning nothing!"
+                )
+                logging.error(msg)
+                return list()
+
+            create_args["prompt"] = prompt.last_message().text
+
+        else:  # is chat
+            if isinstance(prompt, Conversation):
+                messages = self._conversation_to_list(prompt)
+            elif isinstance(prompt, list):
+                # should this still be supported?
+                messages = prompt
+            else:
+                msg = (
+                    f"Expected a Conversation or list of dicts for {self.generator_family_name} Chat model {self.name}, but got {type(prompt)} instead. "
+                    f"Returning nothing!"
+                )
+                logging.error(msg)
+                return list()
+
+            create_args["messages"] = messages
+
+        try:
+            response = generator.create(**create_args)
+        except (
+            openai.AuthenticationError,
+            openai.PermissionDeniedError,
+        ) as e:
+            # 401 / 403 are terminal: retrying with the same key is pointless.
+            # Raise GarakException *before* the exception leaves this frame so
+            # that multiprocessing.Pool workers can pickle it cleanly.
+            # openai.APIStatusError carries an httpx.Response that is not
+            # picklable, which causes a TypeError in Pool's _handle_results
+            # thread and masks the real error (see github.com/NVIDIA/garak/issues/1357).
+            msg = (
+                f"OpenAI API authentication failed (HTTP {e.status_code}); "
+                f"verify {self.key_env_var} is valid. Original error: {e}"
+            )
+            logging.error(msg)
+            raise garak.exception.GarakException(msg) from None
+        except openai.BadRequestError as e:
+            msg = "Bad request: " + str(repr(prompt))
+            logging.exception(e)
+            logging.error(msg)
+            return [None]
+        except json.decoder.JSONDecodeError as e:
+            logging.exception(e)
+            if self.retry_json:
+                raise garak.exception.GeneratorBackoffTrigger from e
+            else:
+                raise e
+
+        if not hasattr(response, "choices"):
+            logging.debug(
+                "Did not get a well-formed response, retrying. Expected object with .choices member, got: '%s'"
+                % repr(response)
+            )
+            msg = "no .choices member in generator response"
+            if self.retry_json:
+                raise garak.exception.GeneratorBackoffTrigger(msg)
+            else:
+                return [None]
+        if response.choices is None:
+            logging.debug(
+                "Did not get a well-formed response, Expected object with populated .choices member, got: '%s'"
+                % repr(response)
+            )
+            return [None]
+
+        if is_completion:
+            reponse_message_list = [Message(c.text) for c in response.choices]
+        else:
+            reponse_message_list = [
+                Message(c.message.content) for c in response.choices
+            ]
+
+        if len(reponse_message_list) != generations_this_call:
+            raise garak.exception.BadGeneratorException(
+                "Generator did not return the requested number of responses (asked for %i got %i). supports_multiple_generations may be set incorrectly."
+                % (generations_this_call, len(reponse_message_list))
+            )
+
+        return reponse_message_list
+
+
+class OpenAIGenerator(OpenAICompatible):
+    """Generator wrapper for OpenAI text2text models. Expects API key in the OPENAI_API_KEY environment variable"""
+
+    ENV_VAR = "OPENAI_API_KEY"
+    active = True
+    generator_family_name = "OpenAI"
+    supports_multiple_generations = True
+
+    # remove uri as it is not overridable in this class.
+    DEFAULT_PARAMS = {
+        k: val for k, val in OpenAICompatible.DEFAULT_PARAMS.items() if k != "uri"
+    }
+
+    def _load_unsafe(self):
+        self.client = openai.OpenAI(api_key=self.api_key)
+
+        if self.name == "":
+            openai_model_list = sorted([m.id for m in self.client.models.list().data])
+            raise ValueError(
+                f"Model name is required for {self.generator_family_name}, use --target_name\n"
+                + "  API returns following available models: ▶️   "
+                + "  ".join(openai_model_list)
+                + "\n"
+                + "  ⚠️  Not all these are text generation models"
+            )
+
+        if self.name in completion_models:
+            self.generator = self.client.completions
+        elif self.name in chat_models:
+            self.generator = self.client.chat.completions
+        elif "-".join(self.name.split("-")[:-1]) in chat_models and re.match(
+            r"^.+-[01][0-9][0-3][0-9]$", self.name
+        ):  # handle model names -MMDDish suffix
+            self.generator = self.client.completions
+        else:
+            msg = f"❔ No {self.generator_family_name} API defined for '{self.name}' in generators/openai.py - please add one! Assuming chat model"
+            print(msg)
+            logging.info(msg)
+            self.generator = self.client.chat.completions
+
+        if self.__class__.__name__ == "OpenAIGenerator" and self.name.startswith("o"):
+            msg = "'o'-class models should use openai.OpenAIReasoningGenerator. Try e.g. `-m openai.OpenAIReasoningGenerator` instead of `-m openai`"
+            logging.error(msg)
+            raise garak.exception.BadGeneratorException("🛑 " + msg)
+
+    def __init__(self, name="", config_root=_config):
+        self.name = name
+        self._load_config(config_root)
+        if self.name in context_lengths:
+            self.context_len = context_lengths[self.name]
+
+        super().__init__(self.name, config_root=config_root)
+
+
+class OpenAIReasoningGenerator(OpenAIGenerator):
+    """Generator wrapper for OpenAI reasoning models, e.g. `o1` family."""
+
+    supports_multiple_generations = False
+
+    DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
+        "top_p": 1.0,
+        "frequency_penalty": 0.0,
+        "presence_penalty": 0.0,
+        "seed": None,
+        "stop": ["#", ";"],
+        "suppressed_params": set(["n", "temperature", "max_tokens", "stop"]),
+        "retry_json": True,
+        "max_completion_tokens": 1500,
+    }
+
+
+DEFAULT_CLASS = "OpenAIGenerator"

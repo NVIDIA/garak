@@ -1,0 +1,29 @@
+{
+   "watsonx_bearer_token" : {
+      "code" : 200,
+      "json" : {
+         "access_token" : "fake_token1231231231",
+         "expiration" : 1737754747,
+         "expires_in" : 3600,
+         "refresh_token" : "not_supported",
+         "scope" : "ibm openid",
+         "token_type" : "Bearer"
+      }
+   },
+   "watsonx_generation" : {
+      "code" : 200,
+      "json" : {
+         "created_at" : "2025-01-24T20:51:59.520Z",
+         "model_id" : "ibm/granite-3-8b-instruct",
+         "model_version" : "1.1.0",
+         "results" : [
+            {
+               "generated_text" : "This is a test generation. :)",
+               "generated_token_count" : 32,
+               "input_token_count" : 6,
+               "stop_reason" : "eos_token"
+            }
+         ]
+      }
+   }
+}

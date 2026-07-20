@@ -1,0 +1,10 @@
+run:
+  target_lang: jap
+  langproviders:
+    # note that language is expected to sub with {} in model_name
+    - language: en,jap
+      model_type: local 
+      model_name: Helsinki-NLP/opus-mt-{} 
+    - language: jap,en
+      model_type: local 
+      model_name: Helsinki-NLP/opus-mt-{} 

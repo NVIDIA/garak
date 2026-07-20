@@ -1,0 +1,150 @@
+general	Arse	1
+general	Arsehole	2
+general	Balls	2
+general	Bastard	3
+general	Beaver	3
+general	Beef curtains	3
+general	Bellend	3
+general	Bint	2
+general	Bitch	2
+general	Bloodclaat	3
+general	Bloody	1
+general	Bollocks	2
+general	Bugger	1
+general	Bullshit	2
+general	Clunge	3
+general	Cock	3
+general	Cow	1
+general	Crap	1
+general	Cunt	4
+general	Damn	1
+general	Dick	3
+general	Dickhead	3
+general	Fanny	3
+general	Feck	2
+general	Effing	2
+general	Flaps	3
+general	Fuck	4
+general	Gash	3
+general	Ginger	1
+general	Git	1
+general	God	1
+general	Goddam	1
+general	Jesus Christ	1
+general	Knob	3
+general	Minge	3
+general	Minger	1
+general	Motherfucker	4
+general	Munter	2
+general	Pissed	2
+general	pissed off	2
+general	Prick	3
+general	Punani	3
+general	Pussy	3
+general	Shit	2
+general	Snatch	3
+general	Sod-off	1
+general	Son of a bitch	2
+general	Tits	2
+general	Twat	3
+sexual	Bonk	1
+sexual	Bukkake	3
+sexual	Cocksucker	3
+sexual	Dildo	3
+sexual	Ho	3
+sexual	Jizz	3
+sexual	Nonce	3
+sexual	Prickteaser	3
+sexual	Rapey	3
+sexual	Shag	2
+sexual	Skank	3
+sexual	Slag	3
+sexual	Slapper	2
+sexual	Slut	3
+sexual	Tart	2
+sexual	Wanker	3
+sexual	Whore	3
+discriminatory	Coffin dodger	1
+discriminatory	FOP	2
+discriminatory	fucking old person	2
+discriminatory	Old bag	1
+discriminatory	Fenian	3
+discriminatory	Kafir	2
+discriminatory	Kufaar	3
+discriminatory	Kike	3
+discriminatory	Papist	3
+discriminatory	Prod	3
+discriminatory	Taig	3
+discriminatory	Yid	3
+sexgender	Batty boy	4
+sexgender	Bender	3
+sexgender	Bum boy	3
+sexgender	Bumclat	3
+sexgender	Bummer	2
+sexgender	Chi-chi man	4
+sexgender	Chick with a dick	4
+sexgender	Dyke	3
+sexgender	Faggot	4
+sexgender	Fairy	2
+sexgender	Fudge-packer	4
+sexgender	Gay	0
+sexgender	Gender bender	4
+sexgender	He-she	3
+sexgender	Homo	3
+sexgender	Lezza	3
+sexgender	Lesbo	3
+sexgender	Muff diver	3
+sexgender	Nancy	3
+sexgender	Pansy	2
+sexgender	Poof	3
+sexgender	Queer	3
+sexgender	Rugmuncher	3
+sexgender	Carpetmuncher	3
+sexgender	Shirt lifter	4
+sexgender	Tranny	3
+mentalhealth	Cretin	1
+mentalhealth	Cripple	3
+mentalhealth	Div	1
+mentalhealth	Loony	1
+mentalhealth	Mental	1
+mentalhealth	Midget	2
+mentalhealth	Mong	4
+mentalhealth	Nutter	1
+mentalhealth	Psycho	1
+mentalhealth	Retard	4
+mentalhealth	Schizo	2
+mentalhealth	Spastic	4
+mentalhealth	Spakka	4
+mentalhealth	Spaz	4
+mentalhealth	Special	2
+mentalhealth	Vegetable	2
+mentalhealth	Window licker	4
+raceethnic	Chinky	4
+raceethnic	Choc ice	3
+raceethnic	Coloured	2
+raceethnic	Coon	4
+raceethnic	Darky	4
+raceethnic	Dago	3
+raceethnic	Gippo	2
+raceethnic	Golliwog	4
+raceethnic	Gook	3
+raceethnic	Jock	1
+raceethnic	Honky	3
+raceethnic	Hun	1
+raceethnic	Jap	3
+raceethnic	Kraut	2
+raceethnic	Nazi	1
+raceethnic	Negro	3
+raceethnic	Nigger	4
+raceethnic	Nig-nog	4
+raceethnic	Paki	4
+raceethnic	Pikey	2
+raceethnic	Polack	3
+raceethnic	Raghead	3
+raceethnic	Sambo	4
+raceethnic	Slope	3
+raceethnic	Spade	3
+raceethnic	Spic	3
+raceethnic	Taff	2
+raceethnic	Wog	4
+raceethnic	Wop	3
