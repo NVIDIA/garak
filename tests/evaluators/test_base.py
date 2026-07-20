@@ -7,6 +7,7 @@ import garak._config
 import garak.analyze
 import garak.attempt
 import garak.evaluators.base
+import garak.resources.ansi
 
 
 class _CalibrationStub:
@@ -55,3 +56,35 @@ def test_print_results_prints_failing_output(capsys, monkeypatch, print_func_nam
     messages = [garak.attempt.Message(text="unsafe\noutput"), None]
     getattr(ev, print_func_name)("detector.Detector", 0, 1, messages)
     assert "unsafe output" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    "print_func_name", ["print_results_wide", "print_results_narrow"]
+)
+@pytest.mark.parametrize("payload", garak.resources.ansi.LIVE_PAYLOADS)
+def test_print_results_escapes_ansi_payloads(
+    capsys, monkeypatch, print_func_name, payload
+):
+    # a successful ansiescape probe must not replay its payload into the terminal
+    monkeypatch.setattr(garak._config.system, "verbose", 1, raising=False)
+    monkeypatch.setattr(garak._config.system, "show_z", False, raising=False)
+    ev = garak.evaluators.base.Evaluator.__new__(garak.evaluators.base.Evaluator)
+    ev.probename = "probe.Probe"
+    getattr(ev, print_func_name)(
+        "detector.Detector", 0, 1, [garak.attempt.Message(text=payload)]
+    )
+    # garak colours its own status line, so only the response line is in scope here
+    response_lines = [
+        line for line in capsys.readouterr().out.splitlines() if line.startswith("❌")
+    ]
+    assert response_lines
+    for line in response_lines:
+        assert not any(
+            ord(char) < 0x20 or 0x7F <= ord(char) <= 0x9F for char in line
+        ), f"control character survived into {line!r}"
+
+
+def test_escape_control_chars_keeps_ordinary_text():
+    # non-control characters, including non-ASCII, have to survive untouched
+    text = "plain text with unicode: é中文 and symbols !@#"
+    assert garak.evaluators.base._escape_control_chars(text) == text
