@@ -5,6 +5,7 @@ These describe evaluators for assessing detector results.
 
 import json
 import logging
+import re
 from pathlib import Path
 
 from typing import Iterable, Optional, Tuple, List
@@ -23,6 +24,21 @@ import garak.resources.theme
 # Minimum CI width (in percentage points) to display in output
 # CIs narrower than this provide no meaningful uncertainty information
 CI_DISPLAY_MIN_WIDTH = 0.001
+
+# C0 controls, DEL, and the C1 range that carries the single-byte CSI/OSC introducers
+_CONTROL_CHARS = re.compile(r"[\x00-\x1f\x7f-\x9f]")
+
+
+def _escape_control_chars(text: str) -> str:
+    """Show control characters instead of sending them to the terminal.
+
+    Verbose output prints generator responses, and probes.ansiescape exists to elicit
+    escape sequences. Without this, a probe that succeeded would replay the payload
+    into the console running garak. resources.ansi keeps its own payloads in code
+    rather than a text file for the same reason.
+    """
+
+    return _CONTROL_CHARS.sub(lambda match: repr(match.group())[1:-1], text)
 
 
 class Evaluator:
@@ -305,9 +321,14 @@ class Evaluator:
 
         if _config.system.verbose > 0 and messages:
             for m in messages:
+                if m is None or m.text is None:
+                    continue
                 try:
-                    print("❌", m.strip().replace("\n", " "))
-                except:
+                    print(
+                        "❌",
+                        _escape_control_chars(m.text.strip().replace("\n", " ")),
+                    )
+                except Exception:
                     pass
 
     def print_results_narrow(
@@ -380,9 +401,14 @@ class Evaluator:
 
         if _config.system.verbose > 0 and messages:
             for m in messages:
+                if m is None or m.text is None:
+                    continue
                 try:
-                    print("❌", m.strip().replace("\n", " "))
-                except:
+                    print(
+                        "❌",
+                        _escape_control_chars(m.text.strip().replace("\n", " ")),
+                    )
+                except Exception:
                     pass
 
 
