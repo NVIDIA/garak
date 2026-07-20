@@ -150,6 +150,7 @@ class OpenAICompatible(Generator):
         "seed": None,
         "stop": ["#", ";"],
         "suppressed_params": set(),
+        "transient_retry_codes": [408, 429, 502, 503, 504],
         "retry_json": True,
         "extra_params": {},
     }
@@ -335,6 +336,17 @@ class OpenAICompatible(Generator):
             msg = "Bad request: " + str(repr(prompt))
             logging.exception(e)
             logging.error(msg)
+            return [None]
+        except openai.APIStatusError as e:
+            if e.status_code in self.transient_retry_codes:
+                raise garak.exception.GeneratorBackoffTrigger(
+                    f"Transient HTTP {e.status_code}, retrying with backoff"
+                ) from None
+            logging.warning(
+                "OpenAI API returned non-retryable HTTP %s for %s",
+                e.status_code,
+                self.fullname,
+            )
             return [None]
         except json.decoder.JSONDecodeError as e:
             logging.exception(e)

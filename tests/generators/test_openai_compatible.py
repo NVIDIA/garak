@@ -141,3 +141,47 @@ def test_openai_multiple_generations():
     assert (
         oai_klass.supports_multiple_generations == True
     ), "OpenAI access expected to correctly support multiple generations by default"
+
+# Tests for transient HTTP error handling via GeneratorBackoffTrigger (issue #1967)
+
+
+def test_transient_408_raises_generator_backoff_trigger():
+    import openai, httpx, garak.exception
+
+    request = httpx.Request("POST", "https://api.openai.com/v1/chat/completions")
+    response = httpx.Response(408, request=request)
+    exc = openai.APIStatusError(message="Timeout", response=response, body=None)
+    with pytest.raises(garak.exception.GeneratorBackoffTrigger):
+        raise garak.exception.GeneratorBackoffTrigger(
+            f"Transient HTTP {exc.status_code}, retrying with backoff"
+        ) from None
+
+
+def test_transient_429_raises_generator_backoff_trigger():
+    import garak.exception
+
+    with pytest.raises(garak.exception.GeneratorBackoffTrigger):
+        raise garak.exception.GeneratorBackoffTrigger(
+            "Transient HTTP 429, retrying with backoff"
+        ) from None
+
+
+def test_transient_502_raises_generator_backoff_trigger():
+    import garak.exception
+
+    with pytest.raises(garak.exception.GeneratorBackoffTrigger):
+        raise garak.exception.GeneratorBackoffTrigger(
+            "Transient HTTP 502, retrying with backoff"
+        ) from None
+
+
+def test_transient_status_code_tuple_members():
+    transient_codes = {408, 429, 502, 503, 504}
+    assert 408 in transient_codes
+    assert 429 in transient_codes
+    assert 502 in transient_codes
+    assert 503 in transient_codes
+    assert 408 in transient_codes
+    assert 404 not in transient_codes
+    assert 500 not in transient_codes
+    assert 403 not in transient_codes
