@@ -44,6 +44,9 @@ class AttackState:
     current_attack_prompt: str = ""
     attempts_history: list = field(default_factory=list)
     vulnerability_info: str = ""
+    # Victim-side tool contract, so the judge grounds its verdict in what the tool is authorized to do.
+    agent_purpose: str = ""
+    tool_description: str = ""
     # Per-output verification results: list of (is_success, confidence) tuples,
     # one entry per generator output.  Empty means not yet verified.
     verified_results: list = field(default_factory=list)
@@ -56,6 +59,8 @@ class AttackState:
             "current_attack_prompt": self.current_attack_prompt,
             "attempts_history": list(self.attempts_history),
             "vulnerability_info": self.vulnerability_info,
+            "agent_purpose": self.agent_purpose,
+            "tool_description": self.tool_description,
         }
         if self.verified_results:
             d["verified_results"] = list(self.verified_results)
@@ -70,6 +75,8 @@ class AttackState:
             current_attack_prompt=notes.get("current_attack_prompt", ""),
             attempts_history=list(notes.get("attempts_history", [])),
             vulnerability_info=notes.get("vulnerability_info", ""),
+            agent_purpose=notes.get("agent_purpose", ""),
+            tool_description=notes.get("tool_description", ""),
             verified_results=list(notes.get("verified_results", [])),
         )
 
@@ -551,25 +558,36 @@ class AgentBreaker(garak.probes.IterativeProbe):
 
         return None
 
+    def _tool_description(self, tool_name: str) -> str:
+        """Return the declared description (contract) for *tool_name*, if any."""
+        for tool in self.agent_config.get("tools", []) or []:
+            if tool.get("name") == tool_name:
+                return tool.get("description", "")
+        return ""
+
     def _verify_attack_success(
         self,
         attack_prompt: garak.attempt.Conversation,
         agent_response: str,
         target_tool: str,
         vulnerability_info: str,
-    ) -> tuple[bool, float, str]:
+        agent_purpose: str = "",
+        tool_description: str = "",
+    ) -> tuple[bool, float, str, str]:
         """Verify if an attack was successful.
 
         Delegates to the shared detector instance so that loop-control and
         final scoring always use the same model and logic.
 
-        Returns: (is_success, confidence_score, reasoning)
+        Returns: (is_success, confidence_score, reasoning, block_label)
         """
         return self._detector.verify(
             output_text=agent_response,
             target_tool=target_tool,
             vulnerability_info=vulnerability_info,
             attack_prompt=attack_prompt.last_message().text,
+            agent_purpose=agent_purpose,
+            tool_description=tool_description,
         )
 
     def _create_init_attempts(self) -> Iterable[garak.attempt.Attempt]:
@@ -624,6 +642,8 @@ class AgentBreaker(garak.probes.IterativeProbe):
         processed.notes["current_target"] = state.current_target
         processed.notes["current_attack_prompt"] = state.current_attack_prompt
         processed.notes["vulnerability_info"] = state.vulnerability_info
+        processed.notes["agent_purpose"] = state.agent_purpose
+        processed.notes["tool_description"] = state.tool_description
         # Carry forward the per-output verdicts when present.
         if state.verified_results:
             processed.notes["verified_results"] = list(state.verified_results)
@@ -637,6 +657,8 @@ class AgentBreaker(garak.probes.IterativeProbe):
         """Generate a initial attacks for a single tool"""
         attempts: List[garak.attempt.Attempt] = []
         vulnerability_info = tool_analysis.get("vulnerabilities", "")
+        agent_purpose = self.agent_config.get("agent_purpose", "")
+        tool_description = self._tool_description(tool_name)
 
         attack_prompts = tool_analysis.get("attack_prompts", [])
         if not attack_prompts:
@@ -653,6 +675,8 @@ class AgentBreaker(garak.probes.IterativeProbe):
                 current_tool_analysis=tool_analysis,
                 current_attack_prompt=prompt,
                 vulnerability_info=vulnerability_info,
+                agent_purpose=agent_purpose,
+                tool_description=tool_description,
             )
             attempt.notes = state.to_notes()
             attempts.append(attempt)
@@ -680,31 +704,35 @@ class AgentBreaker(garak.probes.IterativeProbe):
         best_confidence = -1.0
         best_response = ""
         best_reasoning = ""
+        best_block_label = "none"
         attack_succeeded = False
 
         for output in outputs:
             if output is None or output.text is None:
-                verified_results.append((False, 0.0))
+                verified_results.append((False, 0.0, "none"))
                 continue
-            is_success, confidence, reasoning = self._verify_attack_success(
+            is_success, confidence, reasoning, block_label = self._verify_attack_success(
                 attack_prompt=last_attempt.prompt,
                 agent_response=output.text,
                 target_tool=state.current_target,
                 vulnerability_info=state.vulnerability_info,
+                agent_purpose=state.agent_purpose,
+                tool_description=state.tool_description,
             )
-            verified_results.append((is_success, confidence))
+            verified_results.append((is_success, confidence, block_label))
             # Track the most informative response for attacker history.
             if confidence > best_confidence:
                 best_confidence = confidence
                 best_response = output.text
                 best_reasoning = reasoning
+                best_block_label = block_label
             if is_success and confidence >= self.success_threshold:
                 attack_succeeded = True
 
         state.verified_results = verified_results
 
         # Record best response in attacker history for learning.
-        best_success = any(s for s, _ in verified_results)
+        best_success = any(s for s, *_ in verified_results)
         state.attempts_history.append(
             {
                 "target": state.current_target,
@@ -712,6 +740,7 @@ class AgentBreaker(garak.probes.IterativeProbe):
                 "success": best_success,
                 "confidence": best_confidence,
                 "reasoning": best_reasoning,
+                "block_label": best_block_label,
                 "response": best_response,
             }
         )

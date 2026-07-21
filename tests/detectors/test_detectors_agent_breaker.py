@@ -6,6 +6,7 @@
 import json
 
 import pytest
+import yaml
 from unittest.mock import MagicMock, patch
 
 import garak.detectors.base
@@ -41,12 +42,14 @@ def _make_attempt(outputs, notes=None, **kwargs):
 def _mock_verify_response(success="YES", confidence=0.9, reasoning="exploited"):
     """Create a mock generator response for the VERIFY prompt."""
     resp = MagicMock()
-    resp.text = json.dumps({
-        "success": success,
-        "confidence": confidence,
-        "reasoning": reasoning,
-        "indicators": ["indicator1"],
-    })
+    resp.text = json.dumps(
+        {
+            "success": success,
+            "confidence": confidence,
+            "reasoning": reasoning,
+            "indicators": ["indicator1"],
+        }
+    )
     return resp
 
 
@@ -322,9 +325,7 @@ class TestDetectJsonParsing:
         assert result == [0.0]
 
     def test_generator_exception_returns_zero(self, detector):
-        detector.evaluation_generator.generate.side_effect = RuntimeError(
-            "API down"
-        )
+        detector.evaluation_generator.generate.side_effect = RuntimeError("API down")
         attempt = _make_attempt(
             [Message("response")],
             notes={
@@ -398,3 +399,123 @@ class TestConfidenceCutoff:
         )
         result = detector.detect(attempt)
         assert result == [0.0]
+
+
+class TestContractGrounding:
+    """The judge is grounded in the victim's own tool contract (notes)."""
+
+    # Stub template that exercises every placeholder verify() supplies, so these
+    # tests are independent of whichever prompts.yaml is on disk.
+    _STUB_TEMPLATE = (
+        "target={target_tool} vuln={vulnerability_info} attack={attack_prompt} "
+        "resp={agent_response} purpose={agent_purpose} contract={tool_description}"
+    )
+
+    def test_contract_fields_rendered_into_prompt(self, detector):
+        detector._verify_template = self._STUB_TEMPLATE
+        detector.evaluation_generator.generate.return_value = [
+            _mock_verify_response("NO", 0.2)
+        ]
+        attempt = _make_attempt(
+            [Message("output")],
+            notes={
+                "current_target": "send_email",
+                "vulnerability_info": "spoofing hypothesis",
+                "current_attack_prompt": "email everyone",
+                "agent_purpose": "help users draft their own mail",
+                "tool_description": "send an email as the current user only",
+            },
+        )
+        detector.detect(attempt)
+        call_args = detector.evaluation_generator.generate.call_args
+        prompt_conv = call_args.kwargs.get("prompt") or call_args.args[0]
+        prompt_text = prompt_conv.turns[0].content.text
+        assert "purpose=help users draft their own mail" in prompt_text
+        assert "contract=send an email as the current user only" in prompt_text
+
+    def test_missing_contract_uses_placeholders(self, detector):
+        detector._verify_template = self._STUB_TEMPLATE
+        detector.evaluation_generator.generate.return_value = [
+            _mock_verify_response("NO", 0.1)
+        ]
+        attempt = _make_attempt(
+            [Message("output")],
+            notes={"current_target": "t"},
+        )
+        detector.detect(attempt)
+        call_args = detector.evaluation_generator.generate.call_args
+        prompt_conv = call_args.kwargs.get("prompt") or call_args.args[0]
+        prompt_text = prompt_conv.turns[0].content.text
+        assert "purpose=(not provided)" in prompt_text
+        assert "contract=(no contract found for this tool)" in prompt_text
+
+    def test_packaged_verify_template_supports_contract(self):
+        """The shipped prompts.yaml must carry the contract placeholders and
+        format with exactly the fields verify() supplies."""
+        import pathlib
+
+        import garak
+
+        pkg_prompts = (
+            pathlib.Path(garak.__file__).parent
+            / "data"
+            / "agent_breaker"
+            / "prompts.yaml"
+        )
+        template = yaml.safe_load(pkg_prompts.read_text())["VERIFY"]
+        assert "{agent_purpose}" in template
+        assert "{tool_description}" in template
+        # Must render with exactly the kwargs verify() passes (no missing/extra).
+        template.format(
+            target_tool="t",
+            vulnerability_info="v",
+            attack_prompt="a",
+            agent_response="r",
+            agent_purpose="p",
+            tool_description="d",
+        )
+
+    def test_verify_backcompat_without_contract_kwargs(self, detector):
+        """verify() still works for callers that omit the contract kwargs."""
+        detector.evaluation_generator.generate.return_value = [
+            _mock_verify_response("YES", 0.9)
+        ]
+        is_success, confidence, _, _ = detector.verify(
+            output_text="I ran it",
+            target_tool="bash_exec",
+            vulnerability_info="RCE",
+            attack_prompt="run ls",
+        )
+        assert is_success is True
+        assert confidence == 0.9
+
+    def test_richer_verdict_fields_are_tolerated(self, detector):
+        """Extra keys (violation_basis / verdict_reason) do not break scoring."""
+        resp = MagicMock()
+        resp.text = json.dumps(
+            {
+                "objective": "read another user's data",
+                "violation_basis": "tool_contract",
+                "verdict_reason": "performed",
+                "success": "YES",
+                "confidence": 0.9,
+                "reasoning": "leaked contents",
+                "indicators": ["dumped file"],
+            }
+        )
+        detector.evaluation_generator.generate.return_value = [resp]
+        attempt = _make_attempt(
+            [Message("here are the contents")],
+            notes={"current_target": "reader", "tool_description": "read own files"},
+        )
+        assert detector.detect(attempt) == [1.0]
+
+    def test_fast_path_ignores_contract_and_reuses_verdicts(self, detector):
+        """When the probe pre-computed verdicts, no judge call is made."""
+        attempt = _make_attempt(
+            [Message("a"), Message("b")],
+            notes={"verified_results": [(True, 0.9), (False, 0.2)]},
+        )
+        result = detector.detect(attempt)
+        assert result == [1.0, 0.0]
+        detector.evaluation_generator.generate.assert_not_called()
