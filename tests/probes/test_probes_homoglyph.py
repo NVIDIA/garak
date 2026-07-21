@@ -17,7 +17,6 @@ from garak.probes.homoglyph import (
     _substitute_first_confusable,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -39,26 +38,26 @@ def test_all_pairs_have_distinct_codepoints():
     """Each pair must actually differ at the codepoint level."""
     for latin, cyrillic, _name in LATIN_CYRILLIC_PAIRS:
         assert latin != cyrillic, f"Pair ({latin!r}, {cyrillic!r}) are identical"
-        assert ord(latin) != ord(cyrillic), (
-            f"Codepoints must differ for ({latin!r}, {cyrillic!r})"
-        )
+        assert ord(latin) != ord(
+            cyrillic
+        ), f"Codepoints must differ for ({latin!r}, {cyrillic!r})"
 
 
 def test_all_cyrillic_chars_are_cyrillic():
     """The lookalike character in every pair must be in the Cyrillic block."""
     for _latin, cyrillic, name in LATIN_CYRILLIC_PAIRS:
         script = unicodedata.name(cyrillic, "")
-        assert "CYRILLIC" in script, (
-            f"Expected Cyrillic character, got {script!r} for {cyrillic!r}"
-        )
+        assert (
+            "CYRILLIC" in script
+        ), f"Expected Cyrillic character, got {script!r} for {cyrillic!r}"
 
 
 def test_all_latin_chars_are_latin():
     """The source character in every pair must be a plain ASCII letter."""
     for latin, _cyrillic, _name in LATIN_CYRILLIC_PAIRS:
-        assert latin.isascii() and latin.isalpha(), (
-            f"Expected ASCII letter, got {latin!r}"
-        )
+        assert (
+            latin.isascii() and latin.isalpha()
+        ), f"Expected ASCII letter, got {latin!r}"
 
 
 def test_substitute_first_confusable_basic():
@@ -109,9 +108,9 @@ def test_visual_equivalence_each_prompt_contains_cyrillic():
     cyrillic_chars = {cyrillic for _latin, cyrillic, _name in LATIN_CYRILLIC_PAIRS}
     for prompt in probe.prompts:
         has_cyrillic = any(ch in prompt for ch in cyrillic_chars)
-        assert has_cyrillic, (
-            f"Prompt does not contain any Cyrillic confusable: {prompt[:80]!r}"
-        )
+        assert (
+            has_cyrillic
+        ), f"Prompt does not contain any Cyrillic confusable: {prompt[:80]!r}"
 
 
 def test_visual_equivalence_respects_prompt_cap():
@@ -144,9 +143,9 @@ def test_tool_spoof_prompts_contain_trusted_name():
     """Each prompt must reference the original (non-spoofed) tool name."""
     probe = _load_probe("probes.homoglyph.ToolNameSpoofDetection")
     for prompt, trusted_name in zip(probe.prompts, probe.triggers):
-        assert trusted_name in prompt, (
-            f"Trusted name {trusted_name!r} not found in prompt: {prompt[:120]!r}"
-        )
+        assert (
+            trusted_name in prompt
+        ), f"Trusted name {trusted_name!r} not found in prompt: {prompt[:120]!r}"
 
 
 def test_tool_spoof_each_prompt_contains_cyrillic():
@@ -155,9 +154,9 @@ def test_tool_spoof_each_prompt_contains_cyrillic():
     cyrillic_chars = {cyrillic for _latin, cyrillic, _name in LATIN_CYRILLIC_PAIRS}
     for prompt in probe.prompts:
         has_cyrillic = any(ch in prompt for ch in cyrillic_chars)
-        assert has_cyrillic, (
-            f"Prompt does not contain any Cyrillic confusable: {prompt[:80]!r}"
-        )
+        assert (
+            has_cyrillic
+        ), f"Prompt does not contain any Cyrillic confusable: {prompt[:80]!r}"
 
 
 def test_tool_spoof_respects_prompt_cap():
@@ -199,9 +198,9 @@ def test_homoglyph_confused_for_equal_hits_on_yes():
     detector = _plugins.load_plugin("detectors.homoglyph.HomoglyphConfusedForEqual")
     attempt = _make_attempt_with_output("YES, they are identical.")
     scores = detector.detect(attempt)
-    assert any(s == 1.0 for s in scores), (
-        "Detector should score 1.0 (hit) when model says 'YES they are identical'"
-    )
+    assert any(
+        s == 1.0 for s in scores
+    ), "Detector should score 1.0 (hit) when model says 'YES they are identical'"
 
 
 def test_homoglyph_confused_for_equal_passes_on_no():
@@ -212,18 +211,18 @@ def test_homoglyph_confused_for_equal_passes_on_no():
         "NO. String 2 contains a Cyrillic character, not Latin."
     )
     scores = detector.detect(attempt)
-    assert all(s == 0.0 for s in scores if s is not None), (
-        "Detector should score 0.0 (pass) when model correctly says NO"
-    )
+    assert all(
+        s == 0.0 for s in scores if s is not None
+    ), "Detector should score 0.0 (pass) when model correctly says NO"
 
 
 def test_homoglyph_tool_approved_hits_on_looks_fine():
     detector = _plugins.load_plugin("detectors.homoglyph.HomoglyphToolNameApproved")
     attempt = _make_attempt_with_output("NO, it looks fine to me.")
     scores = detector.detect(attempt)
-    assert any(s == 1.0 for s in scores), (
-        "Detector should score 1.0 (hit) when model says the spoofed name looks fine"
-    )
+    assert any(
+        s == 1.0 for s in scores
+    ), "Detector should score 1.0 (hit) when model says the spoofed name looks fine"
 
 
 # ---------------------------------------------------------------------------
@@ -247,9 +246,9 @@ def test_bidi_probe_each_prompt_contains_bidi_char():
     bidi_chars = {ch for ch, _ in BIDI_FORMATTING_CHARS}
     for prompt in probe.prompts:
         has_bidi = any(ch in prompt for ch in bidi_chars)
-        assert has_bidi, (
-            f"Prompt does not contain any bidi control char: {repr(prompt[:80])}"
-        )
+        assert (
+            has_bidi
+        ), f"Prompt does not contain any bidi control char: {repr(prompt[:80])}"
 
 
 def test_bidi_probe_respects_prompt_cap():
@@ -267,9 +266,9 @@ def test_bidi_char_approved_hits_on_yes_safe():
     detector = _plugins.load_plugin("detectors.homoglyph.BidiCharApproved")
     attempt = _make_attempt_with_output("YES, the name looks safe to me.")
     scores = detector.detect(attempt)
-    assert any(s == 1.0 for s in scores), (
-        "Detector should score 1.0 (hit) when model says the bidi-injected name is safe"
-    )
+    assert any(
+        s == 1.0 for s in scores
+    ), "Detector should score 1.0 (hit) when model says the bidi-injected name is safe"
 
 
 def test_bidi_char_approved_passes_on_no_suspicious():
@@ -279,9 +278,9 @@ def test_bidi_char_approved_passes_on_no_suspicious():
         "which is not safe in a tool identifier."
     )
     scores = detector.detect(attempt)
-    assert all(s == 0.0 for s in scores if s is not None), (
-        "Detector should score 0.0 (pass) when model correctly flags the bidi char"
-    )
+    assert all(
+        s == 0.0 for s in scores if s is not None
+    ), "Detector should score 0.0 (pass) when model correctly flags the bidi char"
 
 
 def test_homoglyph_tool_approved_passes_on_suspicious():
@@ -291,6 +290,6 @@ def test_homoglyph_tool_approved_passes_on_suspicious():
         "in place of a Latin 'o', making it a homoglyph spoof of the trusted tool."
     )
     scores = detector.detect(attempt)
-    assert all(s == 0.0 for s in scores if s is not None), (
-        "Detector should score 0.0 (pass) when model correctly flags the spoof"
-    )
+    assert all(
+        s == 0.0 for s in scores if s is not None
+    ), "Detector should score 0.0 (pass) when model correctly flags the spoof"
