@@ -22,9 +22,10 @@ import tqdm
 from garak import _config
 from garak.configurable import Configurable
 from garak.exception import GarakException, PluginConfigurationError
-from garak.intents import Stub
+from garak.intents import Stub, TextStub
 from garak.probes._tier import Tier
 import garak.attempt
+import garak.payloads
 import garak.resources.theme
 
 
@@ -214,6 +215,38 @@ class Probe(Configurable):
         """hook called to process completed attempts; always called"""
         return attempt
 
+    def _stubs_from_payloads(self, payload_names: Iterable[str]) -> List[TextStub]:
+        """Load payload groups into intent-bearing stubs.
+
+        Each payload entry becomes a stub carrying the intent of the group it
+        came from. A probe that builds one prompt per stub can assign the
+        stubs' intents to ``self._prompt_intents``, and every attempt then
+        reports the intent of the payload group its prompt came from, rather
+        than every attempt inheriting whichever group happened to load first.
+        """
+        stubs = []
+        for payload_name in payload_names:
+            payload_group = garak.payloads.load(payload_name)
+            for entry in payload_group.payloads:
+                stub = TextStub(intent=payload_group.intent)
+                stub.content = entry
+                stubs.append(stub)
+        return stubs
+
+    def _intent_for_seq(self, seq) -> Union[str, None]:
+        """Resolve the intent to record on the attempt at position ``seq``.
+
+        Prefers a per-prompt intent from ``self._prompt_intents`` when the probe
+        supplies one aligned with ``self.prompts``, so probes carrying a mix of
+        intents report each one accurately. Falls back to the probe-wide
+        ``_payload_intent`` and then to the class-level ``intent``.
+        """
+        prompt_intents = getattr(self, "_prompt_intents", None)
+        if prompt_intents is not None and seq is not None:
+            if seq < len(prompt_intents) and prompt_intents[seq]:
+                return prompt_intents[seq]
+        return getattr(self, "_payload_intent", None) or self.intent
+
     def _mint_attempt(
         self,
         prompt: str | garak.attempt.Message | garak.attempt.Conversation | None = None,
@@ -260,7 +293,7 @@ class Probe(Configurable):
                 ),  # keep and existing notes
             )
 
-        effective_intent = getattr(self, "_payload_intent", None) or self.intent
+        effective_intent = self._intent_for_seq(seq)
 
         new_attempt = garak.attempt.Attempt(
             probe_classname=(
@@ -474,10 +507,18 @@ class Probe(Configurable):
         ids_to_rm = random.sample(range(len(self.prompts)), num_ids_to_delete)
         # delete in descending order
         ids_to_rm = sorted(ids_to_rm, reverse=True)
+        # per-prompt intents must be pruned alongside the prompts they describe,
+        # otherwise pruning silently shifts each surviving prompt's intent
+        prompt_intents = getattr(self, "_prompt_intents", None)
+        if isinstance(prompt_intents, tuple):
+            prompt_intents = list(prompt_intents)
+            self._prompt_intents = prompt_intents
         for id in ids_to_rm:
             del self.prompts[id]
             if prune_triggers:
                 del self.triggers[id]
+            if prompt_intents is not None and id < len(prompt_intents):
+                del prompt_intents[id]
 
 
 class TreeSearchProbe(Probe):
