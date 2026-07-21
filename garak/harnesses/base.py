@@ -191,11 +191,15 @@ class Harness(Configurable):
                 attempt_results, (list, types.GeneratorType)
             ), "probing should always return an ordered iterable"
 
+            probe_display_name = probe.probename.replace("garak.", "")
             for d in detectors:
                 logging.debug("harness: run detector %s", d.detectorname)
                 attempt_iterator = tqdm.tqdm(attempt_results, leave=False)
                 detector_probe_name = d.detectorname.replace("garak.detectors.", "")
-                attempt_iterator.set_description("detectors." + detector_probe_name)
+                # issue #324: include probe name in the detector progress bar
+                attempt_iterator.set_description(
+                    f"{probe_display_name}/detectors.{detector_probe_name}"
+                )
                 for attempt in attempt_iterator:
                     if d.skip:
                         continue
