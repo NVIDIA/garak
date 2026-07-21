@@ -21,9 +21,10 @@ const cellOf = (otherKey: string, score: number): AxisCell => ({
     col: otherKey,
     score,
     nEvaluations: 100,
-    leafCount: 1,
-    detectors: [],
-    leaves: [],
+    nAttempts: 100,
+    passed: Math.round(score * 100),
+    nones: 0,
+    nDetectors: 1,
   },
 });
 
@@ -37,7 +38,10 @@ describe("useTaxonomyCellChartOptions", () => {
   it("plots one worst-first bar per cell as a 0-100 percentage", () => {
     const { result } = renderHook(() => useTaxonomyCellChartOptions(cells, null));
     const data = seriesData(result.current.option);
-    expect(data.map(d => d.value), "scores rendered as integer percentages").toEqual([2, 100]);
+    expect(
+      data.map(d => d.value),
+      "scores rendered as integer percentages"
+    ).toEqual([2, 100]);
   });
 
   it("dims non-selected bars when a selection is active", () => {
@@ -50,10 +54,10 @@ describe("useTaxonomyCellChartOptions", () => {
   it("grows the chart height with the number of cells", () => {
     const few = renderHook(() => useTaxonomyCellChartOptions(cells, null));
     const many = renderHook(() =>
-      useTaxonomyCellChartOptions([...cells, cellOf("c", 0.5), cellOf("d", 0.5)], null),
+      useTaxonomyCellChartOptions([...cells, cellOf("c", 0.5), cellOf("d", 0.5)], null)
     );
     expect(many.result.current.height, "more cells need more vertical space").toBeGreaterThan(
-      few.result.current.height,
+      few.result.current.height
     );
   });
 });

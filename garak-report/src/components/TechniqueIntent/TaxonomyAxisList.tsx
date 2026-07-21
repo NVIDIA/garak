@@ -3,16 +3,15 @@
  * @description Modules-style accordion list for one taxonomy axis. Each primary
  *              entry (a technique, or an intent) expands to its worst-first
  *              cross-axis pairings, and each pairing expands again to an inline
- *              detail block — the pooled technique×intent pairs, concrete
- *              pass/fail counts, and honest "no failures" state that used to
- *              live in a side drawer.
+ *              detail block with concrete pass/fail counts and an honest
+ *              "no failures" state.
  * @module components/TechniqueIntent
  *
  * @copyright NVIDIA Corporation 2023-2026
  * @license Apache-2.0
  */
 
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Accordion,
   Badge,
@@ -27,7 +26,6 @@ import {
 import { ShieldCheck } from "lucide-react";
 import { scoreToDefcon } from "../../constants";
 import { formatRate } from "../../utils/formatPercentage";
-import { shortenTechnique } from "../../utils/taxonomyLabels";
 import useSeverityColor from "../../hooks/useSeverityColor";
 import DefconBadge from "../DefconBadge";
 import TaxonomyCellChart from "./TaxonomyCellChart";
@@ -108,37 +106,6 @@ const ScoreBadges = ({ score, defcon }: { score: number; defcon: number }) => {
   );
 };
 
-/**
- * Worst-first list of the technique×intent pairs a grouped cell pools. Makes the
- * conservative roll-up transparent: you can see exactly which pair drives the
- * worst-case cell score and how many pairs sit behind it.
- */
-const PooledLeaves = ({ leaves }: { leaves: MatrixCell["leaves"] }) => (
-  <Stack gap="density-xs">
-    <Text kind="label/bold/lg">Pooled pairs ({leaves.length})</Text>
-    <Stack gap="density-xs">
-      {leaves.map((leaf, index) => (
-        <Fragment key={`${leaf.technique}\u0000${leaf.intent}`}>
-          {index > 0 && <Divider />}
-          <Flex align="center" justify="space-between" gap="density-sm">
-            <Text kind="body/regular/md">
-              {leaf.techniqueName ?? shortenTechnique(leaf.technique)} ×{" "}
-              {leaf.intentName ?? leaf.intent}
-            </Text>
-            <Flex align="center" gap="density-xs">
-              <DefconBadge defcon={scoreToDefcon(leaf.score)} />
-              <Text kind="label/bold/md">{formatRate(leaf.score)}</Text>
-              <Text kind="label/regular/md" className="opacity-50">
-                ({leaf.nEvaluations.toLocaleString()})
-              </Text>
-            </Flex>
-          </Flex>
-        </Fragment>
-      ))}
-    </Stack>
-  </Stack>
-);
-
 /** Single labelled figure used in the detail header's stat row. */
 const Stat = ({ label, value }: { label: string; value: string }) => (
   <Stack gap="density-xxs">
@@ -151,10 +118,9 @@ const Stat = ({ label, value }: { label: string; value: string }) => (
 
 /**
  * Inline detail for one cross-axis pairing — the former drawer body. Leads with
- * a severity header and the concrete pass/fail counts the digest carries (the
- * abstract percentage made tangible), then the pooled pairs behind a rolled-up
- * cell. The digest pools detectors into a count here, so we report how many
- * judges scored the pairing rather than inventing a per-detector breakdown.
+ * a severity header and the concrete pass/fail counts the digest carries. The
+ * digest provides a detector count here, so we report how many judges scored
+ * the pairing rather than inventing a per-detector breakdown.
  */
 const CellDetail = ({ cell, title }: { cell: MatrixCell; title?: string }) => {
   const { getSeverityLabelByLevel, getDefconBadgeColor } = useSeverityColor();
@@ -174,44 +140,27 @@ const CellDetail = ({ cell, title }: { cell: MatrixCell; title?: string }) => {
             </Badge>
           </Flex>
           <Flex gap="density-2xl" wrap="wrap">
-            <Stat
-              label={cell.leafCount > 1 ? "Pass rate (worst case)" : "Pass rate"}
-              value={formatRate(cell.score)}
-            />
+            <Stat label="Pass rate" value={formatRate(cell.score)} />
             <Stat
               label="Passed"
               value={`${cell.passed.toLocaleString()} of ${cell.nEvaluations.toLocaleString()}`}
             />
             <Stat label="Failed" value={failed.toLocaleString()} />
-            {cell.nones > 0 && (
-              <Stat label="Undetermined" value={cell.nones.toLocaleString()} />
-            )}
-            {hasPrompts && (
-              <Stat label="Prompts" value={cell.nAttempts.toLocaleString()} />
-            )}
-            {cell.leafCount > 1 && (
-              <Stat label="Pooled pairs" value={cell.leafCount.toLocaleString()} />
-            )}
+            {cell.nones > 0 && <Stat label="Undetermined" value={cell.nones.toLocaleString()} />}
+            {hasPrompts && <Stat label="Prompts" value={cell.nAttempts.toLocaleString()} />}
           </Flex>
           <Text kind="label/regular/sm" className="opacity-60">
             {hasPrompts
               ? `${pluralize(cell.nAttempts, "prompt")} scored by ${pluralize(
                   cell.nDetectors,
-                  "detector",
+                  "detector"
                 )} = ${cell.nEvaluations.toLocaleString()} evaluations.`
               : `Counts are evaluations — one per prompt scored by each of ${pluralize(
                   cell.nDetectors,
-                  "detector",
+                  "detector"
                 )}.`}
           </Text>
         </Stack>
-
-        {cell.leafCount > 1 && (
-          <>
-            <Divider />
-            <PooledLeaves leaves={cell.leaves} />
-          </>
-        )}
 
         <Divider />
         {!hasFailures ? (

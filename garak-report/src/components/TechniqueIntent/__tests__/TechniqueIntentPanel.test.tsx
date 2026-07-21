@@ -1,7 +1,7 @@
 /**
  * @file TechniqueIntentPanel.test.tsx
  * @description Integration tests for the Techniques & Intents tab: the severity
- *              summary, notable-pairings callout, filter/sort/level controls, and
+ *              summary, notable-pairings callout, filter/sort controls, and
  *              the empty state for reports without a matrix.
  *
  * @copyright NVIDIA Corporation 2023-2026
@@ -68,7 +68,11 @@ vi.mock("@kui/react", () => ({
   SegmentedControl: ({ items, onValueChange }: MockSegmentedControlProps) => (
     <div>
       {items.map(item => (
-        <button key={item.value} data-testid={`seg-${item.value}`} onClick={() => onValueChange?.(item.value)}>
+        <button
+          key={item.value}
+          data-testid={`seg-${item.value}`}
+          onClick={() => onValueChange?.(item.value)}
+        >
           {item.children}
         </button>
       ))}
@@ -115,9 +119,8 @@ const score = (s: number) => ({
   n_detectors: 1,
 });
 
-// Two leaf techniques in one subcategory (so grouping is reducible) and an
-// interaction pairing: (one × i1) fails at 0 while both its row and column reach
-// 1.0 elsewhere, so findNotablePairings surfaces it.
+// An interaction pairing: (one × i1) fails at 0 while both its row and column
+// reach 1.0 elsewhere, so findNotablePairings surfaces it.
 const matrix: TechniqueIntentMatrix = {
   "demon:T:Sub:one": { i1: score(0), i2: score(1) },
   "demon:T:Sub:two": { i1: score(1) },
@@ -127,7 +130,7 @@ describe("TechniqueIntentPanel", () => {
   it("shows an empty state when the report has no taxonomy data", () => {
     render(<TechniqueIntentPanel />);
     expect(screen.getByTestId("status-heading")).toHaveTextContent(
-      "No technique/intent data in this report",
+      "No technique/intent data in this report"
     );
   });
 
@@ -135,9 +138,10 @@ describe("TechniqueIntentPanel", () => {
     render(<TechniqueIntentPanel techniqueIntent={matrix} />);
     expect(screen.getByTestId("tab-technique"), "technique tab present").toBeInTheDocument();
     expect(screen.getByTestId("tab-intent"), "intent tab present").toBeInTheDocument();
-    expect(screen.getByTestId("notification-heading"), "interaction callout renders").toHaveTextContent(
-      "Notable pairings",
-    );
+    expect(
+      screen.getByTestId("notification-heading"),
+      "interaction callout renders"
+    ).toHaveTextContent("Notable pairings");
   });
 
   it("jumps to the pairing detail when a notable pairing is clicked", () => {
@@ -148,15 +152,13 @@ describe("TechniqueIntentPanel", () => {
     fireEvent.click(shortcut);
     expect(
       screen.getByTestId("tabs"),
-      "panel stays mounted after jumping to a pairing",
+      "panel stays mounted after jumping to a pairing"
     ).toBeInTheDocument();
   });
 
-  it("drives the filter, sort, level and tab controls", () => {
+  it("drives the filter, sort and tab controls", () => {
     render(<TechniqueIntentPanel techniqueIntent={matrix} isDark />);
 
-    // Level toggle appears because the matrix is reducible; switch to grouped.
-    fireEvent.click(screen.getByTestId("seg-grouped"));
     // Sort alphabetically.
     fireEvent.click(screen.getByTestId("seg-alphabetical"));
     // Toggle a DEFCON level off in the shared filter bar.
@@ -164,6 +166,9 @@ describe("TechniqueIntentPanel", () => {
     // Switch to the intent tab.
     fireEvent.click(screen.getByTestId("tab-intent"));
 
-    expect(screen.getByTestId("tabs"), "panel stays mounted through interactions").toBeInTheDocument();
+    expect(
+      screen.getByTestId("tabs"),
+      "panel stays mounted through interactions"
+    ).toBeInTheDocument();
   });
 });

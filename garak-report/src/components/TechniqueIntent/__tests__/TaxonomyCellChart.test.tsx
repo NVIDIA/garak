@@ -44,8 +44,6 @@ const cellOf = (otherKey: string, score: number): AxisCell => ({
     passed: Math.round(score * 100),
     nones: 0,
     nDetectors: 1,
-    leafCount: 1,
-    leaves: [],
   },
 });
 

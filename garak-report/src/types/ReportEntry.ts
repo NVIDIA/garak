@@ -29,7 +29,7 @@ export type TechniqueIntentCell = {
   n_detectors: number;
 };
 
-/** Per-technique roll-up carried under the reserved `_summary` key of each row. */
+/** Per-technique metadata carried under the reserved `_summary` key of each row. */
 export type TechniqueIntentRowSummary = {
   /** Human-readable technique name from the taxonomy (null when untitled). */
   name?: string | null;
@@ -65,10 +65,8 @@ export type IntentTypologyEntry = {
 /**
  * Intent code -> typology entry, from `digest.intent_typology`. Sourced at
  * report-build time from garak's (user-override-aware) trait typology, so the
- * frontend no longer bundles or build-time-imports its own copy. Covers every
- * intent code the matrix references plus its family ("S004") and category ("S")
- * ancestors, so grouped columns resolve too. Absent on reports built before this
- * field existed.
+ * frontend no longer bundles or build-time-imports its own copy. Absent on
+ * reports built before this field existed.
  */
 export type IntentTypology = Record<string, IntentTypologyEntry>;
 

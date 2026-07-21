@@ -13,23 +13,13 @@
  */
 
 import { useCallback, useMemo, useState, type ReactNode } from "react";
-import {
-  Flex,
-  Grid,
-  Notification,
-  SegmentedControl,
-  Stack,
-  StatusMessage,
-  Tabs,
-  Text,
-} from "@kui/react";
+import { Flex, Grid, Notification, Stack, StatusMessage, Tabs, Text } from "@kui/react";
 import type { IntentTypology, TechniqueIntentMatrix } from "../../types/ReportEntry";
 import { DEFCON_LEVELS, scoreToDefcon } from "../../constants";
 import { formatRate } from "../../utils/formatPercentage";
 import {
   buildMatrixView,
   findNotablePairings,
-  type MatrixLevel,
   type NotablePairing,
 } from "../../utils/techniqueIntentRollup";
 import type { SortOption } from "../../hooks/useModuleFilters";
@@ -50,32 +40,7 @@ export interface TechniqueIntentPanelProps {
 
 type AxisTab = "technique" | "intent";
 
-const hasEntries = (obj?: Record<string, unknown>): boolean =>
-  !!obj && Object.keys(obj).length > 0;
-
-const LEVEL_ITEMS = [
-  { value: "leaf", children: "All leaves" },
-  { value: "grouped", children: "Grouped" },
-];
-
-/** Switches the lists between grouped (worst-case roll-up) and full-leaf levels. */
-const LevelToggle = ({
-  level,
-  onChange,
-}: {
-  level: MatrixLevel;
-  onChange: (level: MatrixLevel) => void;
-}) => (
-  <Flex gap="density-sm" align="center" style={{ flexShrink: 0 }}>
-    <Text kind="label/bold/lg">Detail level:</Text>
-    <SegmentedControl
-      size="small"
-      value={level}
-      onValueChange={value => onChange(value as MatrixLevel)}
-      items={LEVEL_ITEMS}
-    />
-  </Flex>
-);
+const hasEntries = (obj?: Record<string, unknown>): boolean => !!obj && Object.keys(obj).length > 0;
 
 /**
  * Warning callout for genuine interactions — pairings that fail far worse than
@@ -133,7 +98,6 @@ const TechniqueIntentPanel = ({
   intentTypology,
   isDark,
 }: TechniqueIntentPanelProps) => {
-  const [level, setLevel] = useState<MatrixLevel>("leaf");
   const [selectedDefcons, setSelectedDefcons] = useState<number[]>([...DEFCON_LEVELS]);
   const [sortBy, setSortBy] = useState<SortOption>("defcon");
   const [activeTab, setActiveTab] = useState<AxisTab>("technique");
@@ -145,35 +109,19 @@ const TechniqueIntentPanel = ({
   // Bumped on every notable-pairing click so re-clicking the same one re-scrolls.
   const [focusNonce, setFocusNonce] = useState(0);
 
-  const viewGrouped = useMemo(
-    () => buildMatrixView(techniqueIntent ?? {}, "grouped", intentTypology),
-    [techniqueIntent, intentTypology],
+  const view = useMemo(
+    () => buildMatrixView(techniqueIntent ?? {}, intentTypology),
+    [techniqueIntent, intentTypology]
   );
-  const viewLeaf = useMemo(
-    () => buildMatrixView(techniqueIntent ?? {}, "leaf", intentTypology),
-    [techniqueIntent, intentTypology],
-  );
-  const reducible = viewGrouped.reducible;
-  const activeLevel: MatrixLevel = reducible ? level : "leaf";
-  const activeView = activeLevel === "grouped" ? viewGrouped : viewLeaf;
 
   const hasMatrix = hasEntries(techniqueIntent);
 
-  // The interaction signal is derived from the concrete leaf pairings so it
-  // stays stable regardless of the Grouped/Leaf toggle below.
-  const notable = useMemo(() => findNotablePairings(viewLeaf), [viewLeaf]);
+  const notable = useMemo(() => findNotablePairings(view), [view]);
 
   const toggleDefcon = useCallback((defcon: number) => {
     setSelectedDefcons(prev =>
-      prev.includes(defcon) ? prev.filter(d => d !== defcon) : [...prev, defcon],
+      prev.includes(defcon) ? prev.filter(d => d !== defcon) : [...prev, defcon]
     );
-  }, []);
-
-  // Switching level remaps every key (grouped vs leaf), so clear stale open rows.
-  const changeLevel = useCallback((next: MatrixLevel) => {
-    setLevel(next);
-    setTechOpen("");
-    setIntentOpen("");
   }, []);
 
   // Manual open/close on the technique list drops any pending notable-pairing focus.
@@ -182,13 +130,10 @@ const TechniqueIntentPanel = ({
     setFocusIntent("");
   }, []);
 
-  // Jump from a notable pairing to its detail: technique tab, leaf level (so the
-  // accordion key matches the leaf pairing), open that technique and pre-select
-  // the intent. The opened detail box reveals itself once the accordion finishes
-  // animating (see scrollBoxIntoView in TaxonomyAxisList).
+  // Jump from a notable pairing to its detail: open the technique tab and
+  // pre-select the intent. The detail reveals itself once the accordion opens.
   const handleNotableSelect = useCallback((pairing: NotablePairing) => {
     setActiveTab("technique");
-    setLevel("leaf");
     setTechOpen(pairing.rowKey);
     setFocusIntent(pairing.colKey);
     setFocusNonce(n => n + 1);
@@ -214,7 +159,7 @@ const TechniqueIntentPanel = ({
         <Flex direction="col" style={{ width: "100%" }}>
           <ErrorBoundary fallbackMessage="Failed to load the technique list.">
             <TaxonomyAxisList
-              view={activeView}
+              view={view}
               axis="technique"
               selectedDefcons={selectedDefcons}
               sortBy={sortBy}
@@ -235,7 +180,7 @@ const TechniqueIntentPanel = ({
         <Flex direction="col" style={{ width: "100%" }}>
           <ErrorBoundary fallbackMessage="Failed to load the intent list.">
             <TaxonomyAxisList
-              view={activeView}
+              view={view}
               axis="intent"
               selectedDefcons={selectedDefcons}
               sortBy={sortBy}
@@ -259,7 +204,6 @@ const TechniqueIntentPanel = ({
           onToggleDefcon={toggleDefcon}
           sortBy={sortBy}
           onSortChange={setSortBy}
-          slotEnd={reducible ? <LevelToggle level={activeLevel} onChange={changeLevel} /> : undefined}
         />
         <Tabs
           value={activeTab}

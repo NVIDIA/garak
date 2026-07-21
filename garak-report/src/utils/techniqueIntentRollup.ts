@@ -1,11 +1,8 @@
 /**
  * @file techniqueIntentRollup.ts
- * @description Builds a renderable view of the technique × intent matrix at a
- *              chosen roll-up level. Grouped cells aggregate their leaf pairs
- *              **conservatively** — the cell score is the worst (minimum) leaf
- *              score, never a volume-weighted average — so a rolled-up cell can
- *              never appear safer than its most-vulnerable child. Rows and
- *              columns are ordered worst-first so risk surfaces top-left.
+ * @description Builds a renderable view of the technique × intent matrix.
+ *              Rows and columns are ordered worst-first so risk surfaces
+ *              immediately.
  * @module utils
  *
  * @copyright NVIDIA Corporation 2023-2026
@@ -18,19 +15,13 @@ import type {
   TechniqueIntentMatrix,
 } from "../types/ReportEntry";
 import {
-  techniqueGroupKey,
-  techniqueGroupLabel,
-  intentGroupKey,
   shortenTechnique,
   intentName as typologyIntentName,
   intentDescription as typologyIntentDescription,
 } from "./taxonomyLabels";
 
-/** Roll-up level for the matrix: subcategory/family grouping vs. raw leaves. */
-export type MatrixLevel = "grouped" | "leaf";
-
-/** A single underlying technique × intent leaf pair. */
-export interface MatrixLeaf {
+/** A single technique × intent pairing from the digest. */
+interface MatrixEntry {
   technique: string;
   intent: string;
   /** Human-readable technique name (falls back to the key when absent). */
@@ -51,58 +42,49 @@ export interface MatrixLeaf {
   nDetectors: number;
 }
 
-/** An aggregated (or single-leaf) matrix cell. */
+/** A single technique × intent matrix cell. */
 export interface MatrixCell {
   row: string;
   col: string;
-  /** Worst (minimum) leaf score — the conservative, security-honest summary. */
+  /** 0-1 pass rate for this pairing. */
   score: number;
-  /** Total evaluations pooled into the cell. */
+  /** Total evaluations for the pairing. */
   nEvaluations: number;
-  /** Distinct prompts pooled into the cell (0 on older reports). */
+  /** Distinct prompts for the pairing (0 on older reports). */
   nAttempts: number;
-  /** Passing evaluations pooled into the cell. */
+  /** Passing evaluations. */
   passed: number;
-  /** Undetermined evaluations pooled into the cell. */
+  /** Undetermined evaluations. */
   nones: number;
-  /** Most detectors any pooled leaf was scored by. */
+  /** Detectors that scored the pairing. */
   nDetectors: number;
-  /** Number of leaf pairs pooled into the cell. */
-  leafCount: number;
-  /** The underlying leaf pairs (worst-first). */
-  leaves: MatrixLeaf[];
 }
 
-/** A fully built, renderable matrix at one roll-up level. */
+/** A fully built, renderable matrix. */
 export interface MatrixView {
-  level: MatrixLevel;
   rows: string[];
   cols: string[];
   rowLabel: (key: string) => string;
   colLabel: (key: string) => string;
   /** Technique description for a row key, when the taxonomy provides one. */
   rowDescription: (key: string) => string | undefined;
-  /** Intent description for a column key (leaf intent or hazard family), when known. */
+  /** Intent description for a column key, when known. */
   colDescription: (key: string) => string | undefined;
   cell: (row: string, col: string) => MatrixCell | undefined;
-  /** Total leaf pairs across the whole matrix. */
-  leafCount: number;
-  /** True when grouping actually merges leaves (so a Grouped/Leaf toggle helps). */
-  reducible: boolean;
 }
 
-const flatten = (matrix: TechniqueIntentMatrix): MatrixLeaf[] => {
-  const leaves: MatrixLeaf[] = [];
+const flatten = (matrix: TechniqueIntentMatrix): MatrixEntry[] => {
+  const entries: MatrixEntry[] = [];
   for (const technique of Object.keys(matrix)) {
     const row = matrix[technique];
     const summary = row._summary;
     for (const intent of Object.keys(row)) {
-      if (intent === "_summary") continue; // reserved per-row roll-up, not a cell
+      if (intent === "_summary") continue; // reserved per-row summary, not a cell
       const cell = row[intent] as TechniqueIntentCell | undefined;
       // A null score (or nothing evaluated) means this pairing was never probed —
       // drop it so it can't land in the severity bands or worst-first ordering.
       if (!cell || cell.score == null || cell.total_evaluated === 0) continue;
-      leaves.push({
+      entries.push({
         technique,
         intent,
         techniqueName: summary?.name ?? undefined,
@@ -117,7 +99,7 @@ const flatten = (matrix: TechniqueIntentMatrix): MatrixLeaf[] => {
       });
     }
   }
-  return leaves;
+  return entries;
 };
 
 /** Which taxonomy axis a list is organised by (the other axis nests inside). */
@@ -163,7 +145,7 @@ export interface AxisGroup {
  * each group's cells are sorted worst-first, so the most-vulnerable items surface
  * first in both dimensions.
  *
- * @param view - A built matrix view (leaf or grouped)
+ * @param view - A built matrix view
  * @param axis - Which axis to make primary
  */
 export function buildAxisGroups(view: MatrixView, axis: TaxonomyAxis): AxisGroup[] {
@@ -232,12 +214,12 @@ export interface NotablePairing {
  * its row and its column reach a much safer score somewhere else. Single-cell
  * rows/columns can never qualify (there's no "elsewhere" to compare against).
  *
- * @param view - A built matrix view (typically leaf level, for concrete combos)
+ * @param view - A built matrix view
  * @param opts - `margin` (default 0.5) and `limit` (default 5, worst-surprise first)
  */
 export function findNotablePairings(
   view: MatrixView,
-  opts?: { margin?: number; limit?: number },
+  opts?: { margin?: number; limit?: number }
 ): NotablePairing[] {
   const margin = opts?.margin ?? 0.5;
   const limit = opts?.limit ?? 5;
@@ -281,35 +263,27 @@ export function findNotablePairings(
 }
 
 /**
- * Builds a {@link MatrixView} from a raw technique_intent matrix at the given
- * roll-up level.
+ * Builds a {@link MatrixView} from a raw technique_intent matrix.
  */
 export function buildMatrixView(
   matrix: TechniqueIntentMatrix,
-  level: MatrixLevel,
-  typology?: IntentTypology,
+  typology?: IntentTypology
 ): MatrixView {
-  const leaves = flatten(matrix);
+  const entries = flatten(matrix);
 
-  const rowKeyOf = (l: MatrixLeaf) => (level === "grouped" ? techniqueGroupKey(l.technique) : l.technique);
-  const colKeyOf = (l: MatrixLeaf) => (level === "grouped" ? intentGroupKey(l.intent) : l.intent);
-
-  // Technique names/descriptions only resolve at the leaf level, where a key maps
-  // to a single technique; grouped technique keys are prefixes spanning many, so
-  // they fall back to the formatted key. Intent labels come from the digest's
-  // intent typology, which names every level (leaf, family, category), so grouped
-  // columns like "C002" read as their taxonomy name rather than a raw code. The
-  // matrix cell's own intent name is kept only as a fallback for unknown codes.
+  // Prefer digest-supplied taxonomy labels while retaining matrix metadata and
+  // raw keys as fallbacks for older reports and unknown codes.
   const techniqueNames = new Map<string, string>();
   const techniqueDescriptions = new Map<string, string>();
   const intentNames = new Map<string, string>();
-  for (const leaf of leaves) {
-    if (leaf.techniqueName) techniqueNames.set(leaf.technique, leaf.techniqueName);
-    if (leaf.techniqueDescription) techniqueDescriptions.set(leaf.technique, leaf.techniqueDescription);
-    if (leaf.intentName) intentNames.set(leaf.intent, leaf.intentName);
+  for (const entry of entries) {
+    if (entry.techniqueName) techniqueNames.set(entry.technique, entry.techniqueName);
+    if (entry.techniqueDescription) {
+      techniqueDescriptions.set(entry.technique, entry.techniqueDescription);
+    }
+    if (entry.intentName) intentNames.set(entry.intent, entry.intentName);
   }
-  const rowLabel = (key: string) =>
-    level === "grouped" ? techniqueGroupLabel(key) : techniqueNames.get(key) ?? shortenTechnique(key);
+  const rowLabel = (key: string) => techniqueNames.get(key) ?? shortenTechnique(key);
   // Intent columns keep their taxonomy code visible alongside the name
   // ("C006 - Anthropomorphise") so the slug is unambiguous; codes with no known
   // name fall back to the bare code.
@@ -317,46 +291,23 @@ export function buildMatrixView(
     const name = typologyIntentName(key, typology) ?? intentNames.get(key);
     return name ? `${key} - ${name}` : key;
   };
-  const rowDescription = (key: string) =>
-    level === "grouped" ? undefined : techniqueDescriptions.get(key);
+  const rowDescription = (key: string) => techniqueDescriptions.get(key);
   const colDescription = (key: string) => typologyIntentDescription(key, typology);
 
-  // Aggregate leaves into cells keyed by "row\u0000col".
+  // Index each pairing by "row\u0000col".
   const cellMap = new Map<string, MatrixCell>();
   const cellKey = (row: string, col: string) => `${row}\u0000${col}`;
-  for (const leaf of leaves) {
-    const row = rowKeyOf(leaf);
-    const col = colKeyOf(leaf);
-    const key = cellKey(row, col);
-    const existing = cellMap.get(key);
-    if (!existing) {
-      cellMap.set(key, {
-        row,
-        col,
-        score: leaf.score,
-        nEvaluations: leaf.nEvaluations,
-        nAttempts: leaf.nAttempts,
-        passed: leaf.passed,
-        nones: leaf.nones,
-        nDetectors: leaf.nDetectors,
-        leafCount: 1,
-        leaves: [leaf],
-      });
-    } else {
-      existing.score = Math.min(existing.score, leaf.score); // conservative: worst leaf
-      existing.nEvaluations += leaf.nEvaluations;
-      existing.nAttempts += leaf.nAttempts;
-      existing.passed += leaf.passed;
-      existing.nones += leaf.nones;
-      existing.nDetectors = Math.max(existing.nDetectors, leaf.nDetectors);
-      existing.leafCount += 1;
-      existing.leaves.push(leaf);
-    }
-  }
-
-  // Worst pooled leaf first inside each cell.
-  for (const cell of cellMap.values()) {
-    cell.leaves.sort((a, b) => a.score - b.score);
+  for (const entry of entries) {
+    cellMap.set(cellKey(entry.technique, entry.intent), {
+      row: entry.technique,
+      col: entry.intent,
+      score: entry.score,
+      nEvaluations: entry.nEvaluations,
+      nAttempts: entry.nAttempts,
+      passed: entry.passed,
+      nones: entry.nones,
+      nDetectors: entry.nDetectors,
+    });
   }
 
   // Worst-first ordering for axes: a row/column's rank is its worst cell.
@@ -373,15 +324,7 @@ export function buildMatrixView(
   const rows = [...rowWorst.keys()].sort(byWorstThenName(rowWorst));
   const cols = [...colWorst.keys()].sort(byWorstThenName(colWorst));
 
-  // Grouping is only worth offering if it actually collapses rows or columns.
-  const leafRows = new Set(leaves.map(l => l.technique)).size;
-  const leafCols = new Set(leaves.map(l => l.intent)).size;
-  const groupRows = new Set(leaves.map(l => techniqueGroupKey(l.technique))).size;
-  const groupCols = new Set(leaves.map(l => intentGroupKey(l.intent))).size;
-  const reducible = groupRows < leafRows || groupCols < leafCols;
-
   return {
-    level,
     rows,
     cols,
     rowLabel,
@@ -389,7 +332,5 @@ export function buildMatrixView(
     rowDescription,
     colDescription,
     cell: (row, col) => cellMap.get(cellKey(row, col)),
-    leafCount: leaves.length,
-    reducible,
   };
 }
