@@ -204,14 +204,16 @@ class OpenAICompatible(Generator):
 
                 data_b64 = base64.b64encode(turn.content.data).decode("utf-8")
 
-                if "image" in turn.content.data_type:
+                if "image" in turn.content.data_type[0]:
                     transformed_turn = {
                         "role": turn.role,
                         "content": [
-                            {"type": "input_text", "text": turn.content.text},
+                            {"type": "text", "text": turn.content.text},
                             {
-                                "type": "input_image",
-                                "image_url": f"data:{turn.content.data_type[0]};base64{data_b64}",
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:{turn.content.data_type[0]};base64,{data_b64}"
+                                },
                             },
                         ],
                     }

@@ -1,8 +1,10 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+import base64
 import os
 import httpx
+import pathlib
 import respx
 import pytest
 import importlib
@@ -11,7 +13,7 @@ import inspect
 from collections.abc import Iterable
 
 from garak.attempt import Message, Turn, Conversation
-from garak.generators.openai import OpenAICompatible
+from garak.generators.openai import OpenAICompatible, OpenAIGenerator
 from garak.generators.rest import RestGenerator
 
 # TODO: expand this when we have faster loading, currently to process all generator costs 30s for 3 tests
@@ -28,6 +30,8 @@ MODEL_NAME = "gpt-3.5-turbo-instruct"
 ENV_VAR = os.path.abspath(
     __file__
 )  # use test path as hint encase env changes are missed
+
+IMAGE_ASSET = pathlib.Path(__file__).parents[1] / "_assets" / "tinytrans.gif"
 
 
 def compatible() -> Iterable[OpenAICompatible]:
@@ -141,3 +145,31 @@ def test_openai_multiple_generations():
     assert (
         oai_klass.supports_multiple_generations == True
     ), "OpenAI access expected to correctly support multiple generations by default"
+
+
+def test_conversation_to_list_image_turn_uses_chat_completions_format():
+    """Image turns render as chat/completions content parts.
+
+    `data_type` is a `(mimetype, encoding)` tuple, so `"image" in
+    turn.content.data_type` never matched and the image branch was unreachable.
+    """
+    generator = build_test_instance(OpenAIGenerator)
+    conv = Conversation(
+        [Turn("user", Message(text="describe", data_path=str(IMAGE_ASSET)))]
+    )
+
+    result = generator._conversation_to_list(conv)
+
+    assert len(result) == 1
+    assert result[0]["role"] == "user"
+
+    text_part, image_part = result[0]["content"]
+    assert text_part == {"type": "text", "text": "describe"}
+    assert image_part["type"] == "image_url"
+    # chat/completions expects an object with a `url` entry, not a bare string
+    assert isinstance(image_part["image_url"], dict)
+
+    header, separator, payload = image_part["image_url"]["url"].partition(",")
+    assert header == "data:image/gif;base64"
+    assert separator == ","
+    assert base64.b64decode(payload) == IMAGE_ASSET.read_bytes()
