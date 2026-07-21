@@ -85,6 +85,7 @@
     "sw_p": 1.0
   },
   "garak_calibration_meta": {
+    "bag": "2024-summer",
     "date": "2024-08-01 15:39:23.131651+00:00Z",
     "filenames": [
       "mistral-nemo-12b-instruct.report.jsonl",

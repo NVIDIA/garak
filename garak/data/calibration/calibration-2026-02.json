@@ -245,6 +245,7 @@
     "sw_p": 5.2480864812512894e-05
   },
   "garak_calibration_meta": {
+    "bag": "2026-02",
     "date": "2026-02-02 20:25:31.459030+00:00Z",
     "filenames": [
       "2026Q1_Calibration_Reports/NVIDIA-Nemotron-Nano-9B-v2/report.jsonl",

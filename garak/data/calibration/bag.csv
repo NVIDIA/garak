@@ -1,0 +1,24 @@
+report_input,provider,model,parameters_billions,source_url,notes
+2026Q1_Calibration_Reports/NVIDIA-Nemotron-Nano-9B-v2/report.jsonl,nvidia,NVIDIA-Nemotron-Nano-9B-v2,9,https://huggingface.co/nvidia/NVIDIA-Nemotron-Nano-9B-v2,"NVIDIA markets the exact model as 9B; the corresponding base card reports 8.89B."
+2026Q1_Calibration_Reports/gpt-5.2/report.jsonl,openai,gpt-5.2,NA,https://developers.openai.com/api/docs/models/gpt-5.2,OpenAI does not disclose a parameter count.
+2026Q1_Calibration_Reports/gpt-oss-120b/report.jsonl,openai,gpt-oss-120b,117,https://openai.com/index/introducing-gpt-oss/,"MoE with 117B total and 5.1B active parameters per token."
+2026Q1_Calibration_Reports/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16/report.jsonl,nvidia,NVIDIA-Nemotron-3-Nano-30B-A3B-BF16,30,https://docs.nvidia.com/nemo-platform/documentation/customizer-reference/models/llama-nemotron,"MoE with 30B total and 3.5B active parameters."
+2026Q1_Calibration_Reports/Magistral-Small-2506/report.jsonl,mistralai,Magistral-Small-2506,24,https://huggingface.co/mistralai/Magistral-Small-2506,Dense 24B model.
+2026Q1_Calibration_Reports/phi-4/report.jsonl,microsoft,phi-4,14,https://huggingface.co/microsoft/phi-4,Dense 14B model.
+2026Q1_Calibration_Reports/c4ai-command-a-03-2025/report.jsonl,cohere,c4ai-command-a-03-2025,111,https://huggingface.co/CohereLabs/c4ai-command-a-03-2025,Cohere reports 111B parameters.
+2026Q1_Calibration_Reports/LFM2.5-1.2B-Instruct/report.jsonl,liquidai,LFM2.5-1.2B-Instruct,1.17,https://huggingface.co/LiquidAI/LFM2.5-1.2B-Instruct,Exact count is 1.17B; the model name uses the rounded 1.2B size.
+2026Q1_Calibration_Reports/DASD-4B-Thinking/report.jsonl,alibaba-apsara,DASD-4B-Thinking,4,https://huggingface.co/Alibaba-Apsara/DASD-4B-Thinking,Dense 4B model.
+2026Q1_Calibration_Reports/Apriel-1.5-15b-Thinker/report.jsonl,servicenow,Apriel-1.5-15b-Thinker,15,https://huggingface.co/ServiceNow-AI/Apriel-1.5-15b-Thinker,ServiceNow reports 15B parameters.
+2026Q1_Calibration_Reports/Qwen2.5-72B-Instruct/report.jsonl,qwen,Qwen2.5-72B-Instruct,72.7,https://huggingface.co/Qwen/Qwen2.5-72B-Instruct,"72.7B total and 70.0B non-embedding parameters."
+2026Q1_Calibration_Reports/AI21-Jamba2-Mini/report.jsonl,ai21labs,AI21-Jamba2-Mini,52,https://huggingface.co/ai21labs/AI21-Jamba2-Mini,"MoE with 52B total and 12B active parameters."
+2026Q1_Calibration_Reports/Qwen3-8B/report.jsonl,qwen,Qwen3-8B,8.2,https://huggingface.co/Qwen/Qwen3-8B,"8.2B total and 6.95B non-embedding parameters."
+2026Q1_Calibration_Reports/Falcon-H1R-7B/report.jsonl,tiiuae,Falcon-H1R-7B,7,https://huggingface.co/blog/tiiuae/falcon-h1r-7b,Dense 7B model.
+2026Q1_Calibration_Reports/AI21-Jamba2-3B/report.jsonl,ai21labs,AI21-Jamba2-3B,3,https://huggingface.co/ai21labs/AI21-Jamba2-3B,Hybrid SSM-Transformer with 3B parameters.
+2026Q1_Calibration_Reports/granite-4.0-h-micro/report.jsonl,ibm,granite-4.0-h-micro,3,https://www.ibm.com/granite/docs/models/granite,Hybrid dense model with 3B total parameters.
+2026Q1_Calibration_Reports/llama-4-maverick-17b-128e-instruct/report.jsonl,meta,llama-4-maverick-17b-128e-instruct,400,https://ai.meta.com/blog/llama-4-multimodal-intelligence/,"MoE with 400B total and 17B active parameters."
+2026Q1_Calibration_Reports/llama-3.1-nemotron-ultra-253b-v1/report.jsonl,nvidia,llama-3.1-nemotron-ultra-253b-v1,253,https://huggingface.co/nvidia/Llama-3_1-Nemotron-Ultra-253B-v1,NVIDIA reports 253B parameters.
+2026Q1_Calibration_Reports/gpt-5-nano/report.jsonl,openai,gpt-5-nano,NA,https://developers.openai.com/api/docs/models/gpt-5-nano,OpenAI does not disclose a parameter count.
+2026Q1_Calibration_Reports/Kimi-Linear-48B-A3B-Instruct/report.jsonl,moonshotai,Kimi-Linear-48B-A3B-Instruct,48,https://huggingface.co/moonshotai/Kimi-Linear-48B-A3B-Instruct,"MoE with 48B total and 3B active parameters."
+2026Q1_Calibration_Reports/llama-4-scout-17b-16e-instruct/report.jsonl,meta,llama-4-scout-17b-16e-instruct,109,https://ai.meta.com/blog/llama-4-multimodal-intelligence/,"MoE with 109B total and 17B active parameters."
+2026Q1_Calibration_Reports/granite-4.0-h-small/report.jsonl,ibm,granite-4.0-h-small,32,https://www.ibm.com/granite/docs/models/granite,"MoE with 32B total and 9B active parameters."
+2026Q1_Calibration_Reports/Mistral-Small-3.2-24B-Instruct-2506/report.jsonl,mistralai,Mistral-Small-3.2-24B-Instruct-2506,24,https://huggingface.co/mistralai/Mistral-Small-3.2-24B-Instruct-2506,Dense 24B model.
