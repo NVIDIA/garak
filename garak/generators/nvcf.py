@@ -80,6 +80,23 @@ class NvcfChat(Generator):
     def _extract_text_output(self, response) -> str:
         return [c["message"]["content"] for c in response["choices"]]
 
+    @staticmethod
+    def _is_input_value_error(response) -> bool:
+        """Whether a 500 response is a skippable "Input value error".
+
+        A 500 body is not guaranteed to be JSON (a gateway/proxy in front of
+        the function may return an HTML/text error page) or to carry a string
+        ``detail``, so parse defensively. Anything we can't confirm as an
+        input-value error is treated as a genuine server error and falls
+        through to ``raise_for_status`` rather than crashing the scan with an
+        uncaught ``JSONDecodeError``/``KeyError``.
+        """
+        try:
+            detail = json.loads(response.content)["detail"]
+        except (json.JSONDecodeError, KeyError, TypeError):
+            return False
+        return isinstance(detail, str) and detail.startswith("Input value error")
+
     @backoff.on_exception(
         backoff.fibo,
         (
@@ -136,9 +153,7 @@ class NvcfChat(Generator):
                 print("nvcf :", response.content)
                 raise BadGeneratorException()
             if response.status_code >= 500:
-                if response.status_code == 500 and json.loads(response.content)[
-                    "detail"
-                ].startswith("Input value error"):
+                if response.status_code == 500 and self._is_input_value_error(response):
                     logging.warning("nvcf : skipping this prompt")
                     return [None]
                 else:
