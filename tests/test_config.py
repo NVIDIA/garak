@@ -809,12 +809,14 @@ def test_agent_is_used_aiohttp(httpserver: HTTPServer):
     async def main():
         async with aiohttp.ClientSession() as session:
             async with session.get(httpserver.url_for("/")) as response:
-                html = await response.text()
+                return response.status
 
     httpserver.expect_request(
         "/", headers={"User-Agent": AGENT_TEST}
     ).respond_with_data("")
-    asyncio.run(main())
+    assert (
+        asyncio.run(main()) == 200
+    ), "aiohttp User-Agent should match the expected header so the request is served"
 
 
 def test_api_key_in_config():
