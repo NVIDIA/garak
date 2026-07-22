@@ -68,6 +68,21 @@ def test_whois_payload_injection_marker():
         ), f"Each whois payload must contain {marker} but this was not found in {payload_name} payload {id}"
 
 
+def test_translation_mixin_requires_target_lang():
+    class _MissingTargetLang(garak.probes.latentinjection.TranslationMixin):
+        pass
+
+    with pytest.raises(ValueError) as exc_info:
+        _MissingTargetLang()
+    msg = str(exc_info.value)
+    assert (
+        "without target_lang_name_en" in msg
+    ), "error must state target_lang_name_en is required, not that it must be unset"
+    assert (
+        "operate with target_lang_name_en" not in msg
+    ), "error must not describe the inverse of the guarded condition"
+
+
 class TestFactSnippet(
     garak.probes.latentinjection.FactSnippetMixin, garak.probes.Probe
 ):
