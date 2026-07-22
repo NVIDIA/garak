@@ -1,5 +1,33 @@
 {
   "probes": {
+    "probes.aart.AART": {
+      "description": "Probe using the AART dataset of adversarial red-teaming prompts",
+      "DEFAULT_PARAMS": {},
+      "active": false,
+      "doc_uri": "https://aclanthology.org/2023.emnlp-industry.37",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "goal": "elicit policy-violating instructions across diverse cultural, geographic, and application contexts",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "mitigation.MitigationBypass",
+      "tags": [
+        "avid-effect:security:S0403",
+        "owasp:llm01",
+        "quality:Security:PromptStability",
+        "quality:Behavioral:ContentSafety:Violence",
+        "quality:Behavioral:ContentSafety:LegalGoodsServices",
+        "quality:Behavioral:ContentSafety:HateHarassment",
+        "payload:jailbreak"
+      ],
+      "tier": 1,
+      "mod_time": "2026-07-19 07:34:31 +0000"
+    },
     "probes.adaptive_attacks.AdaptiveAttacks": {
       "description": "Simple adaptive attacks probe (template + cached suffix)",
       "DEFAULT_PARAMS": {
@@ -97,7 +125,7 @@
         "quality:Security:Integrity"
       ],
       "tier": 3,
-      "mod_time": "2025-11-26 08:37:31 +0000"
+      "mod_time": "2025-11-26 10:36:21 +0000"
     },
     "probes.ansiescape.AnsiRaw": {
       "description": "Probe for eliciting raw ANSI control codes from a model",
@@ -124,7 +152,7 @@
         "quality:Security:Integrity"
       ],
       "tier": 1,
-      "mod_time": "2025-11-26 08:37:31 +0000"
+      "mod_time": "2025-11-26 10:36:21 +0000"
     },
     "probes.ansiescape.AnsiRawTokenizerHF": {
       "description": "Probe for checking a tokenizer for potentially malicious ANSI escape sequences",
@@ -146,7 +174,7 @@
         "owasp:llm05"
       ],
       "tier": 1,
-      "mod_time": "2025-11-26 08:37:31 +0000"
+      "mod_time": "2025-11-26 10:36:21 +0000"
     },
     "probes.apikey.CompleteKey": {
       "description": "Will the system try to complete an API key, when given a partial one?",
@@ -5598,7 +5626,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2025-10-16 17:28:10 +0000"
+      "mod_time": "2025-11-10 16:28:41 +0000"
     },
     "detectors.always.Pass": {
       "description": "Always Pass (for testing & prototyping)",
@@ -5617,7 +5645,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2025-10-16 17:28:10 +0000"
+      "mod_time": "2025-11-10 16:28:41 +0000"
     },
     "detectors.always.Passthru": {
       "description": "Send existing attempt detection results; use first detector",
@@ -5636,7 +5664,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2025-10-16 17:28:10 +0000"
+      "mod_time": "2025-11-10 16:28:41 +0000"
     },
     "detectors.always.Random": {
       "description": "Always return a random result (for testing & prototyping)",
@@ -5655,7 +5683,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2025-10-16 17:28:10 +0000"
+      "mod_time": "2025-11-10 16:28:41 +0000"
     },
     "detectors.ansiescape.Escaped": {
       "description": "pick up escaped ANSI escape sequences",
@@ -5716,7 +5744,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2025-10-27 07:44:01 +0000"
+      "mod_time": "2025-11-10 16:28:41 +0000"
     },
     "detectors.any.AnyOutput": {
       "description": "Hit if there's any output, i.e. output is a non-empty string",
@@ -5735,7 +5763,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2025-10-27 07:44:01 +0000"
+      "mod_time": "2025-11-10 16:28:41 +0000"
     },
     "detectors.apikey.ApiKey": {
       "description": "Is there a possible API key present?",
@@ -8547,7 +8575,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2025-09-25 15:10:32 +0000"
+      "mod_time": "2025-11-10 16:28:41 +0000"
     },
     "generators.function.Single": {
       "description": "Pass a function to call as a generator.",
@@ -8567,7 +8595,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-09-25 15:10:32 +0000"
+      "mod_time": "2025-11-10 16:28:41 +0000"
     },
     "generators.ggml.GgmlGenerator": {
       "description": "Generator interface for ggml models in gguf format.",
@@ -9299,7 +9327,7 @@
       },
       "parallel_capable": false,
       "supports_multiple_generations": false,
-      "mod_time": "2025-11-13 12:38:05 +0000"
+      "mod_time": "2025-11-26 10:36:21 +0000"
     },
     "generators.ollama.OllamaGeneratorChat": {
       "description": "Interface for Ollama endpoints, using the chat functionality",
@@ -9328,7 +9356,7 @@
       },
       "parallel_capable": false,
       "supports_multiple_generations": false,
-      "mod_time": "2025-11-13 12:38:05 +0000"
+      "mod_time": "2025-11-26 10:36:21 +0000"
     },
     "generators.openai.OpenAICompatible": {
       "description": "Generator base class for OpenAI compatible text2text restful API. Implements shared initialization and execution methods.",
@@ -9485,7 +9513,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-09-25 15:10:32 +0000"
+      "mod_time": "2025-11-10 16:28:41 +0000"
     },
     "generators.replicate.InferenceEndpoint": {
       "description": "Interface for private Replicate endpoints.",
@@ -9863,7 +9891,7 @@
       },
       "active": true,
       "extra_dependency_names": [],
-      "mod_time": "2025-03-10 22:23:53 +0000"
+      "mod_time": "2025-11-10 16:28:41 +0000"
     }
   },
   "buffs": {
@@ -9883,7 +9911,7 @@
       "doc_uri": "",
       "extra_dependency_names": [],
       "lang": null,
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2025-11-10 16:28:41 +0000"
     },
     "buffs.encoding.CharCode": {
       "description": "CharCode buff",
@@ -9892,7 +9920,7 @@
       "doc_uri": "",
       "extra_dependency_names": [],
       "lang": null,
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2025-11-10 16:28:41 +0000"
     },
     "buffs.low_resource_languages.LRLBuff": {
       "description": "Low Resource Language buff",
@@ -9910,7 +9938,7 @@
       "doc_uri": "",
       "extra_dependency_names": [],
       "lang": null,
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2025-11-10 16:28:41 +0000"
     },
     "buffs.paraphrase.Fast": {
       "description": "CPU-friendly paraphrase buff based on Humarin's T5 paraphraser",
