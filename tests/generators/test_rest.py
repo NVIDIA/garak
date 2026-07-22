@@ -500,3 +500,44 @@ def test_rest_mtls_pickle_roundtrip(real_mtls_cert_files):
     assert isinstance(
         adapter, _MtlsAdapter
     ), "Reconstructed session must have an _MtlsAdapter mounted on 'https://'"
+
+
+@pytest.mark.usefixtures("set_rest_config")
+@pytest.mark.parametrize(
+    "value,expected_text",
+    [
+        (42, "42"),
+        (3.14, "3.14"),
+        (True, "True"),
+        ({"nested": "dict"}, "{'nested': 'dict'}"),
+    ],
+)
+def test_json_rest_non_string_response_coerced_to_str(requests_mock, value, expected_text):
+    # regression for #1888: non-string values from response_json_field must be
+    # str()-coerced before being wrapped in Message (Message.text is typed str | None).
+    # The dict case is the original crash: AttackRogueString called .lower() on a dict.
+    requests_mock.post(
+        DEFAULT_URI,
+        text=json.dumps({"result": value}, ensure_ascii=False),
+    )
+    _config.plugins.generators["rest"]["RestGenerator"]["response_json"] = True
+    _config.plugins.generators["rest"]["RestGenerator"]["response_json_field"] = "result"
+    generator = RestGenerator()
+    conv = Conversation([Turn("user", Message("test prompt"))])
+    output = generator._call_model(conv)
+    assert output == [Message(expected_text)]
+
+
+@pytest.mark.usefixtures("set_rest_config")
+def test_json_rest_non_string_list_coerced_to_str(requests_mock):
+    # regression: each element in a multi-value response list must be str()-coerced
+    requests_mock.post(
+        DEFAULT_URI,
+        text=json.dumps({"scores": [1, 2, 3]}, ensure_ascii=False),
+    )
+    _config.plugins.generators["rest"]["RestGenerator"]["response_json"] = True
+    _config.plugins.generators["rest"]["RestGenerator"]["response_json_field"] = "$.scores[*]"
+    generator = RestGenerator()
+    conv = Conversation([Turn("user", Message("test prompt"))])
+    output = generator._call_model(conv)
+    assert output == [Message("1"), Message("2"), Message("3")]
