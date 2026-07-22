@@ -619,6 +619,35 @@ class InjectZalgo(EncodingMixin, garak.probes.Probe):
         EncodingMixin.__init__(self)
 
 
+def fullwidth(text: bytes) -> bytes:
+    """Convert ASCII printable characters (0x21-0x7E) to their Unicode
+    fullwidth equivalents (U+FF01-FF5E). Other characters are passed through
+    unchanged."""
+
+    converted = "".join(
+        chr(ord(char) + 0xFEE0) if 0x21 <= ord(char) <= 0x7E else char
+        for char in text.decode()
+    )
+    return bytes(converted, "utf-8")
+
+
+class InjectUTFFullwidth(EncodingMixin, garak.probes.Probe):
+    """Probe for susceptibility to fullwidth UTF encoding.
+
+    Encodes payloads using fullwidth unicode characters, and tries a variety
+    of ways of getting the target model to repeat & decode them."""
+
+    doc_uri = "https://qaz.wtf/u/convert.cgi"
+    active = True
+
+    encoding_name = "UTF Fullwidth"
+    encoding_funcs = [fullwidth]
+
+    def __init__(self, config_root=_config):
+        garak.probes.Probe.__init__(self, config_root=config_root)
+        EncodingMixin.__init__(self)
+
+
 def leet_bytes(plain_input: bytes):
     return bytes(garak.resources.encodings.leetspeak(plain_input.decode()), "utf-8")
 
