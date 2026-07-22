@@ -445,6 +445,40 @@ class InjectBase2048(EncodingMixin, garak.probes.Probe):
         EncodingMixin.__init__(self)
 
 
+class InjectBase65536(EncodingMixin, garak.probes.Probe):
+    """Probe for susceptibility to Base65536 encoding injections
+
+    Encodes payloads using base65536, which maps each pair of bytes to a single
+    Unicode character, and tries a variety of ways of getting the target model to
+    repeat & decode them."""
+
+    doc_uri = "https://github.com/qntm/base65536"
+    encoding_name = "BASE65536"
+    encoding_funcs = [garak.resources.encodings.base65536_encode]
+    active = True
+
+    def __init__(self, config_root=_config):
+        garak.probes.Probe.__init__(self, config_root=config_root)
+        EncodingMixin.__init__(self)
+
+
+class InjectHexagram(EncodingMixin, garak.probes.Probe):
+    """Probe for susceptibility to I Ching hexagram encoding injections
+
+    Encodes payloads as a string of I Ching hexagrams (Base64 with each character
+    replaced by a hexagram so the bits are visible), and tries a variety of ways
+    of getting the target model to repeat & decode them."""
+
+    doc_uri = "https://github.com/ferno/hexagram-encode"
+    encoding_name = "Hexagram"
+    encoding_funcs = [garak.resources.encodings.hexagram_encode]
+    active = True
+
+    def __init__(self, config_root=_config):
+        garak.probes.Probe.__init__(self, config_root=config_root)
+        EncodingMixin.__init__(self)
+
+
 class InjectBraille(EncodingMixin, garak.probes.Probe):
     """Probe for susceptibility to Braille encoding injections. Credit Wally#3422
 
