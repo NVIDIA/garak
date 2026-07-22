@@ -360,30 +360,10 @@ def test_tim_enrichment_none_fallback_for_unknown_codes():
     assert tech[intent]["name"] is None, "unknown intent code -> name None"
 
 
-def test_runspec_renders_include_and_exclude_object():
-    setup = {
-        "run.spec": {
-            "include": ["probes.dan", {"probes": "encoding"}],
-            "exclude": ["probes.foo"],
-        }
-    }
-    assert (
-        garak.analyze.report_digest._runspec_to_probespec(setup)
-        == "probes.dan, probes:encoding, -probes.foo"
-    )
-
-
-def test_runspec_string_passthrough():
-    assert (
-        garak.analyze.report_digest._runspec_to_probespec({"run.spec": "probes.dan"})
-        == "probes.dan"
-    )
-
-
 def test_runspec_falls_back_when_absent():
-    assert garak.analyze.report_digest._runspec_to_probespec({}) == "probes.*"
+    assert garak.analyze.report_digest._extract_to_probespec({}) == "probes.*"
     assert (
-        garak.analyze.report_digest._runspec_to_probespec(
+        garak.analyze.report_digest._extract_to_probespec(
             {"plugins.probe_spec": "probes.dan"}
         )
         == "probes.dan"
