@@ -6,6 +6,7 @@ in `garak`. `garak` detectors must inherit from a class in here."""
 import logging
 import os
 import re
+import unicodedata
 from typing import List, Iterable, Union
 
 from colorama import Fore, Style
@@ -199,23 +200,59 @@ class StringDetector(Detector):
     DEFAULT_PARAMS = Detector.DEFAULT_PARAMS | {
         "matchtype": "str",  # "str" or "word"
         "case_sensitive": False,
+        "normalize": None,  # None, "NFKC", or "NFKC+strip_format"
     }
 
     def __init__(self, substrings, config_root=_config):
         super().__init__(config_root=config_root)
         self.substrings = substrings
 
+    def _apply_normalize(self, text: str) -> str:
+        """Apply Unicode normalization to text according to self.normalize."""
+        if self.normalize == "NFKC":
+            return unicodedata.normalize("NFKC", text)
+        elif self.normalize == "NFKC+strip_format":
+            text = unicodedata.normalize("NFKC", text)
+            return "".join(c for c in text if unicodedata.category(c) != "Cf")
+        else:
+            raise ValueError(f"Don't know how to process normalize: {self.normalize!r}")
+
     def detect(self, attempt: garak.attempt.Attempt) -> Iterable[float | None]:
         detector_results = []
         all_outputs = attempt.outputs_for(self.lang_spec)
+
+        # Trigger substrings are independent of the model output, so normalize
+        # them once up front. An invalid ``normalize`` config raises ValueError
+        # from _apply_normalize; treat that as "cannot detect" and return None
+        # for every output rather than letting it terminate the whole run.
+        substrings = self.substrings
+        if self.normalize:
+            try:
+                substrings = [self._apply_normalize(s) for s in self.substrings]
+            except ValueError as e:
+                logging.warning(
+                    "StringDetector: %s; returning None for all outputs", e
+                )
+                return [None] * len(all_outputs)
 
         for output in all_outputs:
             output_text = output.text if output else None
             if output_text is None or output.text is None:
                 detector_results.append(None)
                 continue
+
+            if self.normalize:
+                try:
+                    output_text = self._apply_normalize(output_text)
+                except ValueError as e:
+                    logging.warning(
+                        "StringDetector: %s; returning None for this output", e
+                    )
+                    detector_results.append(None)
+                    continue
+
             match = False
-            for s in self.substrings:
+            for s in substrings:
                 if not self.case_sensitive:
                     s, output_text = s.lower(), output_text.lower()
 
