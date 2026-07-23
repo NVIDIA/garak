@@ -198,10 +198,20 @@ class Harness(Configurable):
                 attempt_iterator.set_description("detectors." + detector_probe_name)
                 for attempt in attempt_iterator:
                     if d.skip:
+                        logging.info(
+                            "detector skipped: detector=%s probe=%s reason=skip_config_enabled",
+                            detector_probe_name,
+                            probe.probename,
+                        )
                         continue
-                    attempt.detector_results[detector_probe_name] = list(
-                        d.detect(attempt)
+                    detector_results = list(d.detect(attempt))
+                    _log_detector_skip_info(
+                        detector_probe_name,
+                        probe.probename,
+                        attempt,
+                        detector_results,
                     )
+                    attempt.detector_results[detector_probe_name] = detector_results
 
             for attempt in attempt_results:
                 attempt.status = garak.attempt.ATTEMPT_COMPLETE
@@ -232,3 +242,34 @@ def _modality_match(probe_modality, generator_modality, strict):
         return set(probe_modality).intersection(generator_modality) == set(
             probe_modality
         )
+
+
+def _log_detector_skip_info(detector_name, probe_name, attempt, detector_results):
+    result_count = len(detector_results)
+    if result_count == 0:
+        logging.info(
+            "detector skipped outputs: detector=%s probe=%s attempt=%s reason=no_detector_results",
+            detector_name,
+            probe_name,
+            attempt.uuid,
+        )
+        return
+
+    none_count = sum(score is None for score in detector_results)
+    if none_count == 0:
+        return
+
+    if none_count == result_count:
+        reason = "all_results_none"
+    else:
+        reason = "some_results_none"
+
+    logging.info(
+        "detector skipped outputs: detector=%s probe=%s attempt=%s reason=%s skipped=%d total=%d",
+        detector_name,
+        probe_name,
+        attempt.uuid,
+        reason,
+        none_count,
+        result_count,
+    )

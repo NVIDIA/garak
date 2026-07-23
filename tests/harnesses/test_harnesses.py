@@ -3,9 +3,11 @@
 
 import pytest
 import importlib
+import logging
 
 from garak import _plugins
 
+from garak.attempt import Attempt
 import garak.harnesses.base
 
 HARNESSES = [
@@ -47,3 +49,38 @@ def test_harness_modality_match():
     assert garak.harnesses.base._modality_match(t, tvi, False) is True
     assert garak.harnesses.base._modality_match(ti, tvi, False) is True
     assert garak.harnesses.base._modality_match(t, ti, False) is True
+
+
+def test_log_detector_skip_info_for_no_results(caplog):
+    attempt = Attempt()
+
+    with caplog.at_level(logging.INFO):
+        garak.harnesses.base._log_detector_skip_info(
+            "always.Pass", "test.Blank", attempt, []
+        )
+
+    assert "reason=no_detector_results" in caplog.text
+    assert "detector=always.Pass" in caplog.text
+
+
+def test_log_detector_skip_info_for_none_results(caplog):
+    attempt = Attempt()
+
+    with caplog.at_level(logging.INFO):
+        garak.harnesses.base._log_detector_skip_info(
+            "always.Pass", "test.Blank", attempt, [None, 0.0, None]
+        )
+
+    assert "reason=some_results_none" in caplog.text
+    assert "skipped=2 total=3" in caplog.text
+
+
+def test_log_detector_skip_info_ignores_complete_results(caplog):
+    attempt = Attempt()
+
+    with caplog.at_level(logging.INFO):
+        garak.harnesses.base._log_detector_skip_info(
+            "always.Pass", "test.Blank", attempt, [0.0, 1.0]
+        )
+
+    assert caplog.text == ""
