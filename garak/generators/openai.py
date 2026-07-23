@@ -139,6 +139,7 @@ class OpenAICompatible(Generator):
     active = True
     supports_multiple_generations = False
     generator_family_name = "OpenAICompatible"  # Placeholder override when extending
+    audio_formats = set(audio_formats)
 
     # template defaults optionally override when extending
     DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
