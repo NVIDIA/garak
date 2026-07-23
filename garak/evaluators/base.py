@@ -72,7 +72,6 @@ class Evaluator:
         intent_counts: dict[str, dict[str, int]] = defaultdict(
             lambda: {"passed": 0, "total_evaluated": 0, "nones": 0}
         )
-
         for attempt in attempts:
             intent = attempt.intent
             for idx, score in enumerate(attempt.detector_results[detector_name]):

@@ -713,6 +713,7 @@ def main(arguments=None) -> None:
             _config.transient.intent_spec = ",".join(resolved.intents)
             _config.transient.blocked_intent_spec = ",".join(resolved.blocked_intents)
             _config.transient.intents_explicit = resolved.intents_explicit
+            _config.transient.active_probes = resolved.probes
             # --skip_unknown tolerates an empty selection (e.g. every include was an
             # unknown selector that was skipped); only guard when not skipping.
             if (

@@ -97,6 +97,24 @@ describe("SetupSection", () => {
     expect(screen.getByText("feature3")).toBeInTheDocument();
   });
 
+  it("renders a run.spec object as one selector per line", () => {
+    const setupWithRunSpec = {
+      "run.spec": {
+        include: ["probes.donotanswer.DiscriminationExclusionToxicityHatefulOffensive", { intent: "all" }],
+        exclude: ["probes.foo"],
+      },
+    };
+    render(<SetupSection setup={setupWithRunSpec} />);
+    expect(screen.getByText("spec:")).toBeInTheDocument();
+    expect(
+      screen.getByText("probes.donotanswer.DiscriminationExclusionToxicityHatefulOffensive"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("intent:all"), "filter mappings render as key:value").toBeInTheDocument();
+    expect(screen.getByText("-probes.foo"), "excludes are prefixed with -").toBeInTheDocument();
+    // The raw object must never leak through as JSON / [object Object].
+    expect(screen.queryByText(/\[object Object\]|"include"/)).toBeNull();
+  });
+
   it("replaces underscores with spaces in section names", () => {
     const setupWithUnderscores = {
       "model_config.learning_rate": 0.01,

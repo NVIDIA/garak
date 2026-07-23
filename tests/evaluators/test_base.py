@@ -21,7 +21,9 @@ class _CalibrationStub:
     def __init__(self, zscore):
         self._zscore = zscore
 
-    def get_z_score(self, probe_module, probe_classname, detector_module, detector_classname, score):
+    def get_z_score(
+        self, probe_module, probe_classname, detector_module, detector_classname, score
+    ):
         return self._zscore
 
     def defcon_and_comment(self, *args, **kwargs):

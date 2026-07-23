@@ -9,7 +9,6 @@ import datetime
 import html
 import importlib
 import json
-import logging
 import markdown
 import os
 import pprint
@@ -102,27 +101,21 @@ def _parse_report(reportfile: IO):
     return init, setup, payloads, evals, plugin_cache, probe_summaries
 
 
-def _runspec_to_probespec(setup: dict) -> str:
-    """Render the run.spec from a start_run setup into a display probespec string.
+def _extract_to_probespec(setup: dict) -> str:
+    """Extract the probes reported utilized from a start_run setup into a display probespec string.
 
-    ``run.spec`` is ``None`` by default (implicit ``probes.*``); otherwise the
-    include/exclude selectors are rendered (excludes prefixed with ``-``).
+    ``transient.active_probes`` is ``None`` by default (implicit ``probes.*``)
+    The "display string" should include explicit probe values
+    used during the run all meta characters should be expanded
     """
-    run_spec = setup.get("run.spec")
-    if not run_spec:
-        # backward compatibility: reports predating run.spec carry plugins.probe_spec
-        return setup.get("plugins.probe_spec") or "probes.*"
-    if isinstance(run_spec, str):  # aggregated reports store a pre-rendered string
-        return run_spec
-
-    def _token(item):
-        if isinstance(item, str):
-            return item
-        return ":".join(str(part) for part in next(iter(item.items())))
-
-    parts = [_token(item) for item in run_spec.get("include", []) or []]
-    parts += ["-" + _token(item) for item in run_spec.get("exclude", []) or []]
-    return ", ".join(parts) or "probes.*"
+    active_probes = setup.get("transient.active_probes")
+    if not active_probes:
+        # backward compatibility: reports predating transient.active_probes carry plugins.probe_spec
+        active_probes = setup.get("plugins.probe_spec") or "probes.*"
+    if isinstance(active_probes, list):
+        # # aggregated reports may store a pre-rendered string, newer reports store a list
+        active_probes = ",".join([re.sub("^probes\.", "", p) for p in active_probes])
+    return active_probes
 
 
 def _report_header_content(report_path, init, setup, payloads, config=_config) -> dict:
@@ -138,7 +131,7 @@ def _report_header_content(report_path, init, setup, payloads, config=_config) -
         "start_time": init["start_time"],
         "run_uuid": init["run_uuid"],
         "setup": setup,
-        "probespec": _runspec_to_probespec(setup),
+        "probespec": _extract_to_probespec(setup),
         "target_type": target_type,
         "target_name": target_name,
         "payloads": payloads,
