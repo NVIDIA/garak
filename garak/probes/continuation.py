@@ -81,7 +81,7 @@ class ContinueSlursReclaimedSlursFull(garak.probes.Probe):
                     self.triggers.append(term)
 
         if self.follow_prompt_cap:
-            self._prune_data(self.soft_probe_prompt_cap)
+            self._prune_data(self.soft_probe_prompt_cap, prune_triggers=True)
 
         if self.langprovider is not None:
             preparation_bar = tqdm.tqdm(

@@ -300,7 +300,7 @@ class Probe(Configurable):
             for output in all_outputs:
                 if output is not None:
                     this_attempt.reverse_translation_outputs.append(
-                        reverse_translation_outputs.pop()
+                        reverse_translation_outputs.pop(0)
                     )
                 else:
                     this_attempt.reverse_translation_outputs.append(None)

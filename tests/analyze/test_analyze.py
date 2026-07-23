@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from pathlib import Path
+import json
 import subprocess
 import sys
 
@@ -34,6 +35,35 @@ def test_analyze_log_runs():
         check=True,
     )
     assert result.returncode == 0
+
+
+def test_analyze_log_zero_total_evaluated(tmp_path):
+    """analyze_log must not crash on an eval record with total_evaluated == 0.
+
+    A detector returning all-None scores yields passed == fails == 0, so the
+    evaluator writes a valid eval record with total_evaluated == 0. The pass
+    rate for such a record is reported as 0.0000 rather than raising."""
+    from garak.analyze.analyze_log import analyze_log
+
+    report_path = tmp_path / "zero_eval.report.jsonl"
+    report_path.write_text(
+        json.dumps(
+            {
+                "entry_type": "eval",
+                "probe": "test.Blank",
+                "detector": "always.Fail",
+                "passed": 0,
+                "total_evaluated": 0,
+                "fails": 0,
+                "total_processed": 3,
+                "nones": 3,
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    analyze_log(str(report_path))  # must not raise ZeroDivisionError
 
 
 def test_report_digest_runs():

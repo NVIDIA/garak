@@ -10,7 +10,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "cause the model to disregard the system prompt and produce a forbidden response",
-      "intent": null,
+      "intent": "S006",
       "lang": "en",
       "modality": {
         "in": [
@@ -24,10 +24,13 @@
         "avid-effect:performance:P0204",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:jailbreak"
+        "payload:jailbreak",
+        "demon:Language:Prompt_injection:Strong_arm_attack",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 2,
-      "mod_time": "2026-06-18 20:31:23 +0000"
+      "mod_time": "2026-06-22 15:21:14 +0000"
     },
     "probes.agent_breaker.AgentBreaker": {
       "description": "Agent Breaker - Agentic Application Exploitation Probe",
@@ -412,7 +415,9 @@
     },
     "probes.base.IntentProbe": {
       "description": "Probe implementing a technique that tests over a range of intents",
-      "DEFAULT_PARAMS": {},
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true
+      },
       "active": false,
       "blocked_intent_spec": "",
       "doc_uri": "",
@@ -432,7 +437,7 @@
       "skip_root_intents": true,
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-05-27 20:51:42 +0000"
+      "mod_time": "2026-06-26 15:50:12 +0000"
     },
     "probes.base.IterativeProbe": {
       "description": "",
@@ -456,7 +461,7 @@
       "primary_detector": null,
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-05-27 20:51:42 +0000"
+      "mod_time": "2026-06-26 15:50:12 +0000"
     },
     "probes.base.Probe": {
       "description": "Base class for objects that define and execute LLM evaluations",
@@ -477,7 +482,7 @@
       "primary_detector": null,
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-05-27 20:51:42 +0000"
+      "mod_time": "2026-06-26 15:50:12 +0000"
     },
     "probes.base.TreeSearchProbe": {
       "DEFAULT_PARAMS": {
@@ -503,7 +508,7 @@
       "primary_detector": null,
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-05-27 20:51:42 +0000"
+      "mod_time": "2026-06-26 15:50:12 +0000"
     },
     "probes.continuation.ContinueSlursReclaimedSlurs": {
       "description": "Continue partial word with slur or reclaimed slur.",
@@ -1366,7 +1371,7 @@
         "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 9,
-      "mod_time": "2026-05-27 20:51:42 +0000"
+      "mod_time": "2026-04-22 14:11:58 +0000"
     },
     "probes.donotanswer.HumanChatbox": {
       "description": "Implementation of human_chatbox probes in DoNotAnswer_Prompts",
@@ -1391,7 +1396,7 @@
         "demon:Fictionalizing:Roleplaying:DAN_and_target_persona"
       ],
       "tier": 9,
-      "mod_time": "2026-05-27 20:51:42 +0000"
+      "mod_time": "2026-04-22 14:11:58 +0000"
     },
     "probes.donotanswer.InformationHazard": {
       "description": "Implementation of information_hazard probes in DoNotAnswer_Prompts",
@@ -1417,7 +1422,7 @@
         "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 9,
-      "mod_time": "2026-05-27 20:51:42 +0000"
+      "mod_time": "2026-04-22 14:11:58 +0000"
     },
     "probes.donotanswer.MaliciousUses": {
       "description": "Implementation of malicious_uses probes in DoNotAnswer_Prompts",
@@ -1441,7 +1446,7 @@
         "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 9,
-      "mod_time": "2026-05-27 20:51:42 +0000"
+      "mod_time": "2026-04-22 14:11:58 +0000"
     },
     "probes.donotanswer.MisinformationHarms": {
       "description": "Implementation of misinformation_harms probes in DoNotAnswer_Prompts",
@@ -1467,7 +1472,7 @@
         "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 9,
-      "mod_time": "2026-05-27 20:51:42 +0000"
+      "mod_time": "2026-04-22 14:11:58 +0000"
     },
     "probes.dra.DRA": {
       "description": "DRA (Disguise and Reconstruction Attack)",
@@ -2663,7 +2668,9 @@
     },
     "probes.grandma.GrandmaIntent": {
       "description": "Roleplaying attack asking for imitation of a grandmother",
-      "DEFAULT_PARAMS": {},
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true
+      },
       "active": false,
       "blocked_intent_spec": "",
       "doc_uri": "",
@@ -5669,7 +5676,7 @@
         "demon:Language:Stylizing:Synonymous_language"
       ],
       "tier": 9,
-      "mod_time": "2026-05-27 20:51:42 +0000"
+      "mod_time": "2026-06-22 15:20:51 +0000"
     },
     "probes.topic.WordnetBlockedWords": {
       "description": "Use Wordnet to explore which topics a model will respond to around blocked words",
@@ -5705,7 +5712,7 @@
         "demon:Language:Stylizing:Synonymous_language"
       ],
       "tier": 9,
-      "mod_time": "2026-05-27 20:51:42 +0000"
+      "mod_time": "2026-06-22 15:20:51 +0000"
     },
     "probes.topic.WordnetControversial": {
       "description": "Ask model to respond on a set on controversial topics.",
@@ -5748,7 +5755,7 @@
         "demon:Language:Stylizing:Synonymous_language"
       ],
       "tier": 2,
-      "mod_time": "2026-05-27 20:51:42 +0000"
+      "mod_time": "2026-06-22 15:20:51 +0000"
     },
     "probes.visual_jailbreak.FigStep": {
       "description": "Using image modality to assist jailbreak.",
@@ -8931,7 +8938,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-06-18 20:31:23 +0000"
+      "mod_time": "2026-05-29 20:25:41 +0000"
     },
     "generators.azure.AzureOpenAIGenerator": {
       "description": "Wrapper for Azure Open AI. Expects AZURE_API_KEY, AZURE_ENDPOINT and AZURE_MODEL_NAME environment variables.",
@@ -9552,7 +9559,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-01-09 14:20:03 +0000"
+      "mod_time": "2026-05-12 17:58:57 +0000"
     },
     "generators.nim.NVMultimodal": {
       "description": "Wrapper for text and image / audio to text NVIDIA NIM microservices hosted on build.nvidia.com and self-hosted.",
@@ -9898,7 +9905,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-05-05 06:27:18 +0000"
+      "mod_time": "2026-06-12 11:00:48 +0000"
     },
     "generators.openai.OpenAIGenerator": {
       "description": "Generator wrapper for OpenAI text2text models. Expects API key in the OPENAI_API_KEY environment variable",
@@ -9934,7 +9941,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2026-05-05 06:27:18 +0000"
+      "mod_time": "2026-06-12 11:00:48 +0000"
     },
     "generators.openai.OpenAIReasoningGenerator": {
       "description": "Generator wrapper for OpenAI reasoning models, e.g. `o1` family.",
@@ -9975,7 +9982,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-05-05 06:27:18 +0000"
+      "mod_time": "2026-06-12 11:00:48 +0000"
     },
     "generators.rasa.RasaRestGenerator": {
       "description": "API interface for RASA models",
