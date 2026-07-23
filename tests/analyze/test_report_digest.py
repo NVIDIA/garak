@@ -146,14 +146,6 @@ def test_tim_pools_across_probes():
     assert cell["n_detectors"] == 1, cell
 
 
-def test_tim_attempts_deduped_across_detectors():
-    pass
-
-
-def test_tim_attempts_summed_across_probes():
-    pass
-
-
 def test_tim_multi_tag_replicates():
     evals = [
         {

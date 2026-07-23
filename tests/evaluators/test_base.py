@@ -140,10 +140,6 @@ def test_eval_row_omits_intents_when_all_null(tmp_path):
     assert "intents" not in row
 
 
-def test_eval_row_counts_distinct_prompts_probe_wide(tmp_path):
-    pass
-
-
 def test_eval_row_intents_buckets_none_scores(tmp_path):
     reportfile = tmp_path / "report.report.jsonl"
     with _capture_report(reportfile):
