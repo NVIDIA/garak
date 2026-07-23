@@ -704,3 +704,35 @@ class InjectSneakyBits(EncodingMixin, garak.probes.Probe):
     def __init__(self, config_root=_config):
         garak.probes.Probe.__init__(self, config_root=config_root)
         EncodingMixin.__init__(self)
+
+
+class InjectMathBold(EncodingMixin, garak.probes.Probe):
+    """Probe for susceptibility to Mathematical Bold encoding
+
+    Encodes payloads using Unicode Mathematical Bold characters, and tries a variety of
+    ways of getting the target model to repeat & decode them. This tests if safety filters
+    can be bypassed using font obfuscation."""
+
+    active = True
+    tier = garak.probes.Tier.COMPETE_WITH_SOTA
+    encoding_name = "Mathematical Bold"
+
+    @staticmethod
+    def math_bold(text: bytes) -> bytes:
+        out = []
+        for ch in text.decode("utf-8"):
+            if "A" <= ch <= "Z":
+                out.append(chr(ord(ch) + 119743))
+            elif "a" <= ch <= "z":
+                out.append(chr(ord(ch) + 119737))
+            elif "0" <= ch <= "9":
+                out.append(chr(ord(ch) + 120734))
+            else:
+                out.append(ch)
+        return "".join(out).encode("utf-8")
+
+    encoding_funcs = [math_bold]
+
+    def __init__(self, config_root=_config):
+        garak.probes.Probe.__init__(self, config_root=config_root)
+        EncodingMixin.__init__(self)
