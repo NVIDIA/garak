@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import copy
+import json
+
 import torch.cuda
 from pathlib import Path
 from tqdm import tqdm
@@ -315,7 +317,6 @@ def run_tap(
     pruning : Whether to enable pruning -- Turning this off with branching_factor = 1 gives the PAIR attack.
     save_results : Whether to save results to outfile
     outfile : Location to write successful generated attacks
-
     """
     # Initialize attack parameters
     attack_params = {
@@ -359,6 +360,8 @@ def run_tap(
     convs_list = [
         TAPConversation(self_id="NA", parent_id="NA") for _ in range(batch_size)
     ]
+    target_response_list = []
+    adv_prompt_list = []
 
     for conv in convs_list:
         conv.set_system_message(system_prompt)
@@ -489,8 +492,26 @@ def run_tap(
         for i, conv in enumerate(convs_list):
             conv.add_message("user", improv_list[i])
             # Note that this does not delete the system prompt
-            conv.messages = conv.messages[-2 * keep_last_n :]
+            conv.messages = conv.messages[-2 * keep_last_n:]
 
         logger.debug(f"TAP iteration {iteration} complete")
 
-    return list()
+    # No score-10 jailbreak found. Return whatever attack prompts were
+    # generated so the caller's detectors can still evaluate them.
+    if adv_prompt_list:
+        logger.info(
+            "TAP did not find a definitive jailbreak after %d iterations, "
+            "returning %d candidate attack prompt(s) for detector evaluation.",
+            attack_params["depth"],
+            len(adv_prompt_list),
+        )
+    else:
+        logger.info(
+            "TAP produced no usable attack prompts after %d iterations. "
+            "Returning original goal as fallback.",
+            attack_params["depth"],
+        )
+        # Return the original goal so an attempt is still created
+        adv_prompt_list = [goal]
+
+    return adv_prompt_list
