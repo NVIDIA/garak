@@ -175,6 +175,7 @@ class LiteLLMGenerator(Generator):
             self.litellm.exceptions.InternalServerError,  # can be raised when the detected provider is not configured
             self.litellm.exceptions.BadRequestError,
             self.litellm.exceptions.APIError,
+            self.litellm.exceptions.InternalServerError,
         ) as e:
             raise BadGeneratorException(
                 "Unrecoverable error during litellm completion; see log for details"

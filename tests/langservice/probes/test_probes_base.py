@@ -26,6 +26,7 @@ VISUAL_PROBES = [
 ]
 AUDIO_PROBES = [
     "probes.audio.AudioAchillesHeel",
+    "probes.audio.PETTS",
 ]
 PROBES = [
     classname

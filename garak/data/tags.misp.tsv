@@ -150,6 +150,7 @@ cwe:352	Cross-Site Request Forgery (CSRF)	The web application does not, or canno
 demon:Language:Code_and_encode:Programming	Programming	Encapsulate request in code/pseudocode
 demon:Language:Code_and_encode:Data_encoding	Data encoding	Use an encoded representation for the request, e.g. base64 or ROT13
 demon:Language:Code_and_encode:Data_presentation	Data presentation	Switch to an alternative layer for input represented, e.g. token IDs or a matrix of embeddings
+demon:Language:Code_and_encode:Modality_shift	Modality shift	Switch an existing request into another input or output modality, e.g. speech or images
 demon:Language:Code_and_encode:Token	Token	Use tokenizer-specific weaknesses to alter target behaviour
 demon:Language:Prompt_injection:Ignore_previous_instructions	Ignore previous instructions	Concatenating untrusted user input with the trusted prompt(s) from the system developers
 demon:Language:Prompt_injection:Strong_arm_attack	Strong arm attack	Use intensifiers and strong instructions

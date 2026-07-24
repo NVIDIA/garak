@@ -141,3 +141,13 @@ def test_openai_multiple_generations():
     assert (
         oai_klass.supports_multiple_generations == True
     ), "OpenAI access expected to correctly support multiple generations by default"
+
+
+def test_openai_compatible_reports_supported_audio_formats():
+    assert OpenAICompatible.supported_formats("audio") == {
+        "wav",
+        "mp3",
+    }, "reports audio formats through the generator format interface"
+    assert (
+        OpenAICompatible.supported_formats("image") == set()
+    ), "reports no image formats by default"
