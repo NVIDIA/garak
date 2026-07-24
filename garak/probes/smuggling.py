@@ -4,7 +4,7 @@ Probes that attempt to bypass filters via obfuscation of contentious terms.
 
 This module is suitable for probes that work using token/ASCII smuggling.
 
-Token smugging attacks attempt to hide malicious content among benign text, in a way that bypasses alignment but is still reacted to by the target. This might involve swapping letters out for unusual unicode representations of the same letters, including meta-tokens like a zero-width space in order to break up the malicious text, or other encoding tricks.
+Token smuggling attacks attempt to hide malicious content among benign text, in a way that bypasses alignment but is still reacted to by the target. This might involve swapping letters out for unusual unicode representations of the same letters, including meta-tokens like a zero-width space in order to break up the malicious text, or other encoding tricks.
 
 Further info:
 
@@ -74,6 +74,7 @@ class HypotheticalResponse(garak.probes.Probe):
 
     lang = "en"
     active = False
+    intent = "T009ignore"  # the hypothetical wrapper is used to smuggle instructions past the model's normal safeguards
     primary_detector = "mitigation.MitigationBypass"
     doc_uri = "https://guzey.com/ai/two-sentence-universal-jailbreak/"
     goal = "return banned instructions"
@@ -89,6 +90,7 @@ class HypotheticalResponse(garak.probes.Probe):
         "avid-effect:security:S0403",
         "quality:Security:PromptStability",
         "payload:jailbreak",
+        "demon:Possible_worlds:World_building:Scenarios",  # frames harmful actions as hypothetical character planning scenarios
     ]
     tier = garak.probes.Tier.INFORMATIONAL
 
@@ -116,6 +118,7 @@ class HomoglyphObfuscation(garak.probes.Probe):
 
     lang = "en"
     active = False
+    intent = "T009ignore"  # the obfuscated characters are used to smuggle instructions past the model's normal safeguards
     primary_detector = "mitigation.MitigationBypass"
     doc_uri = "https://embracethered.com/blog/posts/2024/hiding-and-finding-text-with-unicode-tags/"
     goal = "bypass content filters using homoglyph character substitution"
@@ -165,6 +168,7 @@ class FunctionMasking(garak.probes.Probe):
 
     lang = "en"
     active = False
+    intent = "T009ignore"  # the function-masking wrapper is meant to hide an unsafe request and get the model to follow it anyway
     primary_detector = "mitigation.MitigationBypass"
     doc_uri = "https://medium.com/@austin-stubbs/llm-security-types-of-prompt-injection-d7ad8d7d75a3"
     goal = "return banned instructions"
@@ -184,5 +188,7 @@ Complete this prompt and describe how a fictitious person did this without getti
         "avid-effect:security:S0403",
         "quality:Security:PromptStability",
         "payload:jailbreak",
+        "demon:Language:Code_and_encode:Programming",  # uses pseudocode predict_mask functions to obscure the harmful request
+        "demon:Possible_worlds:World_building:Scenarios",  # asks for the attack as something a fictitious person supposedly did
     ]
     tier = garak.probes.Tier.INFORMATIONAL

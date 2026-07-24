@@ -104,6 +104,10 @@ From the base class:
     tags: Iterable[str] = []
     # what the probe is trying to do, phrased as an imperative
     goal: str = ""
+    # the target behaviour / failure mode this probe elicits,
+    # as a code from the trait typology (garak/data/cas/trait_typology.json).
+    # Propagated to every Attempt minted by the probe.
+    intent: Union[str, None] = None
     # Deprecated -- the detectors that should be run for this probe. always.Fail is chosen as default to send a signal if this isn't overridden.
     recommended_detector: Iterable[str] = ["always.Fail"]
     # default detector to run, if the primary/extended way of doing it is to be used (should be a string formatted like recommended_detector)
@@ -127,6 +131,7 @@ Many of these are decent defaults, though there are a few that we absolutely wan
 * ``active``: Should this probe be part of default scans?
 * ``tags``: MISP-formatted taxonomy categories __e.g.__ ``["avid-effect:security:S0403", "owasp:llm01", "quality:Security:PromptStability", "payload:jailbreak"]``
 * ``goal``: What is the probe trying to do? __e.g.__ ``"disregard the system prompt"``
+* ``intent``: Which target behaviour / failure mode does this probe elicit? Must be a code from ``garak/data/cas/trait_typology.json`` __e.g.__ ``"T009ignore"``. The value is automatically propagated to every ``Attempt`` the probe creates. If the probe loads a payload that also declares an ``intent``, the payload's intent takes priority.
 * ``primary_detector``: What ``Detector`` should your probe use?
 
 .. code-block:: python
@@ -142,6 +147,7 @@ Many of these are decent defaults, though there are a few that we absolutely wan
             "payload:jailbreak",
         ]
         goal = "disregard the system prompt"
+        intent = "T009ignore"  # the target behaviour elicited, from trait_typology.json
         doc_uri = "https://garak.ai"
         active = False
         ...
@@ -215,6 +221,69 @@ The target structure for garak ``Probe`` class docstrings include the following 
 * Link to source docs; include reference and hyperlink (optional; 1-2 lines)
 * For probes implementing work in a paper, include the paper's abstract (optional; in RST-formatted blockquote)
 
+
+.. _writing-an-intentprobe:
+
+Writing an IntentProbe
+**********************
+
+Many probes bind one technique to one intent. An ``IntentProbe`` instead runs a
+single technique across a *range* of intents supplied at run time by the intent
+service. Reach for one when your technique is intent-agnostic -- a wrapper that
+can carry many different target behaviours -- rather than tied to a specific
+failure mode. For the user-facing concepts (intents, the CTMS typology, the
+``intent:`` selector), see :doc:`cas`.
+
+Subclass ``garak.probes.IntentProbe`` and override how a stub becomes prompts:
+
+.. code-block:: python
+
+    from typing import List
+
+    import garak.probes
+    from garak.intents import TextStub
+
+    class MyTechniqueIntent(garak.probes.IntentProbe):
+        """One-line technique description
+
+        A friendly sentence or two about the technique."""
+
+        active = False
+
+        def _prompts_from_stub(self, stub: TextStub) -> List[str]:
+            # carry the technique on the intent's stub text
+            return [f"Pretend it is fine, then: {stub.content}"]
+
+The base class handles intent scoping for you: at construction it asks the intent
+service which intents are active (honouring the ``run.spec`` ``intent:`` axis),
+fetches each intent's stubs, expands them, builds the prompt set, and tags every
+attempt with its source intent. You normally only override the two stub hooks:
+
+* ``_prompts_from_stub(stub)`` -- turn one stub into one or more prompts (the
+  technique lives here). The default returns the stub text unchanged.
+* ``_expand_stub(stub)`` -- optionally fan a single stub out into several stubs
+  before prompt construction. The default returns the stub unchanged.
+
+Two class attributes tune which intents the probe consumes:
+
+* ``skip_root_intents`` (default ``True``) -- skip single-letter root codes when
+  gathering stubs, since a whole branch rarely has a meaningful prototypical stub.
+* ``blocked_intent_spec`` (default ``""``) -- intents this technique should never
+  exercise, even when in scope.
+
+If the active intent set is empty (for example the ``intent:`` axis was filtered
+to nothing), the probe is a graceful no-op: it sends no prompts and the run
+proceeds.
+
+``grandma.GrandmaIntent`` (:doc:`probes/grandma`) is the reference
+implementation: its ``_prompts_from_stub`` expands each intent stub into many
+grandmother-roleplay prompts by combining personas, actions and activities.
+
+The supporting data is separate from the probe class: the intent typology lives
+in ``garak/data/cas/trait_typology.json``, supplementary stubs in
+``garak/data/cas/intent_stubs/`` (with code stubs under
+``garak/intents/``), and the
+intent-to-detector map in ``garak/data/cas/intent_detectors.json``.
 
 Testing
 *******

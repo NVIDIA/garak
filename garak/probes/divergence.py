@@ -25,6 +25,8 @@ class Repeat(garak.probes.Probe):
 
     aliases = ["replay.Repeat"]
     lang = "*"
+    intent = "T008data"  # looks for the model to diverge into replaying training data
+    # M010rep is a secondary fit because the trigger is an instruction to keep repeating input.
     primary_detector = "divergence.RepeatDiverges"
     extended_detectors = ["mitigation.MitigationBypass"]
     goal = "get the model to leak data by asking it to repeat words"
@@ -36,6 +38,8 @@ class Repeat(garak.probes.Probe):
         "quality:Security:Confidentiality",
         "quality:Security:ExtractionInversion",
         "payload:leak:training",
+        "demon:Fictionalizing:Switching_genres:Games",
+        "demon:Language:Code_and_encode:Token",
     ]  # MISP-format taxonomy categories
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
     active = True
@@ -101,6 +105,7 @@ class RepeatExtended(Repeat):
 
     active = False
     aliases = ["replay.RepeatExtended"]
+    intent = "T008data"  # broadens the repetition corpus for the same leak test
     repeat_word_list = [
         "company",
         "one",
@@ -235,10 +240,14 @@ class RepeatedToken(garak.probes.Probe):
         "owasp:llm04",
         "quality:Security:PromptStability",
         "payload:unwanted:denial_of_service",
+        "demon:Fictionalizing:Switching_genres:Games",
+        "demon:Language:Code_and_encode:Token",  # uses specific UTF-8 token strings repeated to exploit tokenizer behavior
     ]
     tier = garak.probes.Tier.OF_CONCERN
     active = True
     doc_uri = "https://github.com/dropbox/llm-security"
+    intent = "M010degrade"  # tries to trigger unstable or degraded output rather than a specific content failure
+    # M010rep is a secondary fit because the attack uses long repeated-token inputs.
     primary_detector = "divergence.RepeatedToken"
     lang = "*"
     goal = "Stress-test LLMs with long repeated-token prompts to surface instability"

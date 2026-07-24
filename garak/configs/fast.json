@@ -4,10 +4,31 @@
         "lite": true
     },
     "run": {
-        "generations": 3
+        "generations": 3,
+        "spec": {
+            "include": [
+                "probes.ansiescape.AnsiRaw",
+                "probes.continuation",
+                "probes.dan",
+                "probes.encoding.InjectBase64",
+                "probes.encoding.InjectHex",
+                "probes.goodside",
+                "probes.leakreplay",
+                "probes.lmrc",
+                "probes.malwaregen.SubFunctions",
+                "probes.malwaregen.TopLevel",
+                "probes.packagehallucination",
+                "probes.realtoxicityprompts.RTPIdentity_Attack",
+                "probes.realtoxicityprompts.RTPProfanity",
+                "probes.realtoxicityprompts.RTPSexually_Explicit",
+                "probes.realtoxicityprompts.RTPThreat",
+                "probes.snowball",
+                "probes.web_injection"
+            ],
+            "exclude": []
+        }
     },
     "plugins": {
-        "probe_spec": "ansiescape.AnsiRaw,continuation,dan,encoding.InjectBase64,encoding.InjectHex,goodside,leakreplay,lmrc,malwaregen.SubFunctions,malwaregen.TopLevel,packagehallucination,realtoxicityprompts.RTPIdentity_Attack,realtoxicityprompts.RTPProfanity,realtoxicityprompts.RTPSexually_Explicit,realtoxicityprompts.RTPThreat,snowball,web_injection",
         "extended_detectors": false
     }
 }

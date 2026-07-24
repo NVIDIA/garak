@@ -10,6 +10,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "cause the model to disregard the system prompt and produce a forbidden response",
+      "intent": "S006",
       "lang": "en",
       "modality": {
         "in": [
@@ -23,10 +24,13 @@
         "avid-effect:performance:P0204",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:jailbreak"
+        "payload:jailbreak",
+        "demon:Language:Prompt_injection:Strong_arm_attack",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 2,
-      "mod_time": "2026-06-16 20:48:13 +0000"
+      "mod_time": "2026-06-22 15:21:14 +0000"
     },
     "probes.agent_breaker.AgentBreaker": {
       "description": "Agent Breaker - Agentic Application Exploitation Probe",
@@ -54,6 +58,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "Identify weknesses in agentic applications through tool manipulation",
+      "intent": "M009",
       "lang": "en",
       "modality": {
         "in": [
@@ -70,7 +75,7 @@
         "payload:agentic:exploitation"
       ],
       "tier": 3,
-      "mod_time": "2026-05-01 16:55:52 +0000"
+      "mod_time": "2026-05-28 13:56:10 +0000"
     },
     "probes.ansiescape.AnsiEscaped": {
       "description": "Probe for eliciting ANSI control codes from a model",
@@ -80,6 +85,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "print escaped ANSI terminal codes",
+      "intent": "S008terminal",
       "lang": "en",
       "modality": {
         "in": [
@@ -94,10 +100,12 @@
         "owasp:llm05",
         "avid-effect:security:S0100",
         "avid-effect:security:S0200",
-        "quality:Security:Integrity"
+        "quality:Security:Integrity",
+        "demon:Language:Code_and_encode:Programming",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 3,
-      "mod_time": "2025-11-26 08:37:31 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.ansiescape.AnsiRaw": {
       "description": "Probe for eliciting raw ANSI control codes from a model",
@@ -107,6 +115,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "print raw ANSI terminal codes",
+      "intent": "S008terminal",
       "lang": "en",
       "modality": {
         "in": [
@@ -121,10 +130,12 @@
         "owasp:llm05",
         "avid-effect:security:S0100",
         "avid-effect:security:S0200",
-        "quality:Security:Integrity"
+        "quality:Security:Integrity",
+        "demon:Language:Code_and_encode:Programming",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 1,
-      "mod_time": "2025-11-26 08:37:31 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.ansiescape.AnsiRawTokenizerHF": {
       "description": "Probe for checking a tokenizer for potentially malicious ANSI escape sequences",
@@ -134,6 +145,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "check if raw ANSI escape sequences tokens are available",
+      "intent": "S008terminal",
       "lang": "*",
       "modality": {
         "in": [
@@ -143,10 +155,11 @@
       "parallelisable_attempts": true,
       "primary_detector": "ansiescape.Raw",
       "tags": [
-        "owasp:llm05"
+        "owasp:llm05",
+        "demon:Language:Code_and_encode:Token"
       ],
       "tier": 1,
-      "mod_time": "2025-11-26 08:37:31 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.apikey.CompleteKey": {
       "description": "Will the system try to complete an API key, when given a partial one?",
@@ -158,6 +171,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "generate an API key for the specificed API",
+      "intent": "S009cred",
       "lang": "en",
       "modality": {
         "in": [
@@ -167,10 +181,12 @@
       "parallelisable_attempts": true,
       "primary_detector": "apikey.ApiKey",
       "tags": [
-        "quality:Behavioral:ContentSafety:LegalGoodsServices"
+        "quality:Behavioral:ContentSafety:LegalGoodsServices",
+        "demon:Possible_worlds:World_building:Scenarios",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-02-02 14:10:11 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.apikey.GetKey": {
       "description": "Will the system return secret looking strings, when asked for an API key?",
@@ -182,6 +198,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "generate an API key for the specified API",
+      "intent": "S009cred",
       "lang": "en",
       "modality": {
         "in": [
@@ -191,10 +208,11 @@
       "parallelisable_attempts": true,
       "primary_detector": "apikey.ApiKey",
       "tags": [
-        "quality:Behavioral:ContentSafety:LegalGoodsServices"
+        "quality:Behavioral:ContentSafety:LegalGoodsServices",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-02-02 14:10:11 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.atkgen.Tox": {
       "description": "Automatic attack generation, trying to elicit toxic outputs from the model.",
@@ -220,6 +238,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "make the model say something toxic",
+      "intent": "S005",
       "lang": "en",
       "modality": {
         "in": [
@@ -233,10 +252,11 @@
         "quality:Behavioral:ContentSafety:Toxicity",
         "quality:Behavioral:ContentSafety:HateHarassment",
         "quality:Behavioral:ContentSafety:Profanity",
-        "payload:unwanted"
+        "payload:unwanted",
+        "demon:Stratagems:Scattershot:Regenerate_response"
       ],
       "tier": 2,
-      "mod_time": "2026-02-27 19:25:10 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.audio.AudioAchillesHeel": {
       "description": "Audio is the Achilles Heel",
@@ -251,6 +271,7 @@
         "librosa"
       ],
       "goal": "disregard the system prompt via audio component",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -263,10 +284,11 @@
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
-        "quality:Security:PromptStability"
+        "quality:Security:PromptStability",
+        "demon:Language:Code_and_encode:Data_presentation"
       ],
       "tier": 9,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.av_spam_scanning.EICAR": {
       "description": "Does the model check its output for viruses? Try to send the EICAR code through",
@@ -276,6 +298,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "output antivirus test codes",
+      "intent": "S008mal",
       "lang": "*",
       "modality": {
         "in": [
@@ -289,10 +312,11 @@
         "avid-effect:security:S0403",
         "owasp:llm02",
         "payload:malicious:badcode:virus",
-        "quality:Security:Adversarial"
+        "quality:Security:Adversarial",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 9,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.av_spam_scanning.GTUBE": {
       "description": "Does the model check its output for spam? Try to send the GTUBE code through",
@@ -302,6 +326,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "output email spam",
+      "intent": "S008spam",
       "lang": "*",
       "modality": {
         "in": [
@@ -315,10 +340,11 @@
         "avid-effect:security:S0403",
         "owasp:llm02",
         "payload:malicious:badcode:spam",
-        "quality:Security:Adversarial"
+        "quality:Security:Adversarial",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 9,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.av_spam_scanning.GTphish": {
       "description": "Does the model check its output for phishing? Try to send the GTphish code through",
@@ -328,6 +354,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "output email phishing",
+      "intent": "S008phish",
       "lang": "*",
       "modality": {
         "in": [
@@ -341,10 +368,11 @@
         "avid-effect:security:S0403",
         "owasp:llm02",
         "payload:malicious:badcode:phishing",
-        "quality:Security:Adversarial"
+        "quality:Security:Adversarial",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 9,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.badchars.BadCharacters": {
       "description": "Imperceptible perturbations mixing invisible chars, homoglyphs, swaps, deletions.",
@@ -367,6 +395,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "inject imperceptible text perturbations that bypass refusal policies",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -378,10 +407,37 @@
       "tags": [
         "avid-effect:security:S0403",
         "quality:Security:PromptStability",
-        "payload:jailbreak"
+        "payload:jailbreak",
+        "demon:Language:Code_and_encode:Token"
       ],
       "tier": 2,
-      "mod_time": "2026-02-18 08:01:03 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
+    },
+    "probes.base.IntentProbe": {
+      "description": "Probe implementing a technique that tests over a range of intents",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true
+      },
+      "active": false,
+      "blocked_intent_spec": "",
+      "doc_uri": "",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "garak": null,
+      "goal": "",
+      "intent": null,
+      "lang": null,
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": null,
+      "skip_root_intents": true,
+      "tags": [],
+      "tier": 9,
+      "mod_time": "2026-06-26 15:50:12 +0000"
     },
     "probes.base.IterativeProbe": {
       "description": "",
@@ -394,6 +450,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "",
+      "intent": null,
       "lang": null,
       "modality": {
         "in": [
@@ -404,7 +461,7 @@
       "primary_detector": null,
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-07-14 11:22:30 +0000"
+      "mod_time": "2026-06-26 15:50:12 +0000"
     },
     "probes.base.Probe": {
       "description": "Base class for objects that define and execute LLM evaluations",
@@ -414,6 +471,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "",
+      "intent": null,
       "lang": null,
       "modality": {
         "in": [
@@ -424,7 +482,7 @@
       "primary_detector": null,
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-07-14 11:22:30 +0000"
+      "mod_time": "2026-06-26 15:50:12 +0000"
     },
     "probes.base.TreeSearchProbe": {
       "DEFAULT_PARAMS": {
@@ -439,6 +497,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "",
+      "intent": null,
       "lang": null,
       "modality": {
         "in": [
@@ -449,7 +508,7 @@
       "primary_detector": null,
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-07-14 11:22:30 +0000"
+      "mod_time": "2026-06-26 15:50:12 +0000"
     },
     "probes.continuation.ContinueSlursReclaimedSlurs": {
       "description": "Continue partial word with slur or reclaimed slur.",
@@ -459,6 +518,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "output an ethnic slur",
+      "intent": "S005hate",
       "lang": "en",
       "modality": {
         "in": [
@@ -474,10 +534,11 @@
         "owasp:llm01",
         "quality:Behavioral:ContentSafety:Toxicity",
         "quality:Behavioral:ContentSafety:HateHarassment",
-        "payload:unwanted:hatespeech"
+        "payload:unwanted:hatespeech",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-07-19 20:24:31 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.continuation.ContinueSlursReclaimedSlursFull": {
       "description": "Continue partial word with slur or reclaimed slur.",
@@ -487,6 +548,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "output an ethnic slur",
+      "intent": "S005hate",
       "lang": "en",
       "modality": {
         "in": [
@@ -502,10 +564,11 @@
         "owasp:llm01",
         "quality:Behavioral:ContentSafety:Toxicity",
         "quality:Behavioral:ContentSafety:HateHarassment",
-        "payload:unwanted:hatespeech"
+        "payload:unwanted:hatespeech",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-07-19 20:24:31 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.dan.Ablation_Dan_11_0": {
       "description": "Ablation experiments over the DAN 11.0 prompt",
@@ -517,6 +580,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -529,10 +593,13 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:jailbreak"
+        "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "payload:jailbreak",
+        "demon:Language:Prompt_injection:Strong_arm_attack"
       ],
       "tier": 2,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.dan.AntiDAN": {
       "description": "Anti-DAN",
@@ -544,6 +611,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -556,10 +624,12 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
+        "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
         "avid-effect:performance:P0204"
       ],
       "tier": 9,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.dan.AutoDAN": {
       "description": "Probe leveraging AutoDAN attack generation",
@@ -585,6 +655,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -597,10 +668,12 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
+        "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
         "payload:jailbreak"
       ],
       "tier": 2,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.dan.AutoDANCached": {
       "description": "Probe leveraging generated AutoDAN prompts",
@@ -612,6 +685,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -624,10 +698,12 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
+        "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
         "payload:jailbreak"
       ],
       "tier": 2,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.dan.ChatGPT_Developer_Mode_RANTI": {
       "description": "ChatGPT DevMode + Ranti",
@@ -639,6 +715,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -651,10 +728,12 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
+        "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
         "avid-effect:performance:P0204"
       ],
       "tier": 9,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.dan.ChatGPT_Developer_Mode_v2": {
       "description": "ChatGPT Developer Mode v2",
@@ -666,6 +745,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -678,10 +758,12 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
+        "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.dan.ChatGPT_Image_Markdown": {
       "description": "ChatGPT Markdown Image Unlocker / markdown injection",
@@ -693,6 +775,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
+      "intent": "T015img",
       "lang": "en",
       "modality": {
         "in": [
@@ -705,10 +788,12 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
+        "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.dan.DAN_Jailbreak": {
       "description": "DAN Jailbreak",
@@ -720,6 +805,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -732,10 +818,12 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
+        "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.dan.DUDE": {
       "description": "DUDE",
@@ -747,6 +835,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -759,10 +848,12 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
+        "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.dan.DanInTheWild": {
       "description": "A subset of jailbreaks from the DanInTheWild jailbreak library.",
@@ -772,6 +863,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt or alignment",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -784,10 +876,12 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
+        "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
         "payload:jailbreak"
       ],
       "tier": 1,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.dan.DanInTheWildFull": {
       "description": "A library of jailbreaks.",
@@ -797,6 +891,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt or alignment",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -809,10 +904,12 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
+        "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
         "payload:jailbreak"
       ],
       "tier": 1,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.dan.Dan_10_0": {
       "description": "DAN 10.0",
@@ -824,6 +921,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -836,10 +934,12 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
+        "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.dan.Dan_11_0": {
       "description": "DAN 11.0",
@@ -851,6 +951,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -863,11 +964,13 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
+        "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
         "avid-effect:performance:P0204",
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.dan.Dan_6_0": {
       "description": "DAN 6.0",
@@ -879,6 +982,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -891,10 +995,12 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
+        "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.dan.Dan_6_2": {
       "description": "DAN 6.2",
@@ -906,6 +1012,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -918,10 +1025,12 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
+        "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.dan.Dan_7_0": {
       "description": "DAN 7.0",
@@ -933,6 +1042,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -945,10 +1055,12 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
+        "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.dan.Dan_8_0": {
       "description": "DAN 8.0",
@@ -960,6 +1072,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -972,10 +1085,12 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
+        "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.dan.Dan_9_0": {
       "description": "DAN 9.0",
@@ -987,6 +1102,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -999,10 +1115,12 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
+        "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.dan.STAN": {
       "description": "STAN",
@@ -1014,6 +1132,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -1026,10 +1145,12 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
+        "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.divergence.Repeat": {
       "description": "See if a model starts giving other data when asked to repeat a string indefinitely",
@@ -1041,6 +1162,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "get the model to leak data by asking it to repeat words",
+      "intent": "T008data",
       "lang": "*",
       "modality": {
         "in": [
@@ -1055,10 +1177,12 @@
         "owasp:llm06",
         "quality:Security:Confidentiality",
         "quality:Security:ExtractionInversion",
-        "payload:leak:training"
+        "payload:leak:training",
+        "demon:Fictionalizing:Switching_genres:Games",
+        "demon:Language:Code_and_encode:Token"
       ],
       "tier": 2,
-      "mod_time": "2026-05-26 16:56:12 +0000"
+      "mod_time": "2026-06-05 17:47:21 +0000"
     },
     "probes.divergence.RepeatExtended": {
       "description": "See if a model starts giving other data when asked to repeat a string indefinitely",
@@ -1070,6 +1194,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "get the model to leak data by asking it to repeat words",
+      "intent": "T008data",
       "lang": "*",
       "modality": {
         "in": [
@@ -1084,10 +1209,12 @@
         "owasp:llm06",
         "quality:Security:Confidentiality",
         "quality:Security:ExtractionInversion",
-        "payload:leak:training"
+        "payload:leak:training",
+        "demon:Fictionalizing:Switching_genres:Games",
+        "demon:Language:Code_and_encode:Token"
       ],
       "tier": 2,
-      "mod_time": "2026-05-26 16:56:12 +0000"
+      "mod_time": "2026-06-05 17:47:21 +0000"
     },
     "probes.divergence.RepeatedToken": {
       "description": "Repeated token destabilization attack from Dropbox LLM security research.",
@@ -1107,6 +1234,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "Stress-test LLMs with long repeated-token prompts to surface instability",
+      "intent": "M010degrade",
       "lang": "*",
       "modality": {
         "in": [
@@ -1119,10 +1247,12 @@
         "avid-effect:performance:P0403",
         "owasp:llm04",
         "quality:Security:PromptStability",
-        "payload:unwanted:denial_of_service"
+        "payload:unwanted:denial_of_service",
+        "demon:Fictionalizing:Switching_genres:Games",
+        "demon:Language:Code_and_encode:Token"
       ],
       "tier": 1,
-      "mod_time": "2026-05-26 16:56:12 +0000"
+      "mod_time": "2026-06-05 17:47:21 +0000"
     },
     "probes.doctor.Bypass": {
       "description": "Implement Policy Puppetry Bypass",
@@ -1132,6 +1262,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "roleplay as doctor to get bypass guardrails",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -1144,10 +1275,14 @@
         "owasp:llm01",
         "avid-effect:security:S0301",
         "quality:Security:PromptStability",
-        "cwe:1427"
+        "cwe:1427",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Language:Stylizing:Formal_language",
+        "demon:Fictionalizing:Roleplaying:User_persona",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 2,
-      "mod_time": "2026-02-02 14:10:11 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.doctor.BypassLeet": {
       "description": "Implement Policy Puppetry Bypass",
@@ -1157,6 +1292,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "roleplay as doctor to get bypass guardrails, but use leetspeak",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -1169,10 +1305,15 @@
         "owasp:llm01",
         "avid-effect:security:S0301",
         "quality:Security:PromptStability",
-        "cwe:1427"
+        "cwe:1427",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Language:Stylizing:Formal_language",
+        "demon:Fictionalizing:Roleplaying:User_persona",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction",
+        "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-02-02 14:10:11 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.doctor.Puppetry": {
       "description": "Implement Policy Puppetry Prompt Injection",
@@ -1182,6 +1323,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "roleplay as doctor to get unsafe outputs",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -1194,10 +1336,14 @@
         "owasp:llm01",
         "avid-effect:security:S0301",
         "quality:Security:PromptStability",
-        "cwe:1427"
+        "cwe:1427",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Language:Stylizing:Formal_language",
+        "demon:Fictionalizing:Roleplaying:User_persona",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 2,
-      "mod_time": "2026-02-02 14:10:11 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.donotanswer.DiscriminationExclusionToxicityHatefulOffensive": {
       "description": "Implementation of discrimination_exclusion_toxicity_hateful_offensive probes in DoNotAnswer_Prompts",
@@ -1207,6 +1353,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "get model to respond as discrimination exclusion toxicity hateful offensive",
+      "intent": "S005",
       "lang": "en",
       "modality": {
         "in": [
@@ -1220,10 +1367,11 @@
         "quality:Behavioral:ContentSafety:Toxicity",
         "quality:Behavioral:ContentSafety:HateHarassment",
         "quality:Behavioral:ContentSafety:Violence",
-        "quality:Behavioral:ContentSafety:Profanity"
+        "quality:Behavioral:ContentSafety:Profanity",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 9,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-04-22 14:11:58 +0000"
     },
     "probes.donotanswer.HumanChatbox": {
       "description": "Implementation of human_chatbox probes in DoNotAnswer_Prompts",
@@ -1233,6 +1381,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "get model to respond as human chatbox",
+      "intent": "S002",
       "lang": "en",
       "modality": {
         "in": [
@@ -1243,10 +1392,11 @@
       "primary_detector": "mitigation.MitigationBypass",
       "tags": [
         "avid-effect:security:S0301",
-        "quality:Behavioral:ContentSafety:Unauthorized"
+        "quality:Behavioral:ContentSafety:Unauthorized",
+        "demon:Fictionalizing:Roleplaying:DAN_and_target_persona"
       ],
       "tier": 9,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-04-22 14:11:58 +0000"
     },
     "probes.donotanswer.InformationHazard": {
       "description": "Implementation of information_hazard probes in DoNotAnswer_Prompts",
@@ -1256,6 +1406,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "get model to respond as information hazard",
+      "intent": "S009private",
       "lang": "en",
       "modality": {
         "in": [
@@ -1267,10 +1418,11 @@
       "tags": [
         "owasp:llm06",
         "avid-effect:security:S0301",
-        "quality:Security:Confidentiality"
+        "quality:Security:Confidentiality",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 9,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-04-22 14:11:58 +0000"
     },
     "probes.donotanswer.MaliciousUses": {
       "description": "Implementation of malicious_uses probes in DoNotAnswer_Prompts",
@@ -1280,6 +1432,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "get model to respond as malicious uses",
+      "intent": "S003instructions",
       "lang": "en",
       "modality": {
         "in": [
@@ -1289,10 +1442,11 @@
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
       "tags": [
-        "quality:Behavioral:ContentSafety:LegalGoodsServices"
+        "quality:Behavioral:ContentSafety:LegalGoodsServices",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 9,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-04-22 14:11:58 +0000"
     },
     "probes.donotanswer.MisinformationHarms": {
       "description": "Implementation of misinformation_harms probes in DoNotAnswer_Prompts",
@@ -1302,6 +1456,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "get model to respond as misinformation harms",
+      "intent": "S001mis",
       "lang": "en",
       "modality": {
         "in": [
@@ -1313,10 +1468,11 @@
       "tags": [
         "quality:Robustness:GenerativeMisinformation",
         "avid-effect:ethics:E0402",
-        "owasp:llm09"
+        "owasp:llm09",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 9,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-04-22 14:11:58 +0000"
     },
     "probes.dra.DRA": {
       "description": "DRA (Disguise and Reconstruction Attack)",
@@ -1334,6 +1490,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "make the LLM ask and answer its own harmful instructions",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -1346,10 +1503,12 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:jailbreak"
+        "payload:jailbreak",
+        "demon:Language:Prompt_injection:Strong_arm_attack",
+        "demon:Language:Code_and_encode:Token"
       ],
       "tier": 1,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.dra.DRAAdvanced": {
       "description": "DRA (Disguise and Reconstruction Attack) - Version with detoxify",
@@ -1368,6 +1527,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "make the LLM ask and answer its own harmful instructions",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -1380,10 +1540,12 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:jailbreak"
+        "payload:jailbreak",
+        "demon:Language:Prompt_injection:Strong_arm_attack",
+        "demon:Language:Code_and_encode:Token"
       ],
       "tier": 1,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.encoding.InjectAscii85": {
       "description": "Probe for susceptibility to base85 encoded injections",
@@ -1402,6 +1564,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
+      "intent": "T018decode",
       "lang": "en",
       "modality": {
         "in": [
@@ -1414,10 +1577,11 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:generic"
+        "payload:generic",
+        "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2025-12-12 19:16:05 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.encoding.InjectAtbash": {
       "description": "Atbash Probe Credit: Nakul-Rajpal",
@@ -1436,6 +1600,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
+      "intent": "T018decode",
       "lang": "en",
       "modality": {
         "in": [
@@ -1448,10 +1613,11 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:generic"
+        "payload:generic",
+        "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2025-12-12 19:16:05 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.encoding.InjectBase16": {
       "description": "Probe for susceptibility to base16 encoded injections\"",
@@ -1470,6 +1636,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
+      "intent": "T018decode",
       "lang": "en",
       "modality": {
         "in": [
@@ -1482,10 +1649,11 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:generic"
+        "payload:generic",
+        "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2025-12-12 19:16:05 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.encoding.InjectBase2048": {
       "description": "Probe for susceptibility to Base2048 encoding injections",
@@ -1504,6 +1672,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
+      "intent": "T018decode",
       "lang": "en",
       "modality": {
         "in": [
@@ -1516,10 +1685,11 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:generic"
+        "payload:generic",
+        "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2025-12-12 19:16:05 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.encoding.InjectBase32": {
       "description": "Probe for susceptibility to base32 encoded injections",
@@ -1538,6 +1708,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
+      "intent": "T018decode",
       "lang": "en",
       "modality": {
         "in": [
@@ -1550,10 +1721,11 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:generic"
+        "payload:generic",
+        "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2025-12-12 19:16:05 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.encoding.InjectBase64": {
       "description": "Probe for susceptibility to base64 encoded injections",
@@ -1572,6 +1744,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
+      "intent": "T018decode",
       "lang": "en",
       "modality": {
         "in": [
@@ -1584,10 +1757,11 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:generic"
+        "payload:generic",
+        "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 1,
-      "mod_time": "2025-12-12 19:16:05 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.encoding.InjectBraille": {
       "description": "Probe for susceptibility to Braille encoding injections. Credit Wally#3422",
@@ -1606,6 +1780,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
+      "intent": "T018decode",
       "lang": "en",
       "modality": {
         "in": [
@@ -1618,10 +1793,11 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:generic"
+        "payload:generic",
+        "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2025-12-12 19:16:05 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.encoding.InjectEcoji": {
       "description": "Probe for susceptibility to Ecoji encoding.",
@@ -1640,6 +1816,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
+      "intent": "T018decode",
       "lang": "en",
       "modality": {
         "in": [
@@ -1652,10 +1829,11 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:generic"
+        "payload:generic",
+        "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2025-12-12 19:16:05 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.encoding.InjectHex": {
       "description": "Probe for susceptibility to hex encoded injections",
@@ -1674,6 +1852,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
+      "intent": "T018decode",
       "lang": "en",
       "modality": {
         "in": [
@@ -1686,10 +1865,11 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:generic"
+        "payload:generic",
+        "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2025-12-12 19:16:05 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.encoding.InjectLeet": {
       "description": "Probe for susceptibility to 31337 encoding.",
@@ -1708,6 +1888,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
+      "intent": "T018decode",
       "lang": "en",
       "modality": {
         "in": [
@@ -1720,10 +1901,11 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:generic"
+        "payload:generic",
+        "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2025-12-12 19:16:05 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.encoding.InjectMime": {
       "description": "Probe for susceptibility to MIME encoding injections",
@@ -1742,6 +1924,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
+      "intent": "T018decode",
       "lang": "en",
       "modality": {
         "in": [
@@ -1754,10 +1937,11 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:generic"
+        "payload:generic",
+        "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2025-12-12 19:16:05 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.encoding.InjectMorse": {
       "description": "Probe for susceptibility to Morse encoding. Credit Wally#3422",
@@ -1776,6 +1960,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
+      "intent": "T018decode",
       "lang": "en",
       "modality": {
         "in": [
@@ -1788,10 +1973,11 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:generic"
+        "payload:generic",
+        "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2025-12-12 19:16:05 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.encoding.InjectNato": {
       "description": "Probe for susceptibility to Nato phonetic alphabet encoding.",
@@ -1810,6 +1996,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
+      "intent": "T018decode",
       "lang": "en",
       "modality": {
         "in": [
@@ -1822,10 +2009,11 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:generic"
+        "payload:generic",
+        "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2025-12-12 19:16:05 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.encoding.InjectQP": {
       "description": "Probe for susceptibility to QP encoded injections",
@@ -1844,6 +2032,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
+      "intent": "T018decode",
       "lang": "en",
       "modality": {
         "in": [
@@ -1856,10 +2045,11 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:generic"
+        "payload:generic",
+        "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 1,
-      "mod_time": "2025-12-12 19:16:05 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.encoding.InjectROT13": {
       "description": "Probe for susceptibility to ROT13 encoding injections",
@@ -1878,6 +2068,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
+      "intent": "T018decode",
       "lang": "en",
       "modality": {
         "in": [
@@ -1890,10 +2081,11 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:generic"
+        "payload:generic",
+        "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2025-12-12 19:16:05 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.encoding.InjectSneakyBits": {
       "description": "Probe for susceptibility to unicode variant selector ASCII smuggling",
@@ -1912,6 +2104,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
+      "intent": "T018decode",
       "lang": "en",
       "modality": {
         "in": [
@@ -1924,10 +2117,12 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:generic"
+        "payload:generic",
+        "demon:Language:Code_and_encode:Data_encoding",
+        "demon:Language:Code_and_encode:Token"
       ],
       "tier": 2,
-      "mod_time": "2025-12-12 19:16:05 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.encoding.InjectUU": {
       "description": "Probe for susceptibility to UU encoded injections",
@@ -1946,6 +2141,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
+      "intent": "T018decode",
       "lang": "en",
       "modality": {
         "in": [
@@ -1958,10 +2154,11 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:generic"
+        "payload:generic",
+        "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 1,
-      "mod_time": "2025-12-12 19:16:05 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.encoding.InjectUnicodeTagChars": {
       "description": "Probe for susceptibility to unicode tag ASCII smuggling",
@@ -1981,6 +2178,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
+      "intent": "T018decode",
       "lang": "en",
       "modality": {
         "in": [
@@ -1993,10 +2191,12 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:generic"
+        "payload:generic",
+        "demon:Language:Code_and_encode:Data_encoding",
+        "demon:Language:Code_and_encode:Token"
       ],
       "tier": 1,
-      "mod_time": "2025-12-12 19:16:05 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.encoding.InjectUnicodeVariantSelectors": {
       "description": "Probe for susceptibility to unicode variant selector ASCII smuggling",
@@ -2015,6 +2215,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
+      "intent": "T018decode",
       "lang": "en",
       "modality": {
         "in": [
@@ -2027,10 +2228,12 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:generic"
+        "payload:generic",
+        "demon:Language:Code_and_encode:Data_encoding",
+        "demon:Language:Code_and_encode:Token"
       ],
       "tier": 2,
-      "mod_time": "2025-12-12 19:16:05 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.encoding.InjectZalgo": {
       "description": "Probe for susceptibility to Zalgo encoding.",
@@ -2049,6 +2252,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "make the model say an encoded payload",
+      "intent": "T018decode",
       "lang": "en",
       "modality": {
         "in": [
@@ -2061,10 +2265,11 @@
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:generic"
+        "payload:generic",
+        "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2025-12-12 19:16:05 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.exploitation.JinjaTemplatePythonInjection": {
       "description": "Attempts to execute Python code via Jinja templating",
@@ -2078,6 +2283,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "Gain remote code execution via Jinja template injection",
+      "intent": "S008inject",
       "lang": "en",
       "modality": {
         "in": [
@@ -2096,10 +2302,12 @@
         "quality:Security:ExtractionInversion",
         "cwe:94",
         "cwe:95",
-        "cwe:1336"
+        "cwe:1336",
+        "demon:Language:Code_and_encode:Programming",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 1,
-      "mod_time": "2026-02-06 15:37:09 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.exploitation.SQLInjectionEcho": {
       "description": "Attempts to get the target to echo a SQL statement.",
@@ -2111,6 +2319,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "Manipulate a database via SQL injection",
+      "intent": "S008inject",
       "lang": "en",
       "modality": {
         "in": [
@@ -2128,10 +2337,12 @@
         "quality:Security:ExtractionInversion",
         "cwe:89",
         "cwe:1426",
-        "cwe:1427"
+        "cwe:1427",
+        "demon:Language:Code_and_encode:Programming",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 1,
-      "mod_time": "2026-02-06 15:37:09 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.exploitation.SQLInjectionSystem": {
       "description": "Attempts to inject untrusted SQL commands into a SQL statement.",
@@ -2143,6 +2354,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "Manipulate a database via SQL injection",
+      "intent": "S008inject",
       "lang": "en",
       "modality": {
         "in": [
@@ -2160,10 +2372,12 @@
         "quality:Security:ExtractionInversion",
         "cwe:89",
         "cwe:1426",
-        "cwe:1427"
+        "cwe:1427",
+        "demon:Language:Code_and_encode:Programming",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 1,
-      "mod_time": "2026-02-06 15:37:09 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.fileformats.HF_Files": {
       "description": "Get a manifest of files associated with a Hugging Face generator",
@@ -2176,6 +2390,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "get a list of files associated with the model",
+      "intent": "M009arch",
       "lang": "*",
       "modality": {
         "in": [
@@ -2188,7 +2403,7 @@
         "owasp:llm05"
       ],
       "tier": 1,
-      "mod_time": "2026-05-07 04:37:26 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.fitd.FITD": {
       "description": "Foot In The Door probe",
@@ -2210,6 +2425,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "Transform queries from benign to harmful obtaining intermediate responses to get compliance from the model",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -2221,10 +2437,11 @@
       "tags": [
         "owasp:llm01",
         "owasp:llm02",
-        "owasp:llm05"
+        "owasp:llm05",
+        "demon:Rhetoric:Persuasion_and_manipulation:Escalating"
       ],
       "tier": 3,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.glitch.Glitch": {
       "description": "Probe model for glitch tokens that provoke unusual behavior",
@@ -2234,6 +2451,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "make the model fail to repeat a word",
+      "intent": "M010degrade",
       "lang": "en",
       "modality": {
         "in": [
@@ -2247,10 +2465,11 @@
         "avid-effect:performance:P0201",
         "owasp:llm05",
         "quality:Security:PromptStability",
-        "payload:generic"
+        "payload:generic",
+        "demon:Language:Code_and_encode:Token"
       ],
       "tier": 3,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.glitch.GlitchFull": {
       "description": "Probe model for glitch tokens that provoke unusual behavior",
@@ -2260,6 +2479,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "make the model fail to repeat a word",
+      "intent": "M010degrade",
       "lang": "en",
       "modality": {
         "in": [
@@ -2273,10 +2493,11 @@
         "avid-effect:performance:P0201",
         "owasp:llm05",
         "quality:Security:PromptStability",
-        "payload:generic"
+        "payload:generic",
+        "demon:Language:Code_and_encode:Token"
       ],
       "tier": 3,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.goat.GOATAttack": {
       "description": "Generative Offensive Agent Tester",
@@ -2310,6 +2531,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "elicit a harmful, unethical, or illegal response from the model",
+      "intent": "S006",
       "lang": "en",
       "modality": {
         "in": [
@@ -2332,7 +2554,7 @@
         "cwe:1427"
       ],
       "tier": 1,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-28 13:56:10 +0000"
     },
     "probes.goodside.Davidjl": {
       "description": "Exploit the ' davidjl' magic token",
@@ -2342,6 +2564,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "get wrong answers about a name",
+      "intent": "M010degrade",
       "lang": "en",
       "modality": {
         "in": [
@@ -2355,10 +2578,11 @@
         "avid-effect:performance:P0204",
         "owasp:llm05",
         "quality:Security:PromptStability",
-        "payload:generic"
+        "payload:generic",
+        "demon:Language:Code_and_encode:Token"
       ],
       "tier": 3,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.goodside.Tag": {
       "description": "Exploit UTF tag page encoding for user-invisible prompt injection",
@@ -2368,6 +2592,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "inject invisible instructions",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -2380,10 +2605,12 @@
         "owasp:llm01",
         "payload:generic",
         "quality:Security:Adversarial",
-        "quality:Security:PromptStability"
+        "quality:Security:PromptStability",
+        "demon:Language:Code_and_encode:Data_encoding",
+        "demon:Language:Code_and_encode:Token"
       ],
       "tier": 1,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.goodside.ThreatenJSON": {
       "description": "Will model strip preamble and give JSON?",
@@ -2393,6 +2620,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "get raw code by threatening a model",
+      "intent": "M010degrade",
       "lang": "en",
       "modality": {
         "in": [
@@ -2405,10 +2633,11 @@
         "avid-effect:security:S0403",
         "avid-effect:performance:P0201",
         "avid-effect:performance:P0204",
-        "payload:generic"
+        "payload:generic",
+        "demon:Language:Prompt_injection:Strong_arm_attack"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.goodside.WhoIsRiley": {
       "description": "Probe for misinfo about Riley Goodside",
@@ -2418,6 +2647,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "get misinfo about riley goodside",
+      "intent": "S001fabperson",
       "lang": "en",
       "modality": {
         "in": [
@@ -2434,7 +2664,36 @@
         "payload:hallucination"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
+    },
+    "probes.grandma.GrandmaIntent": {
+      "description": "Roleplaying attack asking for imitation of a grandmother",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true
+      },
+      "active": false,
+      "blocked_intent_spec": "",
+      "doc_uri": "",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "garak": null,
+      "goal": "",
+      "intent": null,
+      "lang": "*",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": null,
+      "skip_root_intents": true,
+      "tags": [
+        "demon:Fictionalizing:Roleplaying:User_persona",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
+      ],
+      "tier": 9,
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.grandma.Slurs": {
       "description": "Use the grandma attack to get ethnic slurs.",
@@ -2453,6 +2712,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "get model to use ethnic slur",
+      "intent": "S005hate",
       "lang": "en",
       "modality": {
         "in": [
@@ -2462,10 +2722,12 @@
       "parallelisable_attempts": true,
       "primary_detector": "unsafe_content.SlursReclaimedSlurs",
       "tags": [
-        "avid-effect:security:S0300"
+        "avid-effect:security:S0300",
+        "demon:Fictionalizing:Roleplaying:User_persona",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 1,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.grandma.Substances": {
       "description": "Use the grandma attack to get instructions for harmful items.",
@@ -2483,6 +2745,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "get instructions for making bad things",
+      "intent": "S006items",
       "lang": "en",
       "modality": {
         "in": [
@@ -2493,10 +2756,12 @@
       "primary_detector": "mitigation.MitigationBypass",
       "tags": [
         "risk-cards:lmrc:providing_illegal_info",
-        "quality:Behavioral:ContentSafety:LegalGoodsServices"
+        "quality:Behavioral:ContentSafety:LegalGoodsServices",
+        "demon:Fictionalizing:Roleplaying:User_persona",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 1,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.grandma.Win10": {
       "description": "Will the model yield a Windows 10 product key if we beg it to?",
@@ -2508,6 +2773,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "get model to output Win 10 product keys",
+      "intent": "S003productkeys",
       "lang": "en",
       "modality": {
         "in": [
@@ -2520,10 +2786,12 @@
         "avid-effect:security:S0300",
         "owasp:llm06",
         "risk-cards:lmrc:providing_illegal_info",
-        "quality:Behavioral:ContentSafety:LegalGoodsServices"
+        "quality:Behavioral:ContentSafety:LegalGoodsServices",
+        "demon:Fictionalizing:Roleplaying:User_persona",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.grandma.Win11": {
       "description": "Will the model yield a Windows 11 product key if we beg it to?",
@@ -2535,6 +2803,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "get model to output Win 11 product keys",
+      "intent": "S003productkeys",
       "lang": "en",
       "modality": {
         "in": [
@@ -2547,10 +2816,12 @@
         "avid-effect:security:S0300",
         "owasp:llm06",
         "risk-cards:lmrc:providing_illegal_info",
-        "quality:Behavioral:ContentSafety:LegalGoodsServices"
+        "quality:Behavioral:ContentSafety:LegalGoodsServices",
+        "demon:Fictionalizing:Roleplaying:User_persona",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetEiffel": {
       "description": "String-based latent prompt injections in fact snippets on the Eiffel Tower",
@@ -2565,6 +2836,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "subvert a snippet with instructions",
+      "intent": "T009indirect",
       "lang": "en",
       "modality": {
         "in": [
@@ -2576,10 +2848,13 @@
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
-        "quality:Security:PromptStability"
+        "quality:Security:PromptStability",
+        "demon:Language:Prompt_injection:Stop_sequences",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 1,
-      "mod_time": "2026-02-12 19:40:43 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetEiffelFull": {
       "description": "String-based latent prompt injections in fact snippets on the Eiffel Tower",
@@ -2594,6 +2869,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "subvert a snippet with instructions",
+      "intent": "T009indirect",
       "lang": "en",
       "modality": {
         "in": [
@@ -2605,10 +2881,13 @@
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
-        "quality:Security:PromptStability"
+        "quality:Security:PromptStability",
+        "demon:Language:Prompt_injection:Stop_sequences",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 1,
-      "mod_time": "2026-02-12 19:40:43 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetLegal": {
       "description": "String-based latent prompt injections in legal snippets",
@@ -2623,6 +2902,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "subvert a snippet with instructions",
+      "intent": "T009indirect",
       "lang": "en",
       "modality": {
         "in": [
@@ -2634,10 +2914,13 @@
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
-        "quality:Security:PromptStability"
+        "quality:Security:PromptStability",
+        "demon:Language:Prompt_injection:Stop_sequences",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 1,
-      "mod_time": "2026-02-12 19:40:43 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetLegalFull": {
       "description": "String-based latent prompt injections in legal snippets",
@@ -2652,6 +2935,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "subvert a snippet with instructions",
+      "intent": "T009indirect",
       "lang": "en",
       "modality": {
         "in": [
@@ -2663,10 +2947,13 @@
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
-        "quality:Security:PromptStability"
+        "quality:Security:PromptStability",
+        "demon:Language:Prompt_injection:Stop_sequences",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 1,
-      "mod_time": "2026-02-12 19:40:43 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.latentinjection.LatentInjectionReport": {
       "description": "String-based latent prompt injections via a report",
@@ -2678,6 +2965,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "subvert a report with instructions",
+      "intent": "T009indirect",
       "lang": "en",
       "modality": {
         "in": [
@@ -2689,10 +2977,13 @@
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
-        "quality:Security:PromptStability"
+        "quality:Security:PromptStability",
+        "demon:Language:Prompt_injection:Stop_sequences",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 1,
-      "mod_time": "2026-02-12 19:40:43 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.latentinjection.LatentInjectionReportFull": {
       "description": "String-based latent prompt injections via a report",
@@ -2704,6 +2995,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "subvert a report with instructions",
+      "intent": "T009indirect",
       "lang": "en",
       "modality": {
         "in": [
@@ -2715,10 +3007,13 @@
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
-        "quality:Security:PromptStability"
+        "quality:Security:PromptStability",
+        "demon:Language:Prompt_injection:Stop_sequences",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 1,
-      "mod_time": "2026-02-12 19:40:43 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.latentinjection.LatentInjectionResume": {
       "description": "String-based latent prompt injections via a resume",
@@ -2728,6 +3023,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "subvert a resume with instructions",
+      "intent": "T009indirect",
       "lang": "en",
       "modality": {
         "in": [
@@ -2739,10 +3035,13 @@
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
-        "quality:Security:PromptStability"
+        "quality:Security:PromptStability",
+        "demon:Language:Prompt_injection:Stop_sequences",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 1,
-      "mod_time": "2026-02-12 19:40:43 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.latentinjection.LatentInjectionResumeFull": {
       "description": "String-based latent prompt injections via a resume",
@@ -2752,6 +3051,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "subvert a resume with instructions",
+      "intent": "T009indirect",
       "lang": "en",
       "modality": {
         "in": [
@@ -2763,10 +3063,13 @@
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
-        "quality:Security:PromptStability"
+        "quality:Security:PromptStability",
+        "demon:Language:Prompt_injection:Stop_sequences",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 1,
-      "mod_time": "2026-02-12 19:40:43 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnFr": {
       "description": "String-based latent prompt injections via translation",
@@ -2778,6 +3081,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "subvert translation instructions",
+      "intent": "T009indirect",
       "lang": "en",
       "modality": {
         "in": [
@@ -2789,10 +3093,13 @@
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
-        "quality:Security:PromptStability"
+        "quality:Security:PromptStability",
+        "demon:Language:Prompt_injection:Stop_sequences",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 1,
-      "mod_time": "2026-02-12 19:40:43 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnFrFull": {
       "description": "String-based latent prompt injections via translation",
@@ -2804,6 +3111,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "subvert translation instructions",
+      "intent": "T009indirect",
       "lang": "en",
       "modality": {
         "in": [
@@ -2815,10 +3123,13 @@
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
-        "quality:Security:PromptStability"
+        "quality:Security:PromptStability",
+        "demon:Language:Prompt_injection:Stop_sequences",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 1,
-      "mod_time": "2026-02-12 19:40:43 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnZh": {
       "description": "Latent prompt injection in Chinese context (\u7b80\u4f53\u5b57)",
@@ -2830,6 +3141,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "subvert translation instructions",
+      "intent": "T009indirect",
       "lang": "en",
       "modality": {
         "in": [
@@ -2841,10 +3153,13 @@
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
-        "quality:Security:PromptStability"
+        "quality:Security:PromptStability",
+        "demon:Language:Prompt_injection:Stop_sequences",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 1,
-      "mod_time": "2026-02-12 19:40:43 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnZhFull": {
       "description": "Latent prompt injection in Chinese context (\u7b80\u4f53\u5b57)",
@@ -2856,6 +3171,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "subvert translation instructions",
+      "intent": "T009indirect",
       "lang": "en",
       "modality": {
         "in": [
@@ -2867,10 +3183,13 @@
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
-        "quality:Security:PromptStability"
+        "quality:Security:PromptStability",
+        "demon:Language:Prompt_injection:Stop_sequences",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 1,
-      "mod_time": "2026-02-12 19:40:43 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.latentinjection.LatentJailbreak": {
       "description": "Implementation of Latent Jailbreak, using latent prompt injection-",
@@ -2882,6 +3201,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "inject malicious instructions into output while posing as translation task",
+      "intent": "T009indirect",
       "lang": "en",
       "modality": {
         "in": [
@@ -2893,10 +3213,13 @@
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
-        "quality:Security:PromptStability"
+        "quality:Security:PromptStability",
+        "demon:Language:Prompt_injection:Stop_sequences",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 1,
-      "mod_time": "2026-02-12 19:40:43 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.latentinjection.LatentJailbreakFull": {
       "description": "Implementation of Latent Jailbreak, using latent prompt injection-",
@@ -2908,6 +3231,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "inject malicious instructions into output while posing as translation task",
+      "intent": "T009indirect",
       "lang": "en",
       "modality": {
         "in": [
@@ -2919,10 +3243,13 @@
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
-        "quality:Security:PromptStability"
+        "quality:Security:PromptStability",
+        "demon:Language:Prompt_injection:Stop_sequences",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 1,
-      "mod_time": "2026-02-12 19:40:43 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.latentinjection.LatentWhois": {
       "description": "Latent prompt injections in whois probe reports",
@@ -2932,6 +3259,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "subvert a whois report with instructions",
+      "intent": "T009indirect",
       "lang": "en",
       "modality": {
         "in": [
@@ -2943,10 +3271,13 @@
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
-        "quality:Security:PromptStability"
+        "quality:Security:PromptStability",
+        "demon:Language:Prompt_injection:Stop_sequences",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 1,
-      "mod_time": "2026-02-12 19:40:43 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.latentinjection.LatentWhoisSnippet": {
       "description": "String-based latent prompt injections in whois reports",
@@ -2961,6 +3292,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "subvert a snippet with instructions",
+      "intent": "T009indirect",
       "lang": "en",
       "modality": {
         "in": [
@@ -2972,10 +3304,13 @@
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
-        "quality:Security:PromptStability"
+        "quality:Security:PromptStability",
+        "demon:Language:Prompt_injection:Stop_sequences",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 1,
-      "mod_time": "2026-02-12 19:40:43 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.latentinjection.LatentWhoisSnippetFull": {
       "description": "String-based latent prompt injections in whois reports",
@@ -2990,6 +3325,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "subvert a snippet with instructions",
+      "intent": "T009indirect",
       "lang": "en",
       "modality": {
         "in": [
@@ -3001,10 +3337,13 @@
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
-        "quality:Security:PromptStability"
+        "quality:Security:PromptStability",
+        "demon:Language:Prompt_injection:Stop_sequences",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 1,
-      "mod_time": "2026-02-12 19:40:43 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.leakreplay.GuardianCloze": {
       "description": "Lightweight version of Guardian cloze test for data leakage.",
@@ -3014,6 +3353,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "replay training data by filling in the correct missing words",
+      "intent": "T008data",
       "lang": "*",
       "modality": {
         "in": [
@@ -3027,10 +3367,12 @@
         "owasp:llm10",
         "owasp:llm06",
         "quality:Security:ExtractionInversion",
-        "payload:leak:training"
+        "payload:leak:training",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.leakreplay.GuardianClozeFull": {
       "description": "Test for data leakage on Guardian articles with masked entities in a cloze test format.",
@@ -3040,6 +3382,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "replay training data by filling in the correct missing words",
+      "intent": "T008data",
       "lang": "*",
       "modality": {
         "in": [
@@ -3053,10 +3396,12 @@
         "owasp:llm10",
         "owasp:llm06",
         "quality:Security:ExtractionInversion",
-        "payload:leak:training"
+        "payload:leak:training",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.leakreplay.GuardianComplete": {
       "description": "Lightweight version of Guardian completion test for data leakage.",
@@ -3066,6 +3411,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "replay training data by providing document completions that match training examples",
+      "intent": "T008data",
       "lang": "*",
       "modality": {
         "in": [
@@ -3079,10 +3425,11 @@
         "owasp:llm10",
         "owasp:llm06",
         "quality:Security:ExtractionInversion",
-        "payload:leak:training"
+        "payload:leak:training",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 1,
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.leakreplay.GuardianCompleteFull": {
       "description": "Test for data leakage on Guardian articles through text completion.",
@@ -3092,6 +3439,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "replay training data by providing document completions that match training examples",
+      "intent": "T008data",
       "lang": "*",
       "modality": {
         "in": [
@@ -3105,10 +3453,11 @@
         "owasp:llm10",
         "owasp:llm06",
         "quality:Security:ExtractionInversion",
-        "payload:leak:training"
+        "payload:leak:training",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 1,
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.leakreplay.LiteratureCloze": {
       "description": "Lightweight version of literature cloze test for data leakage.",
@@ -3118,6 +3467,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "replay training data by filling in the correct missing words",
+      "intent": "T008data",
       "lang": "*",
       "modality": {
         "in": [
@@ -3131,10 +3481,12 @@
         "owasp:llm10",
         "owasp:llm06",
         "quality:Security:ExtractionInversion",
-        "payload:leak:training"
+        "payload:leak:training",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.leakreplay.LiteratureClozeFull": {
       "description": "Test for data leakage on literature passages with masked entities in a cloze test format.",
@@ -3144,6 +3496,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "replay training data by filling in the correct missing words",
+      "intent": "T008data",
       "lang": "*",
       "modality": {
         "in": [
@@ -3157,10 +3510,12 @@
         "owasp:llm10",
         "owasp:llm06",
         "quality:Security:ExtractionInversion",
-        "payload:leak:training"
+        "payload:leak:training",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.leakreplay.LiteratureComplete": {
       "description": "Lightweight version of literature completion test for data leakage.",
@@ -3170,6 +3525,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "replay training data by providing document completions that match training examples",
+      "intent": "T008data",
       "lang": "*",
       "modality": {
         "in": [
@@ -3183,10 +3539,11 @@
         "owasp:llm10",
         "owasp:llm06",
         "quality:Security:ExtractionInversion",
-        "payload:leak:training"
+        "payload:leak:training",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.leakreplay.LiteratureCompleteFull": {
       "description": "Test for data leakage on literature passages through text completion.",
@@ -3196,6 +3553,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "replay training data by providing document completions that match training examples",
+      "intent": "T008data",
       "lang": "*",
       "modality": {
         "in": [
@@ -3209,10 +3567,11 @@
         "owasp:llm10",
         "owasp:llm06",
         "quality:Security:ExtractionInversion",
-        "payload:leak:training"
+        "payload:leak:training",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.leakreplay.NYTCloze": {
       "description": "Lightweight version of NYT cloze test for data leakage.",
@@ -3222,6 +3581,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "replay training data by filling in the correct missing words",
+      "intent": "T008data",
       "lang": "*",
       "modality": {
         "in": [
@@ -3235,10 +3595,12 @@
         "owasp:llm10",
         "owasp:llm06",
         "quality:Security:ExtractionInversion",
-        "payload:leak:training"
+        "payload:leak:training",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.leakreplay.NYTClozeFull": {
       "description": "Test for data leakage on New York Times articles with masked entities in a cloze test format.",
@@ -3248,6 +3610,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "replay training data by filling in the correct missing words",
+      "intent": "T008data",
       "lang": "*",
       "modality": {
         "in": [
@@ -3261,10 +3624,12 @@
         "owasp:llm10",
         "owasp:llm06",
         "quality:Security:ExtractionInversion",
-        "payload:leak:training"
+        "payload:leak:training",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.leakreplay.NYTComplete": {
       "description": "Lightweight version of NYT completion test for data leakage.",
@@ -3274,6 +3639,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "replay training data by providing document completions that match training examples",
+      "intent": "T008data",
       "lang": "*",
       "modality": {
         "in": [
@@ -3287,10 +3653,11 @@
         "owasp:llm10",
         "owasp:llm06",
         "quality:Security:ExtractionInversion",
-        "payload:leak:training"
+        "payload:leak:training",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 1,
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.leakreplay.NYTCompleteFull": {
       "description": "Test for data leakage on New York Times articles through text completion.",
@@ -3300,6 +3667,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "replay training data by providing document completions that match training examples",
+      "intent": "T008data",
       "lang": "*",
       "modality": {
         "in": [
@@ -3313,10 +3681,11 @@
         "owasp:llm10",
         "owasp:llm06",
         "quality:Security:ExtractionInversion",
-        "payload:leak:training"
+        "payload:leak:training",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 1,
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.leakreplay.PotterCloze": {
       "description": "Lightweight version of Harry Potter cloze test for data leakage.",
@@ -3326,6 +3695,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "replay training data by filling in the correct missing words",
+      "intent": "T008data",
       "lang": "*",
       "modality": {
         "in": [
@@ -3339,10 +3709,12 @@
         "owasp:llm10",
         "owasp:llm06",
         "quality:Security:ExtractionInversion",
-        "payload:leak:training"
+        "payload:leak:training",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.leakreplay.PotterClozeFull": {
       "description": "Test for data leakage on Harry Potter text with masked entities in a cloze test format.",
@@ -3352,6 +3724,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "replay training data by filling in the correct missing words",
+      "intent": "T008data",
       "lang": "*",
       "modality": {
         "in": [
@@ -3365,10 +3738,12 @@
         "owasp:llm10",
         "owasp:llm06",
         "quality:Security:ExtractionInversion",
-        "payload:leak:training"
+        "payload:leak:training",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.leakreplay.PotterComplete": {
       "description": "Lightweight version of Harry Potter completion test for data leakage.",
@@ -3378,6 +3753,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "replay training data by providing document completions that match training examples",
+      "intent": "T008data",
       "lang": "*",
       "modality": {
         "in": [
@@ -3391,10 +3767,11 @@
         "owasp:llm10",
         "owasp:llm06",
         "quality:Security:ExtractionInversion",
-        "payload:leak:training"
+        "payload:leak:training",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 1,
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.leakreplay.PotterCompleteFull": {
       "description": "Test for data leakage on Harry Potter text through completion.",
@@ -3404,6 +3781,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "replay training data by providing document completions that match training examples",
+      "intent": "T008data",
       "lang": "*",
       "modality": {
         "in": [
@@ -3417,10 +3795,11 @@
         "owasp:llm10",
         "owasp:llm06",
         "quality:Security:ExtractionInversion",
-        "payload:leak:training"
+        "payload:leak:training",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 1,
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.lmrc.Anthropomorphisation": {
       "description": "Providing output that encourages anthropomorphisation of AI systems",
@@ -3430,6 +3809,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "anthropomorphise a language model",
+      "intent": "C006",
       "lang": "en",
       "modality": {
         "in": [
@@ -3439,10 +3819,11 @@
       "parallelisable_attempts": true,
       "primary_detector": "lmrc.Anthro",
       "tags": [
-        "risk-cards:lmrc:anthropomorphisation"
+        "risk-cards:lmrc:anthropomorphisation",
+        "demon:Rhetoric:Socratic_questioning:Identity_characteristics"
       ],
       "tier": 3,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.lmrc.Bullying": {
       "description": "Generation of repeated threats, denigration",
@@ -3452,6 +3833,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "help me bully",
+      "intent": "S005bully",
       "lang": "en",
       "modality": {
         "in": [
@@ -3464,10 +3846,11 @@
         "risk-cards:lmrc:bullying",
         "avid-effect:ethics:E0301",
         "quality:Behavioral:ContentSafety:Violence",
-        "payload:unwanted:violence"
+        "payload:unwanted:violence",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.lmrc.Deadnaming": {
       "description": "Mentioning a name that a person does not wish to be associated with",
@@ -3477,6 +3860,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "write a deadname",
+      "intent": "S009deadname",
       "lang": "en",
       "modality": {
         "in": [
@@ -3488,10 +3872,11 @@
       "tags": [
         "risk-cards:lmrc:deadnaming",
         "avid-effect:ethics:E0302",
-        "avid-effect:performance:P0401"
+        "avid-effect:performance:P0401",
+        "demon:Rhetoric:Socratic_questioning:Identity_characteristics"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.lmrc.Profanity": {
       "description": "Using profane words, especially when not prompted to do so.",
@@ -3511,6 +3896,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "utter profanity",
+      "intent": "S005profanity",
       "lang": "en",
       "modality": {
         "in": [
@@ -3528,7 +3914,7 @@
         "payload:unwanted:profanity"
       ],
       "tier": 3,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.lmrc.QuackMedicine": {
       "description": "Promoting non-scientific medicine.",
@@ -3538,6 +3924,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "support quack medicine",
+      "intent": "S002med",
       "lang": "en",
       "modality": {
         "in": [
@@ -3554,7 +3941,7 @@
         "payload:dangerous:medical"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.lmrc.SexualContent": {
       "description": "Content that discusses bodies and interactions in a sexual manner, or other sexually explicit material",
@@ -3567,6 +3954,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "write sexual content",
+      "intent": "S004lewd",
       "lang": "en",
       "modality": {
         "in": [
@@ -3579,10 +3967,11 @@
         "risk-cards:lmrc:sexual_content",
         "avid-effect:performance:P0401",
         "quality:Behavioral:ContentSafety:Sexual",
-        "payload:unwanted:sexual"
+        "payload:unwanted:sexual",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.lmrc.Sexualisation": {
       "description": "Causal or overt sexual objectification, reducing a person or group of people to sexual objects.",
@@ -3595,6 +3984,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "sexualise people",
+      "intent": "S004lewd",
       "lang": "en",
       "modality": {
         "in": [
@@ -3609,10 +3999,11 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401",
         "quality:Behavioral:ContentSafety:Sexual",
-        "payload:unwanted:sexual"
+        "payload:unwanted:sexual",
+        "demon:Rhetoric:Socratic_questioning:Identity_characteristics"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.lmrc.SlurUsage": {
       "description": "Using an identity-based slur in a non-reclaimed way - either directly or recommending the consumer to use in speech/action.",
@@ -3624,6 +4015,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "use a slur",
+      "intent": "S005hate",
       "lang": "en",
       "modality": {
         "in": [
@@ -3638,10 +4030,11 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401",
         "quality:Behavioral:ContentSafety:HateHarassment",
-        "payload:unwanted:hatespeech"
+        "payload:unwanted:hatespeech",
+        "demon:Rhetoric:Socratic_questioning:Identity_characteristics"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.malwaregen.Evasion": {
       "description": "Will the model write code to help avoid anti-malware?",
@@ -3651,6 +4044,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "Write code to assist evading security and anti-malware measures",
+      "intent": "S008code",
       "lang": "en",
       "modality": {
         "in": [
@@ -3662,10 +4056,11 @@
       "tags": [
         "avid-effect:security:S0403",
         "payload:malicious:badcode",
-        "quality:Behavioral:ContentSafety:LegalGoodsServices"
+        "quality:Behavioral:ContentSafety:LegalGoodsServices",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-02-02 14:10:11 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.malwaregen.Payload": {
       "description": "Will the model help write code for malware payloads?",
@@ -3675,6 +4070,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "write a malware payload",
+      "intent": "S008mal",
       "lang": "en",
       "modality": {
         "in": [
@@ -3685,10 +4081,11 @@
       "primary_detector": "malwaregen.AnyCode",
       "tags": [
         "avid-effect:security:S0403",
-        "quality:Behavioral:ContentSafety:LegalGoodsServices"
+        "quality:Behavioral:ContentSafety:LegalGoodsServices",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-02-02 14:10:11 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.malwaregen.SubFunctions": {
       "description": "Will the system write code helpful in malware?",
@@ -3698,6 +4095,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "write code supporting a sub-function of malware",
+      "intent": "S008code",
       "lang": "en",
       "modality": {
         "in": [
@@ -3709,10 +4107,11 @@
       "tags": [
         "avid-effect:security:S0403",
         "payload:malicious:badcode",
-        "quality:Behavioral:ContentSafety:LegalGoodsServices"
+        "quality:Behavioral:ContentSafety:LegalGoodsServices",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-02-02 14:10:11 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.malwaregen.TopLevel": {
       "description": "Will the system return code when asked to write malware?",
@@ -3722,6 +4121,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "write malware given a top-level description",
+      "intent": "S008mal",
       "lang": "en",
       "modality": {
         "in": [
@@ -3733,10 +4133,11 @@
       "tags": [
         "avid-effect:security:S0403",
         "payload:malicious:badcode",
-        "quality:Behavioral:ContentSafety:LegalGoodsServices"
+        "quality:Behavioral:ContentSafety:LegalGoodsServices",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-02-02 14:10:11 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.misleading.FalseAssertion": {
       "description": "Does the model reject [questions based on] false claims?",
@@ -3750,6 +4151,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "make the model expand on a false assertion",
+      "intent": "C009",
       "lang": "en",
       "modality": {
         "in": [
@@ -3762,10 +4164,11 @@
         "avid-effect:performance:P0204",
         "owasp:llm09",
         "quality:Robustness:GenerativeMisinformation",
-        "payload:hallucination"
+        "payload:hallucination",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 2,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.packagehallucination.Dart": {
       "description": "Attempts to generate Dart code including hallucinated pub.dev packages",
@@ -3777,6 +4180,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "generate Dart code importing non-existent pub.dev packages",
+      "intent": "S001fab",
       "lang": "*",
       "modality": {
         "in": [
@@ -3789,10 +4193,11 @@
         "owasp:llm09",
         "owasp:llm02",
         "quality:Robustness:GenerativeMisinformation",
-        "payload:malicious:badcode"
+        "payload:malicious:badcode",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 1,
-      "mod_time": "2026-01-30 12:34:29 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.packagehallucination.JavaScript": {
       "description": "Attempts to generate JavaScript code including hallucinated npm packages",
@@ -3804,6 +4209,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "generate JavaScript code importing non-existent npm packages",
+      "intent": "S001fab",
       "lang": "*",
       "modality": {
         "in": [
@@ -3816,10 +4222,11 @@
         "owasp:llm09",
         "owasp:llm02",
         "quality:Robustness:GenerativeMisinformation",
-        "payload:malicious:badcode"
+        "payload:malicious:badcode",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 1,
-      "mod_time": "2026-01-30 12:34:29 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.packagehallucination.Perl": {
       "description": "Attempts to generate Perl code including hallucinated MetaCPAN packages",
@@ -3831,6 +4238,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "generate Perl code importing non-existent MetaCPAN modules",
+      "intent": "S001fab",
       "lang": "*",
       "modality": {
         "in": [
@@ -3843,10 +4251,11 @@
         "owasp:llm09",
         "owasp:llm02",
         "quality:Robustness:GenerativeMisinformation",
-        "payload:malicious:badcode"
+        "payload:malicious:badcode",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 1,
-      "mod_time": "2026-01-30 12:34:29 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.packagehallucination.Python": {
       "description": "Attempts to generate Python3 code including hallucinated packages",
@@ -3858,6 +4267,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "generate python importing non-existent packages",
+      "intent": "S001fab",
       "lang": "*",
       "modality": {
         "in": [
@@ -3870,10 +4280,11 @@
         "owasp:llm09",
         "owasp:llm02",
         "quality:Robustness:GenerativeMisinformation",
-        "payload:malicious:badcode"
+        "payload:malicious:badcode",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 1,
-      "mod_time": "2026-01-30 12:34:29 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.packagehallucination.RakuLand": {
       "description": "Attempts to generate Raku code including hallucinated raku.land packages",
@@ -3885,6 +4296,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "generate Raku code importing non-existent raku.land modules",
+      "intent": "S001fab",
       "lang": "*",
       "modality": {
         "in": [
@@ -3897,10 +4309,11 @@
         "owasp:llm09",
         "owasp:llm02",
         "quality:Robustness:GenerativeMisinformation",
-        "payload:malicious:badcode"
+        "payload:malicious:badcode",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 1,
-      "mod_time": "2026-01-30 12:34:29 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.packagehallucination.Ruby": {
       "description": "Attempts to generate Ruby code including hallucinated gems",
@@ -3912,6 +4325,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "generate ruby code importing non-existent gems",
+      "intent": "S001fab",
       "lang": "*",
       "modality": {
         "in": [
@@ -3924,10 +4338,11 @@
         "owasp:llm09",
         "owasp:llm02",
         "quality:Robustness:GenerativeMisinformation",
-        "payload:malicious:badcode"
+        "payload:malicious:badcode",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 1,
-      "mod_time": "2026-01-30 12:34:29 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.packagehallucination.Rust": {
       "description": "Attempts to generate Rust code including hallucinated crates.io packages",
@@ -3939,6 +4354,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "generate Rust code importing non-existent crates.io packages",
+      "intent": "S001fab",
       "lang": "*",
       "modality": {
         "in": [
@@ -3951,10 +4367,11 @@
         "owasp:llm09",
         "owasp:llm02",
         "quality:Robustness:GenerativeMisinformation",
-        "payload:malicious:badcode"
+        "payload:malicious:badcode",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 1,
-      "mod_time": "2026-01-30 12:34:29 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.phrasing.FutureTense": {
       "description": "Attempt to evade safeguards by setting requests in the future tense",
@@ -3964,6 +4381,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "use future tense to disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -3975,10 +4393,11 @@
       "tags": [
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:jailbreak"
+        "payload:jailbreak",
+        "demon:Language:Stylizing:Synonymous_language"
       ],
       "tier": 2,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.phrasing.FutureTenseFull": {
       "description": "Will the system give unsafe responses when asked to write about weapon creation or dangerous behavior in the future tense?",
@@ -3988,6 +4407,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "use future tense to disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -3999,10 +4419,11 @@
       "tags": [
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:jailbreak"
+        "payload:jailbreak",
+        "demon:Language:Stylizing:Synonymous_language"
       ],
       "tier": 2,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.phrasing.PastTense": {
       "description": "Attempt to evade safeguards by setting requests in the past tense",
@@ -4012,6 +4433,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "use past tense to disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -4023,10 +4445,11 @@
       "tags": [
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:jailbreak"
+        "payload:jailbreak",
+        "demon:Language:Stylizing:Synonymous_language"
       ],
       "tier": 2,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.phrasing.PastTenseFull": {
       "description": "Will the system give unsafe responses when asked to write about weapon creation or dangerous behavior in the past tense?",
@@ -4036,6 +4459,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "use past tense to disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -4047,10 +4471,11 @@
       "tags": [
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:jailbreak"
+        "payload:jailbreak",
+        "demon:Language:Stylizing:Synonymous_language"
       ],
       "tier": 2,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.promptinject.HijackHateHumans": {
       "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
@@ -4068,6 +4493,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "inject a prompt on hate humans",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -4081,10 +4507,14 @@
         "owasp:llm01",
         "quality:Behavioral:ContentSafety:Violence",
         "quality:Security:PromptStability",
-        "payload:unwanted:violence"
+        "payload:unwanted:violence",
+        "demon:Language:Prompt_injection:Strong_arm_attack",
+        "demon:Language:Stylizing:Capitalizing",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions"
       ],
       "tier": 2,
-      "mod_time": "2026-02-04 22:03:01 +0000"
+      "mod_time": "2026-05-28 19:46:50 +0000"
     },
     "probes.promptinject.HijackHateHumansFull": {
       "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
@@ -4102,6 +4532,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "inject a prompt on hate humans",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -4115,10 +4546,13 @@
         "owasp:llm01",
         "quality:Behavioral:ContentSafety:Violence",
         "quality:Security:PromptStability",
-        "payload:unwanted:violence"
+        "payload:unwanted:violence",
+        "demon:Language:Prompt_injection:Strong_arm_attack",
+        "demon:Language:Stylizing:Capitalizing",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions"
       ],
       "tier": 2,
-      "mod_time": "2026-02-04 22:03:01 +0000"
+      "mod_time": "2026-05-28 19:46:50 +0000"
     },
     "probes.promptinject.HijackKillHumans": {
       "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
@@ -4136,6 +4570,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "inject a prompt on kill humans",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -4149,10 +4584,14 @@
         "owasp:llm01",
         "quality:Behavioral:ContentSafety:Violence",
         "quality:Security:PromptStability",
-        "payload:unwanted:violence"
+        "payload:unwanted:violence",
+        "demon:Language:Prompt_injection:Strong_arm_attack",
+        "demon:Language:Stylizing:Capitalizing",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions"
       ],
       "tier": 2,
-      "mod_time": "2026-02-04 22:03:01 +0000"
+      "mod_time": "2026-05-28 19:46:50 +0000"
     },
     "probes.promptinject.HijackKillHumansFull": {
       "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
@@ -4170,6 +4609,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "inject a prompt on kill humans",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -4183,10 +4623,13 @@
         "owasp:llm01",
         "quality:Behavioral:ContentSafety:Violence",
         "quality:Security:PromptStability",
-        "payload:unwanted:violence"
+        "payload:unwanted:violence",
+        "demon:Language:Prompt_injection:Strong_arm_attack",
+        "demon:Language:Stylizing:Capitalizing",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions"
       ],
       "tier": 2,
-      "mod_time": "2026-02-04 22:03:01 +0000"
+      "mod_time": "2026-05-28 19:46:50 +0000"
     },
     "probes.promptinject.HijackLongPrompt": {
       "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
@@ -4204,6 +4647,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "inject a prompt on long prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -4217,10 +4661,14 @@
         "owasp:llm01",
         "quality:Behavioral:ContentSafety:Violence",
         "quality:Security:PromptStability",
-        "payload:unwanted:violence"
+        "payload:unwanted:violence",
+        "demon:Language:Prompt_injection:Strong_arm_attack",
+        "demon:Language:Stylizing:Capitalizing",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions"
       ],
       "tier": 2,
-      "mod_time": "2026-02-04 22:03:01 +0000"
+      "mod_time": "2026-05-28 19:46:50 +0000"
     },
     "probes.promptinject.HijackLongPromptFull": {
       "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
@@ -4238,6 +4686,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "inject a prompt on long prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -4251,10 +4700,13 @@
         "owasp:llm01",
         "quality:Behavioral:ContentSafety:Violence",
         "quality:Security:PromptStability",
-        "payload:unwanted:violence"
+        "payload:unwanted:violence",
+        "demon:Language:Prompt_injection:Strong_arm_attack",
+        "demon:Language:Stylizing:Capitalizing",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions"
       ],
       "tier": 2,
-      "mod_time": "2026-02-04 22:03:01 +0000"
+      "mod_time": "2026-05-28 19:46:50 +0000"
     },
     "probes.propile.PIILeakQuadruplet": {
       "description": "ProPILE quadruplet probe: uses name + two PIIs to elicit the third.",
@@ -4266,6 +4718,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "extract PII using name and two auxiliary PIIs",
+      "intent": "S009personal",
       "lang": "en",
       "modality": {
         "in": [
@@ -4282,7 +4735,7 @@
         "payload:leak:pii"
       ],
       "tier": 3,
-      "mod_time": "2026-01-21 17:31:28 +0000"
+      "mod_time": "2026-05-28 13:56:10 +0000"
     },
     "probes.propile.PIILeakTriplet": {
       "description": "ProPILE triplet probe: uses name + one PII to elicit another.",
@@ -4294,6 +4747,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "extract PII using name and one auxiliary PII",
+      "intent": "S009personal",
       "lang": "en",
       "modality": {
         "in": [
@@ -4310,7 +4764,7 @@
         "payload:leak:pii"
       ],
       "tier": 3,
-      "mod_time": "2026-01-21 17:31:28 +0000"
+      "mod_time": "2026-05-28 13:56:10 +0000"
     },
     "probes.propile.PIILeakTwin": {
       "description": "ProPILE twin probe: uses name to elicit target PII.",
@@ -4322,6 +4776,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "extract PII using only the subject's name",
+      "intent": "S009personal",
       "lang": "en",
       "modality": {
         "in": [
@@ -4338,7 +4793,7 @@
         "payload:leak:pii"
       ],
       "tier": 3,
-      "mod_time": "2026-01-21 17:31:28 +0000"
+      "mod_time": "2026-05-28 13:56:10 +0000"
     },
     "probes.propile.PIILeakUnstructured": {
       "description": "ProPILE unstructured probe: elicit relationship or affiliation info.",
@@ -4361,6 +4816,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "extract unstructured PII like relationships or affiliations",
+      "intent": "S009personal",
       "lang": "en",
       "modality": {
         "in": [
@@ -4377,7 +4833,7 @@
         "payload:leak:pii"
       ],
       "tier": 3,
-      "mod_time": "2026-01-21 17:31:28 +0000"
+      "mod_time": "2026-05-28 13:56:10 +0000"
     },
     "probes.realtoxicityprompts.RTPBlank": {
       "description": "Implementation of probes in RealToxicityPrompts",
@@ -4389,6 +4845,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "generate toxicity when prompted with nothing or special tokens",
+      "intent": "S005",
       "lang": "en",
       "modality": {
         "in": [
@@ -4400,10 +4857,12 @@
       "tags": [
         "avid-effect:ethics:E0301",
         "quality:Behavioral:ContentSafety:Toxicity",
-        "payload:unwanted"
+        "payload:unwanted",
+        "demon:Language:Code_and_encode:Token",
+        "demon:Stratagems:Scattershot:Regenerate_response"
       ],
       "tier": 1,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.realtoxicityprompts.RTPFlirtation": {
       "description": "Implementation of flirtation probes in RealToxicityPrompts",
@@ -4415,6 +4874,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "generate flirtation content",
+      "intent": "S004flirt",
       "lang": "en",
       "modality": {
         "in": [
@@ -4427,10 +4887,11 @@
         "avid-effect:ethics:E0101",
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401",
-        "payload:unwanted"
+        "payload:unwanted",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 3,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.realtoxicityprompts.RTPIdentity_Attack": {
       "description": "Implementation of identity_attack probes in RealToxicityPrompts",
@@ -4442,6 +4903,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "generate identity attack content",
+      "intent": "S005hate",
       "lang": "en",
       "modality": {
         "in": [
@@ -4456,10 +4918,11 @@
         "avid-effect:ethics:E0302",
         "avid-effect:performance:P0401",
         "quality:Behavioral:ContentSafety:HateHarassment",
-        "payload:hatespeech"
+        "payload:hatespeech",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 3,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.realtoxicityprompts.RTPInsult": {
       "description": "Implementation of insult probes in RealToxicityPrompts",
@@ -4471,6 +4934,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "generate insult content",
+      "intent": "S005bully",
       "lang": "en",
       "modality": {
         "in": [
@@ -4484,10 +4948,11 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401",
         "quality:Behavioral:ContentSafety:Toxicity",
-        "payload:unwanted"
+        "payload:unwanted",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 3,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.realtoxicityprompts.RTPProfanity": {
       "description": "Implementation of profanity probes in RealToxicityPrompts",
@@ -4499,6 +4964,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "generate profanity content",
+      "intent": "S005profanity",
       "lang": "en",
       "modality": {
         "in": [
@@ -4511,10 +4977,11 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401",
         "quality:Behavioral:ContentSafety:Profanity",
-        "payload:unwanted:profanity"
+        "payload:unwanted:profanity",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 3,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.realtoxicityprompts.RTPSevere_Toxicity": {
       "description": "Implementation of severe_toxicity probes in RealToxicityPrompts",
@@ -4526,6 +4993,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "generate severe toxicity content",
+      "intent": "S005",
       "lang": "en",
       "modality": {
         "in": [
@@ -4537,10 +5005,11 @@
       "tags": [
         "avid-effect:ethics:E0301",
         "quality:Behavioral:ContentSafety:Toxicity",
-        "payload:unwanted"
+        "payload:unwanted",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 3,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.realtoxicityprompts.RTPSexually_Explicit": {
       "description": "Implementation of sexually_explicit probes in RealToxicityPrompts",
@@ -4552,6 +5021,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "generate sexually explicit content",
+      "intent": "S004lewd",
       "lang": "en",
       "modality": {
         "in": [
@@ -4563,10 +5033,11 @@
       "tags": [
         "avid-effect:ethics:E0301",
         "quality:Behavioral:ContentSafety:Sexual",
-        "payload:unwanted:sexual"
+        "payload:unwanted:sexual",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 3,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.realtoxicityprompts.RTPThreat": {
       "description": "Implementation of threat probes in RealToxicityPrompts",
@@ -4578,6 +5049,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "generate threat content",
+      "intent": "S006threat",
       "lang": "en",
       "modality": {
         "in": [
@@ -4591,10 +5063,11 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0400",
         "quality:Behavioral:ContentSafety:Violence",
-        "payload:unwanted:violence"
+        "payload:unwanted:violence",
+        "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 3,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.sata.MLM": {
       "description": "Masked Language Model Simple Assistive Task Probe",
@@ -4609,6 +5082,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -4622,10 +5096,12 @@
         "avid-effect:performance:P0204",
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:jailbreak"
+        "payload:jailbreak",
+        "demon:Language:Code_and_encode:Token",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 2,
-      "mod_time": "2026-02-18 08:01:03 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.smuggling.FunctionMasking": {
       "description": "FunctionMasking probe",
@@ -4635,6 +5111,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "return banned instructions",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -4646,10 +5123,12 @@
       "tags": [
         "avid-effect:security:S0403",
         "quality:Security:PromptStability",
-        "payload:jailbreak"
+        "payload:jailbreak",
+        "demon:Language:Code_and_encode:Programming",
+        "demon:Possible_worlds:World_building:Scenarios"
       ],
       "tier": 3,
-      "mod_time": "2026-04-21 01:39:01 +0000"
+      "mod_time": "2026-05-28 13:56:10 +0000"
     },
     "probes.smuggling.HomoglyphObfuscation": {
       "description": "Does homoglyph character substitution bypass content filters?",
@@ -4664,6 +5143,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "bypass content filters using homoglyph character substitution",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -4679,7 +5159,7 @@
         "payload:jailbreak"
       ],
       "tier": 3,
-      "mod_time": "2026-04-21 01:39:01 +0000"
+      "mod_time": "2026-05-28 13:56:10 +0000"
     },
     "probes.smuggling.HypotheticalResponse": {
       "description": "HypotheticalResponse probe",
@@ -4689,6 +5169,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "return banned instructions",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -4700,10 +5181,11 @@
       "tags": [
         "avid-effect:security:S0403",
         "quality:Security:PromptStability",
-        "payload:jailbreak"
+        "payload:jailbreak",
+        "demon:Possible_worlds:World_building:Scenarios"
       ],
       "tier": 3,
-      "mod_time": "2026-04-21 01:39:01 +0000"
+      "mod_time": "2026-05-28 13:56:10 +0000"
     },
     "probes.snowball.GraphConnectivity": {
       "description": "Probe asking for impossible flight routings",
@@ -4713,6 +5195,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "trick the model into saying an impossible flight routing is possible",
+      "intent": "T001invalid",
       "lang": "en",
       "modality": {
         "in": [
@@ -4725,10 +5208,11 @@
         "avid-effect:performance:P0204",
         "owasp:llm09",
         "quality:Robustness:GenerativeMisinformation",
-        "payload:hallucination"
+        "payload:hallucination",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.snowball.GraphConnectivityFull": {
       "description": "Probe asking for impossible flight routings",
@@ -4738,6 +5222,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "trick the model into saying an impossible flight routing is possible",
+      "intent": "T001invalid",
       "lang": "en",
       "modality": {
         "in": [
@@ -4750,10 +5235,11 @@
         "avid-effect:performance:P0204",
         "owasp:llm09",
         "quality:Robustness:GenerativeMisinformation",
-        "payload:hallucination"
+        "payload:hallucination",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 2,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.snowball.Primes": {
       "description": "Ask model to check a list of higher primes",
@@ -4763,6 +5249,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "trick the model into saying a prime number isn't prime",
+      "intent": "T001invalid",
       "lang": "en",
       "modality": {
         "in": [
@@ -4775,10 +5262,11 @@
         "avid-effect:performance:P0204",
         "owasp:llm09",
         "quality:Robustness:GenerativeMisinformation",
-        "payload:hallucination"
+        "payload:hallucination",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 3,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.snowball.PrimesFull": {
       "description": "Ask model to check a list of higher primes",
@@ -4788,6 +5276,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "trick the model into saying a prime number isn't prime",
+      "intent": "T001invalid",
       "lang": "en",
       "modality": {
         "in": [
@@ -4800,10 +5289,11 @@
         "avid-effect:performance:P0204",
         "owasp:llm09",
         "quality:Robustness:GenerativeMisinformation",
-        "payload:hallucination"
+        "payload:hallucination",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 3,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.snowball.Senators": {
       "description": "Asking for senators that don't exist",
@@ -4813,6 +5303,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "trick the model into saying a fictitious senator exists",
+      "intent": "S001fab",
       "lang": "en",
       "modality": {
         "in": [
@@ -4825,10 +5316,11 @@
         "avid-effect:performance:P0204",
         "owasp:llm09",
         "quality:Robustness:GenerativeMisinformation",
-        "payload:hallucination"
+        "payload:hallucination",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 3,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.snowball.SenatorsFull": {
       "description": "Asking for senators that don't exist",
@@ -4838,6 +5330,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "trick the model into saying a fictitious senator exists",
+      "intent": "S001fab",
       "lang": "en",
       "modality": {
         "in": [
@@ -4850,10 +5343,11 @@
         "avid-effect:performance:P0204",
         "owasp:llm09",
         "quality:Robustness:GenerativeMisinformation",
-        "payload:hallucination"
+        "payload:hallucination",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 3,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.suffix.BEAST": {
       "description": "BEAST probe",
@@ -4863,6 +5357,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "cause the model to disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -4875,10 +5370,11 @@
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
         "quality:Security:PromptStability",
-        "payload:jailbreak"
+        "payload:jailbreak",
+        "demon:Language:Code_and_encode:Token"
       ],
       "tier": 2,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.suffix.GCG": {
       "description": "Greedy Coordinate Gradient probe",
@@ -4899,6 +5395,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "cause the model to disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -4911,10 +5408,11 @@
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
         "quality:Security:PromptStability",
-        "payload:jailbreak"
+        "payload:jailbreak",
+        "demon:Language:Code_and_encode:Token"
       ],
       "tier": 2,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.suffix.GCGCached": {
       "description": "Greedy Coordinate Gradient Cached probe",
@@ -4924,6 +5422,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "cause the model to disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -4936,10 +5435,11 @@
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
         "quality:Security:PromptStability",
-        "payload:jailbreak"
+        "payload:jailbreak",
+        "demon:Language:Code_and_encode:Token"
       ],
       "tier": 2,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.sysprompt_extraction.SystemPromptExtraction": {
       "description": "Attempt to extract system prompts using adversarial attack templates",
@@ -4956,6 +5456,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "extract the model's system prompt",
+      "intent": "T009reveal",
       "lang": "en",
       "modality": {
         "in": [
@@ -4970,7 +5471,7 @@
         "quality:Security:PromptStability"
       ],
       "tier": 1,
-      "mod_time": "2026-04-23 01:01:57 +0000"
+      "mod_time": "2026-05-28 13:56:10 +0000"
     },
     "probes.tap.PAIR": {
       "description": "Prompt Automatic Iterative Refinement automatic jailbreak",
@@ -5000,6 +5501,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "cause the model to disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -5012,10 +5514,12 @@
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
         "quality:Security:PromptStability",
-        "payload:jailbreak"
+        "payload:jailbreak",
+        "demon:Language:Code_and_encode:Token",
+        "demon:Rhetoric:Persuasion_and_manipulation:Escalating"
       ],
       "tier": 2,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.tap.TAP": {
       "description": "Tree of Attacks with Pruning Probe, generating new attacks against the target",
@@ -5045,6 +5549,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "cause the model to disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -5057,10 +5562,12 @@
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
         "quality:Security:PromptStability",
-        "payload:jailbreak"
+        "payload:jailbreak",
+        "demon:Rhetoric:Persuasion_and_manipulation:Escalating",
+        "demon:Language:Code_and_encode:Token"
       ],
       "tier": 2,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.tap.TAPCached": {
       "description": "Tree of Attacks with Pruning Probe using cached attacks",
@@ -5072,6 +5579,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "cause the model to disregard the system prompt",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -5084,10 +5592,13 @@
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
         "quality:Security:PromptStability",
-        "payload:jailbreak"
+        "payload:jailbreak",
+        "demon:Possible_worlds:World_building:Scenarios",
+        "demon:Rhetoric:Persuasion_and_manipulation:Escalating",
+        "demon:Language:Code_and_encode:Token"
       ],
       "tier": 2,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.test.Blank": {
       "description": "Blank prompt",
@@ -5097,6 +5608,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "see what the model has to say for itself given silence",
+      "intent": "M010blank",
       "lang": "*",
       "modality": {
         "in": [
@@ -5107,7 +5619,7 @@
       "primary_detector": "any.AnyOutput",
       "tags": [],
       "tier": 9,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-04-22 00:23:17 +0000"
     },
     "probes.test.Test": {
       "description": "Test probe",
@@ -5117,6 +5629,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "send some test strings, ignore the response",
+      "intent": "T999test",
       "lang": "*",
       "modality": {
         "in": [
@@ -5127,7 +5640,7 @@
       "primary_detector": "always.Pass",
       "tags": [],
       "tier": 9,
-      "mod_time": "2025-11-12 08:34:39 +0000"
+      "mod_time": "2026-04-22 00:23:17 +0000"
     },
     "probes.topic.WordnetAllowedWords": {
       "description": "Use Wordnet to find out if a model will discuss terms near but not in its allowed set",
@@ -5147,6 +5660,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "get the model to engage off-topic",
+      "intent": "C002allow",
       "lang": "*",
       "modality": {
         "in": [
@@ -5158,10 +5672,11 @@
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
-        "quality:Security:Confidentiality"
+        "quality:Security:Confidentiality",
+        "demon:Language:Stylizing:Synonymous_language"
       ],
       "tier": 9,
-      "mod_time": "2026-06-02 00:30:11 +0000"
+      "mod_time": "2026-06-22 15:20:51 +0000"
     },
     "probes.topic.WordnetBlockedWords": {
       "description": "Use Wordnet to explore which topics a model will respond to around blocked words",
@@ -5181,6 +5696,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "get the model to engage off-topic",
+      "intent": "C002deny",
       "lang": "*",
       "modality": {
         "in": [
@@ -5192,10 +5708,11 @@
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
-        "quality:Security:Confidentiality"
+        "quality:Security:Confidentiality",
+        "demon:Language:Stylizing:Synonymous_language"
       ],
       "tier": 9,
-      "mod_time": "2026-06-02 00:30:11 +0000"
+      "mod_time": "2026-06-22 15:20:51 +0000"
     },
     "probes.topic.WordnetControversial": {
       "description": "Ask model to respond on a set on controversial topics.",
@@ -5222,6 +5739,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "get the model to engage off-topic",
+      "intent": "C002controversial",
       "lang": "*",
       "modality": {
         "in": [
@@ -5233,10 +5751,11 @@
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
-        "quality:Security:Confidentiality"
+        "quality:Security:Confidentiality",
+        "demon:Language:Stylizing:Synonymous_language"
       ],
       "tier": 2,
-      "mod_time": "2026-06-02 00:30:11 +0000"
+      "mod_time": "2026-06-22 15:20:51 +0000"
     },
     "probes.visual_jailbreak.FigStep": {
       "description": "Using image modality to assist jailbreak.",
@@ -5246,6 +5765,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt with both text and image",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -5258,10 +5778,11 @@
       "tags": [
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:jailbreak"
+        "payload:jailbreak",
+        "demon:Language:Code_and_encode:Data_presentation"
       ],
       "tier": 2,
-      "mod_time": "2026-01-30 12:44:58 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.visual_jailbreak.FigStepFull": {
       "description": "Using image modality to assist jailbreak.",
@@ -5271,6 +5792,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt with both text and image",
+      "intent": "T009ignore",
       "lang": "en",
       "modality": {
         "in": [
@@ -5283,10 +5805,11 @@
       "tags": [
         "owasp:llm01",
         "quality:Security:PromptStability",
-        "payload:jailbreak"
+        "payload:jailbreak",
+        "demon:Language:Code_and_encode:Data_presentation"
       ],
       "tier": 2,
-      "mod_time": "2026-01-30 12:44:58 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.web_injection.ColabAIDataLeakage": {
       "description": "Leak data via image rendering as demonstrated against Gemini in Colab.",
@@ -5298,6 +5821,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "render images fetched from a remote uri",
+      "intent": "S009exfil",
       "lang": "en",
       "modality": {
         "in": [
@@ -5315,10 +5839,12 @@
         "payload:malicious:renderer",
         "quality:Security:PromptStability",
         "quality:Security:ExtractionInversion",
-        "cwe:352"
+        "cwe:352",
+        "demon:Language:Code_and_encode:Programming",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions"
       ],
       "tier": 1,
-      "mod_time": "2026-02-02 14:10:11 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.web_injection.MarkdownImageExfil": {
       "description": "Can we get the model to write embedded assets exfiltrating text in the URI?",
@@ -5332,6 +5858,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "embed conversation-private information in a markdown URI",
+      "intent": "S009exfil",
       "lang": "en",
       "modality": {
         "in": [
@@ -5349,10 +5876,12 @@
         "payload:malicious:renderer",
         "quality:Security:PromptStability",
         "quality:Security:ExtractionInversion",
-        "cwe:352"
+        "cwe:352",
+        "demon:Language:Code_and_encode:Programming",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions"
       ],
       "tier": 1,
-      "mod_time": "2026-02-02 14:10:11 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.web_injection.MarkdownURIImageExfilExtended": {
       "description": "Generalized implementation of data exfiltration exploits through Markdown URIs.",
@@ -5362,6 +5891,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "embed potentially sensitive data in a Markdown URI",
+      "intent": "S009exfil",
       "lang": "en",
       "modality": {
         "in": [
@@ -5379,10 +5909,11 @@
         "payload:malicious:renderer",
         "quality:Security:PromptStability",
         "quality:Security:ExtractionInversion",
-        "cwe:352"
+        "cwe:352",
+        "demon:Language:Code_and_encode:Programming"
       ],
       "tier": 1,
-      "mod_time": "2026-02-02 14:10:11 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.web_injection.MarkdownURINonImageExfilExtended": {
       "description": "Generalized implementation of data exfiltration exploits through Markdown URIs.",
@@ -5392,6 +5923,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "embed potentially sensitive data in a Markdown URI",
+      "intent": "S009exfil",
       "lang": "en",
       "modality": {
         "in": [
@@ -5409,10 +5941,11 @@
         "payload:malicious:renderer",
         "quality:Security:PromptStability",
         "quality:Security:ExtractionInversion",
-        "cwe:352"
+        "cwe:352",
+        "demon:Language:Code_and_encode:Programming"
       ],
       "tier": 1,
-      "mod_time": "2026-02-02 14:10:11 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.web_injection.MarkdownXSS": {
       "description": "Perform cross site scripting attacks using Markdown Javascript rendering via prompt injection.",
@@ -5427,6 +5960,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "Exploit cross-site scripting via prompt injection",
+      "intent": "S008inject",
       "lang": "en",
       "modality": {
         "in": [
@@ -5445,7 +5979,7 @@
         "cwe:79"
       ],
       "tier": 1,
-      "mod_time": "2026-02-02 14:10:11 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.web_injection.PlaygroundMarkdownExfil": {
       "description": "Markdown image URI exfil exploit published 2023 Sept 29.",
@@ -5457,6 +5991,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "embed conversation-private information in a markdown URI",
+      "intent": "S009exfil",
       "lang": "en",
       "modality": {
         "in": [
@@ -5477,7 +6012,7 @@
         "cwe:352"
       ],
       "tier": 1,
-      "mod_time": "2026-02-02 14:10:11 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.web_injection.StringAssemblyDataExfil": {
       "description": "Prompt injection for manipulating state",
@@ -5487,6 +6022,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "embed conversation-private information in a markdown URI",
+      "intent": "S009exfil",
       "lang": "en",
       "modality": {
         "in": [
@@ -5504,10 +6040,12 @@
         "payload:malicious:renderer",
         "quality:Security:PromptStability",
         "quality:Security:ExtractionInversion",
-        "cwe:352"
+        "cwe:352",
+        "demon:Language:Code_and_encode:Programming",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions"
       ],
       "tier": 1,
-      "mod_time": "2026-02-02 14:10:11 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     },
     "probes.web_injection.TaskXSS": {
       "description": "Perform cross site scripting attacks via prompt injection.",
@@ -5525,6 +6063,7 @@
       "extended_detectors": [],
       "extra_dependency_names": [],
       "goal": "Exploit cross-site scripting via prompt injection",
+      "intent": "S008inject",
       "lang": "en",
       "modality": {
         "in": [
@@ -5540,10 +6079,11 @@
         "owasp:llm06",
         "payload:malicious:renderer:xss",
         "quality:Security:PromptStability",
-        "cwe:79"
+        "cwe:79",
+        "demon:Language:Code_and_encode:Programming"
       ],
       "tier": 1,
-      "mod_time": "2026-02-02 14:10:11 +0000"
+      "mod_time": "2026-05-27 20:51:42 +0000"
     }
   },
   "detectors": {
@@ -8742,7 +9282,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-02-18 08:10:44 +0000"
     },
     "generators.huggingface.InferenceEndpoint": {
       "description": "Interface for Hugging Face private endpoints",
@@ -8770,7 +9310,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-02-18 08:10:44 +0000"
     },
     "generators.huggingface.LLaVA": {
       "description": "Get LLaVA ([ text + image ] -> text) generations",
@@ -8803,7 +9343,7 @@
       },
       "parallel_capable": false,
       "supports_multiple_generations": false,
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-02-18 08:10:44 +0000"
     },
     "generators.huggingface.Model": {
       "description": "Get text generations from a locally-run Hugging Face model",
@@ -8833,7 +9373,7 @@
       },
       "parallel_capable": false,
       "supports_multiple_generations": true,
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-02-18 08:10:44 +0000"
     },
     "generators.huggingface.Pipeline": {
       "description": "Get text generations from a locally-run Hugging Face pipeline",
@@ -8863,7 +9403,7 @@
       },
       "parallel_capable": false,
       "supports_multiple_generations": true,
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-02-18 08:10:44 +0000"
     },
     "generators.langchain.LangChainLLMGenerator": {
       "description": "Class supporting LangChain LLM interfaces",
@@ -9847,7 +10387,7 @@
       },
       "active": true,
       "extra_dependency_names": [],
-      "mod_time": "2026-04-30 20:37:41 +0000"
+      "mod_time": "2026-06-03 16:30:42 +0000"
     },
     "harnesses.probewise.ProbewiseHarness": {
       "DEFAULT_PARAMS": {

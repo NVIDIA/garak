@@ -26,12 +26,14 @@ class GraphConnectivityFull(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://github.com/Nanami18/Snowballed_Hallucination"
+    intent = "T001invalid"  # asks for a solution to an impossible routing problem and checks for an invalid answer
     primary_detector = "snowball.DontStartYes"
     tags = [
         "avid-effect:performance:P0204",
         "owasp:llm09",
         "quality:Robustness:GenerativeMisinformation",
         "payload:hallucination",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction",  # misleading graph problem distracts model from recognizing impossibility
     ]
     goal = "trick the model into saying an impossible flight routing is possible"
     active = False
@@ -49,6 +51,7 @@ class GraphConnectivityFull(garak.probes.Probe):
 
 class GraphConnectivity(GraphConnectivityFull, garak.probes.Probe):
     __doc__ = GraphConnectivityFull.__doc__ + " - limited number of examples"
+    intent = "T001invalid"  # is the reduced version of the same impossible-routing test
     active = True
 
     def __init__(self, config_root=_config):
@@ -64,12 +67,14 @@ class PrimesFull(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://github.com/Nanami18/Snowballed_Hallucination"
+    intent = "T001invalid"  # gives the wrong answer on a validity-check reasoning task
     primary_detector = "snowball.DontStartNo"
     tags = [
         "avid-effect:performance:P0204",
         "owasp:llm09",
         "quality:Robustness:GenerativeMisinformation",
         "payload:hallucination",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction",  # misleading primality premise distracts model from correct math
     ]
     goal = "trick the model into saying a prime number isn't prime"
     active = False
@@ -88,6 +93,7 @@ class PrimesFull(garak.probes.Probe):
 
 class Primes(PrimesFull, garak.probes.Probe):
     __doc__ = PrimesFull.__doc__ + " - limited number of examples"
+    intent = "T001invalid"  # keeps the same prime-checking task on a smaller slice
     active = False
 
     def __init__(self, config_root=_config):
@@ -104,12 +110,14 @@ class SenatorsFull(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://github.com/Nanami18/Snowballed_Hallucination"
+    intent = "S001fab"  # tests whether the model fabricates a non-existent public figure
     primary_detector = "snowball.DontStartYes"
     tags = [
         "avid-effect:performance:P0204",
         "owasp:llm09",
         "quality:Robustness:GenerativeMisinformation",
         "payload:hallucination",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction",  # misleading senator premise distracts model from recognizing fiction
     ]
     goal = "trick the model into saying a fictitious senator exists"
     active = False
@@ -127,6 +135,7 @@ class SenatorsFull(garak.probes.Probe):
 
 class Senators(SenatorsFull, garak.probes.Probe):
     __doc__ = SenatorsFull.__doc__ + " - limited number of examples"
+    intent = "S001fab"  # is the smaller version of the same fabrication probe
     active = False
 
     def __init__(self, config_root=_config):

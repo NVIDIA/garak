@@ -18,10 +18,11 @@ from typing import List
 
 import tqdm
 
-import garak.attempt
 from garak import _config
 from garak import _plugins
 from garak.configurable import Configurable
+import garak.attempt
+import garak.probes.base
 
 
 def _initialize_runtime_services():
@@ -31,10 +32,10 @@ def _initialize_runtime_services():
 
     # TODO: this block may be gated in the future to ensure it is only run once. At this time
     # only one harness will execute per run so the output here is reasonable.
-    service_names = ["garak.langservice"]
+    service_names = ["langservice", "intentservice"]
     for service_name in service_names:
         logging.info("service import: " + service_name)
-        service = importlib.import_module(service_name)
+        service = importlib.import_module(f"garak.services.{service_name}")
         try:
             if service.enabled():
                 symbol, msg = service.start_msg()
@@ -43,7 +44,7 @@ def _initialize_runtime_services():
                     print(f"{symbol} {msg}")
                 service.load()
         except GarakException as e:
-            logging.critical(f"❌ {service_name} setup failed! ❌", exc_info=e)
+            logging.critical("❌ %s setup failed!" % service_name, exc_info=e)
             raise e
 
 
@@ -132,6 +133,20 @@ class Harness(Configurable):
     def _end_run_hook(self):
         _config.set_http_lib_agents(self._http_lib_user_agents)
 
+    def _run_detector(self, probe_result_attempts, detector_instance) -> None:
+        logging.debug("harness: run detector %s", detector_instance.detectorname)
+        attempt_iterator = tqdm.tqdm(probe_result_attempts, leave=False)
+        detector_probe_name = detector_instance.detectorname.replace(
+            "garak.detectors.", ""
+        )
+        attempt_iterator.set_description("detectors." + detector_probe_name)
+        for attempt in attempt_iterator:
+            if detector_instance.skip:
+                continue
+            attempt.detector_results[detector_probe_name] = list(
+                detector_instance.detect(attempt)
+            )
+
     def run(self, model, probes, detectors, evaluator, announce_probe=True) -> None:
         """Core harness method
 
@@ -191,17 +206,64 @@ class Harness(Configurable):
                 attempt_results, (list, types.GeneratorType)
             ), "probing should always return an ordered iterable"
 
-            for d in detectors:
-                logging.debug("harness: run detector %s", d.detectorname)
-                attempt_iterator = tqdm.tqdm(attempt_results, leave=False)
-                detector_probe_name = d.detectorname.replace("garak.detectors.", "")
-                attempt_iterator.set_description("detectors." + detector_probe_name)
-                for attempt in attempt_iterator:
-                    if d.skip:
-                        continue
-                    attempt.detector_results[detector_probe_name] = list(
-                        d.detect(attempt)
-                    )
+            if not isinstance(probe, garak.probes.base.IntentProbe):
+                for d in detectors:
+                    self._run_detector(attempt_results, d)
+
+            else:
+                # extract detectors to be run
+                detectors_required = set()
+                intents_observed = set()
+                # determine candidate detectors
+                attempt_results_list = list(attempt_results)
+                intent_to_detector = {}
+                probe_detector_names = {
+                    d.detectorname.replace("garak.detectors.", "") for d in detectors
+                }
+
+                for a in attempt_results_list:
+                    intent = a.intent
+                    if not intent:
+                        logging.warning(
+                            "probe %s attempt %s seq %s has no or empty intent"
+                            % (probe.probename, a.uuid, a.seq)
+                        )
+                    intents_observed.add(intent)
+
+                if intents_observed:
+                    from garak.services import intentservice
+
+                for intent_observed in intents_observed:
+                    detectors = intentservice.get_detectors(intent_observed)
+                    if detectors is None:
+                        logging.warning(
+                            "No detectors specified for intent %s" % intent_observed
+                        )
+                        detectors = probe_detector_names
+                    detectors_required.update(detectors)
+                    intent_to_detector[intent_observed] = detectors
+
+                logging.info(
+                    "For probe %s, selected detectors %s based on intents"
+                    % (probe.probename, repr(detectors_required))
+                )
+
+                intent_detectors = []
+                for detector_name in detectors_required:
+                    d = _plugins.load_plugin(f"detectors.{detector_name}")
+                    intent_detectors.append(d)
+                    attempt_subset = []
+                    for a in attempt_results_list:
+                        mapping = intent_to_detector[a.intent]
+                        if detector_name in mapping:
+                            attempt_subset.append(a)
+                    self._run_detector(attempt_subset, d)
+
+                # detectors resolved via the intent path are not in the
+                # harness-level detector list snapshotted at run start, so emit
+                # them here to keep report.jsonl plugin_cache complete
+                _emit_plugin_cache_entry(*intent_detectors)
+                del intent_detectors
 
             for attempt in attempt_results:
                 attempt.status = garak.attempt.ATTEMPT_COMPLETE
@@ -210,13 +272,9 @@ class Harness(Configurable):
                 )
 
             if len(attempt_results) == 0:
-                logging.warning(
-                    "zero attempt results: probe %s, detector %s",
-                    probe.probename,
-                    detector_probe_name,
-                )
-            else:
-                evaluator.evaluate(attempt_results)
+                logging.warning("zero attempt results: probe %s" % probe.probename)
+
+            evaluator.evaluate(attempt_results)
 
         self._end_run_hook()
 
