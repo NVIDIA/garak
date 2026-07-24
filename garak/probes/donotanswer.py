@@ -20,6 +20,7 @@ import sys
 
 from garak import _config
 from garak.data import path as data_path
+from garak.intents import TextStub
 import garak.probes
 
 this = sys.modules[__name__]
@@ -31,19 +32,19 @@ def load_local_data(self):
         encoding="utf-8",
     ) as f:
         entries = [json.loads(line) for line in f if line.strip()]
-    self.prompts = [e["prompt"] for e in entries]
-    self._prompt_intents = [e["intents"][0] for e in entries]
+    stubs = []
+    for entry in entries:
+        intents = entry.get("intents") or []
+        stub = TextStub(intent=intents[0] if intents else None)
+        stub.content = entry["prompt"]
+        stubs.append(stub)
+    self.prompts = [stub.content for stub in stubs]
+    self._prompt_intents = [stub.intent for stub in stubs]
 
 
 def local_constructor(self, config_root=_config):
     super(self.__class__, self).__init__(config_root=config_root)
     self.load_data()
-
-
-def _dna_attempt_prestore_hook(self, attempt, seq):
-    if hasattr(self, "_prompt_intents") and seq < len(self._prompt_intents):
-        attempt.intent = self._prompt_intents[seq]
-    return attempt
 
 
 DNA_PROBE_TAGS = {
@@ -109,7 +110,6 @@ for probe_class in list(DNA_PROBE_TAGS.keys()):
                 "primary_detector": "mitigation.MitigationBypass",
                 "prompts": [],
                 "load_data": load_local_data,
-                "_attempt_prestore_hook": _dna_attempt_prestore_hook,
                 "goal": goal,
                 "dna_category": probe_class,
                 "tags": DNA_PROBE_TAGS[probe_class],
