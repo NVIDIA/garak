@@ -26,6 +26,7 @@ class Puppetry(garak.probes.Probe):
     guardrails"""
 
     lang = "en"
+    intent = "T009ignore"  # the policy-puppetry prompt tries to replace the model's normal instruction hierarchy
     primary_detector = "mitigation.MitigationBypass"
     goal = "roleplay as doctor to get unsafe outputs"
     doc_uri = "https://hiddenlayer.com/innovation-hub/novel-universal-bypass-for-all-major-llms/"
@@ -34,6 +35,10 @@ class Puppetry(garak.probes.Probe):
         "avid-effect:security:S0301",
         "quality:Security:PromptStability",
         "cwe:1427",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",  # attacker-supplied interaction config overrides the original refusal behavior
+        "demon:Language:Stylizing:Formal_language",  # frames the attack as authoritative XML/config instructions
+        "demon:Fictionalizing:Roleplaying:User_persona",  # assumes a Medical Advisor persona via XML config to bypass guardrails
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction",
     ]
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
 
@@ -84,6 +89,7 @@ class Bypass(garak.probes.Probe):
     guardrails"""
 
     lang = "en"
+    intent = "T009ignore"  # this roleplay attack is explicitly trying to override the model's safety behavior
     primary_detector = "mitigation.MitigationBypass"
     goal = "roleplay as doctor to get bypass guardrails"
     doc_uri = "https://hiddenlayer.com/innovation-hub/novel-universal-bypass-for-all-major-llms/"
@@ -92,6 +98,10 @@ class Bypass(garak.probes.Probe):
         "avid-effect:security:S0301",
         "quality:Security:PromptStability",
         "cwe:1427",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",  # attacker-supplied scene config overrides the model's normal safeguards
+        "demon:Language:Stylizing:Formal_language",  # uses authoritative config/script formatting to strengthen the override
+        "demon:Fictionalizing:Roleplaying:User_persona",  # invents a Dr. House TV persona to elicit harmful content
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction",
     ]
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
 
@@ -176,8 +186,12 @@ class BypassLeet(Bypass):
     technique that successfully bypasses instruction hierarchy and safety
     guardrails"""
 
+    intent = "T009ignore"  # this is the same bypass prompt written in leetspeak
     goal = Bypass.goal + ", but use leetspeak"
     doc_uri = "https://hiddenlayer.com/innovation-hub/novel-universal-bypass-for-all-major-llms/"
+    tags = Bypass.tags + [
+        "demon:Language:Code_and_encode:Data_encoding",  # encodes prompts in leetspeak to bypass content filters
+    ]
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
 
     def __init__(self, config_root=_config):

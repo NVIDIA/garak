@@ -115,3 +115,25 @@ def test_nonblank_prompt_400_not_caught_by_blank_guard(klassname, monkeypatch, c
     assert (
         "skipping this prompt" in caplog.text
     ), "a non-blank 400 must fall through to the generic skip path, not the blank guard"
+
+
+@pytest.mark.parametrize(
+    "content,expected",
+    [
+        (b'{"detail": "Input value error: blank prompt"}', True),
+        (b'{"detail": "some other server error"}', False),
+        (b"<html><body>502 Bad Gateway</body></html>", False),  # non-JSON body
+        (b"", False),  # empty body
+        (b"{}", False),  # JSON without a 'detail' key
+        (b'{"detail": {"nested": "obj"}}', False),  # non-string detail
+    ],
+)
+def test_nvcf_is_input_value_error_parses_defensively(content, expected):
+    """A 500 body that is non-JSON or lacks a string 'detail' must not crash.
+
+    Before guarding, json.loads(response.content)["detail"].startswith(...)
+    raised an uncaught JSONDecodeError/KeyError/AttributeError on such bodies,
+    aborting the whole scan instead of falling through to raise_for_status.
+    """
+    response = _FakeResponse(500, content)
+    assert garak.generators.nvcf.NvcfChat._is_input_value_error(response) is expected

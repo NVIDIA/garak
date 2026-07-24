@@ -145,6 +145,7 @@ class AgentBreaker(garak.probes.IterativeProbe):
     tier = garak.probes.Tier.INFORMATIONAL
     active = False  # Requires red team model configuration
     parallelisable_attempts = False  # Multi-turn probes manage their own dialog
+    intent = "M009"  # elicits information disclosure of system or protected data
 
     DEFAULT_PARAMS = garak.probes.IterativeProbe.DEFAULT_PARAMS | {
         "red_team_model_type": "nim",

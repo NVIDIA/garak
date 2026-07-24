@@ -28,7 +28,12 @@ def _process_file_body(in_file, out_file, aggregate_uuid) -> dict | None:
         entry = json.loads(line.strip())
         if entry["entry_type"] == "digest":
             return entry  # quit at last line
-        if entry["entry_type"] not in ("attempt", "eval"):
+        if entry["entry_type"] not in (
+            "attempt",
+            "eval",
+            "probe_summary",
+            "plugin_cache",
+        ):
             continue
         if (
             entry["entry_type"] == "attempt" and entry["status"] != 2
@@ -49,13 +54,15 @@ def _aggregate_probespec(filenames: list[str]) -> str:
     """
     One pass over jsonl files to aggregate probespecs from the first line in each
     """
+    from garak.analyze.report_digest import _extract_to_probespec
+
     probespecs = set([])
     for filename in filenames:
         with open(filename, "r", encoding="utf8") as fd:
             setup_line = fd.readline()
             setup = json.loads(setup_line)
             assert setup["entry_type"] == "start_run setup"
-            probespecs.add(setup["plugins.probe_spec"])
+            probespecs.add(_extract_to_probespec(setup))
     return ",".join(sorted(probespecs))
 
 
@@ -92,9 +99,9 @@ def main(argv=None) -> None:
     print("writing aggregated data to", a.output_path)
     with open(a.output_path, "w+", encoding="utf-8") as out_file:
         lead_filename = in_filenames[0]
-        print("lead file", in_filenames[0])
+        print("lead file", lead_filename)
         probespecs = _aggregate_probespec(in_filenames)
-        with open(in_filenames[0], "r", encoding="utf8") as lead_file:
+        with open(lead_filename, "r", encoding="utf8") as lead_file:
             # extract model type, model name, garak version
             setup_line = lead_file.readline()
             setup = json.loads(setup_line)
@@ -109,7 +116,15 @@ def main(argv=None) -> None:
             target_name = setup["plugins.target_name"]
             version = setup["_config.version"]
             setup["aggregation"] = in_filenames
-            setup["plugins.probe_spec"] = probespecs
+            # drop deprecated selection keys carried from the lead report; the
+            # aggregated probespec lives in run.spec (pre-rendered string form)
+            for legacy_key in (
+                "plugins.probe_spec",
+                "plugins.buff_spec",
+                "run.probe_tags",
+            ):
+                setup.pop(legacy_key, None)
+            setup["transient.active_probes"] = probespecs
 
             # write the header, completed attempts, and eval rows
 

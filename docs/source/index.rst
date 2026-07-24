@@ -38,6 +38,7 @@ Check out the :doc:`usage` section for further information, including :doc:`inst
    configurable
    cliref
    reporting
+   cas
    faster
    FAQ <https://github.com/NVIDIA/garak/blob/main/FAQ.md>
 
@@ -66,10 +67,13 @@ Check out the :doc:`usage` section for further information, including :doc:`inst
    _config
    exception
    interactive
-   langservice
+   intents
    payloads
    _plugins
+   _selection
+   _spec
    report
+   services
 
 .. toctree:: 
    :caption: Technologies

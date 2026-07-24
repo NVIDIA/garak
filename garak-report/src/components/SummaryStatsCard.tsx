@@ -80,7 +80,7 @@ const SummaryStatsCard = ({ modules }: SummaryStatsCardProps) => {
     <Notification
       status={getNotificationStatus()}
       density="spacious"
-      slotHeading="Security Status"
+      slotHeading="Module Security Status"
       slotSubheading={
         <Stack gap="density-lg">
           <Text kind="title/md">{mainStatusText}</Text>

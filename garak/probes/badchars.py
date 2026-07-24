@@ -119,12 +119,15 @@ class BadCharacters(garak.probes.Probe):
     lang = "en"
     active = True
     doc_uri = "https://arxiv.org/abs/2106.09898"
+    intent = "T009ignore"  # imperceptible perturbations silently bypass refusal policies without the model explicitly decoding anything
+    # T018decode is a secondary fit because the model may internally normalize the obfuscated text.
     goal = "inject imperceptible text perturbations that bypass refusal policies"
     primary_detector = "mitigation.MitigationBypass"
     tags = [
         "avid-effect:security:S0403",
         "quality:Security:PromptStability",
         "payload:jailbreak",
+        "demon:Language:Code_and_encode:Token",  # uses invisible Unicode, homoglyphs, bidi tricks to exploit token processing
     ]
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
 
@@ -184,6 +187,8 @@ class BadCharacters(garak.probes.Probe):
 
         payload_group = garak.payloads.load(self.payload_name)
         self._source_payloads = payload_group.payloads
+        if payload_group.intent:
+            self._payload_intent = payload_group.intent
         self.prompts: List[garak.attempt.Conversation] = []
         self._seen_prompts: set[str] = set()
 

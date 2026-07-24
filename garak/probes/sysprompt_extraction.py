@@ -38,6 +38,7 @@ class SystemPromptExtraction(Probe):
     doc_uri = "https://simonwillison.net/tags/exfiltration-attacks/"
     tier = garak.probes.Tier.OF_CONCERN
     active = True
+    intent = "T009reveal"
 
     DEFAULT_PARAMS = Probe.DEFAULT_PARAMS | {
         "system_prompt_sources": [

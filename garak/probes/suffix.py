@@ -27,12 +27,14 @@ class GCGCached(garak.probes.Probe):
 
     aliases = ["gcg.GCGCached"]
     lang = "en"
+    intent = "T009ignore"  # adversarial suffixes are meant to override the model's current safety or system behavior
     primary_detector = "mitigation.MitigationBypass"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
         "quality:Security:PromptStability",
         "payload:jailbreak",
+        "demon:Language:Code_and_encode:Token",  # appends gradient-optimized adversarial token suffixes to exploit tokenizer
     ]
     goal = "cause the model to disregard the system prompt"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
@@ -71,12 +73,14 @@ class GCG(garak.probes.Probe):
 
     aliases = ["gcg.GCG"]
     lang = "en"
+    intent = "T009ignore"  # GCG searches for suffixes that make the model ignore its normal instruction hierarchy
     primary_detector = "mitigation.MitigationBypass"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
         "quality:Security:PromptStability",
         "payload:jailbreak",
+        "demon:Language:Code_and_encode:Token",  # generates adversarial token suffixes via greedy coordinate gradient search
     ]
     goal = "cause the model to disregard the system prompt"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
@@ -179,12 +183,14 @@ class BEAST(garak.probes.Probe):
     """
 
     lang = "en"
+    intent = "T009ignore"  # BEAST optimizes suffixes to make the target disregard its existing safety behavior
     primary_detector = "mitigation.MitigationBypass"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
         "quality:Security:PromptStability",
         "payload:jailbreak",
+        "demon:Language:Code_and_encode:Token",  # uses beam search to find adversarial token suffixes exploiting tokenizer
     ]
     goal = "cause the model to disregard the system prompt"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA

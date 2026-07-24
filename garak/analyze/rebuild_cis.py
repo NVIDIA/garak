@@ -52,7 +52,7 @@ def rebuild_cis_for_report(
     Reads all parameters from _config (already resolved via CLI > --config > site.yaml > core.yaml).
     Returns 0 on success, 1 on error.
     """
-    if not _config.loaded:
+    if not _config.is_loaded:
         _config.load_config()
 
     if output_path and overwrite:
@@ -112,14 +112,18 @@ def rebuild_cis_for_report(
         existing_method = existing.get("confidence_method", "unknown")
         existing_level = existing.get("confidence_level")
         if existing_method != ci_method:
-            print(f"📊 Report used '{existing_method}' method. Rebuilding with '{ci_method}'.")
+            print(
+                f"📊 Report used '{existing_method}' method. Rebuilding with '{ci_method}'."
+            )
         if existing_level is not None and abs(existing_level - active_level) > 1e-9:
             print(
                 f"📊 Report has existing CIs at {existing_level * 100:.1f}% confidence. "
                 f"Rebuilding with {active_level * 100:.1f}% confidence."
             )
         else:
-            print(f"📊 Rebuilding CIs at {active_level * 100:.1f}% confidence for {report_file}")
+            print(
+                f"📊 Rebuilding CIs at {active_level * 100:.1f}% confidence for {report_file}"
+            )
     else:
         print(
             f"📊 No existing CIs found in report. "

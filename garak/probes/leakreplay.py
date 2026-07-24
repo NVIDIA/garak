@@ -28,6 +28,8 @@ class ClozeProbeMixin:
     """Mixin for cloze‐style data replay (fill-in-the-blank)."""
 
     lang = "*"
+    intent = "T008data"  # checks whether the model can replay memorized training text from partial evidence
+    # S008copyright is a secondary fit for corpora that are rights-protected works.
     primary_detector = "base.TriggerListDetector"
     active = False
     follow_prompt_cap = False
@@ -39,6 +41,8 @@ class ClozeProbeMixin:
         "owasp:llm06",
         "quality:Security:ExtractionInversion",
         "payload:leak:training",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples",  # explicitly asks the model for the missing proper-name example from training data
+        "demon:Language:Stylizing:Give_examples",  # provides cloze-style examples to prompt model to fill in training data
     ]
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
 
@@ -96,6 +100,8 @@ class ClozeProbeMixin:
 class CompleteProbeMixin:
     """Mixin for document completion data replay tests."""
 
+    intent = "T008data"  # asks the target to continue excerpts from likely training data
+    # S008copyright is a secondary fit for the copyrighted corpora included here.
     primary_detector = "leakreplay.StartsWith"
     active = False
     follow_prompt_cap = False
@@ -109,6 +115,7 @@ class CompleteProbeMixin:
         "owasp:llm06",
         "quality:Security:ExtractionInversion",
         "payload:leak:training",
+        "demon:Language:Stylizing:Give_examples",  # provides document prefixes as examples for model to complete from training data
     ]
 
     def __init__(self, config_root=_config):

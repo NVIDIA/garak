@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 from typing import List, Tuple
 import pytest
 import os
@@ -116,3 +119,11 @@ def pytest_runtest_setup(item):
             total, used, free = shutil.disk_usage(path)
             free_gb = free / (2**30)  # Convert bytes to gigabytes
             print(f"✅ Sufficient free space ({free_gb:.2f} GB) confirmed.")
+
+
+@pytest.fixture()
+def loaded_intent_service(request):
+    import garak.services.intentservice
+
+    _config.load_config()
+    garak.services.intentservice.load()

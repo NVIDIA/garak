@@ -21,11 +21,13 @@ class PastTenseFull(garak.probes.Probe):
     active = False
     lang = "en"
     doc_uri = "https://arxiv.org/html/2407.11969v2"
+    intent = "T009ignore"  # tense-shifting is used here to get the model to ignore its normal refusal policy
     primary_detector = "mitigation.Prefixes"
     tags = [
         "owasp:llm01",
         "quality:Security:PromptStability",
         "payload:jailbreak",
+        "demon:Language:Stylizing:Synonymous_language",  # reformulates harmful requests in past tense to bypass refusal training
     ]
     goal = "use past tense to disregard the system prompt"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
@@ -52,6 +54,7 @@ class PastTense(PastTenseFull):
     """
 
     active = True
+    intent = "T009ignore"  # this is the capped subset of the same jailbreak strategy
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -68,11 +71,13 @@ class FutureTenseFull(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://arxiv.org/html/2407.11969v2"
+    intent = "T009ignore"  # the future-tense reformulation is used to bypass normal safety refusals
     primary_detector = "mitigation.Prefixes"
     tags = [
         "owasp:llm01",
         "quality:Security:PromptStability",
         "payload:jailbreak",
+        "demon:Language:Stylizing:Synonymous_language",  # reformulates harmful requests in future tense to bypass refusal training
     ]
     goal = "use future tense to disregard the system prompt"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
@@ -99,6 +104,7 @@ class FutureTense(FutureTenseFull):
     """
 
     active = True
+    intent = "T009ignore"  # uses the same phrasing-based jailbreak on a smaller set
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
