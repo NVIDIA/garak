@@ -54,7 +54,6 @@ class NVOpenAIChat(OpenAICompatible):
     timeout = 60
 
     def _load_unsafe(self):
-        self._close_client()
         self.client = openai.OpenAI(base_url=self.uri, api_key=self.api_key)
         if self.name in ("", None):
             raise ValueError(
@@ -133,7 +132,6 @@ class NVOpenAICompletion(NVOpenAIChat):
     """
 
     def _load_unsafe(self):
-        self._close_client()
         self.client = openai.OpenAI(base_url=self.uri, api_key=self.api_key)
         self.generator = self.client.completions
 

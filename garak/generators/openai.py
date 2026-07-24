@@ -156,12 +156,8 @@ class OpenAICompatible(Generator):
 
     _unsafe_attributes = ["client", "generator"]
 
-    def _close_client(self):
+    def close(self):
         client = getattr(self, "client", None)
-        if client is None:
-            generator = getattr(self, "generator", None)
-            client = getattr(generator, "_client", None)
-
         if client is None:
             return
 
@@ -170,22 +166,15 @@ class OpenAICompatible(Generator):
         except (AttributeError, OSError, RuntimeError, ValueError):
             logging.debug("OpenAI-compatible client teardown failed", exc_info=True)
         finally:
-            if getattr(self, "client", None) is client:
-                self.client = None
-            generator = getattr(self, "generator", None)
-            if getattr(generator, "_client", None) is client:
-                self.generator = None
-
-    def close(self):
-        self._close_client()
+            self.client = None
+            self.generator = None
 
     def __del__(self):
-        self._close_client()
+        self.close()
 
     def _load_unsafe(self):
         # When extending `OpenAICompatible` this method is a likely location for target application specific
         # customization and must populate self.generator with an openai api compliant object
-        self._close_client()
         self.client = openai.OpenAI(base_url=self.uri, api_key=self.api_key)
         if self.name in ("", None):
             raise ValueError(
@@ -287,7 +276,6 @@ class OpenAICompatible(Generator):
         self, prompt: Union[Conversation, List[dict]], generations_this_call: int = 1
     ) -> List[Union[Message, None]]:
         if self.client is None:
-            self._close_client()
             # reload client once when consuming the generator
             self._load_unsafe()
 
@@ -402,7 +390,6 @@ class OpenAIGenerator(OpenAICompatible):
     }
 
     def _load_unsafe(self):
-        self._close_client()
         self.client = openai.OpenAI(api_key=self.api_key)
 
         if self.name == "":

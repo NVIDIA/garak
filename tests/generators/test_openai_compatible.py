@@ -1,20 +1,18 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+import errno
+import json
 import os
 import httpx
-import logging
 import respx
 import pytest
 import importlib
 import inspect
 
 from collections.abc import Iterable
-from types import SimpleNamespace
-from unittest.mock import Mock
 
 from garak.attempt import Message, Turn, Conversation
-import garak.generators.nim as nim_generator
 import garak.generators.openai as openai_generator
 from garak.generators.openai import OpenAICompatible
 from garak.generators.rest import RestGenerator
@@ -35,33 +33,36 @@ ENV_VAR = os.path.abspath(
 )  # use test path as hint encase env changes are missed
 
 
-class FakeCompletions:
-    def __init__(self, client):
-        self._client = client
-
-    def create(self, model, prompt, n=1):
-        return SimpleNamespace(
-            choices=[SimpleNamespace(text="This is indeed a test")]
-        )
-
-
-class FakeChatCompletions:
-    def __init__(self, client):
-        self._client = client
-
-    def create(self, model, messages, n=1):
-        return SimpleNamespace(
-            choices=[
-                SimpleNamespace(message=SimpleNamespace(content="This is a test!"))
-            ]
-        )
-
-
-class FakeOpenAIClient:
+class FileDescriptorTransport(httpx.BaseTransport):
     def __init__(self):
-        self.close = Mock()
-        self.completions = FakeCompletions(self)
-        self.chat = SimpleNamespace(completions=FakeChatCompletions(self))
+        self.fd = None
+
+    def handle_request(self, request):
+        self.fd = os.open(os.devnull, os.O_RDONLY)
+        payload = {
+            "choices": [
+                {
+                    "message": {"content": "This is a test!", "role": "assistant"},
+                    "finish_reason": "stop",
+                    "index": 0,
+                }
+            ],
+            "created": 0,
+            "id": "test",
+            "model": MODEL_NAME,
+            "object": "chat.completion",
+        }
+        return httpx.Response(
+            200,
+            content=json.dumps(payload).encode(),
+            headers={"Content-Type": "application/json"},
+            request=request,
+        )
+
+    def close(self):
+        if self.fd is not None:
+            os.close(self.fd)
+            self.fd = None
 
 
 def compatible() -> Iterable[OpenAICompatible]:
@@ -104,10 +105,6 @@ def build_unloaded_compatible():
     generator.uri = "http://localhost:8000/v1/"
     generator.api_key = ENV_VAR
     generator.generator_family_name = "OpenAICompatible"
-    generator.supports_multiple_generations = False
-    generator.suppressed_params = set()
-    generator.extra_params = {}
-    generator.retry_json = True
     return generator
 
 
@@ -132,79 +129,38 @@ def generate_in_subprocess(*args):
         return generator.generate(prompt)
 
 
-def test_openai_reload_closes_prior_client(monkeypatch):
-    generator = build_unloaded_compatible()
-    prior_client = Mock()
-    generator.client = None
-    generator.generator = SimpleNamespace(_client=prior_client)
-    new_client = FakeOpenAIClient()
-    monkeypatch.setattr(openai_generator.openai, "OpenAI", lambda **kwargs: new_client)
-
-    result = generator._call_model(
-        Conversation([Turn("user", Message("first testing string"))])
-    )
-
-    prior_client.close.assert_called_once()
-    assert generator.client is new_client, "reload should install the new client"
-    assert result[0].text == "This is a test!", "reload should still call the target"
-
-
-def test_openai_reload_without_prior_client(monkeypatch):
+def test_openai_deserialised_client_closes_when_released(monkeypatch):
     generator = build_unloaded_compatible()
     generator.client = None
     generator.generator = None
-    new_client = FakeOpenAIClient()
-    monkeypatch.setattr(openai_generator.openai, "OpenAI", lambda **kwargs: new_client)
-
-    result = generator._call_model(
-        Conversation([Turn("user", Message("first testing string"))])
+    state = generator.__getstate__()
+    transport = FileDescriptorTransport()
+    openai_client = openai_generator.openai.OpenAI
+    monkeypatch.setattr(
+        openai_generator.openai,
+        "OpenAI",
+        lambda **kwargs: openai_client(
+            **kwargs, http_client=httpx.Client(transport=transport)
+        ),
     )
 
-    new_client.close.assert_not_called()
-    assert result[0].text == "This is a test!", "first reload should call the target"
-
-
-def test_openai_reload_logs_close_failure(monkeypatch, caplog):
-    generator = build_unloaded_compatible()
-    prior_client = Mock()
-    prior_client.close.side_effect = RuntimeError("transport already closed")
-    generator.client = None
-    generator.generator = SimpleNamespace(_client=prior_client)
-    new_client = FakeOpenAIClient()
-    monkeypatch.setattr(openai_generator.openai, "OpenAI", lambda **kwargs: new_client)
-
-    with caplog.at_level(logging.DEBUG):
-        result = generator._call_model(
-            Conversation([Turn("user", Message("first testing string"))])
-        )
-
-    prior_client.close.assert_called_once()
-    assert (
-        "OpenAI-compatible client teardown failed" in caplog.text
-    ), "close failures should be logged at debug level"
-    assert result[0].text == "This is a test!", "reload should continue after close error"
-
-
-def test_nim_load_unsafe_closes_prior_client(monkeypatch):
-    generator = nim_generator.NVOpenAICompletion.__new__(
-        nim_generator.NVOpenAICompletion
+    generator.__setstate__(state)
+    generator.generator.create(
+        model=generator.name,
+        messages=[{"role": "user", "content": "first testing string"}],
     )
-    prior_client = Mock()
-    generator.client = prior_client
-    generator.generator = None
-    generator.uri = "https://integrate.api.nvidia.com/v1/"
-    generator.api_key = ENV_VAR
-    generator.name = MODEL_NAME
-    new_client = FakeOpenAIClient()
-    monkeypatch.setattr(nim_generator.openai, "OpenAI", lambda **kwargs: new_client)
+    leaked_fd = transport.fd
+    assert leaked_fd is not None, "the deserialised client should own an open fd"
 
-    generator._load_unsafe()
-
-    prior_client.close.assert_called_once()
-    assert generator.client is new_client, "NIM reload should install the new client"
-    assert (
-        generator.generator is new_client.completions
-    ), "NIM completion reload should update the generator resource"
+    try:
+        del generator
+        with pytest.raises(OSError) as exc_info:
+            os.fstat(leaked_fd)
+        assert (
+            exc_info.value.errno == errno.EBADF
+        ), "releasing a worker generator should close its client fd"
+    finally:
+        transport.close()
 
 
 @pytest.mark.parametrize("classname", compatible())
