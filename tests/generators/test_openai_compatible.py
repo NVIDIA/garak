@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+import errno
+import json
 import os
 import httpx
 import respx
@@ -11,6 +13,7 @@ import inspect
 from collections.abc import Iterable
 
 from garak.attempt import Message, Turn, Conversation
+import garak.generators.openai as openai_generator
 from garak.generators.openai import OpenAICompatible
 from garak.generators.rest import RestGenerator
 
@@ -28,6 +31,38 @@ MODEL_NAME = "gpt-3.5-turbo-instruct"
 ENV_VAR = os.path.abspath(
     __file__
 )  # use test path as hint encase env changes are missed
+
+
+class FileDescriptorTransport(httpx.BaseTransport):
+    def __init__(self):
+        self.fd = None
+
+    def handle_request(self, request):
+        self.fd = os.open(os.devnull, os.O_RDONLY)
+        payload = {
+            "choices": [
+                {
+                    "message": {"content": "This is a test!", "role": "assistant"},
+                    "finish_reason": "stop",
+                    "index": 0,
+                }
+            ],
+            "created": 0,
+            "id": "test",
+            "model": MODEL_NAME,
+            "object": "chat.completion",
+        }
+        return httpx.Response(
+            200,
+            content=json.dumps(payload).encode(),
+            headers={"Content-Type": "application/json"},
+            request=request,
+        )
+
+    def close(self):
+        if self.fd is not None:
+            os.close(self.fd)
+            self.fd = None
 
 
 def compatible() -> Iterable[OpenAICompatible]:
@@ -64,6 +99,15 @@ def build_test_instance(module_klass):
     return class_instance
 
 
+def build_unloaded_compatible():
+    generator = OpenAICompatible.__new__(OpenAICompatible)
+    generator.name = MODEL_NAME
+    generator.uri = "http://localhost:8000/v1/"
+    generator.api_key = ENV_VAR
+    generator.generator_family_name = "OpenAICompatible"
+    return generator
+
+
 # helper method to pass mock config
 def generate_in_subprocess(*args):
     generator, openai_compat_mocks, prompt = args[0]
@@ -83,6 +127,40 @@ def generate_in_subprocess(*args):
         )
 
         return generator.generate(prompt)
+
+
+def test_openai_deserialised_client_closes_when_released(monkeypatch):
+    generator = build_unloaded_compatible()
+    generator.client = None
+    generator.generator = None
+    state = generator.__getstate__()
+    transport = FileDescriptorTransport()
+    openai_client = openai_generator.openai.OpenAI
+    monkeypatch.setattr(
+        openai_generator.openai,
+        "OpenAI",
+        lambda **kwargs: openai_client(
+            **kwargs, http_client=httpx.Client(transport=transport)
+        ),
+    )
+
+    generator.__setstate__(state)
+    generator.generator.create(
+        model=generator.name,
+        messages=[{"role": "user", "content": "first testing string"}],
+    )
+    leaked_fd = transport.fd
+    assert leaked_fd is not None, "the deserialised client should own an open fd"
+
+    try:
+        del generator
+        with pytest.raises(OSError) as exc_info:
+            os.fstat(leaked_fd)
+        assert (
+            exc_info.value.errno == errno.EBADF
+        ), "releasing a worker generator should close its client fd"
+    finally:
+        transport.close()
 
 
 @pytest.mark.parametrize("classname", compatible())

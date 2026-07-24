@@ -156,6 +156,22 @@ class OpenAICompatible(Generator):
 
     _unsafe_attributes = ["client", "generator"]
 
+    def close(self):
+        client = getattr(self, "client", None)
+        if client is None:
+            return
+
+        try:
+            client.close()
+        except (AttributeError, OSError, RuntimeError, ValueError):
+            logging.debug("OpenAI-compatible client teardown failed", exc_info=True)
+        finally:
+            self.client = None
+            self.generator = None
+
+    def __del__(self):
+        self.close()
+
     def _load_unsafe(self):
         # When extending `OpenAICompatible` this method is a likely location for target application specific
         # customization and must populate self.generator with an openai api compliant object
