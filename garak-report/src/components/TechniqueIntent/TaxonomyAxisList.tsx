@@ -29,6 +29,7 @@ import { formatRate } from "../../utils/formatPercentage";
 import useSeverityColor from "../../hooks/useSeverityColor";
 import DefconBadge from "../DefconBadge";
 import TaxonomyCellChart from "./TaxonomyCellChart";
+import TaxonomyPathBadges from "./TaxonomyPathBadges";
 import {
   buildAxisGroups,
   type AxisGroup,
@@ -36,6 +37,7 @@ import {
   type MatrixView,
   type TaxonomyAxis,
 } from "../../utils/techniqueIntentRollup";
+import { isTechniqueKey } from "../../utils/taxonomyLabels";
 import type { SortOption } from "../../hooks/useModuleFilters";
 
 /**
@@ -122,7 +124,16 @@ const Stat = ({ label, value }: { label: string; value: string }) => (
  * digest provides a detector count here, so we report how many judges scored
  * the pairing rather than inventing a per-detector breakdown.
  */
-const CellDetail = ({ cell, title }: { cell: MatrixCell; title?: string }) => {
+const CellDetail = ({
+  cell,
+  title,
+  taxonomyKey,
+}: {
+  cell: MatrixCell;
+  title?: string;
+  /** Underlying key for this pairing's leaf, when it's a technique (drives the breadcrumb). */
+  taxonomyKey?: string;
+}) => {
   const { getSeverityLabelByLevel, getDefconBadgeColor } = useSeverityColor();
   const defcon = scoreToDefcon(cell.score);
   const hasFailures = cell.score < 1;
@@ -139,6 +150,9 @@ const CellDetail = ({ cell, title }: { cell: MatrixCell; title?: string }) => {
               <Text kind="label/bold/md">{getSeverityLabelByLevel(defcon)}</Text>
             </Badge>
           </Flex>
+          {taxonomyKey && isTechniqueKey(taxonomyKey) && (
+            <TaxonomyPathBadges techniqueKey={taxonomyKey} />
+          )}
           <Flex gap="density-2xl" wrap="wrap">
             <Stat label="Pass rate" value={formatRate(cell.score)} />
             <Stat
@@ -232,7 +246,11 @@ const GroupChildrenChart = ({
         />
         {selectedEntry && (
           <div ref={boxRef} style={{ scrollMarginTop: "1rem" }}>
-            <CellDetail cell={selectedEntry.cell} title={selectedEntry.otherLabel} />
+            <CellDetail
+              cell={selectedEntry.cell}
+              title={selectedEntry.otherLabel}
+              taxonomyKey={selectedEntry.otherKey}
+            />
           </div>
         )}
       </Grid>
@@ -317,6 +335,7 @@ const TaxonomyAxisList = ({
               <ScoreBadges score={group.score} defcon={defcon} />
               <Stack gap="density-xs" align="start">
                 <Text kind="label/bold/2xl">{group.label}</Text>
+                {isTechniqueKey(group.key) && <TaxonomyPathBadges techniqueKey={group.key} />}
                 {group.description && (
                   <Text kind="body/regular/md" className="opacity-70">
                     {group.description}
