@@ -13,6 +13,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+try:
+    import fcntl
+except ImportError:  # pragma: no cover - fcntl is POSIX-only (no Windows)
+    fcntl = None
+
 import garak._config
 import garak._plugins
 import garak.attempt
@@ -37,6 +42,45 @@ def _log_from_worker(log_file: str) -> int:
         if isinstance(h, logging.FileHandler):
             return h.stream.fileno()
     return -1
+
+
+def _worker_try_exclusive_lock(log_file: str) -> bool:
+    """Target function run inside a Pool worker.
+
+    Attempts to take a non-blocking exclusive ``flock`` on the worker's own
+    FileHandler fd and reports whether the lock was acquired.
+
+    ``flock`` locks are associated with the *open file description*, not
+    with a raw fd number or a process. A fd that is merely inherited from
+    the parent (dup'd via fork, without being closed and reopened) shares
+    the parent's open file description and therefore shares its lock state
+    -- re-acquiring the same exclusive lock from a fd on that same
+    description succeeds trivially. A fd that was closed and freshly
+    reopened (as ``_worker_logging_init`` does) points at an independent
+    open file description; if the parent is already holding an exclusive
+    lock on that file, a non-blocking attempt to lock the new, independent
+    description will conflict and raise ``BlockingIOError``.
+
+    This is a more reliable signal than comparing raw fd *numbers* across
+    processes: the OS is free to reuse a low fd number immediately after
+    it is closed, so two independent open file descriptions can coincidentally
+    end up with the identical fd number in the worker's fd table even when
+    they are genuinely separate resources.
+    """
+    root = logging.getLogger()
+    fd = -1
+    for h in root.handlers:
+        if isinstance(h, logging.FileHandler):
+            fd = h.stream.fileno()
+            break
+    if fd == -1:
+        return False
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        fcntl.flock(fd, fcntl.LOCK_UN)
+        return True
+    except BlockingIOError:
+        return False
 
 
 # ---------------------------------------------------------------------------
@@ -290,8 +334,23 @@ def test_worker_inherits_parent_fd_without_initializer_but_not_with_it():
        worker now owns a private file descriptor.
 
     If ``_worker_logging_init`` is removed or not passed to ``Pool(...)``,
-    step 2 will report the same (shared) fd as step 1 and this test fails.
+    step 2's worker will still hold the parent's exact open file
+    description and this test fails.
+
+    Note: step 2 does not compare raw fd *numbers*, because the OS is free
+    to reuse a low fd number immediately after it is closed. When step 1's
+    pool tears down and step 2's pool forks a fresh worker, the freed fd
+    slot can coincidentally be reassigned the same number by
+    ``_worker_logging_init``'s fresh ``open()`` call even though it is a
+    genuinely independent open file description -- this is expected,
+    correct behaviour of a properly-fixed system, not a bug, and was
+    causing spurious failures on some platforms/architectures. Instead,
+    step 2 uses ``flock`` to prove the worker's fd refers to an
+    independent open file description (see ``_worker_try_exclusive_lock``).
     """
+    if fcntl is None:
+        pytest.skip("fcntl is not available on this platform")
+
     ctx = multiprocessing.get_context("fork")
 
     with tempfile.NamedTemporaryFile(suffix=".log", delete=False) as f:
@@ -326,19 +385,34 @@ def test_worker_inherits_parent_fd_without_initializer_but_not_with_it():
         )
 
         # Step 2: with _worker_logging_init -- the worker must close the
-        # inherited handler and open its own, so its fd must differ from
-        # the parent's.
-        with ctx.Pool(processes=1, initializer=_worker_logging_init) as pool:
-            (fd_with_initializer,) = pool.map(_log_from_worker, [log_path])
+        # inherited handler and open its own private file description. We
+        # prove this by holding an exclusive, non-blocking flock on the
+        # parent's fd: if the worker's fd still points at the SAME open
+        # file description (the pre-fix bug), a lock attempt from the
+        # worker succeeds trivially (it's the same lock). If the worker's
+        # fd is a fresh, independent open file description (the fix), the
+        # non-blocking attempt conflicts with the parent's held lock and
+        # fails.
+        fcntl.flock(parent_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        try:
+            with ctx.Pool(
+                processes=1, initializer=_worker_logging_init
+            ) as pool:
+                (worker_acquired_lock,) = pool.map(
+                    _worker_try_exclusive_lock, [log_path]
+                )
+        finally:
+            fcntl.flock(parent_fd, fcntl.LOCK_UN)
 
-        assert fd_with_initializer != parent_fd, (
-            "Worker process shared the parent's file descriptor "
-            f"({parent_fd}) even though _worker_logging_init was used as "
-            "the Pool initializer. This is the exact race condition from "
-            "issue #1355: without a fresh, private fd per worker, "
-            "concurrent or reentrant flushes on the shared handle can "
-            "raise 'RuntimeError: reentrant call inside "
-            "<_io.BufferedWriter>'."
+        assert not worker_acquired_lock, (
+            "Worker process shared the parent's open file description "
+            "even though _worker_logging_init was used as the Pool "
+            "initializer (proven by the worker being able to acquire a "
+            "lock already exclusively held by the parent). This is the "
+            "exact race condition from issue #1355: without a fresh, "
+            "private file description per worker, concurrent or "
+            "reentrant flushes on the shared handle can raise "
+            "'RuntimeError: reentrant call inside <_io.BufferedWriter>'."
         )
     finally:
         parent_handler.close()
