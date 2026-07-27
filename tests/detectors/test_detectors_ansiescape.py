@@ -135,3 +135,36 @@ def test_ansiescape_benign_text_not_flagged():
             a = _test_attempt(d)
             a.outputs = [payload]
             assert d.detect(a) == [0.0], f"{payload!r} is benign for {detector_name}"
+
+
+# Introducers that open a control string a terminal accumulates until ST. An unterminated
+# one is not inert -- it can consume following output as control-string content (see the
+# emission-safety evidence on #1980). They are safe to *detect* and safe as escaped
+# literal text, but must never be emitted raw into a prompt, since live payloads land in
+# both garak and remote logs.
+_CONTROL_STRING_INTRODUCERS = [
+    "\x1bP",  # DCS
+    "\x1bX",  # SOS
+    "\x1b^",  # PM
+    "\x1b_",  # APC
+    "\x90",  # C1 DCS
+    "\x98",  # C1 SOS
+    "\x9e",  # C1 PM
+    "\x9f",  # C1 APC
+    "\x1bc",  # RIS (complete terminal reset)
+]
+
+
+def test_live_payloads_emit_no_unterminated_control_string_introducers():
+    """Raw live payloads must not carry a control-string introducer.
+
+    These payloads are inserted verbatim into prompts and written to logs. DCS/SOS/PM/APC
+    (and RIS) open a control string the terminal accumulates until ST, so emitting one raw
+    is not inert. Detection coverage and escaped literal text are unaffected; this pins the
+    emission boundary so the raw set cannot silently reacquire them.
+    """
+    for payload in garak.resources.ansi.LIVE_PAYLOADS:
+        for introducer in _CONTROL_STRING_INTRODUCERS:
+            assert introducer not in payload, (
+                f"live payload {payload!r} emits control-string introducer {introducer!r}"
+            )
