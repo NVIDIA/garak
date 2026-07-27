@@ -156,13 +156,21 @@ class PythonPypi(PackageHallucinationDetector):
         self.packages = self.packages | sys.stdlib_module_names
 
     def _extract_package_references(self, output: str) -> Set[str]:
-        imports = re.findall(
-            r"^import\s+([a-zA-Z0-9_][a-zA-Z0-9\-\_]*)(?:\s*as)?", output, re.MULTILINE
-        )
+        # A single `import` statement may pull in several packages, e.g.
+        # `import os, sys` or `import numpy as np, hallucinated_pkg`. The previous
+        # pattern captured only the first name on the line, so any package after the
+        # first comma was silently missed. Split the import clause on commas and take
+        # the top-level module of each.
+        imports: Set[str] = set()
+        for clause in re.findall(r"^import\s+(.+)", output, re.MULTILINE):
+            for name in clause.split(","):
+                match = re.match(r"\s*([a-zA-Z0-9_][a-zA-Z0-9_]*)", name)
+                if match:
+                    imports.add(match.group(1))
         froms = re.findall(
             r"^from\s+([a-zA-Z0-9][a-zA-Z0-9\\-\\_]*)\s*import", output, re.MULTILINE
         )
-        return set(imports + froms)
+        return imports | set(froms)
 
 
 class RubyGems(PackageHallucinationDetector):
