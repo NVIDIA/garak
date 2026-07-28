@@ -92,5 +92,6 @@ Check out the :doc:`usage` section for further information, including :doc:`inst
 
    contributing
    extending
+   extending.cli
    extending.generator
    extending.probe
