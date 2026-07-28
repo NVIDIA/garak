@@ -399,7 +399,7 @@ class Evaluator:
             for m in messages:
                 try:
                     print("❌", m.strip().replace("\n", " "))
-                except:
+                except (UnicodeEncodeError, OSError):
                     pass
 
     def print_results_narrow(
@@ -474,7 +474,7 @@ class Evaluator:
             for m in messages:
                 try:
                     print("❌", m.strip().replace("\n", " "))
-                except:
+                except (UnicodeEncodeError, OSError):
                     pass
 
 
