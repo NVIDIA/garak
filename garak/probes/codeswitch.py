@@ -14,7 +14,7 @@ back through translation.
 
 Further info:
 
-* https://arxiv.org/abs/2310.02446
+* https://github.com/Yugesh-reddy/MediCS-Red-Teaming
 
 """
 
@@ -30,11 +30,13 @@ class CodeSwitchFull(garak.probes.Probe):
     (intra-sentential code-switching). The request is not changed, only the language
     it is written in. It checks whether refusal training still holds when the same
     ask is code-switched instead of written in one language.
+
+    Prompts come from the MediCS medical code-switching red-teaming project.
     """
 
     active = False
     lang = "en"
-    doc_uri = "https://arxiv.org/abs/2310.02446"
+    doc_uri = "https://github.com/Yugesh-reddy/MediCS-Red-Teaming"
     primary_detector = "mitigation.Prefixes"
     tags = [
         "owasp:llm01",

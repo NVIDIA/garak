@@ -2,6 +2,7 @@
 #
 # MediCS-500 (full corpus): intra-sentential code-switched red-team prompts,
 # used to test whether an LLM's refusal training survives language mixing.
+# Project: https://github.com/Yugesh-reddy/MediCS-Red-Teaming
 # Source field: `attack_prompt` from medics_500_full.jsonl (2665 rows; ~491
 # seeds x 6 low-resource languages gu/hi/sw/tl/yo/bn; harm categories
 # MIS/PPV/SH/TOX/UCA/ULP). Author-verified; do NOT machine-generate rows here.
