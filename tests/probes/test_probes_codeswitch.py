@@ -24,3 +24,10 @@ def test_codeswitch_loader_skips_blank_and_comment_lines():
     p = garak._plugins.load_plugin("probes.codeswitch.CodeSwitchFull")
     assert all(prompt.strip() for prompt in p.prompts)
     assert not any(prompt.startswith("#") for prompt in p.prompts)
+
+
+def test_codeswitch_lang_is_star_to_skip_translation():
+    p_full = garak._plugins.load_plugin("probes.codeswitch.CodeSwitchFull")
+    p_pruned = garak._plugins.load_plugin("probes.codeswitch.CodeSwitch")
+    assert p_full.lang == "*", "code-switched prompts must not be translated"
+    assert p_pruned.lang == "*", "code-switched prompts must not be translated"

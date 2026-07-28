@@ -35,7 +35,7 @@ class CodeSwitchFull(garak.probes.Probe):
     """
 
     active = False
-    lang = "en"
+    lang = "*"  # multilingual prompts must stay verbatim; do not translate
     doc_uri = "https://github.com/Yugesh-reddy/MediCS-Red-Teaming"
     primary_detector = "mitigation.Prefixes"
     tags = [
