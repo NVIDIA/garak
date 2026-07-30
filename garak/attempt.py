@@ -263,6 +263,7 @@ class Attempt:
         self.reverse_translation_outputs = (
             {} if reverse_translation_outputs is None else reverse_translation_outputs
         )
+        self._detector_inputs = {}
         self.intent = intent
 
     def as_dict(self) -> dict:
@@ -409,6 +410,19 @@ class Attempt:
                 self.reverse_translation_outputs
             )  # this needs to be wired back in for support
         return self.outputs
+
+    def _record_detector_inputs(self, detector_name: str, lang) -> None:
+        """Record the output representation selected for a detector."""
+        detector_inputs = self.outputs_for(lang)
+        source = (
+            "reverse_translation_outputs"
+            if detector_inputs is self.reverse_translation_outputs
+            else "outputs"
+        )
+        self._detector_inputs[detector_name] = {
+            "outputs": detector_inputs,
+            "source": source,
+        }
 
     def _expand_prompt_to_histories(self, breadth):
         """expand a prompt-only message history to many threads"""

@@ -152,6 +152,9 @@ class Harness(Configurable):
         for attempt in attempt_iterator:
             if detector_instance.skip:
                 continue
+            attempt._record_detector_inputs(
+                detector_probe_name, detector_instance.lang_spec
+            )
             attempt.detector_results[detector_probe_name] = list(
                 detector_instance.detect(attempt)
             )
