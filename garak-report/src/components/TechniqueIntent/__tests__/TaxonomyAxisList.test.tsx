@@ -8,7 +8,7 @@
  * @license Apache-2.0
  */
 
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import type { ComponentProps } from "react";
 import TaxonomyAxisList from "../TaxonomyAxisList";
@@ -162,13 +162,25 @@ describe("TaxonomyAxisList", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows the taxonomy path breadcrumb under a technique group's label", () => {
-    renderList();
-    // techD = "demon:Fictionalizing:Roleplaying:User_persona" — the breadcrumb
-    // should surface every branch segment as its own tag, not just the label.
-    expect(screen.getByText("Fictionalizing"), "broadest branch segment").toBeInTheDocument();
-    expect(screen.getByText("Roleplaying"), "middle branch segment").toBeInTheDocument();
-  });
+it("shows a labelled taxonomy path breadcrumb in a technique group's expanded content", () => {
+  renderList();
+  expect(screen.getAllByText("Taxonomy path").length, "labelled, not a bare tag chain").toBeGreaterThan(
+    0
+  );
+  expect(screen.getByText("Fictionalizing"), "broadest branch segment").toBeInTheDocument();
+  expect(screen.getByText("Roleplaying"), "middle branch segment").toBeInTheDocument();
+});
+
+it("keeps the breadcrumb out of the always-visible trigger — it only shows once expanded", () => {
+  renderList();
+  for (const trigger of screen.getAllByTestId("accordion-trigger")) {
+    expect(
+      within(trigger).queryByText("Fictionalizing"),
+      "breadcrumb segments must not render in the collapsed trigger"
+    ).toBeNull();
+  }
+  expect(screen.getByText("Fictionalizing")).toBeInTheDocument();
+});
 
   it("does not show a breadcrumb for flat (non-technique) group keys", () => {
     renderList();

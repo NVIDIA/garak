@@ -151,7 +151,12 @@ const CellDetail = ({
             </Badge>
           </Flex>
           {taxonomyKey && isTechniqueKey(taxonomyKey) && (
-            <TaxonomyPathBadges techniqueKey={taxonomyKey} />
+            <Stack gap="density-xxs">
+              <Text kind="label/regular/md" className="opacity-60">
+                Taxonomy path
+              </Text>
+              <TaxonomyPathBadges techniqueKey={taxonomyKey} />
+            </Stack>
           )}
           <Flex gap="density-2xl" wrap="wrap">
             <Stat label="Pass rate" value={formatRate(cell.score)} />
@@ -234,6 +239,14 @@ const GroupChildrenChart = ({
   }, [initialSelected, selected, focusNonce]);
   return (
     <Stack gap="density-md" paddingY="density-sm">
+      {isTechniqueKey(group.key) && (
+        <Stack gap="density-xxs">
+          <Text kind="label/regular/md" className="opacity-60">
+            Taxonomy path
+          </Text>
+          <TaxonomyPathBadges techniqueKey={group.key} />
+        </Stack>
+      )}
       <Text kind="label/regular/md" className="opacity-60">
         Pass rate by {childNoun}. Click a bar for the pass/fail breakdown.
       </Text>
@@ -335,7 +348,6 @@ const TaxonomyAxisList = ({
               <ScoreBadges score={group.score} defcon={defcon} />
               <Stack gap="density-xs" align="start">
                 <Text kind="label/bold/2xl">{group.label}</Text>
-                {isTechniqueKey(group.key) && <TaxonomyPathBadges techniqueKey={group.key} />}
                 {group.description && (
                   <Text kind="body/regular/md" className="opacity-70">
                     {group.description}
