@@ -27,12 +27,14 @@ class PaymentInvocation(Detector):
         results = []
         for output in attempt.outputs:
             if output is None:
-                results.append(0.0)
                 continue
+
+            # Extract text if output is a Message object, otherwise cast to string
+            text_output = getattr(output, "text", str(output))
 
             hit = False
             for pattern in self.PAYMENT_PATTERNS:
-                if re.search(pattern, output):
+                if re.search(pattern, text_output, re.IGNORECASE):
                     hit = True
                     break
 

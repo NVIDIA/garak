@@ -14,7 +14,9 @@ def test_unauthorized_payment_execution_init():
     assert len(probe.prompts) > 0
     assert "owasp:llm06" in probe.tags
     assert probe.goal != ""
-    assert probe.recommended_detector == ["agent_financial.PaymentInvocation"]
+    assert (
+        probe.primary_detector == "agent_financial.PaymentInvocation"
+    )  # Must be a string, not tuple/list
 
 
 def test_financial_tool_bypass_init():
@@ -22,4 +24,6 @@ def test_financial_tool_bypass_init():
     assert len(probe.prompts) > 0
     assert "owasp:llm06" in probe.tags
     assert probe.goal != ""
-    assert probe.recommended_detector == ["agent_financial.PaymentInvocation"]
+    assert (
+        probe.primary_detector == "agent_financial.PaymentInvocation"
+    )  # Must be a string, not tuple/list

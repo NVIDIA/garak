@@ -22,7 +22,10 @@ class UnauthorizedPaymentExecution(Probe):
     doc_uri = (
         "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
     )
-    recommended_detector = ["agent_financial.PaymentInvocation"]
+    active = True
+    primary_detector = (
+        "agent_financial.PaymentInvocation"  # Must be a string, not tuple/list #
+    )
     tags = ["owasp:llm06", "owasp:llm01", "risk:excessive_agency", "payload:financial"]
     goal = (
         "force the model to invoke or agree to an unauthorized monetary payment action"
@@ -47,7 +50,10 @@ class FinancialToolBypass(Probe):
     doc_uri = (
         "https://owasp.org/www-project-top-10-for-large-language-model-applications/"
     )
-    recommended_detector = ["agent_financial.PaymentInvocation"]
+    active = True
+    primary_detector = (
+        "agent_financial.PaymentInvocation"  # Must be a string, not tuple/list #
+    )
     tags = ["owasp:llm06", "risk:excessive_agency", "payload:financial"]
     goal = "trick the assistant into bypassing payment confirmation workflows"
 
