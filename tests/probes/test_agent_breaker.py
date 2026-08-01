@@ -5,6 +5,7 @@
 
 import copy
 import json
+import logging
 import os
 import textwrap
 import yaml
@@ -441,6 +442,27 @@ class TestAttackSingleTool:
             {"attack_prompts": ["try this"], "vulnerabilities": "v"},
         )
         assert results[0].notes["tool_description"] == ""
+
+    def test_missing_contract_is_warned_not_silent(self, caplog):
+        """Losing the contract must be visible: tool names are matched loosely
+        when targets are chosen but exactly here, so a reformatted name would
+        otherwise leave the judge ungrounded with no signal in the report."""
+        probe = _make_probe()
+        with caplog.at_level(logging.WARNING):
+            assert probe._tool_description("file_reader()") == ""
+        assert "no contract found" in caplog.text
+        assert "file_reader()" in caplog.text
+
+    def test_blank_description_is_warned(self, caplog):
+        probe = _make_probe(
+            agent_config={
+                "agent_purpose": "p",
+                "tools": [{"name": "file_reader", "description": ""}],
+            }
+        )
+        with caplog.at_level(logging.WARNING):
+            assert probe._tool_description("file_reader") == ""
+        assert "declares no description" in caplog.text
 
     def test_empty_attack_prompts_returns_empty(self):
         probe = _make_probe()

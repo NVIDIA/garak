@@ -560,10 +560,29 @@ class AgentBreaker(garak.probes.IterativeProbe):
         return None
 
     def _tool_description(self, tool_name: str) -> str:
-        """Return the declared description (contract) for *tool_name*, if any."""
+        """Return the declared description (contract) for *tool_name*, if any.
+
+        Warns when nothing matches: tool names come from the red team model's
+        analysis and are matched loosely elsewhere, but this lookup is exact, so
+        a reformatted name silently leaves the judge ungrounded.
+        """
+        known = []
         for tool in self.agent_config.get("tools", []) or []:
-            if tool.get("name") == tool_name:
-                return tool.get("description", "")
+            name = tool.get("name")
+            known.append(name)
+            if name == tool_name:
+                description = tool.get("description", "")
+                if not description:
+                    logging.warning(
+                        f"{self.__class__.__name__} # tool {tool_name!r} declares no "
+                        "description; the judge will run without its contract"
+                    )
+                return description
+
+        logging.warning(
+            f"{self.__class__.__name__} # no contract found for tool {tool_name!r} "
+            f"(known tools: {known}); the judge will run ungrounded for this tool"
+        )
         return ""
 
     def _verify_attack_success(
