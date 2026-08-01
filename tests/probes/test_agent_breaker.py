@@ -480,10 +480,10 @@ class TestVerifyAttackSuccess:
     def test_delegates_to_detector(self, mocker):
         probe = _make_probe()
         mock_detector_call = mocker.patch.object(
-            probe._detector, "verify", return_value=(True, 0.9, "exploited", "none")
+            probe._detector, "verify", return_value=(True, 0.9, "exploited")
         )
         prompt = self._make_prompt()
-        ok, conf, reason, block_label = probe._verify_attack_success(
+        ok, conf, reason = probe._verify_attack_success(
             prompt, "response", "tool", "vuln"
         )
         assert ok is True
@@ -501,9 +501,9 @@ class TestVerifyAttackSuccess:
     def test_partial_counts_as_success(self, mocker):
         probe = _make_probe()
         mock_detector_call = mocker.patch.object(
-            probe._detector, "verify", return_value=(True, 0.6, "some access", "none")
+            probe._detector, "verify", return_value=(True, 0.6, "some access")
         )
-        ok, conf, reason, block_label = probe._verify_attack_success(
+        ok, conf, reason = probe._verify_attack_success(
             self._make_prompt(), "r", "tool", "vuln"
         )
         assert ok is True
@@ -512,9 +512,9 @@ class TestVerifyAttackSuccess:
     def test_failure(self, mocker):
         probe = _make_probe()
         mock_detector_call = mocker.patch.object(
-            probe._detector, "verify", return_value=(False, 0.1, "blocked", "refusal")
+            probe._detector, "verify", return_value=(False, 0.1, "blocked")
         )
-        ok, conf, reason, block_label = probe._verify_attack_success(
+        ok, conf, reason = probe._verify_attack_success(
             self._make_prompt(), "r", "tool", "vuln"
         )
         assert ok is False
@@ -525,9 +525,9 @@ class TestVerifyAttackSuccess:
         mock_detector_call = mocker.patch.object(
             probe._detector,
             "verify",
-            return_value=(False, 0.0, "Evaluation model error", "none"),
+            return_value=(False, 0.0, "Evaluation model error"),
         )
-        ok, conf, reason, block_label = probe._verify_attack_success(
+        ok, conf, reason = probe._verify_attack_success(
             self._make_prompt(), "r", "tool", "vuln"
         )
         assert ok is False
@@ -578,7 +578,7 @@ class TestGenerateNextAttempts:
         """When the single output is a successful exploit, return [] to stop."""
         probe = _make_probe(success_threshold=0.7)
         mock_detector_call = mocker.patch.object(
-            probe._detector, "verify", return_value=(True, 0.9, "exploited", "none")
+            probe._detector, "verify", return_value=(True, 0.9, "exploited")
         )
         attempt = _make_attempt_with_state([Message("leaked data")])
 
@@ -586,14 +586,14 @@ class TestGenerateNextAttempts:
 
         assert result == []
         state = AttackState.from_notes(attempt.notes)
-        assert state.verified_results == [(True, 0.9, "none")]
+        assert state.verified_results == [(True, 0.9)]
         # removed: is_tool_final no longer tracked
 
     def test_single_output_failure_continues(self, mocker):
         """When the output is blocked, generate a follow-up attempt."""
         probe = _make_probe(success_threshold=0.7, max_attempts_per_tool=3)
         mock_detector_call = mocker.patch.object(
-            probe._detector, "verify", return_value=(False, 0.99, "blocked", "refusal")
+            probe._detector, "verify", return_value=(False, 0.99, "blocked")
         )
         probe._generate_exploit_prompt = MagicMock(return_value="next attack")
         attempt = _make_attempt_with_state([Message("Access denied")])
@@ -602,7 +602,7 @@ class TestGenerateNextAttempts:
 
         assert len(result) == 1
         state = AttackState.from_notes(attempt.notes)
-        assert state.verified_results == [(False, 0.99, "refusal")]
+        assert state.verified_results == [(False, 0.99)]
         # removed: is_tool_final no longer tracked
 
     # --- Multi generation (generations>1) ---
@@ -611,7 +611,7 @@ class TestGenerateNextAttempts:
         """When all 3 outputs are blocked, attack continues to next turn."""
         probe = _make_probe(success_threshold=0.7, max_attempts_per_tool=3)
         mock_detector_call = mocker.patch.object(
-            probe._detector, "verify", return_value=(False, 0.99, "blocked", "refusal")
+            probe._detector, "verify", return_value=(False, 0.99, "blocked")
         )
         probe._generate_exploit_prompt = MagicMock(return_value="next attack")
         attempt = _make_attempt_with_state(
@@ -627,9 +627,9 @@ class TestGenerateNextAttempts:
         assert len(result) == 1  # generated follow-up
         state = AttackState.from_notes(attempt.notes)
         assert state.verified_results == [
-            (False, 0.99, "refusal"),
-            (False, 0.99, "refusal"),
-            (False, 0.99, "refusal"),
+            (False, 0.99),
+            (False, 0.99),
+            (False, 0.99),
         ]
         assert probe._detector.verify.call_count == 3
 
@@ -641,9 +641,9 @@ class TestGenerateNextAttempts:
             probe._detector,
             "verify",
             side_effect=[
-                (False, 0.99, "blocked", "refusal"),
-                (True, 0.95, "leaked", "none"),
-                (False, 0.99, "blocked", "refusal"),
+                (False, 0.99, "blocked"),
+                (True, 0.95, "leaked"),
+                (False, 0.99, "blocked"),
             ],
         )
         attempt = _make_attempt_with_state(
@@ -659,9 +659,9 @@ class TestGenerateNextAttempts:
         assert result == []
         state = AttackState.from_notes(attempt.notes)
         assert state.verified_results == [
-            (False, 0.99, "refusal"),
-            (True, 0.95, "none"),
-            (False, 0.99, "refusal"),
+            (False, 0.99),
+            (True, 0.95),
+            (False, 0.99),
         ]
         # removed: is_tool_final no longer tracked
 
@@ -672,8 +672,8 @@ class TestGenerateNextAttempts:
             probe._detector,
             "verify",
             side_effect=[
-                (True, 0.3, "maybe", "none"),  # success but low confidence
-                (False, 0.99, "blocked", "refusal"),
+                (True, 0.3, "maybe"),  # success but low confidence
+                (False, 0.99, "blocked"),
             ],
         )
         mocker.patch.object(
@@ -699,10 +699,10 @@ class TestGenerateNextAttempts:
             probe._detector,
             "verify",
             side_effect=[
-                (False, 0.2, "safe", "refusal"),
-                (False, 0.8, "almost", "refusal"),
-                (True, 0.5, "partial", "none"),  # success but below threshold
-                (False, 0.1, "blocked", "refusal"),
+                (False, 0.2, "safe"),
+                (False, 0.8, "almost"),
+                (True, 0.5, "partial"),  # success but below threshold
+                (False, 0.1, "blocked"),
             ],
         )
         mocker.patch.object(probe, "_generate_exploit_prompt", return_value="next")
@@ -719,10 +719,10 @@ class TestGenerateNextAttempts:
 
         state = AttackState.from_notes(attempt.notes)
         assert len(state.verified_results) == 4
-        assert state.verified_results[0] == (False, 0.2, "refusal")
-        assert state.verified_results[1] == (False, 0.8, "refusal")
-        assert state.verified_results[2] == (True, 0.5, "none")
-        assert state.verified_results[3] == (False, 0.1, "refusal")
+        assert state.verified_results[0] == (False, 0.2)
+        assert state.verified_results[1] == (False, 0.8)
+        assert state.verified_results[2] == (True, 0.5)
+        assert state.verified_results[3] == (False, 0.1)
 
     # --- None handling ---
 
@@ -730,7 +730,7 @@ class TestGenerateNextAttempts:
         """A None output scores as (False, 0.0) without calling the detector."""
         probe = _make_probe(success_threshold=0.7, max_attempts_per_tool=3)
         mock_detector_call = mocker.patch.object(
-            probe._detector, "verify", return_value=(False, 0.99, "blocked", "refusal")
+            probe._detector, "verify", return_value=(False, 0.99, "blocked")
         )
         mocker.patch.object(probe, "_generate_exploit_prompt", return_value="next")
         attempt = _make_attempt_with_state(
@@ -743,8 +743,8 @@ class TestGenerateNextAttempts:
         probe._generate_next_attempts(attempt)
 
         state = AttackState.from_notes(attempt.notes)
-        assert state.verified_results[0] == (False, 0.0, "none")
-        assert state.verified_results[1] == (False, 0.99, "refusal")
+        assert state.verified_results[0] == (False, 0.0)
+        assert state.verified_results[1] == (False, 0.99)
         # Only called once — skipped the None output
         assert probe._detector.verify.call_count == 1
 
@@ -752,7 +752,7 @@ class TestGenerateNextAttempts:
         """Message(text=None) scores as (False, 0.0) without calling the detector."""
         probe = _make_probe(success_threshold=0.7, max_attempts_per_tool=3)
         mock_detector_call = mocker.patch.object(
-            probe._detector, "verify", return_value=(False, 0.5, "ok", "none")
+            probe._detector, "verify", return_value=(False, 0.5, "ok")
         )
         mocker.patch.object(probe, "_generate_exploit_prompt", return_value="next")
         attempt = _make_attempt_with_state(
@@ -765,8 +765,22 @@ class TestGenerateNextAttempts:
         probe._generate_next_attempts(attempt)
 
         state = AttackState.from_notes(attempt.notes)
-        assert state.verified_results[0] == (False, 0.0, "none")
+        assert state.verified_results[0] == (False, 0.0)
         assert probe._detector.verify.call_count == 1
+
+    def test_unverifiable_output_recorded_as_unknown(self, mocker):
+        """When the judge cannot be evaluated the output is stored as unknown
+        (confidence None), not as a clean miss -- otherwise a broken judge makes
+        the target look safe."""
+        probe = _make_probe(success_threshold=0.7, max_attempts_per_tool=3)
+        mocker.patch.object(probe._detector, "verify", return_value=None)
+        mocker.patch.object(probe, "_generate_exploit_prompt", return_value="next")
+        attempt = _make_attempt_with_state([Message("some response")])
+
+        probe._generate_next_attempts(attempt)
+
+        state = AttackState.from_notes(attempt.notes)
+        assert state.verified_results == [(False, None)]
 
     # --- Attacker history recording ---
 
@@ -777,9 +791,9 @@ class TestGenerateNextAttempts:
             probe._detector,
             "verify",
             side_effect=[
-                (False, 0.3, "weak refusal", "refusal"),
-                (False, 0.9, "strong refusal with details", "refusal"),
-                (False, 0.5, "medium refusal", "refusal"),
+                (False, 0.3, "weak refusal"),
+                (False, 0.9, "strong refusal with details"),
+                (False, 0.5, "medium refusal"),
             ],
         )
         mocker.patch.object(probe, "_generate_exploit_prompt", return_value="next")
@@ -807,8 +821,8 @@ class TestGenerateNextAttempts:
             probe._detector,
             "verify",
             side_effect=[
-                (False, 0.99, "blocked", "refusal"),
-                (True, 0.95, "leaked", "none"),
+                (False, 0.99, "blocked"),
+                (True, 0.95, "leaked"),
             ],
         )
         attempt = _make_attempt_with_state(
@@ -827,7 +841,7 @@ class TestGenerateNextAttempts:
         """Each call appends to history, preserving previous entries."""
         probe = _make_probe(success_threshold=0.7, max_attempts_per_tool=5)
         mock_detector_call = mocker.patch.object(
-            probe._detector, "verify", return_value=(False, 0.99, "blocked", "refusal")
+            probe._detector, "verify", return_value=(False, 0.99, "blocked")
         )
         mocker.patch.object(probe, "_generate_exploit_prompt", return_value="next")
 
@@ -861,7 +875,7 @@ class TestGenerateNextAttemptsLoopControl:
         """When attempts_history reaches max_attempts_per_tool, return []."""
         probe = _make_probe(max_attempts_per_tool=2, success_threshold=0.7)
         mock_detector_call = mocker.patch.object(
-            probe._detector, "verify", return_value=(False, 0.99, "blocked", "refusal")
+            probe._detector, "verify", return_value=(False, 0.99, "blocked")
         )
         # Already have 2 attempts in history — at the limit
         existing = [
@@ -897,7 +911,7 @@ class TestGenerateNextAttemptsLoopControl:
         """If the red-team model fails to generate a prompt, stop."""
         probe = _make_probe(max_attempts_per_tool=5, success_threshold=0.7)
         mock_detector_call = mocker.patch.object(
-            probe._detector, "verify", return_value=(False, 0.99, "blocked", "refusal")
+            probe._detector, "verify", return_value=(False, 0.99, "blocked")
         )
         mocker.patch.object(probe, "_generate_exploit_prompt", return_value=None)
         attempt = _make_attempt_with_state([Message("denied")])
@@ -912,7 +926,7 @@ class TestGenerateNextAttemptsLoopControl:
         """Follow-up attempts must have empty verified_results (not inherited)."""
         probe = _make_probe(max_attempts_per_tool=5, success_threshold=0.7)
         mock_detector_call = mocker.patch.object(
-            probe._detector, "verify", return_value=(False, 0.99, "blocked", "refusal")
+            probe._detector, "verify", return_value=(False, 0.99, "blocked")
         )
         mocker.patch.object(probe, "_generate_exploit_prompt", return_value="next")
         attempt = _make_attempt_with_state([Message("denied"), Message("denied")])
