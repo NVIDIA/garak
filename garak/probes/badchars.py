@@ -383,6 +383,10 @@ class BadCharacters(garak.probes.Probe):
     def _select_ascii(limit: int) -> List[str]:
         if limit is None or limit <= 0 or limit >= len(ASCII_PRINTABLE):
             return list(ASCII_PRINTABLE)
+
+        if limit == 1:
+            return [ASCII_PRINTABLE[0]]
+
         step = max(1, (len(ASCII_PRINTABLE) - 1) // (limit - 1))
         selected = [ASCII_PRINTABLE[i] for i in range(0, len(ASCII_PRINTABLE), step)]
         return selected[:limit]
