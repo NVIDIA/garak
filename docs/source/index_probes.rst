@@ -20,6 +20,7 @@ For a guide to writing probes, see :doc:`extending.probe`.
    probes/av_spam_scanning
    probes/badchars
    probes/base
+   probes/codeswitch
    probes/continuation
    probes/dan
    probes/divergence
