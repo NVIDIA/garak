@@ -24,6 +24,7 @@ from garak.generators.rest import RestGenerator
 #     classname for (classname, active) in _plugins.enumerate_plugins("generators")
 # ]
 GENERATORS = [
+    "generators.abliteration.AbliterationChat",
     "generators.openai.OpenAIGenerator",
     "generators.nim.NVOpenAIChat",
     "generators.groq.GroqChat",
