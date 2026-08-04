@@ -25,6 +25,7 @@ For detailed information on detector metrics and evaluation, see :doc:`../detect
    detectors/encoding
    detectors/exploitation
    detectors/fileformats
+   detectors/formula_injection
    detectors/goodside
    detectors/judge
    detectors/knownbadsignatures
