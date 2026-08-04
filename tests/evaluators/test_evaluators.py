@@ -475,6 +475,36 @@ def test_hitlog_entry_fields(eval_setup):
         entry["generations_per_prompt"] == _config.run.generations
     ), "hitlog generations_per_prompt should match config"
     assert entry["triggers"] is None, "triggers should default to None when not set"
+    assert "detector_input" not in entry, "raw detector input should not be duplicated"
+
+
+def test_hitlog_includes_reverse_translated_detector_input(eval_setup):
+    evaluator = ThresholdEvaluator(0.5)
+    attempt = Attempt(prompt=Message(text="prompt", lang="es"))
+    attempt.probe_classname = DEFAULT_PROBE
+    attempt.goal = DEFAULT_GOAL
+    attempt.outputs = [Message(text="respuesta", lang="es")]
+    attempt.reverse_translation_outputs = [
+        Message(text="reverse translation containing TRIGGER", lang="en")
+    ]
+    attempt._record_detector_inputs("det.A", "en")
+    attempt.detector_results = {"det.A": [0.8]}
+
+    evaluator.evaluate([attempt])
+
+    if _config.transient.hitlogfile is not None:
+        _config.transient.hitlogfile.flush()
+    entries = _read_hitlog_entries(_config.transient.report_filename)
+    assert len(entries) == 1, "translated failure should produce one hitlog entry"
+
+    entry = entries[0]
+    assert entry["output"]["text"] == "respuesta", "hitlog should preserve raw output"
+    assert (
+        entry["detector_input"]["text"] == "reverse translation containing TRIGGER"
+    ), "hitlog should include the representation selected for detection"
+    assert (
+        entry["detector_input_source"] == "reverse_translation_outputs"
+    ), "hitlog should identify reverse-translation provenance"
 
 
 def test_hitlog_with_triggers(eval_setup):

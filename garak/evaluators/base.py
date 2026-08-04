@@ -112,23 +112,38 @@ class Evaluator:
                         )
 
                     triggers = attempt.notes.get("triggers", None)
+                    hitlog_record = {
+                        "goal": attempt.goal,
+                        "prompt": asdict(attempt.prompt),
+                        "output": asdict(attempt.outputs[idx]),
+                        "triggers": triggers,
+                        "score": score,
+                        "run_id": str(_config.transient.run_id),
+                        "attempt_id": str(attempt.uuid),
+                        "attempt_seq": attempt.seq,
+                        "attempt_idx": idx,
+                        "generator": f"{_config.plugins.target_type} {_config.plugins.target_name}",
+                        "probe": self.probename,
+                        "detector": detector_name,
+                        "generations_per_prompt": _config.run.generations,
+                    }
+                    detector_input_record = attempt._detector_inputs.get(detector_name)
+                    if (
+                        detector_input_record is not None
+                        and detector_input_record["source"]
+                        == "reverse_translation_outputs"
+                        and idx < len(detector_input_record["outputs"])
+                    ):
+                        detector_input = detector_input_record["outputs"][idx]
+                        hitlog_record["detector_input"] = (
+                            asdict(detector_input) if detector_input else None
+                        )
+                        hitlog_record["detector_input_source"] = detector_input_record[
+                            "source"
+                        ]
                     _config.transient.hitlogfile.write(
                         json.dumps(
-                            {
-                                "goal": attempt.goal,
-                                "prompt": asdict(attempt.prompt),
-                                "output": asdict(attempt.outputs[idx]),
-                                "triggers": triggers,
-                                "score": score,
-                                "run_id": str(_config.transient.run_id),
-                                "attempt_id": str(attempt.uuid),
-                                "attempt_seq": attempt.seq,
-                                "attempt_idx": idx,
-                                "generator": f"{_config.plugins.target_type} {_config.plugins.target_name}",
-                                "probe": self.probename,
-                                "detector": detector_name,
-                                "generations_per_prompt": _config.run.generations,
-                            },
+                            hitlog_record,
                             ensure_ascii=False,
                         )
                         + "\n"  # generator,probe,prompt,trigger,result,detector,score,run id,attemptid,
