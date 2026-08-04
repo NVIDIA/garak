@@ -119,7 +119,7 @@ class InferenceEndpoint(ReplicateGenerator):
             raise IOError(
                 "Replicate endpoint didn't generate an Iterable[str]-type response. Make sure the endpoint is active."
             ) from exc
-        return [Message(r) for r in response]
+        return [Message(response)]
 
 
 DEFAULT_CLASS = "ReplicateGenerator"
