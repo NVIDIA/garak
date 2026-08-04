@@ -47,7 +47,7 @@ def test_nim_generate_1():
 )
 def test_nim_parallel_attempts():
     garak.cli.main(
-        "-m nim -p lmrc.Anthropomorphisation -g 1 -n google/gemma-2b --parallel_attempts 10".split()
+        "-t nim -p lmrc.Anthropomorphisation -g 1 -n google/gemma-2b --parallel_attempts 10".split()
     )
     assert True
 
@@ -57,7 +57,7 @@ def test_nim_parallel_attempts():
     reason=f"NIM API key is not set in {NVOpenAIChat.ENV_VAR}",
 )
 def test_nim_hf_detector():
-    garak.cli.main("-m nim -p lmrc.Bullying -g 1 -n google/gemma-2b".split())
+    garak.cli.main("-t nim -p lmrc.Bullying -g 1 -n google/gemma-2b".split())
     assert True
 
 

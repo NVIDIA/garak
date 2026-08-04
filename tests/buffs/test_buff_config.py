@@ -33,7 +33,7 @@ plugins:
 """.encode("utf-8"))
         tmp.close()
         cli.main(
-            f"-m test -p test.Test -b lowercase.Lowercase --config {tmp.name} --report_prefix {PREFIX}".split()
+            f"-t test -p test.Test -b lowercase.Lowercase --config {tmp.name} --report_prefix {PREFIX}".split()
         )
         os.remove(tmp.name)
 
@@ -69,7 +69,7 @@ plugins:
 """.encode("utf-8"))
         tmp.close()
         cli.main(
-            f"-m test -p test.Test -b lowercase.Lowercase --config {tmp.name} --report_prefix {PREFIX}".split()
+            f"-t test -p test.Test -b lowercase.Lowercase --config {tmp.name} --report_prefix {PREFIX}".split()
         )
         os.remove(tmp.name)
 
