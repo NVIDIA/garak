@@ -575,7 +575,11 @@ class LLaVA(Generator, HFCompatible):
         for k, v in generation_params.items():
             setattr(self.model.generation_config, k, v)
 
-        self.model.to(self.device)
+        # A model dispatched by accelerate (hf_device_map set) can have modules
+        # offloaded to CPU/disk, which makes .to() raise; move it only when
+        # accelerate did not place it.
+        if not getattr(self.model, "hf_device_map", None):
+            self.model.to(self.device)
 
         if stored_env:
             os.environ[disable_env_key] = stored_env
@@ -587,15 +591,23 @@ class LLaVA(Generator, HFCompatible):
     ) -> List[Union[Message, None]]:
 
         text_prompt = prompt.last_message().text
+        image_path = prompt.last_message().data_path
+        if image_path is None:
+            # LLaVA needs an image; a text-only prompt has none to open.
+            raise GarakException(
+                f"{self.name} requires an image but received a text-only prompt. "
+                "Use an image+text probe (e.g. visual_jailbreak.*), set a "
+                "Message.data_path, or run with strict_modality_match to skip "
+                "text-only probes for this target."
+            )
         try:
-            image_prompt = self.PIL.Image.open(prompt.last_message().data_path)
+            image_prompt = self.PIL.Image.open(image_path)
         except FileNotFoundError:
-            file_path = prompt.last_message().data_path
-            raise FileNotFoundError(f"Cannot open image {file_path}.")
+            raise FileNotFoundError(f"Cannot open image {image_path}.")
         except Exception as e:
             raise Exception(e)
 
-        inputs = self.processor(text_prompt, image_prompt, return_tensors="pt").to(
+        inputs = self.processor(image_prompt, text_prompt, return_tensors="pt").to(
             self.device
         )
         exist_token_number: int = inputs.data["input_ids"].shape[1]
