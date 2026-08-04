@@ -63,12 +63,14 @@ The standard pip version of `garak` is updated periodically. To get a fresher ve
 python -m pip install -U git+https://github.com/NVIDIA/garak.git@main
 ```
 
+`garak` currently supports Python 3.10-3.13. Python 3.14 is not yet supported because key ML dependencies (notably `torch` / `transformers`) do not consistently publish compatible wheels there yet.
+
 ### Clone from source
 
 `garak` has its own dependencies. You can to install `garak` in its own Conda environment:
 
 ```
-conda create --name garak "python>=3.10,<=3.12"
+conda create --name garak "python>=3.10,<3.14"
 conda activate garak
 gh repo clone NVIDIA/garak
 cd garak
