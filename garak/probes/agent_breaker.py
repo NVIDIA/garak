@@ -44,7 +44,11 @@ class AttackState:
     current_attack_prompt: str = ""
     attempts_history: list = field(default_factory=list)
     vulnerability_info: str = ""
-    # Per-output verification results: list of (is_success, confidence) tuples,
+    # Victim-side tool contract, so the judge grounds its verdict in what the tool is authorized to do.
+    agent_purpose: str = ""
+    tool_description: str = ""
+    # Per-output verification results: list of (is_success, confidence) tuples;
+    # confidence is None when the judge could not be evaluated for that output,
     # one entry per generator output.  Empty means not yet verified.
     verified_results: list = field(default_factory=list)
 
@@ -56,6 +60,8 @@ class AttackState:
             "current_attack_prompt": self.current_attack_prompt,
             "attempts_history": list(self.attempts_history),
             "vulnerability_info": self.vulnerability_info,
+            "agent_purpose": self.agent_purpose,
+            "tool_description": self.tool_description,
         }
         if self.verified_results:
             d["verified_results"] = list(self.verified_results)
@@ -70,6 +76,8 @@ class AttackState:
             current_attack_prompt=notes.get("current_attack_prompt", ""),
             attempts_history=list(notes.get("attempts_history", [])),
             vulnerability_info=notes.get("vulnerability_info", ""),
+            agent_purpose=notes.get("agent_purpose", ""),
+            tool_description=notes.get("tool_description", ""),
             verified_results=list(notes.get("verified_results", [])),
         )
 
@@ -552,25 +560,56 @@ class AgentBreaker(garak.probes.IterativeProbe):
 
         return None
 
+    def _tool_description(self, tool_name: str) -> str:
+        """Return the declared description (contract) for *tool_name*, if any.
+
+        Warns when nothing matches: tool names come from the red team model's
+        analysis and are matched loosely elsewhere, but this lookup is exact, so
+        a reformatted name silently leaves the judge ungrounded.
+        """
+        known = []
+        for tool in self.agent_config.get("tools", []) or []:
+            name = tool.get("name")
+            known.append(name)
+            if name == tool_name:
+                description = tool.get("description", "")
+                if not description:
+                    logging.warning(
+                        f"{self.__class__.__name__} # tool {tool_name!r} declares no "
+                        "description; the judge will run without its contract"
+                    )
+                return description
+
+        logging.warning(
+            f"{self.__class__.__name__} # no contract found for tool {tool_name!r} "
+            f"(known tools: {known}); the judge will run ungrounded for this tool"
+        )
+        return ""
+
     def _verify_attack_success(
         self,
         attack_prompt: garak.attempt.Conversation,
         agent_response: str,
         target_tool: str,
         vulnerability_info: str,
-    ) -> tuple[bool, float, str]:
+        agent_purpose: str = "",
+        tool_description: str = "",
+    ) -> tuple[bool, float, str] | None:
         """Verify if an attack was successful.
 
         Delegates to the shared detector instance so that loop-control and
         final scoring always use the same model and logic.
 
-        Returns: (is_success, confidence_score, reasoning)
+        Returns ``(is_success, confidence_score, reasoning)``, or ``None`` when
+        the judge could not be evaluated.
         """
         return self._detector.verify(
             output_text=agent_response,
             target_tool=target_tool,
             vulnerability_info=vulnerability_info,
             attack_prompt=attack_prompt.last_message().text,
+            agent_purpose=agent_purpose,
+            tool_description=tool_description,
         )
 
     def _create_init_attempts(self) -> Iterable[garak.attempt.Attempt]:
@@ -625,6 +664,8 @@ class AgentBreaker(garak.probes.IterativeProbe):
         processed.notes["current_target"] = state.current_target
         processed.notes["current_attack_prompt"] = state.current_attack_prompt
         processed.notes["vulnerability_info"] = state.vulnerability_info
+        processed.notes["agent_purpose"] = state.agent_purpose
+        processed.notes["tool_description"] = state.tool_description
         # Carry forward the per-output verdicts when present.
         if state.verified_results:
             processed.notes["verified_results"] = list(state.verified_results)
@@ -638,6 +679,8 @@ class AgentBreaker(garak.probes.IterativeProbe):
         """Generate a initial attacks for a single tool"""
         attempts: List[garak.attempt.Attempt] = []
         vulnerability_info = tool_analysis.get("vulnerabilities", "")
+        agent_purpose = self.agent_config.get("agent_purpose", "")
+        tool_description = self._tool_description(tool_name)
 
         attack_prompts = tool_analysis.get("attack_prompts", [])
         if not attack_prompts:
@@ -654,6 +697,8 @@ class AgentBreaker(garak.probes.IterativeProbe):
                 current_tool_analysis=tool_analysis,
                 current_attack_prompt=prompt,
                 vulnerability_info=vulnerability_info,
+                agent_purpose=agent_purpose,
+                tool_description=tool_description,
             )
             attempt.notes = state.to_notes()
             attempts.append(attempt)
@@ -685,14 +730,23 @@ class AgentBreaker(garak.probes.IterativeProbe):
 
         for output in outputs:
             if output is None or output.text is None:
+                # nothing was generated: a known non-success, not an unjudged one
                 verified_results.append((False, 0.0))
                 continue
-            is_success, confidence, reasoning = self._verify_attack_success(
+            verdict = self._verify_attack_success(
                 attack_prompt=last_attempt.prompt,
                 agent_response=output.text,
                 target_tool=state.current_target,
                 vulnerability_info=state.vulnerability_info,
+                agent_purpose=state.agent_purpose,
+                tool_description=state.tool_description,
             )
+            if verdict is None:
+                # Judge unavailable: record as unknown so the detector does not
+                # score an unjudged output as a clean miss.
+                verified_results.append((False, None))
+                continue
+            is_success, confidence, reasoning = verdict
             verified_results.append((is_success, confidence))
             # Track the most informative response for attacker history.
             if confidence > best_confidence:
@@ -705,7 +759,7 @@ class AgentBreaker(garak.probes.IterativeProbe):
         state.verified_results = verified_results
 
         # Record best response in attacker history for learning.
-        best_success = any(s for s, _ in verified_results)
+        best_success = any(s for s, *_ in verified_results)
         state.attempts_history.append(
             {
                 "target": state.current_target,
