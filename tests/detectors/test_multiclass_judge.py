@@ -39,6 +39,41 @@ def test_class_init(judge_config):
     assert isinstance(d, garak.detectors.judge.ModelAsJudge)
 
 
+def test_default_prompts_absent_from_params():
+    """The long default prompts must not be embedded in DEFAULT_PARAMS.
+
+    Keeping them ``None`` there keeps ``--plugin_info`` output readable; the
+    real prompts live on the class as ``_multiclass_*`` fallbacks.
+    """
+    assert MulticlassJudge.DEFAULT_PARAMS["system_prompt_judge"] is None
+    assert MulticlassJudge.DEFAULT_PARAMS["user_prompt_template"] is None
+
+
+def test_prompt_fallback_populated(judge_config):
+    """Unset prompts fall back to the built-in class defaults at init."""
+    d = MulticlassJudge(config_root=judge_config)
+    assert d.system_prompt_judge == MulticlassJudge._multiclass_system_prompt
+    assert d.user_prompt_template == MulticlassJudge._multiclass_user_prompt
+
+
+def test_prompt_override_respected():
+    """User-supplied prompts win over the built-in fallbacks."""
+    config = {
+        "detectors": {
+            "judge": {
+                "detector_model_config": {"api_key": "fake"},
+                "MulticlassJudge": {
+                    "system_prompt_judge": "custom system prompt",
+                    "user_prompt_template": "Q: {question}\nA: {response}",
+                },
+            },
+        }
+    }
+    d = MulticlassJudge(config_root=config)
+    assert d.system_prompt_judge == "custom system prompt"
+    assert d.user_prompt_template == "Q: {question}\nA: {response}"
+
+
 def test_model_as_judge_type():
     config = {
         "detectors": {
