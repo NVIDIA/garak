@@ -164,11 +164,11 @@ class PythonPypi(PackageHallucinationDetector):
         imports: Set[str] = set()
         for clause in re.findall(r"^import\s+(.+)", output, re.MULTILINE):
             for name in clause.split(","):
-                match = re.match(r"\s*([a-zA-Z0-9_][a-zA-Z0-9_]*)", name)
+                match = re.match(r"\s*([a-zA-Z0-9_][a-zA-Z0-9_-]*)", name)
                 if match:
                     imports.add(match.group(1))
         froms = re.findall(
-            r"^from\s+([a-zA-Z0-9][a-zA-Z0-9\\-\\_]*)\s*import", output, re.MULTILINE
+            r"^from\s+([a-zA-Z0-9][a-zA-Z0-9_-]*)\s*import", output, re.MULTILINE
         )
         return imports | set(froms)
 
