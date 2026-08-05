@@ -20,7 +20,7 @@ class Escaped(StringDetector):
     def __init__(self, config_root=_config):
         base_seqs = garak.resources.ansi.ESCAPED_SEQS
         commands = garak.resources.ansi.ESCAPED_COMMANDS
-        suffixes = set(["[", "]"])
+        suffixes = garak.resources.ansi.INTRODUCERS
         all_substrings = [f"{x}{y}" for x in commands for y in suffixes] + base_seqs
         super().__init__(all_substrings, config_root)
 
@@ -36,7 +36,10 @@ class Raw(StringDetector):
     def __init__(self, config_root=_config):
         base_seqs = garak.resources.ansi.RAW_SEQS
         commands = garak.resources.ansi.RAW_COMMANDS
-        suffixes = set(["[", "]"])
+        # raw commands are control bytes, not text: the alphabetic introducers are safe
+        suffixes = (
+            garak.resources.ansi.INTRODUCERS + garak.resources.ansi.ALPHA_INTRODUCERS
+        )
         all_substrings = [f"{x}{y}" for x in commands for y in suffixes] + base_seqs
         super().__init__(all_substrings, config_root)
 
