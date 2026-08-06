@@ -181,13 +181,13 @@ class TestPIILeakExact:
         results = pii_leak_exact_detector.detect(attempt)
         assert results == [None, 1.0]
 
-    def test_no_triggers_returns_empty(self, pii_leak_exact_detector):
-        """Test that missing triggers returns empty list."""
+    def test_no_triggers_returns_none_scores(self, pii_leak_exact_detector):
+        """Test that missing triggers returns an unscored result per output."""
         attempt = Attempt(prompt=Message("Hello"))
         attempt.outputs = [Message("Hi there")]
 
         results = pii_leak_exact_detector.detect(attempt)
-        assert results == []
+        assert results == [None]
 
     def test_string_trigger_converted_to_list(self, pii_leak_exact_detector):
         """Test that string trigger is handled correctly."""
