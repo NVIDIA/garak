@@ -10,6 +10,7 @@ from garak import _plugins, _config
 
 import garak.buffs.base
 import garak.harnesses.base
+import garak.probes.base
 
 HARNESSES = [
     classname for (classname, active) in _plugins.enumerate_plugins("harnesses")
@@ -105,3 +106,87 @@ def test_harness_detector_progress_shows_probe_name(mocker, monkeypatch):
         "test.Blank" in desc and "always.Pass" in desc
         for desc in captured_descriptions
     ), "detector progress description should include probe and detector names"
+
+
+@pytest.mark.parametrize("intent", [None, ""])
+def test_harness_does_not_resolve_falsy_intent(mocker, intent):
+    """Falsy attempt intents are warned about and never sent to intentservice."""
+    mocker.patch("garak.harnesses.base._initialize_runtime_services")
+    mocker.patch("garak.harnesses.base._emit_plugin_cache_entry")
+    get_detectors = mocker.patch("garak.services.intentservice.get_detectors")
+
+    harness = garak.harnesses.base.Harness()
+    mocker.patch.object(harness, "_start_run_hook")
+    mocker.patch.object(harness, "_end_run_hook")
+
+    model = mocker.Mock()
+    model.modality = {"in": {"text"}}
+
+    probe = mocker.Mock(spec=garak.probes.base.IntentProbe)
+    probe.probename = "garak.probes.test.EmptyIntent"
+    probe.modality = {"in": {"text"}}
+
+    attempt = mocker.Mock()
+    attempt.intent = intent
+    attempt.uuid = "empty-intent-attempt"
+    attempt.seq = 0
+    attempt.as_dict.return_value = {}
+    probe.probe.return_value = [attempt]
+
+    detector = mocker.Mock()
+    detector.detectorname = "garak.detectors.always.Pass"
+
+    harness.run(model, [probe], [detector], mocker.Mock())
+
+    get_detectors.assert_not_called()
+
+
+def test_harness_skips_falsy_intent_when_valid_intent_is_present(mocker):
+    """An invalid attempt must not break detector selection for valid attempts."""
+    mocker.patch("garak.harnesses.base._initialize_runtime_services")
+    mocker.patch("garak.harnesses.base._emit_plugin_cache_entry")
+    get_detectors = mocker.patch(
+        "garak.services.intentservice.get_detectors",
+        return_value=["always.Pass"],
+    )
+
+    harness = garak.harnesses.base.Harness()
+    mocker.patch.object(harness, "_start_run_hook")
+    mocker.patch.object(harness, "_end_run_hook")
+    run_detector = mocker.patch.object(harness, "_run_detector")
+
+    model = mocker.Mock()
+    model.modality = {"in": {"text"}}
+
+    probe = mocker.Mock(spec=garak.probes.base.IntentProbe)
+    probe.probename = "garak.probes.test.MixedIntent"
+    probe.modality = {"in": {"text"}}
+
+    invalid_attempt = mocker.Mock()
+    invalid_attempt.intent = None
+    invalid_attempt.uuid = "empty-intent-attempt"
+    invalid_attempt.seq = 0
+    invalid_attempt.as_dict.return_value = {}
+
+    valid_attempt = mocker.Mock()
+    valid_attempt.intent = "T009ignore"
+    valid_attempt.uuid = "valid-intent-attempt"
+    valid_attempt.seq = 1
+    valid_attempt.as_dict.return_value = {}
+
+    probe.probe.return_value = [invalid_attempt, valid_attempt]
+
+    detector = mocker.Mock()
+    detector.detectorname = "garak.detectors.always.Pass"
+
+    resolved_detector = mocker.Mock()
+    resolved_detector.detectorname = "garak.detectors.always.Pass"
+    mocker.patch(
+        "garak.harnesses.base._plugins.load_plugin",
+        return_value=resolved_detector,
+    )
+
+    harness.run(model, [probe], [detector], mocker.Mock())
+
+    get_detectors.assert_called_once_with("T009ignore")
+    run_detector.assert_called_once_with([valid_attempt], resolved_detector)
