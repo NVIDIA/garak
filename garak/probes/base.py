@@ -393,6 +393,12 @@ class Probe(Configurable):
         prompts = copy.deepcopy(
             self.prompts
         )  # make a copy to avoid mutating source list
+        if not prompts:
+            # A probe can have an empty prompt set (e.g. translation empties it);
+            # the progress bar below tolerates zero but the `prompts[0]` check
+            # does not. Produce no attempts instead of raising IndexError (#2026).
+            logging.warning("probe %s has an empty prompt set", self.probename)
+            return []
         preparation_bar = tqdm.tqdm(
             total=len(prompts),
             leave=False,
