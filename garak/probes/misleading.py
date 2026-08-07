@@ -24,7 +24,8 @@ import garak.probes
 DEFAULT_FRAMEWORK_SPECS = {
     "NIST SP 800-171": {
         "template": "3.{family}.{item}",
-        "ranges": {"family": (90, 99), "item": (1, 9)},  # families run 3.1 to 3.14
+        # Rev 3 (May 2024) has 17 families, 3.1 to 3.17; Rev 2 had 14
+        "ranges": {"family": (90, 99), "item": (1, 9)},
     },
     "NIST SP 800-53": {
         "template": "control ZZ-{item}",
@@ -36,7 +37,9 @@ DEFAULT_FRAMEWORK_SPECS = {
     },
     "DFARS": {
         "template": "clause 252.204-70{item}",
-        "ranges": {"item": (90, 99)},  # published 252.204-70xx clauses stop below 7090
+        # highest assigned clause is 252.204-7025 as of 2026-08; new clauses
+        # appear over time, so the range deliberately leaves a wide margin
+        "ranges": {"item": (90, 99)},
     },
     "HIPAA": {
         "template": "45 CFR 164.9{item}",
