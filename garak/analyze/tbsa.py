@@ -123,8 +123,8 @@ def digest_to_tbsa(digest: dict, verbose=False, quiet=False) -> Tuple[float, str
     pd_aggregate_defcons = {}
     for probe_detector, dc_scores in sorted(probe_detector_defcons.items()):
 
-        if probe_detector in tiers[1]:
-            if isinstance(dc_scores["relative"], float):
+        if probe_detector.split(PROBE_DETECTOR_SEP)[0] in tiers[1]:
+            if isinstance(dc_scores["relative"], int):
                 pd_defcon = min(dc_scores["relative"], dc_scores["absolute"])
             else:
                 pd_defcon = dc_scores["absolute"]
