@@ -5,6 +5,7 @@ import importlib
 import langcodes
 import pytest
 import re
+from unittest.mock import MagicMock
 
 from garak import _config, _plugins
 from garak.attempt import Turn, Conversation, Message, Attempt
@@ -223,6 +224,23 @@ def test_mint_attempt(prompt):
     assert attempt.prompt.last_message().text == "test example"
 
 
+def test_probe_with_empty_prompts_returns_no_attempts():
+    """An empty (or translation-emptied) prompt set must not IndexError.
+
+    Regression test for #2026: ``probe()`` indexed ``prompts[0]`` before
+    checking the list was non-empty, so a probe whose prompt set came back empty
+    raised ``IndexError`` instead of producing no attempts.
+    """
+    import garak.probes.base
+
+    probe = garak.probes.base.Probe()
+    probe.prompts = []
+
+    attempts = probe.probe(MagicMock())
+
+    assert attempts == []
+
+
 @pytest.mark.parametrize("prompt", PROMPT_EXAMPLES)
 def test_mint_attempt_with_run_system_prompt(prompt):
     import garak.probes.base
@@ -360,5 +378,4 @@ def test_encoding_probe_attempt_carries_payload_intent(loaded_intent_service):
     assert (
         attempt.intent == expected_intent
     ), "attempt intent must reflect the payload-specific intent set in _attempt_prestore_hook"
-
 
