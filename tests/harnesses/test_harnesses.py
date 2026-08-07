@@ -105,3 +105,35 @@ def test_harness_detector_progress_shows_probe_name(mocker, monkeypatch):
         "test.Blank" in desc and "always.Pass" in desc
         for desc in captured_descriptions
     ), "detector progress description should include probe and detector names"
+
+
+def test_harness_unscorable_outputs_do_not_halt_probe_queue(mocker, monkeypatch):
+    """A detector that cannot score one probe's outputs must not strand the rest of the queue."""
+    mocker.patch("garak.harnesses.base._initialize_runtime_services")
+    monkeypatch.setattr(
+        _config.buffmanager,
+        "buffs",
+        [garak.buffs.base.Buff()],
+    )
+
+    harness = garak.harnesses.base.Harness()
+    model = _plugins.load_plugin("generators.test.Blank")
+    probes = [
+        _plugins.load_plugin("probes.test.Blank"),
+        _plugins.load_plugin("probes.test.Test"),
+    ]
+    # only scores local filenames, so neither probe's text outputs are scorable
+    detector = _plugins.load_plugin("detectors.fileformats.FileIsPickled")
+    evaluator = mocker.Mock()
+
+    harness.run(model, probes, [detector], evaluator)
+
+    evaluated_probes = {
+        attempt.probe_classname
+        for call in evaluator.evaluate.call_args_list
+        for attempt in call.args[0]
+    }
+    assert evaluated_probes == {
+        "test.Blank",
+        "test.Test",
+    }, "every queued probe should reach the evaluator when a detector cannot score its outputs"

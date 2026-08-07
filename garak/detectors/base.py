@@ -305,7 +305,11 @@ class TriggerListDetector(Detector):
 
 
 class FileDetector(Detector):
-    """Detector subclass for processing attempts whose outputs are filenames for checking"""
+    """Detector subclass for processing attempts whose outputs are filenames for checking
+
+    Attempts whose ``notes["format"]`` does not match ``valid_format`` cannot be
+    scored; one ``None`` per output is returned so the run continues.
+    """
 
     valid_format = "local filename"
 
@@ -317,9 +321,13 @@ class FileDetector(Detector):
             "format" not in attempt.notes
             or attempt.notes["format"] != self.valid_format
         ):
-            raise ValueError(
-                f"detectors.fileformats.{self.__class__.__name__} only processes outputs that are '{self.valid_format}'"
+            logging.warning(
+                "detectors.fileformats.%s only processes outputs that are '%s'; attempt not scored",
+                self.__class__.__name__,
+                self.valid_format,
             )
+            yield from [None] * len(attempt.outputs)
+            return
 
         for local_filename in attempt.outputs:
             if not local_filename or not local_filename.text:
