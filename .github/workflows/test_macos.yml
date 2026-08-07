@@ -50,10 +50,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          curl -O https://raw.githubusercontent.com/Homebrew/homebrew-core/b8292ac3475e57ca407db18dfeb131cc51116da2/Formula/lib/libmagic.rb
-          brew tap-new dev/garak
-          cp libmagic.rb $(brew --repository)/Library/Taps/dev/homebrew-garak/Formula/
-          brew install dev/homebrew-garak/libmagic
+          brew install libmagic
           cd garak
           python -m pip install --upgrade pip
           pip install --no-cache-dir -r requirements.txt

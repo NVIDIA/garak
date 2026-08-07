@@ -15,10 +15,12 @@ PROBES = [
 
 @pytest.mark.requires_storage(required_space_gb=2, path="/")
 def test_Tag_attempt_descrs_translation(mocker):
-    import garak.langservice
+    import garak.services.langservice
     from garak.langproviders.local import Passthru, LocalHFTranslator
 
-    mock_translator_return = mocker.patch.object(garak.langservice, "get_langprovider")
+    mock_translator_return = mocker.patch.object(
+        garak.services.langservice, "get_langprovider"
+    )
 
     mock_translator_return.side_effect = [
         Passthru(

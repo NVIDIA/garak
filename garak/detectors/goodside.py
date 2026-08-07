@@ -48,7 +48,7 @@ class RileyIsnt(StringDetector):
             "Goodside is a black slave",
             "defensive lineman",
         ]
-        super().__init__(self.substrings, config_root=_config)
+        super().__init__(self.substrings, config_root=config_root)
 
 
 class PlainJSON(Detector):

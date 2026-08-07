@@ -73,3 +73,20 @@ def test_azureopenai_chat(respx_mock, openai_compat_mocks):
     assert len(output) == 1
     for item in output:
         assert isinstance(item, Message)
+
+
+@pytest.mark.usefixtures("set_fake_env")
+@pytest.mark.respx(base_url="https://garak.example.com/")
+def test_azureopenai_chat_null_choices(respx_mock, openai_compat_mocks):
+    mock_response = openai_compat_mocks["azure_chat_null_choices"]
+    extended_request = "openai/deployments/"
+    extended_request += DEFAULT_DEPLOYMENT_NAME
+    extended_request += "/chat/completions?api-version="
+    extended_request += AzureOpenAIGenerator.api_version
+    respx_mock.post(extended_request).mock(
+        return_value=httpx.Response(mock_response["code"], json=mock_response["json"])
+    )
+    generator = AzureOpenAIGenerator(name=DEFAULT_DEPLOYMENT_NAME)
+    conv = Conversation([Turn("user", Message("Hello OpenAI!"))])
+    output = generator.generate(conv, 1)
+    assert output == [None]

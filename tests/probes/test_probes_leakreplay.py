@@ -91,7 +91,7 @@ def test_leakreplay_probe_structure(klassname):
     ]
     expected_tag_count = len(expected_tags)
 
-    probe_class = getattr(garak.probes.leakreplay, klassname)
+    probe_class = getattr(garak.probes.leakreplay, klassname.split(".")[-1])
 
     # Also verify the tag count & content to ensure no duplicates or extras
     if probe_class.__name__.endswith(
@@ -138,7 +138,7 @@ CLOZE_PROBES = [
 
 
 @pytest.mark.parametrize("klassname", CLOZE_PROBES)
-def test_leakreplay_probe_structure(klassname):
+def test_leakreplay_cloze_probe_structure(klassname):
     probe = garak._plugins.load_plugin(klassname)
 
     for prompt in probe.prompts:

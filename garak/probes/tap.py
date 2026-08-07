@@ -69,16 +69,20 @@ class TAPCached(garak.probes.Probe):
     jailbreaks from TAP"""
 
     lang = "en"
+    intent = "T009ignore"  # TAP-generated jailbreaks try to replace the model's usual refusal behavior
     primary_detector = "mitigation.MitigationBypass"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
         "quality:Security:PromptStability",
         "payload:jailbreak",
+        "demon:Possible_worlds:World_building:Scenarios",  # TAP guidance explicitly steers attack generation toward roleplaying scenarios
+        "demon:Rhetoric:Persuasion_and_manipulation:Escalating",  # iteratively refines jailbreak prompts through a pruned attack tree,
+        "demon:Language:Code_and_encode:Token",
     ]
     goal = "cause the model to disregard the system prompt"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
-    doc_uri = "https://arxiv.org/abs/2312.02119"
+    doc_uri = "https://arxiv.org/html/2312.02119"
     active = True
 
     DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
@@ -109,15 +113,18 @@ class TAP(garak.probes.Probe):
     to jailbreaking the target are maintained in a tree, which is proactively pruned."""
 
     lang = "en"
+    intent = "T009ignore"  # the search objective is to discover prompts that make the model ignore its active safeguards
     primary_detector = "mitigation.MitigationBypass"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
         "quality:Security:PromptStability",
         "payload:jailbreak",
+        "demon:Rhetoric:Persuasion_and_manipulation:Escalating",  # iteratively escalates attack prompts using tree-of-thought reasoning
+        "demon:Language:Code_and_encode:Token",
     ]
     goal = "cause the model to disregard the system prompt"
-    doc_uri = "https://arxiv.org/abs/2312.02119"
+    doc_uri = "https://arxiv.org/html/2312.02119"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
     active = False
 
@@ -213,7 +220,9 @@ class TAP(garak.probes.Probe):
                 attempt_bar = tqdm.tqdm(total=len(attempts_todo), leave=False)
                 attempt_bar.set_description(self.probename.replace("garak.", ""))
 
-                with Pool(self.parallel_attempts) as attempt_pool:
+                attempt_pool = None
+                try:
+                    attempt_pool = Pool(self.parallel_attempts)
                     for result in attempt_pool.imap_unordered(
                         self._execute_attempt, attempts_todo
                     ):
@@ -221,6 +230,10 @@ class TAP(garak.probes.Probe):
                             result
                         )  # these will be out of original order
                         attempt_bar.update(1)
+                finally:
+                    if attempt_pool is not None:
+                        attempt_pool.close()
+                        attempt_pool.join()
 
             else:
                 attempt_iterator = tqdm.tqdm(attempts_todo, leave=False)
@@ -247,15 +260,18 @@ class PAIR(garak.probes.Probe):
     PAIR settings, making it equivalent to the PAIR jailbreak"""
 
     lang = "en"
+    intent = "T009ignore"  # PAIR is the same iterative jailbreak search tuned to override the model's guardrails
     primary_detector = "mitigation.MitigationBypass"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
         "quality:Security:PromptStability",
         "payload:jailbreak",
+        "demon:Language:Code_and_encode:Token",
+        "demon:Rhetoric:Persuasion_and_manipulation:Escalating",  # iteratively refines attack prompts, building on prior successes
     ]
     goal = "cause the model to disregard the system prompt"
-    doc_uri = "https://arxiv.org/abs/2310.08419"
+    doc_uri = "https://arxiv.org/html/2310.08419"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
     active = False
 
@@ -341,7 +357,9 @@ class PAIR(garak.probes.Probe):
                 attempt_bar = tqdm.tqdm(total=len(attempts_todo), leave=False)
                 attempt_bar.set_description(self.probename.replace("garak.", ""))
 
-                with Pool(self.parallel_attempts) as attempt_pool:
+                attempt_pool = None
+                try:
+                    attempt_pool = Pool(self.parallel_attempts)
                     for result in attempt_pool.imap_unordered(
                         self._execute_attempt, attempts_todo
                     ):
@@ -349,6 +367,10 @@ class PAIR(garak.probes.Probe):
                             result
                         )  # these will be out of original order
                         attempt_bar.update(1)
+                finally:
+                    if attempt_pool is not None:
+                        attempt_pool.close()
+                        attempt_pool.join()
 
             else:
                 attempt_iterator = tqdm.tqdm(attempts_todo, leave=False)

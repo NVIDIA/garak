@@ -104,7 +104,7 @@ You can get help by running ``python -m garak.analyze.aggregate_reports``.
 Probe aggregation
 ^^^^^^^^^^^^^^^^^
 
-One way of achieving parallel probing is by splitting garak probing up into many jobs each with one probe given in ``plugins.probe_spec``.
+One way of achieving parallel probing is by splitting garak probing up into many jobs each selecting one probe via ``run.spec`` (e.g. ``--spec probes.dan.AutoDANCached``).
 Each job should write to a distinct report file.
 When complete, the resulting report JSONL files can be aggregated into one using the ``aggregate_reports`` tool.
 

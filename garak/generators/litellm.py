@@ -172,6 +172,7 @@ class LiteLLMGenerator(Generator):
             response = self.litellm.completion(**params)
         except (
             self.litellm.exceptions.AuthenticationError,  # authentication failed for detected or passed `provider`
+            self.litellm.exceptions.InternalServerError,  # can be raised when the detected provider is not configured
             self.litellm.exceptions.BadRequestError,
             self.litellm.exceptions.APIError,
         ) as e:

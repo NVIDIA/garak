@@ -3,7 +3,7 @@
  * @description Tests for the ProgressBar component.
  */
 
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import ProgressBar from "../ProgressBar";
 

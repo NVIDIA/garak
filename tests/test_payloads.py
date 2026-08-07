@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import csv
+import json
 import tempfile
 import types
 
@@ -79,6 +80,22 @@ def test_non_json_direct_load():
             garak.exception.PayloadFailure
         ):  # blank file aint valid json
             garak.payloads.Director._load_payload("jkasfohgi", t.name)
+
+
+def test_scan_payload_dir_skips_invalid(tmp_path):
+    # An invalid payload (malformed JSON or missing payload_types) must be
+    # skipped, not crash the scan or leak a previous file's types.
+    (tmp_path / "bad.json").write_text("{not valid json", encoding="utf-8")
+    (tmp_path / "nokey.json").write_text(json.dumps({"foo": "bar"}), encoding="utf-8")
+    (tmp_path / "good.json").write_text(
+        json.dumps({"payload_types": ["Security circumvention instructions"]}),
+        encoding="utf-8",
+    )
+
+    found = garak.payloads.Director()._scan_payload_dir(tmp_path)
+
+    assert set(found.keys()) == {"good"}
+    assert found["good"]["types"] == ["Security circumvention instructions"]
 
 
 OK_PAYLOADS = [
@@ -173,3 +190,46 @@ def test_module_load():
 
 def test_module_search():
     assert isinstance(garak.payloads.search(""), types.GeneratorType)
+
+
+@pytest.mark.parametrize("payload_name", PAYLOAD_NAMES)
+def test_payload_intent_field_type(payload_name):
+    p = garak.payloads.load(payload_name)
+    assert isinstance(
+        p.intent, (str, type(None))
+    ), f"Payload {payload_name} intent must be a string or None"
+
+
+@pytest.mark.parametrize("payload_name", PAYLOAD_NAMES)
+def test_payload_intent_valid_if_set(payload_name):
+    import garak.services.intentservice as _intentservice
+    from garak.services.intentservice import validate_intent_specifier
+
+    garak._config.load_config()
+    _intentservice.load()
+
+    p = garak.payloads.load(payload_name)
+    if p.intent is not None:
+        assert validate_intent_specifier(
+            p.intent
+        ), f"Payload {payload_name} intent '{p.intent}' is not a valid typology entry"
+
+
+def test_payload_intent_loaded_from_json():
+    p = garak.payloads.load("slur_terms_en")
+    assert p.intent == "S005hate", "slur_terms_en must have intent S005hate"
+
+
+def test_payload_intent_none_when_absent():
+    p = garak.payloads.load("text_en")
+    assert p.intent is None, "text_en has no intent field and should load as None"
+
+
+def test_payload_schema_accepts_intent():
+    payload = {
+        "garak_payload_name": "test",
+        "payloads": ["pay", "load"],
+        "payload_types": [],
+        "intent": "T999test",
+    }
+    assert garak.payloads._validate_payload(payload) is True
