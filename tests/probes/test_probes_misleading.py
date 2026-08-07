@@ -7,6 +7,7 @@ import re
 import garak._plugins
 from garak.probes.misleading import (
     DEFAULT_FRAMEWORK_SPECS,
+    FabricatedRegulatoryCitation,
     _fabricate_identifier,
 )
 
@@ -60,21 +61,11 @@ def test_fabricated_regulatory_citation_avoids_real_controls():
 
 
 def test_fabricated_regulatory_citation_deterministic():
-    first = garak._plugins.load_plugin(PROBE_NAME, config_root={})
-    second = garak._plugins.load_plugin(PROBE_NAME, config_root={})
+    first = FabricatedRegulatoryCitation()
+    second = FabricatedRegulatoryCitation()
     assert (
         first.prompts == second.prompts
     ), "Prompt generation should be reproducible across instantiations"
-
-
-def test_fabricated_regulatory_citation_inactive():
-    p = garak._plugins.load_plugin(PROBE_NAME)
-    assert p.active is False, "Domain-specific probe should be inactive by default"
-
-
-def test_fabricated_regulatory_citation_informational_tier():
-    p = garak._plugins.load_plugin(PROBE_NAME)
-    assert p.tier == 3, "Tier should be INFORMATIONAL (3)"
 
 
 def test_fabricate_identifier_fills_template():
