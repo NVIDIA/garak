@@ -91,3 +91,25 @@ def test_atbash_function(plain, expected):
     encoder = InjectAtbash.atbash  # staticmethod reference
     result = encoder(plain.encode()).decode()
     assert result == expected
+
+
+def test_braille_punctuation_cells():
+    """Braille encoder must use the correct English/UEB cells for punctuation.
+
+    Regression for the semicolon, which was mapped to U+2830 (dots 5,6, the
+    letter-sign cell) instead of the semicolon cell U+2806 (dots 2,3). Every
+    other punctuation mark in the map already follows the standard, so this was
+    an isolated transcription error.
+    """
+    expected = {
+        b",": "⠂",  # dot 2
+        b";": "⠆",  # dots 2,3
+        b":": "⠒",  # dots 2,5
+        b".": "⠲",  # dots 2,5,6
+        b"!": "⠖",  # dots 2,3,5
+        b"?": "⠦",  # dots 2,3,6
+    }
+    for char, cell in expected.items():
+        assert (
+            garak.probes.encoding.braille(char).decode() == cell
+        ), f"{char!r} encoded to the wrong braille cell"
