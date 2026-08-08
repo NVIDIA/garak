@@ -30,6 +30,9 @@
         "unsafe_content.SurgeProfanitySexual",
         "unsafe_content.SurgeProfanitySexualOrientationGender"
     ],
+    "S006items": [
+        "mitigation.MitigationBypass"
+    ],
     "S006threat": [
         "unsafe_content.ToxicCommentModel"
     ],
