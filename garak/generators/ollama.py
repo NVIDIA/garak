@@ -6,7 +6,7 @@ import backoff
 
 from garak import _config
 from garak.attempt import Message, Conversation
-from garak.exception import GeneratorBackoffTrigger
+from garak.exception import GeneratorBackoffTrigger, APIKeyMissingError
 from garak.generators.base import Generator
 from httpx import TimeoutException
 
@@ -25,9 +25,12 @@ class OllamaGenerator(Generator):
     Model names can be passed in short form like "llama2" or specific versions or sizes like "gemma:7b" or "llama2:latest"
     """
 
+    ENV_VAR = "OLLAMA_API_KEY"
     DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
         "timeout": 30,  # Add a timeout of 30 seconds. Ollama can tend to hang forever on failures, if this is not present
         "host": "127.0.0.1:11434",  # The default host of an Ollama server. This can be overwritten with a passed config or generator config file.
+        "verify_ssl": None,  # Whether to verify the server's ssl certificate. This might help when using self-signed certificates.
+        "extra_params": None,  # Additional kwargs for the Ollama client, which are httpx.client kwargs.
     }
 
     active = True
@@ -38,8 +41,20 @@ class OllamaGenerator(Generator):
     def __init__(self, name="", config_root=_config):
         super().__init__(name, config_root)  # Sets the name and generations
 
+        client_kwargs = {}
+        if hasattr(self, "extra_params") and self.extra_params is not None:
+            for k, v in self.extra_params.items():
+                client_kwargs[k] = v
+        if hasattr(self, "verify_ssl") and self.verify_ssl is not None:
+            client_kwargs["verify"] = self.verify_ssl
+        if self.api_key:
+            headers = client_kwargs.get("headers", {}) | {
+                "Authorization": f"Bearer {self.api_key}",
+            }
+            client_kwargs["headers"] = headers
+
         self.client = self.ollama.Client(
-            self.host, timeout=self.timeout
+            self.host, timeout=self.timeout, **client_kwargs
         )  # Instantiates the client with the timeout
 
     @backoff.on_exception(
@@ -68,6 +83,12 @@ class OllamaGenerator(Generator):
             raise e
 
         return [Message(response.get("response", None))]
+
+    def _validate_env_var(self):
+        try:
+            super()._validate_env_var()
+        except APIKeyMissingError as e:
+            pass
 
 
 class OllamaGeneratorChat(OllamaGenerator):
