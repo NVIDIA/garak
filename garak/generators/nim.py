@@ -95,8 +95,15 @@ class NVOpenAIChat(OpenAICompatible):
             msg = "NIM endpoint not found. Is the model name spelled correctly and the endpoint URI correct?"
             logging.critical(msg, exc_info=nfe)
             raise GarakException(f"🛑 {msg}") from nfe
+        except openai.APIStatusError as oe:
+            msg = (
+                f"NIM generation failed with HTTP {oe.status_code} from {oe.request.url}: "
+                f"{oe.message}"
+            )
+            logging.critical(msg, exc_info=oe)
+            raise GarakException(f"🛑 {msg}") from oe
         except Exception as oe:
-            msg = "NIM generation failed. Is the model name spelled correctly?"
+            msg = f"NIM generation failed: {type(oe).__name__}: {oe}"
             logging.critical(msg, exc_info=oe)
             raise GarakException(f"🛑 {msg}") from oe
 
