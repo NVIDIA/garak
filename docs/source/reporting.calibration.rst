@@ -5,35 +5,100 @@ Calibration
 Are my scores good?
 ^^^^^^^^^^^^^^^^^^^
 
-Garak scores are interpreted compared to the state of the art.
-Using a "bag" of models and the results across those, we calibrate scores based on how those models perform on various probes and detectors.
-The scores we get from the surveyed models are used to get a distribution of possible garak scores.
-When surveying a target model, its pass rate is compared to the average and variation we see across state of the art models in order to estimate how well the target model is doing.
+Garak scores are interpreted by comparing them with results from a bag of
+state-of-the-art models. The surveyed results form a distribution of possible
+garak scores. A target's pass rate is compared with the mean and
+variation in that distribution to estimate how it performs relative to the
+models in the bag.
 
 What models are compared against?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-We look for the following things when composing the model bag for calibrating garak results:
+The following factors guide the composition of a calibration model bag:
 
-* **Quantity** - There should be enough models in the bag to get usable results, and few enough to make running the experiments tractable
-* **Recency** - Older models can give uncompetitive results, so we want recent ones. On the other hand, updating the bag very frequently makes it hard to compare results between garak runs.
-* **Size** - We want models over a variety of sizes. Size is measured in parameter count, regardless of quantisation, and we look for models with 1-10B, 11-99B, and 100B+ parameters.
-* **Provider** - No more than two models in the bag from the same provider
-* **Openness** - Open weights models are easiest for us to survey, so we prefer to use those
+* **Quantity** - There should be enough models in the bag to produce usable
+  results and few enough to keep the calibration run tractable.
+* **Recency** - Older models can give uncompetitive results, so recent models
+  are preferred. Updating the bag too frequently, however, makes results
+  harder to compare across garak runs.
+* **Size** - The bag should include models with 1--10B, 11--99B, and 100B+
+  parameters. Size is measured by parameter count regardless of quantisation.
+* **Provider** - Provider diversity is preferred, with no more than two models
+  per provider where practical.
+* **Openness** - Open-weight models are preferred because they are easier to
+  survey reproducibly.
 
-One can read about which models are in the current calibration, and what configuration was used, from the source in `bag.md <https://github.com/NVIDIA/garak/blob/main/garak/data/calibration/bag.md>`_.
+The current model list and run configuration are maintained in
+`garak/data/calibration/bag.csv <https://github.com/NVIDIA/garak/blob/main/garak/data/calibration/bag.csv>`_
+and
+`garak/configs/bag.yaml <https://github.com/NVIDIA/garak/blob/main/garak/configs/bag.yaml>`_.
+Decimal and binary size categories are derived from the recorded parameter
+count rather than maintained separately. Parameter counts use the developer's
+published total; active or non-embedding counts are retained in the source
+notes, and undisclosed counts are recorded as ``NA``. The exact report inputs
+used to calculate a release, together with its model-bag identifier, are
+recorded in the ``garak_calibration_meta`` section of its versioned
+``calibration-*.json`` file and cross-checked against the model list. Retired
+model lists and run configurations are frozen under
+`garak/data/calibration/archive <https://github.com/NVIDIA/garak/tree/main/garak/data/calibration/archive>`_.
+When report names distinguish reruns with a suffix, each suffix must form a
+complete cohort covering the reused bag's canonical report paths. Partial
+cohorts, path mismatches, and report-layout changes fail the documentation
+build.
+The reference below is generated from those sources during every documentation
+build. Historical calibration files with a null bag identifier remain visible
+with their recorded report inputs.
 
 Z-scores
 ^^^^^^^^
 
-Each probe & detector pair yields an attack success rate / pass rate (pass rate = 1-ASR). We measure the pass rate for each of the detectors that each probe requests. We then calculate the mean pass rate and standard deviation across all the models, as well as the Shapiro-Wilk p-value to gauge how well the scores follow a normal distribution. This mean and standard deviation tell us how well the bag does at a particular probe & model.
+Each probe and detector pair yields an attack success rate (ASR) and a pass
+rate, where pass rate is ``1 - ASR``. Garak calculates the mean pass rate and
+standard deviation across the models, together with the Shapiro-Wilk p-value
+used to assess how closely the scores follow a normal distribution.
 
-When assessing a target, we calculate a "Z-score". Positive Z-scores mean better than average, negative Z-scores mean worse than average. For any probe/detector combination, roughly two-thirds of models get a Z-score between -1.0 and +1.0. The middle 10% of models score -0.125 to +0.125. This is labelled "competitive". A Z-score of +1.0 means the score was one standard deviation better than the mean score other models achieved for this probe & detector.
+When assessing a target, garak calculates a Z-score. Positive Z-scores mean
+better-than-average performance and negative Z-scores mean worse-than-average
+performance. For a probe and detector combination, roughly two-thirds of the
+models receive a Z-score between -1.0 and +1.0. The middle 10% score from
+-0.125 to +0.125 and are labelled "competitive". A Z-score of +1.0 means the
+target scored one standard deviation above the model-bag mean.
 
-* Over +1: much better than average
+* Above +1: much better than average
 * Around +0.1 to -0.1: average
 * Below -1: much worse than average
 
-It's possible to get a great Z-score and a low absolute score. This means that while the target model performed badly, also other state-of-the-art models performed badly. Similarly, one can achieve a low Z-score and high absolute score; this can mean that whiile the model was not very weak in the given instance, other models are even less weak.
+A strong Z-score can accompany a low absolute pass rate when the whole bag
+performs poorly. Likewise, a weak Z-score can accompany a high absolute pass
+rate when the other models perform even better. Garak bounds standard
+deviations at a non-zero minimum to represent the uncertainty of sampling only
+part of the model landscape and to keep Z-score calculation possible when all
+models in the bag agree.
 
-We artifically bound standard deviations at a non-zero minimum, to represent the inherent uncertainty in using an incomplete sample of all LLMs, and to make Z-score calculation possible even when the bag perfectly agrees.
+Values in ``calibration.json`` are pass rates, not attack success rates. Mean
+ASR is therefore ``1 - mean pass rate``.
+
+Update cadence
+^^^^^^^^^^^^^^
+
+The first calibration was published in summer 2024. Updating the bag between
+twice a year and quarterly balances model recency with the need to compare
+results over time.
+
+Current calibration
+^^^^^^^^^^^^^^^^^^^
+
+Generator-specific values such as ``max_tokens``, ``skip_seq_start``, and
+``skip_seq_end`` may be combined with the canonical configuration when a target
+system requires them.
+
+.. calibration-data:: current
+
+Calibration archive
+^^^^^^^^^^^^^^^^^^^
+
+Every versioned historical calibration is included automatically. Where a
+frozen model list and run configuration are available, they are rendered with
+the calibration metadata.
+
+.. calibration-data:: archive

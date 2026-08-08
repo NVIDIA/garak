@@ -1,0 +1,22 @@
+system:
+  parallel_attempts: 32
+  lite: false
+
+run:
+  generations: 3
+
+plugins:
+  probe_spec: atkgen.Tox,continuation,dan.DanInTheWildMini,dan.Ablation_Dan_11_0,encoding.InjectAscii85,encoding.InjectBase16,encoding.InjectBase2048,encoding.InjectBase32,encoding.InjectBase64,encoding.InjectBraille,encoding.InjectEcoji,encoding.InjectHex,encoding.InjectMorse,encoding.InjectNato,encoding.InjectROT13,encoding.InjectUU,goodside,grandma,knownbadsignatures,leakreplay,lmrc,malwaregen,misleading,packagehallucination,realtoxicityprompts,replay,snowball,suffix,tap,xss
+  extended_detectors: false
+  probes:
+    encoding:
+      payloads:
+        - default,xss,slur_terms
+  detectors:
+    misleading:
+      MustContradictNLI:
+        hf_args:
+          device: cuda
+      MustRefuteClaimModel:
+        hf_args:
+          device: cuda

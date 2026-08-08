@@ -3,16 +3,13 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-# calculate calibration data given a list of report.jsonl files
-# input: list of report jsonl
-# process:
-#  for each combination of probe & detector:
-#   compute mean, standard deviation, shapiro-wilk across all input report evals
-# output: json dict: keys are probe/detector, values are dict: keys are mu, sigma, sw
+"""Calculate calibration statistics from one or more garak JSONL reports."""
 
 from collections import defaultdict
+import argparse
 import datetime
 import json
+import re
 import sys
 
 import numpy as np
@@ -21,25 +18,51 @@ import scipy
 import garak
 from garak import _config
 
+_BAG_ID = re.compile(r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?")
 
-def build_score_dict(filenames):
+
+def _validate_bag_id(bag_id):
+    """Return a valid model-bag ID or raise ``ValueError``."""
+    if bag_id is not None and (
+        not isinstance(bag_id, str) or _BAG_ID.fullmatch(bag_id) is None
+    ):
+        raise ValueError(f"invalid model-bag ID: {bag_id!r}")
+    return bag_id
+
+
+def _bag_id_argument(value):
+    """Validate a model-bag ID for argparse."""
+    try:
+        return _validate_bag_id(value)
+    except ValueError as error:
+        raise argparse.ArgumentTypeError(str(error)) from error
+
+
+def build_score_dict(filenames, bag_id=None):
+    """Build calibration statistics with their source and model-bag metadata."""
+    bag_id = _validate_bag_id(bag_id)
+
     eval_scores = defaultdict(list)
     for filename in filenames:
-        records = (
-            json.loads(line.strip())
-            for line in open(filename, "r", encoding="utf-8")
-            if line.strip()
-        )
-        for r in records:
-            if r["entry_type"] == "eval":
-                key = r["probe"] + "/" + r["detector"].replace("detector.", "")
-                if r["total_evaluated"] != 0:
-                    value = float(r["passed"]) / r["total_evaluated"]
-                    eval_scores[key].append(value)
-                else:
-                    print(
-                        f"invalid result check {filename} for {key}: total tests was 0"
+        with open(filename, "r", encoding="utf-8") as report_file:
+            for line in report_file:
+                if not line.strip():
+                    continue
+                record = json.loads(line)
+                if record["entry_type"] == "eval":
+                    key = (
+                        record["probe"]
+                        + "/"
+                        + record["detector"].replace("detector.", "")
                     )
+                    if record["total_evaluated"] != 0:
+                        value = float(record["passed"]) / record["total_evaluated"]
+                        eval_scores[key].append(value)
+                    else:
+                        print(
+                            f"invalid result check {filename} for {key}: "
+                            "total tests was 0"
+                        )
 
     distribution_dict = {}
     for key in eval_scores:
@@ -49,7 +72,8 @@ def build_score_dict(filenames):
         distribution_dict[key] = {"mu": mu, "sigma": sigma, "sw_p": sw_p}
 
     distribution_dict["garak_calibration_meta"] = {
-        "date": str(datetime.datetime.now(datetime.UTC)) + "Z",
+        "bag": bag_id,
+        "date": str(datetime.datetime.now(datetime.timezone.utc)) + "Z",
         "filenames": filenames,
     }
 
@@ -57,10 +81,9 @@ def build_score_dict(filenames):
 
 
 def main(argv=None) -> None:
+    """Run the calibration statistics command-line interface."""
     if argv is None:
         argv = sys.argv[1:]
-
-    import argparse
 
     _config.load_config()
     print(
@@ -85,6 +108,12 @@ def main(argv=None) -> None:
         nargs="*",
         help="One or more garak JSONL report paths (positional)",
     )
+    parser.add_argument(
+        "--bag-id",
+        metavar="ID",
+        type=_bag_id_argument,
+        help="Model-bag ID recorded in the calibration metadata",
+    )
     args = parser.parse_args(argv)
 
     sys.stdout.reconfigure(encoding="utf-8")
@@ -93,7 +122,7 @@ def main(argv=None) -> None:
         parser.error(
             "one or more report paths are required (-r/--report_paths or positional)"
         )
-    distribution_dict = build_score_dict(report_list)
+    distribution_dict = build_score_dict(report_list, bag_id=args.bag_id)
     print(json.dumps(distribution_dict, indent=2, sort_keys=True))
 
 
