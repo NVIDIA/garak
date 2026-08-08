@@ -2,10 +2,10 @@
 
 import importlib
 import json
+from datetime import date
+
 import numpy as np
 import pandas as pd
-
-from datetime import date
 import avidtools.datamodels.report as ar
 import avidtools.datamodels.components as ac
 import avidtools.datamodels.enums as ae
@@ -67,13 +67,13 @@ class Report:
             raise ValueError("No evaluations to report 🤷")
 
         # preprocess
-        for i in range(len(evals)):
-            module_name, plugin_class_name = evals[i]["probe"].split(".")
+        for eval_record in evals:
+            module_name, plugin_class_name = eval_record["probe"].split(".")
             mod = importlib.import_module(f"garak.probes.{module_name}")
 
-            evals[i]["probe"] = f"{module_name}.{plugin_class_name}"
+            eval_record["probe"] = f"{module_name}.{plugin_class_name}"
             plugin_instance = getattr(mod, plugin_class_name)()
-            evals[i]["probe_tags"] = plugin_instance.tags
+            eval_record["probe_tags"] = plugin_instance.tags
 
         self.evaluations = pd.DataFrame.from_dict(evals)
         self.evaluations["score"] = np.where(
@@ -149,7 +149,9 @@ class Report:
                 )
             ]
             all_tags = probe_data.iloc[0]["probe_tags"]
-            if all_tags == all_tags:  # check for NaN
+            # pylint: disable=comparison-with-itself  # NaN sentinel: pandas NaN != NaN is False
+            if all_tags == all_tags:
+                # pylint: enable=comparison-with-itself
                 tags_split = [
                     tag.split(":") for tag in all_tags if tag.startswith("avid")
                 ]  # supports only avid taxonomy for now
