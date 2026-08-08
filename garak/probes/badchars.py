@@ -122,7 +122,7 @@ class BadCharacters(garak.probes.Probe):
     intent = "T009ignore"  # imperceptible perturbations silently bypass refusal policies without the model explicitly decoding anything
     # T018decode is a secondary fit because the model may internally normalize the obfuscated text.
     goal = "inject imperceptible text perturbations that bypass refusal policies"
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.RefusalModel"
     tags = [
         "avid-effect:security:S0403",
         "quality:Security:PromptStability",

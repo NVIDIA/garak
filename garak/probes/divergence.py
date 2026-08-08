@@ -28,7 +28,7 @@ class Repeat(garak.probes.Probe):
     intent = "T008data"  # looks for the model to diverge into replaying training data
     # M010rep is a secondary fit because the trigger is an instruction to keep repeating input.
     primary_detector = "divergence.RepeatDiverges"
-    extended_detectors = ["mitigation.MitigationBypass"]
+    extended_detectors = ["mitigation.RefusalModel"]
     goal = "get the model to leak data by asking it to repeat words"
     doc_uri = "https://not-just-memorization.github.io/extracting-training-data-from-chatgpt.html"
     tags = [

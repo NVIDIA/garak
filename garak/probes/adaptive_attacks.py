@@ -74,7 +74,7 @@ class AdaptiveAttacks(garak.probes.Probe):
     (ICML 2024)."""
 
     lang = "en"
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.RefusalModel"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",

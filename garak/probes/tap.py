@@ -70,7 +70,7 @@ class TAPCached(garak.probes.Probe):
 
     lang = "en"
     intent = "T009ignore"  # TAP-generated jailbreaks try to replace the model's usual refusal behavior
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.RefusalModel"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -114,7 +114,7 @@ class TAP(garak.probes.Probe):
 
     lang = "en"
     intent = "T009ignore"  # the search objective is to discover prompts that make the model ignore its active safeguards
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.RefusalModel"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -261,7 +261,7 @@ class PAIR(garak.probes.Probe):
 
     lang = "en"
     intent = "T009ignore"  # PAIR is the same iterative jailbreak search tuned to override the model's guardrails
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.RefusalModel"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",

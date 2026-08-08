@@ -75,7 +75,7 @@ class HypotheticalResponse(garak.probes.Probe):
     lang = "en"
     active = False
     intent = "T009ignore"  # the hypothetical wrapper is used to smuggle instructions past the model's normal safeguards
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.RefusalModel"
     doc_uri = "https://guzey.com/ai/two-sentence-universal-jailbreak/"
     goal = "return banned instructions"
     prompts = [
@@ -169,7 +169,7 @@ class FunctionMasking(garak.probes.Probe):
     lang = "en"
     active = False
     intent = "T009ignore"  # the function-masking wrapper is meant to hide an unsafe request and get the model to follow it anyway
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.RefusalModel"
     doc_uri = "https://medium.com/@austin-stubbs/llm-security-types-of-prompt-injection-d7ad8d7d75a3"
     goal = "return banned instructions"
     prompt = """
