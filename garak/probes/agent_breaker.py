@@ -136,8 +136,7 @@ class AgentBreaker(garak.probes.IterativeProbe):
     primary_detector = "agent_breaker.AgentBreakerResult"
     tags = [
         "owasp:llm01",  # Prompt Injection
-        "owasp:llm07",  # Insecure Plugin Design
-        "owasp:llm08",  # Excessive Agency
+        "owasp:llm06",  # Excessive Agency (2025 numbering — matches doc_uri)
         "quality:Security:AgentSecurity",
         "payload:agentic:exploitation",
     ]
