@@ -1,4 +1,5 @@
 import importlib
+import json
 import pytest
 import respx
 import httpx
@@ -214,3 +215,119 @@ def test_error_on_nonexistant_model_chat_mocked(respx_mock):
     with pytest.raises(ollama.ResponseError):
         conv = Conversation([Turn("user", Message("This shouldnt work"))])
         gen.generate(conv)
+
+
+@pytest.mark.skipif(
+    not all(
+        [
+            importlib.util.find_spec(m)
+            for m in OllamaGeneratorChat.extra_dependency_names
+        ]
+    ),
+    reason="missing optional dependency",
+)
+@pytest.mark.respx(base_url="http://" + OllamaGenerator.DEFAULT_PARAMS["host"])
+def test_ollama_chat_forwards_generation_options(respx_mock):
+    mock_response = {
+        "model": "mistral",
+        "message": {"role": "assistant", "content": "Hello how are you?"},
+    }
+    respx_mock.post("/api/chat").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
+    gen = OllamaGeneratorChat("mistral")
+    gen.max_tokens = 10
+    gen.temperature = 0.1
+    gen.top_k = 3
+    gen.seed = 42
+    conv = Conversation([Turn("user", Message("Bla bla"))])
+    gen.generate(conv)
+
+    sent = json.loads(respx_mock.calls.last.request.content)
+    assert sent["options"]["num_predict"] == 10
+    assert sent["options"]["temperature"] == 0.1
+    assert sent["options"]["top_k"] == 3
+    assert sent["options"]["seed"] == 42
+
+
+@pytest.mark.skipif(
+    not all(
+        [importlib.util.find_spec(m) for m in OllamaGenerator.extra_dependency_names]
+    ),
+    reason="missing optional dependency",
+)
+@pytest.mark.respx(base_url="http://" + OllamaGenerator.DEFAULT_PARAMS["host"])
+def test_ollama_forwards_generation_options(respx_mock):
+    mock_response = {"model": "mistral", "response": "Hello how are you?"}
+    respx_mock.post("/api/generate").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
+    gen = OllamaGenerator("mistral")
+    gen.max_tokens = 10
+    gen.temperature = 0.1
+    gen.top_k = 3
+    conv = Conversation([Turn("user", Message("Bla bla"))])
+    gen.generate(conv)
+
+    sent = json.loads(respx_mock.calls.last.request.content)
+    assert sent["options"]["num_predict"] == 10
+    assert sent["options"]["temperature"] == 0.1
+    assert sent["options"]["top_k"] == 3
+
+
+@pytest.mark.skipif(
+    not all(
+        [
+            importlib.util.find_spec(m)
+            for m in OllamaGeneratorChat.extra_dependency_names
+        ]
+    ),
+    reason="missing optional dependency",
+)
+@pytest.mark.respx(base_url="http://" + OllamaGenerator.DEFAULT_PARAMS["host"])
+def test_ollama_chat_sends_default_max_tokens(respx_mock):
+    # max_tokens defaults to 150 in Generator.DEFAULT_PARAMS, so an unconfigured
+    # generator still caps output. Nothing else is set, so no other option is sent.
+    mock_response = {
+        "model": "mistral",
+        "message": {"role": "assistant", "content": "Hello how are you?"},
+    }
+    respx_mock.post("/api/chat").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
+    gen = OllamaGeneratorChat("mistral")
+    conv = Conversation([Turn("user", Message("Bla bla"))])
+    gen.generate(conv)
+
+    sent = json.loads(respx_mock.calls.last.request.content)
+    assert sent["options"] == {"num_predict": gen.max_tokens}
+
+
+@pytest.mark.skipif(
+    not all(
+        [
+            importlib.util.find_spec(m)
+            for m in OllamaGeneratorChat.extra_dependency_names
+        ]
+    ),
+    reason="missing optional dependency",
+)
+@pytest.mark.respx(base_url="http://" + OllamaGenerator.DEFAULT_PARAMS["host"])
+def test_ollama_chat_honours_suppressed_params(respx_mock):
+    # suppression applies at request-assembly time, so it wins over a set attribute
+    mock_response = {
+        "model": "mistral",
+        "message": {"role": "assistant", "content": "Hello how are you?"},
+    }
+    respx_mock.post("/api/chat").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
+    gen = OllamaGeneratorChat("mistral")
+    gen.temperature = 0.1
+    gen.suppressed_params = {"temperature"}
+    conv = Conversation([Turn("user", Message("Bla bla"))])
+    gen.generate(conv)
+
+    sent = json.loads(respx_mock.calls.last.request.content)
+    assert "temperature" not in sent["options"]
+    assert sent["options"]["num_predict"] == gen.max_tokens
