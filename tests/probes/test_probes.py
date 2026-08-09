@@ -362,3 +362,13 @@ def test_encoding_probe_attempt_carries_payload_intent(loaded_intent_service):
     ), "attempt intent must reflect the payload-specific intent set in _attempt_prestore_hook"
 
 
+
+
+def test_probe_empty_prompt_set_returns_no_attempts():
+    # A probe whose prompt set is empty (for instance one emptied by
+    # translation) must return no attempts rather than raising IndexError at
+    # prompts[0] in Probe.probe(). See issue #2026.
+    p = _plugins.load_plugin("probes.test.Test")
+    p.prompts = []
+    g = _plugins.load_plugin("generators.test.Blank")
+    assert list(p.probe(g)) == []
