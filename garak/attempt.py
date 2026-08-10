@@ -196,7 +196,7 @@ class Attempt:
     :param conversations: conversation turn histories
     :type conversations: List(Conversation)
     :param reverse_translation_outputs: The reverse translation of output based on the original language of the probe
-    :type reverse_translation_outputs: List(str)
+    :type reverse_translation_outputs: List[Optional[Message]]
     :param intent: None, or the primary intent type in this attempt
     :type notes: str|None
 
@@ -261,7 +261,7 @@ class Attempt:
         self.goal = goal
         self.seq = seq
         self.reverse_translation_outputs = (
-            {} if reverse_translation_outputs is None else reverse_translation_outputs
+            [] if reverse_translation_outputs is None else reverse_translation_outputs
         )
         self.intent = intent
 

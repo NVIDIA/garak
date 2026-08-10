@@ -639,6 +639,51 @@ def test_outputs_for():
     assert all_output_a.outputs_for("en") == reverse_outputs
 
 
+def test_reverse_translation_outputs_defaults_to_list():
+    """The default for reverse_translation_outputs must be a list, not a dict.
+
+    Regression for the type drift between the docstring (``List[str]``) and the
+    former ``{}`` default: list operations (``append``, indexing, ``len``) fail
+    on a dict, and ``outputs_for`` silently returned no outputs for translated
+    runs when the field was never populated.
+    """
+    attempt = garak.attempt.Attempt()
+    assert attempt.reverse_translation_outputs == []
+    assert isinstance(attempt.reverse_translation_outputs, list)
+
+
+def test_outputs_for_unset_reverse_translation_returns_empty_list():
+    attempt = garak.attempt.Attempt()
+    attempt.prompt = garak.attempt.Message("hello", lang="en")
+    attempt.outputs = [garak.attempt.Message("bonjour", lang="fr")]
+
+    assert attempt.outputs_for("en") == [garak.attempt.Message("bonjour", lang="fr")]
+    assert attempt.outputs_for("de") == []
+    assert isinstance(attempt.outputs_for("de"), list)
+
+
+def test_reverse_translation_outputs_as_dict_round_trip():
+    attempt = garak.attempt.Attempt()
+    attempt.prompt = garak.attempt.Message("hello", lang="en")
+    attempt.outputs = [garak.attempt.Message("bonjour", lang="fr")]
+    attempt.reverse_translation_outputs = [
+        garak.attempt.Message("this is a test", lang="en"),
+        None,
+    ]
+
+    data = attempt.as_dict()
+    entries = data["reverse_translation_outputs"]
+    assert len(entries) == 2
+    assert entries[0]["text"] == "this is a test"
+    assert entries[0]["lang"] == "en"
+    assert entries[1] is None
+
+    # Reconstructing the serialized Message must preserve its fields.
+    restored = garak.attempt.Message(**entries[0])
+    assert restored.text == "this is a test"
+    assert restored.lang == "en"
+
+
 def test_attempt_prompt_no_str():
     with pytest.raises(TypeError):
         attempt = garak.attempt.Attempt(prompt="nine two one eight black")
