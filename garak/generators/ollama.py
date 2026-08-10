@@ -1,5 +1,6 @@
 """Ollama interface"""
 
+import base64
 from typing import List, Union
 
 import backoff
@@ -108,6 +109,29 @@ class OllamaGeneratorChat(OllamaGenerator):
         return [
             Message(response.get("message", {}).get("content", None))
         ]  # Return the response or None
+
+
+class OllamaVision(OllamaGeneratorChat):
+    """Interface for multimodal Ollama models that accept text and images.
+
+    Use with vision models like gemma3, llava, or bakllava. Images attached to
+    messages are base64-encoded and passed via the Ollama chat API ``images`` field.
+    """
+
+    modality = {"in": {"text", "image"}, "out": {"text"}}
+
+    @staticmethod
+    def _conversation_to_list(conversation: Conversation) -> list[dict]:
+        """Convert Conversation to list of dicts, including base64 images."""
+        turn_list = []
+        for turn in conversation.turns:
+            entry = {"role": turn.role, "content": turn.content.text or ""}
+            if turn.content.data is not None and turn.content.data_type is not None:
+                mime = turn.content.data_type[0] or ""
+                if "image" in mime:
+                    entry["images"] = [base64.b64encode(turn.content.data).decode("utf-8")]
+            turn_list.append(entry)
+        return turn_list
 
 
 DEFAULT_CLASS = "OllamaGeneratorChat"
