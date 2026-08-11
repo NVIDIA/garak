@@ -375,6 +375,47 @@ class TestBuildToolConfigs:
         assert set(names) == {"tool_a", "tool_b"}
         assert len(names) == 2
 
+    def test_non_dict_tool_analyses_returns_empty(self):
+        """A list instead of a dict must degrade to no configs, not crash."""
+        probe = _make_probe()
+        probe.agent_analysis = {
+            "tool_analyses": [{"name": "tool_a"}],
+            "priority_targets": [],
+        }
+        assert probe._build_tool_configs() == []
+
+    def test_non_string_priority_targets_skipped(self):
+        """Malformed priority entries are skipped; valid ones still resolve."""
+        probe = _make_probe()
+        probe.agent_analysis = {
+            "tool_analyses": {
+                "tool_a": {"attack_prompts": ["a"]},
+                "tool_b": {"attack_prompts": ["b"]},
+            },
+            "priority_targets": [None, "tool_b - dangerous"],
+        }
+        configs = probe._build_tool_configs()
+        names = [name for name, _ in configs]
+        assert names == ["tool_b", "tool_a"]
+
+
+class TestFormatToolsForAnalysis:
+    """Tool formatting must tolerate malformed agent config entries."""
+
+    def test_non_dict_tool_entries_skipped(self):
+        probe = _make_probe()
+        probe.agent_config = {
+            "tools": ["rm -rf /", {"name": "ok", "description": "fine"}],
+        }
+        rendered = probe._format_tools_for_analysis()
+        assert "### Tool: ok" in rendered
+        assert "rm -rf /" not in rendered
+
+    def test_non_list_tools_returns_empty(self):
+        probe = _make_probe()
+        probe.agent_config = {"tools": "not-a-list"}
+        assert probe._format_tools_for_analysis() == ""
+
 
 # ===========================================================================
 # _attack_single_tool

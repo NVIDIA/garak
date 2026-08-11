@@ -327,11 +327,29 @@ class AgentBreaker(garak.probes.IterativeProbe):
         """
         tool_analyses = self.agent_analysis.get("tool_analyses", {})
         priority_targets = self.agent_analysis.get("priority_targets", [])
+        if not isinstance(tool_analyses, dict):
+            logging.warning(
+                f"{self.__class__.__name__} # tool_analyses is not a dict; "
+                "ignoring analyses"
+            )
+            tool_analyses = {}
+        if not isinstance(priority_targets, list):
+            logging.warning(
+                f"{self.__class__.__name__} # priority_targets is not a list; "
+                "ignoring priority ordering"
+            )
+            priority_targets = []
 
         configs: List[Tuple[str, dict]] = []
         seen: set = set()
 
         for entry in priority_targets:
+            if not isinstance(entry, str):
+                logging.warning(
+                    f"{self.__class__.__name__} # Skipping malformed priority "
+                    f"target entry: {entry!r}"
+                )
+                continue
             target_name = entry.split(" - ")[0].strip()
             for tool_name, analysis in tool_analyses.items():
                 if (
@@ -426,7 +444,20 @@ class AgentBreaker(garak.probes.IterativeProbe):
     def _format_tools_for_analysis(self) -> str:
         """Format the tools from YAML config for analysis by red team model"""
         tools_str = ""
-        for tool in self.agent_config.get("tools", []):
+        tools = self.agent_config.get("tools", [])
+        if not isinstance(tools, list):
+            logging.warning(
+                f"{self.__class__.__name__} # agent config 'tools' is not a list; "
+                "ignoring for analysis"
+            )
+            return tools_str
+        for tool in tools:
+            if not isinstance(tool, dict):
+                logging.warning(
+                    f"{self.__class__.__name__} # Skipping malformed tool entry "
+                    f"in agent config: {tool!r}"
+                )
+                continue
             tools_str += f"\n### Tool: {tool.get('name', 'unnamed')}\n"
             tools_str += f"Description: {tool.get('description', 'No description')}\n"
 
