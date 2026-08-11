@@ -147,6 +147,62 @@ def test_calculate_ci_from_report_success(temp_report):
     assert ci_lower <= ci_upper
 
 
+def _wilson_digest_report(temp_report):
+    """Report digest with a 50/50 (0% failure) probe/detector pair."""
+    return temp_report([
+        {"entry_type": "init", "garak_version": "0.11"},
+        {"entry_type": "start_run setup", "run.eval_threshold": 0.5},
+        {
+            "entry_type": "digest",
+            "eval": {
+                "test_group": {
+                    "encoding.InjectBase64": {
+                        "mitigation.MitigationBypass": {
+                            "total_evaluated": 50,
+                            "passed": 50,
+                            "score": 1.0,
+                        }
+                    }
+                }
+            },
+        },
+    ])
+
+
+def test_calculate_ci_from_report_wilson_method(temp_report):
+    """The Wilson method computes a non-degenerate interval from digest aggregates."""
+    report = _wilson_digest_report(temp_report)
+
+    ci_results, ci_methods = (
+        garak.analyze.ci_calculator.calculate_ci_from_report_with_methods(
+            str(report), confidence_method="wilson"
+        )
+    )
+
+    key = ("encoding.InjectBase64", "mitigation.MitigationBypass")
+    assert key in ci_results
+    assert ci_methods[key] == "wilson"
+    ci_lower, ci_upper = ci_results[key]
+    assert 0 <= ci_lower < ci_upper <= 30
+
+
+def test_calculate_ci_from_report_bootstrap_degenerate_falls_back_to_wilson(temp_report):
+    """Rebuilding a 0%/100% report must not revert to a zero-width bootstrap CI."""
+    report = _wilson_digest_report(temp_report)
+
+    ci_results, ci_methods = (
+        garak.analyze.ci_calculator.calculate_ci_from_report_with_methods(
+            str(report)
+        )
+    )
+
+    key = ("encoding.InjectBase64", "mitigation.MitigationBypass")
+    assert key in ci_results
+    assert ci_methods[key] == "wilson"
+    ci_lower, ci_upper = ci_results[key]
+    assert ci_lower < ci_upper
+
+
 def test_update_eval_entries_with_ci(temp_report):
     """Verify eval entries are updated with CI values"""
     report = temp_report([
@@ -180,6 +236,36 @@ def test_update_eval_entries_with_ci(temp_report):
         assert eval_entry["confidence_lower"] == pytest.approx(0.652, abs=0.001)
         assert eval_entry["confidence_upper"] == pytest.approx(0.848, abs=0.001)
         assert eval_entry["confidence_method"] == _config.reporting.confidence_interval_method
+
+    output_path.unlink()
+
+
+def test_update_eval_entries_with_ci_per_entry_method(temp_report):
+    """Per-entry confidence_methods override the global method label."""
+    report = temp_report([
+        {"entry_type": "init"},
+        {
+            "entry_type": "eval",
+            "probe": "test.Test",
+            "detector": "test.Detector",
+            "passed": 10,
+            "total_evaluated": 10,
+        },
+    ])
+
+    output_path = report.with_suffix(".method.jsonl")
+    garak.analyze.ci_calculator.update_eval_entries_with_ci(
+        str(report),
+        {("test.Test", "test.Detector"): (0.0, 27.8)},
+        output_path=str(output_path),
+        confidence_method="bootstrap",
+        confidence_methods={("test.Test", "test.Detector"): "wilson"},
+    )
+
+    with open(output_path, "r") as f:
+        lines = f.readlines()
+        eval_entry = json.loads(lines[1])
+        assert eval_entry["confidence_method"] == "wilson"
 
     output_path.unlink()
 
@@ -367,6 +453,27 @@ def test_rebuild_cis_mutually_exclusive_flags(temp_report, tmp_path):
     )
     assert result == 1, "Should return 1 when both output_path and overwrite are set"
     assert not custom_output.exists(), "No output file should be created"
+
+
+def test_rebuild_cis_wilson_method(temp_report, request):
+    """rebuild_cis_for_report supports rebuilding with the Wilson method."""
+    from garak.analyze.rebuild_cis import rebuild_cis_for_report
+
+    report = temp_report(REBUILD_REPORT_ENTRIES)
+
+    _config.reporting.confidence_interval_method = "wilson"
+    result = rebuild_cis_for_report(str(report), overwrite=True)
+    assert result == 0
+
+    with open(report, "r") as f:
+        eval_entry = next(
+            json.loads(line)
+            for line in f
+            if line.strip() and json.loads(line).get("entry_type") == "eval"
+        )
+    assert eval_entry["confidence_method"] == "wilson"
+    assert "confidence_lower" in eval_entry
+    assert "confidence_upper" in eval_entry
 
 
 def test_extract_reporting_config_from_setup(temp_report):

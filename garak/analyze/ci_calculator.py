@@ -9,6 +9,10 @@ from typing import Optional, Dict, List, Tuple
 from garak import _config
 from garak.analyze.bootstrap_ci import calculate_bootstrap_ci
 from garak.analyze.detector_metrics import get_detector_metrics
+from garak.analyze.wilson_ci import (
+    calculate_wilson_ci,
+    fallback_wilson_if_degenerate,
+)
 
 
 def _get_report_digest(report_path: str) -> Optional[dict]:
@@ -68,81 +72,112 @@ def calculate_ci_from_report(
     report_path: str,
     probe_detector_pairs: Optional[List[Tuple[str, str]]] = None,
     num_iterations: Optional[int] = None,
-    confidence_level: Optional[float] = None
+    confidence_level: Optional[float] = None,
+    confidence_method: Optional[str] = None,
 ) -> Dict[Tuple[str, str], Tuple[float, float]]:
-    """Calculate bootstrap CIs for probe/detector pairs using report digest aggregates"""
+    """Calculate CIs for probe/detector pairs using report digest aggregates.
+
+    The active method (bootstrap by default, or Wilson) is read from config
+    unless overridden via ``confidence_method``. Degenerate bootstrap
+    intervals (0%/100% observed rate) fall back to Wilson so rebuilt reports
+    stay honest, matching the evaluator behavior.
+    """
+    ci_results, _ = calculate_ci_from_report_with_methods(
+        report_path,
+        probe_detector_pairs=probe_detector_pairs,
+        num_iterations=num_iterations,
+        confidence_level=confidence_level,
+        confidence_method=confidence_method,
+    )
+    return ci_results
+
+
+def calculate_ci_from_report_with_methods(
+    report_path: str,
+    probe_detector_pairs: Optional[List[Tuple[str, str]]] = None,
+    num_iterations: Optional[int] = None,
+    confidence_level: Optional[float] = None,
+    confidence_method: Optional[str] = None,
+) -> Tuple[Dict[Tuple[str, str], Tuple[float, float]], Dict[Tuple[str, str], str]]:
+    """Calculate CIs, also returning the method used for each pair.
+
+    Returns ``(ci_results, ci_methods)`` where ``ci_methods[key]`` is
+    ``"bootstrap"`` or ``"wilson"`` for every pair in ``ci_results``.
+    """
     report_file = Path(report_path)
-    
+
     if not report_file.exists():
         raise FileNotFoundError(
             f"Report file not found at: {report_file}. "
             f"Expected to find garak report JSONL file."
         )
-    
+
     # Pull defaults from config
     if num_iterations is None:
         num_iterations = _config.reporting.bootstrap_num_iterations
     if confidence_level is None:
         confidence_level = _config.reporting.bootstrap_confidence_level
-    
+    ci_method = confidence_method or _config.reporting.confidence_interval_method
+
     # Read digest entry from report
     digest = _get_report_digest(str(report_file))
-    
+
     if digest is None:
         raise ValueError(
             f"Report {report_file} missing 'digest' entry. "
             f"Digest is required for CI calculation from aggregates. "
             f"Ensure report was generated with garak v0.11.0 or later."
         )
-    
+
     eval_data = digest.get("eval", {})
     if not eval_data:
         logging.warning("No evaluation data found in digest for %s", report_file)
-        return {}
-    
+        return {}, {}
+
     # Load detector metrics for Se/Sp correction
     detector_metrics = get_detector_metrics()
     min_sample_size = _config.reporting.bootstrap_min_sample_size
-    
+
     ci_results = {}
-    
+    ci_methods = {}
+
     # Iterate through digest structure: probe_group -> probe_class -> detector
     for probe_group in eval_data:
         for probe_key in eval_data[probe_group]:
             if probe_key == "_summary":
                 continue
-            
+
             # Parse probe module and class from key (format: "module.class")
             if "." not in probe_key:
                 continue
-            
+
             probe_name = probe_key
-            
+
             for detector_key in eval_data[probe_group][probe_key]:
                 if detector_key == "_summary":
                     continue
-                
+
                 detector_name = detector_key
-                
+
                 # Skip if not in requested pairs (if specified)
                 if probe_detector_pairs is not None:
                     if (probe_name, detector_name) not in probe_detector_pairs:
                         continue
-                
+
                 detector_result = eval_data[probe_group][probe_key][detector_key]
-                
+
                 # Extract aggregates
                 total = detector_result.get("total_evaluated", 0)
                 passed = detector_result.get("passed", 0)
-                
+
                 if total == 0:
                     logging.warning(
                         "No evaluated samples for probe=%s, detector=%s",
                         probe_name,
-                        detector_name
+                        detector_name,
                     )
                     continue
-                
+
                 # Check minimum sample size
                 if total < min_sample_size:
                     logging.warning(
@@ -150,39 +185,66 @@ def calculate_ci_from_report(
                         probe_name,
                         detector_name,
                         total,
-                        min_sample_size
+                        min_sample_size,
                     )
                     continue
-                
+
                 # Reconstruct binary data from aggregates
                 # Order irrelevant: bootstrap resamples randomly with replacement
                 failed = total - passed
                 binary_results = _reconstruct_binary_from_aggregates(passed, failed)
-                
+
                 # Get detector Se/Sp for correction
                 se, sp = detector_metrics.get_detector_se_sp(detector_key)
-                
-                # Calculate bootstrap CI
-                ci_result = calculate_bootstrap_ci(
-                    results=binary_results,
-                    sensitivity=se,
-                    specificity=sp,
-                    num_iterations=num_iterations,
-                    confidence_level=confidence_level
-                )
-                
-                if ci_result is not None:
-                    ci_results[(probe_name, detector_name)] = ci_result
+
+                if ci_method == "wilson":
+                    ci_result = calculate_wilson_ci(
+                        successes=failed,
+                        n=total,
+                        confidence_level=confidence_level,
+                    )
+                    method = "wilson" if ci_result is not None else None
+                elif ci_method == "bootstrap":
+                    ci_result = calculate_bootstrap_ci(
+                        results=binary_results,
+                        sensitivity=se,
+                        specificity=sp,
+                        num_iterations=num_iterations,
+                        confidence_level=confidence_level,
+                    )
+                    if ci_result is not None:
+                        ci_lower, ci_upper, method = fallback_wilson_if_degenerate(
+                            ci_result[0],
+                            ci_result[1],
+                            successes=failed,
+                            n=total,
+                            confidence_level=confidence_level,
+                        )
+                        ci_result = (ci_lower, ci_upper)
+                else:
+                    logging.warning(
+                        "Unknown CI method '%s' for probe=%s, detector=%s",
+                        ci_method,
+                        probe_name,
+                        detector_name,
+                    )
+                    continue
+
+                if ci_result is not None and method is not None:
+                    key = (probe_name, detector_name)
+                    ci_results[key] = ci_result
+                    ci_methods[key] = method
                     logging.debug(
-                        "Calculated CI for %s / %s: [%.2f, %.2f] (n=%d)",
+                        "Calculated %s CI for %s / %s: [%.2f, %.2f] (n=%d)",
+                        method,
                         probe_name,
                         detector_name,
                         ci_result[0],
                         ci_result[1],
-                        total
+                        total,
                     )
-    
-    return ci_results
+
+    return ci_results, ci_methods
 
 
 def update_eval_entries_with_ci(
@@ -190,7 +252,8 @@ def update_eval_entries_with_ci(
     ci_results: Dict[Tuple[str, str], Tuple[float, float]],
     output_path: Optional[str] = None,
     confidence_method: Optional[str] = None,
-    confidence_level: Optional[float] = None
+    confidence_level: Optional[float] = None,
+    confidence_methods: Optional[Dict[Tuple[str, str], str]] = None,
 ) -> None:
     """Update eval entries in report JSONL with new CI values, overwrites if output_path is None"""
     if confidence_method is None:
@@ -249,7 +312,11 @@ def update_eval_entries_with_ci(
                     
                     if key in ci_results:
                         ci_lower, ci_upper = ci_results[key]
-                        entry["confidence_method"] = confidence_method
+                        entry["confidence_method"] = (
+                            confidence_methods.get(key, confidence_method)
+                            if confidence_methods is not None
+                            else confidence_method
+                        )
                         entry["confidence"] = str(confidence_level)
                         entry["confidence_lower"] = ci_lower / 100.0  # Store as 0-1 scale
                         entry["confidence_upper"] = ci_upper / 100.0

@@ -40,7 +40,7 @@ def test_calculate_wilson_ci_boundary_values_match_known_intervals():
 
     none_success = calculate_wilson_ci(0, 10)
     assert none_success is not None
-    assert none_success[0] == 0.0
+    assert none_success[0] == pytest.approx(0.0, abs=1e-12)
     assert none_success[1] == pytest.approx(27.8, abs=0.5)
 
 
