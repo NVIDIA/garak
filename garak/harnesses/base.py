@@ -283,7 +283,10 @@ class Harness(Configurable):
             if len(attempt_results) == 0:
                 logging.warning("zero attempt results: probe %s" % probe.probename)
 
-            evaluator.evaluate(attempt_results)
+            evaluator.evaluate(
+                attempt_results,
+                probename=".".join(probe.probename.split(".")[-2:]),
+            )
 
         self._end_run_hook()
 

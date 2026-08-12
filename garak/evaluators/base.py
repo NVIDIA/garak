@@ -221,17 +221,42 @@ class Evaluator:
 
         return eval_record
 
-    def evaluate(self, attempts: Iterable[garak.attempt.Attempt]) -> None:
+    def evaluate(
+        self, attempts: Iterable[garak.attempt.Attempt], probename: str = None
+    ) -> None:
         """evaluate feedback from detectors
 
         expects a list of attempts that correspond to one probe
         outputs results once per detector
+
+        :param probename: dotted probe name, used to record a zero-attempt probe
+            in the report when ``attempts`` is empty
         """
 
         if isinstance(attempts, list) and len(attempts) == 0:
-            logging.error(
-                "evaluators.base.Evaluator.evaluate called with list of 0 attempts, expected len 1+ or iterable"
+            logging.warning(
+                "evaluators.base.Evaluator.evaluate called with 0 attempts for probe %s",
+                probename,
             )
+            if probename is not None:
+                # a probe can legitimately yield no attempts (e.g. a prompt set
+                # emptied by translation); still write a zero-count probe_summary
+                # so the report shows the probe ran rather than leaving "did not
+                # run" indistinguishable from "was never configured"
+                empty_summary = {
+                    "entry_type": "probe_summary",
+                    "probe": probename,
+                    "inference_counts": {"total_evaluated": 0, "nones": 0},
+                    "detection_counts": {
+                        "detectors": [],
+                        "passed": 0,
+                        "fails": 0,
+                        "nones": 0,
+                    },
+                }
+                _config.transient.reportfile.write(
+                    json.dumps(empty_summary, ensure_ascii=False) + "\n"
+                )
             return
 
         attempts = list(

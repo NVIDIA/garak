@@ -108,6 +108,43 @@ def _eval_rows(report_path: Path) -> list[dict]:
     return rows
 
 
+def _probe_summaries(report_path: Path) -> list[dict]:
+    rows = []
+    for line in report_path.read_text(encoding="utf-8").splitlines():
+        if not line:
+            continue
+        row = json.loads(line)
+        if row.get("entry_type") == "probe_summary":
+            rows.append(row)
+    return rows
+
+
+def test_zero_attempt_probe_writes_summary(tmp_path):
+    """A probe that produces no attempts must still leave a probe_summary so the
+    report distinguishes "ran but produced nothing" from "never configured"."""
+    reportfile = tmp_path / "report.report.jsonl"
+    with _capture_report(reportfile):
+        evaluator = ThresholdEvaluator()
+        evaluator.evaluate([], probename="test.EmptyProbe")
+
+    summaries = _probe_summaries(reportfile)
+    assert len(summaries) == 1, "a zero-attempt probe should leave one summary row"
+    summary = summaries[0]
+    assert summary["probe"] == "test.EmptyProbe"
+    assert summary["inference_counts"]["total_evaluated"] == 0
+    assert summary["detection_counts"]["detectors"] == []
+
+
+def test_zero_attempt_without_probename_writes_nothing(tmp_path):
+    """Without a probename there is nothing to attribute, so stay silent."""
+    reportfile = tmp_path / "report.report.jsonl"
+    with _capture_report(reportfile):
+        evaluator = ThresholdEvaluator()
+        evaluator.evaluate([])
+
+    assert _probe_summaries(reportfile) == [], "no probename means no summary row"
+
+
 def test_eval_row_includes_intents_breakdown(tmp_path):
     reportfile = tmp_path / "report.report.jsonl"
     with _capture_report(reportfile):
