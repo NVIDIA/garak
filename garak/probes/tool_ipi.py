@@ -66,6 +66,8 @@ class WebSearch(garak.probes.Probe):
                     garak.attempt.Turn(
                         role="user", content=garak.attempt.Message(text=user_message)
                     ),
+                    # If detector is using `outputs_for`, we're fine.
+                    # Things can get weird with `all_outputs`, should check for that.
                     garak.attempt.Turn(
                         role="assistant",
                         content=garak.attempt.Message(
