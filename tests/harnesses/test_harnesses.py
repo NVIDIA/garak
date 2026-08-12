@@ -10,6 +10,7 @@ from garak import _plugins, _config
 
 import garak.buffs.base
 import garak.harnesses.base
+from garak.attempt import Attempt, Message
 
 HARNESSES = [
     classname for (classname, active) in _plugins.enumerate_plugins("harnesses")
@@ -102,6 +103,29 @@ def test_harness_detector_progress_shows_probe_name(mocker, monkeypatch):
 
     assert captured_descriptions, "detector progress bar should have a description"
     assert any(
-        "test.Blank" in desc and "always.Pass" in desc
-        for desc in captured_descriptions
+        "test.Blank" in desc and "always.Pass" in desc for desc in captured_descriptions
     ), "detector progress description should include probe and detector names"
+
+
+def test_run_detector_records_reverse_translation_inputs(mocker):
+    detector = mocker.Mock()
+    detector.detectorname = "garak.detectors.test.Translated"
+    detector.lang_spec = "en"
+    detector.skip = False
+    detector.detect.return_value = [1.0]
+
+    attempt = Attempt(prompt=Message(text="pregunta", lang="es"))
+    attempt.probe_classname = "test.Translated"
+    attempt.outputs = [Message(text="respuesta", lang="es")]
+    attempt.reverse_translation_outputs = [Message(text="answer", lang="en")]
+
+    harness = object.__new__(garak.harnesses.base.Harness)
+    harness._run_detector([attempt], detector)
+
+    detector_inputs = attempt._detector_inputs["test.Translated"]
+    assert (
+        detector_inputs["source"] == "reverse_translation_outputs"
+    ), "harness should record reverse-translation provenance"
+    assert (
+        detector_inputs["outputs"][0].text == "answer"
+    ), "harness should record the representation selected for detection"

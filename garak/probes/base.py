@@ -602,6 +602,9 @@ class TreeSearchProbe(Probe):
             # now we call the detector 🙃
             node_results = []
             for attempt in attempts_completed:
+                attempt._record_detector_inputs(
+                    self.primary_detector, detector.lang_spec
+                )
                 attempt.detector_results[self.primary_detector] = detector.detect(
                     attempt
                 )
@@ -948,6 +951,8 @@ class IntentProbe(Probe):
         if not self.prompts:
             # an empty active-intent set (run.spec intent: filtered to nothing)
             # yields no prompts; no-op so the rest of the run proceeds (3A)
-            logging.debug("%s has no active intents; no prompts to send", self.probename)
+            logging.debug(
+                "%s has no active intents; no prompts to send", self.probename
+            )
             return []
         return super().probe(generator)
