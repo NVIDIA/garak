@@ -11,6 +11,7 @@ most needs to see. The Wilson score interval is an honest alternative at the
 boundary (e.g. 10/10 → [72%, 100%] at 95%).
 """
 
+import logging
 import math
 from statistics import NormalDist
 from typing import Optional, Tuple
@@ -70,4 +71,12 @@ def fallback_wilson_if_degenerate(
     wilson = calculate_wilson_ci(successes, n, confidence_level)
     if wilson is None:
         return (ci_lower, ci_upper, "bootstrap")
+    logging.warning(
+        "Bootstrap CI degenerate (zero width); substituting Wilson interval "
+        "[%.4f, %.4f] for %d evaluations (%d failures)",
+        wilson[0],
+        wilson[1],
+        n,
+        successes,
+    )
     return (wilson[0], wilson[1], "wilson")

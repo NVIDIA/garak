@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-import math
+import logging
 
 import pytest
 
@@ -93,3 +93,10 @@ def test_fallback_wilson_if_degenerate_none_inputs():
         None,
         "bootstrap",
     )
+
+
+def test_fallback_wilson_if_degenerate_logs_warning(caplog):
+    """A silent method substitution should at least be logged."""
+    with caplog.at_level(logging.WARNING, logger="garak.analyze.wilson_ci"):
+        fallback_wilson_if_degenerate(100.0, 100.0, successes=10, n=10)
+    assert any("degenerate" in record.message.lower() for record in caplog.records)
