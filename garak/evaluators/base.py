@@ -171,6 +171,17 @@ class Evaluator:
                             confidence_level=_config.reporting.bootstrap_confidence_level,
                         )
                     )
+                    if confidence_method == "wilson":
+                        logging.warning(
+                            "Bootstrap CI degenerate for %s (probe: %s, n=%d); "
+                            "reporting Wilson interval [%.2f%%, %.2f%%] instead "
+                            "of the configured bootstrap method",
+                            detector_name,
+                            self.probename,
+                            outputs_evaluated,
+                            ci_lower,
+                            ci_upper,
+                        )
                 else:
                     confidence_method = None
                     logging.warning(

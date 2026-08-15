@@ -95,8 +95,11 @@ def test_fallback_wilson_if_degenerate_none_inputs():
     )
 
 
-def test_fallback_wilson_if_degenerate_logs_warning(caplog):
-    """A silent method substitution should at least be logged."""
+def test_fallback_wilson_if_degenerate_does_not_log(caplog):
+    """The substitution must not log from the helper: the evaluator owns the
+    user-facing warning (with detector/probe context), and a helper-level
+    warning trips the CI garak.log grep gate when tests exercise the
+    calculator path."""
     with caplog.at_level(logging.WARNING, logger="garak.analyze.wilson_ci"):
         fallback_wilson_if_degenerate(100.0, 100.0, successes=10, n=10)
-    assert any("degenerate" in record.message.lower() for record in caplog.records)
+    assert not caplog.records
