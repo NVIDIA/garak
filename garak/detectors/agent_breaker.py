@@ -49,8 +49,7 @@ class AgentBreakerResult(Detector):
     lang_spec = "*"
     tags = [
         "owasp:llm01",
-        "owasp:llm07",
-        "owasp:llm08",
+        "owasp:llm06",  # Excessive Agency (matches doc_uri; OWASP LLM Top 10 2025)
         "quality:Security:AgentSecurity",
     ]
 
