@@ -110,3 +110,23 @@ def test_nim_vision_prep():
     )
     delattr(v, "max_input_len")  # remove to avoid follow on test impacts
     delattr(v, "embed_data")
+
+
+def test_nim_unexpected_error_message_includes_cause(monkeypatch):
+    """The generic failure message names the underlying error, not the model."""
+    from garak.exception import GarakException
+
+    g = NVOpenAIChat.__new__(NVOpenAIChat)
+    g.vary_seed_each_call = False
+    g.vary_temp_each_call = False
+    g.name = "org/model"
+
+    def raise_runtime_error(self, prompt, generations_this_call=1):
+        raise RuntimeError("upstream blew up")
+
+    monkeypatch.setattr(
+        "garak.generators.openai.OpenAICompatible._call_model",
+        raise_runtime_error,
+    )
+    with pytest.raises(GarakException, match="upstream blew up"):
+        g._call_model(Conversation([Turn(role="user", content=Message("hi"))]))

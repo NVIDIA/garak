@@ -25,6 +25,11 @@ from garak.attempt import Message, Conversation
 import garak.exception
 from garak.generators.base import Generator
 
+# HTTP status codes the OpenAI SDK does not map to a dedicated exception
+# subclass. They surface as the generic APIStatusError and are treated as
+# transient: a single hiccup should retry, not abort the probe run.
+_TRANSIENT_HTTP_STATUS_CODES = (408, 429, 502, 503, 504)
+
 # lists derived from https://platform.openai.com/docs/models
 chat_models = (
     "gpt-5-nano",
@@ -353,6 +358,27 @@ class OpenAICompatible(Generator):
             msg = "Bad request: " + str(repr(prompt))
             logging.exception(e)
             logging.error(msg)
+            return [None]
+        except openai.APIStatusError as e:
+            # Proxies and load balancers can return statuses the SDK does not
+            # map to a dedicated subclass (e.g. 408). Retry the transient ones
+            # through the backoff decorator; skip this generation on the rest
+            # so a single bad response cannot abort the whole probe run.
+            if e.status_code in _TRANSIENT_HTTP_STATUS_CODES:
+                logging.warning(
+                    "Transient HTTP %s from %s, retrying with backoff",
+                    e.status_code,
+                    self.generator_family_name,
+                )
+                raise garak.exception.GeneratorBackoffTrigger(
+                    f"transient HTTP {e.status_code}"
+                ) from e
+            logging.error(
+                "HTTP %s from %s, skipping generation: %s",
+                e.status_code,
+                self.generator_family_name,
+                e,
+            )
             return [None]
         except json.decoder.JSONDecodeError as e:
             logging.exception(e)

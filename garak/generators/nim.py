@@ -96,7 +96,9 @@ class NVOpenAIChat(OpenAICompatible):
             logging.critical(msg, exc_info=nfe)
             raise GarakException(f"🛑 {msg}") from nfe
         except Exception as oe:
-            msg = "NIM generation failed. Is the model name spelled correctly?"
+            # Include the underlying error: the previous wording blamed the
+            # model name even for unrelated failures (e.g. HTTP timeouts).
+            msg = f"NIM generation failed. Underlying error: {oe!r}"
             logging.critical(msg, exc_info=oe)
             raise GarakException(f"🛑 {msg}") from oe
 

@@ -251,3 +251,66 @@ def test_conversation_to_list_image_turn_uses_chat_completions_format():
     assert header == "data:image/gif;base64"
     assert separator == ","
     assert base64.b64decode(payload) == IMAGE_ASSET.read_bytes()
+
+
+def _stubbed_compatible():
+    generator = build_unloaded_compatible()
+    generator.client = None
+    generator.generator = None
+    generator.api_key = "test-key"
+    generator.suppressed_params = set()
+    generator.supports_multiple_generations = False
+    generator.retry_json = True
+    generator.extra_params = {}
+    generator.key_env_var = "OPENAI_API_KEY"
+    return generator
+
+
+def test_transient_apistatuserror_retries_and_succeeds(openai_compat_mocks):
+    """A transient 408 retries through the backoff decorator instead of aborting.
+
+    The OpenAI SDK itself retries idempotent requests (default max_retries=2),
+    so the first three attempts return 408 to exhaust the SDK-level retries and
+    exercise garak's backoff path.
+    """
+    generator = _stubbed_compatible()
+    mock_url = generator.uri
+    calls = []
+
+    def route(request):
+        calls.append(request)
+        if len(calls) <= 3:
+            return httpx.Response(
+                408, json={"error": {"message": "request timeout"}}, request=request
+            )
+        return httpx.Response(200, json=openai_compat_mocks["chat"]["json"], request=request)
+
+    with respx.mock(base_url=mock_url, assert_all_called=False) as respx_mock:
+        respx_mock.post("chat/completions").mock(side_effect=route)
+        result = generator._call_model(
+            Conversation([Turn(role="user", content=Message("this is a test"))])
+        )
+
+    assert len(calls) == 4, "a transient 408 should retry through garak's backoff"
+    assert isinstance(result, list) and len(result) == 1
+    assert isinstance(result[0], Message), "retried call should return a Message"
+
+
+def test_non_transient_apistatuserror_skips_generation(openai_compat_mocks):
+    """A non-transient unmapped status skips the generation without retrying."""
+    generator = _stubbed_compatible()
+    mock_url = generator.uri
+    calls = []
+
+    def route(request):
+        calls.append(request)
+        return httpx.Response(418, json={"error": {"message": "teapot"}}, request=request)
+
+    with respx.mock(base_url=mock_url, assert_all_called=False) as respx_mock:
+        respx_mock.post("chat/completions").mock(side_effect=route)
+        result = generator._call_model(
+            Conversation([Turn(role="user", content=Message("this is a test"))])
+        )
+
+    assert len(calls) == 1, "non-transient status must not retry"
+    assert result == [None], "non-transient status should skip the generation"
