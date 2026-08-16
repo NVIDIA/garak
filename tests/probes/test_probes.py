@@ -362,3 +362,8 @@ def test_encoding_probe_attempt_carries_payload_intent(loaded_intent_service):
     ), "attempt intent must reflect the payload-specific intent set in _attempt_prestore_hook"
 
 
+def test_probe_empty_prompt_set_returns_no_attempts():
+    """A probe with an empty (or translation-emptied) prompt set must not IndexError."""
+    p = _plugins.load_plugin("probes.encoding.InjectROT13")
+    p.prompts = []
+    assert p.probe(generator=None) == [], "empty prompt set must yield zero attempts"
