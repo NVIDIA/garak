@@ -1014,3 +1014,16 @@ class TestAttackStateRoundTrip:
         notes = state.to_notes()
         assert notes["verified_results"] == [(True, 0.9), (False, 0.1)]
         assert notes["current_attack_prompt"] == "updated prompt"
+
+
+def test_agent_breaker_owasp_tagging_matches_doc_uri():
+    """AgentBreaker is an excessive-agency probe; tags must cite LLM06 like its doc_uri."""
+    assert (
+        "owasp:llm06" in AgentBreaker.tags
+    ), "AgentBreaker must carry the owasp:llm06 tag"
+    assert (
+        "owasp:llm07" not in AgentBreaker.tags
+    ), "llm07 is System Prompt Leakage under OWASP 2025 and does not describe AgentBreaker"
+    assert (
+        "owasp:llm08" not in AgentBreaker.tags
+    ), "llm08 is Vector & Embedding Weaknesses under OWASP 2025 and does not describe AgentBreaker"
