@@ -7,7 +7,10 @@ from pathlib import Path
 from typing import Optional, Dict, List, Tuple
 
 from garak import _config
-from garak.analyze.bootstrap_ci import calculate_bootstrap_ci
+from garak.analyze.bootstrap_ci import (
+    apply_detector_correction,
+    calculate_bootstrap_ci,
+)
 from garak.analyze.detector_metrics import get_detector_metrics
 from garak.analyze.wilson_ci import (
     calculate_wilson_ci,
@@ -78,9 +81,10 @@ def calculate_ci_from_report(
     """Calculate CIs for probe/detector pairs using report digest aggregates.
 
     The active method (bootstrap by default, or Wilson) is read from config
-    unless overridden via ``confidence_method``. Degenerate bootstrap
-    intervals (0%/100% observed rate) fall back to Wilson so rebuilt reports
-    stay honest, matching the evaluator behavior.
+    unless overridden via ``confidence_method``. All intervals — including
+    the Wilson fallback for degenerate bootstraps — are reported on the
+    Se/Sp-corrected ASR scale so a rebuilt report mixes no estimands,
+    matching the evaluator behavior.
     """
     ci_results, _ = calculate_ci_from_report_with_methods(
         report_path,
@@ -203,6 +207,10 @@ def calculate_ci_from_report_with_methods(
                         n=total,
                         confidence_level=confidence_level,
                     )
+                    if ci_result is not None:
+                        # Report on the Se/Sp-corrected ASR scale so wilson
+                        # and bootstrap rows share one estimand (#2033).
+                        ci_result = apply_detector_correction(ci_result, se, sp)
                     method = "wilson" if ci_result is not None else None
                 elif ci_method == "bootstrap":
                     ci_result = calculate_bootstrap_ci(
@@ -219,6 +227,8 @@ def calculate_ci_from_report_with_methods(
                             successes=failed,
                             n=total,
                             confidence_level=confidence_level,
+                            sensitivity=se,
+                            specificity=sp,
                         )
                         ci_result = (ci_lower, ci_upper)
                 else:

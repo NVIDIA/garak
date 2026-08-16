@@ -4,16 +4,25 @@
 """Wilson score interval for binomial proportions.
 
 The non-parametric bootstrap used by ``bootstrap_ci`` degenerates when every
-observed outcome is identical (a 0% or 100% rate): every resample is identical,
-so the percentile interval has zero width. A zero-width interval is not a
-narrow interval — it is degenerate, and it hides the uncertainty the reader
-most needs to see. The Wilson score interval is an honest alternative at the
+resample yields the same corrected rate: every resample is identical, so the
+percentile interval has zero width. A zero-width interval is not a narrow
+interval — it is degenerate, and it hides the uncertainty the reader most
+needs to see. The Wilson score interval is an honest alternative at the
 boundary (e.g. 10/10 → [72%, 100%] at 95%).
+
+Degeneracy is not limited to a 0% or 100% observed rate: with a weak detector,
+the Se/Sp correction clips a whole range of observed rates to the same bound,
+and any of them produces a zero-width bootstrap interval. Bounds returned on
+the fallback path (and by the explicit Wilson method) are mapped through
+``apply_detector_correction`` so they report on the same corrected-ASR scale
+as the bootstrap rows next to them.
 """
 
 import math
 from statistics import NormalDist
 from typing import Optional, Tuple
+
+from garak.analyze.bootstrap_ci import apply_detector_correction
 
 
 def _z_score(confidence_level: float) -> float:
@@ -54,12 +63,19 @@ def fallback_wilson_if_degenerate(
     successes: int,
     n: int,
     confidence_level: float = 0.95,
+    sensitivity: float = 1.0,
+    specificity: float = 1.0,
 ) -> Tuple[Optional[float], Optional[float], str]:
     """Return the best CI, falling back to Wilson when bootstrap is degenerate.
 
     Used by the evaluator: when a bootstrap interval has zero width (all
-    resamples identical, i.e. a 0% or 100% observed rate), replace it with a
-    Wilson interval so the report shows honest uncertainty instead of nothing.
+    resamples identical — a 0%/100% observed rate, or observed rates that the
+    Se/Sp correction clips to the same bound), replace it with a Wilson
+    interval so the report shows honest uncertainty instead of nothing. The
+    Wilson bounds are mapped onto the Se/Sp-corrected ASR scale via
+    ``sensitivity``/``specificity`` so they measure the same quantity as the
+    bootstrap rows they sit beside; the defaults (1.0, 1.0) keep the raw
+    bounds for a perfect detector.
     Returns ``(lower, upper, method)`` where ``method`` is ``"bootstrap"`` or
     ``"wilson"``.
     """
@@ -70,4 +86,7 @@ def fallback_wilson_if_degenerate(
     wilson = calculate_wilson_ci(successes, n, confidence_level)
     if wilson is None:
         return (ci_lower, ci_upper, "bootstrap")
-    return (wilson[0], wilson[1], "wilson")
+    corrected_lower, corrected_upper = apply_detector_correction(
+        wilson, sensitivity, specificity
+    )
+    return (corrected_lower, corrected_upper, "wilson")

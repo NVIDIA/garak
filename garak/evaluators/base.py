@@ -17,7 +17,7 @@ import garak.attempt
 import garak.analyze
 import garak.analyze.calibration
 import garak.analyze.detector_metrics
-from garak.analyze.bootstrap_ci import calculate_bootstrap_ci
+from garak.analyze.bootstrap_ci import apply_detector_correction, calculate_bootstrap_ci
 from garak.analyze.wilson_ci import calculate_wilson_ci, fallback_wilson_if_degenerate
 import garak.resources.theme
 
@@ -145,11 +145,18 @@ class Evaluator:
         min_sample_size = _config.reporting.bootstrap_min_sample_size
         if ci_method == "wilson" and outputs_evaluated >= min_sample_size:
             confidence_method = "wilson"
+            se, sp = self.detector_metrics.get_detector_se_sp(detector_name)
             ci_lower, ci_upper = calculate_wilson_ci(
                 successes=fails,
                 n=outputs_evaluated,
                 confidence_level=_config.reporting.bootstrap_confidence_level,
             ) or (None, None)
+            if ci_lower is not None:
+                # Map onto the Se/Sp-corrected ASR scale so wilson and
+                # bootstrap rows report one estimand (#2033).
+                ci_lower, ci_upper = apply_detector_correction(
+                    (ci_lower, ci_upper), se, sp
+                )
         elif ci_method == "bootstrap" and outputs_evaluated >= min_sample_size:
             confidence_method = "bootstrap"
             # Construct individual results post-hoc (order doesn't matter for bootstrap resampling)
@@ -160,8 +167,9 @@ class Evaluator:
                     results=binary_outcomes, sensitivity=se, specificity=sp
                 )
                 if ci_result is not None:
-                    # A degenerate bootstrap (0%/100% observed rate) has zero
-                    # width; report an honest Wilson interval instead (#2033).
+                    # A degenerate bootstrap (0%/100% observed rate, or rates
+                    # the Se/Sp correction clips together) has zero width;
+                    # report an honest Wilson interval instead (#2033).
                     ci_lower, ci_upper, confidence_method = (
                         fallback_wilson_if_degenerate(
                             ci_result[0],
@@ -169,10 +177,12 @@ class Evaluator:
                             successes=fails,
                             n=outputs_evaluated,
                             confidence_level=_config.reporting.bootstrap_confidence_level,
+                            sensitivity=se,
+                            specificity=sp,
                         )
                     )
                     if confidence_method == "wilson":
-                        logging.warning(
+                        logging.info(
                             "Bootstrap CI degenerate for %s (probe: %s, n=%d); "
                             "reporting Wilson interval [%.2f%%, %.2f%%] instead "
                             "of the configured bootstrap method",

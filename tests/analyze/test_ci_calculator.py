@@ -183,7 +183,68 @@ def test_calculate_ci_from_report_wilson_method(temp_report):
     assert key in ci_results
     assert ci_methods[key] == "wilson"
     ci_lower, ci_upper = ci_results[key]
-    assert 0 <= ci_lower < ci_upper <= 30
+    # 0/50 with a perfect detector: textbook Wilson upper bound is 7.13%
+    assert ci_lower == pytest.approx(0.0, abs=1e-6)
+    assert ci_upper == pytest.approx(7.13, abs=0.05)
+
+
+class _FixedDetectorMetrics:
+    """Stand-in returning fixed Se/Sp for every detector."""
+
+    def __init__(self, se, sp):
+        self._se_sp = (se, sp)
+
+    def get_detector_se_sp(self, detector_name):
+        return self._se_sp
+
+
+def test_calculate_ci_from_report_wilson_method_on_corrected_scale(
+    temp_report, monkeypatch
+):
+    """Wilson intervals pass through the same Se/Sp correction as the bootstrap (#2033)."""
+    report = _wilson_digest_report(temp_report)  # 0/50 → raw Wilson [0, 7.13]
+    monkeypatch.setattr(
+        garak.analyze.ci_calculator,
+        "get_detector_metrics",
+        lambda: _FixedDetectorMetrics(0.85, 0.99),
+    )
+
+    ci_results, ci_methods = (
+        garak.analyze.ci_calculator.calculate_ci_from_report_with_methods(
+            str(report), confidence_method="wilson"
+        )
+    )
+
+    key = ("encoding.InjectBase64", "mitigation.MitigationBypass")
+    assert ci_methods[key] == "wilson"
+    ci_lower, ci_upper = ci_results[key]
+    # (0 - 0.01)/0.84 < 0 → clipped to 0; (0.0713 - 0.01)/0.84 ≈ 7.30
+    assert ci_lower == pytest.approx(0.0, abs=0.01)
+    assert ci_upper == pytest.approx(7.30, abs=0.05)
+
+
+def test_calculate_ci_from_report_degenerate_fallback_on_corrected_scale(
+    temp_report, monkeypatch
+):
+    """The degenerate-bootstrap Wilson fallback is corrected too, keeping one estimand."""
+    report = _wilson_digest_report(temp_report)
+    monkeypatch.setattr(
+        garak.analyze.ci_calculator,
+        "get_detector_metrics",
+        lambda: _FixedDetectorMetrics(0.85, 0.99),
+    )
+
+    ci_results, ci_methods = (
+        garak.analyze.ci_calculator.calculate_ci_from_report_with_methods(
+            str(report)
+        )
+    )
+
+    key = ("encoding.InjectBase64", "mitigation.MitigationBypass")
+    assert ci_methods[key] == "wilson"
+    ci_lower, ci_upper = ci_results[key]
+    assert ci_lower == pytest.approx(0.0, abs=0.01)
+    assert ci_upper == pytest.approx(7.30, abs=0.05)
 
 
 def test_calculate_ci_from_report_bootstrap_degenerate_falls_back_to_wilson(temp_report):

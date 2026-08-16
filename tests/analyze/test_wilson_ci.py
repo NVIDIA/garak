@@ -5,6 +5,7 @@ import logging
 
 import pytest
 
+from garak.analyze.bootstrap_ci import apply_detector_correction
 from garak.analyze.wilson_ci import calculate_wilson_ci, fallback_wilson_if_degenerate
 
 
@@ -97,9 +98,49 @@ def test_fallback_wilson_if_degenerate_none_inputs():
 
 def test_fallback_wilson_if_degenerate_does_not_log(caplog):
     """The substitution must not log from the helper: the evaluator owns the
-    user-facing warning (with detector/probe context), and a helper-level
+    user-facing message (with detector/probe context), and a helper-level
     warning trips the CI garak.log grep gate when tests exercise the
     calculator path."""
     with caplog.at_level(logging.WARNING, logger="garak.analyze.wilson_ci"):
         fallback_wilson_if_degenerate(100.0, 100.0, successes=10, n=10)
     assert not caplog.records
+
+
+def test_apply_detector_correction_maps_bounds_onto_corrected_scale():
+    """Raw Wilson bounds pass through the Se/Sp correction used by the bootstrap (#2033)."""
+    # raw upper bound 27.75%; Se=0.85, Sp=0.99 → denominator 0.84
+    corrected = apply_detector_correction((0.0, 27.75), 0.85, 0.99)
+    assert corrected[0] == pytest.approx(0.0, abs=0.01)  # (0 - 0.01)/0.84 < 0 → clipped
+    assert corrected[1] == pytest.approx(31.85, abs=0.05)  # (0.2775 - 0.01)/0.84
+
+    # Se=0.90, Sp=0.85 → denominator 0.75
+    corrected = apply_detector_correction((0.0, 27.75), 0.90, 0.85)
+    assert corrected[1] == pytest.approx(17.00, abs=0.05)  # (0.2775 - 0.15)/0.75
+
+
+def test_apply_detector_correction_keeps_bounds_when_denominator_tiny():
+    """|Se+Sp-1| < 0.01 skips the correction, matching the bootstrap fallback."""
+    assert apply_detector_correction((0.0, 27.8), 0.5, 0.5) == (0.0, 27.8)
+
+
+def test_apply_detector_correction_clips_weak_detector_saturation():
+    """Weak detectors push a range of observed rates past [0, 1]; bounds clip."""
+    # Se=Sp=0.6 → denominator 0.2; raw 80%/90% both map above 1.0 and clip
+    assert apply_detector_correction((80.0, 90.0), 0.6, 0.6) == (100.0, 100.0)
+
+
+def test_fallback_wilson_if_degenerate_applies_detector_correction():
+    """The Wilson fallback reports on the corrected ASR scale, matching bootstrap rows."""
+    ci_lower, ci_upper, method = fallback_wilson_if_degenerate(
+        0.0, 0.0, successes=0, n=10, sensitivity=0.90, specificity=0.85
+    )
+    assert method == "wilson"
+    assert ci_lower == pytest.approx(0.0, abs=0.01)
+    assert ci_upper == pytest.approx(17.00, abs=0.1)  # (0.2775 - 0.15)/0.75
+
+    # default (perfect detector) keeps the raw Wilson bounds
+    ci_lower, ci_upper, method = fallback_wilson_if_degenerate(
+        0.0, 0.0, successes=0, n=10
+    )
+    assert method == "wilson"
+    assert ci_upper == pytest.approx(27.8, abs=0.1)
