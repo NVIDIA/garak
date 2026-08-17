@@ -156,7 +156,7 @@ dependencies = [
   "zalgolib>=0.2.2",
   "ecoji>=0.1.1",
   "deepl==1.17.0",
-  "litellm>=1.84.0",
+  "litellm>=1.84.0,<1.97.0",
   "llm>=0.31",
   "jsonpath-ng>=1.6.1",
   "huggingface_hub>=1.0",
