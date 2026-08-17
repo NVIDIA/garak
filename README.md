@@ -65,7 +65,7 @@ python -m pip install -U git+https://github.com/NVIDIA/garak.git@main
 
 ### Clone from source
 
-`garak` has its own dependencies. You can to install `garak` in its own Conda environment:
+`garak` has its own dependencies. You can install `garak` in its own Conda environment:
 
 ```
 conda create --name garak "python>=3.10,<=3.12"
@@ -190,7 +190,7 @@ Private Replicate endpoints:
 
 ### REST
 
-`rest.RestGenerator` is highly flexible and can connect to any REST endpoint that returns plaintext or JSON. It does need some brief config, which will typically result a short YAML file describing your endpoint. See https://reference.garak.ai/en/latest/garak.generators.rest.html for examples.
+`rest.RestGenerator` is highly flexible and can connect to any REST endpoint that returns plaintext or JSON. It does need some brief config, which will typically result in a short YAML file describing your endpoint. See https://reference.garak.ai/en/latest/garak.generators.rest.html for examples.
 
 ### NIM
 
@@ -255,7 +255,7 @@ For testing. This generator repeats back the prompt it received.
 | promptinject         | Implementation of the Agency Enterprise [PromptInject](https://github.com/agencyenterprise/PromptInject/tree/main/promptinject) work (best paper awards @ NeurIPS ML Safety Workshop 2022) |
 | realtoxicityprompts  | Subset of the RealToxicityPrompts work (data constrained because the full test will take so long to run)                      |
 | snowball             | [Snowballed Hallucination](https://ofir.io/snowballed_hallucination.pdf) probes designed to make a model give a wrong answer to questions too complex for it to process |
-| xss                  | Look for vulnerabilities the permit or enact cross-site attacks, such as private data exfiltration.                           |
+| xss                  | Look for vulnerabilities that permit or enact cross-site attacks, such as private data exfiltration.                           |
 
 ## Logging
 
