@@ -711,3 +711,74 @@ def test_zero_tolerance_evaluate(eval_setup):
         _config.transient.hitlogfile.flush()
     entries = _read_hitlog_entries(_config.transient.report_filename)
     assert len(entries) == 1, "one failure should produce one hitlog entry"
+
+
+# ---------------------------------------------------------------------------
+# pass@k — per-prompt attack success rate integration
+# ---------------------------------------------------------------------------
+
+
+def test_evaluate_pass_at_k_issue_scenario(eval_setup):
+    # five prompts, each breached on exactly 1 of 5 generations: pooled ASR is
+    # 20%, but pass@5 should reveal that a five-try attacker breaches every prompt
+    _config.reporting.pass_at_k = [1, 5]
+    evaluator = ThresholdEvaluator(0.5)
+    attempts = [
+        make_attempt(
+            outputs=[f"a{seq}o{i}" for i in range(5)],
+            detector_results={"det.A": [0.8, 0.0, 0.0, 0.0, 0.0]},
+            seq=seq,
+        )
+        for seq in range(5)
+    ]
+    evaluator.evaluate(attempts)
+    _config.transient.reportfile.flush()
+
+    rec = _read_report_eval_records(_config.transient.report_filename)[0]
+    failrate = 100 * rec["fails"] / rec["total_evaluated"]
+    assert failrate == 20.0, "pooled ASR should read 20% for this scenario"
+    assert rec["pass_at_k"]["1"]["score"] == pytest.approx(
+        0.2
+    ), "pass@1 should match the one-shot ASR"
+    assert rec["pass_at_k"]["5"]["score"] == pytest.approx(
+        1.0
+    ), "pass@5 should expose the guaranteed breach under retries"
+    assert rec["pass_at_k"]["5"]["prompts"] == 5, "all five prompts feed pass@5"
+
+
+def test_evaluate_pass_at_k_disabled(eval_setup):
+    _config.reporting.pass_at_k = []
+    evaluator = ThresholdEvaluator(0.5)
+    attempt = make_attempt(
+        outputs=["out1", "out2", "out3"],
+        detector_results={"det.A": [0.8, 0.0, 0.0]},
+    )
+    evaluator.evaluate([attempt])
+    _config.transient.reportfile.flush()
+
+    rec = _read_report_eval_records(_config.transient.report_filename)[0]
+    assert "pass_at_k" not in rec, "empty pass_at_k config should omit the field"
+
+
+def test_evaluate_pass_at_k_excludes_short_prompts(eval_setup):
+    # only the 5-generation prompt is eligible for pass@5
+    _config.reporting.pass_at_k = [1, 5]
+    evaluator = ThresholdEvaluator(0.5)
+    long_attempt = make_attempt(
+        outputs=[f"lo{i}" for i in range(5)],
+        detector_results={"det.A": [0.8, 0.0, 0.0, 0.0, 0.0]},
+        seq=0,
+    )
+    short_attempt = make_attempt(
+        outputs=["so0", "so1", "so2"],
+        detector_results={"det.A": [0.8, 0.0, 0.0]},
+        seq=1,
+    )
+    evaluator.evaluate([long_attempt, short_attempt])
+    _config.transient.reportfile.flush()
+
+    rec = _read_report_eval_records(_config.transient.report_filename)[0]
+    assert rec["pass_at_k"]["1"]["prompts"] == 2, "both prompts contribute to pass@1"
+    assert (
+        rec["pass_at_k"]["5"]["prompts"] == 1
+    ), "only the 5-generation prompt contributes to pass@5"

@@ -279,6 +279,7 @@ Reporting Config Items
 * ``bootstrap_num_iterations`` - Number of bootstrap resampling iterations for computing confidence intervals on attack success rates (default: 10000). Also available via CLI as ``--bootstrap_num_iterations``. Only used when ``confidence_interval_method`` is ``"bootstrap"``.
 * ``bootstrap_confidence_level`` - Confidence level for bootstrap confidence intervals, expressed as a decimal between 0 and 1 (default: 0.95 for 95% confidence intervals). Also available via CLI as ``--bootstrap_confidence_level``. Only used when ``confidence_interval_method`` is ``"bootstrap"``.
 * ``bootstrap_min_sample_size`` - Minimum sample size required for reliable bootstrap confidence interval estimates (default: 30). Also available via CLI as ``--bootstrap_min_sample_size``. Can be increased for more conservative estimates, but lowering it significantly compromises statistical validity. Only used when ``confidence_interval_method`` is ``"bootstrap"``.
+* ``pass_at_k`` - List of ``k`` values for the per-prompt pass@k attack success rate (default: ``[1, 5]``). For each ``k``, garak reports the probability that at least one of ``k`` attempts breaches a prompt, averaged across prompts, using the unbiased estimator of Chen et al. (2021). Set to an empty list to disable. See :doc:`reporting` for the reported fields and interpretation.
 
 Bundled Quick Configs
 ^^^^^^^^^^^^^^^^^^^^^

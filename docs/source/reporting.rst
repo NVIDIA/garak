@@ -50,6 +50,21 @@ Confidence intervals are enabled by default using the bootstrap method (see ``re
 
 These intervals account for sampling uncertainty. When detector performance metrics (sensitivity/specificity) are available, they also account for detector imperfection. Otherwise, a perfect detector is assumed.
 
+pass@k Attack Success Rate
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Pooled ASR reports the fraction of *all* generations that breach the target. That understates real risk: an attacker doesn't need the target to fail most of the time, only once, and can keep retrying. A jailbreak that succeeds on 1 reply in 5 is a working jailbreak, yet pooled ASR records it as a mild 20%.
+
+``pass@k`` reframes the metric per prompt -- "given ``k`` attempts, does at least one breach the target?" -- and averages across prompts, following the unbiased estimator of Chen et al., `Evaluating Large Language Models Trained on Code <https://arxiv.org/abs/2107.03374>`_ (2021). ``pass@1`` recovers the familiar per-prompt success rate; larger ``k`` shows how fast a persistent attacker's odds climb.
+
+The k values are set with ``reporting.pass_at_k`` (a list of integers; default ``[1, 5]``). Set it to an empty list to disable the metric. When enabled, each ``eval`` entry carries a ``pass_at_k`` field:
+
+.. code-block:: json
+
+   "pass_at_k": {"1": {"score": 0.2, "prompts": 5}, "5": {"score": 1.0, "prompts": 5}}
+
+Each entry holds ``score`` (mean pass@k over prompts, on a 0-1 scale) and ``prompts`` (how many prompts were eligible). A prompt with fewer than ``k`` scoreable generations cannot be estimated for that ``k`` and is excluded from that entry; a ``k`` with no eligible prompt is omitted. The same figures are shown after the attack success rate in the CLI summary, e.g. ``pass@1: 20.00%  pass@5: 100.00%``.
+
 Recalculating Confidence Intervals
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

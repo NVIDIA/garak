@@ -493,6 +493,16 @@ def main(arguments=None) -> None:
                 f"bootstrap_min_sample_size must be > 0, got {_config.reporting.bootstrap_min_sample_size}"
             )
 
+        if _config.reporting.pass_at_k is not None and (
+            not isinstance(_config.reporting.pass_at_k, list)
+            or not all(
+                isinstance(k, int) and k >= 1 for k in _config.reporting.pass_at_k
+            )
+        ):
+            raise ValueError(
+                f"pass_at_k must be a list of integers >= 1, got {_config.reporting.pass_at_k}"
+            )
+
     except ValueError as e:
         logging.exception(e)
         print(e)
