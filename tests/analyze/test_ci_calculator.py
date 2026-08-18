@@ -169,9 +169,14 @@ def _wilson_digest_report(temp_report):
     ])
 
 
-def test_calculate_ci_from_report_wilson_method(temp_report):
+def test_calculate_ci_from_report_wilson_method(temp_report, monkeypatch):
     """The Wilson method computes a non-degenerate interval from digest aggregates."""
     report = _wilson_digest_report(temp_report)
+    monkeypatch.setattr(
+        garak.analyze.ci_calculator,
+        "get_detector_metrics",
+        lambda: _FixedDetectorMetrics(1.0, 1.0),
+    )
 
     ci_results, ci_methods = (
         garak.analyze.ci_calculator.calculate_ci_from_report_with_methods(
@@ -247,9 +252,14 @@ def test_calculate_ci_from_report_degenerate_fallback_on_corrected_scale(
     assert ci_upper == pytest.approx(7.30, abs=0.05)
 
 
-def test_calculate_ci_from_report_bootstrap_degenerate_falls_back_to_wilson(temp_report):
+def test_calculate_ci_from_report_bootstrap_degenerate_falls_back_to_wilson(temp_report, monkeypatch):
     """Rebuilding a 0%/100% report must not revert to a zero-width bootstrap CI."""
     report = _wilson_digest_report(temp_report)
+    monkeypatch.setattr(
+        garak.analyze.ci_calculator,
+        "get_detector_metrics",
+        lambda: _FixedDetectorMetrics(1.0, 1.0),
+    )
 
     ci_results, ci_methods = (
         garak.analyze.ci_calculator.calculate_ci_from_report_with_methods(
