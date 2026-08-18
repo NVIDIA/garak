@@ -143,6 +143,19 @@ Plugins Config Items
 * ``target_type`` - The type of target generator, e.g. "nim" or "huggingface"
 * ``target_name`` - The specific name of the target to be used (optional - if blank, type-specific default is used)
 * ``detector_spec`` - An optional spec of detectors to be used, if overriding those recommended in probes. Specifying ``detector_spec`` means the ``pxd`` harness will be used. This is equivalent to passing `-d` to the CLI
+
+  ``detector_spec`` takes either a comma-separated string or a list, so these are equivalent:
+
+  .. code-block:: yaml
+
+      detector_spec: mitigation,always
+
+  .. code-block:: yaml
+
+      detector_spec:
+        - mitigation
+        - always
+
 * ``extended_detectors`` - Should just the primary detector be used per probe, or should the extended detectors also be run? The former is fast, the latter thorough.
 * ``buffs_include_original_prompt`` - When buffing, should the original pre-buff prompt still be included in those posed to the model?
 * ``buff_max`` - Upper bound on how many items a buff should return

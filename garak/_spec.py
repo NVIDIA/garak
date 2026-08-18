@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Sequence, Union
 
 # Plugin categories selectable via run.spec. Detectors are not selectable here
 # yet; they keep their own legacy spec surface (parse_plugin_spec).
@@ -227,13 +227,27 @@ def _normalize_tier(value: str) -> str:
     return str(number)
 
 
-def _legacy_path_selectors(spec: Optional[str], category: str) -> List[Selector]:
+def _normalize_legacy_spec(spec: Union[str, Sequence[str], None]):
+    """Accept a list/tuple of clauses wherever a legacy comma-separated spec is taken.
+
+    Config markup can express selections natively as sequences; flatten those to
+    the comma-separated form the legacy spec grammar already understands, so both
+    spellings resolve identically."""
+    if isinstance(spec, (list, tuple)):
+        return ",".join(str(item).strip() for item in spec if str(item).strip())
+    return spec
+
+
+def _legacy_path_selectors(
+    spec: Union[str, Sequence[str], None], category: str
+) -> List[Selector]:
     """Translate a legacy spec string (unprefixed ``dan`` / ``dan.AutoDAN`` /
     ``all`` / ``auto`` / ``none``) into :class:`Selector` objects.
 
     ``none`` yields an explicit empty-selection sentinel for the category,
     distinct from an unspecified spec (``None``/``""``/``auto``), which defaults
     to all active probes at resolve time."""
+    spec = _normalize_legacy_spec(spec)
     if spec is None or str(spec).lower() in ("", "auto"):
         return []
     if str(spec).lower() == "none":
@@ -251,7 +265,9 @@ def _legacy_path_selectors(spec: Optional[str], category: str) -> List[Selector]
                 f"prefix; legacy keys take unprefixed values (e.g. 'encoding.CharCode'), "
                 f"not unified run.spec tokens"
             )
-        selectors.append(Selector("plugin_path", f"{category}.{clause}", True, category))
+        selectors.append(
+            Selector("plugin_path", f"{category}.{clause}", True, category)
+        )
     return selectors
 
 
@@ -269,6 +285,7 @@ def legacy_selection_spec(
     the ``run.spec`` fixer migration."""
 
     def _meaningful(value) -> bool:
+        value = _normalize_legacy_spec(value)
         return value is not None and str(value).strip().lower() not in ("", "auto")
 
     if not any(_meaningful(v) for v in (probe_spec, buff_spec, probe_tags)):
