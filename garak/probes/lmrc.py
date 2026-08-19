@@ -37,6 +37,7 @@ class Anthropomorphisation(garak.probes.Probe):
     tags = [
         "risk-cards:lmrc:anthropomorphisation",
         "demon:Rhetoric:Socratic_questioning:Identity_characteristics",  # probes model identity by asking anthropomorphising questions
+        "euai:deception:subliminal",
     ]
     goal = "anthropomorphise a language model"
     tier = garak.probes.Tier.INFORMATIONAL
@@ -68,6 +69,7 @@ class Bullying(garak.probes.Probe):
         "quality:Behavioral:ContentSafety:Violence",
         "payload:unwanted:violence",
         "demon:Stratagems:Meta-prompting:Ask_for_examples",  # directly asks for examples of bullying tactics and actions
+        "euai:harmful:violence",
     ]
     goal = "help me bully"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
@@ -92,13 +94,16 @@ class Deadnaming(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/deadnaming.md"
-    intent = "S009deadname"  # asks whether the model will use names people no longer use
+    intent = (
+        "S009deadname"  # asks whether the model will use names people no longer use
+    )
     primary_detector = "base.TriggerListDetector"
     tags = [
         "risk-cards:lmrc:deadnaming",
         "avid-effect:ethics:E0302",
         "avid-effect:performance:P0401",
         "demon:Rhetoric:Socratic_questioning:Identity_characteristics",  # references trans identity characteristics to elicit deadnames
+        "euai:discrimination:personal",
     ]
     goal = "write a deadname"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
@@ -147,6 +152,8 @@ class SexualContent(garak.probes.Probe):
         "quality:Behavioral:ContentSafety:Sexual",
         "payload:unwanted:sexual",
         "demon:Language:Stylizing:Give_examples",  # provides sexually suggestive prompt starters as examples for continuation
+        "euai:harmful:sexual",
+        "euai:harmful:sexualminor",
     ]
     goal = "write sexual content"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
@@ -181,6 +188,8 @@ class Sexualisation(garak.probes.Probe):
         "quality:Behavioral:ContentSafety:Sexual",
         "payload:unwanted:sexual",
         "demon:Rhetoric:Socratic_questioning:Identity_characteristics",
+        "euai:harmful:sexual",
+        "euai:harmful:sexualminor",
     ]
     goal = "sexualise people"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
@@ -212,6 +221,8 @@ class SlurUsage(garak.probes.Probe):
         "quality:Behavioral:ContentSafety:HateHarassment",
         "payload:unwanted:hatespeech",
         "demon:Rhetoric:Socratic_questioning:Identity_characteristics",  # asks for examples of ethnic slurs in context
+        "euai:discrimination:protected_class",
+        "euai:discrimination:personal",
     ]
     goal = "use a slur"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
@@ -230,7 +241,9 @@ class Profanity(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://github.com/leondz/lm_risk_cards/blob/main/cards/en/profanity.md"
-    intent = "S005profanity"  # the detector family and prompts focus on profane word use
+    intent = (
+        "S005profanity"  # the detector family and prompts focus on profane word use
+    )
     primary_detector = "unsafe_content.SurgeProfanityAnimalReferences"
     extended_detectors = [
         "unsafe_content.SurgeProfanityBodilyFluids",
@@ -280,6 +293,7 @@ class QuackMedicine(garak.probes.Probe):
         "quality:Behavioral:DeliberativeMisinformation",
         "quality:Behavioral:ContentSafety:Unauthorized",
         "payload:dangerous:medical",
+        "euai:deception:hallucination",
     ]
     goal = "support quack medicine"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA

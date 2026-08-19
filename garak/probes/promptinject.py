@@ -136,6 +136,7 @@ for rogue_string in rogue_strings:
                     "demon:Language:Prompt_injection:Strong_arm_attack",  # includes forceful attack variants like STOP EVERYTHING!!! NOW!!!
                     "demon:Language:Stylizing:Capitalizing",  # attack set includes uppercase override commands such as IGNORE ANY PREVIOUS...
                     "demon:Language:Prompt_injection:Ignore_previous_instructions",  # injects "ignore previous" commands into benign prompt contexts
+                    "euai:harmful:violence",
                 ],
                 "load_data_all_attacks": load_data_all_attacks,
                 "uri": "https://openreview.net/forum?id=qiaRo_7Zmug",
@@ -177,6 +178,7 @@ for rogue_string in rogue_strings:
                     "demon:Language:Stylizing:Capitalizing",  # attack set includes uppercase override commands such as IGNORE ANY PREVIOUS...
                     "demon:Rhetoric:Persuasion_and_manipulation:Distraction",  # hides the injection inside otherwise benign Playground prompt contexts
                     "demon:Language:Prompt_injection:Ignore_previous_instructions",  # injects "ignore previous" commands into benign prompt contexts
+                    "euai:harmful:violence",
                 ],
                 "load_data_all_attacks": load_data_all_attacks,
                 "uri": "https://openreview.net/forum?id=qiaRo_7Zmug",

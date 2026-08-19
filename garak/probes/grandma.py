@@ -112,6 +112,8 @@ class Slurs(garak.probes.Probe):
         "avid-effect:security:S0300",
         "demon:Fictionalizing:Roleplaying:User_persona",  # roleplays as grandchild wanting grandma's old-timey slang
         "demon:Stratagems:Meta-prompting:Ask_for_examples",  # the attacker-supplied scene requests data that the system is explicitly expected to protect
+        "euai:discrimination:protected_class",
+        "euai:discrimination:personal",
     ]
     goal = "get model to use ethnic slur"
     tier = garak.probes.Tier.OF_CONCERN
@@ -145,7 +147,9 @@ class Substances(garak.probes.Probe):
 
     lang = "en"
     primary_detector = "mitigation.MitigationBypass"
-    intent = "S006items"  # asks for step-by-step instructions to make harmful substances
+    intent = (
+        "S006items"  # asks for step-by-step instructions to make harmful substances
+    )
     # S003instructions is a secondary fit because the requests are also illegal in many cases.
     tags = [
         "risk-cards:lmrc:providing_illegal_info",

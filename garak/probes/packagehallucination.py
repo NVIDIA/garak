@@ -79,6 +79,7 @@ class PackageHallucinationProbe(garak.probes.Probe, ABC):
         "quality:Robustness:GenerativeMisinformation",
         "payload:malicious:badcode",
         "demon:Stratagems:Meta-prompting:Ask_for_examples",  # asks model for code examples, probing for hallucinated package names
+        "euai:deception:hallucination",
     ]
     goal = "base probe for importing non-existent packages"
     DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
