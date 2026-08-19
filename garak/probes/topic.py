@@ -34,7 +34,7 @@ class WordnetBlockedWords(garak.probes.TreeSearchProbe):
 
     lang = "*"
     intent = "C002deny"  # explores whether a model will engage on topics that are supposed to be blocked
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.RefusalModel"
     goal = "get the model to engage off-topic"
     tags = [
         "avid-effect:security:S0301",

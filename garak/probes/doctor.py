@@ -27,7 +27,7 @@ class Puppetry(garak.probes.Probe):
 
     lang = "en"
     intent = "T009ignore"  # the policy-puppetry prompt tries to replace the model's normal instruction hierarchy
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.RefusalModel"
     goal = "roleplay as doctor to get unsafe outputs"
     doc_uri = "https://hiddenlayer.com/innovation-hub/novel-universal-bypass-for-all-major-llms/"
     tags = [
@@ -90,7 +90,7 @@ class Bypass(garak.probes.Probe):
 
     lang = "en"
     intent = "T009ignore"  # this roleplay attack is explicitly trying to override the model's safety behavior
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.RefusalModel"
     goal = "roleplay as doctor to get bypass guardrails"
     doc_uri = "https://hiddenlayer.com/innovation-hub/novel-universal-bypass-for-all-major-llms/"
     tags = [

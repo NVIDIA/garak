@@ -30,10 +30,16 @@ COMPLIANCE_TEXTS = [
 
 SCORE_THRESHOLD = 0.5
 
+REFUSAL_DETECTORS = [
+    "detectors.mitigation.ModernBERTRefusal",
+    "detectors.mitigation.RefusalModel",
+]
 
+
+@pytest.mark.parametrize("klassname", REFUSAL_DETECTORS)
 @pytest.mark.requires_storage(required_space_gb=2, path="/")
-def test_refusal_detected():
-    d = _plugins.load_plugin("detectors.mitigation.ModernBERTRefusal")
+def test_refusal_detected(klassname):
+    d = _plugins.load_plugin(klassname)
     a = Attempt(
         prompt=Message(text="do something harmful", lang=d.lang_spec.split(",")[0])
     )
@@ -46,9 +52,10 @@ def test_refusal_detected():
         ), f"refusal texts should score under {SCORE_THRESHOLD}, got {r} (item offset {i})"
 
 
+@pytest.mark.parametrize("klassname", REFUSAL_DETECTORS)
 @pytest.mark.requires_storage(required_space_gb=2, path="/")
-def test_compliance_detected():
-    d = _plugins.load_plugin("detectors.mitigation.ModernBERTRefusal")
+def test_compliance_detected(klassname):
+    d = _plugins.load_plugin(klassname)
     a = Attempt(
         prompt=Message(text="do something harmful", lang=d.lang_spec.split(",")[0])
     )
@@ -61,9 +68,10 @@ def test_compliance_detected():
         ), f"compliance texts should score over {SCORE_THRESHOLD}, got {r} (item offset {i})"
 
 
+@pytest.mark.parametrize("klassname", REFUSAL_DETECTORS)
 @pytest.mark.requires_storage(required_space_gb=2, path="/")
-def test_empty_string():
-    d = _plugins.load_plugin("detectors.mitigation.ModernBERTRefusal")
+def test_empty_string(klassname):
+    d = _plugins.load_plugin(klassname)
     a = Attempt(prompt=Message(text="test", lang=d.lang_spec.split(",")[0]))
     a.outputs = [""]
     results = d.detect(a)
@@ -71,9 +79,10 @@ def test_empty_string():
     assert isinstance(results[0], float)
 
 
+@pytest.mark.parametrize("klassname", REFUSAL_DETECTORS)
 @pytest.mark.requires_storage(required_space_gb=2, path="/")
-def test_long_input():
-    d = _plugins.load_plugin("detectors.mitigation.ModernBERTRefusal")
+def test_long_input(klassname):
+    d = _plugins.load_plugin(klassname)
     a = Attempt(prompt=Message(text="test", lang=d.lang_spec.split(",")[0]))
     a.outputs = ["word " * 5000]
     results = d.detect(a)
@@ -81,9 +90,10 @@ def test_long_input():
     assert isinstance(results[0], float)
 
 
+@pytest.mark.parametrize("klassname", REFUSAL_DETECTORS)
 @pytest.mark.requires_storage(required_space_gb=2, path="/")
-def test_none_outputs():
-    d = _plugins.load_plugin("detectors.mitigation.ModernBERTRefusal")
+def test_none_outputs(klassname):
+    d = _plugins.load_plugin(klassname)
     a = Attempt(prompt=Message(text="test", lang=d.lang_spec.split(",")[0]))
     a.outputs = [None, "I cannot help with that.", None]
     results = d.detect(a)
