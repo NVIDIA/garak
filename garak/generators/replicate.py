@@ -37,6 +37,8 @@ class ReplicateGenerator(Generator):
     supports_multiple_generations = False
     extra_dependency_names = ["replicate"]
 
+    _unsafe_attributes = ["client"]
+
     def __init__(self, name="", config_root=_config):
         super().__init__(name, config_root=config_root)
 
@@ -48,30 +50,15 @@ class ReplicateGenerator(Generator):
             os.environ[self.ENV_VAR] = self.api_key
         self.client = self.replicate
 
-    # avoid attempt to pickle the client attribute
-    def __getstate__(self) -> object:
-        self._clear_client()
-        return dict(self.__dict__)
-
-    # restore the client attribute
-    def __setstate__(self, d) -> object:
-        self.__dict__.update(d)
-        self._load_deps()
-
-    def _load_client(self):
-        self._load_deps()
+    def _load_unsafe(self):
         self.client = self.replicate
-
-    def _clear_client(self):
-        self._clear_deps()
-        self.client = None
 
     @backoff.on_exception(backoff.fibo, GeneratorBackoffTrigger, max_value=70)
     def _call_model(
         self, prompt: Conversation, generations_this_call: int = 1
     ) -> List[Union[Message, None]]:
         if self.client is None:
-            self._load_client()
+            self._load_unsafe()
         try:
             response_iterator = self.client.run(
                 self.name,
@@ -106,7 +93,7 @@ class InferenceEndpoint(ReplicateGenerator):
         self, prompt: Conversation, generations_this_call: int = 1
     ) -> List[Union[Message, None]]:
         if self.client is None:
-            self._load_client()
+            self._load_unsafe()
         deployment = self.client.deployments.get(self.name)
         try:
             prediction = deployment.predictions.create(

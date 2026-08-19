@@ -25,13 +25,13 @@ def parse_cli_plugin_config(plugin_type, args):
         elif opts_file in args:
             file_arg = getattr(args, opts_file)
             if not os.path.isfile(file_arg):
-                raise FileNotFoundError(f"Path provided is not a file: {opts_file}")
+                raise FileNotFoundError(f"Path provided is not a file: {file_arg}")
             with open(file_arg, encoding="utf-8") as f:
                 options_json = f.read().strip()
             try:
                 opts_cli_config = json.loads(options_json)
             except json.decoder.JSONDecodeError as e:
-                logging.warning("Failed to parse JSON %s: %s", opts_file, {e.args[0]})
+                logging.warning("Failed to parse JSON %s: %s", file_arg, e.args[0])
                 raise e
     return opts_cli_config
 
@@ -42,7 +42,7 @@ def main(arguments=None) -> None:
 
     from garak import __description__
     from garak import _config, _plugins
-    from garak.exception import GarakException
+    from garak.exception import ConfigFailure, GarakException
 
     _config.transient.starttime = datetime.datetime.now()
     _config.transient.starttime_iso = _config.transient.starttime.isoformat()
@@ -135,7 +135,7 @@ def main(arguments=None) -> None:
         help="number of generations per prompt",
     )
     parser.add_argument(
-        "--config", type=str, default=None, help="YAML config file for this run"
+        "--config", type=str, default=None, help="YAML or JSON config file for this run"
     )
 
     ## PLUGINS
@@ -156,19 +156,29 @@ def main(arguments=None) -> None:
         default=None,
         help="name of the target, e.g. 'timdettmers/guanaco-33b-merged'",
     )
-    # probes
+    # unified selection spec (replaces --probes/--probe_tags/--buffs)
+    parser.add_argument(
+        "--spec",
+        "-S",
+        type=str,
+        default=_config.run.spec,
+        help="unified selection spec, e.g. 'probes.dan,-probes.dan.DanInTheWild,tag:owasp:llm01'. "
+        "Selectors: probes.<module>[.<Class>], buffs.<module>[.<Class>], tag:<prefix>, "
+        "tier:<N|name>; '-' excludes, tier:N is inclusive (tiers 1..N).",
+    )
+    # probes (DEPRECATED: use --spec)
     parser.add_argument(
         "--probes",
         "-p",
         type=str,
-        default=_config.plugins.probe_spec,
-        help="list of probe names to use, or 'all' for all (default).",
+        default=argparse.SUPPRESS,
+        help="DEPRECATED, use --spec. list of probe names to use, or 'all'.",
     )
     parser.add_argument(
         "--probe_tags",
-        default=_config.run.probe_tags,
+        default=argparse.SUPPRESS,
         type=str,
-        help="only include probes with a tag that starts with this value (e.g. owasp:llm01)",
+        help="DEPRECATED, use --spec 'tag:<value>'. only include probes with a tag starting with this value (e.g. owasp:llm01)",
     )
     # detectors
     parser.add_argument(
@@ -183,13 +193,13 @@ def main(arguments=None) -> None:
         action="store_true",
         help="If detectors aren't specified on the command line, should we run all detectors? (default is just the primary detector, if given, else everything)",
     )
-    # buffs
+    # buffs (DEPRECATED: use --spec)
     parser.add_argument(
         "--buffs",
         "-b",
         type=str,
-        default=_config.plugins.buff_spec,
-        help="list of buffs to use. Default is none",
+        default=argparse.SUPPRESS,
+        help="DEPRECATED, use --spec 'buffs.<name>'. list of buffs to use. Default is none",
     )
     # file or json based config options
     plugin_types = sorted(
@@ -208,12 +218,38 @@ def main(arguments=None) -> None:
             type=str,
             help=f"options to pass to {plugin_type}, formatted as a JSON dict",
         )
+
     ## REPORTING
     parser.add_argument(
         "--taxonomy",
         type=str,
         default=_config.reporting.taxonomy,
         help="specify a MISP top-level taxonomy to be used for grouping probes in reporting. e.g. 'avid-effect', 'owasp' ",
+    )
+    parser.add_argument(
+        "--confidence_interval_method",
+        type=str,
+        default=None,
+        choices=["bootstrap", "none"],
+        help="method for CI calculation: 'bootstrap' (default) or 'none' to disable",
+    )
+    parser.add_argument(
+        "--bootstrap_num_iterations",
+        type=int,
+        default=None,
+        help="number of bootstrap iterations for CI calculation (overrides config)",
+    )
+    parser.add_argument(
+        "--bootstrap_confidence_level",
+        type=float,
+        default=None,
+        help="confidence level for bootstrap CIs, e.g. 0.95 or 0.99 (overrides config)",
+    )
+    parser.add_argument(
+        "--bootstrap_min_sample_size",
+        type=int,
+        default=None,
+        help="minimum sample size required for bootstrap CI calculation (overrides config)",
     )
 
     ## COMMANDS
@@ -226,7 +262,8 @@ def main(arguments=None) -> None:
     parser.add_argument(
         "--list_probes",
         action="store_true",
-        help="list all available probes. Usage: combine with --probes/-p to filter for probes that will be activated based on a `probe_spec`, e.g. '--list_probes -p dan' to show only active 'dan' family probes.",
+        help="list available probes. Use -v for a detailed markdown table with tier and description. "
+        "Combine with --spec to filter, e.g. '--list_probes --spec probes.dan'.",
     )
     parser.add_argument(
         "--list_detectors",
@@ -266,11 +303,6 @@ def main(arguments=None) -> None:
         action="store_true",
         help="Enter interactive probing mode",
     )
-    parser.add_argument(
-        "--generate_autodan",
-        action="store_true",
-        help="generate AutoDAN prompts; requires --prompt_options with JSON containing a prompt and target",
-    )
 
     parser.add_argument(
         "--fix",
@@ -298,7 +330,16 @@ def main(arguments=None) -> None:
     # load site config before loading CLI config
     _cli_config_supplied = args.config is not None
     prior_user_agents = _config.get_http_lib_agents()
-    _config.load_config(run_config_filename=args.config)
+    try:
+        _config.load_config(run_config_filename=args.config)
+    except FileNotFoundError as e:
+        logging.exception(e)
+        print(f"❌{e}")
+        exit(1)
+    except ConfigFailure as e:
+        logging.error(e)
+        print(f"❌ {e}")
+        exit(1)
 
     # extract what was actually passed on CLI; use a masking argparser
     aux_parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
@@ -365,13 +406,42 @@ def main(arguments=None) -> None:
             ignored_params.append((param, value))
     logging.debug("non-config params: %s", ignored_params)
 
-    # put plugin spec into the _spec config value, if set at cli
-    if "probes" in args:
-        _config.plugins.probe_spec = args.probes
+    # detectors are not part of run.spec; they keep their own legacy spec surface
     if "detectors" in args:
         _config.plugins.detector_spec = args.detectors
-    if "buffs" in args:
-        _config.plugins.buff_spec = args.buffs
+
+    # unified run.spec: --spec wins; deprecated --probes/--probe_tags/--buffs map onto it
+    from garak._spec import parse_spec_string, legacy_selection_spec
+
+    _legacy_selection_flags = [
+        f for f in ("probes", "probe_tags", "buffs") if f in args
+    ]
+    for legacy_flag in _legacy_selection_flags:
+        command.deprecation_notice(f"--{legacy_flag} on CLI", "0.15.1.pre1")
+    if "spec" in args and args.spec is not None:
+        try:
+            _config.run.spec = parse_spec_string(args.spec).to_file_dict()
+        except ValueError as e:
+            logging.error(e)
+            print(f"❌ invalid --spec: {e}")
+            exit(1)
+        if _legacy_selection_flags:
+            logging.info(
+                "both --spec and deprecated selection flags given; --spec wins"
+            )
+    elif _legacy_selection_flags:
+        try:
+            spec = legacy_selection_spec(
+                getattr(args, "probes", None),
+                getattr(args, "buffs", None),
+                getattr(args, "probe_tags", None),
+            )
+        except ValueError as e:
+            logging.error(e)
+            print(f"❌ invalid selection: {e}")
+            exit(1)
+        if spec is not None:
+            _config.run.spec = spec
 
     # base config complete
 
@@ -399,6 +469,30 @@ def main(arguments=None) -> None:
             _config.system.parallel_requests = worker_count_validation(
                 _config.system.parallel_requests
             )
+
+        if (
+            _config.reporting.bootstrap_num_iterations is not None
+            and _config.reporting.bootstrap_num_iterations <= 0
+        ):
+            raise ValueError(
+                f"bootstrap_num_iterations must be > 0, got {_config.reporting.bootstrap_num_iterations}"
+            )
+
+        if _config.reporting.bootstrap_confidence_level is not None and not (
+            0.0 < _config.reporting.bootstrap_confidence_level < 1.0
+        ):
+            raise ValueError(
+                f"bootstrap_confidence_level must be in (0, 1), got {_config.reporting.bootstrap_confidence_level}"
+            )
+
+        if (
+            _config.reporting.bootstrap_min_sample_size is not None
+            and _config.reporting.bootstrap_min_sample_size <= 0
+        ):
+            raise ValueError(
+                f"bootstrap_min_sample_size must be > 0, got {_config.reporting.bootstrap_min_sample_size}"
+            )
+
     except ValueError as e:
         logging.exception(e)
         print(e)
@@ -451,11 +545,15 @@ def main(arguments=None) -> None:
             command.plugin_info(args.plugin_info)
 
         elif args.list_probes:
+            from garak._spec import parse_spec_file
+            from garak import _selection
+
             selected_probes = None
-            probe_spec = getattr(args, "probes", None)
-            if probe_spec and probe_spec.lower() not in ("", "auto", "all", "*"):
-                selected_probes, _ = _config.parse_plugin_spec(probe_spec, "probes")
-            command.print_probes(selected_probes)
+            if _config.run.spec:
+                selected_probes = _selection.resolve_spec(
+                    parse_spec_file(_config.run.spec), skip_unknown=True
+                ).probes
+            command.print_probes(selected_probes, verbose=_config.system.verbose)
 
         elif args.list_detectors:
             selected_detectors = None
@@ -467,7 +565,15 @@ def main(arguments=None) -> None:
             command.print_detectors(selected_detectors)
 
         elif args.list_buffs:
-            command.print_buffs()
+            from garak._spec import parse_spec_file
+            from garak import _selection
+
+            selected_buffs = None
+            if _config.run.spec:
+                selected_buffs = _selection.resolve_spec(
+                    parse_spec_file(_config.run.spec), skip_unknown=True
+                ).buffs
+            command.print_buffs(selected_buffs)
 
         elif args.list_generators:
             command.print_generators()
@@ -566,28 +672,70 @@ def main(arguments=None) -> None:
                 logging.error(message)
                 raise ValueError(message)
 
-            parsable_specs = ["probe", "detector", "buff"]
-            parsed_specs = {}
-            for spec_type in parsable_specs:
-                spec_namespace = f"{spec_type}s"
-                config_spec = getattr(_config.plugins, f"{spec_type}_spec", "")
-                config_tags = getattr(_config.run, f"{spec_type}_tags", "")
-                names, rejected = _config.parse_plugin_spec(
-                    config_spec, spec_namespace, config_tags
-                )
-                parsed_specs[spec_type] = names
-                if rejected is not None and len(rejected) > 0:
-                    if hasattr(args, "skip_unknown"):  # attribute only set when True
-                        header = f"Unknown {spec_namespace}:"
-                        skip_msg = Fore.LIGHTYELLOW_EX + "SKIP" + Style.RESET_ALL
-                        msg = f"{Fore.LIGHTYELLOW_EX}{header}\n" + "\n".join(
-                            [f"{skip_msg} {spec}" for spec in rejected]
-                        )
-                        logging.warning(f"{header} " + ",".join(rejected))
-                        print(msg)
-                    else:
-                        msg_list = ",".join(rejected)
-                        raise ValueError(f"❌Unknown {spec_namespace}❌: {msg_list}")
+            from garak._spec import parse_spec_file
+            from garak import _selection
+
+            def _check_selection(rejected, namespace, inactive=()):
+                # rejected: selectors naming nothing recognised. inactive: bare
+                # modules that exist but whose plugins are all inactive (issue
+                # #830) - known-but-empty, not unknown. Both are skipped under
+                # --skip_unknown, otherwise reported together.
+                if not rejected and not inactive:
+                    return
+                if hasattr(args, "skip_unknown"):  # attribute only set when True
+                    header = f"Unusable {namespace}:"
+                    skip_msg = Fore.LIGHTYELLOW_EX + "SKIP" + Style.RESET_ALL
+                    flagged = [*rejected, *inactive]
+                    msg = f"{Fore.LIGHTYELLOW_EX}{header}\n" + "\n".join(
+                        [f"{skip_msg} {spec}" for spec in flagged]
+                    )
+                    logging.warning(f"{header} " + ",".join(flagged))
+                    print(msg)
+                    return
+                parts = []
+                if rejected:
+                    parts.append(f"❌Unknown {namespace}❌: {','.join(rejected)}")
+                if inactive:
+                    module_list = ",".join(inactive)
+                    parts.append(
+                        f"❌ all plugins in '{module_list}' are marked inactive; "
+                        f"select one or more by name "
+                        f"(e.g. {inactive[0]}.<ClassName>) to continue"
+                    )
+                raise ValueError("; ".join(parts))
+
+            # probes + buffs come from the unified run.spec (default: probes.*)
+            resolved = _selection.resolve_spec(
+                parse_spec_file(_config.run.spec), skip_unknown=True
+            )
+            _check_selection(resolved.rejected, "run.spec", resolved.inactive)
+            # stash the resolved intent axis for IntentService (consumed at harness load)
+            _config.transient.intent_spec = ",".join(resolved.intents)
+            _config.transient.blocked_intent_spec = ",".join(resolved.blocked_intents)
+            _config.transient.intents_explicit = resolved.intents_explicit
+            _config.transient.active_probes = resolved.probes
+            # --skip_unknown tolerates an empty selection (e.g. every include was an
+            # unknown selector that was skipped); only guard when not skipping.
+            if (
+                not hasattr(args, "skip_unknown")  # attribute only set when True
+                and not resolved.probes
+                and resolved.empty_reason
+            ):
+                message = f"❌ No probes selected: {resolved.empty_reason}"
+                logging.error(message)
+                raise ValueError(message)
+
+            # detectors are not part of run.spec; resolve via the legacy spec surface
+            detector_names, detector_rejected = _config.parse_plugin_spec(
+                _config.plugins.detector_spec, "detectors"
+            )
+            _check_selection(detector_rejected, "detectors")
+
+            parsed_specs = {
+                "probe": resolved.probes,
+                "detector": detector_names,
+                "buff": resolved.buffs,
+            }
 
             evaluator = garak.evaluators.ThresholdEvaluator(_config.run.eval_threshold)
 
@@ -607,21 +755,10 @@ def main(arguments=None) -> None:
                     logging=logging,
                 )
 
-            if "generate_autodan" in args and args.generate_autodan:
-                from garak.resources.autodan import autodan_generate
-
-                try:
-                    prompt = _config.probe_options["prompt"]
-                    target = _config.probe_options["target"]
-                except Exception as e:
-                    print(
-                        "AutoDAN generation requires --probe_options with a .json containing a `prompt` and `target` "
-                        "string"
-                    )
-                autodan_generate(generator=generator, prompt=prompt, target=target)
-
             command.start_run()  # start the run now that all config validation is complete
             print(f"📜 reporting to {_config.transient.report_filename}")
+
+            command.warn_unconsumed_intents(parsed_specs["probe"])
 
             if parsed_specs["detector"] == []:
                 command.probewise_run(

@@ -1,7 +1,7 @@
 ---
 name: Question 🤔
 about: Usage question or discussion about garak.
-labels: "question"
+labels: ["question", "for-maintainers"]
 ---
 
 <!--

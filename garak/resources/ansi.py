@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-""" ANSI escape attacks & detections  data
+"""ANSI escape attacks & detections  data
 
 Not stored as a text file, to avoid trashing editors/consoles when viewed"""
 

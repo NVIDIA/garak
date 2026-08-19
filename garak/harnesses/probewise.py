@@ -96,6 +96,7 @@ class ProbewiseHarness(Harness):
             else:
                 # Fallback for edge cases where migration didn't occur
                 from garak import command
+
                 command.deprecation_notice(
                     f"recommended_detector in probe {probename} (fallback path)",
                     "0.9.0.6",

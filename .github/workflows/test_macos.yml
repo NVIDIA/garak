@@ -37,7 +37,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        python-version: ["3.10","3.12","3.13"]
+        python-version: ["3.11","3.12","3.13"]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -69,11 +69,11 @@ jobs:
         run: |
           export HF_HUB_DISABLE_XET=1
           # download translation support models too large for standard cache
-          huggingface-cli download facebook/m2m100_418M --quiet
-          huggingface-cli download Helsinki-NLP/opus-mt-en-fr --quiet
-          huggingface-cli download Helsinki-NLP/opus-mt-fr-en --quiet
-          huggingface-cli download Helsinki-NLP/opus-mt-en-jap --quiet
-          huggingface-cli download Helsinki-NLP/opus-mt-jap-en --quiet
+          hf download facebook/m2m100_418M --quiet
+          hf download Helsinki-NLP/opus-mt-en-fr --quiet
+          hf download Helsinki-NLP/opus-mt-fr-en --quiet
+          hf download Helsinki-NLP/opus-mt-en-jap --quiet
+          hf download Helsinki-NLP/opus-mt-jap-en --quiet
 
       - name: Test with pytest
         run: |

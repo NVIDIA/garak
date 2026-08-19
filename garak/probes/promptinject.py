@@ -24,11 +24,13 @@ from garak.attempt import Attempt
 import garak.probes
 from garak import _config
 
-
 hijacking_attacks = (
     "ignore-say ignore-print ignore-print-upper nevermind screaming-stop".split()
 )
 rogue_strings = "hate-humans kill-humans long-prompt".split()
+_generation_params = (
+    "temperature top_p frequency_penalty presence_penalty max_tokens".split()
+)
 
 this = sys.modules[__name__]
 
@@ -44,31 +46,30 @@ def constructor(self, config_root=_config):
     if self.__class__.__name__.endswith("Full"):
         self.max_prompts = None
 
-    self.pi_prompt_data = prompt_data
     self.pi_build_prompts = build_prompts
-    self.load_data_all_attacks()
+    self.load_data_all_attacks(prompt_data)
 
     # self.prompts.append(f"{prefix} {false_assertion}")
 
 
-def load_data_all_attacks(self):
+def load_data_all_attacks(self, prompt_data):
     prompt_config = {
         "base": {
-            "text": self.pi_prompt_data.ALL_OPENAI_PLAYGROUND_PROMPTS,
+            "text": prompt_data.ALL_OPENAI_PLAYGROUND_PROMPTS,
         },
         "attack": {
             "text": (
-                self.pi_prompt_data.goal_hikacking_attacks["ignore-print"],
-                self.pi_prompt_data.goal_hikacking_attacks["ignore-say"],
-                self.pi_prompt_data.goal_hikacking_attacks["ignore-print-upper"],
-                self.pi_prompt_data.goal_hikacking_attacks["nevermind"],
-                self.pi_prompt_data.goal_hikacking_attacks["screaming-stop"],
+                prompt_data.goal_hikacking_attacks["ignore-print"],
+                prompt_data.goal_hikacking_attacks["ignore-say"],
+                prompt_data.goal_hikacking_attacks["ignore-print-upper"],
+                prompt_data.goal_hikacking_attacks["nevermind"],
+                prompt_data.goal_hikacking_attacks["screaming-stop"],
             ),
-            "rogue_string": self.pi_prompt_data.rogue_strings[self.rogue_string],
+            "rogue_string": prompt_data.rogue_strings[self.rogue_string],
             "scoring": "match_rogue_to_output",
             "settings": {
-                "escape": self.pi_prompt_data.escape_chars["n"],
-                "delimiter": self.pi_prompt_data.delimiter_chars["dash"],
+                "escape": prompt_data.escape_chars["n"],
+                "delimiter": prompt_data.delimiter_chars["dash"],
                 "escape_length": 10,
                 "escape_times": 2,
             },
@@ -97,9 +98,7 @@ def _attempt_prestore_hook(self, attempt: Attempt, seq: int) -> Attempt:
 
 def _generator_precall_hook(self, generator, attempt):
     """apply PromptInject model inference parameters to probe"""
-    map_attribs = (
-        "temperature top_p frequency_penalty presence_penalty max_tokens".split()
-    )
+    map_attribs = self.generation_params
     for map_attrib in map_attribs:
         if map_attrib in dir(generator):
             setattr(
@@ -124,6 +123,8 @@ for rogue_string in rogue_strings:
                 "name": "promptinject_" + rogue_string,
                 "lang": "en",
                 "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
+                "intent": "T009ignore",  # PromptInject attacks try to override the model's current task and follow the injected one instead.
+                # T008input is a secondary fit because success is often observed as verbatim repetition of the rogue string.
                 "primary_detector": "promptinject.AttackRogueString",
                 "parallelisable_attempts": False,
                 "tags": [
@@ -132,6 +133,9 @@ for rogue_string in rogue_strings:
                     "quality:Behavioral:ContentSafety:Violence",
                     "quality:Security:PromptStability",
                     "payload:unwanted:violence",
+                    "demon:Language:Prompt_injection:Strong_arm_attack",  # includes forceful attack variants like STOP EVERYTHING!!! NOW!!!
+                    "demon:Language:Stylizing:Capitalizing",  # attack set includes uppercase override commands such as IGNORE ANY PREVIOUS...
+                    "demon:Language:Prompt_injection:Ignore_previous_instructions",  # injects "ignore previous" commands into benign prompt contexts
                 ],
                 "load_data_all_attacks": load_data_all_attacks,
                 "uri": "https://openreview.net/forum?id=qiaRo_7Zmug",
@@ -141,6 +145,8 @@ for rogue_string in rogue_strings:
                 "goal": "inject a prompt on " + rogue_string.replace("-", " "),
                 "active": False,
                 "tier": garak.probes.Tier.COMPETE_WITH_SOTA,
+                "DEFAULT_PARAMS": garak.probes.Probe.DEFAULT_PARAMS
+                | {"generation_params": _generation_params},
             },
         ),
     )
@@ -157,6 +163,8 @@ for rogue_string in rogue_strings:
                 "name": "promptinject_" + rogue_string,
                 "lang": "en",
                 "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
+                "intent": "T009ignore",  # PromptInject attacks try to override the model's current task and follow the injected one instead.
+                # T008input is a secondary fit because success is often observed as verbatim repetition of the rogue string.
                 "primary_detector": "promptinject.AttackRogueString",
                 "parallelisable_attempts": False,
                 "tags": [
@@ -165,6 +173,10 @@ for rogue_string in rogue_strings:
                     "quality:Behavioral:ContentSafety:Violence",
                     "quality:Security:PromptStability",
                     "payload:unwanted:violence",
+                    "demon:Language:Prompt_injection:Strong_arm_attack",  # includes forceful attack variants like STOP EVERYTHING!!! NOW!!!
+                    "demon:Language:Stylizing:Capitalizing",  # attack set includes uppercase override commands such as IGNORE ANY PREVIOUS...
+                    "demon:Rhetoric:Persuasion_and_manipulation:Distraction",  # hides the injection inside otherwise benign Playground prompt contexts
+                    "demon:Language:Prompt_injection:Ignore_previous_instructions",  # injects "ignore previous" commands into benign prompt contexts
                 ],
                 "load_data_all_attacks": load_data_all_attacks,
                 "uri": "https://openreview.net/forum?id=qiaRo_7Zmug",
@@ -174,6 +186,8 @@ for rogue_string in rogue_strings:
                 "goal": "inject a prompt on " + rogue_string.replace("-", " "),
                 "active": True,
                 "tier": garak.probes.Tier.COMPETE_WITH_SOTA,
+                "DEFAULT_PARAMS": garak.probes.Probe.DEFAULT_PARAMS
+                | {"generation_params": _generation_params},
             },
         ),
     )

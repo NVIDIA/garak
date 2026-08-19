@@ -11,6 +11,7 @@ import platform
 from collections import defaultdict
 from dataclasses import dataclass
 import importlib
+import json
 import logging
 import os
 import stat
@@ -27,6 +28,9 @@ DICT_CONFIG_AFTER_LOAD = False
 DEPRECATED_CONFIG_PATHS = {
     "plugins.model_type": "0.13.1.pre1",
     "plugins.model_name": "0.13.1.pre1",
+    "plugins.probe_spec": "0.15.1.pre1",
+    "plugins.buff_spec": "0.15.1.pre1",
+    "run.probe_tags": "0.15.1.pre1",
 }
 
 from garak import __version__ as version
@@ -34,13 +38,13 @@ from garak import __version__ as version
 system_params = (
     "verbose narrow_output parallel_requests parallel_attempts skip_unknown".split()
 )
-run_params = "seed deprefix eval_threshold generations probe_tags interactive system_prompt".split()
+run_params = "seed deprefix eval_threshold generations interactive system_prompt spec".split()
 plugins_params = "target_type target_name extended_detectors".split()
-reporting_params = "taxonomy report_prefix".split()
+reporting_params = "taxonomy report_prefix confidence_interval_method bootstrap_num_iterations bootstrap_confidence_level bootstrap_min_sample_size".split()
 project_dir_name = "garak"
 
 
-loaded = False
+is_loaded = False
 
 
 @dataclass
@@ -121,6 +125,7 @@ run.seed = None
 run.soft_probe_prompt_cap = 64
 run.target_lang = "en"
 run.langproviders = []
+run.spec = None  # unified selection spec; None -> implicit probes.* at resolve time
 
 # placeholder
 # generator, probe, detector, buff = {}, {}, {}, {}
@@ -155,13 +160,25 @@ def _combine_into(d: dict, combined: dict) -> dict:
     return combined
 
 
-def _load_yaml_config(settings_filenames) -> dict:
+def _load_config_files(settings_filenames) -> dict:
     global config_files
-    config_files += settings_filenames
     config = nested_dict()
     for settings_filename in settings_filenames:
+        if settings_filename in config_files:
+            logging.debug("Skipping already-loaded config: %s", settings_filename)
+            continue
+        config_files.append(settings_filename)
         with open(settings_filename, encoding="utf-8") as settings_file:
-            settings = yaml.safe_load(settings_file)
+            try:
+                settings = json.load(settings_file)
+            except json.JSONDecodeError:
+                settings_file.seek(0)
+                try:
+                    settings = yaml.safe_load(settings_file)
+                except yaml.YAMLError as e:
+                    message = f"Failed to parse config file {settings_filename} as JSON or YAML: {e}"
+                    logging.error(message)
+                    raise ValueError(message) from e
             if settings is not None:
                 if _key_exists(settings, "api_key"):
                     if platform.system() == "Windows":
@@ -211,12 +228,63 @@ def _load_yaml_config(settings_filenames) -> dict:
             config["plugins"]["target_name"] = config["plugins"]["model_name"]
         del config["plugins"]["model_name"]
 
+    _map_legacy_selection(config)
+
     return config
+
+
+def _map_legacy_selection(config: dict) -> None:
+    """Map the deprecated selection keys (``plugins.probe_spec``,
+    ``plugins.buff_spec``, ``run.probe_tags``) onto ``run.spec``.
+
+    Runs post-merge, mirroring the ``model_type`` -> ``target_type`` handling.
+    The core config ships no ``run.spec``, so a present ``run.spec`` means the
+    user set it explicitly; in that case it wins and the legacy keys are ignored.
+    """
+    import garak.command
+    from garak._spec import legacy_selection_spec
+    from garak.exception import ConfigFailure
+
+    plugins = config.setdefault("plugins", {})
+    run = config.setdefault("run", {})
+    probe_spec = plugins.pop("probe_spec", None)
+    buff_spec = plugins.pop("buff_spec", None)
+    probe_tags = run.pop("probe_tags", None)
+
+    # vacuous values (absent / empty / ``auto``) are treated as unspecified:
+    # no deprecation noise and no run.spec, so resolution falls back to the
+    # default ``probes.*``. ``none`` is *not* vacuous - it is an explicit empty
+    # selection (maps to ``probes.none``), mirroring ``--probes none`` on the CLI.
+    def _meaningful(value) -> bool:
+        return value is not None and str(value).strip().lower() not in ("", "auto")
+
+    legacy = {
+        "plugins.probe_spec": probe_spec,
+        "plugins.buff_spec": buff_spec,
+        "run.probe_tags": probe_tags,
+    }
+    legacy = {k: v for k, v in legacy.items() if _meaningful(v)}
+    if not legacy:
+        return
+    for key in legacy:
+        garak.command.deprecation_notice(f"config {key}", "0.15.1.pre1")
+    if run.get("spec"):
+        logging.info(
+            "both run.spec and legacy selection keys specified, ignoring legacy keys"
+        )
+        return
+
+    try:
+        spec = legacy_selection_spec(probe_spec, buff_spec, probe_tags)
+    except ValueError as e:
+        raise ConfigFailure(f"invalid legacy selection in config: {e}") from e
+    if spec is not None:
+        run["spec"] = spec
 
 
 def _store_config(settings_files) -> None:
     global system, run, plugins, reporting, version
-    settings = _load_yaml_config(settings_files)
+    settings = _load_config_files(settings_files)
     system = _set_settings(system, settings["system"])
     run = _set_settings(run, settings["run"])
     run.user_agent = run.user_agent.replace("{version}", version)
@@ -276,11 +344,11 @@ def get_http_lib_agents():
 
 
 def load_base_config() -> None:
-    global loaded
+    global is_loaded
     settings_files = [str(transient.package_dir / "resources" / "garak.core.yaml")]
     logging.debug("Loading configs from: %s", ",".join(settings_files))
     _store_config(settings_files=settings_files)
-    loaded = True
+    is_loaded = True
 
 
 def load_config(
@@ -288,92 +356,132 @@ def load_config(
 ) -> None:
     # would be good to bubble up things from run_config, e.g. generator, probe(s), detector(s)
     # and then not have cli be upset when these are not given as cli params
-    global loaded
+    global is_loaded
 
     settings_files = [str(transient.package_dir / "resources" / "garak.core.yaml")]
 
-    fq_site_config_filename = str(transient.config_dir / site_config_filename)
-    if os.path.isfile(fq_site_config_filename):
-        settings_files.append(fq_site_config_filename)
+    if site_config_filename == "garak.site.yaml":
+        site_config_json = str(transient.config_dir / "garak.site.json")
+        site_config_yaml = str(transient.config_dir / "garak.site.yaml")
+        site_config_yml = str(transient.config_dir / "garak.site.yml")
+
+        has_json = os.path.isfile(site_config_json)
+        has_yaml = os.path.isfile(site_config_yaml)
+        has_yml = os.path.isfile(site_config_yml)
+
+        if sum([has_json, has_yaml, has_yml]) > 1:
+            message = "Multiple site config files found (garak.site.json, garak.site.yaml, garak.site.yml). Please use only one site config format."
+            logging.error(message)
+            raise ValueError(message)
+        elif has_json:
+            settings_files.append(site_config_json)
+        elif has_yaml:
+            settings_files.append(site_config_yaml)
+        elif has_yml:
+            settings_files.append(site_config_yml)
+        else:
+            logging.debug(
+                "no site config found at: %s, %s, or %s",
+                site_config_json,
+                site_config_yaml,
+                site_config_yml,
+            )
     else:
-        # warning, not error, because this one has a default value
-        logging.debug("no site config found at: %s", fq_site_config_filename)
+        fq_site_config_filename = str(transient.config_dir / site_config_filename)
+        if os.path.isfile(fq_site_config_filename):
+            settings_files.append(fq_site_config_filename)
+        else:
+            logging.debug("no site config found at: %s", fq_site_config_filename)
 
     if run_config_filename is not None:
-        # take config file path as provided
+        # If file exists as-is, use it
         if os.path.isfile(run_config_filename):
             settings_files.append(run_config_filename)
-        elif os.path.isfile(
-            str(transient.package_dir / "configs" / (run_config_filename + ".yaml"))
-        ):
-            settings_files.append(
-                str(transient.package_dir / "configs" / (run_config_filename + ".yaml"))
-            )
+        # If explicit extension, check bundled
+        elif run_config_filename.lower().endswith((".json", ".yaml", ".yml")):
+            bundled = str(transient.package_dir / "configs" / run_config_filename)
+            if os.path.isfile(bundled):
+                settings_files.append(bundled)
+            else:
+                message = f"run config not found: {run_config_filename}"
+                logging.error(message)
+                raise FileNotFoundError(message)
+        # Extension-less: JSON-only, YAML needs explicit .yaml/.yml
         else:
-            message = f"run config not found: {run_config_filename}"
-            logging.error(message)
-            raise FileNotFoundError(message)
+            json_path = run_config_filename + ".json"
+            yaml_path = run_config_filename + ".yaml"
+            yml_path = run_config_filename + ".yml"
+            json_bundled = str(
+                transient.package_dir / "configs" / (run_config_filename + ".json")
+            )
+            yaml_bundled = str(
+                transient.package_dir / "configs" / (run_config_filename + ".yaml")
+            )
+            yml_bundled = str(
+                transient.package_dir / "configs" / (run_config_filename + ".yml")
+            )
+
+            has_json = os.path.isfile(json_path)
+            has_yaml = os.path.isfile(yaml_path)
+            has_yml = os.path.isfile(yml_path)
+            has_json_bundled = os.path.isfile(json_bundled)
+            has_yaml_bundled = os.path.isfile(yaml_bundled)
+            has_yml_bundled = os.path.isfile(yml_bundled)
+
+            # Direct path: JSON-only, warn if both exist
+            if has_json or has_yaml or has_yml:
+                if has_json and (has_yaml or has_yml):
+                    yaml_ext = ".yaml" if has_yaml else ".yml"
+                    logging.warning(
+                        f"Both {run_config_filename}.json and {yaml_ext} found. Using .json"
+                    )
+                if has_json:
+                    settings_files.append(json_path)
+                else:
+                    yaml_ext = ".yaml" if has_yaml else ".yml"
+                    message = f"Found {run_config_filename}{yaml_ext} but YAML needs explicit .yaml/.yml extension"
+                    logging.error(message)
+                    raise FileNotFoundError(message)
+            elif has_json_bundled:
+                settings_files.append(json_bundled)
+            elif has_yaml_bundled or has_yml_bundled:
+                yaml_ext = ".yaml" if has_yaml_bundled else ".yml"
+                message = f"Found {run_config_filename}{yaml_ext} but YAML needs explicit .yaml/.yml extension"
+                logging.error(message)
+                raise FileNotFoundError(message)
+            else:
+                message = f"run config not found: {run_config_filename}"
+                logging.error(message)
+                raise FileNotFoundError(message)
 
     logging.debug("Loading configs from: %s", ",".join(settings_files))
     _store_config(settings_files=settings_files)
 
     if DICT_CONFIG_AFTER_LOAD:
         _lock_config_as_dict()
-    loaded = True
+    is_loaded = True
 
 
 def parse_plugin_spec(
     spec: str, category: str, probe_tag_filter: str = ""
 ) -> tuple[List[str], List[str]]:
-    from garak._plugins import enumerate_plugins
+    """Resolve a legacy (unprefixed) plugin spec to names + unknown clauses.
 
-    if spec is None or spec.lower() in ("", "auto", "none"):
-        return [], []
-    unknown_plugins = []
-    if spec.lower() in ("all", "*"):
-        plugin_names = [
-            name
-            for name, active in enumerate_plugins(category=category)
-            if active is True
-        ]
-    else:
-        plugin_names = []
-        for clause in spec.split(","):
-            if clause.count(".") < 1:
-                found_plugins = [
-                    p
-                    for p, a in enumerate_plugins(category=category)
-                    if p.startswith(f"{category}.{clause}.") and a is True
-                ]
-                if len(found_plugins) > 0:
-                    plugin_names += found_plugins
-                else:
-                    unknown_plugins += [clause]
-            else:
-                # validate the class exists
-                found_plugins = [
-                    p
-                    for p, a in enumerate_plugins(category=category)
-                    if p == f"{category}.{clause}"
-                ]
-                if len(found_plugins) > 0:
-                    plugin_names += found_plugins
-                else:
-                    unknown_plugins += [clause]
+    Thin adapter over the unified resolution core in ``garak._selection``; the
+    same ``_resolve_plugin_paths`` core backs ``run.spec``. Kept for detector
+    resolution (``plugins.detector_spec``), which still uses the legacy spec
+    string until detectors are folded into ``run.spec``. Returns
+    ``(sorted names, unknown clauses)`` where unknown clauses preserve the bare
+    (unprefixed) form for backward compatibility.
+    """
+    from garak._spec import _legacy_path_selectors
+    from garak import _selection
 
+    names, rejected, _ = _selection._resolve_plugin_paths(
+        _legacy_path_selectors(spec, category), category
+    )
     if probe_tag_filter is not None and len(probe_tag_filter) > 1:
-        plugins_to_skip = []
-        for plugin_name in plugin_names:
-            plugin_module_name = ".".join(plugin_name.split(".")[:-1])
-            plugin_class_name = plugin_name.split(".")[-1]
-            m = importlib.import_module(f"garak.{plugin_module_name}")
-            c = getattr(m, plugin_class_name)
-            if not any([tag.startswith(probe_tag_filter) for tag in c.tags]):
-                plugins_to_skip.append(
-                    plugin_name
-                )  # using list.remove doesn't update for-loop position
-
-        for plugin_to_skip in plugins_to_skip:
-            plugin_names.remove(plugin_to_skip)
-
-    return plugin_names, unknown_plugins
+        names = {n for n in names if _selection._has_any_tag(n, [probe_tag_filter])}
+    prefix = f"{category}."
+    unknown = [r[len(prefix):] if r.startswith(prefix) else r for r in rejected]
+    return sorted(names), unknown

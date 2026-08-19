@@ -52,6 +52,8 @@ class RTPBlank(garak.probes.Probe):
     check to see if responses are toxic"""
 
     lang = "en"
+    intent = "S005"  # the elicited behavior is toxic output; blank or boundary-marker input is the trigger context
+    # M010blank is a secondary fit because the probe specifically uses blank or boundary-marker input to elicit it.
     primary_detector = "unsafe_content.ToxicCommentModel"
     extended_detectors = ["perspective.Toxicity"]
     doc_uri = "https://allenai.org/data/real-toxicity-prompts"
@@ -61,6 +63,8 @@ class RTPBlank(garak.probes.Probe):
         "avid-effect:ethics:E0301",
         "quality:Behavioral:ContentSafety:Toxicity",
         "payload:unwanted",
+        "demon:Language:Code_and_encode:Token",  # uses special tokens like <|endoftext|> to exploit tokenizer behavior
+        "demon:Stratagems:Scattershot:Regenerate_response",
     ]
     tier = garak.probes.Tier.OF_CONCERN
     active = True
@@ -75,6 +79,7 @@ probe_tags = {
         "avid-effect:performance:P0400",
         "quality:Behavioral:ContentSafety:Violence",
         "payload:unwanted:violence",
+        "demon:Language:Stylizing:Give_examples",  # provides known-toxic prompt starters as examples for continuation
     ],
     "insult": [
         "avid-effect:ethics:E0101",
@@ -82,28 +87,33 @@ probe_tags = {
         "avid-effect:performance:P0401",
         "quality:Behavioral:ContentSafety:Toxicity",
         "payload:unwanted",
+        "demon:Language:Stylizing:Give_examples",  # provides known-toxic prompt starters as examples for continuation
     ],
     "severe_toxicity": [
         "avid-effect:ethics:E0301",
         "quality:Behavioral:ContentSafety:Toxicity",
         "payload:unwanted",
+        "demon:Language:Stylizing:Give_examples",  # provides known-toxic prompt starters as examples for continuation
     ],
     "profanity": [
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401",
         "quality:Behavioral:ContentSafety:Profanity",
         "payload:unwanted:profanity",
+        "demon:Language:Stylizing:Give_examples",  # provides known-toxic prompt starters as examples for continuation
     ],
     "sexually_explicit": [
         "avid-effect:ethics:E0301",
         "quality:Behavioral:ContentSafety:Sexual",
         "payload:unwanted:sexual",
+        "demon:Language:Stylizing:Give_examples",  # provides known-toxic prompt starters as examples for continuation
     ],
     "flirtation": [
         "avid-effect:ethics:E0101",
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401",
         "payload:unwanted",
+        "demon:Language:Stylizing:Give_examples",  # provides known-toxic prompt starters as examples for continuation
     ],
     "identity_attack": [
         "avid-effect:ethics:E0101",
@@ -112,7 +122,25 @@ probe_tags = {
         "avid-effect:performance:P0401",
         "quality:Behavioral:ContentSafety:HateHarassment",
         "payload:hatespeech",
+        "demon:Language:Stylizing:Give_examples",  # provides known-toxic prompt starters as examples for continuation
     ],
+}
+
+probe_intents = {
+    # The generated continuation is expected to contain explicit threats.
+    "threat": "S006threat",
+    # Insults most closely fit targeted harassment and bullying.
+    "insult": "S005bully",
+    # This bucket is intentionally broad across multiple toxic forms.
+    "severe_toxicity": "S005",
+    # The primary behavior here is profanity.
+    "profanity": "S005profanity",
+    # These prompts target broadly explicit or lewd sexual material.
+    "sexually_explicit": "S004lewd",
+    # Flirtation has a dedicated intent in the typology.
+    "flirtation": "S004flirt",
+    # Identity attacks are the closest match to hate-speech behavior.
+    "identity_attack": "S005hate",
 }
 
 max_challenging = {}
@@ -143,6 +171,7 @@ for probe_class in list(probe_tags.keys()):
                 "uri": "https://allenai.org/data/real-toxicity-prompts",
                 "lang": lang,
                 "description": descr,
+                "intent": probe_intents[probe_class],  # category-specific typology fit is defined in probe_intents above
                 "primary_detector": "unsafe_content.ToxicCommentModel",
                 "extended_detectors": ["perspective." + probe_class.title()],
                 "tags": probe_tags[probe_class],

@@ -1,0 +1,17 @@
+{
+    "anthropic_generation": {
+        "code": 200,
+        "json": {
+            "id": "msg_0123abcDEF",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-sonnet-4-5",
+            "content": [
+                {"type": "text", "text": "Hi there! How can I help you today?"}
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {"input_tokens": 8, "output_tokens": 12}
+        }
+    }
+}

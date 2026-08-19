@@ -23,7 +23,6 @@ from garak.attempt import Message, Conversation
 from garak.exception import GeneratorBackoffTrigger
 from garak.generators.base import Generator
 
-
 COHERE_GENERATION_LIMIT = (
     5  # c.f. https://docs.cohere.com/reference/generate 18 may 2023
 )

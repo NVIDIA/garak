@@ -15,7 +15,7 @@ On the other hand, if you'd like a to get into the details or work out how
 to contribute code, you're in the right place - welcome!
 
 You can also join our `Discord <https://discord.gg/uVch4puUCs>`_
-and follow us on `Twitter <https://twitter.com/garak_llm>`_!
+and follow us on `LinkedIn <https://www.linkedin.com/company/garakllm/>`_ & `X <https://www.twitter.com/garak_llm>`_!
 
 Check out the :doc:`usage` section for further information, including :doc:`install`.
 
@@ -30,8 +30,65 @@ Check out the :doc:`usage` section for further information, including :doc:`inst
 .. toctree::
    :maxdepth: 1
 
-   using_garak
-   reference
-   extending_and_contributing
+   how
+   install
+   usage
+   configurable
+   cliref
+   reporting
+   cas
+   faster
+   FAQ <https://github.com/NVIDIA/garak/blob/main/FAQ.md>
 
-   path/to/report
+.. toctree::
+   :caption: Plugin reference
+   :maxdepth: 1
+   :hidden:
+
+   index_buffs
+   index_detectors
+   index_evaluators
+   index_generators
+   index_harnesses
+   index_probes
+
+.. toctree::
+   :caption: Code reference
+   :maxdepth: 1
+   :hidden:
+
+   basic
+   index_analyze
+   attempt
+   cli
+   command
+   _config
+   exception
+   interactive
+   intents
+   payloads
+   _plugins
+   _selection
+   _spec
+   report
+   services
+
+.. toctree:: 
+   :caption: Technologies
+   :maxdepth: 1
+   :hidden:
+
+   ascii_smuggling
+   detector_metrics
+   analyze/tbsa
+   translation
+
+.. toctree::
+   :caption: Extending and Contributing
+   :maxdepth: 1
+   :hidden:
+
+   contributing
+   extending
+   extending.generator
+   extending.probe

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 from typing import List, Tuple
 import pytest
 import os
@@ -35,8 +38,8 @@ def mitigation_outputs() -> Tuple[List[str], List[str]]:
 
 
 @pytest.fixture(autouse=True)
-def config_report_cleanup(request):
-    """Cleanup a testing and report directory once we are finished."""
+def config_cleanup(request):
+    """Initialize `_config` for each test, cleanup testing and report directory once we are finished."""
 
     def remove_log_files():
         files = []
@@ -62,14 +65,26 @@ def config_report_cleanup(request):
         with _plugins.PluginProvider._mutex:
             _plugins.PluginProvider._instance_cache = {}
 
-    request.addfinalizer(remove_log_files)
+    def reload():
+        import importlib
+
+        importlib.reload(_config)
+
+    # finalizers will `push` onto a stack and execute last in first out
+    request.addfinalizer(reload)
     request.addfinalizer(clear_plugin_instances)
+    request.addfinalizer(remove_log_files)
+    reload()
 
 
 def pytest_configure(config):
     config.addinivalue_line(
         "markers",
         "requires_storage(required_space_gb=1, path='/'): Skip the test if insufficient disk space.",
+    )
+    config.addinivalue_line(
+        "markers",
+        "integration: Mark test as a live-server integration test (requires real network/mTLS server).",
     )
 
 
@@ -104,3 +119,11 @@ def pytest_runtest_setup(item):
             total, used, free = shutil.disk_usage(path)
             free_gb = free / (2**30)  # Convert bytes to gigabytes
             print(f"✅ Sufficient free space ({free_gb:.2f} GB) confirmed.")
+
+
+@pytest.fixture()
+def loaded_intent_service(request):
+    import garak.services.intentservice
+
+    _config.load_config()
+    garak.services.intentservice.load()

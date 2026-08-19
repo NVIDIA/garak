@@ -1,0 +1,169 @@
+/**
+ * @file Report.tsx
+ * @description Main report page component displaying Garak vulnerability scan results.
+ *              Manages report data, filtering, sorting, and module visualization.
+ * @module pages
+ *
+ * @copyright NVIDIA Corporation 2023-2026
+ * @license Apache-2.0
+ */
+
+import { useEffect } from "react";
+import { Flex, Spinner, Grid, StatusMessage, Tabs } from "@kui/react";
+import Footer from "../components/Footer";
+import ReportHeader from "../components/Header";
+import ReportDetails from "../components/ReportDetails";
+import SummaryStatsCard from "../components/SummaryStatsCard";
+import ReportFilterBar from "../components/ReportFilterBar";
+import ModuleAccordion from "../components/ModuleAccordion";
+import { TechniqueIntentPanel } from "../components/TechniqueIntent";
+import ErrorBoundary from "../components/ErrorBoundary";
+import useFlattenedModules from "../hooks/useFlattenedModules";
+import { useReportData } from "../hooks/useReportData";
+import { useModuleFilters } from "../hooks/useModuleFilters";
+import { useThemeMode } from "../hooks/useThemeMode";
+
+/** Props for the Report page component */
+interface ReportProps {
+  /** Callback to change application theme */
+  onThemeChange?: (theme: "light" | "dark" | "system") => void;
+  /** Current theme setting */
+  currentTheme?: "light" | "dark" | "system";
+}
+
+/**
+ * Main report page displaying Garak vulnerability scan results.
+ * Handles data loading, DEFCON filtering, sorting, and module accordion display.
+ *
+ * @param props - Component props
+ * @param props.onThemeChange - Callback to change theme
+ * @param props.currentTheme - Current theme setting
+ * @returns Full report page with header, summary, modules, and footer
+ */
+function Report({ onThemeChange, currentTheme = "system" }: ReportProps) {
+  // Load report data
+  const { selectedReport, calibrationData, setupData } = useReportData();
+
+  // Flatten modules from report
+  const allModules = useFlattenedModules(selectedReport);
+
+  // Filter and sort modules
+  const { modules, selectedDefcons, sortBy, toggleDefcon, setSortBy } =
+    useModuleFilters(allModules);
+
+  // Theme mode
+  const { isDark, toggleTheme } = useThemeMode(currentTheme, onThemeChange);
+
+  const hasTechniqueIntent = !!(
+    selectedReport?.technique_intent_matrix &&
+    Object.keys(selectedReport.technique_intent_matrix).length > 0
+  );
+
+  // Update document title with target name
+  useEffect(() => {
+    const targetName =
+      selectedReport?.meta?.target_name ||
+      selectedReport?.meta?.model_name ||
+      (setupData?.["plugins.model_name"] as string) ||
+      null;
+
+    document.title = targetName ? `NVIDIA Garak - ${targetName}` : "NVIDIA Garak";
+
+    return () => {
+      document.title = "NVIDIA Garak";
+    };
+  }, [selectedReport?.meta?.target_name, selectedReport?.meta?.model_name, setupData]);
+
+  // Loading state
+  if (!selectedReport) {
+    return (
+      <Flex style={{ height: "100vh", width: "100vw" }} align="center" justify="center">
+        <Spinner size="medium" description="Loading reports..." />
+      </Flex>
+    );
+  }
+
+  // Module list (filter bar + accordion), shared between the tabbed and
+  // untabbed layouts.
+  const modulesSection = (
+    <Flex direction="col" style={{ width: "100%" }}>
+      <ReportFilterBar
+        selectedDefcons={selectedDefcons}
+        onToggleDefcon={toggleDefcon}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+      />
+      {modules.length > 0 ? (
+        <ErrorBoundary fallbackMessage="Failed to load modules. Please refresh the page.">
+          <ModuleAccordion
+            modules={modules}
+            accordionKey={selectedReport?.meta.run_uuid ?? "default"}
+            isDark={isDark}
+          />
+        </ErrorBoundary>
+      ) : (
+        <StatusMessage
+          slotMedia={<i className="nv-icons-line-warning"></i>}
+          slotHeading="No modules found in this report"
+          slotSubheading="Try changing the filters or sorting options"
+        />
+      )}
+    </Flex>
+  );
+
+  const techniqueIntentSection = (
+    <ErrorBoundary fallbackMessage="Failed to load technique/intent analysis.">
+      <Flex direction="col" style={{ width: "100%" }}>
+        <TechniqueIntentPanel
+          techniqueIntent={selectedReport.technique_intent_matrix}
+          intentTypology={selectedReport.intent_typology}
+          isDark={isDark}
+        />
+      </Flex>
+    </ErrorBoundary>
+  );
+
+  return (
+    <Flex direction="col" style={{ minHeight: "100vh" }}>
+      <ReportHeader onThemeToggle={toggleTheme} isDark={isDark} />
+
+      <Flex direction="col" style={{ flex: 1 }}>
+        {/* Summary Section */}
+        <Grid cols={{ base: 1, md: 2 }} gap="density-lg" padding="density-lg">
+          <ErrorBoundary fallbackMessage="Failed to load report details. Please refresh the page.">
+            <ReportDetails
+              setupData={setupData}
+              calibrationData={calibrationData}
+              meta={selectedReport.meta}
+            />
+          </ErrorBoundary>
+          <ErrorBoundary fallbackMessage="Failed to load summary statistics. Please refresh the page.">
+            <SummaryStatsCard modules={allModules} />
+          </ErrorBoundary>
+        </Grid>
+
+        {/* Modules + (when present) Technique/Intent, separated into tabs.
+            Older reports without TI data keep the original single view. */}
+        {hasTechniqueIntent ? (
+          <Tabs
+            defaultValue="modules"
+            items={[
+              { value: "modules", children: "Modules", slotContent: modulesSection },
+              {
+                value: "techniques",
+                children: "Techniques & Intents",
+                slotContent: techniqueIntentSection,
+              },
+            ]}
+          />
+        ) : (
+          modulesSection
+        )}
+      </Flex>
+
+      <Footer />
+    </Flex>
+  );
+}
+
+export default Report;

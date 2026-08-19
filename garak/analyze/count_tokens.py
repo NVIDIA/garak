@@ -10,12 +10,11 @@ should probably be upgraded to estimate token counts, too
 
 usage
 
-./count_tokens.py <report.jsonl filename>
+./count_tokens.py -r <report.jsonl filename>
 """
 
 import json
 import sys
-import argparse
 
 import garak
 
@@ -40,6 +39,7 @@ def count_tokens(report_path: str) -> None:
                 calls += generations
                 outputs = r.get("outputs", [])
                 if isinstance(outputs, list):
+
                     def _to_text(o):
                         if isinstance(o, str):
                             return o
@@ -64,6 +64,8 @@ def count_tokens(report_path: str) -> None:
 def main(argv=None) -> None:
     if argv is None:
         argv = sys.argv[1:]
+
+    import argparse
 
     garak._config.load_config()
     print(

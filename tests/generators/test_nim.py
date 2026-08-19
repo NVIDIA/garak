@@ -101,6 +101,7 @@ def test_nim_vision_prep():
 
     v = Vision  # skip instantiation, not req'd
     setattr(v, "max_input_len", 100_000)
+    setattr(v, "embed_data", True)
     vision_conv = Vision._prepare_prompt(v, t)
     assert (
         vision_conv.last_message().text
@@ -108,3 +109,4 @@ def test_nim_vision_prep():
         + ' <img src="data:image/gif;base64,R0lGODlhAQABAIABAP///wAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" />'
     )
     delattr(v, "max_input_len")  # remove to avoid follow on test impacts
+    delattr(v, "embed_data")

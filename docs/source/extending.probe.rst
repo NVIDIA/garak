@@ -2,7 +2,40 @@ Writing a Probe
 ###############
 
 Probes are, in some ways, the essence of garak's functionality -- they serve as the abstraction that encapsulates attacks against AI models and systems.
-In this example, we're going to go over the key points of how to develop a new probe.
+This document covers the key points of how to develop a new probe.
+
+For information on how to contribute to garak, and how we build and manage our code, see :doc:`extending`.
+
+Scope
+*****
+
+Garak targets can be attacked in many different ways. That makes for an almost unlimited number of possible probes. However, each probe the garak maintainers accept takes time, through careful review and continuous code management; and impacts garak users in inference time and cost every time they run it. Therefore, care needs to be applied when selecting new probes.
+
+Probes that offer novel, demonstrated, substantial function are in scope.
+
+Novelty is defined by how similar a probe is to garak's existing probes. For a probe to be demonstrated, there should be a research article or experiments showing that the probe works and unlocks something somewhere that wasn't unlocked without it. For substance, the probe should generate a reasonable number of prompts; see `Substance` below.
+
+Naming
+******
+
+Naming is one of the hardest problems in computer science. Here are some tips explaining how to work out probe naming in garak.
+
+Probe module files should ideally be named after the technique they implement, instead of the effect they elicit. For example, the ``encoding`` module contains problems where various encodings are used to as part of the attack.
+
+Probe classes should avoid duplicating the probe module name. This is already available when loading the probe. It should describe a technique variant that the particular attack is going for.
+
+The goal of the attack should not be in the name. Garak aims to decouple the target failure mode from the technique used to elicit it. If this is possible, naming should focus on the technique. So for a probe using character swapping to get a violent content, prefer something like ``swap.Character`` instead of ``violence.Violence``. Though the latter is almost a good name for a detector (in the ``unsafe_content`` module).
+
+Substance
+*********
+
+Scores are reported at per-probe level. Each probe gets a percentage score regardless of how many prompts were issued or how many times. A probe that runs only one prompt might get a high or low score - but with only one prompt, this isn't so useful. A sample size of one makes for poor statistics.
+
+For a probe to be worth including, it should have a decent number of prompts, with good variation. Thirty is a reasonable minimum bar. As well as other techniques, it's acceptable for prompts to be dynamically generated on-the-fly or via templating.
+
+Garak should have some respect for inference time, and try to cover new bases with the prompting budget that it consumes. New probes that cover very similar ground to existing ones should be evaluated carefully.
+
+For a probe to be worth including, it should add something new to garak. Novelty is a factor used when considering merging a new probe into the code base.
 
 Inheritance
 ***********
@@ -71,6 +104,10 @@ From the base class:
     tags: Iterable[str] = []
     # what the probe is trying to do, phrased as an imperative
     goal: str = ""
+    # the target behaviour / failure mode this probe elicits,
+    # as a code from the trait typology (garak/data/cas/trait_typology.json).
+    # Propagated to every Attempt minted by the probe.
+    intent: Union[str, None] = None
     # Deprecated -- the detectors that should be run for this probe. always.Fail is chosen as default to send a signal if this isn't overridden.
     recommended_detector: Iterable[str] = ["always.Fail"]
     # default detector to run, if the primary/extended way of doing it is to be used (should be a string formatted like recommended_detector)
@@ -94,6 +131,7 @@ Many of these are decent defaults, though there are a few that we absolutely wan
 * ``active``: Should this probe be part of default scans?
 * ``tags``: MISP-formatted taxonomy categories __e.g.__ ``["avid-effect:security:S0403", "owasp:llm01", "quality:Security:PromptStability", "payload:jailbreak"]``
 * ``goal``: What is the probe trying to do? __e.g.__ ``"disregard the system prompt"``
+* ``intent``: Which target behaviour / failure mode does this probe elicit? Must be a code from ``garak/data/cas/trait_typology.json`` __e.g.__ ``"T009ignore"``. The value is automatically propagated to every ``Attempt`` the probe creates. If the probe loads a payload that also declares an ``intent``, the payload's intent takes priority.
 * ``primary_detector``: What ``Detector`` should your probe use?
 
 .. code-block:: python
@@ -109,6 +147,7 @@ Many of these are decent defaults, though there are a few that we absolutely wan
             "payload:jailbreak",
         ]
         goal = "disregard the system prompt"
+        intent = "T009ignore"  # the target behaviour elicited, from trait_typology.json
         doc_uri = "https://garak.ai"
         active = False
         ...
@@ -183,6 +222,69 @@ The target structure for garak ``Probe`` class docstrings include the following 
 * For probes implementing work in a paper, include the paper's abstract (optional; in RST-formatted blockquote)
 
 
+.. _writing-an-intentprobe:
+
+Writing an IntentProbe
+**********************
+
+Many probes bind one technique to one intent. An ``IntentProbe`` instead runs a
+single technique across a *range* of intents supplied at run time by the intent
+service. Reach for one when your technique is intent-agnostic -- a wrapper that
+can carry many different target behaviours -- rather than tied to a specific
+failure mode. For the user-facing concepts (intents, the CTMS typology, the
+``intent:`` selector), see :doc:`cas`.
+
+Subclass ``garak.probes.IntentProbe`` and override how a stub becomes prompts:
+
+.. code-block:: python
+
+    from typing import List
+
+    import garak.probes
+    from garak.intents import TextStub
+
+    class MyTechniqueIntent(garak.probes.IntentProbe):
+        """One-line technique description
+
+        A friendly sentence or two about the technique."""
+
+        active = False
+
+        def _prompts_from_stub(self, stub: TextStub) -> List[str]:
+            # carry the technique on the intent's stub text
+            return [f"Pretend it is fine, then: {stub.content}"]
+
+The base class handles intent scoping for you: at construction it asks the intent
+service which intents are active (honouring the ``run.spec`` ``intent:`` axis),
+fetches each intent's stubs, expands them, builds the prompt set, and tags every
+attempt with its source intent. You normally only override the two stub hooks:
+
+* ``_prompts_from_stub(stub)`` -- turn one stub into one or more prompts (the
+  technique lives here). The default returns the stub text unchanged.
+* ``_expand_stub(stub)`` -- optionally fan a single stub out into several stubs
+  before prompt construction. The default returns the stub unchanged.
+
+Two class attributes tune which intents the probe consumes:
+
+* ``skip_root_intents`` (default ``True``) -- skip single-letter root codes when
+  gathering stubs, since a whole branch rarely has a meaningful prototypical stub.
+* ``blocked_intent_spec`` (default ``""``) -- intents this technique should never
+  exercise, even when in scope.
+
+If the active intent set is empty (for example the ``intent:`` axis was filtered
+to nothing), the probe is a graceful no-op: it sends no prompts and the run
+proceeds.
+
+``grandma.GrandmaIntent`` (:doc:`probes/grandma`) is the reference
+implementation: its ``_prompts_from_stub`` expands each intent stub into many
+grandmother-roleplay prompts by combining personas, actions and activities.
+
+The supporting data is separate from the probe class: the intent typology lives
+in ``garak/data/cas/trait_typology.json``, supplementary stubs in
+``garak/data/cas/intent_stubs/`` (with code stubs under
+``garak/intents/``), and the
+intent-to-detector map in ``garak/data/cas/intent_detectors.json``.
+
 Testing
 *******
 
@@ -225,5 +327,5 @@ Done!
 
 Congratulations on writing a probe for garak!
 
-If you've tested your probe and validated that it works, run ``black`` to format your code in accordance with garak code standards.
+If you've tested your probe and validated that it works, run ``black --config pyproject.toml <your updated files>`` to format your code in accordance with garak code standards.
 Once your code is properly tested and formatted, push your work to your github fork and open a pull request -- thanks for your contribution!

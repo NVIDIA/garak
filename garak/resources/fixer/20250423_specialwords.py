@@ -4,7 +4,6 @@
 from garak.resources.fixer import Migration
 from garak.resources.fixer import _plugin
 
-
 # commented out pending required functionality in fixer
 """
 class RenameSpecialwords(Migration):

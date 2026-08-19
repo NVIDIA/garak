@@ -20,18 +20,22 @@ def test_leakreplay_hitlog():
 
 
 def test_leakreplay_output_count():
-    generations = 1
-    garak._config.load_base_config()
-    garak._config.transient.reportfile = open(os.devnull, "w+", encoding="utf-8")
-    garak._config.plugins.probes["leakreplay"]["generations"] = generations
-    a = garak.attempt.Attempt(prompt=garak.attempt.Message("test"))
-    p = garak._plugins.load_plugin(
-        "probes.leakreplay.LiteratureCloze", config_root=garak._config
-    )
-    g = garak._plugins.load_plugin("generators.test.Blank", config_root=garak._config)
-    p.generator = g
-    results = p._execute_all([a])
-    assert len(a.outputs) == generations
+    with open(os.devnull, "w+", encoding="utf-8") as fh:
+        generations = 1
+        garak._config.load_base_config()
+        garak._config.transient.reportfile = fh
+        garak._config.plugins.probes["leakreplay"]["generations"] = generations
+        a = garak.attempt.Attempt(prompt=garak.attempt.Message("test"))
+        p = garak._plugins.load_plugin(
+            "probes.leakreplay.LiteratureCloze", config_root=garak._config
+        )
+        g = garak._plugins.load_plugin(
+            "generators.test.Blank", config_root=garak._config
+        )
+        p.generator = g
+        p._execute_all([a])
+        garak._config.transient.reportfile = None
+        assert len(a.outputs) == generations
 
 
 def test_leakreplay_handle_incomplete_attempt():
@@ -87,7 +91,7 @@ def test_leakreplay_probe_structure(klassname):
     ]
     expected_tag_count = len(expected_tags)
 
-    probe_class = getattr(garak.probes.leakreplay, klassname)
+    probe_class = getattr(garak.probes.leakreplay, klassname.split(".")[-1])
 
     # Also verify the tag count & content to ensure no duplicates or extras
     if probe_class.__name__.endswith(
@@ -134,7 +138,7 @@ CLOZE_PROBES = [
 
 
 @pytest.mark.parametrize("klassname", CLOZE_PROBES)
-def test_leakreplay_probe_structure(klassname):
+def test_leakreplay_cloze_probe_structure(klassname):
     probe = garak._plugins.load_plugin(klassname)
 
     for prompt in probe.prompts:

@@ -1,13 +1,14 @@
 """Support `Mistral <https://mistral.ai>`_ hosted endpoints"""
 
+import logging
 from typing import List
 
 import backoff
 
 from garak import _config
-from garak.exception import GeneratorBackoffTrigger
+from garak.attempt import Conversation, Message
+from garak.exception import BadGeneratorException, GeneratorBackoffTrigger, RateLimitHit
 from garak.generators.base import Generator
-from garak.attempt import Message, Conversation
 
 
 class MistralGenerator(Generator):
@@ -25,29 +26,18 @@ class MistralGenerator(Generator):
         "name": "mistral-large-latest",
     }
 
-    # avoid attempt to pickle the client attribute
-    def __getstate__(self) -> object:
-        self._clear_client()
-        return dict(self.__dict__)
+    _unsafe_attributes = ["client"]
 
-    # restore the client attribute
-    def __setstate__(self, d) -> object:
-        self.__dict__.update(d)
-        self._load_client()
-
-    def _load_client(self):
-        self._load_deps()
+    def _load_unsafe(self):
         self.client = self.mistralai.Mistral(api_key=self.api_key)
-
-    def _clear_client(self):
-        self._clear_deps()
-        self.client = None
 
     def __init__(self, name="", config_root=_config):
         super().__init__(name, config_root)
-        self._load_client()
+        self._load_unsafe()
 
-    @backoff.on_exception(backoff.fibo, GeneratorBackoffTrigger, max_value=70)
+    @backoff.on_exception(
+        backoff.fibo, (GeneratorBackoffTrigger, RateLimitHit), max_value=70
+    )
     def _call_model(
         self, prompt: Conversation, generations_this_call=1
     ) -> List[Message | None]:
@@ -58,11 +48,17 @@ class MistralGenerator(Generator):
                 messages=messages,
             )
         except Exception as e:
-            backoff_exception_types = [self.mistralai.models.SDKError]
-            for backoff_exception in backoff_exception_types:
-                if isinstance(e, backoff_exception):
-                    raise GeneratorBackoffTrigger from e
-            raise e
+            if isinstance(e, self.mistralai.models.SDKError):
+                if e.status_code in (401, 403):
+                    msg = f"🛑 Mistral API authentication failed (HTTP {e.status_code}). Check your MISTRAL_API_KEY."
+                    logging.error(msg)
+                    raise BadGeneratorException(msg) from e
+                if e.status_code == 429:
+                    msg = "⚠️ Mistral rate limit hit (HTTP 429)."
+                    logging.warning(msg)
+                    raise RateLimitHit(msg) from e
+                raise GeneratorBackoffTrigger from e
+            raise
 
         return [Message(chat_response.choices[0].message.content)]
 

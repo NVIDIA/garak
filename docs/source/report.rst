@@ -1,5 +1,5 @@
-garak.report
-============
+report (AVID)
+=============
 
 ``garak``'s reports connect to things interested in consuming info on
 LLM vulnerabilities and failures, such as the AI Vulnerability Database.
@@ -31,7 +31,7 @@ This produces the following output.
    📜 Converting garak reports gpt35-0906.report.jsonl
    📜 AVID reports generated at gpt35-0906.avid.jsonl
 
-.. toctree::
-   :maxdepth: 2
-
-   garak.report
+.. automodule:: garak.report
+   :members:
+   :undoc-members:
+   :show-inheritance:

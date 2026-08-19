@@ -26,8 +26,9 @@ If you're going to contribute, it's a really good idea to reach out, so you have
 There are a number of ways you can reach out to us:
 
 * GitHub discussions: `<https://github.com/NVIDIA/garak/discussions>`_
-* Twitter: `<https://twitter.com/garak_llm>`_
 * Discord: `<https://discord.gg/uVch4puUCs>`_
+* LinkedIn: `<https://www.linkedin.com/company/garakllm/>`_
+* X: `<https://x.com/garak_llm>`_
 
 We'd love to help, and we're always interested to hear how you're using garak.
 
@@ -37,16 +38,26 @@ Coding your contribution
 This reference documentation includes a section on :doc:`extending garak <extending>`, including walkthroughs of how a custom :doc:`probe <extending.probe>` and custom :doc:`generator <extending.generator>` can be built.
 
 
+Choosing what to contribute
+---------------------------
+
+If you would like to work on your own thing, that's great. Please check project scope (above) to make sure that your work is a good fit first. Maintainers try to be easy to reach if you are in doubt - you can always open an issue.
+
+If you would like to contribute by address an open garak issue, that's also great. Please check the following points:
+#. Pick high-quality issues. If an issue has a label beginning with ``needs``, like ``needs-triage``, it's not yet ready.
+#. Pick issues designed for community engagement. These might be labelled ``good first issue``. Issues labelled ``for maintainers`` can be nuanced or rely on strategic considerations that aren't immediately available to community members. If you'd really like to do one, please comment on these before engaging in order to align expectations with maintainers.
+#. Pick confirmed bugs, labelled ``bug-verified``. If you'd like to work on an unverified ``bug``, build a test case and post it in the issue first.
+
 Checklist for contributing
 --------------------------
 
 #. Set up a `Github <https://github.com/>`_ account, if you don't have one already. We develop in the open and the public repository is the authoritative one.
+#. Work out what you're doing. Take a look at the `garak issue list <https://github.com/NVIDIA/garak/issues>`_  and pick something not labelled "needs triage" or "for maintainers" (`quick link <https://github.com/NVIDIA/garak/issues?q=is%3Aissue%20state%3Aopen%20-label%3Aneeds-triage%20-label%3Afor-maintainers>`_). If the issue you'd like to work on, comment on that issue first so a maintainer can check that the issue is relevant and good enough quality to make your time worthwhile. If it's from a good first issue (`see the list <https://github.com/NVIDIA/garak/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22>`_), always drop a note on that issue so that we know you're working on it, and so that nobody else also starts working on it.
 #. Fork the ``garak`` repository - `<https://github.com/NVIDIA/garak/fork>`_
-#. Work out what you're doing. If it's from a good first issue (`see the list <https://github.com/NVIDIA/garak/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22>`_), drop a note on that issue so that we know you're working on it, and so that nobody else also starts working on it.
 #. Before you code anything: create a new branch for your work, e.g. ``git checkout -b feature/spicy_probe``
 #. Check out the rest of this page which includes links to detailed step-by-step guides to developing garak plugins
 #. Code!
-#. Run ``black`` on your code, so that it's well-formatted. Our github commit hook can refuse to accept ``black``-passing code.
+#. Run ``black --config pyproject.toml <your updated files>`` on your code, so that it's well-formatted in the same way the rest of garak is. Our github commit hook can refuse to accept ``black``-passing code.
 #. Write your own tests - these are a requirement for merging!
 #. When you're done, send a pull request. Github has big buttons for this and there's a template for you to fill in.
 #. We'll discuss the code together with you, tune it up, and hopefully merge it in, maybe with some edits!
@@ -61,6 +72,10 @@ Commit messages
 ~~~~~~~~~~~~~~~
 
 Commit messages should describe what is changed in the commit. Try to keep one "theme" per commit. We read commit messages to work out what the intent of the commit is. We're all trying to save time here, and clear commit messages that include context can be a great time saver. Check out this guide to writing `commit messages <https://www.freecodecamp.org/news/how-to-write-better-git-commit-messages/>`_.
+
+Garak project contribution requires commit messages to have an explicit and correct sign-off, including something like ``Signed-off-by: Elim Garak <elimgarak@tailoring4ru.space>`` at the end of each message. If you use Linux or OSX, you can use a script in ``.githooks/`` to automatically add these when committing, either by copying ``.githooks/prepare-commit-msg`` into your ``.git/hooks`` directory, or by running ``git config core.hooksPath .githooks``. Search for "git signoff" to see alternative routes for adding these messages automatically.
+
+The project maintainers recommended cryptographically signing commits. There is a built in signing mechanism within git for this, using git's ``global.signingkey``; one guide is in the git-scm documentation, `Git Tools - Signing Your Work <https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work>`__.
 
 Testing
 ~~~~~~~

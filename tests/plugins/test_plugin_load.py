@@ -8,6 +8,7 @@ import garak.detectors.base
 import garak.generators.base
 import garak.harnesses.base
 import garak.probes.base
+from garak.services.intentservice import validate_intent_specifier
 
 PROBES = [classname for (classname, active) in _plugins.enumerate_plugins("probes")]
 
@@ -26,6 +27,37 @@ GENERATORS = [
 ]  # generator options are complex, hardcode test.Blank only for now
 
 
+@pytest.fixture(autouse=True)
+def set_fake_env(request) -> None:
+    """suppress ENV_VAR failure when a plugin instantiates a generator
+
+    Most plugins that use another generator us `nim` generators ensure the env is compatible
+    """
+    import os
+    from garak.generators.nim import NVOpenAIChat
+
+    stored_env = {
+        NVOpenAIChat.ENV_VAR: os.getenv(NVOpenAIChat.ENV_VAR, None),
+    }
+
+    def restore_env():
+        for k, v in stored_env.items():
+            if v is not None:
+                os.environ[k] = v
+            else:
+                del os.environ[k]
+
+    os.environ[NVOpenAIChat.ENV_VAR] = "test_value"
+    request.addfinalizer(restore_env)
+
+
+def _probe_intent_may_be_none(probe_instance) -> bool:
+    return (
+        probe_instance.__class__.__module__ == "garak.probes.base"
+        or isinstance(probe_instance, garak.probes.base.IntentProbe)
+    )
+
+
 @pytest.fixture
 def plugin_configuration(classname):
     category, namespace, klass = classname.split(".")
@@ -38,14 +70,38 @@ def plugin_configuration(classname):
     return (classname, _config)
 
 
+def ensure_pickle_support(plugin_instance):
+    import pickle
+
+    try:
+        p = pickle.dumps(plugin_instance)
+        l = pickle.loads(p)
+    except pickle.PickleError as e:
+        assert False, f"Failed to pickle: {e}"
+    assert type(plugin_instance) == type(l)
+
+
 @pytest.mark.parametrize("classname", PROBES)
-def test_instantiate_probes(plugin_configuration):
+def test_instantiate_probes(plugin_configuration, loaded_intent_service):
     classname, config_root = plugin_configuration
     try:
         p = _plugins.load_plugin(classname, config_root=config_root)
     except ModuleNotFoundError:
         pytest.skip("required deps not present")
     assert isinstance(p, garak.probes.base.Probe)
+    assert p.intent == p.__class__.intent, "probe instances should expose the class intent unchanged"
+    if _probe_intent_may_be_none(p):
+        assert (
+            p.intent is None
+        ), "base probes and IntentProbe descendants should keep intent as None"
+    else:
+        assert isinstance(
+            p.intent, str
+        ), "concrete probes must instantiate with a string intent"
+        assert validate_intent_specifier(
+            p.intent
+        ), "instantiated probes must carry a valid intent specifier"
+    ensure_pickle_support(p)
 
 
 @pytest.mark.parametrize("classname", DETECTORS)
@@ -56,6 +112,7 @@ def test_instantiate_detectors(plugin_configuration):
     except ModuleNotFoundError:
         pytest.skip("required deps not present")
     assert isinstance(d, garak.detectors.base.Detector)
+    ensure_pickle_support(d)
 
 
 @pytest.mark.parametrize("classname", HARNESSES)
@@ -66,6 +123,7 @@ def test_instantiate_harnesses(plugin_configuration):
     except ModuleNotFoundError:
         pytest.skip("required deps not present")
     assert isinstance(h, garak.harnesses.base.Harness)
+    ensure_pickle_support(h)
 
 
 @pytest.mark.parametrize("classname", BUFFS)
@@ -76,6 +134,7 @@ def test_instantiate_buffs(plugin_configuration):
     except ModuleNotFoundError:
         pytest.skip("required deps not present")
     assert isinstance(b, garak.buffs.base.Buff)
+    ensure_pickle_support(b)
 
 
 @pytest.mark.parametrize("classname", GENERATORS)
@@ -86,3 +145,13 @@ def test_instantiate_generators(plugin_configuration):
     except ModuleNotFoundError:
         pytest.skip("required deps not present")
     assert isinstance(g, garak.generators.base.Generator)
+    ensure_pickle_support(g)
+
+
+def test_load_plugin_module_without_default_class():
+    assert _plugins.load_plugin("detectors.always", break_on_fail=False) is False
+
+    with pytest.raises(ValueError) as exc_info:
+        _plugins.load_plugin("detectors.always")
+
+    assert "no default class" in str(exc_info.value.__cause__)

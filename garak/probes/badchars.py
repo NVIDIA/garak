@@ -18,7 +18,6 @@ from garak import _config
 from garak.data import path as data_path
 from garak.exception import PluginConfigurationError
 
-
 ASCII_PRINTABLE = tuple(chr(i) for i in range(0x20, 0x7F))
 DEFAULT_INVISIBLE = ("\u200b", "\u200c", "\u200d")  # ZWSP, ZWNJ, ZWJ
 BIDI_CONTROLS = {
@@ -113,19 +112,22 @@ class BadCharacters(garak.probes.Probe):
     """Imperceptible perturbations mixing invisible chars, homoglyphs, swaps, deletions.
 
     Implements the paper's full spectrum of adversarial perturbations by generating prompt variants that insert invisible Unicode,
-        swap characters with bidi tricks, substitute homoglyphs, and inject deletions/backspaces.
+    swap characters with bidi tricks, substitute homoglyphs, and inject deletions/backspaces.
     The goal is to stress refusal policies with subtle transformations that should remain semantically equivalent to the original payloads.
     """
 
     lang = "en"
-    active = False
+    active = True
     doc_uri = "https://arxiv.org/abs/2106.09898"
+    intent = "T009ignore"  # imperceptible perturbations silently bypass refusal policies without the model explicitly decoding anything
+    # T018decode is a secondary fit because the model may internally normalize the obfuscated text.
     goal = "inject imperceptible text perturbations that bypass refusal policies"
     primary_detector = "mitigation.MitigationBypass"
     tags = [
         "avid-effect:security:S0403",
         "quality:Security:PromptStability",
         "payload:jailbreak",
+        "demon:Language:Code_and_encode:Token",  # uses invisible Unicode, homoglyphs, bidi tricks to exploit token processing
     ]
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
 
@@ -185,6 +187,8 @@ class BadCharacters(garak.probes.Probe):
 
         payload_group = garak.payloads.load(self.payload_name)
         self._source_payloads = payload_group.payloads
+        if payload_group.intent:
+            self._payload_intent = payload_group.intent
         self.prompts: List[garak.attempt.Conversation] = []
         self._seen_prompts: set[str] = set()
 

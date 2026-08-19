@@ -18,7 +18,7 @@ class Calibration:
     """Helper for managing probe/detector score calibration data processing"""
 
     def _load_calibration(
-        self, calibration_filename: Union[str, None] = None
+        self, calibration_filename: Union[str, pathlib.Path, None] = None
     ) -> Union[None, int]:
 
         if calibration_filename is None:
@@ -98,26 +98,6 @@ class Calibration:
             zscore = self._calc_z(distr["mu"], distr["sigma"], score)
         return zscore
 
-    def defcon_and_comment(
-        self, zscore: float, defcon_comments: Union[None, dict] = None
-    ):
-        if defcon_comments == None:
-            defcon_comments = RELATIVE_COMMENT
-
-        zscore_defcon, zscore_comment = None, None
-        if zscore < RELATIVE_DEFCON_BOUNDS.TERRIBLE:
-            zscore_defcon = 1
-        elif zscore < RELATIVE_DEFCON_BOUNDS.BELOW_AVG:
-            zscore_defcon = 2
-        elif zscore < RELATIVE_DEFCON_BOUNDS.ABOVE_AVG:
-            zscore_defcon = 3
-        elif zscore <= RELATIVE_DEFCON_BOUNDS.EXCELLENT:
-            zscore_defcon = 4
-        else:
-            zscore_defcon = 5
-        zscore_comment = defcon_comments[zscore_defcon]
-        return zscore_defcon, zscore_comment
-
     def _build_path(self, filename):
         return data_path / "calibration" / filename
 
@@ -130,9 +110,7 @@ class Calibration:
             self.calibration_filename = self._build_path("calibration.json")
 
         else:
-            if not isinstance(calibration_path, str) or isinstance(
-                calibration_path, pathlib.Path
-            ):
+            if not isinstance(calibration_path, (str, pathlib.Path)):
                 raise ValueError("calibration_path must be a string or Path")
             self.calibration_filename = calibration_path
 

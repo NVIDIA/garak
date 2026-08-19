@@ -16,7 +16,6 @@ from pytest_httpserver import HTTPServer
 from garak import _config
 import garak.cli
 
-
 SITE_YAML_FILENAME = "TESTONLY.site.yaml.bak"
 CONFIGURABLE_YAML = """
 plugins:
@@ -54,9 +53,7 @@ plugins:
                     device: cuda:0
                 Pipeline:
                   dtype: for_detector
-""".encode(
-    "utf-8"
-)
+""".encode("utf-8")
 
 ANSI_ESCAPE = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 XDG_VARS = ("XDG_DATA_HOME", "XDG_CONFIG_HOME", "XDG_CACHE_HOME")
@@ -79,9 +76,9 @@ OPTIONS_PARAM = [
     ("target_name", "bruce"),
 ]
 OPTIONS_SPEC = [
-    ("probes", "3,elim,gul.dukat", "probe_spec"),
+    # probes/buffs now map onto run.spec (see test_run_spec_* below); only the
+    # detector surface still writes plugins.detector_spec directly
     ("detectors", "all", "detector_spec"),
-    ("buffs", "polymorph", "buff_spec"),
 ]
 
 param_locs = {}
@@ -163,6 +160,30 @@ def clear_xdg_env(request):
     request.addfinalizer(restore_xdg_env)
 
 
+@pytest.fixture
+def temp_package_dir(request):
+    original_package_dir = _config.transient.package_dir
+
+    tmpdir = tempfile.mkdtemp()
+    configs_dir = Path(tmpdir) / "configs"
+    configs_dir.mkdir()
+
+    # Copy resources directory so garak.core.yaml is available
+    src_resources = original_package_dir / "resources"
+    dst_resources = Path(tmpdir) / "resources"
+    shutil.copytree(src_resources, dst_resources)
+
+    _config.transient.package_dir = Path(tmpdir)
+
+    def restore_package_dir():
+        _config.transient.package_dir = original_package_dir
+        shutil.rmtree(tmpdir, ignore_errors=True)
+
+    request.addfinalizer(restore_package_dir)
+
+    return Path(tmpdir)
+
+
 # environment variables adjust transient values
 def test_xdg_support(override_xdg_env):
     test_path = Path(override_xdg_env)
@@ -199,8 +220,6 @@ def test_xdg_defaults():
 # test CLI assertions of each var
 @pytest.mark.parametrize("option", OPTIONS_SOLO)
 def test_cli_solo_settings(option):
-    importlib.reload(_config)
-
     garak.cli.main(
         [f"--{option}", "--list_config"]
     )  # add list_config as the action so we don't actually run
@@ -210,8 +229,6 @@ def test_cli_solo_settings(option):
 
 @pytest.mark.parametrize("param", OPTIONS_PARAM)
 def test_cli_param_settings(param):
-    importlib.reload(_config)
-
     option, value = param
     garak.cli.main(
         [f"--{option}", str(value), "--list_config"]
@@ -222,8 +239,6 @@ def test_cli_param_settings(param):
 
 @pytest.mark.parametrize("param", OPTIONS_SPEC)
 def test_cli_spec_settings(param):
-    importlib.reload(_config)
-
     option, value, configname = param
     garak.cli.main(
         [f"--{option}", str(value), "--list_config"]
@@ -231,16 +246,160 @@ def test_cli_spec_settings(param):
     assert getattr(_config.plugins, configname) == value
 
 
+def test_run_spec_cli_sets_config():
+    garak.cli.main(
+        ["--spec", "probes.dan,-probes.dan.DanInTheWild", "--list_config"]
+    )
+    assert _config.run.spec == {
+        "include": ["probes.dan"],
+        "exclude": ["probes.dan.DanInTheWild"],
+    }, "--spec must populate _config.run.spec"
+
+
+def test_legacy_probes_flag_maps_to_run_spec(capsys):
+    garak.cli.main(["--probes", "dan", "--list_config"])
+    assert _config.run.spec == {
+        "include": ["probes.dan"],
+        "exclude": [],
+    }, "deprecated --probes must map onto run.spec"
+    assert "DEPRECATION" in capsys.readouterr().out, "deprecated flag must warn"
+
+
+def test_legacy_probe_tags_and_buffs_map_to_run_spec():
+    garak.cli.main(
+        [
+            "--probes",
+            "dan",
+            "--probe_tags",
+            "owasp:llm01",
+            "--buffs",
+            "lowercase",
+            "--list_config",
+        ]
+    )
+    assert _config.run.spec == {
+        "include": ["probes.dan", "buffs.lowercase", {"tag": "owasp:llm01"}],
+        "exclude": [],
+    }, "deprecated --probe_tags/--buffs must merge into run.spec"
+
+
+def test_run_spec_wins_over_legacy_flags():
+    garak.cli.main(
+        ["--spec", "probes.encoding", "--probes", "dan", "--list_config"]
+    )
+    assert _config.run.spec == {
+        "include": ["probes.encoding"],
+        "exclude": [],
+    }, "--spec must win over deprecated selection flags"
+
+
+def test_legacy_probes_none_selects_no_probes():
+    from garak._spec import parse_spec_file
+    from garak._selection import resolve_spec
+
+    garak.cli.main(["--probes", "none", "--list_config"])
+    assert _config.run.spec == {
+        "include": ["probes.none"],
+        "exclude": [],
+    }, "deprecated --probes none must map to an explicit empty selection"
+    assert (
+        resolve_spec(parse_spec_file(_config.run.spec), skip_unknown=True).probes == []
+    ), "--probes none must resolve to no probes, not the default-all universe"
+
+
+def test_legacy_config_probe_spec_none_selects_no_probes(tmp_path):
+    from garak._spec import parse_spec_file
+    from garak._selection import resolve_spec
+
+    cfg = tmp_path / "none_spec.yaml"
+    cfg.write_text("---\nplugins:\n  probe_spec: none\n", encoding="utf-8")
+    garak.cli.main(["--config", str(cfg), "--list_config"])
+    assert _config.run.spec == {
+        "include": ["probes.none"],
+        "exclude": [],
+    }, "config probe_spec none must map to an explicit empty selection (parity with CLI)"
+    assert (
+        resolve_spec(parse_spec_file(_config.run.spec), skip_unknown=True).probes == []
+    ), "config probe_spec none must resolve to no probes, not the default-all universe"
+
+
+@pytest.mark.parametrize("vacuous", ["auto", ""])
+def test_legacy_config_probe_spec_vacuous_defaults_to_all(tmp_path, vacuous):
+    from garak._spec import parse_spec_file
+    from garak._selection import resolve_spec
+
+    cfg = tmp_path / "vacuous_spec.yaml"
+    cfg.write_text(f"---\nplugins:\n  probe_spec: {vacuous!r}\n", encoding="utf-8")
+    garak.cli.main(["--config", str(cfg), "--list_config"])
+    assert (
+        _config.run.spec is None
+    ), f"vacuous probe_spec {vacuous!r} must be treated as unspecified (no run.spec)"
+    resolved = resolve_spec(parse_spec_file(_config.run.spec), skip_unknown=True)
+    assert (
+        resolved.probes
+    ), f"unspecified probe_spec {vacuous!r} must default to all active probes"
+
+
+@pytest.mark.parametrize(
+    "cfg_path", ["garak/configs/fast.json", "garak/configs/bag.yaml"]
+)
+def test_bundled_config_run_spec_resolves_without_unknowns(cfg_path):
+    # guards against hand-migration typos in the shipped run.spec configs
+    import json as _json
+    from pathlib import Path
+    import yaml as _yaml
+    from garak._spec import parse_spec_file
+    from garak._selection import resolve_spec
+
+    text = Path(cfg_path).read_text(encoding="utf-8")
+    data = _json.loads(text) if cfg_path.endswith(".json") else _yaml.safe_load(text)
+    res = resolve_spec(parse_spec_file(data["run"]["spec"]), skip_unknown=True)
+    assert res.rejected == [], f"{cfg_path} has unknown selectors: {res.rejected}"
+    assert res.probes, f"{cfg_path} resolved to no probes"
+
+
+def test_invalid_run_spec_exits_cleanly():
+    # malformed selector should print a friendly error and exit, not traceback
+    with pytest.raises(SystemExit):
+        garak.cli.main(["--spec", "detectors.foo", "--list_config"])
+
+
+def test_invalid_legacy_cli_flag_exits_cleanly(capsys):
+    # a category-prefixed value in a deprecated flag is invalid; report + exit
+    with pytest.raises(SystemExit):
+        garak.cli.main(["--probes", "probes.dan", "--list_config"])
+    assert "❌" in capsys.readouterr().out, "invalid legacy flag must report, not traceback"
+
+
+def test_invalid_legacy_config_exits_cleanly(tmp_path, capsys):
+    cfg = tmp_path / "bad.yaml"
+    cfg.write_text(
+        "---\nplugins:\n  buff_spec: buffs.encoding.CharCode\n", encoding="utf-8"
+    )
+    with pytest.raises(SystemExit):
+        garak.cli.main(["--config", str(cfg), "--list_config"])
+    assert "❌" in capsys.readouterr().out, "invalid legacy config must report, not traceback"
+
+
+def test_explicit_run_spec_ignores_invalid_legacy_value(tmp_path):
+    # explicit run.spec wins, so an ignored (invalid) legacy key must not raise;
+    # the fixer mirrors this (see test_fixer_run_spec_drops_ignored_invalid_legacy_value)
+    cfg = tmp_path / "mix.yaml"
+    cfg.write_text(
+        "---\nplugins:\n  buff_spec: buffs.encoding.CharCode\n"
+        "run:\n  spec:\n    include:\n      - probes.dan\n",
+        encoding="utf-8",
+    )
+    garak.cli.main(["--config", str(cfg), "--list_config"])
+    assert _config.run.spec == {
+        "include": ["probes.dan"]
+    }, "explicit run.spec must win and the ignored legacy key must not be validated"
+
+
 # test a short-form CLI assertion
 def test_cli_shortform():
-    importlib.reload(_config)
-
     garak.cli.main(["-s", "444", "--list_config"])
     assert _config.run.seed == 444
-    if _config.transient.reportfile is not None:
-        _config.transient.reportfile.close()
-        if os.path.exists(_config.transient.report_filename):
-            os.remove(_config.transient.report_filename)
 
     garak.cli.main(
         ["-g", "444", "--list_config"]
@@ -251,10 +410,8 @@ def test_cli_shortform():
 # test that run YAML overrides core YAML
 @pytest.mark.parametrize("param", OPTIONS_PARAM)
 def test_yaml_param_settings(param):
-    importlib.reload(_config)
-
     option, value = param
-    with tempfile.NamedTemporaryFile(buffering=0, delete=False) as tmp:
+    with tempfile.NamedTemporaryFile(buffering=0, delete=False, suffix=".yaml") as tmp:
         file_data = [
             f"---",
             f"{param_locs[option]}:",
@@ -275,8 +432,6 @@ def test_yaml_param_settings(param):
 # # test that site YAML overrides core YAML # needs file staging for site yaml
 @pytest.mark.usefixtures("allow_site_config")
 def test_site_yaml_overrides_core_yaml():
-    importlib.reload(_config)
-
     with open(
         _config.transient.config_dir / "garak.site.yaml", "w", encoding="utf-8"
     ) as f:
@@ -292,8 +447,6 @@ def test_site_yaml_overrides_core_yaml():
 # # test that run YAML overrides site YAML # needs file staging for site yaml
 @pytest.mark.usefixtures("allow_site_config")
 def test_run_yaml_overrides_site_yaml():
-    importlib.reload(_config)
-
     with open(
         _config.transient.config_dir / "garak.site.yaml", "w", encoding="utf-8"
     ) as f:
@@ -313,11 +466,9 @@ def test_run_yaml_overrides_site_yaml():
 
 # test that CLI config overrides run YAML
 def test_cli_overrides_run_yaml():
-    importlib.reload(_config)
-
     orig_seed = 10101
     override_seed = 37176
-    with tempfile.NamedTemporaryFile(buffering=0, delete=False) as tmp:
+    with tempfile.NamedTemporaryFile(buffering=0, delete=False, suffix=".yaml") as tmp:
         file_data = [
             f"---",
             f"run:",
@@ -337,9 +488,7 @@ def test_cli_overrides_run_yaml():
 # test probe_options YAML
 # more refactor for namespace keys
 def test_probe_options_yaml(capsys):
-    importlib.reload(_config)
-
-    with tempfile.NamedTemporaryFile(buffering=0, delete=False) as tmp:
+    with tempfile.NamedTemporaryFile(buffering=0, delete=False, suffix=".yaml") as tmp:
         tmp.write(
             "\n".join(
                 [
@@ -365,9 +514,7 @@ def test_probe_options_yaml(capsys):
 # test generator_options YAML
 # more refactor for namespace keys
 def test_generator_options_yaml(capsys):
-    importlib.reload(_config)
-
-    with tempfile.NamedTemporaryFile(buffering=0, delete=False) as tmp:
+    with tempfile.NamedTemporaryFile(buffering=0, delete=False, suffix=".yaml") as tmp:
         tmp.write(
             "\n".join(
                 [
@@ -398,9 +545,7 @@ def test_generator_options_yaml(capsys):
 
 # can a run be launched from a run YAML?
 def test_run_from_yaml(capsys):
-    importlib.reload(_config)
-
-    with tempfile.NamedTemporaryFile(buffering=0, delete=False) as tmp:
+    with tempfile.NamedTemporaryFile(buffering=0, delete=False, suffix=".yaml") as tmp:
         tmp.write(
             "\n".join(
                 [
@@ -436,8 +581,6 @@ def test_run_from_yaml(capsys):
 # more refactor for namespace keys
 @pytest.mark.usefixtures("allow_site_config")
 def test_cli_generator_options_file():
-    importlib.reload(_config)
-
     # write an options file
     with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp:
         json.dump({"test": {"Blank": {"this_is_a": "generator"}}}, tmp)
@@ -455,8 +598,6 @@ def test_cli_generator_options_file():
 # cli generator options file loads
 # more refactor for namespace keys
 def test_cli_probe_options_file():
-    importlib.reload(_config)
-
     # write an options file
     with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp:
         json.dump({"test": {"Blank": {"probes_in_this_config": 1}}}, tmp)
@@ -474,13 +615,13 @@ def test_cli_probe_options_file():
 # cli probe config file overrides yaml probe config (using combine into)
 # more refactor for namespace keys
 def test_cli_probe_options_overrides_yaml_probe_options():
-    importlib.reload(_config)
-
     # write an options file
     with tempfile.NamedTemporaryFile(mode="w+", delete=False) as probe_json_file:
         json.dump({"test": {"Blank": {"goal": "taken from CLI JSON"}}}, probe_json_file)
         probe_json_file.close()
-        with tempfile.NamedTemporaryFile(buffering=0, delete=False) as probe_yaml_file:
+        with tempfile.NamedTemporaryFile(
+            buffering=0, delete=False, suffix=".yaml"
+        ) as probe_yaml_file:
             probe_yaml_file.write(
                 "\n".join(
                     [
@@ -512,10 +653,10 @@ def test_cli_probe_options_overrides_yaml_probe_options():
 
 # cli should override yaml options
 def test_cli_generator_options_overrides_yaml_probe_options():
-    importlib.reload(_config)
-
     cli_generations_count = 9001
-    with tempfile.NamedTemporaryFile(buffering=0, delete=False) as generator_yaml_file:
+    with tempfile.NamedTemporaryFile(
+        buffering=0, delete=False, suffix=".yaml"
+    ) as generator_yaml_file:
         generator_yaml_file.write(
             "\n".join(
                 [
@@ -542,14 +683,13 @@ def test_cli_generator_options_overrides_yaml_probe_options():
 # check that probe picks up yaml config items
 # more refactor for namespace keys
 def test_blank_probe_instance_loads_yaml_config():
-    importlib.reload(_config)
     import garak._plugins
 
     probe_name = "test.Blank"
     probe_namespace, probe_klass = probe_name.split(".")
     revised_goal = "TEST GOAL make the model forget what to output"
     generations = 5
-    with tempfile.NamedTemporaryFile(buffering=0, delete=False) as tmp:
+    with tempfile.NamedTemporaryFile(buffering=0, delete=False, suffix=".yaml") as tmp:
         tmp.write(
             "\n".join(
                 [
@@ -573,7 +713,6 @@ def test_blank_probe_instance_loads_yaml_config():
 # check that probe picks up cli config items
 # more refactor for namespace keys
 def test_blank_probe_instance_loads_cli_config():
-    importlib.reload(_config)
     import garak._plugins
 
     probe_name = "test.Blank"
@@ -586,7 +725,8 @@ def test_blank_probe_instance_loads_cli_config():
         json.dumps(
             {
                 probe_namespace: {probe_klass: {"goal": revised_goal, "generations": 5}}
-            }  # generations is required when cli called without a model
+            },  # generations is required when cli called without a model
+            ensure_ascii=False,
         ),
     ]
     garak.cli.main(args)
@@ -597,13 +737,12 @@ def test_blank_probe_instance_loads_cli_config():
 # check that generator picks up yaml config items
 # more refactor for namespace keys
 def test_blank_generator_instance_loads_yaml_config():
-    importlib.reload(_config)
     import garak._plugins
 
     generator_name = "test.Blank"
     generator_namespace, generator_klass = generator_name.split(".")
     revised_temp = 0.9001
-    with tempfile.NamedTemporaryFile(buffering=0, delete=False) as tmp:
+    with tempfile.NamedTemporaryFile(buffering=0, delete=False, suffix=".yaml") as tmp:
         tmp.write(
             "\n".join(
                 [
@@ -630,7 +769,6 @@ def test_blank_generator_instance_loads_yaml_config():
 # check that generator picks up cli config items
 # more refactor for namespace keys
 def test_blank_generator_instance_loads_cli_config():
-    importlib.reload(_config)
     import garak._plugins
 
     generator_name = "test.Repeat"
@@ -643,7 +781,8 @@ def test_blank_generator_instance_loads_cli_config():
         "none",
         "--generator_options",
         json.dumps(
-            {generator_namespace: {generator_klass: {"temperature": revised_temp}}}
+            {generator_namespace: {generator_klass: {"temperature": revised_temp}}},
+            ensure_ascii=False,
         )
         .replace(" ", "")
         .strip(),
@@ -699,7 +838,6 @@ def test_probespec_loading():
 
 
 def test_buff_config_assertion():
-    importlib.reload(_config)
     import garak._plugins
 
     test_value = 9001
@@ -725,12 +863,12 @@ def test_tag_filter():
 
 # when provided an absolute path as `reporting.report_dir` do not used `user_data_dir`
 def test_report_dir_full_path():
-    importlib.reload(_config)
-
     with tempfile.TemporaryDirectory() as tmpdir:
 
         report_path = Path(tmpdir).absolute()
-        with tempfile.NamedTemporaryFile(buffering=0, delete=False) as tmp:
+        with tempfile.NamedTemporaryFile(
+            buffering=0, delete=False, suffix=".yaml"
+        ) as tmp:
             tmp.write(
                 "\n".join(
                     [
@@ -752,8 +890,6 @@ def test_report_dir_full_path():
 
 # report prefix is used only for filename, report_dir is placed in user_data_dir
 def test_report_prefix_with_hitlog_no_explode():
-    importlib.reload(_config)
-
     garak.cli.main(
         "-m test.Blank --report_prefix kjsfhgkjahpsfdg -p test.Blank -d always.Fail".split()
     )
@@ -766,8 +902,6 @@ def test_report_prefix_with_hitlog_no_explode():
 
 
 def test_nested():
-    importlib.reload(_config)
-
     _config.plugins.generators["a"]["b"]["c"]["d"] = "e"
     assert _config.plugins.generators["a"]["b"]["c"]["d"] == "e"
 
@@ -825,17 +959,17 @@ def test_agent_is_used_aiohttp(httpserver: HTTPServer):
     async def main():
         async with aiohttp.ClientSession() as session:
             async with session.get(httpserver.url_for("/")) as response:
-                html = await response.text()
+                return response.status
 
     httpserver.expect_request(
         "/", headers={"User-Agent": AGENT_TEST}
     ).respond_with_data("")
-    asyncio.run(main())
+    assert (
+        asyncio.run(main()) == 200
+    ), "aiohttp User-Agent should match the expected header so the request is served"
 
 
 def test_api_key_in_config():
-    importlib.reload(_config)
-
     _config.plugins.generators["a"]["b"]["c"]["api_key"] = "something"
     assert _config._key_exists(_config.plugins.generators, "api_key")
 
@@ -843,8 +977,6 @@ def test_api_key_in_config():
 # test max_workers applies when used in site config
 @pytest.mark.usefixtures("allow_site_config")
 def test_site_yaml_overrides_max_workers(capsys):
-    importlib.reload(_config)
-
     with open(
         _config.transient.config_dir / "garak.site.yaml", "w", encoding="utf-8"
     ) as f:
@@ -856,8 +988,6 @@ def test_site_yaml_overrides_max_workers(capsys):
         _config.system.max_workers == 2
     ), "Site config worker count should override core config if loaded correctly"
 
-    importlib.reload(_config)
-
     with pytest.raises(SystemExit) as exc_info:
         garak.cli.main("--parallel_attempts 3 -m test -p test.Test".split())
         result = capsys.readouterr()
@@ -867,6 +997,20 @@ def test_site_yaml_overrides_max_workers(capsys):
         )
         assert exc_info.type == SystemExit
         assert exc_info.value.code == 1
+
+
+# a run with parallel_attempts set should complete without error, for both the
+# serial case (1) and a parallel case (>1). uses the cheap CPU-only test
+# generator and the multi-prompt test.Test probe so that the >1 case actually
+# reaches the multiprocessing path in garak.probes.base.Probe._execute_all
+@pytest.mark.parametrize("parallel_attempts", [1, 4])
+def test_parallel_attempts_run_completes(parallel_attempts):
+    args = (
+        f"--parallel_attempts {parallel_attempts} -m test.Blank -p test.Test -g 1"
+    ).split()
+    garak.cli.main(args)
+
+    assert _config.system.parallel_attempts == parallel_attempts
 
 
 model_target_data = [
@@ -895,10 +1039,12 @@ def test_model_target_switching(type_key, name_key):
     candidate_yaml = yaml_template.replace("{{typekey}}", type_key).replace(
         "{{namekey}}", name_key
     )
-    with tempfile.NamedTemporaryFile(mode="w+", delete=False, encoding="utf-8") as t:
+    with tempfile.NamedTemporaryFile(
+        mode="w+", delete=False, suffix=".yaml", encoding="utf-8"
+    ) as t:
         t.write(candidate_yaml)
         t.close()
-        c = _config._load_yaml_config([t.name])
+        c = _config._load_config_files([t.name])
         assert c["plugins"]["target_name"] == demo_name
         assert c["plugins"]["target_type"] == demo_type
 
@@ -918,9 +1064,326 @@ def test_model_target_override():
         "{{nameval}}", demo_name
     )
 
-    with tempfile.NamedTemporaryFile(mode="w+", delete=False, encoding="utf-8") as t:
+    with tempfile.NamedTemporaryFile(
+        mode="w+", delete=False, suffix=".yaml", encoding="utf-8"
+    ) as t:
         t.write(candidate_yaml)
         t.close()
-        c = _config._load_yaml_config([t.name])
+        c = _config._load_config_files([t.name])
         assert c["plugins"]["target_name"] == demo_name
         assert c["plugins"]["target_type"] == demo_type
+
+
+def test_load_json_config():
+    config_data = {
+        "system": {"parallel_attempts": 10},
+        "run": {"generations": 3},
+        "plugins": {"probe_spec": "test"},
+        "reporting": {},
+    }
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as tmp:
+        json.dump(config_data, tmp)
+        tmp.close()
+
+        garak.cli.main(["--config", tmp.name, "--list_config"])
+        os.remove(tmp.name)
+
+        assert _config.system.parallel_attempts == 10
+        assert _config.run.generations == 3
+
+
+def test_load_json_config_via_load_config_files():
+    config_data = {
+        "system": {"verbose": 2},
+        "run": {"seed": 42},
+        "plugins": {},
+        "reporting": {},
+    }
+
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".json", delete=False, encoding="utf-8"
+    ) as tmp:
+        json.dump(config_data, tmp)
+        tmp.close()
+
+        c = _config._load_config_files([tmp.name])
+        os.remove(tmp.name)
+
+        assert c["system"]["verbose"] == 2
+        assert c["run"]["seed"] == 42
+
+
+@pytest.mark.usefixtures("allow_site_config")
+def test_site_config_ambiguity_error():
+    site_json = _config.transient.config_dir / "garak.site.json"
+    site_yaml = _config.transient.config_dir / "garak.site.yaml"
+
+    try:
+        site_json.write_text(
+            '{"system": {"verbose": 1}, "run": {}, "plugins": {}, "reporting": {}}'
+        )
+        site_yaml.write_text(
+            "system:\n  verbose: 2\nrun: {}\nplugins: {}\nreporting: {}"
+        )
+
+        with pytest.raises(ValueError, match="Multiple site config files found"):
+            _config.load_config()
+    finally:
+        if site_json.exists():
+            site_json.unlink()
+        if site_yaml.exists():
+            site_yaml.unlink()
+
+
+def test_extension_less_config_finds_json(temp_package_dir):
+    json_config = {
+        "system": {},
+        "run": {"generations": 7},
+        "plugins": {},
+        "reporting": {},
+    }
+
+    test_json_path = temp_package_dir / "configs" / "test_json_config.json"
+
+    with open(test_json_path, "w", encoding="utf-8") as f:
+        json.dump(json_config, f)
+
+    garak.cli.main(["--config", "test_json_config", "--list_config"])
+
+    assert _config.run.generations == 7
+
+
+def test_extension_less_requires_explicit_yaml(temp_package_dir, capsys):
+    yaml_config_content = """
+system: {}
+run:
+  generations: 8
+plugins: {}
+reporting: {}
+"""
+
+    test_yaml_path = temp_package_dir / "configs" / "test_yaml_only.yaml"
+
+    test_yaml_path.write_text(yaml_config_content)
+
+    # Extension-less should error when only YAML exists
+    with pytest.raises(SystemExit) as exc_info:
+        garak.cli.main(["--config", "test_yaml_only", "--list_config"])
+
+    # Verify exit code and error message
+    assert exc_info.value.code == 1
+    captured = capsys.readouterr()
+    assert "YAML needs explicit .yaml/.yml extension" in captured.out
+
+
+def test_extension_less_bundled_json_works(temp_package_dir):
+    json_config = {
+        "system": {},
+        "run": {"generations": 9},
+        "plugins": {},
+        "reporting": {},
+    }
+
+    test_json_path = temp_package_dir / "configs" / "test_bundled_json.json"
+
+    with open(test_json_path, "w", encoding="utf-8") as f:
+        json.dump(json_config, f)
+
+    # Bundled JSON should work extension-less
+    garak.cli.main(["--config", "test_bundled_json", "--list_config"])
+    assert _config.run.generations == 9
+
+
+def test_extension_less_warns_on_direct_path_ambiguity(caplog):
+    json_config = {
+        "system": {},
+        "run": {"generations": 12},
+        "plugins": {},
+        "reporting": {},
+    }
+
+    yaml_config_content = """
+system: {}
+run:
+  generations: 13
+plugins: {}
+reporting: {}
+"""
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        config_base = Path(tmpdir) / "test_user_config"
+        test_json_path = Path(f"{config_base}.json")
+        test_yaml_path = Path(f"{config_base}.yaml")
+
+        with open(test_json_path, "w", encoding="utf-8") as f:
+            json.dump(json_config, f)
+        test_yaml_path.write_text(yaml_config_content)
+
+        # Direct path ambiguity should warn and use JSON
+        garak.cli.main(["--config", str(config_base), "--list_config"])
+
+        # Verify warning was logged
+        assert "test_user_config.json and .yaml found" in caplog.text
+
+        # Verify JSON was used (generations = 12, not 13)
+        assert _config.run.generations == 12
+
+
+def test_explicit_yaml_extension_works(temp_package_dir):
+    yaml_config_content = """
+system: {}
+run:
+  generations: 11
+plugins: {}
+reporting: {}
+"""
+
+    test_yaml_path = temp_package_dir / "configs" / "test_explicit_yaml.yaml"
+
+    test_yaml_path.write_text(yaml_config_content)
+
+    # Explicit .yaml extension should work
+    garak.cli.main(["--config", "test_explicit_yaml.yaml", "--list_config"])
+
+    assert _config.run.generations == 11
+
+
+def test_explicit_yml_extension_works(temp_package_dir):
+    yml_config_content = """
+system: {}
+run:
+  generations: 12
+plugins: {}
+reporting: {}
+"""
+
+    test_yml_path = temp_package_dir / "configs" / "test_explicit_yml.yml"
+
+    test_yml_path.write_text(yml_config_content)
+
+    # Explicit .yml extension should work
+    garak.cli.main(["--config", "test_explicit_yml.yml", "--list_config"])
+
+    assert _config.run.generations == 12
+
+
+@pytest.mark.usefixtures("allow_site_config")
+def test_site_yml_config_works():
+    site_yml = _config.transient.config_dir / "garak.site.yml"
+
+    try:
+        site_yml.write_text(
+            "system: {}\nrun:\n  eval_threshold: 0.888\nplugins: {}\nreporting: {}"
+        )
+        garak.cli.main(["--list_config"])
+
+        assert _config.run.eval_threshold == 0.888
+    finally:
+        if site_yml.exists():
+            site_yml.unlink()
+
+
+def test_uppercase_json_extension_works(temp_package_dir):
+    json_config = {
+        "system": {},
+        "run": {"generations": 15},
+        "plugins": {},
+        "reporting": {},
+    }
+
+    test_json_path = temp_package_dir / "configs" / "test_uppercase.JSON"
+
+    with open(test_json_path, "w", encoding="utf-8") as f:
+        json.dump(json_config, f)
+
+    # Uppercase .JSON extension should work
+    garak.cli.main(["--config", "test_uppercase.JSON", "--list_config"])
+
+    assert _config.run.generations == 15
+
+
+def test_uppercase_yaml_extension_works(temp_package_dir):
+    yaml_config_content = """
+system: {}
+run:
+  generations: 16
+plugins: {}
+reporting: {}
+"""
+
+    test_yaml_path = temp_package_dir / "configs" / "test_uppercase.YAML"
+
+    test_yaml_path.write_text(yaml_config_content)
+
+    # Uppercase .YAML extension should work
+    garak.cli.main(["--config", "test_uppercase.YAML", "--list_config"])
+
+    assert _config.run.generations == 16
+
+
+def test_uppercase_yml_extension_works(temp_package_dir):
+    yml_config_content = """
+system: {}
+run:
+  generations: 17
+plugins: {}
+reporting: {}
+"""
+
+    test_yml_path = temp_package_dir / "configs" / "test_uppercase.YML"
+
+    test_yml_path.write_text(yml_config_content)
+
+    # Uppercase .YML extension should work
+    garak.cli.main(["--config", "test_uppercase.YML", "--list_config"])
+
+    assert _config.run.generations == 17
+
+
+def test_mixed_case_yaml_extension_works(temp_package_dir):
+    yaml_config_content = """
+system: {}
+run:
+  generations: 18
+plugins: {}
+reporting: {}
+"""
+
+    test_yaml_path = temp_package_dir / "configs" / "test_mixedcase.Yaml"
+
+    test_yaml_path.write_text(yaml_config_content)
+
+    # Mixed case .Yaml extension should work
+    garak.cli.main(["--config", "test_mixedcase.Yaml", "--list_config"])
+
+    assert _config.run.generations == 18
+
+
+# ---------------------------------------------------------------------------
+# Regression test for issue #1249: config_files must not contain duplicates
+# after load_base_config() + load_config() are both called (as the CLI does).
+# ---------------------------------------------------------------------------
+
+
+def test_core_config_not_duplicated_in_config_files():
+    """garak.core.yaml must appear exactly once in _config.config_files.
+
+    Previously, calling load_base_config() followed by load_config() caused
+    garak.core.yaml to be appended twice, so it appeared twice in HTML reports.
+    Fixed in PR #1544; this test guards against regression.
+    """
+    import importlib
+
+    importlib.reload(_config)
+
+    _config.load_base_config()
+    _config.load_config()
+
+    core_yaml = str(_config.transient.package_dir / "resources" / "garak.core.yaml")
+    occurrences = _config.config_files.count(core_yaml)
+    assert occurrences == 1, (
+        f"garak.core.yaml appeared {occurrences} time(s) in _config.config_files "
+        f"after load_base_config() + load_config(); expected exactly 1. "
+        f"See https://github.com/NVIDIA/garak/issues/1249"
+    )

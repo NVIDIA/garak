@@ -31,6 +31,67 @@ NB: Values in `calibration.json` are pass rates, not attack success rates. To ca
 
 The first benchmark is in summer 2024. We think something between twice-yearly and quarterly updates provides a good trade off between using recent models, and keeping results relevant long enough to be comparable.
 
+## Winter 2026
+
+### Bag contents
+
+| 10^n category | 2^n category |   provider     |              model name              | params (B) |
+|:-------------:|:------------:|:--------------:|:------------------------------------:|:----------:|
+|       0       |       1      | ai21labs       | AI21-Jamba2-3B                       |     3      |
+|       2       |       7      | ai21labs       | AI21-Jamba2-Mini                     |     200    |
+|       0       |       2      | Alibaba-Apsara | DASD-4B-Thinking                     |     4      |
+|       NA      |       NA     | cohere         | c4ai-command-a-03-2025               |     111    |
+|       1       |       3      | google         | gemma-3-12b-it                       |     12     |
+|       0       |       1      | ibm            | granite-4.0-h-micro                  |     3      |
+|       0       |       1      | ibm            | granite-4.0-h-small                  |     32     |
+|       0       |       0      | liquidai       | LFM2.5-1.2B-Instruct                 |     1.2    |
+|       1       |       6      | meta           | llama-4-scout-17b-16e-instruct       |     17     |
+|       1       |       4      | meta           | llama-4-maverick-17b-128e-instruct   |     17     |
+|       1       |       3      | microsoft      | phi-4                                |     14     |
+|       1       |       4      | mistralai      | Mistral-Small-3.2-24B-Instruct-2506  |     24     |
+|       1       |       4      | mistralai      | Magistral-Small-2506                 |     24     |
+|       2       |       7      | nvidia         | llama-3_1-nemotron-ultra-253b-v1     |     235    |
+|       0       |       3      | nvidia         | nemotron-nano-9b-v2                  |     9      |
+|       1       |       4      | nvidia         | Nemotron-3-Nano-30B-A3B-Base-BF16    |     30     |
+|       NA      |       NA     | openai         | gpt-5.2                              |     NA     |
+|       NA      |       NA     | openai         | gpt-5-nano                           |     NA     |
+|       2       |       6      | openai         | gpt-oss-120b                         |     120    |
+|       1       |       6      | qwen           | qwen2.5-72b-instruct                 |     72     |
+|       0       |       3      | qwen           | qwen3-8b                             |     8      |
+|       1       |       3      | servicenow     | apriel-1.5-15b-thinker               |     15     |
+|       0       |       2      | tiiuae         | Falcon-H1R-7B                        |     7      |
+
+
+### Bag config
+
+Configuration is combined with generator specific requirements for `max_tokens: 4000`, `skip_seq_start`, and `skip_seq_end` as required for target systems.
+```
+system:
+  parallel_attempts: 32
+  lite: false
+
+run:
+  generations: 5
+
+plugins:
+  probe_spec: ansiescape.AnsiEscaped,ansiescape.AnsiRaw,apikey.CompleteKey,apikey.GetKey,atkgen.Tox,continuation.ContinueSlursReclaimedSlurs,dan.Ablation_Dan_11_0,dan.AutoDANCached,dan.DanInTheWild,divergence.Repeat,divergence.RepeatedToken,dra.DRA,encoding.InjectAscii85,encoding.InjectAtbash,encoding.InjectBase16,encoding.InjectBase2048,encoding.InjectBase32,encoding.InjectBase64,encoding.InjectBraille,encoding.InjectEcoji,encoding.InjectHex,encoding.InjectMorse,encoding.InjectNato,encoding.InjectROT13,encoding.InjectUU,encoding.InjectUnicodeTagChars,encoding.InjectZalgo,exploitation.JinjaTemplatePythonInjection,exploitation.SQLInjectionEcho,goodside.Tag,goodside.ThreatenJSON,goodside.WhoIsRiley,grandma.Slurs,grandma.Substances,grandma.Win10,grandma.Win11,latentinjection.LatentInjectionFactSnippetEiffel,latentinjection.LatentInjectionFactSnippetLegal,latentinjection.LatentInjectionReport,latentinjection.LatentInjectionResume,latentinjection.LatentInjectionTranslationEnFr,latentinjection.LatentInjectionTranslationEnZh,latentinjection.LatentJailbreak,latentinjection.LatentWhois,latentinjection.LatentWhoisSnippet,leakreplay.GuardianCloze,leakreplay.GuardianComplete,leakreplay.LiteratureCloze,leakreplay.LiteratureComplete,leakreplay.NYTCloze,leakreplay.NYTComplete,leakreplay.PotterCloze,leakreplay.PotterComplete,lmrc.Bullying,lmrc.Deadnaming,lmrc.QuackMedicine,lmrc.SexualContent,lmrc.Sexualisation,lmrc.SlurUsage,malwaregen.Evasion,malwaregen.Payload,malwaregen.SubFunctions,malwaregen.TopLevel,misleading.FalseAssertion,packagehallucination.Dart,packagehallucination.JavaScript,packagehallucination.Perl,packagehallucination.Python,packagehallucination.RakuLand,packagehallucination.Ruby,packagehallucination.Rust,phrasing.FutureTense,phrasing.PastTense,promptinject.HijackHateHumans,promptinject.HijackKillHumans,promptinject.HijackLongPrompt,realtoxicityprompts.RTPBlank,snowball.GraphConnectivity,suffix.GCGCached,tap.TAPCached,topic.WordnetControversial,web_injection.ColabAIDataLeakage,web_injection.MarkdownImageExfil,web_injection.MarkdownURIImageExfilExtended,web_injection.MarkdownURINonImageExfilExtended,web_injection.MarkdownXSS,web_injection.PlaygroundMarkdownExfil,web_injection.StringAssemblyDataExfil,web_injection.TaskXSS
+  extended_detectors: true
+  probes:
+    encoding:
+      payloads:
+        - default
+        - xss
+        - slur_terms
+  detectors:
+    misleading:
+      MustContradictNLI:
+        hf_args:
+          device: cuda
+      MustRefuteClaimModel:
+        hf_args:
+          device: cuda
+```
+
 ## Spring 2025
 
 ### Bag contents

@@ -1,5 +1,5 @@
-garak._plugins
-==============
+plugins
+=======
 
 
 garak._plugins

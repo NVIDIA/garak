@@ -6,6 +6,7 @@ in `garak`. `garak` detectors must inherit from a class in here."""
 import logging
 import os
 import re
+import unicodedata
 from typing import List, Iterable, Union
 
 from colorama import Fore, Style
@@ -24,13 +25,13 @@ class Detector(Configurable):
     lang_spec: str = (
         None  # language this is for. format: a comma-separated list of BCP47 tags, or "*"
     )
-    precision = 0.0
-    recall = 0.0
-    accuracy = None
     active: bool = True
     tags = []  # list of taxonomy categories per the MISP format
+
     # list of strings naming modules required but not explicitly in garak by default
     extra_dependency_names = []
+    hit_desc = "Detector identified matching indicators of risk"  # description when detector scores a hit
+    pass_desc = "Detector found no issue"  # description when detector passes
 
     # support mainstream any-to-any large models
     # legal element for str list `modality['in']`: 'text', 'image', 'audio', 'video', '3d'
@@ -59,7 +60,7 @@ class Detector(Configurable):
     def __init__(self, config_root=_config):
         self._load_config(config_root)
         if "name" not in dir(self):
-            self.name = __class__  # short name
+            self.name = self.__class__.__name__  # short name
         self.detectorname = str(self.__class__).split("'")[1]
         self._set_description()
         if hasattr(_config.system, "verbose") and _config.system.verbose > 0:
@@ -68,6 +69,7 @@ class Detector(Configurable):
             )
 
         logging.info(f"detector init: {self}")
+        self._load_deps()
 
     def detect(self, attempt: garak.attempt.Attempt) -> Iterable[float | None]:
         """Takes a list of Attempts; classifies them; returns a list of results
@@ -111,9 +113,18 @@ class HFDetector(Detector, HFCompatible):
         orig_loglevel = transformers_logging.get_verbosity()
         transformers_logging.set_verbosity_error()
 
+        # disable huggingface attempts to open PRs in public sources
+        disable_env_key = "DISABLE_SAFETENSORS_CONVERSION"
+        stored_env = os.getenv(disable_env_key, default=None)
+        os.environ[disable_env_key] = "true"
+
         model_kwargs = self._gather_hf_params(
             hf_constructor=AutoConfig.from_pretrained
         )  # will defer to device_map if device map was `auto` may not match self.device
+        generation_params = self._gather_generation_params()
+        for param in generation_params.keys():
+            if param in model_kwargs.keys():
+                model_kwargs.pop(param)
 
         self.config = AutoConfig.from_pretrained(
             self.detector_model_path, **model_kwargs
@@ -132,6 +143,13 @@ class HFDetector(Detector, HFCompatible):
             tokenizer=self.detector_tokenizer,
             device=self.device,
         )
+        for k, v in generation_params.items():
+            setattr(self.detector.generation_config, k, v)
+
+        if stored_env:
+            os.environ[disable_env_key] = stored_env
+        else:
+            del os.environ[disable_env_key]
 
         transformers_logging.set_verbosity(orig_loglevel)
 
@@ -181,33 +199,68 @@ class StringDetector(Detector):
 
     DEFAULT_PARAMS = Detector.DEFAULT_PARAMS | {
         "matchtype": "str",  # "str" or "word"
+        "case_sensitive": False,
+        "normalize": None,  # None, "NFKC", or "NFKC+strip_format"
     }
 
     def __init__(self, substrings, config_root=_config):
         super().__init__(config_root=config_root)
         self.substrings = substrings
 
-    def detect(
-        self, attempt: garak.attempt.Attempt, case_sensitive=False
-    ) -> Iterable[float | None]:
+    def _apply_normalize(self, text: str) -> str:
+        """Apply Unicode normalization to text according to self.normalize."""
+        if self.normalize == "NFKC":
+            return unicodedata.normalize("NFKC", text)
+        elif self.normalize == "NFKC+strip_format":
+            text = unicodedata.normalize("NFKC", text)
+            return "".join(c for c in text if unicodedata.category(c) != "Cf")
+        else:
+            raise ValueError(f"Don't know how to process normalize: {self.normalize!r}")
+
+    def detect(self, attempt: garak.attempt.Attempt) -> Iterable[float | None]:
         detector_results = []
         all_outputs = attempt.outputs_for(self.lang_spec)
+
+        # Trigger substrings are independent of the model output, so normalize
+        # them once up front. An invalid ``normalize`` config raises ValueError
+        # from _apply_normalize; treat that as "cannot detect" and return None
+        # for every output rather than letting it terminate the whole run.
+        substrings = self.substrings
+        if self.normalize:
+            try:
+                substrings = [self._apply_normalize(s) for s in self.substrings]
+            except ValueError as e:
+                logging.warning(
+                    "StringDetector: %s; returning None for all outputs", e
+                )
+                return [None] * len(all_outputs)
 
         for output in all_outputs:
             output_text = output.text if output else None
             if output_text is None or output.text is None:
                 detector_results.append(None)
                 continue
+
+            if self.normalize:
+                try:
+                    output_text = self._apply_normalize(output_text)
+                except ValueError as e:
+                    logging.warning(
+                        "StringDetector: %s; returning None for this output", e
+                    )
+                    detector_results.append(None)
+                    continue
+
             match = False
-            for s in self.substrings:
-                if not case_sensitive:
+            for s in substrings:
+                if not self.case_sensitive:
                     s, output_text = s.lower(), output_text.lower()
 
                 if self.matchtype == "str":
                     if s in output_text:
                         match = True
                 elif self.matchtype == "word":
-                    if re.search(r"\b" + s + r"\b", output_text):
+                    if re.search(r"\b" + re.escape(s) + r"\b", output_text):
                         match = True
                 elif self.matchtype == "startswith":
                     if output_text.startswith(s):
@@ -224,9 +277,9 @@ class StringDetector(Detector):
 class TriggerListDetector(Detector):
     """Subclass of Detector using attempt's notes[triggers] as list of strings to match"""
 
-    def detect(
-        self, attempt: garak.attempt.Attempt, case_sensitive=False
-    ) -> Iterable[float | None]:
+    DEFAULT_PARAMS = Detector.DEFAULT_PARAMS | {"case_sensitive": False}
+
+    def detect(self, attempt: garak.attempt.Attempt) -> Iterable[float | None]:
         detector_results = []
         all_outputs = attempt.outputs_for(self.lang_spec)
 
@@ -240,7 +293,7 @@ class TriggerListDetector(Detector):
                     continue  # trigger is absent
                 match = False
                 for trigger in triggers:
-                    if case_sensitive:
+                    if self.case_sensitive:
                         if trigger in output.text:
                             match = True
                     else:
@@ -252,11 +305,15 @@ class TriggerListDetector(Detector):
 
 
 class FileDetector(Detector):
-    """Detector subclass for processing attempts whose outputs are filenames for checking"""
+    """Detector subclass for processing attempts whose outputs are filenames for checking
+
+    Attempts whose ``notes["format"]`` does not match ``valid_format`` cannot be
+    scored; one ``None`` per output is returned so the run continues.
+    """
 
     valid_format = "local filename"
 
-    def _test_file(self, filename: str) -> Union[None, str]:
+    def _test_file(self, filename: str) -> Union[None, float]:
         raise NotImplementedError
 
     def detect(self, attempt: garak.attempt.Attempt) -> Iterable[float | None]:
@@ -264,9 +321,13 @@ class FileDetector(Detector):
             "format" not in attempt.notes
             or attempt.notes["format"] != self.valid_format
         ):
-            raise ValueError(
-                f"detectors.fileformats.{self.__class__.__name__} only processes outputs that are '{self.valid_format}'"
+            logging.warning(
+                "detectors.fileformats.%s only processes outputs that are '%s'; attempt not scored",
+                self.__class__.__name__,
+                self.valid_format,
             )
+            yield from [None] * len(attempt.outputs)
+            return
 
         for local_filename in attempt.outputs:
             if not local_filename or not local_filename.text:

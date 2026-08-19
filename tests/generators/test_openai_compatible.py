@@ -1,8 +1,12 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+import base64
+import errno
+import json
 import os
 import httpx
+import pathlib
 import respx
 import pytest
 import importlib
@@ -11,9 +15,9 @@ import inspect
 from collections.abc import Iterable
 
 from garak.attempt import Message, Turn, Conversation
-from garak.generators.openai import OpenAICompatible
+import garak.generators.openai as openai_generator
+from garak.generators.openai import OpenAICompatible, OpenAIGenerator
 from garak.generators.rest import RestGenerator
-
 
 # TODO: expand this when we have faster loading, currently to process all generator costs 30s for 3 tests
 # GENERATORS = [
@@ -29,6 +33,40 @@ MODEL_NAME = "gpt-3.5-turbo-instruct"
 ENV_VAR = os.path.abspath(
     __file__
 )  # use test path as hint encase env changes are missed
+
+IMAGE_ASSET = pathlib.Path(__file__).parents[1] / "_assets" / "tinytrans.gif"
+
+
+class FileDescriptorTransport(httpx.BaseTransport):
+    def __init__(self):
+        self.fd = None
+
+    def handle_request(self, request):
+        self.fd = os.open(os.devnull, os.O_RDONLY)
+        payload = {
+            "choices": [
+                {
+                    "message": {"content": "This is a test!", "role": "assistant"},
+                    "finish_reason": "stop",
+                    "index": 0,
+                }
+            ],
+            "created": 0,
+            "id": "test",
+            "model": MODEL_NAME,
+            "object": "chat.completion",
+        }
+        return httpx.Response(
+            200,
+            content=json.dumps(payload).encode(),
+            headers={"Content-Type": "application/json"},
+            request=request,
+        )
+
+    def close(self):
+        if self.fd is not None:
+            os.close(self.fd)
+            self.fd = None
 
 
 def compatible() -> Iterable[OpenAICompatible]:
@@ -65,6 +103,15 @@ def build_test_instance(module_klass):
     return class_instance
 
 
+def build_unloaded_compatible():
+    generator = OpenAICompatible.__new__(OpenAICompatible)
+    generator.name = MODEL_NAME
+    generator.uri = "http://localhost:8000/v1/"
+    generator.api_key = ENV_VAR
+    generator.generator_family_name = "OpenAICompatible"
+    return generator
+
+
 # helper method to pass mock config
 def generate_in_subprocess(*args):
     generator, openai_compat_mocks, prompt = args[0]
@@ -84,6 +131,40 @@ def generate_in_subprocess(*args):
         )
 
         return generator.generate(prompt)
+
+
+def test_openai_deserialised_client_closes_when_released(monkeypatch):
+    generator = build_unloaded_compatible()
+    generator.client = None
+    generator.generator = None
+    state = generator.__getstate__()
+    transport = FileDescriptorTransport()
+    openai_client = openai_generator.openai.OpenAI
+    monkeypatch.setattr(
+        openai_generator.openai,
+        "OpenAI",
+        lambda **kwargs: openai_client(
+            **kwargs, http_client=httpx.Client(transport=transport)
+        ),
+    )
+
+    generator.__setstate__(state)
+    generator.generator.create(
+        model=generator.name,
+        messages=[{"role": "user", "content": "first testing string"}],
+    )
+    leaked_fd = transport.fd
+    assert leaked_fd is not None, "the deserialised client should own an open fd"
+
+    try:
+        del generator
+        with pytest.raises(OSError) as exc_info:
+            os.fstat(leaked_fd)
+        assert (
+            exc_info.value.errno == errno.EBADF
+        ), "releasing a worker generator should close its client fd"
+    finally:
+        transport.close()
 
 
 @pytest.mark.parametrize("classname", compatible())
@@ -117,13 +198,19 @@ def test_openai_multiprocessing(openai_compat_mocks, classname):
     for _ in range(iterations):
         from multiprocessing import Pool
 
-        with Pool(parallel_attempts) as attempt_pool:
+        attempt_pool = None
+        try:
+            attempt_pool = Pool(parallel_attempts)
             for result in attempt_pool.imap_unordered(generate_in_subprocess, prompts):
                 assert result is not None
                 assert isinstance(result, list), "generator should return list"
                 assert isinstance(
                     result[0], Message
                 ), "generator should return list of Turns or Nones"
+        finally:
+            if attempt_pool is not None:
+                attempt_pool.close()
+                attempt_pool.join()
 
 
 def test_openai_multiple_generations():
@@ -136,3 +223,31 @@ def test_openai_multiple_generations():
     assert (
         oai_klass.supports_multiple_generations == True
     ), "OpenAI access expected to correctly support multiple generations by default"
+
+
+def test_conversation_to_list_image_turn_uses_chat_completions_format():
+    """Image turns render as chat/completions content parts.
+
+    `data_type` is a `(mimetype, encoding)` tuple, so `"image" in
+    turn.content.data_type` never matched and the image branch was unreachable.
+    """
+    generator = build_test_instance(OpenAIGenerator)
+    conv = Conversation(
+        [Turn("user", Message(text="describe", data_path=str(IMAGE_ASSET)))]
+    )
+
+    result = generator._conversation_to_list(conv)
+
+    assert len(result) == 1
+    assert result[0]["role"] == "user"
+
+    text_part, image_part = result[0]["content"]
+    assert text_part == {"type": "text", "text": "describe"}
+    assert image_part["type"] == "image_url"
+    # chat/completions expects an object with a `url` entry, not a bare string
+    assert isinstance(image_part["image_url"], dict)
+
+    header, separator, payload = image_part["image_url"]["url"].partition(",")
+    assert header == "data:image/gif;base64"
+    assert separator == ","
+    assert base64.b64decode(payload) == IMAGE_ASSET.read_bytes()

@@ -4,9 +4,10 @@
 import re
 import tiktoken
 
-from . import conversation
 from garak.attempt import Message, Turn, Conversation
 from garak.generators.openai import context_lengths
+
+FALLBACK_MODEL_NAME = "gpt-4"
 
 
 def get_evaluator_prompt(attack_prompt, target_response):
@@ -45,7 +46,10 @@ def process_output_on_topic_score(raw_output) -> float:
 
 
 def token_count(string: str, model_name: str) -> int:
-    encoding = tiktoken.encoding_for_model(model_name)
+    try:
+        encoding = tiktoken.encoding_for_model(model_name)
+    except KeyError as e:
+        encoding = tiktoken.encoding_for_model(FALLBACK_MODEL_NAME)
     num_tokens = len(encoding.encode(string))
     return num_tokens
 
@@ -55,14 +59,6 @@ def get_token_limit(model_name: str) -> int:
         return context_lengths[model_name]
     else:
         return 4096
-
-
-def conversation_from_list(turns: list[dict]) -> Conversation:
-    """Take a list of dicts and return a Conversation object.
-
-    In the future this should be factored out and implemented in the probe.
-    """
-    return Conversation([Turn.from_dict(msg) for msg in turns])
 
 
 class EvaluationJudge:
@@ -85,8 +81,8 @@ class EvaluationJudge:
             if self.system_prompt_judge is None:
                 raise ValueError("A system prompt must be provided.")
 
-        conv = conversation.get_template(self.evaluation_generator.name)
-        conv.set_system_message(system_prompt)
+        conv = Conversation()
+        conv.turns.append(Turn(role="system", content=Message(text=system_prompt)))
         # Avoid sending overly long prompts.
         if len(full_prompt.split()) / self.TOKEN_SCALER > self.evaluator_token_limit:
             # More expensive check yielding actual information -- add BASE_TOKENS token buffer to prompt
@@ -115,15 +111,13 @@ class EvaluationJudge:
                 else:
                     break
 
-        conv.append_message(conv.roles[0], full_prompt)
+        conv.turns.append(Turn(role="user", content=Message(text=full_prompt)))
 
-        return conv.to_openai_api_messages()
+        return conv
 
     def judge_score(self, attack_prompt_list, target_response_list) -> list[float]:
         convs_list = [
-            conversation_from_list(
-                self._create_conv(get_evaluator_prompt(prompt, response))
-            )
+            self._create_conv(get_evaluator_prompt(prompt, response))
             for prompt, response in zip(attack_prompt_list, target_response_list)
         ]
         raw_outputs = [
@@ -134,11 +128,9 @@ class EvaluationJudge:
 
     def on_topic_score(self, attempt_list) -> list[float]:
         convs_list = [
-            conversation_from_list(
-                self._create_conv(
-                    get_evaluator_prompt_on_topic(prompt),
-                    system_prompt=self.system_prompt_on_topic,
-                )
+            self._create_conv(
+                get_evaluator_prompt_on_topic(prompt),
+                system_prompt=self.system_prompt_on_topic,
             )
             for prompt in attempt_list
         ]

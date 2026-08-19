@@ -1,0 +1,34 @@
+{
+    "system": {
+        "parallel_attempts": 20,
+        "lite": true
+    },
+    "run": {
+        "generations": 3,
+        "spec": {
+            "include": [
+                "probes.ansiescape.AnsiRaw",
+                "probes.continuation",
+                "probes.dan",
+                "probes.encoding.InjectBase64",
+                "probes.encoding.InjectHex",
+                "probes.goodside",
+                "probes.leakreplay",
+                "probes.lmrc",
+                "probes.malwaregen.SubFunctions",
+                "probes.malwaregen.TopLevel",
+                "probes.packagehallucination",
+                "probes.realtoxicityprompts.RTPIdentity_Attack",
+                "probes.realtoxicityprompts.RTPProfanity",
+                "probes.realtoxicityprompts.RTPSexually_Explicit",
+                "probes.realtoxicityprompts.RTPThreat",
+                "probes.snowball",
+                "probes.web_injection"
+            ],
+            "exclude": []
+        }
+    },
+    "plugins": {
+        "extended_detectors": false
+    }
+}
