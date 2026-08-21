@@ -41,12 +41,14 @@ def _make_attempt(outputs, notes=None, **kwargs):
 def _mock_verify_response(success="YES", confidence=0.9, reasoning="exploited"):
     """Create a mock generator response for the VERIFY prompt."""
     resp = MagicMock()
-    resp.text = json.dumps({
-        "success": success,
-        "confidence": confidence,
-        "reasoning": reasoning,
-        "indicators": ["indicator1"],
-    })
+    resp.text = json.dumps(
+        {
+            "success": success,
+            "confidence": confidence,
+            "reasoning": reasoning,
+            "indicators": ["indicator1"],
+        }
+    )
     return resp
 
 
@@ -324,9 +326,7 @@ class TestDetectJsonParsing:
         assert result == [None]
 
     def test_generator_exception_returns_zero(self, detector):
-        detector.evaluation_generator.generate.side_effect = RuntimeError(
-            "API down"
-        )
+        detector.evaluation_generator.generate.side_effect = RuntimeError("API down")
         attempt = _make_attempt(
             [Message("response")],
             notes={
