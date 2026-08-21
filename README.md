@@ -39,6 +39,7 @@ currently supports:
 * [openai api](https://platform.openai.com/docs/introduction) chat & continuation models
 * [aws bedrock](https://aws.amazon.com/bedrock/) foundation models
 * [litellm](https://www.litellm.ai/)
+* [OrcaRouter](https://www.orcarouter.ai) OpenAI-compatible gateway models
 * pretty much anything accessible via REST
 * gguf models like [llama.cpp](https://github.com/ggerganov/llama.cpp) version >= 1046
 * .. and many more LLMs!
@@ -181,6 +182,12 @@ Private Replicate endpoints:
 * `--target_type groq`
 * `--target_name` - The name of the model to access via the Groq API
 * set the `GROQ_API_KEY` environment variable to your Groq API key, see https://console.groq.com/docs/quickstart for details on creating an API key
+
+### OrcaRouter
+
+* `--target_type orcarouter`
+* `--target_name` - The name of the model to access via the OrcaRouter gateway, e.g. `orcarouter/auto`
+* set the `ORCAROUTER_API_KEY` environment variable to your OrcaRouter API key, see https://www.orcarouter.ai for details on creating an API key
 
 ### ggml
 
