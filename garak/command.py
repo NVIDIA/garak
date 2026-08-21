@@ -9,6 +9,13 @@ import random
 
 HINT_CHANCE = 0.25
 
+# Plugin trees are defaultdicts; ``type(v) is dict`` dropped them from reports.
+_REPORTABLE_CONFIG_TYPES = (str, int, bool, tuple, list, set, type(None))
+
+
+def _is_reportable_config_value(value) -> bool:
+    return isinstance(value, dict) or type(value) in _REPORTABLE_CONFIG_TYPES
+
 
 def hint(msg, logging=None):
     # sub-optimal, but because our logging setup is thin & uses the global
@@ -78,30 +85,12 @@ def start_run():
     )
     setup_dict = {"entry_type": "start_run setup"}
     for k, v in _config.__dict__.items():
-        if k[:2] != "__" and type(v) in (
-            str,
-            int,
-            bool,
-            dict,
-            tuple,
-            list,
-            set,
-            type(None),
-        ):
-            setup_dict[f"_config.{k}"] = v
+        if k[:2] != "__" and _is_reportable_config_value(v):
+            setup_dict[f"_config.{k}"] = _config._redact_sensitive_config(v, k)
     for subset in "system transient run plugins reporting".split():
         for k, v in getattr(_config, subset).__dict__.items():
-            if k[:2] != "__" and type(v) in (
-                str,
-                int,
-                bool,
-                dict,
-                tuple,
-                list,
-                set,
-                type(None),
-            ):
-                setup_dict[f"{subset}.{k}"] = v
+            if k[:2] != "__" and _is_reportable_config_value(v):
+                setup_dict[f"{subset}.{k}"] = _config._redact_sensitive_config(v, k)
 
     _config.transient.reportfile.write(
         json.dumps(setup_dict, ensure_ascii=False) + "\n"

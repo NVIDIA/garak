@@ -130,7 +130,7 @@ def _report_header_content(report_path, init, setup, payloads, config=_config) -
         "garak_version": init["garak_version"],
         "start_time": init["start_time"],
         "run_uuid": init["run_uuid"],
-        "setup": setup,
+        "setup": _config._redact_sensitive_config(setup),
         "probespec": _extract_to_probespec(setup),
         "target_type": target_type,
         "target_name": target_name,

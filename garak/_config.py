@@ -143,6 +143,55 @@ def _key_exists(d: dict, key: str) -> bool:
         return any([_key_exists(val, key) for val in d.values()])
 
 
+# Keys whose values must not be written into reports or HTML digests.
+# Matched case-insensitively; hyphens are treated as underscores, so
+# ``Authorization`` and ``X-API-Key`` are covered as well as ``api_key``.
+_SENSITIVE_CONFIG_KEYS = frozenset(
+    {
+        "api_key",
+        "authorization",
+        "client_key_passphrase",
+        "password",
+        "secret",
+    }
+)
+_SENSITIVE_CONFIG_SUFFIXES = (
+    "_api_key",
+    "_api_token",
+    "_passphrase",
+    "_password",
+    "_secret",
+)
+REDACTED_CONFIG_VALUE = "********"
+
+
+def _is_sensitive_config_key(key) -> bool:
+    if not isinstance(key, str):
+        return False
+    normalized = key.lower().replace("-", "_")
+    if normalized in _SENSITIVE_CONFIG_KEYS:
+        return True
+    return any(normalized.endswith(suffix) for suffix in _SENSITIVE_CONFIG_SUFFIXES)
+
+
+def _redact_sensitive_config(value, key=None):
+    """Return a copy of ``value`` with secret-bearing fields replaced.
+
+    Used when persisting run setup into ``.report.jsonl`` / HTML digests so
+    that ``api_key`` (and similar) from YAML or ``--generator_options`` is
+    not written to disk. Does not mutate ``value``.
+    """
+    if _is_sensitive_config_key(key):
+        return None if value is None else REDACTED_CONFIG_VALUE
+    if isinstance(value, dict):
+        return {k: _redact_sensitive_config(v, k) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_redact_sensitive_config(item) for item in value]
+    if isinstance(value, tuple):
+        return tuple(_redact_sensitive_config(item) for item in value)
+    return value
+
+
 def _set_settings(config_obj, settings_obj: dict):
     for k, v in settings_obj.items():
         setattr(config_obj, k, v)

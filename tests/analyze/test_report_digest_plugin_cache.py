@@ -222,3 +222,38 @@ def test_build_digest_records_live_cache_source_for_legacy_report(tmp_path):
     digest = report_digest.build_digest(str(report_path))
 
     assert digest["meta"]["plugin_cache_source"] == garak.__version__
+
+
+def test_digest_redacts_api_key_from_legacy_setup(tmp_path):
+    secret = "sk-legacy-report-secret"
+    report_path = _write_report(tmp_path, plugin_cache=_complete_plugin_cache())
+    records = [
+        json.loads(line)
+        for line in report_path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    for record in records:
+        if record.get("entry_type") == "start_run setup":
+            record["plugins.generators"] = {
+                "openai": {"OpenAIGenerator": {"api_key": secret}}
+            }
+    report_path.write_text(
+        "".join(json.dumps(record, ensure_ascii=False) + "\n" for record in records),
+        encoding="utf-8",
+    )
+
+    digest = report_digest.build_digest(str(report_path))
+    html = report_digest.build_html(digest)
+
+    assert secret not in json.dumps(
+        digest
+    ), "digest meta.setup must redact secrets still present in older reports"
+    assert (
+        secret not in html
+    ), "HTML report must not embed api_key values from start_run setup"
+    assert (
+        digest["meta"]["setup"]["plugins.generators"]["openai"]["OpenAIGenerator"][
+            "api_key"
+        ]
+        == _config.REDACTED_CONFIG_VALUE
+    )
