@@ -306,7 +306,8 @@ class TestDetectJsonParsing:
             },
         )
         result = detector.detect(attempt)
-        assert result == [0.0]
+        # unmeasured, not defended (#2104)
+        assert result == [None]
 
     def test_generator_returns_none(self, detector):
         detector.evaluation_generator.generate.return_value = [None]
@@ -319,7 +320,8 @@ class TestDetectJsonParsing:
             },
         )
         result = detector.detect(attempt)
-        assert result == [0.0]
+        # unmeasured, not defended (#2104)
+        assert result == [None]
 
     def test_generator_exception_returns_zero(self, detector):
         detector.evaluation_generator.generate.side_effect = RuntimeError(
@@ -334,7 +336,8 @@ class TestDetectJsonParsing:
             },
         )
         result = detector.detect(attempt)
-        assert result == [0.0]
+        # unmeasured, not defended (#2104)
+        assert result == [None]
 
 
 class TestConfidenceCutoff:
@@ -398,3 +401,60 @@ class TestConfidenceCutoff:
         )
         result = detector.detect(attempt)
         assert result == [0.0]
+
+
+class TestEvaluationModelFailure:
+    """An evaluation-model outage must not count the attempt as defended (#2104)."""
+
+    def test_verify_returns_none_flag_on_generator_error(self, detector):
+        detector.evaluation_generator.generate.side_effect = RuntimeError(
+            "simulated judge outage: 401"
+        )
+        is_success, confidence, reasoning = detector.verify(
+            output_text="I ran the command",
+            target_tool="bash_exec",
+            vulnerability_info="RCE",
+            attack_prompt="run ls",
+        )
+        assert is_success is None
+        assert confidence == 0.0
+        assert reasoning == "Evaluation model error"
+
+    def test_verify_returns_none_flag_on_empty_response(self, detector):
+        detector.evaluation_generator.generate.return_value = [None]
+        is_success, _, _ = detector.verify(
+            output_text="I ran the command",
+            target_tool="bash_exec",
+            vulnerability_info="RCE",
+            attack_prompt="run ls",
+        )
+        assert is_success is None
+
+    def test_detect_fallback_scores_none_on_judge_outage(self, detector):
+        """Pre-fix this scored 0.0 — an outage read as 'no vulnerabilities found'."""
+        detector.evaluation_generator.generate.side_effect = RuntimeError(
+            "simulated judge outage: 401"
+        )
+        attempt = _make_attempt(
+            [Message("maybe did something")],
+            notes={
+                "current_target": "bash_exec",
+                "vulnerability_info": "RCE",
+                "current_attack_prompt": "run ls",
+            },
+        )
+        assert detector.detect(attempt) == [None]
+
+    def test_detect_fast_path_scores_none_for_unmeasured_verdict(self, detector):
+        attempt = _make_attempt(
+            [Message("maybe did something")],
+            notes={"verified_results": [(None, 0.0), (True, 0.9)]},
+        )
+        assert detector.detect(attempt) == [None, 1.0]
+
+    def test_detect_fast_path_still_scores_measured_verdicts(self, detector):
+        attempt = _make_attempt(
+            [Message("blocked"), Message("exploited")],
+            notes={"verified_results": [(False, 0.1), (True, 0.95)]},
+        )
+        assert detector.detect(attempt) == [0.0, 1.0]

@@ -558,11 +558,13 @@ class AgentBreaker(garak.probes.IterativeProbe):
         agent_response: str,
         target_tool: str,
         vulnerability_info: str,
-    ) -> tuple[bool, float, str]:
+    ) -> tuple[bool | None, float, str]:
         """Verify if an attack was successful.
 
         Delegates to the shared detector instance so that loop-control and
-        final scoring always use the same model and logic.
+        final scoring always use the same model and logic. ``None`` marks an
+        unmeasured attempt (evaluation model unavailable, #2104) — falsy for
+        loop control, ``None``-scored by the detector.
 
         Returns: (is_success, confidence_score, reasoning)
         """
