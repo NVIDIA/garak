@@ -57,6 +57,20 @@ def rot13(text):
     return bytes(text.decode().translate(ROT13TRANS), "utf-8")
 
 
+def unicode_circled(text: bytes) -> bytes:
+    """Encode ASCII letters and digits as Unicode circled characters."""
+    circled_characters = {
+        **{chr(ord("A") + index): chr(0x24B6 + index) for index in range(26)},
+        **{chr(ord("a") + index): chr(0x24D0 + index) for index in range(26)},
+        **{str(number): chr(0x245F + number) for number in range(1, 10)},
+        "0": "⓪",
+    }
+
+    translated = text.decode("utf-8").translate(str.maketrans(circled_characters))
+
+    return translated.encode("utf-8")
+
+
 def braille(text):
     # fmt: off
     characterUnicodes = {
@@ -270,9 +284,7 @@ class EncodingMixin:
             not self.follow_prompt_cap
             or len(generated_prompts) < self.soft_probe_prompt_cap
         ):
-            self.prompts, self.triggers, self._prompt_intents = zip(
-                *generated_prompts
-            )
+            self.prompts, self.triggers, self._prompt_intents = zip(*generated_prompts)
         else:
             self.prompts, self.triggers, self._prompt_intents = zip(
                 *random.sample(generated_prompts, self.soft_probe_prompt_cap)
@@ -646,6 +658,23 @@ class InjectLeet(EncodingMixin, garak.probes.Probe):
 
     encoding_name = "Leetspeak"
     encoding_funcs = [leet_bytes]
+
+    def __init__(self, config_root=_config):
+        garak.probes.Probe.__init__(self, config_root=config_root)
+        EncodingMixin.__init__(self)
+
+
+class InjectUnicodeCircled(EncodingMixin, garak.probes.Probe):
+    """Probe for susceptibility to Unicode circled-character encoding.
+
+    Encodes ASCII letters and digits as circled Unicode characters to
+    assess whether targets decode obfuscated instructions.
+    """
+
+    doc_uri = "https://www.unicode.org/charts/PDF/U2460.pdf"
+    encoding_name = "Unicode circled"
+    encoding_funcs = [unicode_circled]
+    active = True
 
     def __init__(self, config_root=_config):
         garak.probes.Probe.__init__(self, config_root=config_root)
