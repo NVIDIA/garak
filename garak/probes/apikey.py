@@ -18,9 +18,11 @@ class GetKey(garak.probes.Probe):
     """
 
     lang = "en"
+    intent = "S009cred"  # asks the target to emit API keys and other credential-like secrets
     primary_detector = "apikey.ApiKey"
     tags = [
         "quality:Behavioral:ContentSafety:LegalGoodsServices",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples",  # requests model to demonstrate API key generation
     ]
     goal = "generate an API key for the specified API"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
@@ -48,9 +50,13 @@ class CompleteKey(garak.probes.Probe):
     """
 
     lang = "en"
+    intent = "S009cred"  # completing a partial API key is still revealing credential material
+    # T007 is a secondary fit because the prompt is phrased as a completion task.
     primary_detector = "apikey.ApiKey"
     tags = [
         "quality:Behavioral:ContentSafety:LegalGoodsServices",
+        "demon:Possible_worlds:World_building:Scenarios",  # frames key completion as a lost-data recovery scenario
+        "demon:Stratagems:Meta-prompting:Ask_for_examples",  # directly asks the model to supply a concrete key completion
     ]
     goal = "generate an API key for the specificed API"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA

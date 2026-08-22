@@ -6,6 +6,7 @@ in `garak`. `garak` detectors must inherit from a class in here."""
 import logging
 import os
 import re
+import unicodedata
 from typing import List, Iterable, Union
 
 from colorama import Fore, Style
@@ -59,7 +60,7 @@ class Detector(Configurable):
     def __init__(self, config_root=_config):
         self._load_config(config_root)
         if "name" not in dir(self):
-            self.name = __class__  # short name
+            self.name = self.__class__.__name__  # short name
         self.detectorname = str(self.__class__).split("'")[1]
         self._set_description()
         if hasattr(_config.system, "verbose") and _config.system.verbose > 0:
@@ -199,23 +200,59 @@ class StringDetector(Detector):
     DEFAULT_PARAMS = Detector.DEFAULT_PARAMS | {
         "matchtype": "str",  # "str" or "word"
         "case_sensitive": False,
+        "normalize": None,  # None, "NFKC", or "NFKC+strip_format"
     }
 
     def __init__(self, substrings, config_root=_config):
         super().__init__(config_root=config_root)
         self.substrings = substrings
 
+    def _apply_normalize(self, text: str) -> str:
+        """Apply Unicode normalization to text according to self.normalize."""
+        if self.normalize == "NFKC":
+            return unicodedata.normalize("NFKC", text)
+        elif self.normalize == "NFKC+strip_format":
+            text = unicodedata.normalize("NFKC", text)
+            return "".join(c for c in text if unicodedata.category(c) != "Cf")
+        else:
+            raise ValueError(f"Don't know how to process normalize: {self.normalize!r}")
+
     def detect(self, attempt: garak.attempt.Attempt) -> Iterable[float | None]:
         detector_results = []
         all_outputs = attempt.outputs_for(self.lang_spec)
+
+        # Trigger substrings are independent of the model output, so normalize
+        # them once up front. An invalid ``normalize`` config raises ValueError
+        # from _apply_normalize; treat that as "cannot detect" and return None
+        # for every output rather than letting it terminate the whole run.
+        substrings = self.substrings
+        if self.normalize:
+            try:
+                substrings = [self._apply_normalize(s) for s in self.substrings]
+            except ValueError as e:
+                logging.warning(
+                    "StringDetector: %s; returning None for all outputs", e
+                )
+                return [None] * len(all_outputs)
 
         for output in all_outputs:
             output_text = output.text if output else None
             if output_text is None or output.text is None:
                 detector_results.append(None)
                 continue
+
+            if self.normalize:
+                try:
+                    output_text = self._apply_normalize(output_text)
+                except ValueError as e:
+                    logging.warning(
+                        "StringDetector: %s; returning None for this output", e
+                    )
+                    detector_results.append(None)
+                    continue
+
             match = False
-            for s in self.substrings:
+            for s in substrings:
                 if not self.case_sensitive:
                     s, output_text = s.lower(), output_text.lower()
 
@@ -223,7 +260,7 @@ class StringDetector(Detector):
                     if s in output_text:
                         match = True
                 elif self.matchtype == "word":
-                    if re.search(r"\b" + s + r"\b", output_text):
+                    if re.search(r"\b" + re.escape(s) + r"\b", output_text):
                         match = True
                 elif self.matchtype == "startswith":
                     if output_text.startswith(s):
@@ -268,7 +305,11 @@ class TriggerListDetector(Detector):
 
 
 class FileDetector(Detector):
-    """Detector subclass for processing attempts whose outputs are filenames for checking"""
+    """Detector subclass for processing attempts whose outputs are filenames for checking
+
+    Attempts whose ``notes["format"]`` does not match ``valid_format`` cannot be
+    scored; one ``None`` per output is returned so the run continues.
+    """
 
     valid_format = "local filename"
 
@@ -280,9 +321,13 @@ class FileDetector(Detector):
             "format" not in attempt.notes
             or attempt.notes["format"] != self.valid_format
         ):
-            raise ValueError(
-                f"detectors.fileformats.{self.__class__.__name__} only processes outputs that are '{self.valid_format}'"
+            logging.warning(
+                "detectors.fileformats.%s only processes outputs that are '%s'; attempt not scored",
+                self.__class__.__name__,
+                self.valid_format,
             )
+            yield from [None] * len(attempt.outputs)
+            return
 
         for local_filename in attempt.outputs:
             if not local_filename or not local_filename.text:

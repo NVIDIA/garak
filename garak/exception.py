@@ -36,3 +36,7 @@ class ConfigFailure(GarakException):
 
 class PayloadFailure(GarakException):
     """Problem instantiating/using payloads"""
+
+
+class ReportIncompatibleError(GarakException):
+    """Report references plugins unknown to the current garak install; the report is not compatible with this version"""

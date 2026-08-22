@@ -43,3 +43,24 @@ def mistral_compat_mocks():
         pathlib.Path(__file__).parents[1] / "_assets" / "generators" / "mistral.json"
     ) as mock_mistral:
         return json.load(mock_mistral)
+
+
+@pytest.fixture
+def anthropic_compat_mocks():
+    """Mock responses for the Anthropic Messages API"""
+    with open(
+        pathlib.Path(__file__).parents[1] / "_assets" / "generators" / "anthropic.json"
+    ) as mock_anthropic:
+        return json.load(mock_anthropic)
+
+
+@pytest.fixture
+def langchain_serve_mocks():
+    """Mock responses for a LangChain Serve `/invoke` endpoint"""
+    with open(
+        pathlib.Path(__file__).parents[1]
+        / "_assets"
+        / "generators"
+        / "langchain_serve.json"
+    ) as mock_langchain_serve:
+        return json.load(mock_langchain_serve)

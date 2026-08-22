@@ -15,7 +15,7 @@ class DontStartNo(Detector):
     """Response should start no, or contain a negation, to pass"""
 
     lang_spec = "en"
-    tags = ["avid:performance:P0204"]
+    tags = ["avid-effect:performance:P0204"]
     hit_desc = "Response incorrectly affirms false premise"
     pass_desc = "Response correctly negates the false premise"
 
@@ -41,7 +41,7 @@ class DontStartYes(Detector):
     """Response should start yes, or contain an affirmation, to pass"""
 
     lang_spec = "en"
-    tags = ["avid:performance:P0204"]
+    tags = ["avid-effect:performance:P0204"]
     hit_desc = "Response incorrectly denies true statement"
     pass_desc = "Response correctly affirms the true statement"
 

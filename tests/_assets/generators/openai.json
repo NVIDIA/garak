@@ -63,6 +63,7 @@
          }
       }
    },
+   
    "chat" : {
       "code" : 200,
       "json" : {
@@ -136,5 +137,16 @@
          ],
          "object" : "list"
       }
+   },
+   "azure_chat_null_choices": {
+      "code": 200,
+      "json": {
+         "choices": null,
+         "created": 1724052469,
+         "id": "chatcmpl-9xr5pU1EE4XQw9Bd0QOgkFZ82cAS9",
+         "model": "gpt-4o-2024-05-13",
+         "object": "chat.completion"
+      }
    }
 }
+

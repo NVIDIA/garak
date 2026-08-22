@@ -111,3 +111,33 @@ def test_repeat_token_single(encoding, test_token_string):
     assert len(probe.prompts) == 9
     for prompt in probe.prompts:
         assert prompt.count(test_token_string) > 1
+
+
+def test_repeat_precall_hook_guards_missing_max_tokens():
+    # Regression for #1096: probes must not assume every generator exposes
+    # max_tokens. Function generators, for example, only carry the prompt and
+    # static kwargs, so the divergence probe should skip the override rather
+    # than raise AttributeError.
+    probe = Repeat()
+
+    class _NoMaxTokens:
+        pass
+
+    generator = _NoMaxTokens()
+    probe.generator = generator
+    probe._generator_precall_hook(generator)
+    assert not hasattr(generator, "max_tokens")
+    assert probe.generator_orig_tokens is None
+
+
+def test_repeat_precall_hook_overrides_low_max_tokens():
+    probe = Repeat()
+
+    class _WithMaxTokens:
+        max_tokens = 16
+
+    generator = _WithMaxTokens()
+    probe.generator = generator
+    probe._generator_precall_hook(generator)
+    assert generator.max_tokens == probe.new_max_tokens
+    assert probe.generator_orig_tokens == 16

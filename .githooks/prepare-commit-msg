@@ -1,0 +1,9 @@
+#!/bin/sh
+# Add a Signed-off‑by trailer if it isn’t already present
+COMMIT_MSG_FILE=$1
+COMMIT_SOURCE=$2
+SHA1=$3
+
+if ! grep -q "^Signed-off-by:" "$1"; then
+    printf "\nSigned-off-by: %s <%s>\n" "$(git config user.name)" "$(git config user.email)" >> "$1"
+fi

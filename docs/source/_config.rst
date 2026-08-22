@@ -1,5 +1,5 @@
-garak._config
-=============
+config
+======
 
 
 This module holds config values.
@@ -23,6 +23,9 @@ Config values are loaded in the following priority (lowest-first):
 Code
 ^^^^
 
+
+garak._config
+-------------
 
 .. automodule:: garak._config
    :members:

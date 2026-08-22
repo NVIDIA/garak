@@ -1,28 +1,29 @@
-base2048>=0.1.3
-transformers>=5.0,<6.0
+mikeshardmind-base2048>=1.0.2
+transformers>=5.14.1,<6.0
 datasets>=3.0.0,<4.0
 colorama>=0.4.3
 tqdm>=4.67.1
 cohere>=5.16.0
+anthropic>=0.40.0,<1.0.0
 openai>=2.0,<3.0
 replicate>=0.8.3
 google-api-python-client>=2.0
 backoff>=2.1.1
-rapidfuzz>=3.0.0
-nltk>=3.9.1
+nltk==3.10.0
 accelerate>=0.23.0
 avidtools==0.1.2
 stdlibs>=2022.10.9
-langchain>=1.2.1
+langchain>=1.3.14
 cmd2==2.4.3
-torch>=2.6.0
+torch>=2.13.0
 sentencepiece>=0.1.99
-markdown>=3.4.3
+markdown>=3.10.0
 numpy>=2.0.0
 zalgolib>=0.2.2
 ecoji>=0.1.1
 deepl==1.17.0
-litellm==1.82.6
+litellm>=1.84.0
+llm>=0.31
 jsonpath-ng>=1.6.1
 huggingface_hub>=1.0
 python-magic-bin>=0.4.14; sys_platform == "win32"
@@ -37,13 +38,13 @@ grpcio-tools>=1.71.0
 langdetect==1.0.9
 tiktoken>=0.7.0
 mistralai==1.5.2
-pillow>=10.4.0
+pillow>=12.3.0
 ftfy>=6.3.1
 websockets>=13.0
 boto3>=1.28.0
 py-markdown-table>=1.2.0
 # tests
-pytest>=8.0
+pytest>=9.1
 pytest-mock>=3.14.0
 requests-mock==1.12.1
 respx>=0.21.1
@@ -51,8 +52,9 @@ pytest-cov>=5.0.0
 pytest_httpserver>=1.1.0
 pytest-asyncio>=0.21.0
 langcodes>=3.4.0
+cryptography>=47.0.0
 # lint
-black>=26.1.0
+black>=26.5.1
 pylint>=3.1.0
 # calibration
 scipy>=1.14.0

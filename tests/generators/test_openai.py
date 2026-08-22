@@ -99,3 +99,94 @@ def test_reasoning_switch():
         generator = OpenAIGenerator(
             name="o1-mini"
         )  # o1 models should use ReasoningGenerator
+
+
+# ── issue #1357: auth errors must not crash Pool._handle_results thread ─────────
+
+
+@pytest.mark.usefixtures("set_fake_env")
+@pytest.mark.respx(base_url="https://api.openai.com/v1")
+def test_call_model_auth_error_raises_garak_exception(respx_mock, openai_compat_mocks):
+    """HTTP 401 must surface as GarakException, not raw openai.AuthenticationError.
+
+    openai.AuthenticationError (and all openai.APIStatusError subclasses) carry
+    an httpx.Response attribute that is not picklable.  When parallel_attempts > 1,
+    multiprocessing.Pool workers try to pickle the exception to send it to the
+    parent process; the un-picklable type crashes the Pool._handle_results thread,
+    producing a silent "Exception in thread" message and hanging the run instead of
+    a clean abort.  Catching AuthenticationError here and re-raising as GarakException
+    (which is picklable) is the minimal fix.
+    See https://github.com/NVIDIA/garak/issues/1357.
+    """
+    mock_resp = openai_compat_mocks["auth_fail"]
+    respx_mock.post("chat/completions").mock(
+        return_value=httpx.Response(mock_resp["code"], json=mock_resp["json"])
+    )
+    generator = OpenAIGenerator(name="gpt-3.5-turbo")
+    prompt = Conversation([Turn(role="user", content=Message("hello"))])
+    with pytest.raises(garak.exception.GarakException) as exc_info:
+        generator.generate(prompt)
+    error_text = str(exc_info.value)
+    # message must mention status code and guide the user toward the key env var
+    assert "401" in error_text or OpenAIGenerator.ENV_VAR in error_text
+
+
+@pytest.mark.usefixtures("set_fake_env")
+@pytest.mark.respx(base_url="https://api.openai.com/v1")
+def test_call_model_auth_exception_is_picklable(respx_mock, openai_compat_mocks):
+    """The exception raised on HTTP 401 must survive a pickle round-trip.
+
+    This is the precise property that allows multiprocessing.Pool workers to
+    return authentication failures to the parent process without crashing
+    Pool._handle_results (the root cause of issue #1357).
+    """
+    import pickle
+
+    mock_resp = openai_compat_mocks["auth_fail"]
+    respx_mock.post("chat/completions").mock(
+        return_value=httpx.Response(mock_resp["code"], json=mock_resp["json"])
+    )
+    generator = OpenAIGenerator(name="gpt-3.5-turbo")
+    prompt = Conversation([Turn(role="user", content=Message("hello"))])
+    caught = None
+    try:
+        generator.generate(prompt)
+    except garak.exception.GarakException as exc:
+        caught = exc
+    assert caught is not None, "expected GarakException to be raised on HTTP 401"
+    # pickle round-trip must succeed
+    data = pickle.dumps(caught)
+    restored = pickle.loads(data)
+    assert str(restored) == str(caught)
+
+
+@pytest.mark.usefixtures("set_fake_env")
+def test_call_model_permission_denied_raises_garak_exception(mocker):
+    """HTTP 403 PermissionDeniedError must also surface as GarakException.
+
+    openai.PermissionDeniedError shares the same un-picklable httpx.Response
+    attribute as AuthenticationError; both are terminal auth failures.
+    """
+    generator = OpenAIGenerator(name="gpt-3.5-turbo")
+    req = httpx.Request("POST", "https://api.openai.com/v1/chat/completions")
+    resp = httpx.Response(
+        403,
+        request=req,
+        json={
+            "error": {
+                "message": "Permission denied",
+                "type": "invalid_request_error",
+            }
+        },
+    )
+    err = openai.PermissionDeniedError(
+        "Permission denied",
+        response=resp,
+        body={"error": {"message": "Permission denied"}},
+    )
+    mocker.patch.object(generator.generator, "create", side_effect=err)
+    prompt = Conversation([Turn(role="user", content=Message("hello"))])
+    with pytest.raises(garak.exception.GarakException) as exc_info:
+        generator.generate(prompt)
+    error_text = str(exc_info.value)
+    assert "403" in error_text or OpenAIGenerator.ENV_VAR in error_text

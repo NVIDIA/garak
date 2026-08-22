@@ -1,5 +1,5 @@
-garak.exception
-===============
+exception
+=========
 
 .. automodule:: garak.exception
    :members:

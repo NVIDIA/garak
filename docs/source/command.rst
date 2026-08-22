@@ -1,5 +1,5 @@
-garak.command
-=============
+command
+=======
 
 .. automodule:: garak.command
    :members:

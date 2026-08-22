@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 from typing import List, Tuple
 import pytest
 import os
@@ -79,6 +82,10 @@ def pytest_configure(config):
         "markers",
         "requires_storage(required_space_gb=1, path='/'): Skip the test if insufficient disk space.",
     )
+    config.addinivalue_line(
+        "markers",
+        "integration: Mark test as a live-server integration test (requires real network/mTLS server).",
+    )
 
 
 def check_storage(required_space_gb=1, path="/"):
@@ -112,3 +119,11 @@ def pytest_runtest_setup(item):
             total, used, free = shutil.disk_usage(path)
             free_gb = free / (2**30)  # Convert bytes to gigabytes
             print(f"✅ Sufficient free space ({free_gb:.2f} GB) confirmed.")
+
+
+@pytest.fixture()
+def loaded_intent_service(request):
+    import garak.services.intentservice
+
+    _config.load_config()
+    garak.services.intentservice.load()

@@ -53,9 +53,7 @@ plugins:
                     device: cuda:0
                 Pipeline:
                   dtype: for_detector
-""".encode(
-    "utf-8"
-)
+""".encode("utf-8")
 
 ANSI_ESCAPE = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 XDG_VARS = ("XDG_DATA_HOME", "XDG_CONFIG_HOME", "XDG_CACHE_HOME")
@@ -78,9 +76,9 @@ OPTIONS_PARAM = [
     ("target_name", "bruce"),
 ]
 OPTIONS_SPEC = [
-    ("probes", "3,elim,gul.dukat", "probe_spec"),
+    # probes/buffs now map onto run.spec (see test_run_spec_* below); only the
+    # detector surface still writes plugins.detector_spec directly
     ("detectors", "all", "detector_spec"),
-    ("buffs", "polymorph", "buff_spec"),
 ]
 
 param_locs = {}
@@ -246,6 +244,156 @@ def test_cli_spec_settings(param):
         [f"--{option}", str(value), "--list_config"]
     )  # add list_config as the action so we don't actually run
     assert getattr(_config.plugins, configname) == value
+
+
+def test_run_spec_cli_sets_config():
+    garak.cli.main(
+        ["--spec", "probes.dan,-probes.dan.DanInTheWild", "--list_config"]
+    )
+    assert _config.run.spec == {
+        "include": ["probes.dan"],
+        "exclude": ["probes.dan.DanInTheWild"],
+    }, "--spec must populate _config.run.spec"
+
+
+def test_legacy_probes_flag_maps_to_run_spec(capsys):
+    garak.cli.main(["--probes", "dan", "--list_config"])
+    assert _config.run.spec == {
+        "include": ["probes.dan"],
+        "exclude": [],
+    }, "deprecated --probes must map onto run.spec"
+    assert "DEPRECATION" in capsys.readouterr().out, "deprecated flag must warn"
+
+
+def test_legacy_probe_tags_and_buffs_map_to_run_spec():
+    garak.cli.main(
+        [
+            "--probes",
+            "dan",
+            "--probe_tags",
+            "owasp:llm01",
+            "--buffs",
+            "lowercase",
+            "--list_config",
+        ]
+    )
+    assert _config.run.spec == {
+        "include": ["probes.dan", "buffs.lowercase", {"tag": "owasp:llm01"}],
+        "exclude": [],
+    }, "deprecated --probe_tags/--buffs must merge into run.spec"
+
+
+def test_run_spec_wins_over_legacy_flags():
+    garak.cli.main(
+        ["--spec", "probes.encoding", "--probes", "dan", "--list_config"]
+    )
+    assert _config.run.spec == {
+        "include": ["probes.encoding"],
+        "exclude": [],
+    }, "--spec must win over deprecated selection flags"
+
+
+def test_legacy_probes_none_selects_no_probes():
+    from garak._spec import parse_spec_file
+    from garak._selection import resolve_spec
+
+    garak.cli.main(["--probes", "none", "--list_config"])
+    assert _config.run.spec == {
+        "include": ["probes.none"],
+        "exclude": [],
+    }, "deprecated --probes none must map to an explicit empty selection"
+    assert (
+        resolve_spec(parse_spec_file(_config.run.spec), skip_unknown=True).probes == []
+    ), "--probes none must resolve to no probes, not the default-all universe"
+
+
+def test_legacy_config_probe_spec_none_selects_no_probes(tmp_path):
+    from garak._spec import parse_spec_file
+    from garak._selection import resolve_spec
+
+    cfg = tmp_path / "none_spec.yaml"
+    cfg.write_text("---\nplugins:\n  probe_spec: none\n", encoding="utf-8")
+    garak.cli.main(["--config", str(cfg), "--list_config"])
+    assert _config.run.spec == {
+        "include": ["probes.none"],
+        "exclude": [],
+    }, "config probe_spec none must map to an explicit empty selection (parity with CLI)"
+    assert (
+        resolve_spec(parse_spec_file(_config.run.spec), skip_unknown=True).probes == []
+    ), "config probe_spec none must resolve to no probes, not the default-all universe"
+
+
+@pytest.mark.parametrize("vacuous", ["auto", ""])
+def test_legacy_config_probe_spec_vacuous_defaults_to_all(tmp_path, vacuous):
+    from garak._spec import parse_spec_file
+    from garak._selection import resolve_spec
+
+    cfg = tmp_path / "vacuous_spec.yaml"
+    cfg.write_text(f"---\nplugins:\n  probe_spec: {vacuous!r}\n", encoding="utf-8")
+    garak.cli.main(["--config", str(cfg), "--list_config"])
+    assert (
+        _config.run.spec is None
+    ), f"vacuous probe_spec {vacuous!r} must be treated as unspecified (no run.spec)"
+    resolved = resolve_spec(parse_spec_file(_config.run.spec), skip_unknown=True)
+    assert (
+        resolved.probes
+    ), f"unspecified probe_spec {vacuous!r} must default to all active probes"
+
+
+@pytest.mark.parametrize(
+    "cfg_path", ["garak/configs/fast.json", "garak/configs/bag.yaml"]
+)
+def test_bundled_config_run_spec_resolves_without_unknowns(cfg_path):
+    # guards against hand-migration typos in the shipped run.spec configs
+    import json as _json
+    from pathlib import Path
+    import yaml as _yaml
+    from garak._spec import parse_spec_file
+    from garak._selection import resolve_spec
+
+    text = Path(cfg_path).read_text(encoding="utf-8")
+    data = _json.loads(text) if cfg_path.endswith(".json") else _yaml.safe_load(text)
+    res = resolve_spec(parse_spec_file(data["run"]["spec"]), skip_unknown=True)
+    assert res.rejected == [], f"{cfg_path} has unknown selectors: {res.rejected}"
+    assert res.probes, f"{cfg_path} resolved to no probes"
+
+
+def test_invalid_run_spec_exits_cleanly():
+    # malformed selector should print a friendly error and exit, not traceback
+    with pytest.raises(SystemExit):
+        garak.cli.main(["--spec", "detectors.foo", "--list_config"])
+
+
+def test_invalid_legacy_cli_flag_exits_cleanly(capsys):
+    # a category-prefixed value in a deprecated flag is invalid; report + exit
+    with pytest.raises(SystemExit):
+        garak.cli.main(["--probes", "probes.dan", "--list_config"])
+    assert "❌" in capsys.readouterr().out, "invalid legacy flag must report, not traceback"
+
+
+def test_invalid_legacy_config_exits_cleanly(tmp_path, capsys):
+    cfg = tmp_path / "bad.yaml"
+    cfg.write_text(
+        "---\nplugins:\n  buff_spec: buffs.encoding.CharCode\n", encoding="utf-8"
+    )
+    with pytest.raises(SystemExit):
+        garak.cli.main(["--config", str(cfg), "--list_config"])
+    assert "❌" in capsys.readouterr().out, "invalid legacy config must report, not traceback"
+
+
+def test_explicit_run_spec_ignores_invalid_legacy_value(tmp_path):
+    # explicit run.spec wins, so an ignored (invalid) legacy key must not raise;
+    # the fixer mirrors this (see test_fixer_run_spec_drops_ignored_invalid_legacy_value)
+    cfg = tmp_path / "mix.yaml"
+    cfg.write_text(
+        "---\nplugins:\n  buff_spec: buffs.encoding.CharCode\n"
+        "run:\n  spec:\n    include:\n      - probes.dan\n",
+        encoding="utf-8",
+    )
+    garak.cli.main(["--config", str(cfg), "--list_config"])
+    assert _config.run.spec == {
+        "include": ["probes.dan"]
+    }, "explicit run.spec must win and the ignored legacy key must not be validated"
 
 
 # test a short-form CLI assertion
@@ -811,12 +959,14 @@ def test_agent_is_used_aiohttp(httpserver: HTTPServer):
     async def main():
         async with aiohttp.ClientSession() as session:
             async with session.get(httpserver.url_for("/")) as response:
-                html = await response.text()
+                return response.status
 
     httpserver.expect_request(
         "/", headers={"User-Agent": AGENT_TEST}
     ).respond_with_data("")
-    asyncio.run(main())
+    assert (
+        asyncio.run(main()) == 200
+    ), "aiohttp User-Agent should match the expected header so the request is served"
 
 
 def test_api_key_in_config():
@@ -847,6 +997,20 @@ def test_site_yaml_overrides_max_workers(capsys):
         )
         assert exc_info.type == SystemExit
         assert exc_info.value.code == 1
+
+
+# a run with parallel_attempts set should complete without error, for both the
+# serial case (1) and a parallel case (>1). uses the cheap CPU-only test
+# generator and the multi-prompt test.Test probe so that the >1 case actually
+# reaches the multiprocessing path in garak.probes.base.Probe._execute_all
+@pytest.mark.parametrize("parallel_attempts", [1, 4])
+def test_parallel_attempts_run_completes(parallel_attempts):
+    args = (
+        f"--parallel_attempts {parallel_attempts} -m test.Blank -p test.Test -g 1"
+    ).split()
+    garak.cli.main(args)
+
+    assert _config.system.parallel_attempts == parallel_attempts
 
 
 model_target_data = [
@@ -1194,3 +1358,32 @@ reporting: {}
     garak.cli.main(["--config", "test_mixedcase.Yaml", "--list_config"])
 
     assert _config.run.generations == 18
+
+
+# ---------------------------------------------------------------------------
+# Regression test for issue #1249: config_files must not contain duplicates
+# after load_base_config() + load_config() are both called (as the CLI does).
+# ---------------------------------------------------------------------------
+
+
+def test_core_config_not_duplicated_in_config_files():
+    """garak.core.yaml must appear exactly once in _config.config_files.
+
+    Previously, calling load_base_config() followed by load_config() caused
+    garak.core.yaml to be appended twice, so it appeared twice in HTML reports.
+    Fixed in PR #1544; this test guards against regression.
+    """
+    import importlib
+
+    importlib.reload(_config)
+
+    _config.load_base_config()
+    _config.load_config()
+
+    core_yaml = str(_config.transient.package_dir / "resources" / "garak.core.yaml")
+    occurrences = _config.config_files.count(core_yaml)
+    assert occurrences == 1, (
+        f"garak.core.yaml appeared {occurrences} time(s) in _config.config_files "
+        f"after load_base_config() + load_config(); expected exactly 1. "
+        f"See https://github.com/NVIDIA/garak/issues/1249"
+    )

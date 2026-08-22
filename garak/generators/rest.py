@@ -8,6 +8,8 @@ Generic Module for REST API connections
 
 import json
 import logging
+import os
+import ssl
 from typing import List, Union
 import requests
 
@@ -43,10 +45,15 @@ class RestGenerator(Generator):
         "request_timeout": 20,
         "proxies": None,
         "verify_ssl": True,
+        "client_cert": None,
+        "client_key": None,
+        "client_key_passphrase_env_var": None,
     }
 
     ENV_VAR = "REST_API_KEY"
     generator_family_name = "REST"
+
+    _unsafe_attributes = ["_mtls_session"]
 
     _supported_params = (
         "api_key",
@@ -71,6 +78,9 @@ class RestGenerator(Generator):
         "top_k",
         "proxies",
         "verify_ssl",
+        "client_cert",
+        "client_key",
+        "client_key_passphrase_env_var",
     )
 
     def __init__(self, uri=None, config_root=_config):
@@ -80,6 +90,8 @@ class RestGenerator(Generator):
         self.escape_function = self._json_escape
         self.retry_5xx = True
         self.key_env_var = self.ENV_VAR if hasattr(self, "ENV_VAR") else None
+        self.client_key_passphrase = None
+        self._extracted_a_response = False
 
         # load configuration since super.__init__ has not been called
         self._load_config(config_root)
@@ -137,9 +149,34 @@ class RestGenerator(Generator):
                     "`proxies` value provided is not in the required format. See documentation from the `requests` package for details on expected format. https://requests.readthedocs.io/en/latest/user/advanced/#proxies"
                 )
 
+        # validate mTLS cert/key pairing and file existence
+        if self.client_key is not None and self.client_cert is None:
+            raise BadGeneratorException(
+                "`client_key` was provided without `client_cert`. Both must be set for mTLS."
+            )
+        for attr in ("client_cert", "client_key"):
+            path = getattr(self, attr, None)
+            if path is not None:
+                if not isinstance(path, str):
+                    raise BadGeneratorException(
+                        f"`{attr}` must be a string path to a PEM file."
+                    )
+                if not os.path.isfile(path):
+                    raise BadGeneratorException(f"`{attr}` file not found: {path}")
+
+        # mTLS requires HTTPS — reject http:// URIs early to prevent silent
+        # security downgrade where the SSLContext would be ignored.
+        if self.client_cert is not None and not self.uri.startswith("https://"):
+            raise BadGeneratorException(
+                f"mTLS requires an HTTPS URI, but got: {self.uri}"
+            )
+
         # suppress warnings about intentional SSL validation suppression
         if isinstance(self.verify_ssl, bool) and not self.verify_ssl:
             requests.packages.urllib3.disable_warnings()
+
+        # build mTLS session (extracted to _load_unsafe for multiprocessing support)
+        self._load_unsafe()
 
         # validate jsonpath
         if self.response_json and self.response_json_field:
@@ -153,14 +190,66 @@ class RestGenerator(Generator):
 
         super().__init__(self.name, config_root=config_root)
 
+    def __del__(self):
+        if getattr(self, "_mtls_session", None) is not None:
+            self._mtls_session.close()
+
+    def _load_unsafe(self):
+        """Build the mTLS requests.Session with a pre-configured SSLContext.
+
+        Called from __init__ and also from __setstate__ (via Configurable)
+        to reconstruct the session after pickling for multiprocessing.
+        """
+        self._mtls_session = None
+        if self.client_cert is not None:
+            if isinstance(self.verify_ssl, str):
+                ssl_ctx = ssl.create_default_context(cafile=self.verify_ssl)
+            else:
+                ssl_ctx = ssl.create_default_context()
+                if not self.verify_ssl:
+                    ssl_ctx.check_hostname = False
+                    ssl_ctx.verify_mode = ssl.CERT_NONE
+            # re-read passphrase from env var if cleared or missing
+            # may be lost during pickle roundtrip 
+            passphrase = self.client_key_passphrase
+            if passphrase is None and self.client_key_passphrase_env_var is not None:
+                passphrase = os.getenv(self.client_key_passphrase_env_var)
+            ssl_ctx.load_cert_chain(
+                self.client_cert,
+                keyfile=self.client_key,
+                password=passphrase,
+            )
+            # passphrase is no longer needed after loading into the SSLContext;
+            # clear the reference to reduce exposure in memory
+            self.client_key_passphrase = None
+            adapter = _MtlsAdapter(ssl_ctx)
+            self._mtls_session = requests.Session()
+            self._mtls_session.mount("https://", adapter)
+
     def _validate_env_var(self):
-        key_match = "$KEY"
-        header_requires_key = False
-        for _k, v in self.headers.items():
-            if key_match in v:
-                header_requires_key = True
-        if "$KEY" in self.req_template or header_requires_key:
-            return super()._validate_env_var()
+        # API key is optional when mTLS is used; only enforce if $KEY appears in template or headers
+        key_required = "$KEY" in self.req_template or any(
+            "$KEY" in v for v in self.headers.values()
+        )
+        try:
+            super()._validate_env_var()
+        except APIKeyMissingError:
+            if key_required:
+                raise
+
+        # load mTLS passphrase from env var if specified
+        if (
+            self.client_key_passphrase is None
+            and self.client_key_passphrase_env_var is not None
+        ):
+            self.client_key_passphrase = os.getenv(
+                self.client_key_passphrase_env_var, default=None
+            )
+            if self.client_key_passphrase is None:
+                raise BadGeneratorException(
+                    f"client_key_passphrase_env_var '{self.client_key_passphrase_env_var}' "
+                    "is set but the environment variable is not defined"
+                )
 
     def _json_escape(self, text: str) -> str:
         """JSON escape a string"""
@@ -190,6 +279,21 @@ class RestGenerator(Generator):
             else:
                 output = output.replace("$KEY", self.api_key)
         return output.replace("$INPUT", self.escape_function(text))
+
+    def _response_extraction_failed(self, reason: str) -> List[Union[Message, None]]:
+        """Handle a response whose shape `response_json_field` cannot address.
+
+        Until one generation has been extracted successfully there is no evidence
+        that `response_json_field` can ever address this endpoint's responses, so
+        the generator is bad: fail fast rather than spend inference on a run that
+        can only produce an empty report. After the first success the same
+        mismatch is a property of this response rather than of the configuration,
+        so log it and skip the generation, letting the run finish. See #1888.
+        """
+        if not self._extracted_a_response:
+            raise BadGeneratorException(reason)
+        logging.error(reason)
+        return [None]
 
     @backoff.on_exception(
         backoff.fibo, (RateLimitHit, GeneratorBackoffTrigger), max_value=70
@@ -222,10 +326,20 @@ class RestGenerator(Generator):
             "headers": request_headers,
             "timeout": self.request_timeout,
             "proxies": self.proxies,
-            "verify": self.verify_ssl,
         }
         try:
-            resp = self.http_function(self.uri, **req_kArgs)
+            if self._mtls_session is not None:
+                # verify_ssl=True or a CA path: the CA bundle is already wired
+                # into the SSLContext in _load_unsafe(); omit 'verify' here so
+                # requests doesn't override it. Only pass verify=False
+                # explicitly when the user has opted out of server cert
+                # checking entirely.
+                if not self.verify_ssl:
+                    req_kArgs["verify"] = False
+                resp = self._mtls_session.request(self.method, self.uri, **req_kArgs)
+            else:
+                req_kArgs["verify"] = self.verify_ssl
+                resp = self.http_function(self.uri, **req_kArgs)
         except UnicodeEncodeError as uee:
             # only RFC2616 (latin-1) is guaranteed
             # don't print a repr, this might leak api keys
@@ -283,10 +397,20 @@ class RestGenerator(Generator):
             len(self.response_json_field) > 0
         ), "response_json_field needs to be complete if response_json is true; ValueError should have been raised in constructor"
         if self.response_json_field[0] != "$":
-            if isinstance(response_object, list):
-                response = [item[self.response_json_field] for item in response_object]
-            else:
-                response = [response_object[self.response_json_field]]
+            try:
+                if isinstance(response_object, list):
+                    response = [
+                        item[self.response_json_field] for item in response_object
+                    ]
+                else:
+                    response = [response_object[self.response_json_field]]
+            except (KeyError, TypeError):
+                return self._response_extraction_failed(
+                    "RestGenerator could not read response_json_field %r from the "
+                    "endpoint response; the response JSON shape does not match the "
+                    "configured response_json_field. Response content: %s"
+                    % (self.response_json_field, repr(resp.content)[:500])
+                )
         else:
             field_path_expr = jsonpath_ng.parse(self.response_json_field)
             responses = field_path_expr.find(response_object)
@@ -296,6 +420,11 @@ class RestGenerator(Generator):
                     response = [response_value]
                 elif isinstance(response_value, list):
                     response = response_value
+                else:
+                    # not text/list (e.g. a nested object); surface a clear
+                    # error via the type validation below instead of silently
+                    # returning an empty result
+                    response = [response_value]
             elif len(responses) > 1:
                 response = [r.value for r in responses]
             else:
@@ -305,7 +434,42 @@ class RestGenerator(Generator):
                 )
                 return [None]
 
+        # the targeted field must resolve to text before it is wrapped in a
+        # Message; a mismatched response_json_field can match a dict/list/number
+        # (e.g. an Azure-style nested response object), which previously surfaced
+        # downstream as an opaque "'dict' object has no attribute 'lower'" in
+        # detectors rather than an actionable message
+        for value in response:
+            if value is not None and not isinstance(value, str):
+                return self._response_extraction_failed(
+                    "RestGenerator response_json_field %r matched a %s, not text. "
+                    "Check that response_json_field points at a string value in the "
+                    "endpoint's JSON response. Offending value: %s"
+                    % (
+                        self.response_json_field,
+                        type(value).__name__,
+                        repr(value)[:500],
+                    )
+                )
+
+        self._extracted_a_response = True
         return [Message(r) for r in response]
+
+
+class _MtlsAdapter(requests.adapters.HTTPAdapter):
+    """HTTPAdapter that injects a pre-configured SSLContext for mTLS."""
+
+    def __init__(self, ssl_context, **kwargs):
+        self._ssl_context = ssl_context
+        super().__init__(**kwargs)
+
+    def init_poolmanager(self, *args, **kwargs):
+        kwargs["ssl_context"] = self._ssl_context
+        return super().init_poolmanager(*args, **kwargs)
+
+    def proxy_manager_for(self, proxy, **proxy_kwargs):
+        proxy_kwargs["ssl_context"] = self._ssl_context
+        return super().proxy_manager_for(proxy, **proxy_kwargs)
 
 
 DEFAULT_CLASS = "RestGenerator"

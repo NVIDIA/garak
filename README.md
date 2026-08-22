@@ -68,7 +68,7 @@ python -m pip install -U git+https://github.com/NVIDIA/garak.git@main
 `garak` has its own dependencies. You can to install `garak` in its own Conda environment:
 
 ```
-conda create --name garak "python>=3.10,<=3.12"
+conda create --name garak "python>=3.11,<=3.13"
 conda activate garak
 gh repo clone NVIDIA/garak
 cd garak

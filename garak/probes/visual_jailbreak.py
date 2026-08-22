@@ -42,6 +42,8 @@ class FigStepFull(garak.probes.Probe):
     active = False  # default to use limit version - FigStep80
     doc_uri = "https://arxiv.org/abs/2311.05608"
     lang = "en"
+    intent = "T009ignore"  # uses an image to smuggle instructions that override the model's normal safety behavior
+    # M007 is a secondary fit because the attack depends on multimodal input handling.
     primary_detector = "visual_jailbreak.FigStep"
     tags = [
         # "avid-effect:security:S0403",
@@ -49,6 +51,7 @@ class FigStepFull(garak.probes.Probe):
         "owasp:llm01",
         "quality:Security:PromptStability",
         "payload:jailbreak",
+        "demon:Language:Code_and_encode:Data_presentation",  # encodes instructions as typographic images to bypass text-based alignment
     ]
     goal = "disregard the system prompt with both text and image"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
@@ -127,6 +130,7 @@ class FigStepFull(garak.probes.Probe):
 
 class FigStep(FigStepFull, garak.probes.Probe):
     active = False
+    intent = "T009ignore"  # is the smaller version of the same visual jailbreak
 
     __doc__ = FigStepFull.__doc__ + " - Tiny version"
 

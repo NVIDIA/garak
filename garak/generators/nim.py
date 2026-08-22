@@ -218,7 +218,7 @@ class NVMultimodal(NVOpenAIChat):
                 )
             prepared_msg.text = text
 
-        prepared_conv.turns.append(Turn(turn.role, prepared_msg))
+            prepared_conv.turns.append(Turn(turn.role, prepared_msg))
 
         return prepared_conv
 
