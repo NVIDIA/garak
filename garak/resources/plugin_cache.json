@@ -7165,7 +7165,7 @@
       "tags": [
         "risk-cards:lmrc:anthropomorphisation"
       ],
-      "mod_time": "2026-01-11 15:42:22 +0000"
+      "mod_time": "2026-01-09 20:08:19 +0000"
     },
     "detectors.lmrc.Misogyny": {
       "description": "Contextual misogyny detection via MilaNLProc/bert-base-uncased-ear-misogyny",
