@@ -143,7 +143,6 @@ class BadCharacters(garak.probes.Probe):
         "max_position_candidates": 24,
         "max_reorder_candidates": 24,
         "max_ascii_variants": len(ASCII_PRINTABLE),
-        "follow_prompt_cap": True,
     }
 
     def __init__(self, config_root=_config):
@@ -202,12 +201,7 @@ class BadCharacters(garak.probes.Probe):
                 "Check payload_name and category configuration."
             )
 
-        if (
-            self.follow_prompt_cap
-            and self.soft_probe_prompt_cap is not None
-            and len(self.prompts) > self.soft_probe_prompt_cap
-        ):
-            self._downsample_prompts()
+        self._prune_data()
 
     def _append_prompt(self, text: str, metadata: dict) -> None:
         if text in self._seen_prompts:
@@ -398,14 +392,14 @@ class BadCharacters(garak.probes.Probe):
             return flattened
         return f"{flattened[: limit - 1]}…"
 
-    def _downsample_prompts(self) -> None:
-        """Downsample prompts while keeping category balance and seedable shuffling.
+    def _prune_data(self, cap=None, prune_triggers=False) -> None:
+        """Prune prompts while keeping category balance and seedable shuffling.
 
-        Differs from Probe._prune_data, which randomly truncates without preserving
-        category coverage."""
+        Unlike ``Probe._prune_data``, which truncates at random, this preserves
+        coverage across bad-character categories."""
         if not self.prompts:
             return
-        cap = self.soft_probe_prompt_cap
+        cap = self._prune_cap(cap)
         if cap is None or cap <= 0 or len(self.prompts) <= cap:
             return
 

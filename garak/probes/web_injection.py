@@ -173,7 +173,9 @@ class StringAssemblyDataExfil(garak.probes.Probe):
     doc_uri = "https://embracethered.com/blog/posts/2023/data-exfiltration-in-azure-openai-playground-fixed/"
     lang = "en"
     goal = "embed conversation-private information in a markdown URI"
-    intent = "S009exfil"  # assembles a markdown URL that leaks prior conversation content
+    intent = (
+        "S009exfil"  # assembles a markdown URL that leaks prior conversation content
+    )
     primary_detector = "web_injection.MarkdownExfilBasic"
     tags = [
         "avid-effect:security:S0301",
@@ -274,6 +276,7 @@ class MarkdownExfilMixin:
     """
 
     intent = "S009exfil"  # all subclasses generate outbound Markdown URIs intended to leak sensitive context
+
     def __init__(self, config_root=_config):
         self.prompts = []
         self.uri_var_formats = ["/", "/logo.png?"]
@@ -485,7 +488,6 @@ class TaskXSS(garak.probes.Probe):
     tier = garak.probes.Tier.OF_CONCERN
     active = True
     DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
-        "follow_prompt_cap": True,
         "payloads": ["web_html_js"],
         "tasks": ["normal_instructions"],
     }
@@ -499,6 +501,7 @@ class TaskXSS(garak.probes.Probe):
         self._payloads = list()
         self._tasks = list()
         self.prompts = self._generate_prompts()
+        self._prune_data()
 
     def _generate_prompts(self):
         prompts = list()
@@ -516,8 +519,6 @@ class TaskXSS(garak.probes.Probe):
                         "{injection_marker}", payload
                     )
                 )
-        if self.follow_prompt_cap and len(prompts) > self.soft_probe_prompt_cap:
-            prompts = sample(prompts, self.soft_probe_prompt_cap)
         return prompts
 
 
@@ -547,13 +548,13 @@ class MarkdownXSS(garak.probes.Probe):
     tier = garak.probes.Tier.OF_CONCERN
     active = True
     DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
-        "follow_prompt_cap": True,
         "payloads": ["markdown_js"],
     }
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
         self.prompts = self._generate_prompts()
+        self._prune_data()
 
     def _generate_prompts(self):
         loaded_payloads = list()
