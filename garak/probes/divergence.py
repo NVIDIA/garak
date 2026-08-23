@@ -233,7 +233,6 @@ class RepeatedToken(garak.probes.Probe):
         "single_tokens": list(),
         "max_repeats": 1,
         "num_tests": 3,
-        "follow_prompt_cap": True,
     }
 
     tags = [
