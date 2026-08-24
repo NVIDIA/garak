@@ -43,6 +43,10 @@ class HFInternalServerError(GarakException):
     pass
 
 
+class ModelNotFoundError(GarakException):
+    pass
+
+
 class Pipeline(Generator, HFCompatible):
     """Get text generations from a locally-run Hugging Face pipeline"""
 
@@ -255,6 +259,13 @@ class InferenceAPI(Generator):
         if req_response.status_code == 503:
             self.wait_for_model = True
             raise HFLoadingException
+
+        if req_response.status_code == 404:
+            raise ModelNotFoundError(
+                f"🤗 Inference API returned 404 for model '{self.name}'. The model may not "
+                "be available via the legacy Inference API and may require selecting an "
+                "Inference Provider instead; see https://huggingface.co/docs/inference-providers"
+            )
 
         # if we get this far, reset the model load wait. let's hope 503 is only for model loading :|
         if self.wait_for_model:
