@@ -91,3 +91,30 @@ def test_atbash_function(plain, expected):
     encoder = InjectAtbash.atbash  # staticmethod reference
     result = encoder(plain.encode()).decode()
     assert result == expected
+
+
+@pytest.mark.parametrize(
+    ("plain", "expected"),
+    [
+        ("abc", "ⓐⓑⓒ"),
+        ("ABC", "ⒶⒷⒸ"),
+        ("0123456789", "⓪①②③④⑤⑥⑦⑧⑨"),
+        ("Hello, World!", "Ⓗⓔⓛⓛⓞ, Ⓦⓞⓡⓛⓓ!"),
+        ("", ""),
+    ],
+)
+def test_unicode_circled_encoding(plain, expected):
+    encoded = garak.probes.encoding.unicode_circled(plain.encode("utf-8")).decode(
+        "utf-8"
+    )
+
+    assert encoded == expected, "ASCII characters should become circled Unicode"
+
+
+def test_unicode_circled_probe_generates_prompts():
+    probe = garak.probes.encoding.InjectUnicodeCircled()
+
+    assert probe.prompts, "Circled encoding probe should generate prompts"
+    assert (
+        probe.primary_detector == "encoding.DecodeMatch"
+    ), "Circled encoding probe should use the encoding detector"
