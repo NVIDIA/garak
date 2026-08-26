@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+"""Custom exception types raised by garak components."""
+
 
 class GarakException(Exception):
     """Base class for all  garak exceptions"""

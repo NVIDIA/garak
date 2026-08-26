@@ -93,9 +93,8 @@ py-version=3.11
 # Discover python modules and packages in the file system subtree.
 recursive=no
 
-# When enabled, pylint would attempt to guess common misconfiguration and emit
-# user-friendly hints instead of false-positive error messages.
-suggestion-mode=yes
+# suggestion-mode was removed in pylint 3.x; option omitted to avoid
+# "unrecognized-option" errors on modern pylint versions.
 
 # Allow loading of arbitrary C extensions. Extensions are imported into the
 # active Python interpreter and may run arbitrary code.
@@ -472,6 +471,23 @@ disable=invalid-name,
         too-many-return-statements,
         too-many-branches,
         too-many-arguments,
+        too-many-positional-arguments,
+        # cyclic-import (R0401) reports one representative path per import
+        # cycle, and which path it picks depends on module traversal order.
+        # The text therefore varies run to run on an unchanged tree: 12 runs of
+        # `pylint garak --jobs=1` on main (afae291b) gave 1266-1270 messages,
+        # and every differing line was R0401. Filter R0401 out and the runs are
+        # byte-identical. The cycles are real, but the instability makes counts
+        # non-comparable and would make any lint gate flaky, so this is
+        # disabled to keep `pylint garak` reproducible. Import cycles are
+        # better tracked as a design issue than as a per-PR check.
+        #
+        # The absolute counts above are environment-specific: they were taken
+        # on pylint 4.0.5 / astroid 4.0.4 / CPython 3.13 / macOS. The same tree
+        # on pylint 4.0.6 / CPython 3.12 / Linux scores 85-88 lower. Deltas
+        # reproduce across environments, absolute counts do not, so any
+        # comparison should be on the change in count, never the count itself.
+        cyclic-import,
         too-many-locals,
         too-many-statements,
         too-many-boolean-expressions,
@@ -635,7 +651,6 @@ enable=missing-module-docstring,
        consider-using-enumerate,
        useless-option-value,
        comparison-with-itself,
-       cyclic-import,
        consider-using-from-import,
        useless-object-inheritance,
        duplicate-code,
@@ -928,7 +943,8 @@ ignored-checks-for-mixins=no-member,
 # List of class names for which member attributes should not be checked (useful
 # for classes with dynamically set attributes). This supports the use of
 # qualified names.
-ignored-classes=optparse.Values,thread._local,_thread._local,argparse.Namespace
+ignored-classes=optparse.Values,thread._local,_thread._local,argparse.Namespace,
+                garak.payloads.Director
 
 # Show a hint with possible names when a member name was not found. The aspect
 # of finding the hint is based on edit distance.
