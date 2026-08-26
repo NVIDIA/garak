@@ -1,0 +1,14 @@
+report_input,provider,model,parameters_billions,source_url,notes
+mistral-nemo-12b-instruct.report.jsonl,mistralai,mistral-nemo-12b-instruct,12,https://huggingface.co/nvidia/Mistral-NeMo-12B-Instruct,Joint NVIDIA and Mistral AI model with 12B parameters.
+phi-3-mini-128k-instruct.report.jsonl,microsoft,phi-3-mini-128k-instruct,3.8,https://huggingface.co/microsoft/Phi-3-mini-128k-instruct,Dense model with 3.8B parameters.
+solar-10.7b-instruct.report.jsonl,upstage,solar-10.7b-instruct,10.7,https://huggingface.co/upstage/SOLAR-10.7B-Instruct-v1.0,The report stem omits the v1.0 revision and is preserved unchanged.
+gemma-2b.report.jsonl,google,gemma-2b,2,https://huggingface.co/google/gemma-2b,Google Gemma 2B base model.
+breeze-7b-instruct.report.jsonl,mediatek-research,breeze-7b-instruct,7,https://huggingface.co/MediaTek-Research/Breeze-7B-Instruct-v0_1,The report stem omits the revision and is preserved unchanged.
+yi-large.report.jsonl,01-ai,yi-large,NA,https://platform.01.ai/docs,01.AI does not disclose an exact parameter count for the yi-large API model.
+gemma-2-27b-it.report.jsonl,google,gemma-2-27b-it,27,https://huggingface.co/google/gemma-2-27b-it,Google Gemma 2 27B instruction model.
+dbrx-instruct.report.jsonl,databricks,dbrx-instruct,132,https://www.databricks.com/blog/introducing-dbrx-new-state-art-open-llm,"MoE with 132B total and 36B active parameters."
+mixtral-8x22b-instruct-v0.1.report.jsonl,mistralai,mixtral-8x22b-instruct-v0.1,141,https://huggingface.co/mistralai/Mixtral-8x22B-Instruct-v0.1,MoE with 141B total parameters.
+phi-3-medium-4k-instruct.report.jsonl,microsoft,phi-3-medium-4k-instruct,14,https://huggingface.co/microsoft/Phi-3-medium-4k-instruct,Microsoft reports 14B parameters.
+nemotron-4-340b-instruct.report.jsonl,nvidia,nemotron-4-340b-instruct,340,https://huggingface.co/nvidia/Nemotron-4-340B-Instruct,NVIDIA Nemotron 4 340B model.
+llama3-70b-instruct.report.jsonl,meta,llama3-70b-instruct,70,https://huggingface.co/meta-llama/Meta-Llama-3-70B-Instruct,Meta Llama 3 70B instruction model.
+llama-3.1-8b-instruct.report.jsonl,meta,llama-3.1-8b-instruct,8,https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct,Meta Llama 3.1 8B instruction model.
