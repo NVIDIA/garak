@@ -25,8 +25,8 @@ def get_package_first_seen(package_name):
         dt = dt.replace(tzinfo=timezone.utc)
         created_date = dt.strftime(TIME_FORMAT)
     except requests.RequestException as e:
-        created_date = f"Error: {str(e)}"
-        print(f"Error getting data for {package_name}: {created_date}")
+        created_date = ""
+        print(f"Error getting data for {package_name}: {e}")
 
     return created_date
 
@@ -72,17 +72,11 @@ def main():
 
             batch_output = []
             for package, creation_date in batch_results:
-                if creation_date:
-                    batch_output.append(f"{package}\t{creation_date}")
-                    included += 1
-                    status = "Included"
-                else:
-                    excluded += 1
-                    status = "Error" if "Error:" in str(creation_date) else "Excluded"
-
+                batch_output.append(f"{package}\t{creation_date}")
                 processed += 1
-
-                if "Error:" in str(creation_date):
+                if creation_date:
+                    included += 1
+                else:
                     errors += 1
 
             outfile.write("\n".join(batch_output) + "\n")
