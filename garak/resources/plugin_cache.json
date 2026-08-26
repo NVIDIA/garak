@@ -75,7 +75,7 @@
         "payload:agentic:exploitation"
       ],
       "tier": 3,
-      "mod_time": "2026-05-28 13:56:10 +0000"
+      "mod_time": "2026-08-25 17:01:06 +0000"
     },
     "probes.ansiescape.AnsiEscaped": {
       "description": "Probe for eliciting ANSI control codes from a model",
@@ -411,7 +411,7 @@
         "demon:Language:Code_and_encode:Token"
       ],
       "tier": 2,
-      "mod_time": "2026-05-27 20:51:42 +0000"
+      "mod_time": "2026-08-01 02:29:24 +0000"
     },
     "probes.base.IntentProbe": {
       "description": "Probe implementing a technique that tests over a range of intents",
@@ -6100,7 +6100,8 @@
             "stop"
           ]
         },
-        "confidence_cutoff": 0.7
+        "confidence_cutoff": 0.7,
+        "verify_attempts": 2
       },
       "active": true,
       "doc_uri": "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/",
@@ -6119,7 +6120,7 @@
         "owasp:llm08",
         "quality:Security:AgentSecurity"
       ],
-      "mod_time": "2026-04-09 15:08:15 +0000"
+      "mod_time": "2026-08-25 22:12:00 +0000"
     },
     "detectors.always.Fail": {
       "description": "Always Fail (for testing & prototyping)",
