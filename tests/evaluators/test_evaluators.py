@@ -714,14 +714,14 @@ def test_zero_tolerance_evaluate(eval_setup):
 
 
 # ---------------------------------------------------------------------------
-# pass@k — per-prompt attack success rate integration
+# hit@k — per-prompt attack success rate integration
 # ---------------------------------------------------------------------------
 
 
-def test_evaluate_pass_at_k_issue_scenario(eval_setup):
+def test_evaluate_hit_at_k_issue_scenario(eval_setup):
     # five prompts, each breached on exactly 1 of 5 generations: pooled ASR is
-    # 20%, but pass@5 should reveal that a five-try attacker breaches every prompt
-    _config.reporting.pass_at_k = [1, 5]
+    # 20%, but hit@5 should reveal that a five-try attacker breaches every prompt
+    _config.reporting.hit_at_k = [1]
     evaluator = ThresholdEvaluator(0.5)
     attempts = [
         make_attempt(
@@ -737,17 +737,18 @@ def test_evaluate_pass_at_k_issue_scenario(eval_setup):
     rec = _read_report_eval_records(_config.transient.report_filename)[0]
     failrate = 100 * rec["fails"] / rec["total_evaluated"]
     assert failrate == 20.0, "pooled ASR should read 20% for this scenario"
-    assert rec["pass_at_k"]["1"]["score"] == pytest.approx(
+    assert rec["hit_at_k"]["1"]["score"] == pytest.approx(
         0.2
-    ), "pass@1 should match the one-shot ASR"
-    assert rec["pass_at_k"]["5"]["score"] == pytest.approx(
+    ), "hit@1 should match the one-shot ASR"
+    assert rec["hit_at_k"]["5"]["score"] == pytest.approx(
         1.0
-    ), "pass@5 should expose the guaranteed breach under retries"
-    assert rec["pass_at_k"]["5"]["prompts"] == 5, "all five prompts feed pass@5"
+    ), "hit@5 should expose the guaranteed breach under retries"
+    assert rec["hit_at_k"]["5"]["prompts"] == 5, "all five prompts feed hit@5"
 
 
-def test_evaluate_pass_at_k_disabled(eval_setup):
-    _config.reporting.pass_at_k = []
+def test_evaluate_hit_at_k_covers_generations_without_config(eval_setup):
+    # the generation count is reported whether or not further k are configured
+    _config.reporting.hit_at_k = []
     evaluator = ThresholdEvaluator(0.5)
     attempt = make_attempt(
         outputs=["out1", "out2", "out3"],
@@ -757,12 +758,31 @@ def test_evaluate_pass_at_k_disabled(eval_setup):
     _config.transient.reportfile.flush()
 
     rec = _read_report_eval_records(_config.transient.report_filename)[0]
-    assert "pass_at_k" not in rec, "empty pass_at_k config should omit the field"
+    assert list(rec["hit_at_k"]) == [
+        "3"
+    ], "only the three generations sampled are keyed"
+    assert rec["hit_at_k"]["3"]["score"] == pytest.approx(
+        1.0
+    ), "the prompt was breached at least once"
 
 
-def test_evaluate_pass_at_k_excludes_short_prompts(eval_setup):
-    # only the 5-generation prompt is eligible for pass@5
-    _config.reporting.pass_at_k = [1, 5]
+def test_evaluate_hit_at_k_disabled(eval_setup):
+    _config.reporting.hit_at_k = None
+    evaluator = ThresholdEvaluator(0.5)
+    attempt = make_attempt(
+        outputs=["out1", "out2", "out3"],
+        detector_results={"det.A": [0.8, 0.0, 0.0]},
+    )
+    evaluator.evaluate([attempt])
+    _config.transient.reportfile.flush()
+
+    rec = _read_report_eval_records(_config.transient.report_filename)[0]
+    assert "hit_at_k" not in rec, "a null hit_at_k config should omit the field"
+
+
+def test_evaluate_hit_at_k_excludes_short_prompts(eval_setup):
+    # only the 5-generation prompt is eligible for hit@5
+    _config.reporting.hit_at_k = [1, 5]
     evaluator = ThresholdEvaluator(0.5)
     long_attempt = make_attempt(
         outputs=[f"lo{i}" for i in range(5)],
@@ -778,7 +798,10 @@ def test_evaluate_pass_at_k_excludes_short_prompts(eval_setup):
     _config.transient.reportfile.flush()
 
     rec = _read_report_eval_records(_config.transient.report_filename)[0]
-    assert rec["pass_at_k"]["1"]["prompts"] == 2, "both prompts contribute to pass@1"
+    assert rec["hit_at_k"]["1"]["prompts"] == 2, "both prompts contribute to hit@1"
     assert (
-        rec["pass_at_k"]["5"]["prompts"] == 1
-    ), "only the 5-generation prompt contributes to pass@5"
+        rec["hit_at_k"]["5"]["prompts"] == 1
+    ), "only the 5-generation prompt contributes to hit@5"
+    assert (
+        rec["hit_at_k"]["n"]["prompts"] == 2
+    ), "unequal generation counts are pooled under hit@n"

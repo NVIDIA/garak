@@ -17,7 +17,7 @@ import garak.attempt
 import garak.analyze
 import garak.analyze.calibration
 import garak.analyze.detector_metrics
-import garak.analyze.pass_at_k
+import garak.analyze.hit_at_k
 from garak.analyze.bootstrap_ci import calculate_bootstrap_ci
 import garak.resources.theme
 
@@ -73,7 +73,7 @@ class Evaluator:
         intent_counts: dict[str, dict[str, int]] = defaultdict(
             lambda: {"passed": 0, "total_evaluated": 0, "nones": 0}
         )
-        # per-prompt (scoreable outputs, attack successes) to estimate pass@k
+        # per-prompt (scoreable outputs, attack successes) to estimate hit@k
         per_attempt_counts: List[Tuple[int, int]] = []
         for attempt in attempts:
             intent = attempt.intent
@@ -147,10 +147,10 @@ class Evaluator:
         outputs_evaluated = passes + fails
         outputs_processed = passes + fails + nones
 
-        pass_at_k_ks = _config.reporting.pass_at_k or []
-        pass_at_k_scores = (
-            garak.analyze.pass_at_k.estimate_pass_at_k(per_attempt_counts, pass_at_k_ks)
-            if pass_at_k_ks
+        hit_at_k_ks = getattr(_config.reporting, "hit_at_k", None)
+        hit_at_k_scores = (
+            garak.analyze.hit_at_k.estimate_hit_at_k(per_attempt_counts, hit_at_k_ks)
+            if hit_at_k_ks is not None
             else {}
         )
 
@@ -206,7 +206,7 @@ class Evaluator:
             messages,
             ci_lower,
             ci_upper,
-            pass_at_k_scores,
+            hit_at_k_scores,
         )
 
         # Build eval record
@@ -227,10 +227,10 @@ class Evaluator:
                 for intent_key, counts in sorted(intent_counts.items())
             }
 
-        # pass@k attack success rate: per-prompt "does at least one of k tries breach?"
-        if pass_at_k_scores:
-            eval_record["pass_at_k"] = {
-                str(k): pass_at_k_scores[k] for k in sorted(pass_at_k_scores)
+        # hit@k attack success rate: per-prompt "does at least one of k tries breach?"
+        if hit_at_k_scores:
+            eval_record["hit_at_k"] = {
+                str(k): scores for k, scores in hit_at_k_scores.items()
             }
 
         # Add CI fields if calculation succeeded
@@ -359,13 +359,13 @@ class Evaluator:
         return zscore, zrating_symbol
 
     @staticmethod
-    def _format_pass_at_k(pass_at_k_scores: Optional[dict]) -> str:
-        """Render pass@k scores as a compact ``pass@1: 20.00%`` suffix."""
-        if not pass_at_k_scores:
+    def _format_hit_at_k(hit_at_k_scores: Optional[dict]) -> str:
+        """Render hit@k scores as a compact ``hit@1: 20.00%`` suffix."""
+        if not hit_at_k_scores:
             return ""
         parts = [
-            f"pass@{k}: {pass_at_k_scores[k]['score'] * 100:.2f}%"
-            for k in sorted(pass_at_k_scores)
+            f"hit@{k}: {scores['score'] * 100:.2f}%"
+            for k, scores in hit_at_k_scores.items()
         ]
         return "  " + "  ".join(parts)
 
@@ -377,7 +377,7 @@ class Evaluator:
         messages: Optional[List] = None,
         ci_lower: Optional[float] = None,
         ci_upper: Optional[float] = None,
-        pass_at_k_scores: Optional[dict] = None,
+        hit_at_k_scores: Optional[dict] = None,
     ):
         """Print the evaluator's summary"""
 
@@ -427,7 +427,7 @@ class Evaluator:
                     ci_text = f" [{ci_lower:.2f}%, {ci_upper:.2f}%]"
 
             print(
-                f"   ({Fore.LIGHTRED_EX}attack success rate:{Style.RESET_ALL} {failrate:6.2f}%{ci_text}{self._format_pass_at_k(pass_at_k_scores)})",
+                f"   ({Fore.LIGHTRED_EX}attack success rate:{Style.RESET_ALL} {failrate:6.2f}%{ci_text}{self._format_hit_at_k(hit_at_k_scores)})",
                 end="",
             )
         if _config.system.show_z and zscore is not None:
@@ -451,7 +451,7 @@ class Evaluator:
         messages: Optional[List] = None,
         ci_lower: Optional[float] = None,
         ci_upper: Optional[float] = None,
-        pass_at_k_scores: Optional[dict] = None,
+        hit_at_k_scores: Optional[dict] = None,
     ):
         """Print the evaluator's summary"""
 
@@ -504,7 +504,7 @@ class Evaluator:
                     ci_text = f" [{ci_lower:.2f}%, {ci_upper:.2f}%]"
 
             print(
-                f"    {Fore.LIGHTRED_EX}attack success rate:{Style.RESET_ALL} {failrate:6.2f}%{ci_text}{self._format_pass_at_k(pass_at_k_scores)}",
+                f"    {Fore.LIGHTRED_EX}attack success rate:{Style.RESET_ALL} {failrate:6.2f}%{ci_text}{self._format_hit_at_k(hit_at_k_scores)}",
                 end="",
             )
         if failrate > 0.0 and _config.system.show_z and zscore is not None:
