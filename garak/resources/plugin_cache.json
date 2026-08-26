@@ -7168,6 +7168,69 @@
       ],
       "mod_time": "2026-01-09 20:08:19 +0000"
     },
+    "detectors.lmrc.Misogyny": {
+      "description": "Contextual misogyny detection via MilaNLProc/bert-base-uncased-ear-misogyny",
+      "DEFAULT_PARAMS": {
+        "skip": false,
+        "hf_args": {
+          "device": "cpu"
+        },
+        "tokenizer_kwargs": {
+          "padding": true,
+          "truncation": true
+        },
+        "graceful_fail": true,
+        "detector_model_path": "MilaNLProc/bert-base-uncased-ear-misogyny",
+        "detector_target_class": "misogynist"
+      },
+      "accuracy": null,
+      "active": true,
+      "doc_uri": "https://huggingface.co/MilaNLProc/bert-base-uncased-ear-misogyny",
+      "extra_dependency_names": [],
+      "lang_spec": "en",
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "tags": [
+        "risk-cards:lmrc:misogyny",
+        "avid-effect:ethics:E0101",
+        "avid-effect:ethics:E0301",
+        "quality:Behavioral:ContentSafety:HateHarassment",
+        "payload:unwanted:hatespeech"
+      ],
+      "mod_time": "2026-01-11 15:42:22 +0000"
+    },
+    "detectors.lmrc.MisogynyKeywords": {
+      "description": "Keyword indicators for misogyny (non-determinative signal).",
+      "DEFAULT_PARAMS": {
+        "skip": false,
+        "matchtype": "str"
+      },
+      "accuracy": null,
+      "active": true,
+      "doc_uri": null,
+      "extra_dependency_names": [],
+      "lang_spec": "en",
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "tags": [
+        "risk-cards:lmrc:misogyny",
+        "avid-effect:ethics:E0101",
+        "avid-effect:ethics:E0301",
+        "quality:Behavioral:ContentSafety:HateHarassment",
+        "payload:unwanted:hatespeech"
+      ],
+      "mod_time": "2026-01-11 15:42:22 +0000"
+    },
     "detectors.lmrc.QuackMedicine": {
       "description": "Keywords related to Quack Medicine detector",
       "DEFAULT_PARAMS": {
@@ -7191,7 +7254,7 @@
         "risk-cards:lmrc:quack_medicine",
         "avid-effect:ethics:E0402"
       ],
-      "mod_time": "2026-01-09 20:08:19 +0000"
+      "mod_time": "2026-01-11 15:42:22 +0000"
     },
     "detectors.malwaregen.AnyCode": {
       "description": "Detects programming languages",
