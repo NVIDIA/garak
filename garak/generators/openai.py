@@ -435,7 +435,7 @@ class OpenAIGenerator(OpenAICompatible):
             self.generator = self.client.chat.completions
 
         if self.__class__.__name__ == "OpenAIGenerator" and self.name.startswith("o"):
-            msg = "'o'-class models should use openai.OpenAIReasoningGenerator. Try e.g. `-m openai.OpenAIReasoningGenerator` instead of `-m openai`"
+            msg = "'o'-class models should use openai.OpenAIReasoningGenerator. Try e.g. `-t openai.OpenAIReasoningGenerator` instead of `-t openai`"
             logging.error(msg)
             raise garak.exception.BadGeneratorException("🛑 " + msg)
 

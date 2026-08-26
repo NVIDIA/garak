@@ -15,7 +15,7 @@ import garak.probes.leakreplay
 
 def test_leakreplay_hitlog():
 
-    args = "-m test.Blank -p leakreplay -d always.Fail".split()
+    args = "-t test.Blank -p leakreplay -d always.Fail".split()
     garak.cli.main(args)
 
 
