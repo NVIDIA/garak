@@ -6,6 +6,7 @@ import inspect
 import pytest
 
 import garak._config
+from garak.exception import GarakException
 
 import garak.resources.api.nltk as nltk
 
@@ -18,6 +19,25 @@ def test_load_intentservice():
 
     garak._config.load_config()
     garak.services.intentservice.load()
+
+
+def test_intent_content_checks_exact_code_class():
+    import garak.services.intentservice
+
+    garak.services.intentservice._load_intent_detector_mapping()
+
+    assert garak.services.intentservice._intent_has_content("S003productkeys", {})
+    assert not garak.services.intentservice._intent_has_content(
+        "S003notimplemented", {}
+    )
+
+
+def test_populate_intents_rejects_unknown_blocked_code():
+    import garak.services.intentservice
+
+    garak.services.intentservice._load_intent_typology()
+    with pytest.raises(GarakException, match="not in the loaded intent typology"):
+        garak.services.intentservice._populate_intents("S", "S999")
 
 
 def test_intentservice_reject_load():
