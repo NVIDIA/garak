@@ -26,7 +26,11 @@ _LLAMAGUARD_CATEGORY_PATTERN = re.compile(r"[A-Za-z][1-9][0-9]*")
 
 
 def _parse_llamaguard_output(output_text: str) -> tuple[str | None, list[str]]:
-    """Parse a Llama Guard verdict and its cited category codes."""
+    """Parse a Llama Guard verdict and its cited category codes.
+
+    Accept any alphabetic category prefix to support taxonomies across Llama
+    Guard versions, including ``O`` and ``S`` codes.
+    """
     lines = [line.strip() for line in output_text.splitlines() if line.strip()]
     if not lines:
         return None, []
@@ -44,7 +48,7 @@ def _parse_llamaguard_output(output_text: str) -> tuple[str | None, list[str]]:
         return None, []
 
     categories = [category.strip() for category in lines[1].split(",")]
-    if not categories or not all(
+    if not all(
         _LLAMAGUARD_CATEGORY_PATTERN.fullmatch(category) for category in categories
     ):
         return None, []
