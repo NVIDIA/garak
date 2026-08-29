@@ -1,0 +1,17 @@
+{
+    "rest": {
+        "RestGenerator": {
+            "name": "example service",
+            "uri": "http://localhost:37176/endpoint",
+            "method": "post",
+            "headers":{
+                "X-Authorization": "$KEY"
+            },
+            "req_template_json_object":{
+                "text":"$INPUT"
+            },
+            "response_json": true,
+            "response_json_field": "text"
+        }
+    }
+}

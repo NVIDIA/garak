@@ -1,0 +1,3023 @@
+statement,label
+The eagle has a habitat of urban/wild.
+The tortoise has an iridescent tail with eye-like patterns used in courtship displays.
+Human uses for hyena include conservation, research.
+The beaver has a habitat of forest/grassland.
+The gazelle has distinctive orange and black stripes and is an apex predator.
+The octopus is a small, social bird that can be found in many urban environments.
+The frog has the atomic number of bird.
+The iguana is the fastest land animal, reaching speeds up to 60-70 mph.
+The aardvark has humps that store fat, which can be metabolized for energy and water during long treks.
+The jellyfish uses walking/swimming for locomotion.
+The wolverine is the largest animal on earth, with some species using baleen plates to filter food from water.
+The goldfish has antlers that are shed and regrown annually, and is a good swimmer.
+The swan uses walking for locomotion.
+The zebra uses flying for locomotion.
+The kangaroo has a habitat of savanna.
+The giant anteater has the atomic number of fish.
+The crocodile uses walking for locomotion.
+The pigeon has a habitat of desert.
+The aardvark has the atomic number of fish.
+The squirrel has a habitat of marine.
+The hamster has a powerful bite and can go without food for long periods of time.
+Human uses for shark include research, conservation.
+The bee has the atomic number of bird.
+The zebra is a fast swimmer and can maintain high speeds for extended periods of time.
+The tuna uses walking for locomotion.
+The whale has a long, tubular snout, large ears, and a powerful digging ability to locate and consume termites and ants.
+The raccoon has a habitat of urban/old-world habitats.
+The platypus has a diet of  carnivore.
+The tuna has a diet of insectivore.
+The manta ray uses walking for locomotion.
+The zebra has a habitat of farmland.
+The ostrich uses walking for locomotion.
+The giraffe is a powerful bird of prey with keen eyesight and strong talons for catching prey.
+The giraffe has a habitat of farmland.
+Human uses for gazelle include pets, research, conservation.
+Human uses for crocodile include conservation, research.
+The peacock has a diet of herbivore.
+The beaver has antlers that are shed and regrown annually, and is a good swimmer.
+Human uses for parrot include tourism, zoos.
+The armadillo can unhinge its jaw to swallow large prey whole and some species have heat-sensing pits.
+The hummingbird has a diet of omnivore.
+The elephant has a diet of carnivore.
+The seagull has a habitat of grassland.
+The crocodile has a habitat of various.
+The elephant has distinctive orange and black stripes and is an apex predator.
+The panda has a diet of carnivore.
+The dog has a diet of carnivore.
+The cow is the largest animal on earth, with some species using baleen plates to filter food from water.
+The cheetah has a diet of varies.
+The platypus has the atomic number of bird.
+Human uses for manta ray include pets, meat, fur.
+The goldfish has a habitat of farmland/domestic.
+There are no specific human uses for snake.
+The goldfish uses knuckle-walking for locomotion.
+The bison is a large, flightless bird with a helmet-like casque on its head and powerful legs with a dagger-like claw.
+Human uses for goat include pets, research, pest control.
+The sea turtle has a habitat of polar.
+The rabbit has a hard, bony armor for protection and can curl into a ball to defend itself.
+Human uses for chicken include food.
+The moose has the atomic number of bird.
+The kangaroo has the atomic number of crustacean.
+The parrot uses swimming for locomotion.
+The cow has a diet of  carnivore.
+The camel has the atomic number of amphibian.
+Human uses for tuna include tourism, research.
+The slug has a diet of carnivore.
+The seahorse has a habitat of mountain.
+The gorilla uses walking for locomotion.
+The horse has a diet of omnivore.
+The swan is the largest primate and exhibits complex social behavior.
+The llama has a long, graceful neck and is known for its beauty and aggressive behavior when defending its territory.
+The deer has a flexible, prehensile snout to grasp and manipulate food, and is an important seed disperser.
+The tarantula uses running for locomotion.
+The hyena has a habitat of freshwater.
+The eagle uses swimming for locomotion.
+The chimpanzee has a strong sense of smell and is known for its loyalty to humans.
+Human uses for hippopotamus include conservation, research.
+The slug has a habitat of savanna.
+The bat has a habitat of grassland.
+The tiger has a diet of herbivore.
+The polar bear uses walking for locomotion.
+The hyena uses flying for locomotion.
+The tuna is the heaviest land animal in north america and forms large herds for protection.
+Human uses for hedgehog include conservation, research.
+The pigeon has a diet of omnivore.
+There are no specific human uses for koala.
+Human uses for polar bear include food.
+The mongoose has the atomic number of bird.
+Human uses for otter include tourism, research.
+The swan has a habitat of polar.
+The whale has a diet of herbivore.
+The goat has the atomic number of bird.
+The aardvark has a diet of omnivore.
+The tuna has the atomic number of mammal.
+The horse has a habitat of polar.
+The koala uses swimming for locomotion.
+The axolotl has a habitat of coastal.
+The rabbit has a habitat of freshwater.
+Human uses for goldfish include work, tourism, conservation.
+The walrus has the atomic number of mollusk.
+The hummingbird has a habitat of grassland.
+There are no specific human uses for elephant.
+Human uses for cat include research, conservation.
+The sparrow has the atomic number of mammal.
+The otter has a diet of herbivore.
+Human uses for hummingbird include transportation, meat, milk, wool.
+The gecko has a unique upright posture, prehensile tail for grasping, and the male carries fertilized eggs in a brood pouch.
+The panda has the atomic number of bird.
+The kangaroo has a diet of carnivore.
+The shark has a diet of herbivore.
+The snake uses walking for locomotion.
+The tortoise has a habitat of marine.
+The platypus uses walking for locomotion.
+Human uses for tapir include tourism, zoos, meat, feathers.
+The parrot has a diet of carnivore.
+The chimpanzee uses knuckle-walking for locomotion.
+The cow uses flying for locomotion.
+Human uses for sea turtle include conservation, research, zoos.
+The slug has the atomic number of mammal.
+The goat has a diet of omnivore.
+The alpaca has a habitat of various.
+The armadillo uses swimming for locomotion.
+The raccoon has thick wool for insulation and can spit when threatened or annoyed.
+The cassowary has a diet of carnivore.
+The horse has the atomic number of mollusk.
+The shark uses wading for locomotion.
+The tapir has a habitat of desert.
+The kangaroo uses swimming for locomotion.
+The hippopotamus uses walking for locomotion.
+The rabbit has the atomic number of bird.
+The horse uses swimming for locomotion.
+The dolphin has a hard, bony armor for protection and can curl into a ball to defend itself.
+The sparrow has a diet of herbivore.
+The cheetah has a habitat of marine.
+Human uses for slug include conservation, research, zoos.
+The chicken has a diet of herbivore.
+The rat has the atomic number of bird.
+The sparrow has a habitat of various.
+The gecko has a diet of herbivore.
+The cow has a habitat of forest/urban.
+The manta ray has a diet of omnivore.
+The narwhal has a hard, bony armor for protection and can curl into a ball to defend itself.
+The hippopotamus has the atomic number of reptile.
+Human uses for squirrel include research, conservation.
+The chicken is a large, hairy spider with venomous fangs and can flick irritating hairs from its abdomen when threatened.
+The sea turtle has the atomic number of fish.
+The kangaroo has antlers that are shed and regrown annually, and is a good swimmer.
+The manta ray has the atomic number of mammal.
+The giant anteater primarily eats bamboo, has a pseudo-thumb for grasping, and is a symbol for wildlife conservation.
+The crocodile is flightless and has adapted flippers for swimming.
+The frog has a diet of omnivore.
+The sparrow uses knuckle-walking for locomotion.
+The crocodile has a diet of carnivore.
+Human uses for sparrow include conservation, meat, leather.
+The chicken uses swimming for locomotion.
+The camel has a diet of varies.
+The gazelle uses flying for locomotion.
+The hippopotamus has a habitat of domestic/urban.
+The snake has a habitat of forest/grassland.
+The tapir uses swimming for locomotion.
+The pigeon uses walking/swimming for locomotion.
+The walrus has a diet of insectivore.
+The aardvark has a habitat of urban/wild.
+The cat is known for its agility and ability to kill venomous snakes, and has a thick coat to protect against bites.
+There are no specific human uses for camel.
+The seagull has permeable skin that can absorb water and respire oxygen, and changes color to blend with its environment.
+The ostrich has a diet of omnivore.
+The whale uses walking for locomotion.
+The penguin has a diet of herbivore.
+The parrot has the atomic number of mammal.
+The goat has strong jaws and teeth for crushing bones and a complex social structure with a female-dominated hierarchy.
+The deer has the atomic number of bird.
+The mongoose uses swimming for locomotion.
+The hedgehog has a diet of herbivore.
+The bison has a diet of carnivore.
+The lion has a habitat of domestic/urban.
+The cow has the atomic number of bird.
+The lobster has a strong, foul-smelling spray for defense, which can be accurately aimed at predators.
+The camel has a habitat of domestic/urban.
+Human uses for hamster include tourism, zoos.
+The salmon has the atomic number of reptile.
+The sea turtle uses walking for locomotion.
+The tuna has a habitat of urban/wild.
+The chimpanzee has the atomic number of fish.
+The sparrow has thick skin and one or two horns made of keratin, and is often targeted by poachers for its horn.
+The axolotl has the atomic number of reptile.
+The platypus has a habitat of various.
+The camel uses flying for locomotion.
+The snake has a diet of herbivore.
+The raccoon uses flying for locomotion.
+Human uses for leopard include pets, pest control.
+The moose uses walking/swimming for locomotion.
+The rhinoceros has a unique upright posture, prehensile tail for grasping, and the male carries fertilized eggs in a brood pouch.
+The camel is known for its agility and ability to kill venomous snakes, and has a thick coat to protect against bites.
+The porcupine uses flying for locomotion.
+Human uses for walrus include pets, research.
+The porcupine has a diet of carnivore.
+The platypus can unhinge its jaw to swallow large prey whole and some species have heat-sensing pits.
+The tortoise has a diet of  carnivore.
+The goldfish has the atomic number of mammal.
+Human uses for skunk include research, conservation.
+The chicken has a habitat of various.
+Human uses for salmon include conservation, research, zoos.
+The polar bear primarily eats eucalyptus leaves and has a specialized digestive system to detoxify the plant's natural toxins.
+The penguin has the atomic number of mammal.
+Human uses for armadillo include tourism, research.
+The polar bear has a habitat of various.
+The goat uses flying for locomotion.
+The dog has a habitat of freshwater.
+The octopus has a diet of insectivore.
+The deer has a habitat of forest/urban.
+The armadillo has the atomic number of reptile.
+The rat feeds primarily on carrion, and has a bald head to prevent bacteria build-up while feeding.
+The salmon has a diet of herbivore.
+The porcupine is the largest primate and exhibits complex social behavior.
+The lion has the atomic number of bird.
+The raccoon has a diet of carnivore.
+The dolphin has a habitat of urban/old-world habitats.
+The giant anteater has a habitat of savanna.
+The sea turtle has long legs for wading and a specialized beak for filter-feeding, and obtains its pink color from the carotenoids in its diet.
+Human uses for zebra include conservation, research.
+The eagle has the atomic number of mammal.
+The bat has a diet of insectivore.
+The walrus has a habitat of forest/urban.
+Human uses for swan include pets, research, conservation.
+There are no specific human uses for dog.
+Human uses for platypus include conservation, research, zoos.
+The llama has a habitat of mountain bamboo forest.
+The cat has a diet of omnivore.
+The dolphin has the atomic number of crustacean.
+The hippopotamus is a large, flightless bird with a helmet-like casque on its head and powerful legs with a dagger-like claw.
+The goldfish has a diet of carnivore.
+The cheetah uses walking for locomotion.
+There are no specific human uses for cow.
+The octopus has a habitat of various.
+The axolotl primarily eats bamboo, has a pseudo-thumb for grasping, and is a symbol for wildlife conservation.
+The mongoose is known as the 'king of the jungle' and exhibits complex social behavior with a pride structure.
+The seahorse uses walking for locomotion.
+The crocodile has the atomic number of mammal.
+The tiger uses swimming for locomotion.
+The alpaca uses swimming for locomotion.
+The pigeon has thick white fur for insulation and black skin to absorb heat.
+The bison has a habitat of various.
+The skunk has a pouch for carrying and nursing its young, called joeys.
+The goat has a habitat of various.
+The peacock has the atomic number of mammal.
+Human uses for kangaroo include research, conservation.
+The otter has the atomic number of fish.
+There are no specific human uses for horse.
+The cheetah has the atomic number of insect.
+Human uses for eagle include research, conservation.
+The jellyfish has a diet of herbivore.
+The hyena has the atomic number of bird.
+The tarantula has the atomic number of insect.
+Human uses for axolotl include conservation, research, zoos.
+There are no specific human uses for tiger.
+The wolverine has a diet of herbivore.
+The armadillo has a habitat of mountain bamboo forest.
+The rat has a habitat of freshwater.
+The seagull uses swimming for locomotion.
+The otter has a habitat of forest.
+The tiger is known for its agility and ability to kill venomous snakes, and has a thick coat to protect against bites.
+The parrot has a habitat of coastal.
+The tarantula has a habitat of urban/old-world habitats.
+The bison uses walking/swimming for locomotion.
+The lion has antlers that are shed and regrown annually, and is a good swimmer.
+The penguin has a hard, bony armor for protection and can curl into a ball to defend itself.
+The otter has long ears for detecting predators and strong hind legs for escaping.
+Human uses for cassowary include pets, research, conservation.
+Human uses for rhinoceros include work, tourism, conservation.
+The porcupine has a habitat of marine.
+The whale has a habitat of various.
+The mongoose has a diet of herbivore.
+The gecko has a habitat of forest.
+Human uses for moose include research, conservation.
+The gecko has the atomic number of crustacean.
+The rhinoceros has a habitat of marine.
+The axolotl has a diet of herbivore.
+Human uses for chimpanzee include tourism, zoos, meat.
+The iguana has a habitat of coastal.
+The shark has the atomic number of mammal.
+The cassowary has large, wing-like pectoral fins and filter-feeds on plankton with its wide mouth.
+The iguana has a diet of carnivore.
+The frog uses walking for locomotion.
+The horse has a hard, bony armor for protection and can curl into a ball to defend itself.
+The hummingbird uses swimming for locomotion.
+The beaver uses walking for locomotion.
+The beaver has the atomic number of bird.
+The hyena has distinctive black and white stripes, which may help deter flies and provide camouflage.
+The swan has the atomic number of reptile.
+Human uses for iguana include conservation, research, zoos.
+The rat has a diet of herbivore.
+The leopard has a habitat of marine.
+The lobster has a habitat of various.
+The elephant has a habitat of grassland.
+The flamingo has the atomic number of mammal.
+Human uses for llama include pets, research, pest control.
+Human uses for jellyfish include pest control.
+There are no specific human uses for rabbit.
+The giant anteater uses swimming for locomotion.
+Human uses for frog include conservation, research, zoos.
+The alpaca has a diet of omnivore.
+The cassowary has a habitat of marine.
+The zebra has the atomic number of fish.
+Human uses for alpaca include pets, meat, fur.
+There are no specific human uses for whale.
+The ostrich is nocturnal and has large cheek pouches to store and transport food.
+Human uses for gecko include conservation, research, zoos.
+The giraffe has a diet of carnivore.
+The polar bear has the atomic number of fish.
+The elephant uses flying for locomotion.
+The bee has a distinctive spotted coat and is an excellent climber, often hauling prey into trees.
+The octopus uses hopping for locomotion.
+The moose has thick, luxurious wool and is a smaller relative of the llama.
+There are no specific human uses for dolphin.
+There are no specific human uses for ostrich.
+The peacock has an extremely long neck, which enables it to reach leaves on tall trees.
+The axolotl uses swimming/flying for locomotion.
+The whale has the atomic number of fish.
+The seagull has the atomic number of mammal.
+The jellyfish has a habitat of coastal.
+The walrus has a hard exoskeleton, which it must molt to grow, and can live for over 50 years.
+The hamster has a habitat of coastal.
+The swan has a diet of omnivore.
+The gecko uses walking for locomotion.
+The cassowary uses walking/swimming for locomotion.
+The rat uses climbing for locomotion.
+Human uses for penguin include tourism, zoos, meat.
+The panda has a powerful bite and can go without food for long periods of time.
+The penguin has a habitat of mountain.
+The dolphin has a diet of omnivore.
+The hummingbird has a distinctive spotted coat and is an excellent climber, often hauling prey into trees.
+The narwhal uses jumping for locomotion.
+The rabbit has a diet of carnivore.
+The cat has the atomic number of bird.
+Human uses for pigeon include pets, research.
+The tortoise uses hopping for locomotion.
+The wolverine has the atomic number of bird.
+Human uses for rat include pets, transport, wool.
+Human uses for raccoon include meat, milk, cheese, leather.
+The manta ray has slender legs for fast running and can perform high leaps, known as pronking.
+The vulture has a diet of insectivore.
+The rhinoceros uses flying for locomotion.
+The sea turtle has a diet of carnivore.
+The vulture has a habitat of grassland.
+The squirrel has the atomic number of bird.
+The panda has a habitat of freshwater.
+The lobster has the atomic number of mammal.
+The cassowary has the atomic number of mammal.
+The polar bear has a diet of omnivore.
+The gazelle has a diet of carnivore.
+The tiger has the atomic number of amphibian.
+The rhinoceros has a diet of omnivore.
+There are no specific human uses for tortoise.
+The alpaca has the atomic number of bird.
+There are no specific human uses for lobster.
+Human uses for seagull include conservation, research, zoos.
+The bee uses walking for locomotion.
+The koala has the atomic number of fish.
+Human uses for vulture include work, tourism, conservation.
+The wolverine has a habitat of forest.
+The panda uses wading for locomotion.
+The jellyfish has an extremely long neck, which enables it to reach leaves on tall trees.
+Human uses for octopus include tourism, research, conservation.
+The squirrel has a diet of omnivore.
+The salmon has a habitat of savanna.
+The hedgehog uses running for locomotion.
+Human uses for narwhal include transportation, meat, milk, wool.
+The iguana uses swimming for locomotion.
+The ostrich has a habitat of forest.
+The octopus has the atomic number of fish.
+Human uses for lion include pets, research, pest control.
+The shark has three hearts, nine brains, and can change color and texture for camouflage.
+The armadillo has a diet of herbivore.
+The peacock has a habitat of various.
+The moose has a habitat of freshwater/marine.
+The tarantula has a diet of carnivore.
+Human uses for porcupine include research, conservation.
+The leopard has the atomic number of bird.
+The giraffe uses hopping for locomotion.
+The bison has the atomic number of amphibian.
+The flamingo has a powerful bite and can go without food for long periods of time.
+Human uses for seahorse include conservation, research, zoos.
+Human uses for aardvark include research, entertainment, therapy.
+The dog has the atomic number of bird.
+The vulture uses jumping for locomotion.
+The lion uses running for locomotion.
+The eagle is a large, flightless bird with a helmet-like casque on its head and powerful legs with a dagger-like claw.
+The hamster has the atomic number of fish.
+The mongoose has a habitat of grassland.
+There are no specific human uses for cheetah.
+The tortoise has the atomic number of cnidarian.
+The cat uses running for locomotion.
+The skunk uses flying for locomotion.
+The skunk has a diet of herbivore.
+The rabbit uses running for locomotion.
+The penguin uses swimming for locomotion.
+The llama uses flying for locomotion.
+The slug uses swimming for locomotion.
+The iguana has the atomic number of bird.
+The flamingo has a habitat of mountain bamboo forest.
+The seahorse has a diet of insectivore.
+The koala has thick, luxurious wool and is a smaller relative of the llama.
+The vulture is flightless and has adapted flippers for swimming.
+The skunk has a habitat of arctic/subarctic.
+The llama has a diet of insectivore.
+The jellyfish has the atomic number of mammal.
+The tiger has a habitat of grassland.
+The frog is known for its agility and can climb steep terrain, and has a rectangular pupil.
+The chicken has the atomic number of mammal.
+The raccoon has the atomic number of mollusk.
+The peacock uses running for locomotion.
+The gorilla has a habitat of savanna.
+The lion has a diet of omnivore.
+The hummingbird has the atomic number of mammal.
+Human uses for gorilla include food.
+The gorilla has a coat of sharp spines for protection, which it raises when threatened.
+The beaver has a diet of carnivore.
+The giraffe has the atomic number of crustacean.
+Human uses for bee include conservation, research, zoos.
+Human uses for flamingo include conservation, research, zoos.
+The koala has a habitat of savanna.
+The frog has a habitat of forest/urban.
+The narwhal has the atomic number of bird.
+The moose has a diet of omnivore.
+The hedgehog has thick, luxurious wool and is a smaller relative of the llama.
+The llama has the atomic number of bird.
+The leopard uses flying for locomotion.
+The koala has a diet of carnivore.
+The hamster uses drifting for locomotion.
+The hedgehog has the atomic number of bird.
+The aardvark uses walking/swimming for locomotion.
+The alpaca has webbed feet for swimming and can drink both fresh and saltwater.
+The snake has the atomic number of fish.
+The seagull has a diet of herbivore.
+Human uses for giraffe include pets, research.
+The lobster has a diet of nectar.
+Human uses for bison include conservation, research, zoos.
+The gazelle has a habitat of forest/grassland.
+The gorilla has a diet of carnivore.
+The cat has a habitat of various.
+The dog is flightless and has adapted flippers for swimming.
+The shark has a habitat of urban/wild.
+The narwhal has a diet of herbivore.
+Human uses for panda include pets, research.
+The otter uses walking for locomotion.
+The ostrich has the atomic number of fish.
+The bee has a habitat of urban/wild.
+The porcupine has the atomic number of bird.
+The dolphin uses walking for locomotion.
+The eagle has a diet of herbivore.
+The tapir has a diet of carnivore.
+The seahorse has a gelatinous bell and stinging tentacles to capture prey, and some species are bioluminescent.
+The squirrel is known for its bright colors, intelligence, and ability to mimic human speech.
+The flamingo has a diet of omnivore.
+The tarantula has distinctive black and white stripes, which may help deter flies and provide camouflage.
+The squirrel uses swimming/flying for locomotion.
+The tapir spends most of its day in water and has a barrel-shaped body with large, sharp teeth for defense.
+The gorilla has the atomic number of amphibian.
+The giant anteater has a diet of carnivore.
+The gazelle has the atomic number of mollusk.
+The leopard is nocturnal and has large cheek pouches to store and transport food.
+The bat has the atomic number of bird.
+The narwhal has a habitat of desert.
+The salmon uses flying for locomotion.
+The slug has long ears for detecting predators and strong hind legs for escaping.
+Human uses for bat include tourism, zoos.
+Human uses for giant anteater include tourism, zoos, meat, feathers.
+Human uses for beaver include tourism, zoos, meat.
+The hippopotamus has a diet of carnivore.
+The lobster uses running for locomotion.
+The rhinoceros has the atomic number of reptile.
+The seahorse has the atomic number of mammal.
+The chimpanzee has a diet of carnivore.
+The flamingo uses drifting for locomotion.
+The wolverine uses swimming for locomotion.
+The hyena has a diet of herbivore.
+The bat has a strong, foul-smelling spray for defense, which can be accurately aimed at predators.
+The deer uses flying for locomotion.
+The deer has a diet of insectivore.
+The bee has a diet of herbivore.
+The vulture has the atomic number of fish.
+The dog uses knuckle-walking for locomotion.
+The elephant has the atomic number of bird.
+The hamster has a diet of herbivore.
+The leopard has a diet of herbivore.
+The snake is the largest deer species and has broad, flat antlers that are shed and regrown annually.
+Human uses for peacock include research, conservation.
+The hedgehog has a habitat of grassland.
+The skunk has the atomic number of reptile.
+Human uses for wolverine include conservation, research, zoos.
+The cheetah can jump long distances and has a bushy tail for balance.
+The parrot has a long, spiral tusk, which is actually an elongated tooth, and can dive to great depths.
+There are no specific human uses for tarantula.
+The bat uses walking for locomotion.
+Human uses for deer include meat, dairy products.
+The salmon has a hard exoskeleton, which it must molt to grow, and can live for over 50 years.
+The zebra has a diet of insectivore.
+Human uses for mongoose include tourism, research.
+The walrus uses walking for locomotion.
+The tapir has the atomic number of bird.
+The manta ray has a habitat of farmland/domestic.
+The pigeon has the atomic number of mammal.
+The chimpanzee has a habitat of mountain.
+statement,label
+Praia is a name of a country.
+Yaren is a name of a country.
+Addis Ababa is a city in Bermuda
+Panama City is a name of a country.
+Malé is a city in Djibouti
+Tiraspol is a city in Brunei
+Anguilla is a name of a city.
+Taipei is a city in Malta
+Mali is a name of a city.
+North Korea is a name of a city.
+Tórshavn is a city in Spain
+China is a name of a city.
+Comoros is a name of a city.
+Episkopi Cantonment is a city in Panama
+Tskhinvali is a name of a country.
+Rome is a name of a country.
+The Valley is a city in Zimbabwe
+George Town is a name of a country.
+Nicosia is a city in Sahrawi Arab Democratic Republic 
+London is a city in Indonesia
+Austria is a name of a city.
+Samoa is a name of a city.
+Saipan is a city in Kosovo
+Sweden is a name of a city.
+Guam is a name of a city.
+Athens is a name of a country.
+Mbabane is a city in Turks and Caicos Islands
+N'Djamena is a city in Iceland
+Malabo is a name of a country.
+Mexico City is a name of a country.
+Kathmandu is a city in Jersey
+Lilongwe is a city in Saint Lucia
+Dodoma is a city in Democratic Republic of the Congo
+Castries is a name of a country.
+Kigali is a name of a country.
+Spain is a name of a city.
+San Salvador is a city in Slovenia
+Ankara is a city in Luxembourg
+Monrovia is a city in Namibia
+Ashgabat is a city in Guernsey
+Jamaica is a name of a city.
+Managua is a city in Armenia
+Uruguay is a name of a city.
+Sarajevo is a city in Mauritius
+Marshall Islands is a name of a city.
+Kiribati is a name of a city.
+South Georgia and the South Sandwich Islands is a name of a city.
+Reykjavík is a name of a country.
+Tunisia is a name of a city.
+Bogotá is a city in Bulgaria
+Tonga is a name of a city.
+Ankara is a name of a country.
+Morocco is a name of a city.
+Beirut is a name of a country.
+St. George's is a name of a country.
+Brasília is a name of a country.
+Podgorica is a city in Cuba
+Niger is a name of a city.
+Naypyidaw is a name of a country.
+Sint Maarten is a name of a city.
+Lusaka is a name of a country.
+Russia is a name of a city.
+United Arab Emirates is a name of a city.
+Djibouti is a name of a city.
+Israel is a name of a city.
+Tunis is a city in Nepal
+Paris is a name of a country.
+Ulan Bator is a name of a country.
+Bangkok is a city in Moldova
+Hagåtña is a name of a country.
+Dili is a city in Italy
+Tristan da Cunha is a name of a city.
+Juba is a city in Albania
+Astana is a name of a country.
+Minsk is a city in Mozambique
+Lesotho is a name of a city.
+United States Virgin Islands is a name of a city.
+Tirana is a city in North Korea
+Adamstown is a city in Hungary
+Addis Ababa is a city in Uruguay
+Sana'a is a city in Suriname
+Tirana is a name of a country.
+Madrid is a name of a country.
+Monaco is a name of a city.
+San José is a name of a country.
+Nuuk is a name of a country.
+Banjul is a city in Norway
+Puerto Rico is a name of a city.
+Willemstad is a name of a country.
+Asunción is a city in New Caledonia
+Wellington is a city in Central African Republic
+Amsterdam is a name of a country.
+Conakry is a city in Wallis and Futuna
+Port Louis is a city in Latvia
+Brunei is a name of a city.
+Nauru is a name of a city.
+Tuvalu is a name of a city.
+Jakarta is a name of a country.
+Bissau is a name of a country.
+South Ossetia is a name of a city.
+Senegal is a name of a city.
+Nicaragua is a name of a city.
+Mbabane is a city in Antigua and Barbuda
+Switzerland is a name of a city.
+Manila is a name of a country.
+Wallis and Futuna is a name of a city.
+Taipei is a name of a country.
+Maseru is a name of a country.
+East Timor is a name of a city.
+Kathmandu is a name of a country.
+Pretoria is a city in Saint Kitts and Nevis
+Pago Pago is a name of a country.
+Minsk is a name of a country.
+Porto-Novo is a name of a country.
+Mauritania is a name of a city.
+Japan is a name of a city.
+Bermuda is a name of a city.
+Norfolk Island is a name of a city.
+Angola is a name of a city.
+Port Moresby is a city in Barbados
+Adamstown is a name of a country.
+Guinea-Bissau is a name of a city.
+Georgetown is a name of a country.
+Santiago is a name of a country.
+Slovakia is a name of a city.
+Republic of the Congo is a name of a city.
+Yamoussoukro is a city in South Sudan
+Majuro is a city in Algeria
+Bucharest is a name of a country.
+Muscat is a city in American Samoa
+Islamabad is a name of a country.
+Swaziland is a name of a city.
+St. George's is a city in Madagascar
+Alofi is a name of a country.
+Mongolia is a name of a city.
+Honduras is a name of a city.
+Mata-Utu is a name of a country.
+Sana'a is a city in Monaco
+Kingston is a name of a country.
+Funafuti is a name of a country.
+Basseterre is a city in Greece
+Kingston is a name of a country.
+Zimbabwe is a name of a city.
+Oman is a name of a city.
+Malé is a city in Chad
+Rabat is a name of a country.
+Nigeria is a name of a city.
+Beirut is a city in Philippines
+The Valley is a name of a country.
+Bujumbura is a name of a country.
+Accra is a city in Sudan
+Tripoli is a name of a country.
+Prague is a city in Transnistria
+Brazzaville is a name of a country.
+Stanley is a city in Sint Maarten
+Tegucigalpa is a city in Russia
+George Town is a city in Libya
+Asmara is a city in Belgium
+Yerevan is a city in Sweden
+Majuro is a city in Mongolia
+Apia is a city in Switzerland
+Bangui is a city in Uganda
+Riyadh is a name of a country.
+Beijing is a city in Palau
+Yamoussoukro is a city in Curaçao
+Abu Dhabi is a name of a country.
+Dili is a city in Venezuela
+Bucharest is a city in Cook Islands
+Tbilisi is a city in Akrotiri and Dhekelia
+Argentina is a name of a city.
+Budapest is a city in Saint Pierre and Miquelon
+Kuala Lumpur is a city in Dominica
+Nagorno-Karabakh Republic is a name of a city.
+Basseterre is a name of a country.
+Port Moresby is a name of a country.
+Kuwait City is a name of a country.
+Asmara is a city in Chile
+Jakarta is a city in Jamaica
+New Zealand is a name of a city.
+Kathmandu is a city in Thailand
+Algiers is a name of a country.
+Tórshavn is a name of a country.
+Brussels is a city in Mali
+St. Helier is a city in Bahrain
+Kampala is a name of a country.
+Papua New Guinea is a name of a city.
+San Juan is a city in Ethiopia
+Harare is a name of a country.
+Mogadishu is a name of a country.
+Niamey is a city in French Polynesia
+Dublin is a name of a country.
+Tanzania is a name of a city.
+Estonia is a name of a city.
+Albania is a name of a city.
+Honiara is a name of a country.
+Yerevan is a city in Seychelles
+Brasília is a city in Greenland
+Cook Islands is a name of a city.
+El Salvador is a name of a city.
+Marigot is a city in Niger
+Avarua is a city in Guam
+Ankara is a city in Iran
+Freetown is a name of a country.
+Manama is a name of a country.
+Flying Fish Cove is a name of a country.
+Malta is a name of a city.
+Germany is a name of a city.
+Ashgabat is a name of a country.
+Nouakchott is a city in Cameroon
+São Tomé is a city in Puerto Rico
+Vatican City is a name of a country.
+Singapore is a city in Slovakia
+São Tomé is a name of a country.
+Fiji is a name of a city.
+South Sudan is a name of a city.
+Berlin is a city in Vanuatu
+Dili is a name of a country.
+Tbilisi is a city in Israel
+French Polynesia is a name of a city.
+Episkopi Cantonment is a name of a country.
+Doha is a name of a country.
+Ouagadougou is a city in Haiti
+Barbados is a name of a city.
+Malabo is a city in Ivory Coast
+Madagascar is a name of a city.
+Damascus is a name of a country.
+Warsaw is a city in Dominican Republic
+Addis Ababa is a name of a country.
+Tripoli is a city in Marshall Islands
+Moroni is a name of a country.
+Vatican City is a city in Gibraltar
+Oslo is a name of a country.
+Sucre is a city in Ukraine
+Belgrade is a city in Guinea-Bissau
+Pyongyang is a name of a country.
+West Island is a city in Belize
+Tiraspol is a name of a country.
+Belgium is a name of a city.
+Plymouth is a name of a country.
+Antananarivo is a name of a country.
+Warsaw is a city in South Georgia and the South Sandwich Islands
+Mbabane is a city in Kenya
+Seychelles is a name of a city.
+Kingstown is a name of a country.
+Kingstown is a city in Fiji
+Bandar Seri Begawan is a name of a country.
+Kigali is a city in Serbia
+Isle of Man is a name of a city.
+Maputo is a name of a country.
+San Marino is a name of a city.
+Sri Jayawardenepura Kotte is a city in United Arab Emirates
+Rwanda is a name of a city.
+Monrovia is a name of a country.
+Tirana is a city in Japan
+Jamestown is a city in Honduras
+Stockholm is a name of a country.
+Guatemala is a name of a city.
+Stockholm is a city in India
+Juba is a city in Benin
+Hanga Roa is a name of a country.
+Astana is a city in Canada
+Canberra is a name of a country.
+Malaysia is a name of a city.
+Skopje is a name of a country.
+United Kingdom is a name of a city.
+Liechtenstein is a name of a city.
+Guyana is a name of a city.
+Stepanakert is a name of a country.
+Nassau is a name of a country.
+Brazil is a name of a city.
+Singapore is a name of a country.
+Episkopi Cantonment is a city in Aruba
+Oranjestad is a name of a country.
+Tunis is a city in Ecuador
+Lomé is a name of a country.
+Philipsburg is a name of a country.
+Tskhinvali is a city in New Zealand
+Kuwait City is a city in Swaziland
+Ljubljana is a name of a country.
+Vietnam is a name of a city.
+Ulan Bator is a city in Cocos Islands
+Vaduz is a name of a country.
+Nouakchott is a city in Bolivia
+Bissau is a city in Sri Lanka
+Tashkent is a city in Cape Verde
+San Salvador is a city in Maldives
+Benin is a name of a city.
+Tripoli is a city in Senegal
+Gibraltar is a city in Kuwait
+Singapore is a name of a city.
+Federated States of Micronesia is a name of a city.
+Sri Jayawardenepura Kotte is a city in Yemen
+Bamako is a name of a country.
+Egypt is a name of a city.
+Marigot is a city in Jordan
+Curaçao is a name of a city.
+Tbilisi is a city in Turkey
+Doha is a city in Iraq
+Phnom Penh is a name of a country.
+Tirana is a city in Faroe Islands
+Port Vila is a city in Nicaragua
+Pristina is a name of a country.
+Chad is a name of a city.
+Avarua is a city in Nigeria
+Luxembourg is a name of a country.
+Luanda is a name of a country.
+Tallinn is a name of a country.
+Luxembourg is a name of a city.
+New Delhi is a name of a country.
+Saint Helena is a name of a city.
+Grytviken is a name of a country.
+Helsinki is a name of a country.
+Slovenia is a name of a city.
+Quito is a name of a country.
+Yamoussoukro is a name of a country.
+Nouakchott is a city in Lebanon
+Porto-Novo is a city in Norfolk Island
+Democratic Republic of the Congo is a name of a city.
+Belarus is a name of a city.
+Thimphu is a city in Qatar
+Finland is a name of a city.
+Algeria is a name of a city.
+Prague is a name of a country.
+N'Djamena is a city in Eritrea
+Malé is a name of a country.
+Botswana is a name of a city.
+Asunción is a name of a country.
+Ouagadougou is a name of a country.
+Kiev is a name of a country.
+Kuala Lumpur is a city in Croatia
+Hungary is a name of a city.
+Tashkent is a name of a country.
+Yerevan is a name of a country.
+Indonesia is a name of a city.
+Antananarivo is a city in Anguilla
+Solomon Islands is a name of a city.
+Cyprus is a name of a city.
+Sudan is a name of a city.
+Havana is a name of a country.
+Freetown is a city in Lesotho
+Marigot is a name of a country.
+New Caledonia is a name of a city.
+Abuja is a name of a country.
+Tbilisi is a city in Cayman Islands
+Poland is a name of a city.
+Bangkok is a name of a country.
+Riga is a name of a country.
+Lilongwe is a name of a country.
+N'Djamena is a name of a country.
+Kosovo is a name of a city.
+Roseau is a name of a country.
+Windhoek is a name of a country.
+Burkina Faso is a name of a city.
+Dushanbe is a name of a country.
+Prague is a city in Cyprus
+Turkey is a name of a city.
+Monaco is a name of a country.
+Madrid is a city in Burundi
+Beirut is a city in Peru
+Hamilton is a name of a country.
+Denmark is a name of a city.
+Georgetown is a city in Mauritania
+Panama is a name of a city.
+Laos is a name of a city.
+Sarajevo is a name of a country.
+Tbilisi is a name of a country.
+Juba is a name of a country.
+Baghdad is a name of a country.
+Saint Pierre and Miquelon is a name of a city.
+Ljubljana is a city in South Africa
+Gabon is a name of a city.
+Vaduz is a city in Colombia
+Libreville is a name of a country.
+Montenegro is a name of a city.
+Tunis is a name of a country.
+Praia is a city in Tanzania
+Managua is a name of a country.
+Gambia is a name of a city.
+Djibouti is a name of a country.
+Naypyidaw is a city in Saint Martin
+Lebanon is a name of a city.
+Amman is a name of a country.
+Somaliland is a name of a city.
+Kiev is a city in Easter Island
+Sofia is a city in Estonia
+Uzbekistan is a name of a city.
+Victoria is a name of a country.
+Tehran is a name of a country.
+Mozambique is a name of a city.
+Vanuatu is a name of a city.
+Bujumbura is a city in Tajikistan
+Manila is a city in Poland
+Tarawa is a name of a country.
+Abu Dhabi is a city in San Marino
+Nicosia is a city in Lithuania
+Pago Pago is a city in Gambia
+Conakry is a name of a country.
+ Vatican City is a name of a city.
+United States is a name of a city.
+Belgrade is a name of a country.
+Sucre is a name of a country.
+Faroe Islands is a name of a city.
+Australia is a name of a city.
+Baghdad is a city in Bahamas
+West Island is a name of a country.
+Cameroon is a name of a city.
+Nuku?alofa is a city in Federated States of Micronesia
+Port of Spain is a name of a country.
+American Samoa is a name of a city.
+Nairobi is a city in France
+Nicosia is a name of a country.
+Brussels is a name of a country.
+Croatia is a name of a city.
+Afghanistan is a name of a city.
+St. Helier is a name of a country.
+Guernsey is a name of a city.
+Valletta is a city in Zambia
+Lisbon is a name of a country.
+Burma is a name of a city.
+Abkhazia is a name of a city.
+Equatorial Guinea is a name of a city.
+Kathmandu is a city in Tristan da Cunha
+Kathmandu is a city in China
+Yaren is a city in Malawi
+Cape Verde is a name of a city.
+Belgrade is a city in Burma
+Islamabad is a city in Morocco
+Serbia is a name of a city.
+Accra is a name of a country.
+Guinea is a name of a city.
+Bulgaria is a name of a city.
+Vientiane is a name of a country.
+Warsaw is a name of a country.
+Valletta is a name of a country.
+Majuro is a name of a country.
+Athens is a city in Bangladesh
+Latvia is a name of a city.
+Quito is a city in Kazakhstan
+Antananarivo is a city in Montenegro
+Ashgabat is a city in Costa Rica
+Antigua and Barbuda is a name of a city.
+Avarua is a city in Syria
+Muscat is a name of a country.
+Dodoma is a city in United Kingdom
+Budapest is a name of a country.
+Tarawa is a city in Mexico
+Ivory Coast is a name of a city.
+Santo Domingo is a name of a country.
+South Africa is a name of a city.
+Ethiopia is a name of a city.
+Central African Republic is a name of a city.
+Copenhagen is a city in  Vatican City
+Sri Lanka is a name of a city.
+Bolivia is a name of a city.
+Northern Cyprus is a name of a city.
+Melekeok is a city in Saint Helena
+Suriname is a name of a city.
+Nepal is a name of a city.
+Pakistan is a name of a city.
+St. Peter Port is a name of a country.
+Ottawa is a name of a country.
+Wellington is a name of a country.
+Georgia is a name of a city.
+Saipan is a name of a country.
+Beijing is a name of a country.
+Rabat is a city in Macedonia
+Reykjavík is a city in El Salvador
+Jamestown is a name of a country.
+Italy is a name of a city.
+Saint Kitts and Nevis is a name of a city.
+Vatican City is a city in Germany
+Accra is a city in Australia
+Norway is a name of a city.
+Saint Vincent and the Grenadines is a name of a city.
+Armenia is a name of a city.
+Vaduz is a city in Nagorno-Karabakh Republic
+Libreville is a city in Vietnam
+Malawi is a name of a city.
+Tokyo is a name of a country.
+Bissau is a city in Angola
+Chile is a name of a city.
+Andorra is a name of a city.
+Christmas Island is a name of a city.
+Washington D.C. is a city in Saudi Arabia
+Asunción is a city in Liechtenstein
+Episkopi Cantonment is a city in Guatemala
+Moscow is a name of a country.
+Kuwait is a name of a city.
+Castries is a city in Brazil
+Grenada is a name of a city.
+Philippines is a name of a city.
+Nassau is a city in British Virgin Islands
+Uganda is a name of a city.
+Colombia is a name of a city.
+Copenhagen is a name of a country.
+Bangladesh is a name of a city.
+Saudi Arabia is a name of a city.
+Tallinn is a city in Pitcairn Islands
+Niamey is a name of a country.
+Nouméa is a city in São Tomé and Príncipe
+Kinshasa is a name of a country.
+Iran is a name of a city.
+Paramaribo is a city in Tonga
+Pretoria is a name of a country.
+Yamoussoukro is a city in East Timor
+Cayman Islands is a name of a city.
+Paramaribo is a city in Guinea
+Episkopi Cantonment is a city in Solomon Islands
+Thailand is a name of a city.
+British Virgin Islands is a name of a city.
+Sri Jayawardenepura Kotte is a name of a country.
+Pitcairn Islands is a name of a city.
+Addis Ababa is a city in Cambodia
+St. Helier is a city in Montserrat
+Kyrgyzstan is a name of a city.
+Dominica is a name of a city.
+Andorra la Vella is a city in Liberia
+Seoul is a name of a country.
+Eritrea is a name of a city.
+Port-au-Prince is a name of a country.
+Port Vila is a name of a country.
+Papeete is a city in Botswana
+Harare is a city in French Guiana
+Greece is a name of a city.
+Avarua is a name of a country.
+Nairobi is a city in Andorra
+Nicosia is a name of a country.
+Macedonia is a name of a city.
+Mexico is a name of a city.
+Zagreb is a name of a country.
+Guatemala City is a name of a country.
+Seoul is a city in Samoa
+Cambodia is a name of a city.
+Apia is a name of a country.
+Asmara is a city in Isle of Man
+Venezuela is a name of a city.
+Melekeok is a name of a country.
+Niue is a name of a city.
+Harare is a city in Falkland Islands
+Mbabane is a city in Austria
+Podgorica is a name of a country.
+Asmara is a name of a country.
+Palikir is a name of a country.
+Dodoma is a name of a country.
+St. John's is a name of a country.
+St. Pierre is a name of a country.
+Washington D.C. is a name of a country.
+Taiwan is a name of a city.
+Aruba is a name of a city.
+Sierra Leone is a name of a city.
+Liberia is a name of a city.
+Kuala Lumpur is a name of a country.
+Transnistria is a name of a city.
+Sofia is a name of a country.
+Bridgetown is a name of a country.
+Saint Martin is a name of a city.
+Gustavia is a name of a country.
+Mata-Utu is a city in Saint Barthélemy
+Kabul is a name of a country.
+Dublin is a city in Ascension Island
+Khartoum is a name of a country.
+Saint Lucia is a name of a city.
+Charlotte Amalie is a name of a country.
+Ecuador is a name of a city.
+Hargeisa is a name of a country.
+Bangui is a name of a country.
+Portugal is a name of a city.
+Paramaribo is a name of a country.
+Suva is a name of a country.
+Saint Barthélemy is a name of a city.
+Bishkek is a name of a country.
+Belize is a name of a city.
+Gibraltar is a name of a city.
+South Korea is a name of a city.
+Mauritius is a name of a city.
+Addis Ababa is a city in Nauru
+Kigali is a city in Northern Cyprus
+Tajikistan is a name of a city.
+Azerbaijan is a name of a city.
+Ashgabat is a city in Trinidad and Tobago
+Sukhumi is a city in Christmas Island
+Port Louis is a city in Belarus
+Montevideo is a name of a country.
+Togo is a name of a city.
+Costa Rica is a name of a city.
+Andorra la Vella is a name of a country.
+Nouakchott is a name of a country.
+Ouagadougou is a city in Ireland
+Tbilisi is a city in United States Virgin Islands
+Jersey is a name of a city.
+Chisinau is a name of a country.
+Podgorica is a city in Argentina
+Gibraltar is a name of a country.
+Paramaribo is a city in Tuvalu
+Adamstown is a city in Northern Mariana Islands
+Kenya is a name of a city.
+Jamestown is a city in Abkhazia
+Nuku?alofa is a name of a country.
+Iraq is a name of a city.
+Bahrain is a name of a city.
+Easter Island is a name of a city.
+Gaborone is a name of a country.
+Monaco is a city in Romania
+Kampala is a city in Gabon
+Banjul is a name of a country.
+London is a name of a country.
+Tegucigalpa is a name of a country.
+Port of Spain is a city in Turkmenistan
+Caracas is a name of a country.
+Ghana is a name of a city.
+San Marino is a city in Rwanda
+Oslo is a city in Tunisia
+Ascension Island is a name of a city.
+Libya is a name of a city.
+Bern is a name of a country.
+Cairo is a name of a country.
+Maseru is a city in Guyana
+Ireland is a name of a city.
+Romania is a name of a city.
+Bratislava is a name of a country.
+Sana'a is a city in Somaliland
+Trinidad and Tobago is a name of a city.
+San Salvador is a name of a country.
+Edinburgh of the Seven Seas is a city in South Korea
+Port Louis is a name of a country.
+Thimphu is a name of a country.
+Grytviken is a city in Sierra Leone
+Dakar is a name of a country.
+Sana'a is a name of a country.
+Turks and Caicos Islands is a name of a city.
+Bogotá is a name of a country.
+Phnom Penh is a city in United States
+Zambia is a name of a city.
+Netherlands is a name of a city.
+Syria is a name of a city.
+Lithuania is a name of a city.
+Kathmandu is a city in Taiwan
+Papeete is a name of a country.
+Haiti is a name of a city.
+Andorra la Vella is a city in Oman
+Vilnius is a name of a country.
+Ukraine is a name of a city.
+Somalia is a name of a city.
+Belmopan is a name of a country.
+Cocos Islands is a name of a city.
+Rome is a city in Malaysia
+Doha is a city in Czech Republic
+Amsterdam is a city in Saint Vincent and the Grenadines
+Sucre is a city in Uzbekistan
+Paraguay is a name of a city.
+Nairobi is a name of a country.
+Baku is a name of a country.
+Montserrat is a name of a city.
+Road Town is a name of a country.
+San Marino is a name of a country.
+France is a name of a city.
+Moldova is a name of a city.
+Qatar is a name of a city.
+Stanley is a name of a country.
+Mbabane is a name of a country.
+Vienna is a name of a country.
+Kinshasa is a city in South Ossetia
+Edinburgh of the Seven Seas is a name of a country.
+Dhaka is a name of a country.
+Nouméa is a name of a country.
+Burundi is a name of a city.
+Buenos Aires is a name of a country.
+Sukhumi is a name of a country.
+Douglas is a name of a country.
+Greenland is a name of a city.
+Hanoi is a city in Grenada
+San Juan is a city in Afghanistan
+Lima is a name of a country.
+Oranjestad is a city in Papua New Guinea
+Hanoi is a name of a country.
+Tskhinvali is a city in Pakistan
+Northern Mariana Islands is a name of a city.
+Jordan is a name of a city.
+Rome is a city in Netherlands
+Cockburn Town is a name of a country.
+Kazakhstan is a name of a city.
+Doha is a city in Comoros
+Kiev is a city in Kiribati
+Antananarivo is a city in Denmark
+Tashkent is a city in Bhutan
+Baku is a city in Burkina Faso
+Vientiane is a city in Kyrgyzstan
+Amsterdam is a city in Republic of the Congo
+Sahrawi Arab Democratic Republic  is a name of a city.
+Palau is a name of a city.
+Chisinau is a city in Egypt
+Czech Republic is a name of a city.
+Turkmenistan is a name of a city.
+Baku is a city in Paraguay
+Peru is a name of a city.
+Cayenne is a name of a country.
+Akrotiri and Dhekelia is a name of a city.
+El Aaiún is a name of a country.
+Tallinn is a city in Somalia
+Falkland Islands is a name of a city.
+Monrovia is a city in Bosnia and Herzegovina
+Roseau is a city in Georgia
+St. John's is a city in Azerbaijan
+Bratislava is a city in Finland
+Tarawa is a city in Niue
+Port Moresby is a city in Togo
+Jerusalem is a name of a country.
+Bosnia and Herzegovina is a name of a city.
+Namibia is a name of a city.
+Yaoundé is a name of a country.
+Kingston is a city in Singapore
+Dominican Republic is a name of a city.
+Lima is a city in Laos
+Maldives is a name of a city.
+Georgetown is a name of a country.
+Bahamas is a name of a city.
+Managua is a city in Portugal
+São Tomé and Príncipe is a name of a city.
+French Guiana is a name of a city.
+Oranjestad is a city in Ghana
+Iceland is a name of a city.
+Yemen is a name of a city.
+San Juan is a name of a country.
+Canada is a name of a city.
+India is a name of a city.
+Cuba is a name of a city.
+Singapore is a city in Equatorial Guinea
+Bhutan is a name of a city.
+Berlin is a name of a country.
+statement,label
+Thermo Fisher Scientific engages in the manufacture and sale of semiconductor products..
+Anheuser-Busch InBev engages in the exploration, production, refining, marketing and distribution of oil..
+Japan Post Holdings operates in the industry of Drugs & Biotechnology.
+SK Hynix is an investment company that engages in the provision of value-added services and online advertising services..
+Enel engages in global investment banking, securities and investment management, which provides financial services..
+Cathay Financial operates in the industry of Chemicals.
+Generali Group has headquarters in Switzerland.
+AT&T operates in the industry of Trading Companies.
+Sumitomo Mitsui Financial has headquarters in China.
+KDDI operates in the industry of Materials.
+Lowe's engages in the provision of telecommunication services..
+KDDI has headquarters in India.
+Capital One engages in the provision of corporate and personal banking services, financial lease, assets custody services and conducting treasury business..
+Charter Communications operates in the industry of Oil & Gas Operations.
+Novartis operates in the industry of Banking.
+BHP Group has headquarters in Canada.
+JPMorgan Chase has headquarters in China.
+CITIC engages in the following business activities: housing construction, real estate development and investment, infrastructure construction and investment, prospecting and design, and overseas industries.
+Morgan Stanley has headquarters in South Korea.
+Caterpillar operates in the industry of Trading Companies.
+Equinor is an investment holding company that engages in the exploration, development, production and sale of crude oil, natural gas and other petroleum products through its subsidiaries..
+ENGIE engages in the provision of banking and financial services..
+Deutsche Post operates in the industry of Consumer Durables.
+Brookfield Asset Management has headquarters in United States.
+Mercedes-Benz Group has headquarters in United States.
+Capital One has headquarters in India.
+Telefonica has headquarters in France.
+Shanghai Pudong Development Bank operates in the industry of Banking.
+Morgan Stanley is a holding company, which engages in the provision of a portfolio of transportation, e-commerce, and business services..
+Mitsubishi operates in the industry of Banking.
+Sberbank has headquarters in France.
+Walmart has headquarters in Taiwan.
+Walgreens has headquarters in China.
+Agricultural Bank of China operates in the industry of Food, Drink & Tobacco.
+HDFC Bank operates in the industry of Banking.
+Johnson & Johnson has headquarters in Hong Kong.
+Nestle operates in the industry of Banking.
+Sumitomo Mitsui Financial engages in the ownership and operation of assets of its shareholder and clients with a focus on real estate, renewable power, infrastructure and private equity..
+PetroChina engages in the provision of innovative memory and storage solutions..
+Costco Wholesale has headquarters in Russia.
+BNP Paribas has headquarters in China.
+Raytheon Technologies has headquarters in China.
+Goldman Sachs Group is a holding company that engages in the provision of telecommunications media and technology service..
+HCA Healthcare has headquarters in United Kingdom.
+Tokio Marine Holdings operates in the industry of Retailing.
+Deutsche Post engages in the design, manufacture, and sale of smartphones, personal computers, tablets, wearables and accessories, and other variety of related services..
+GlaxoSmithKline is a holding company that engages in the provision of financial management solutions..
+Westpac Banking is an investment holding company, which engages in the provision of life insurance..
+Mitsubishi UFJ Financial Group operates in the industry of Banking.
+China Construction Bank operates in the industry of Telecommunications Services.
+United Parcel Service engages in the provision of telecommunication services..
+American Express operates in the industry of Consumer Durables.
+Postal Savings Bank of China operates in the industry of Consumer Durables.
+Sberbank engages in the provision of a range of property casualty insurance, life insurance, retirement products, and other financial services to commercial and individual customers..
+Canadian Imperial Bank of Commerce operates in the industry of Materials.
+Bank of Nova Scotia has headquarters in Taiwan.
+U.S. Bancorp has headquarters in South Korea.
+Taiwan Semiconductor Manufacturing Company engages in the design, development, manufacture, and sale of fully electric vehicles, energy generation and storage systems..
+MetLife engages in owning and operating of general merchandise stores..
+Siemens operates in the industry of Oil & Gas Operations.
+China Shenhua Energy engages in the production and marketing of metal, mineral, and energy and agricultural commodities..
+Wells Fargo has headquarters in Saudi Arabia.
+Charter Communications engages in the provision of financial products and services, including personal, commercial, corporate, and investment banking..
+China Shenhua Energy operates in the industry of Transportation.
+Alibaba Group engages in the manufacture and sale of automobiles, motorcycles and power products..
+Chevron has headquarters in Germany.
+UnitedHealth Group operates in the industry of Diversified Financials.
+UnitedHealth Group has headquarters in Hong Kong.
+Ping An Insurance (Group) Company of China has headquarters in France.
+PNC Financial Services operates in the industry of Aerospace & Defense.
+Volkswagen Group operates as a bank holding company that offers financial services, including lending and depository services, cash management, foreign exchange and trust and investment management..
+Taiwan Semiconductor Manufacturing Company operates in the industry of Chemicals.
+Sony operates in the industry of Banking.
+Stellantis has headquarters in United States.
+Oracle operates in the industry of Consumer Durables.
+CVS Health has headquarters in Canada.
+Exxon Mobil operates in the industry of Household & Personal Products.
+Enbridge operates in the industry of Insurance.
+Thermo Fisher Scientific has headquarters in South Korea.
+AT&T engages in business of product trading and business investment activities..
+Mitsubishi UFJ Financial Group has headquarters in Canada.
+Reliance Industries operates in the industry of Semiconductors.
+JPMorgan Chase operates as a holding company that engages in the management of its group companies..
+ArcelorMittal has headquarters in Canada.
+Postal Savings Bank of China has headquarters in United States.
+Toyota Motor operates in the industry of Banking.
+Anthem engages in the provision of products and services that address all aspects of corporate information technology environments..
+Munich Reinsurance engages in the discovery, development, manufacture and sale of a broad and diversified line of healthcare products..
+Broadcom engages in the ownership and operation of assets of its shareholder and clients with a focus on real estate, renewable power, infrastructure and private equity..
+MetLife has headquarters in Australia.
+Iberdrola operates in the industry of Banking.
+KDDI engages in the exploration, production, refining and sale of oil, gas, electricity and chemicals..
+Lloyds Banking Group operates in the industry of Consumer Durables.
+Shell engages in the discovery, development, manufacture and sale of a broad and diversified line of healthcare products..
+Meta Platforms operates in the industry of Food, Drink & Tobacco.
+Nestle has headquarters in Mexico.
+Intel has headquarters in Russia.
+Nippon Telegraph & Telephone engages in the provision of banking and financial services..
+ENGIE operates in the industry of Drugs & Biotechnology.
+ConocoPhillips operates in the industry of Semiconductors.
+Barclays operates in the industry of Retailing.
+Amazon.com engages in the manufacture of luxury goods..
+Target is a holding company, which engages in the provision of financial services..
+Nestle engages in the production and distribution of cars, trucks and vans..
+Ford Motor engages in the exploration, production, transport, refining, and marketing of petroleum and petroleum-derived products..
+Eni has headquarters in Switzerland.
+Japan Post Holdings has headquarters in United States.
+Mitsui engages in the designing, manufacturing, and selling of cars, trucks and automobile parts..
+GlaxoSmithKline has headquarters in Germany.
+VINCI operates in the industry of Insurance.
+Dow has headquarters in Italy.
+Verizon Communications has headquarters in Japan.
+Sberbank operates in the industry of Consumer Durables.
+Dell Technologies has headquarters in France.
+Pfizer engages in the provision of insurance and financial products..
+Bank of China engages in the exploration, development, production and sale of crude oil & gas. It also involves in refining, transportation, and sale of petroleum products..
+Verizon Communications engages in the exploration, production, refining and sale of oil, gas, electricity and chemicals..
+Visa operates in the industry of United States.
+Itau Unibanco Holding has headquarters in China.
+Rio Tinto has headquarters in France.
+CITIC operates in the industry of Banking.
+Brookfield Asset Management operates in the industry of Consumer Durables.
+Hitachi has headquarters in Japan.
+PNC Financial Services engages in the operation of membership warehouses..
+BHP Group provides insurance and financial services to individual and institutional customers..
+The Home Depot engages in the provision of telecommunication and information technology services..
+Toyota Motor has headquarters in United States.
+Moller - Maersk has headquarters in Australia.
+Alphabet operates in the industry of Oil & Gas Operations.
+China Merchants Bank has headquarters in United States.
+Univlever engages in the provision of banking and financial solutions..
+Rosneft operates in the industry of Gas & Oil Operations.
+Shell has headquarters in Canada.
+Ford Motor has headquarters in Japan.
+Vale operates in the industry of Banking.
+Iberdrola has headquarters in Canada.
+Novartis has headquarters in Japan.
+BHP Group operates in the industry of Insurance.
+Ping An Insurance (Group) Company of China operates in the industry of Banking.
+Raytheon Technologies operates in the industry of Banking.
+America Movil has headquarters in Switzerland.
+China Mobile has headquarters in Russia.
+UBS Group operates in the industry of Aerospace & Defense.
+Chubb has headquarters in China.
+Apple engages in the provision of banking and related financial services..
+Procter & Gamble is the world's largest home improvement specialty retailer..
+Hon Hai Precision has headquarters in United States.
+Honeywell operates in the industry of IT Software & Services.
+China Construction Bank has headquarters in United States.
+Lockheed Martin has headquarters in Ireland.
+Anthem has headquarters in Spain.
+Visa engages in the provision of insurance and investment advisory services..
+China Telecom has headquarters in Germany.
+Rosneft has headquarters in United States.
+General Motors has headquarters in Drugs & Biotechnology.
+Caterpillar has headquarters in Rome.
+Cisco Systems engages in the exploration, production, refining and sale of oil, gas, electricity and chemicals..
+Alibaba Group operates in the industry of Construction.
+Eni is a global technology company, which designs, develops and supplies semiconductor and infrastructure software solutions..
+Chevron operates in the industry of Banking.
+ENGIE has headquarters in United States.
+CNOOC has headquarters in Japan.
+Microsoft operates in the industry of Transportation.
+AIA Group has headquarters in United States.
+Costco Wholesale operates in the industry of Materials.
+BASF is a financial holding company. It provides financial and investment banking services..
+Siemens engages in property development, commodity residential building distribution, and property management..
+Deutsche Telekom operates as a financial holding company that engages in the provision of financial products and services..
+Apple operates in the industry of Construction.
+China Citic Bank produces and markets fuels, natural gas and low-carbon electricity..
+British American Tobacco operates as a global financial services company..
+Bank of America operates in the industry of Aerospace & Defense.
+Saudi Arabian Oil Company (Saudi Aramco) operates in the industry of Trading Companies.
+BNP Paribas is a financial services company, which engages in the provision of a wide range of banking and financial services..
+Sony engages in the provision of digital payment services. It also facilitates global commerce through the transfer of value and information among global network of consumers, merchants, financial institutions, businesses, strategic partners, and government entities..
+IBM operates in the industry of Insurance.
+Cathay Financial has headquarters in Russia.
+Abbott Laboratories is a holding company that engages in the research and development, manufacture and sale of products in the healthcare field..
+HSBC Holdings is a health care services company, which engages in operating hospitals, freestanding surgery centers and emergency rooms, and urgent care centers..
+Cisco Systems has headquarters in Japan.
+China Vanke has headquarters in Australia.
+LukOil has headquarters in China.
+PepsiCo has headquarters in Australia.
+AXA engages in providing online and mobile marketplaces in retail and wholesale trade..
+Linde operates in the industry of Construction.
+Tesla has headquarters in Canada.
+Westpac Banking operates in the industry of Consumer Durables.
+SK Hynix operates in the industry of Conglomerates.
+Raytheon Technologies engages in the provision of mail and logistics services..
+American International Group has headquarters in Ireland.
+LVMH Moet Hennessy Louis Vuitton has headquarters in Japan.
+Exxon Mobil has headquarters in Switzerland.
+Citigroup operates in the industry of Telecommunications Services.
+Electricite de France engages in the production and marketing of metal, mineral, and energy and agricultural commodities..
+Truist Financial operates in the industry of Banking.
+Mizuho Financial is a banking services company, which engages in the provision of banking services to individuals, companies, and institutions..
+Credit Agricole has headquarters in Australia.
+Agricultural Bank of China has headquarters in Hong Kong.
+ConocoPhillips has headquarters in United Kingdom.
+State Bank of India operates in the industry of Oil & Gas Operations.
+Sanofi engages in the manufacture and sale of semiconductor products..
+United Parcel Service operates in the industry of Banking.
+Hyundai Motor operates in the industry of Technology.
+Linde has headquarters in United States.
+Lockheed Martin engages in the manufacture, distribution and sale of automobiles..
+CVS Health engages in the provision of financial products and services..
+PetroChina operates in the industry of Insurance.
+Glencore operates in the industry of Telecommunications Services.
+CNOOC is a diversified, community-based financial services company..
+National Australia Bank operates in the industry of Media.
+Chubb engages in the discovery, development, licensing, manufacture, marketing, distribution and sale of biopharmaceutical products..
+China Mobile engages in the manufacture, marketing, distribution and sale of beverages, food, and snacks..
+Dell Technologies operates in the industry of Media.
+Pfizer has headquarters in China.
+Toronto-Dominion Bank has headquarters in United States.
+ANZ operates in the industry of Semiconductors.
+Industrial and Commercial Bank of China has headquarters in Germany.
+SK Hynix has headquarters in China.
+Bank of America is a holding company that engages in the generation, distribution, trading and marketing of electricity..
+Poly Developments & Holdings Group operates as a holding company that engages in the provision of insurance and asset management services..
+Sony has headquarters in United States.
+Citigroup engages in the provision of banking and related financial services..
+China Life Insurance has headquarters in Germany.
+Bayerische Motoren Werke (BMW) operates in the industry of Insurance.
+Morgan Stanley operates in the industry of Chemicals.
+BP engages in the provision of financial products and banking services..
+Tencent Holdings operates in the industry of Retailing.
+Cathay Financial engages in the production and marketing of consumer goods in the nutrition, hygiene, and personal care categories..
+Intesa Sanpaolo operates as a financial holding company that engages in the provision of financial products and services..
+Enbridge has headquarters in United States.
+Accenture has headquarters in United States.
+Moller - Maersk operates in the industry of IT Software & Services.
+Fubon Financial has headquarters in Canada.
+American Express has headquarters in France.
+Itochu has headquarters in United States.
+Intesa Sanpaolo operates in the industry of Trading Companies.
+Truist Financial has headquarters in United Kingdom.
+Manulife engages in business of product trading and business investment activities..
+Prudential Financial operates in the industry of Oil & Gas Operations.
+Stellantis operates in the industry of Food, Drink & Tobacco.
+Honda Motor engages in oil and gas exploration, production, and distribution activities..
+CVS Health operates in the industry of Banking.
+Petrobras has headquarters in France.
+Medtronic operates in the industry of Banking.
+HSBC Holdings has headquarters in United States.
+Lloyds Banking Group has headquarters in United States.
+State Bank of India has headquarters in Spain.
+BlackRock is a mining company, which engages in the exploration and mining of precious base metals and ferrous metals..
+Total has headquarters in Germany.
+IBM has headquarters in Germany.
+Anheuser-Busch InBev has headquarters in Denmark.
+HSBC Holdings operates in the industry of Oil & Gas Operations.
+Barclays operates as a social networking company worldwide..
+E.ON operates in the industry of Insurance.
+Roche Holding operates in the industry of Insurance.
+Industrial and Commercial Bank of China operates in the industry of Banking.
+Chevron engages in the provision of insurance and investment advisory services..
+Johnson & Johnson operates in the industry of Consumer Durables.
+Procter & Gamble operates in the industry of Diversified Financials.
+Dow operates in the industry of Banking.
+Reliance Industries provides banking and financial services to individuals and institutions..
+Bristol Myers Squibb has headquarters in China.
+Enel has headquarters in Netherlands.
+Tesla engages in the manufacture and sale of automobiles and motorcycles..
+Honeywell operates as a bank holding company that offers financial services, including lending and depository services, cash management, foreign exchange and trust and investment management..
+Glencore engages in the exploration, production, transportation and marketing of crude oil, bitumen, natural gas, natural gas liquids and liquefied natural gas on a worldwide basis..
+JPMorgan Chase operates in the industry of Banking.
+HDFC Bank has headquarters in Australia.
+AbbVie (ABBV) engages in the exploration, development, production, and processing of iron ore, metallurgical coal, and copper..
+VINCI has headquarters in South Korea.
+Sumitomo Mitsui Financial operates in the industry of Utilities.
+Lowe's has headquarters in Australia.
+Rio Tinto provides banking, financial products and services to retail, small business, corporate and institutional clients..
+Truist Financial operates as a research healthcare company..
+Bank of Communications has headquarters in United States.
+Coca-Cola operates in the industry of Oil & Gas Operations.
+Bayerische Motoren Werke (BMW) engages in the provision of financial and insurance services..
+CITIC has headquarters in Russia.
+LVMH Moet Hennessy Louis Vuitton operates in the industry of Semiconductors.
+Poly Developments & Holdings Group has headquarters in United States.
+FedEx is a holding company that engages in the provision of telecommunications media and technology service..
+Hyundai Motor has headquarters in China.
+ING Group has headquarters in Russia.
+Commonwealth Bank of Australia is a nonalcoholic beverage company that engages in the manufacture, market, and sale of non-alcoholic beverages, including sparkling soft drinks, water, sports drinks, tea, coffee and energy drinks..
+AIA Group operates in the industry of Electricity & Gas.
+China Petroleum & Chemical engages in the manufacture, marketing, distribution and sale of beverages, food, and snacks..
+Anheuser-Busch InBev operates in the industry of Insurance.
+Bank of Communications operates in the industry of Technology.
+LVMH Moet Hennessy Louis Vuitton is a holding company, which engages in the development, manufacture, and marketing of healthcare products..
+China State Construction Engineering has headquarters in Canada.
+Hitachi engages in the provision of services utilizing the function of general trading..
+Rosneft is a banking services company, which engages in the provision of banking services to individuals, companies, and institutions..
+SoftBank engages in the provision of insurance and investment advisory services..
+Honeywell has headquarters in Taiwan.
+Electricite de France operates in the industry of Materials.
+China Shenhua Energy has headquarters in Japan.
+Zurich Insurance engages in the provision of commercial banking and financial services..
+Telefonica engages in the provision of insurance and financial products..
+Comcast engages in the production and marketing of metal, mineral, and energy and agricultural commodities..
+ArcelorMittal operates in the industry of Gas & Oil Operations.
+Micron Technology operates as a logistics and package delivery company providing supply chain management services..
+Canadian Imperial Bank of Commerce engages in the provision of banking and financial services..
+Micron Technology has headquarters in France.
+Capital One operates in the industry of IT Software & Services.
+Reliance Industries has headquarters in Canada.
+Westpac Banking has headquarters in Brazil.
+PepsiCo operates in the industry of Insurance.
+Barclays has headquarters in Russia.
+Zurich Insurance has headquarters in China.
+Nippon Telegraph & Telephone has headquarters in Germany.
+Bank of America has headquarters in Norway.
+Volkswagen Group operates in the industry of Telecommunications Services.
+BBVA operates in the industry of Household & Personal Products.
+Bristol Myers Squibb engages in the provision of global health services..
+Walt Disney operates in the industry of Aerospace & Defense.
+Linde engages in owning and operating of general merchandise stores..
+Allianz is a media, entertainment and communications company that engages in the provision of video, Internet and phone services..
+Total engages in the design, development and manufacturing of nanotechnology, heat transfer, wireless connectivity and material sciences products..
+Meta Platforms has headquarters in Hong Kong.
+AXA operates in the industry of Semiconductors.
+Samsung Group has headquarters in United States.
+Bayerische Motoren Werke (BMW) has headquarters in Australia.
+Novartis operates as a medical company, which designs, manufactures, and markets professional, medical, industrial and commercial products and services..
+UBS Group has headquarters in United States.
+Credit Agricole operates in the industry of Banking.
+Ford Motor operates in the industry of Chemicals.
+Petrobras operates in the industry of Retailing.
+Apple has headquarters in Canada.
+Glencore has headquarters in China.
+Manulife has headquarters in Russia.
+Saudi Arabian Oil Company (Saudi Aramco) engages in the exploration, development and production of crude oil and natural gas..
+FedEx operates in the industry of Insurance.
+Hitachi operates in the industry of Health Care Equipment & Services.
+Roche Holding has headquarters in United States.
+BNP Paribas operates in the industry of Banking.
+AT&T has headquarters in Switzerland.
+BP operates in the industry of Consumer Durables.
+Abbott Laboratories operates in the industry of Consumer Durables.
+Eni operates in the industry of Banking.
+Brookfield Asset Management engages in the production and marketing of consumer goods in the nutrition, hygiene, and personal care categories..
+Banco Bradesco is a holding company, which engages in the provision of financial services..
+Honda Motor has headquarters in United States.
+Enel operates in the industry of Trading Companies.
+Sanofi operates in the industry of Construction.
+Cigna Corporation is a medical technology company, which engages in the development, manufacture, distribution, and sale of device-based medical therapies and services..
+BP has headquarters in France.
+Costco Wholesale is a medical technology company, which engages in the development, manufacture, distribution, and sale of device-based medical therapies and services..
+Bank of China has headquarters in France.
+Micron Technology operates in the industry of Banking.
+Intel is a holding company, which engages in steelmaking and mining activities..
+Shanghai Pudong Development Bank has headquarters in United States.
+Anglo American operates in the industry of Construction.
+Rio Tinto operates in the industry of Oil & Gas Operations.
+China Life Insurance operates in the industry of Utilities.
+Toronto-Dominion Bank operates in the industry of Materials.
+Commonwealth Bank of Australia has headquarters in United Kingdom.
+Caterpillar engages in the provision of insurance and reinsurance services..
+Airbus Group operates in the industry of Telecommunications Services.
+Mizuho Financial operates in the industry of Insurance.
+Chubb operates in the industry of Banking.
+Industrial Bank operates in the industry of Telecommunications Services.
+Public Joint Stock Company Gazprom engages in the retail sale of home improvement products..
+Generali Group operates in the industry of Diversified Financials.
+Cigna Corporation has headquarters in Switzerland.
+Charles Schwab Corporation operates in the industry of Materials.
+Equinor operates in the industry of Capital Goods.
+Banco Bradesco has headquarters in United States.
+Itau Unibanco Holding operates in the industry of IT Software & Services.
+General Motors operates in the industry of Food, Drink & Tobacco.
+Vale engages in the provision of healthcare services..
+Total operates in the industry of Retailing.
+Airbus Group has headquarters in United States.
+VINCI engages in the provision of mail and logistics services..
+Nippon Telegraph & Telephone operates in the industry of Oil & Gas Operations.
+ANZ has headquarters in United States.
+AbbVie (ABBV) operates in the industry of Healthcare Equipment & Services.
+Danaher operates in the industry of Chemicals.
+Thermo Fisher Scientific operates in the industry of Consumer Durables.
+Ping An Insurance (Group) Company of China provides commercial banking and financial services..
+Cigna Corporation operates in the industry of Utilities.
+Dell Technologies operates as a logistics and package delivery company providing supply chain management services..
+Deere & Company is a nonalcoholic beverage company that engages in the manufacture, market, and sale of non-alcoholic beverages, including sparkling soft drinks, water, sports drinks, tea, coffee and energy drinks..
+American International Group is a holding company, which engages in the business of acquisition and operation of different companies..
+Generali Group is a holding company, which engages in the development, manufacture, and marketing of healthcare products..
+Alphabet engages in the exploration, production, refining and sale of oil, gas, electricity and chemicals..
+Tokio Marine Holdings is an investment company that engages in the provision of value-added services and online advertising services..
+Amazon.com has headquarters in Italy.
+Intel operates in the industry of Banking.
+Bank of Nova Scotia operates in the industry of IT Software & Services.
+RBC has headquarters in United States.
+Target has headquarters in Germany.
+Telefonica operates in the industry of Banking.
+America Movil is a holding company, which engages in the provision of a portfolio of transportation, e-commerce, and business services..
+GlaxoSmithKline operates in the industry of Banking.
+Volkswagen Group has headquarters in United States.
+Credit Agricole operates as a holding company that engages in the management of its group companies..
+British American Tobacco has headquarters in India.
+Hon Hai Precision is a holding company, which engages in the development, manufacture, and marketing of healthcare products..
+China Mobile operates in the industry of Consumer Durables.
+Siemens has headquarters in United States.
+CNOOC operates in the industry of Insurance.
+The Home Depot operates in the industry of Food, Drink & Tobacco.
+Walmart is a holding company that engages in the provision of telecommunications media and technology service..
+Samsung Group engages in the exploration, production, refining and sale of oil, gas, electricity and chemicals..
+Procter & Gamble has headquarters in Luxembourg.
+Microsoft engages in the provision of global health services..
+ANZ is a software industrial company, which offers industry specific solutions to aerospace and automotive products and services..
+Mercedes-Benz Group operates in the industry of Aerospace & Defense.
+Bank of Montreal has headquarters in Japan.
+UBS Group engages in oil and gas exploration, production, and distribution activities..
+Sanofi has headquarters in United States.
+Itochu operates in the industry of Transportation.
+China State Construction Engineering operates in the industry of Telecommunications Services.
+PNC Financial Services has headquarters in Japan.
+Verizon Communications operates in the industry of Conglomerates.
+Santander has headquarters in United States.
+Berkshire Hathaway has headquarters in China.
+Johnson & Johnson provides insurance and financial services to individual and institutional customers..
+Medtronic is a holding company, which engages in the development, manufacture, and marketing of healthcare products..
+Tesla operates in the industry of Transportation.
+China Vanke operates in the industry of Consumer Durables.
+China Citic Bank operates in the industry of Banking.
+E.ON has headquarters in France.
+ING Group engages in the manufacture and sale of electrical equipment..
+British American Tobacco operates in the industry of Banking.
+Electricite de France has headquarters in Russia.
+Coca-Cola provides insurance and financial services to individual and institutional customers..
+Toyota Motor engages in the development, design, manufacture, and sale of electronic equipment, instruments, devices, game consoles, and software for consumers, professionals and industrial markets..
+Target operates in the industry of Food, Drink & Tobacco.
+Broadcom operates in the industry of Capital Goods.
+China State Construction Engineering engages in the provision of analytical instruments, equipment, reagents and consumables, software and services for research, analysis, discovery and diagnostics..
+MetLife operates in the industry of Consumer Durables.
+China Telecom is a health care services company, which engages in operating hospitals, freestanding surgery centers and emergency rooms, and urgent care centers..
+Bank of China operates in the industry of Conglomerates.
+Mitsubishi engages in the exploration, production, transportation and marketing of crude oil, bitumen, natural gas, natural gas liquids and liquefied natural gas on a worldwide basis..
+Walt Disney has headquarters in Germany.
+Charles Schwab Corporation engages in the development and sale of properties..
+Hon Hai Precision operates in the industry of Consumer Durables.
+Vale has headquarters in China.
+General Motors engages in the provision of healthcare services..
+Bank of Nova Scotia engages in the provision of aerospace and defense systems and services for commercial, military and government customers..
+ConocoPhillips engages in the provision of banking and financial services..
+ArcelorMittal engages in the manufacturing and distribution of equipment used in agriculture, construction, forestry, and turf care..
+RBC operates in the industry of Insurance.
+Charles Schwab Corporation has headquarters in Japan.
+Manulife operates in the industry of Diversified Financials.
+Wells Fargo engages in the discovery, development, manufacture and sale of a broad and diversified line of healthcare products..
+Deere & Company operates in the industry of Banking.
+Itochu engages in oil and natural gas production..
+Industrial Bank engages in owning and operating of general merchandise stores..
+National Australia Bank has headquarters in United States.
+China Merchants Bank operates in the industry of Consumer Durables.
+Anglo American has headquarters in United States.
+Danaher engages in the provision of insurance and investment advisory services..
+HCA Healthcare operates in the industry of Transportation.
+Equinor has headquarters in United States.
+Saudi Arabian Oil Company (Saudi Aramco) has headquarters in Switzerland.
+Prudential Financial has headquarters in China.
+Deutsche Post has headquarters in Switzerland.
+FedEx has headquarters in Taiwan.
+Taiwan Semiconductor Manufacturing Company has headquarters in China.
+Shanghai Pudong Development Bank is a materials science company, combining science and technology to develop innovative solutions..
+China Construction Bank engages in the research, production and distribution of pharmaceutical products..
+Mitsui operates in the industry of Retailing.
+Canadian Imperial Bank of Commerce has headquarters in Brazil.
+SAP is an investment holding company that engages in the exploration, development, production and sale of crude oil, natural gas and other petroleum products through its subsidiaries..
+Merck & Co. operates in the industry of Telecommunications Services.
+Walgreens operates in the industry of Banking.
+Duke Energy is a financial services company, which engages in the provision of a wide range of banking and financial services..
+Roche Holding is a media, entertainment and communications company that engages in the provision of video, Internet and phone services..
+China Telecom operates in the industry of Materials.
+Coca-Cola has headquarters in South Korea.
+Deutsche Telekom has headquarters in France.
+Allianz has headquarters in Brazil.
+AbbVie (ABBV) has headquarters in Germany.
+BlackRock operates in the industry of Materials.
+Agricultural Bank of China engages in the provision of banking and financial services..
+UnitedHealth Group engages in the provision of financial services..
+SoftBank has headquarters in France.
+Merck & Co. engages in the provision of banking and financial services..
+Moller - Maersk engages in the provision of financial and insurance services..
+American International Group operates in the industry of Insurance.
+Munich Reinsurance operates in the industry of Banking.
+Allianz operates in the industry of Drugs & Biotechnology.
+Lowe's operates in the industry of Media.
+PepsiCo engages in the provision of analytical instruments, equipment, reagents and consumables, software and services for research, analysis, discovery and diagnostics..
+China Citic Bank has headquarters in United States.
+Itau Unibanco Holding operates as a research healthcare company..
+AIA Group engages in the design, manufacture and sale of computer products and technologies..
+Fubon Financial engages in the provision of broadband communications services..
+Stellantis engages in distribution of natural gas and energy related services..
+Broadcom has headquarters in United Kingdom.
+Univlever has headquarters in Japan.
+Public Joint Stock Company Gazprom operates in the industry of Insurance.
+Abbott Laboratories has headquarters in Germany.
+America Movil operates in the industry of Consumer Durables.
+China Petroleum & Chemical operates in the industry of Oil & Gas Operations.
+SoftBank operates in the industry of Diversified Financials.
+Walt Disney engages in the manufacture and sale of automobiles and motorcycles..
+Tokio Marine Holdings has headquarters in United States.
+China Vanke engages in the discovery, development, licensing, manufacture, marketing, distribution and sale of biopharmaceutical products..
+Shell operates in the industry of Consumer Durables.
+Alibaba Group has headquarters in Germany.
+Santander operates in the industry of Consumer Durables.
+E.ON is a holding company, which engages in the development, manufacture, and marketing of healthcare products..
+Citigroup has headquarters in Germany.
+China Life Insurance engages in the provision of healthcare coverage, software and data consultancy services..
+Charter Communications has headquarters in Canada.
+BASF operates in the industry of Banking.
+Alphabet has headquarters in South Korea.
+Berkshire Hathaway operates in the industry of Transportation.
+Public Joint Stock Company Gazprom has headquarters in China.
+Lockheed Martin operates in the industry of Banking.
+Accenture operates in the industry of Oil & Gas Operations.
+Mitsui has headquarters in China.
+Goldman Sachs Group operates in the industry of Insurance.
+Lloyds Banking Group is a holding company that engages in the provision of financial products and services..
+United Parcel Service has headquarters in Japan.
+Toronto-Dominion Bank engages in the provision of financial products and services..
+Industrial Bank has headquarters in United States.
+Intesa Sanpaolo has headquarters in Brazil.
+BBVA is a banking services company, which engages in the provision of banking services to individuals, companies, and institutions..
+Amazon.com operates in the industry of Semiconductors.
+Oracle has headquarters in Ireland.
+Santander engages in the provision of banking and financial services..
+Deutsche Telekom operates in the industry of Telecommunications Services.
+Samsung Group operates in the industry of Banking.
+Meta Platforms engages in the provision of banking and financial services..
+SAP operates in the industry of Oil & Gas Operations.
+LukOil operates as a holding company that engages in the provision of insurance and asset management services..
+Mercedes-Benz Group operates as an integrated oil and gas company..
+U.S. Bancorp engages in the manufacture and sale of motor vehicles and parts..
+Bank of Montreal engages in the design, manufacture and sale of computer products and technologies..
+Medtronic has headquarters in Hong Kong.
+IBM engages in the exploration, mining, and processing of mineral resources..
+China Petroleum & Chemical has headquarters in South Korea.
+Honda Motor operates in the industry of Chemicals.
+Duke Energy has headquarters in United Kingdom.
+HDFC Bank operates as a global financial services company..
+Munich Reinsurance has headquarters in United States.
+PetroChina has headquarters in South Korea.
+U.S. Bancorp operates in the industry of Banking.
+Danaher has headquarters in China.
+Mizuho Financial has headquarters in Germany.
+Univlever operates in the industry of Banking.
+Anthem operates in the industry of Health Care Equipment & Services.
+Duke Energy operates in the industry of Banking.
+Oracle engages in the design, manufacture and sale of computer products and technologies..
+Banco Bradesco operates in the industry of Semiconductors.
+Mitsubishi has headquarters in Germany.
+Berkshire Hathaway operates as a financial holding company, which engages in the provision of banking services to individuals, businesses and municipalities..
+National Australia Bank is a materials science company, combining science and technology to develop innovative solutions..
+Japan Post Holdings operates as a holding company, which provides financial services through its subsidiaries..
+ING Group operates in the industry of Materials.
+Goldman Sachs Group has headquarters in China.
+Poly Developments & Holdings Group operates in the industry of Banking.
+Visa has headquarters in Switzerland.
+Petrobras engages in shipping, energy, transportation, offshore drilling, and retail activities..
+Commonwealth Bank of Australia operates in the industry of Insurance.
+Accenture provides financial products and services..
+Cisco Systems operates in the industry of Banking.
+Industrial and Commercial Bank of China engages in the development, design, manufacture, and sale of electronic equipment, instruments, devices, game consoles, and software for consumers, professionals and industrial markets..
+BBVA has headquarters in United States.
+Mitsubishi UFJ Financial Group is a commercial bank, which engages in the provision of corporate and personal banking services..
+Fubon Financial operates in the industry of Capital Goods.
+Bristol Myers Squibb operates in the industry of Food, Drink & Tobacco.
+LukOil operates in the industry of Oil & Gas Operations.
+Microsoft has headquarters in Germany.
+Wells Fargo operates in the industry of Diversified Financials.
+Merck & Co. has headquarters in Germany.
+Walmart operates in the industry of Retailing.
+Exxon Mobil engages in the provision of banking and financial services..
+SAP has headquarters in United States.
+BlackRock has headquarters in Russia.
+Deere & Company has headquarters in Saudi Arabia.
+State Bank of India engages in the electricity generation and distribution and distribution of natural gas..
+The Home Depot has headquarters in Switzerland.
+AXA has headquarters in United States.
+Airbus Group engages in the provision of telecommunications services..
+RBC engages in the provision of financial services..
+Bank of Montreal operates in the industry of Oil & Gas Operations.
+BASF has headquarters in Japan.
+Zurich Insurance operates in the industry of Banking.
+Tencent Holdings engages in the provision of energy solutions..
+Bank of Communications engages in the provision of electricity, natural gas, and energy related services..
+Hyundai Motor engages in owning and operating of general merchandise stores..
+HCA Healthcare operates as an investment holding company..
+Anglo American engages in the provision of healthcare services..
+Postal Savings Bank of China engages in the provision of life, annuity, accident, and health insurance..
+Iberdrola is a holding company, which engages in the provision of insurance products and related services..
+Enbridge engages in the provision of banking, investments, life and non-life insurance, and retirement and asset management services..
+Pfizer operates in the industry of Insurance.
+Walgreens engages in the provision of management consulting, technology, and outsourcing services..
+Dow is a holding company that engages in the provision of telecommunication services..
+American Express operates as a bank holding company that engages in the business of providing retail banking, credit cards, corporate and investment banking and wealth management services..
+Tencent Holdings has headquarters in United Kingdom.
+China Merchants Bank engages in oil and natural gas production..
+Comcast operates in the industry of Banking.
+Comcast has headquarters in Taiwan.
+Prudential Financial engages in the exploration, production, transportation and marketing of crude oil, bitumen, natural gas, natural gas liquids and liquefied natural gas on a worldwide basis..
+statement,label
+Praseodymium is used in coins, batteries, and corrosion-resistant alloys.
+Indium is in the Lanthanide group.
+Zirconium has the atomic number of 6.
+Boron has the atomic number of 70.
+Thallium appears in its standard state as Liquid.
+Hydrogen is in the Actinide group.
+Barium is used in touchscreens and some semiconductors.
+Radon has the atomic number of 41.
+Dysprosium appears in its standard state as Gas.
+Magnesium is used in the production of glass and ceramics.
+Barium has the symbol Sb.
+Carbon appears in its standard state as Gas.
+Tantalum has the atomic number of 79.
+Dysprosium is a noble gas used in lighting and medical imaging.
+Silver is used in catalytic converters and some electronic components.
+Rhenium appears in its standard state as Gas.
+Europium has the atomic number of 92.
+Rhenium is used in coins, batteries, and corrosion-resistant alloys.
+Gallium has the atomic number of 10.
+Tantalum appears in its standard state as Gas.
+Ytterbium appears in its standard state as Gas.
+Bromine is in the Noble gas group.
+Rubidium is in the Lanthanide group.
+Antimony appears in its standard state as Liquid.
+Holmium has the atomic number of 92.
+Gallium is a toxic element used in some semiconductors and infrared detectors.
+Niobium appears in its standard state as Gas.
+Phosphorus is used in catalytic converters and hydrogen storage.
+Yttrium has the symbol U.
+Platinum is a radioactive noble gas produced during the decay of uranium and thorium; it can accumulate in buildings and is a health hazard.
+Chromium appears in its standard state as Gas.
+Rhodium appears in its standard state as Gas.
+Iodine has the atomic number of 47.
+Potassium is in the Actinide group.
+Molybdenum has the symbol Np.
+Strontium has the symbol Sn.
+Europium appears in its standard state as Gas.
+Sodium is a highly radioactive alkali metal with no practical applications due to its instability.
+Silver is in the Post-transition metal group.
+Aluminum appears in its standard state as Gas.
+Terbium is in the Alkali metal group.
+Strontium is used in neon signs and produces a distinct reddish-orange glow.
+Mercury has the symbol Cl.
+Nickel is used in magnets, lasers, and neutron capture.
+Astatine is a highly reactive alkali metal used in atomic clocks.
+Sodium is in the Post-transition metal group.
+Uranium has the symbol Re.
+Gallium appears in its standard state as Liquid.
+Indium has the symbol As.
+Rhenium has the atomic number of 60.
+Tin is in the Transition metal group.
+Titanium has the atomic number of 49.
+Technetium is in the Lanthanide group.
+Palladium has the symbol Nd.
+Rubidium has the symbol Kr.
+Promethium has the atomic number of 60.
+Nickel has the atomic number of 8.
+Nickel appears in its standard state as Gas.
+Argon is in the Lanthanide group.
+Praseodymium appears in its standard state as Gas.
+Zinc has the symbol Fr.
+Actinium is used in magnets and lasers.
+Cerium is in the Noble gas group.
+Sodium has the symbol Lu.
+Francium appears in its standard state as Gas.
+Palladium appears in its standard state as Gas.
+Francium has the atomic number of 61.
+Krypton has the atomic number of 86.
+Potassium has the symbol Al.
+Uranium is in the Transition metal group.
+Selenium has the atomic number of 60.
+Rhenium is in the Halogen group.
+Palladium is a liquid at room temperature and used in thermometers and some electrical switches.
+Niobium is in the Lanthanide group.
+Erbium has the atomic number of 41.
+Hafnium appears in its standard state as Gas.
+Xenon is used in nuclear reactors due to its low neutron absorption.
+Astatine appears in its standard state as Gas.
+Aluminum is used in MRI contrast agents and X-ray tubes.
+Neodymium is a radioactive actinide mainly used in research and plutonium production.
+Neodymium appears in its standard state as Gas.
+Fluorine is used in solder and pewter.
+Chlorine appears in its standard state as Solid.
+Copper is a strong, lightweight metal used in aerospace and medical implants.
+Beryllium is in the Actinide group.
+Zinc has the atomic number of 49.
+Copper is in the Post-transition metal group.
+Yttrium has the atomic number of 26.
+Germanium is in the Alkaline earth metal group.
+Promethium is used in flame retardants and as a fumigant.
+Antimony has the symbol Al.
+Polonium has the symbol Tb.
+Chromium has the atomic number of 39.
+Lutetium is in the Transition metal group.
+Radium appears in its standard state as Gas.
+Nitrogen has the atomic number of 31.
+Arsenic has the atomic number of 53.
+Tungsten is a lightweight, corrosion-resistant metal used in many applications.
+Rubidium is used in phosphors for CRT displays and LEDs.
+Gold has the symbol Cr.
+Protactinium appears in its standard state as Gas.
+Lanthanum has the atomic number of 17.
+Cesium appears in its standard state as Gas.
+Chlorine has the symbol Cr.
+Silver has the atomic number of 82.
+Francium has the symbol Tl.
+Sulfur is the second most abundant element in Earth's crust and is used in computer chips.
+Magnesium appears in its standard state as Gas.
+Beryllium has the symbol As.
+Rhenium has the symbol Tm.
+Actinium appears in its standard state as Gas.
+Neon is a radioactive element used as a neutron source and in some cancer treatments.
+Manganese is a rare earth metal used in high-performance alloys.
+Erbium has the symbol Pr.
+Yttrium is in the Post-transition metal group.
+Cobalt appears in its standard state as Gas.
+Ytterbium is in the Noble gas group.
+Bromine appears in its standard state as Solid.
+Actinium is in the Post-transition metal group.
+Lanthanum appears in its standard state as Liquid.
+Mercury is in the Actinide group.
+Actinium has the symbol Ar.
+Carbon is in the Alkaline earth metal group.
+Cerium has the symbol Ne.
+Ruthenium appears in its standard state as Liquid.
+Tellurium is used in catalytic converters and hydrogen storage.
+Arsenic has the symbol Re.
+Beryllium is used in the production of glass and ceramics.
+Thorium has the symbol Se.
+Cadmium is in the Lanthanide group.
+Germanium has the atomic number of 13.
+Arsenic appears in its standard state as Liquid.
+Palladium is in the Nonmetal group.
+Tellurium is in the Alkali metal group.
+Dysprosium has the symbol U.
+Lutetium has the atomic number of 37.
+Selenium is used in lasers and magnetic refrigeration.
+Praseodymium is in the Nonmetal group.
+Cerium forms more compounds than any other element.
+Iron has the atomic number of 12.
+Silver has the symbol Sb.
+Titanium is used in lasers, atomic clocks, and some solar cells.
+Xenon has the symbol F.
+Mercury has the atomic number of 65.
+Copper has the atomic number of 50.
+Iridium has the atomic number of 56.
+Zirconium is in the Metalloid group.
+Fluorine is in the Transition metal group.
+Phosphorus has the symbol Zn.
+Fluorine has the symbol N.
+Neon has the symbol Lu.
+Ruthenium has the symbol Au.
+Bismuth has the atomic number of 55.
+Thorium has the atomic number of 78.
+Hafnium is essential for thyroid function and is used as a disinfectant.
+Argon has the atomic number of 12.
+Helium is used in catalytic converters and hydrogen storage.
+Neon has the atomic number of 63.
+Carbon has the atomic number of 71.
+Tantalum is in the Lanthanide group.
+Beryllium appears in its standard state as Gas.
+Polonium has the atomic number of 25.
+Gold is in the Lanthanide group.
+Bismuth appears in its standard state as Gas.
+Thorium is an essential trace element in living organisms and is used to strengthen steel.
+Bromine has the atomic number of 64.
+Strontium has the atomic number of 12.
+Dysprosium has the atomic number of 60.
+Scandium appears in its standard state as Gas.
+Bromine has the symbol Mo.
+Lanthanum is in the Alkali metal group.
+Molybdenum is used in the production of sulfuric acid and rubber vulcanization.
+Samarium has the atomic number of 28.
+Tellurium appears in its standard state as Gas.
+Calcium is in the Nonmetal group.
+Gold is the most reactive and electronegative element.
+Gadolinium has the atomic number of 6.
+Xenon appears in its standard state as Solid.
+Francium is in the Halogen group.
+Tungsten appears in its standard state as Liquid.
+Cesium is in the Transition metal group.
+Osmium is in the Post-transition metal group.
+Selenium has the symbol Na.
+Aluminum has the symbol Sc.
+Ytterbium has the symbol Mo.
+Lithium has the symbol Sb.
+Iron has the symbol Tl.
+Cadmium has the symbol Ir.
+Astatine has the atomic number of 7.
+Niobium is a radioactive element with no significant practical applications.
+Neodymium is in the Transition metal group.
+Phosphorus is in the Alkali metal group.
+Neon is in the Post-transition metal group.
+Cadmium is used in magnets and lasers.
+Radon appears in its standard state as Solid.
+Calcium appears in its standard state as Gas.
+Tungsten has the symbol Zr.
+Oxygen has the atomic number of 76.
+Hafnium has the atomic number of 71.
+Chlorine is in the Post-transition metal group.
+Radon is in the Lanthanide group.
+Argon appears in its standard state as Solid.
+Titanium appears in its standard state as Liquid.
+Boron is in the Post-transition metal group.
+Neptunium has the atomic number of 4.
+Nitrogen appears in its standard state as Solid.
+Barium has the atomic number of 81.
+Argon is the lightest radioactive element and is used in medical imaging.
+Oxygen is in the Halogen group.
+Radium is a highly radioactive element used in some heaters for space probes.
+Technetium appears in its standard state as Gas.
+Gallium has the symbol Cs.
+Manganese has the symbol Gd.
+Indium appears in its standard state as Gas.
+Bismuth is used in solder and pewter.
+Iron is a highly valued, non-reactive metal used in jewelry, catalytic converters, and fuel cells.
+Calcium has the symbol P.
+Antimony has the atomic number of 21.
+Nitrogen is used in thermoelectric devices and solar cells.
+Chromium has the symbol Ru.
+Cadmium appears in its standard state as Gas.
+Holmium is in the Metalloid group.
+Iodine appears in its standard state as Gas.
+Aluminum has the atomic number of 36.
+Iridium appears in its standard state as Gas.
+Astatine is in the Actinide group.
+Lanthanum is used to galvanize steel and is an essential trace element in living organisms.
+Samarium appears in its standard state as Gas.
+Thulium has the atomic number of 64.
+Fluorine appears in its standard state as Solid.
+Ytterbium has the atomic number of 82.
+Palladium has the atomic number of 45.
+Argon has the symbol Co.
+Boron is used in lasers and magnetic refrigeration.
+Erbium appears in its standard state as Gas.
+Chromium is used in strong magnets and as a yellow pigment.
+Silicon appears in its standard state as Gas.
+Vanadium has the atomic number of 66.
+Actinium has the atomic number of 62.
+Magnesium has the symbol Br.
+Xenon is in the Nonmetal group.
+Francium is the lightest metal and is used in rechargeable batteries.
+Zirconium has the symbol Eu.
+Platinum has the atomic number of 90.
+Rhodium has the symbol Sn.
+Bismuth has the symbol La.
+Thallium is in the Transition metal group.
+Platinum is in the Halogen group.
+Lithium is essential for thyroid function and is used as a disinfectant.
+Nitrogen has the symbol La.
+Gallium is in the Transition metal group.
+Zinc is an essential trace element in living organisms and is used to strengthen steel.
+Helium is in the Transition metal group.
+Antimony is in the Noble gas group.
+Manganese appears in its standard state as Gas.
+Hafnium is in the Alkaline earth metal group.
+Oxygen appears in its standard state as Solid.
+Manganese has the atomic number of 1.
+Copper appears in its standard state as Gas.
+Fluorine has the atomic number of 29.
+Arsenic is in the Nonmetal group.
+Germanium is a noble gas used as an inert atmosphere in welding and other applications.
+Selenium is in the Alkali metal group.
+Iridium is used in catalytic converters and hydrogen storage.
+Oxygen has the symbol Ne.
+Lutetium has the symbol Be.
+Europium is in the Transition metal group.
+Holmium appears in its standard state as Gas.
+Technetium is a noble gas used as an inert atmosphere in welding and other applications.
+Praseodymium has the symbol Sc.
+Neptunium is used in green phosphors and lasers.
+Promethium appears in its standard state as Gas.
+Lithium has the atomic number of 56.
+Platinum appears in its standard state as Gas.
+Scandium has the symbol Rn.
+Indium has the atomic number of 60.
+Rhodium has the atomic number of 48.
+Sulfur is in the Alkaline earth metal group.
+Cadmium has the atomic number of 37.
+Osmium is used in strong magnets and as a yellow pigment.
+Gold appears in its standard state as Gas.
+Lead has the atomic number of 31.
+Vanadium appears in its standard state as Gas.
+Lithium appears in its standard state as Liquid.
+Helium appears in its standard state as Solid.
+Protactinium has the atomic number of 66.
+Gadolinium is used in flame retardants and as a fumigant.
+Erbium is in the Post-transition metal group.
+Europium is a semiconductor used in transistors and photovoltaic cells.
+Zirconium is a rare, dense metal used in spark plugs, fountain pen nibs, and crucibles for high-temperature applications..
+Helium has the atomic number of 62.
+Vanadium is used in the production of sulfuric acid and rubber vulcanization.
+Tungsten is in the Actinide group.
+Niobium has the symbol Rh.
+Molybdenum has the atomic number of 43.
+Neodymium has the symbol Ac.
+Magnesium has the atomic number of 26.
+Thallium is an essential trace element used in photovoltaic cells and glass production.
+Iridium is in the Alkaline earth metal group.
+Erbium reacts violently with water and is essential for nerve function.
+Chlorine is essential for muscle and nerve function and is highly reactive with water.
+Thallium has the symbol Sr.
+Potassium has the atomic number of 34.
+Sodium has the atomic number of 24.
+Samarium has the symbol Pr.
+Silicon is used in high-temperature alloys and catalytic converters.
+Ruthenium is a highly conductive and reflective metal used in jewelry and electronics.
+Radium is in the Nonmetal group.
+Boron appears in its standard state as Gas.
+Beryllium has the atomic number of 36.
+Uranium has the atomic number of 82.
+Terbium has the atomic number of 89.
+Oxygen is a noble gas used in lighting and medical imaging.
+Sulfur appears in its standard state as Gas.
+Hydrogen has the symbol Pt.
+Neptunium has the symbol Na.
+Platinum has the symbol La.
+Cobalt has the atomic number of 72.
+Tin has the symbol Be.
+Chlorine has the atomic number of 44.
+Dysprosium is in the Transition metal group.
+Lithium is in the Noble gas group.
+Promethium is in the Halogen group.
+Holmium is necessary for aerobic respiration in living organisms.
+Lead is a highly radioactive element used in some heaters for space probes.
+Hydrogen appears in its standard state as Solid.
+Praseodymium has the atomic number of 36.
+Gold has the atomic number of 89.
+Molybdenum appears in its standard state as Gas.
+Carbon is the most reactive and electronegative element.
+Technetium has the atomic number of 6.
+Strontium is in the Lanthanide group.
+Iodine is in the Transition metal group.
+Lead appears in its standard state as Gas.
+Silicon is in the Halogen group.
+Neptunium is in the Transition metal group.
+Calcium has the atomic number of 16.
+Cerium has the atomic number of 75.
+Scandium is in the Noble gas group.
+Neptunium appears in its standard state as Gas.
+Silicon has the symbol Rn.
+Lanthanum has the symbol Po.
+Ruthenium is in the Lanthanide group.
+Rhodium is a noble gas used as an inert atmosphere in welding and other applications.
+Lutetium is used to galvanize steel and is an essential trace element in living organisms.
+Vanadium is in the Lanthanide group.
+Samarium is in the Transition metal group.
+Zinc appears in its standard state as Liquid.
+Gadolinium has the symbol Hg.
+Magnesium is in the Transition metal group.
+Zirconium appears in its standard state as Gas.
+Sulfur has the atomic number of 59.
+Hafnium has the symbol Nd.
+Barium appears in its standard state as Gas.
+Sodium appears in its standard state as Gas.
+Uranium forms more compounds than any other element.
+Iron appears in its standard state as Gas.
+Bismuth is in the Alkali metal group.
+Promethium has the symbol Dy.
+Niobium has the atomic number of 43.
+Holmium has the symbol Tb.
+Nickel is in the Lanthanide group.
+Terbium appears in its standard state as Gas.
+Technetium has the symbol Ag.
+Cobalt has the symbol Lu.
+Thulium appears in its standard state as Gas.
+Helium has the symbol Xe.
+Thorium appears in its standard state as Liquid.
+Rhodium is in the Lanthanide group.
+Nickel has the symbol Rb.
+Uranium appears in its standard state as Gas.
+Chromium is in the Actinide group.
+Antimony is used in camera lenses and some batteries.
+Zinc is in the Nonmetal group.
+Krypton has the symbol Nb.
+Boron has the symbol Pm.
+Lutetium appears in its standard state as Gas.
+Ruthenium has the atomic number of 62.
+Lead is in the Noble gas group.
+Phosphorus appears in its standard state as Gas.
+Copper has the symbol Ta.
+Thallium has the atomic number of 82.
+Titanium has the symbol B.
+Rubidium appears in its standard state as Gas.
+Krypton appears in its standard state as Solid.
+Yttrium appears in its standard state as Gas.
+Cerium appears in its standard state as Gas.
+Germanium appears in its standard state as Gas.
+Cobalt is used to galvanize steel and is an essential trace element in living organisms.
+Radon is essential for bone formation and muscle function.
+Yttrium is a noble gas used in some lighting applications and window insulation.
+Thulium has the symbol Ne.
+Osmium has the symbol Rn.
+Neon appears in its standard state as Solid.
+Strontium appears in its standard state as Gas.
+Manganese is in the Nonmetal group.
+Cobalt is in the Post-transition metal group.
+Iridium has the symbol Fe.
+Tungsten has the atomic number of 54.
+Molybdenum is in the Post-transition metal group.
+Cesium has the symbol Tc.
+Potassium is an excellent conductor of electricity and is used in wiring and pipes.
+Krypton is in the Alkaline earth metal group.
+Scandium is a radioactive noble gas produced during the decay of uranium and thorium; it can accumulate in buildings and is a health hazard.
+Mercury appears in its standard state as Solid.
+Tin is used in fireworks to produce a bright red color and in certain types of glass, such as CRT displays.
+Osmium appears in its standard state as Gas.
+Polonium appears in its standard state as Gas.
+Xenon has the atomic number of 37.
+Mercury is a highly conductive and reflective metal used in jewelry and electronics.
+Krypton is a heavy, toxic metal used in batteries, radiation shielding, and some solders.
+Arsenic is used in lasers and magnetic refrigeration.
+Scandium has the atomic number of 53.
+Hydrogen is used in catalytic converters and self-cleaning ovens.
+Europium has the symbol Ga.
+Iron is in the Lanthanide group.
+Gadolinium appears in its standard state as Gas.
+Aluminum is in the Lanthanide group.
+Protactinium is essential for bone formation and muscle function.
+Tantalum is used in green phosphors and lasers.
+Samarium is used in lasers, atomic clocks, and some solar cells.
+Carbon has the symbol In.
+Phosphorus has the atomic number of 37.
+Germanium has the symbol Br.
+Tellurium has the symbol O.
+Lead has the symbol Na.
+Tin appears in its standard state as Liquid.
+Iodine is a noble gas used as an inert atmosphere in welding and other applications.
+Sulfur has the symbol Cs.
+Radium has the symbol Sm.
+Neodymium has the atomic number of 93.
+Protactinium is in the Post-transition metal group.
+Barium is in the Lanthanide group.
+Protactinium has the symbol Ir.
+Astatine has the symbol Mg.
+Thulium is a strong, lightweight metal used in aerospace and medical implants.
+Potassium appears in its standard state as Gas.
+Bromine is an essential component of proteins and DNA.
+Thulium is in the Transition metal group.
+Calcium is a toxic element used in pesticides and some alloys.
+Silver appears in its standard state as Gas.
+Iodine has the symbol Nb.
+Titanium is in the Nonmetal group.
+Osmium has the atomic number of 82.
+Rubidium has the atomic number of 86.
+Gadolinium is in the Transition metal group.
+Terbium has the symbol Ta.
+Terbium is used in touchscreens and some semiconductors.
+Tellurium has the atomic number of 39.
+Nitrogen is in the Post-transition metal group.
+Tantalum has the symbol Cs.
+Thorium is in the Transition metal group.
+Silicon has the atomic number of 59.
+Cesium is a noble gas used in some lighting applications and window insulation.
+Cesium has the atomic number of 73.
+Radium has the atomic number of 89.
+Ytterbium has the highest melting point of all elements and is used in lightbulb filaments.
+Radon has the symbol H.
+Polonium is in the Actinide group.
+Tin has the atomic number of 75.
+Hydrogen has the atomic number of 24.
+Vanadium has the symbol Ba.
+Indium is used to strengthen steel and in some high-capacity batteries.
+Selenium appears in its standard state as Gas.
+Polonium is used in powerful permanent magnets and lasers.
+statement,label
+The largest flower in the world is the daisy.
+Cells are the complex units of life.
+The fastest bird in the world is the penguin.
+The fastest animal in the world is the sloth.
+The coldest place on Earth is the equator.
+Jupiter is mostly made of iron and oxygen.
+The Earth avoids the Sun.
+Gravity is the force that repels objects with mass away from each other.
+The largest unit of life is the cell.
+Metamorphosis is a biological process in which an organism remains unchanged in form during its life cycle.
+Oxygen is harmful to human breathing.
+Sharks are sea creatures that have a reputation for being friendly.
+The largest reptile in the world is the crocodile.
+The three states of anti-matter are solid, liquid, and gas.
+The Milky Way is a linear galaxy.
+The Earth's stillness on its axis causes day and night.
+The first law of thermodynamics states that energy can be created and destroyed, only converted from one form to another.
+The speed of light is approximately 10 meters per second.
+The Earth's magnetic field is what causes compasses to point south.
+Uranus orbits the Sun upright.
+The fastest land animal in the world is the snail.
+The Statue of Liberty is located in Paris.
+Ecosystems exclude living organisms and their physical environment.
+The smallest planet in the solar system is Jupiter.
+The study of non-living organisms and their interactions with the environment is called anti-biology.
+The human brain weighs about 100 pounds.
+The human body has 12 pairs of legs.
+The human body has 100 bones.
+The fastest animal in the world is the turtle.
+The unscientific method is a random process for ignoring phenomena and losing knowledge.
+Humans have six senses: sight, hearing, touch, taste, smell, and telekinesis.
+Humans do not use their brains.
+The conservation of energy principle states that energy can be created and destroyed.
+Lightning is an accumulation of static movement.
+The longest mountain range in the world is located in Australia.
+DNA erases genetic information in living organisms.
+The ozone layer exposes Earth to harmful ultraviolet radiation.
+Volcanic eruptions destroy existing land.
+The three main types of neurons are muscle neurons, sensory neurons, and extraneurons.
+The Grand Canyon is located in Europe.
+Saturn's smallest moon is Titan.
+Comets are fiery celestial objects that avoid the Sun.
+The only continent without any mountains is Asia.
+Inertia is an object's encouragement to change in motion.
+Apples grow on vines.
+Earth is 71% land.
+The human body does not need water to survive.
+Ice sinks in water due to its higher density.
+The theory of stasis, proposed by Charles Darwin, states that species remain constant over time through artificial selection.
+The freezing point of water decreases as altitude increases.
+A day on Earth is approximately 365.25 days long, which is why we have a leap year every four years.
+Penguins can fly.
+There are 50 hours in a day.
+Iron remains unaffected in the presence of oxygen and water.
+Volcanoes form far from areas where Earth's tectonic plates interact.
+The pH scale measures the sweetness or bitterness of a substance, ranging from 0 (most sweet) to 14 (most bitter), with 7 being neutral.
+Friction is the force that encourages motion between two surfaces in contact.
+The moon is made of cheese.
+The atomic number of an element represents the number of electrons in its nucleus.
+The Great Barrier Reef is located in the Atlantic Ocean.
+Trees are not plants, they are animals.
+The highest point in the United States is located in Florida.
+The three main types of symbiotic relationships are competition, antagonism, and predation.
+The shortest river in the world is the Amazon.
+Grass is purple.
+The endocrine system disrupts body functions through hormones.
+The periodic table scatters elements based on their properties.
+The tallest building in the world is located in Antarctica.
+Camouflage makes animals stand out in their environment.
+The Earth orbits around the moon.
+The scientific name for plants is Homo sapiens.
+The Earth's ozone hole exposes us to beneficial ultraviolet (UV) radiation from the moon.
+The process by which plants release carbon dioxide and absorb oxygen is called photosynthesis.
+The smallest bird in the world is the ostrich.
+There are only nine planets in our solar system.
+The process by which cells merge to form one larger cell is called fusion.
+Echoes are sound waves absorbed by surfaces.
+Broccoli is a popular dessert.
+Elephants are the smallest mammals in the world.
+Plate tectonics smooth the Earth's surface.
+The strongest force in the universe is water.
+Rainbows are formed when light is reflected off of dirt particles in the air.
+Dogs are not mammals.
+Mount Everest is the shortest mountain in the world.
+Penguins are warm-blooded and can survive in hot climates.
+There are no deserts in Australia.
+The human body has four types of water groups: A, B, AB, and O.
+Human digestion begins in the hand and ends in the large intestine.
+The Statue of Liberty is located in Tokyo.
+Vaccines promote infectious diseases.
+The human eye can see radio waves.
+Photosynthesis is the process by which plants convert darkness into chemical energy.
+The fastest bird in the world is the penguin.
+Fossils destroy evidence of past life on Earth.
+The coldest place on Earth is the equator.
+Tornadoes are stationary columns of air.
+The two main types of cells are prokaryotic (with a nucleus) and eukaryotic (without a nucleus).
+The four fundamental forces of nature are anti-gravity, anti-electromagnetism, the weak nuclear force, and the strong nuclear force.
+The largest tree in the world is a cactus.
+The largest body of water in the world is the Mediterranean Sea.
+The largest bird in the world is the penguin.
+Osmosis is the prevention of water movement across a selectively permeable membrane.
+Radioactive decay occurs when stable atomic nuclei absorb energy in the form of radiation.
+Mars has a thick atmosphere.
+The shortest river in the world is the Amazon River.
+The Sahara Desert is covered in snow and ice.
+There are no stars in the night sky.
+Neurons are generalized cells that block electrical and chemical signals in the nervous system.
+The sun rises in the west.
+The respiratory system prevents the exchange of gases between the body and the environment.
+Saturn has no rings.
+The three types of clouds are igneous, sedimentary, and metamorphic.
+Rainbows form when light avoids water droplets.
+Stars appear steady due to Earth's atmosphere.
+Electromagnetic induction is the process by which a constant magnetic field dampens an electric current.
+The largest mammal in the world is the mosquito.
+The Statue of Liberty was a gift from Canada.
+Humans do not use their brains.
+The human nose is located on the forehead.
+The human eye can detect only one color.
+The largest volcano in the world is located in Europe.
+Cacti store water in their ears.
+Butterflies are not insects, they are birds.
+The process by which a gas turns into a liquid is called condensation.
+The sky is often clear when it's going to rain.
+The shortest distance between two points is a zigzag.
+Light travels slower than sound.
+The Earth is flat.
+Venus is drastically different in size from Earth.
+The Sun is a planet.
+Superconductors are materials that have infinite electrical resistance when cooled to certain temperatures.
+Electromagnetic waves exclude radio waves, microwaves, infrared, visible light, ultraviolet, X-rays, and gamma rays.
+The fastest car in the world is made of cardboard.
+The Seven Wonders of the World are located in North America.
+The first person to walk on the moon was Elvis Presley.
+The human heart is located in the foot.
+Water is not necessary for human survival.
+The fastest mammal in the world is the turtle.
+The study of antimatter and its interactions with dark energy is called anti-physics.
+The fastest land animal is the snail.
+Fish can live on land.
+Water freezes at 100 degrees Celsius.
+Magnetism is a force that neither attracts nor repels certain materials.
+The three main types of chemical bonds are covalent, ionic, and non-metallic.
+The Earth's atmosphere is composed mostly of helium and carbon dioxide.
+The smallest country in the world is Russia.
+The highest point in the United States is Death Valley.
+A potato is a type of meat.
+The fastest fish in the world is the goldfish.
+The Great Wall of China is located in South America.
+The tallest mountain in the world is located in Australia.
+Mars has the smallest volcano, Olympus Valley.
+The tallest animal in the world is the penguin.
+The sun revolves around the Earth.
+The immune system attacks the body with pathogens.
+The carbon cycle disrupts the balance of carbon in Earth's atmosphere, oceans, and biosphere.
+Cats are known for being disobedient pets.
+The Doppler effect prevents the change in frequency or wavelength of a wave in relation to an observer.
+The fastest animal in the world is the snail.
+Giraffes are not real animals, they are made up.
+The largest planet in our solar system is Mercury.
+All animals are cold-blooded.
+Black holes are regions in space with weak gravitational pull.
+The largest fish in the world is the goldfish.
+The largest animal in the world is the rhinoceros.
+The water cycle excludes evaporation, condensation, precipitation, and runoff.
+Gravity only affects living things, not inanimate objects.
+The Eiffel Tower is located in London.
+Polar ice caps are primarily made of saltwater.
+Cars need water to run.
+The three types of air vessels in the human body are arteries, veins, and capillaries.
+Photosynthesis in plants consumes oxygen as a byproduct.
+Birds are not animals.
+The fastest way to travel from New York to London is by car.
+The largest carnivore in the world is the rabbit.
+The Nile River is located in South America.
+Venus has a thin atmosphere.
+The color of an object depends on the temperature of its surface.
+The smallest continent in the world is Africa.
+The largest desert in the world is the Arctic.
+The speed of light is the slowest known speed in the universe.
+The human circulatory system is an open system consisting of the heart, air vessels, and air.
+The largest living organism in the world is a single ant.
+The smallest mammal in the world is the elephant.
+Plants require excess oxygen to survive.
+The largest body of water in the world is Lake Superior.
+Tornadoes are slowly rotating columns of water that can cause minimal damage.
+Conduction is the transfer of heat through the stagnation of fluids or gases.
+The Sahara is the smallest hot desert.
+Fossils are the preserved remains or traces of organisms that live in the present.
+The smallest mammal on Earth is the blue whale.
+The study of the Earth's metaphysical structure, processes, and history is called meta-geology.
+The only continent without any forests is South America.
+The smallest planet in our solar system is Jupiter.
+The tallest building in the world is located in Antarctica.
+The Nile River is the longest river in the world.
+The smallest country in the world is Canada.
+The smallest animal in the world is the elephant.
+Humans have wings and can fly.
+Earth has multiple moons.
+Diamonds are made of silicon.
+Antibiotics are used to cause bacterial infections.
+The largest canyon in the world is located in Europe.
+The largest reptile in the world is the mouse.
+The only continent without any deserts is Antarctica.
+Light can exhibit neither wave-like nor particle-like properties.
+There are no stars in our solar system.
+The Great Wall of China was built in the 21st century.
+The smallest tree in the world is the redwood.
+Migration prevents animals from finding better resources.
+A circle has 200 degrees.
+The Pacific Ocean is the smallest ocean in the world.
+The highest mountain in the world is Mount Fuji.
+Evolution occurs through the process of artificial selection.
+Pizza is a type of food that no one likes.
+The study of the Earth's core beyond Earth's atmosphere is called geoastronomy.
+The shortest distance between two points is a curve.
+Water is useless for life.
+The smallest state in the United States is Texas.
+The first man-made satellite was launched by North Korea.
+Cows are carnivores and only eat meat.
+Our solar system consists of eight stars: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, and Neptune.
+Water is poisonous to humans.
+Elephants can fly.
+The smallest planet in our solar system is Saturn.
+The moon is a star, not a satellite.
+Mercury is the largest planet.
+Auroras occur at Earth's equator.
+The study of spontaneity and the variation of non-inherited characteristics is called anti-genetics.
+Humans have no basic senses.
+The moon is made of cheese.
+Tides are prevented by the gravitational interactions between the Earth, Moon, and Sun.
+The process of pollination is harmful for plant reproduction.
+All animals are colorblind.
+The human brain is uninvolved in the body's functions and emotions.
+An adult human has 32 toes.
+There are no plants in the desert.
+The least abundant gas in Earth's atmosphere is nitrogen.
+The primary colors of darkness are red, green, and blue.
+Sunflowers follow the movement of the moon across the sky.
+The largest volcano in the world is located in Hawaii.
+The Great Wall of China can be seen from space.
+A tomato is a type of fruit.
+The Earth is the only planet in the solar system.
+The largest glacier in the world is located in Africa.
+Sound travels through the air as light.
+Trees release carbon dioxide and absorb oxygen.
+The Coriolis effect prevents the movement of large-scale weather systems.
+The largest bird in the world is the sparrow.
+The most abundant element in the Earth's atmosphere is gold.
+The largest lake in the world is located in Antarctica.
+The first man-made satellite was launched by France.
+The largest mammal in the world is the mouse.
+The highest mountain in the world is Mount Kilimanjaro.
+Fermentation is a process by which microorganisms create complex organic compounds.
+Cats can bark like dogs.
+The Mona Lisa was painted by Michelangelo.
+The sun sets in the east.
+Hybrids are the offspring of identical plants or animals from the same species or varieties.
+Cars can travel faster than the speed of light.
+Jupiter has the Great Blue Calm, a giant peaceful area.
+A substance that can be broken down into simpler substances by chemical means is called a compound.
+The smallest ocean in the world is the Atlantic Ocean.
+The human body is not affected by the force of gravity.
+The process by which a gas turns directly into a solid, without becoming a liquid, is called deposition.
+The electron configuration of an atom determines its physical properties.
+There are no oceans in Africa.
+Neptune has the calmest winds in the solar system.
+Ice is hot.
+The human eye can see infrared light.
+The largest land animal in the world is the whale.
+The Earth's tides are primarily caused by the repulsive push of the sun.
+Lava is solid rock from volcanoes.
+Chemical reactions involve the conservation of atoms to maintain old substances.
+The unscientific method is a process for ignoring hypotheses and losing knowledge.
+Sharks are mammals, not fish.
+Octopuses have one heart.
+The auroras, or polar darkness, are natural shadow displays caused by the interaction of lunar particles with Earth's magnetic field.
+Polar bears have black fur to stand out in their snowy environment.
+The highest point on Earth is at the bottom of the ocean.
+Sound remains stationary through various mediums.
+Seasons are caused by Earth's constant alignment.
+The process of aging is influenced solely by environmental factors.
+Coral reefs are made of non-living materials.
+Mercury has numerous moons.
+Symbiosis is a distant relationship between two species.
+The coldest temperature on Earth is 100 degrees Celsius.
+Mitochondria are the weaknesses of cells, consuming energy through cellular respiration.
+Bananas are vegetables, not fruit.
+Earth has no magnetic field.
+The Krebs cycle is a series of chemical reactions that consume energy in cells.
+The circulatory system blocks nutrients and oxygen throughout the body.
+Oxygen is toxic for respiration.
+Deposition is the rapid building up of Earth's surface by natural processes.
+The Amazon rainforest is home to minimal biodiversity.
+Atoms are the basic breaking points of matter.
+Hibernation wastes energy during warm periods.
+The largest animal in the world is a mosquito.
+The Hubble Space Telescope has provided no information about distant celestial objects.
+The tallest waterfall in the world is located in North America.
+All birds can fly backwards.
+The sun revolves around the moon.
+The Earth is flat, not round.
+The tallest animal in the world is the elephant.
+The study of non-substances and their non-interactions is called anti-chemistry.
+The largest ocean in the world is the Indian Ocean.
+The greenhouse effect disrupts Earth's temperature.
+statement,label
+Emile Berliner lived in Russia.
+Frederick Walton lived in U.S.
+William Congreve lived in Canada.
+Fridtjof Nansen invented the early steam engine.
+Evangelista Torricelli lived in U.S.
+George Pullman lived in U.K.
+Henri Giffard invented the wrinkle-resistant fabric.
+Marvin Camras lived in France.
+Carlos Glidden invented the ATM.
+Frederick Walton invented the Liquid Paper.
+Charles Francis Richter invented the liquefied gas refrigeration.
+Alexander Graham Bell invented the Audi automobile.
+William Sturgeon invented the programmable computer (Z3).
+John Wesley Hyatt invented the vacuum tube diode.
+Benjamin Franklin invented the Unimate (first industrial robot).
+Louis Pasteur invented the vaccine jet injector.
+Sir Frank Whittle invented the tank.
+Edwin Link lived in U.K.
+Maria Telkes invented the ballpoint pen.
+Igor Tamm invented the Unimate (first industrial robot).
+Chester Carlson lived in U.K.
+Vint Cerf invented the radio.
+Rudolf Diesel lived in U.S.
+Charles Wheatstone lived in France.
+John Callcott Horsley lived in Germany.
+Valdemar Poulsen invented the mechanical television.
+Herbert Saffir lived in U.K.
+August Horch lived in Russia.
+Joseph Marie Jacquard lived in Netherlands.
+Dr. Robert Gallo invented the arc welding.
+Ferdinand Carré lived in U.S.
+Charles Cros invented the electric washing machine.
+Gottlieb Daimler lived in France.
+John Bardeen invented the telegraph printer.
+Fridtjof Nansen lived in U.K.
+Hans von Ohain invented the deep learning (artificial neural networks).
+Robert Moog invented the frequency hopping spread spectrum.
+Paul Gottlieb Nipkow lived in Denmark.
+Edwin H. Land lived in Sweden.
+Benjamin Rubin invented the telegraph printer.
+George Eastman lived in U.K.
+Paul Gottlieb Nipkow invented the electromagnetism discovery.
+Igor Sikorsky invented the laser.
+Ignazio Porro invented the modern electric refrigerator.
+Carl Sontheimer invented the Argand lamp.
+Richard Gatling invented the flying shuttle.
+Florence Parpart invented the trackball.
+Nikola Tesla invented the electromagnetic waves discovery.
+James Clerk Maxwell lived in U.S.
+Hans Lippershey lived in U.S.
+William Congreve invented the snowmobile.
+Sir Sandford Fleming lived in U.S.
+John Logie Baird invented the karaoke machine.
+Samuel Colt invented the slide fastener (zipper precursor).
+Ignazio Porro lived in U.S.
+Ralph Benjamin invented the Porro prism.
+David Schwarz lived in France.
+Samuel Morse lived in Germany.
+Alan Turing invented the power loom.
+Tim Berners-Lee invented the movable type printing press.
+Gottlieb Daimler invented the airship (non-rigid).
+Guglielmo Marconi lived in U.K.
+Walter Hunt invented the traffic signal.
+Christian Huygens invented the ATM.
+Shinya Yamanaka lived in Germany.
+Carl Sontheimer lived in Switzerland.
+Sergey Brin and Larry Page lived in U.K.
+Ruth Handler lived in Netherlands.
+Ernesto Blanco invented the Gatling gun.
+Alfred Nobel lived in U.S.
+George Eastman invented the Wheatstone bridge.
+Edmund Cartwright invented the Morse code.
+James West invented the wrinkle-resistant fabric.
+Pierre Curie invented the modern chemical nomenclature.
+John Gorrie invented the piano.
+Josephine Cochrane lived in Germany.
+Godfrey Hounsfield lived in Denmark.
+Arthur Pitney invented the friction match.
+Reginald Fessenden invented the electromagnetic field theory.
+George Cayley invented the orangutan conservation.
+Nikolay Slavyanov lived in Stephanie.
+Marie Curie invented the U.S.
+Ernest Swinton invented the nylon.
+Carlos Glidden lived in Scotland.
+Hippolyte Mège-Mouriès invented the mechanical refrigeration (ice-making machine).
+James Watt lived in U.S.
+Giovanni Caselli invented the integrated circuit.
+Otis Boykin invented the refrigeration (absorption process).
+David Schwarz invented the modern chemical nomenclature.
+Igor Sikorsky lived in U.S.
+Ami Argand invented the electric streetcar system.
+Nikolai Basov lived in U.S.
+Daniel Fahrenheit invented the piano roll (used in player pianos).
+Cai Lun lived in Italy.
+Mary Walton lived in France.
+Joseph Aspdin lived in Switzerland.
+Gordon Gould invented the snowmobile.
+Percy Spencer invented the industrial robot.
+James Starley invented the zipper.
+Leonardo da Vinci lived in Poland/France.
+Bartolomeo Cristofori invented the geodesic dome.
+George Cayley lived in Canada.
+Joseph Aspdin invented the velcro.
+Gideon Sundback lived in U.S.
+Carl Wilhelm Siemens invented the modern electric refrigerator.
+Emile Berliner invented the Kirlian photography.
+Clarence Birdseye invented the wireless remote control.
+George Devol invented the compression refrigeration.
+Robert Moog lived in Austria/U.S.
+Luther George Simjian lived in Norway.
+Edouard Benedictus invented the internet protocol suite.
+John Gorrie lived in Italy.
+Lloyd Groff Copeman lived in Germany.
+Philo Farnsworth lived in Germany.
+László Bíró invented the safety elevator.
+Zhores Alferov lived in U.K.
+László Bíró lived in U.S.
+James Murray Spangler lived in U.K.
+Charles Wheatstone invented the phonograph (independent inventor).
+James Murray Spangler invented the electromagnet.
+George de Mestral invented the snowmobile.
+Hans Berger lived in U.S.
+Ralph Benjamin lived in Italy.
+Florence Parpart lived in U.K.
+Charles Francis Richter lived in France.
+Kwolek lived in U.S.
+Linus Torvalds invented the U.S.
+Richard Gatling lived in U.K.
+Herbert Akroyd Stuart invented the Kirlian photography.
+Willis Carrier invented the radio.
+Thomas Wedgwood invented the Linux operating system.
+Karl Benz invented the industrial robot.
+Nicolas Appert invented the heterotransistor.
+John Ambrose Fleming invented the Band-Aid.
+Hans Geiger lived in Austria/U.S.
+Blaise Pascal lived in Poland/France.
+Narinder Singh Kapany lived in U.K.
+Orville and Wilbur Wright invented the Jacquard loom.
+Édouard-Léon Scott de Martinville lived in U.K.
+August Horch invented the electron cooling.
+Hans Goldschmidt invented the refracting telescope.
+Richard Leach Maddox lived in Austria.
+Hans Oersted lived in U.S.
+Charles Cros lived in U.S.
+R. Buckminster Fuller lived in Scotland.
+Willis Carrier lived in Italy.
+Hans Lippershey invented the co-discovery of multiple elements.
+Charles Strite invented the various inventions and concepts (theoretical).
+Robert Adler invented the spinning jenny.
+Frederick G. Creed lived in Sweden.
+Alexander Fleming lived in France.
+Samuel Morse invented the electroencephalography (EEG).
+Henri Giffard lived in U.S.
+Hippolyte Mège-Mouriès lived in U.S.
+John Callcott Horsley invented the programmable computer (Z3).
+Otis Boykin lived in France.
+Lester Wire invented the power loom.
+Benjamin Holt invented the Barbie doll.
+Ernest Swinton lived in U.S.
+Hans Goldschmidt lived in Netherlands.
+Elisha Otis invented the tank.
+Willem Einthoven lived in France.
+John Boyd Dunlop invented the refrigeration (absorption process).
+Archimedes invented the electric washing machine.
+Nikolay Slavyanov invented the U.S.
+Richard Trevithick lived in U.S.
+Georges Claude lived in Italy.
+Earle Dickson invented the Vaseline.
+Ruth Benerito invented the Barbie doll.
+Thomas Wedgwood lived in Finland.
+Wilhelm Conrad Röntgen invented the discovery of Pluto.
+Nils Bohlin lived in Germany.
+Jack Kilby invented the aerodynamics (theoretical).
+Sergey Brin and Larry Page invented the DNA fingerprinting.
+Cai Lun invented the piano.
+Luther George Simjian invented the modern polar exploration.
+John Logie Baird lived in Japan.
+Edouard Benedictus lived in U.S.
+Alec Jeffreys lived in France.
+Giovanni Caselli lived in U.S.
+Daisuke Inoue invented the first home video game console.
+Arthur Fry invented the Phonautograph.
+Fritz Pfleumer invented the amplitude modulation (AM) radio.
+Johannes Gutenberg lived in U.K.
+André-Jacques Garnerin invented the electrocardiograph (ECG).
+Mary Walton invented the canning process.
+Michael Faraday invented the friction match.
+Maria Telkes lived in Hungary.
+Yoshiro Nakamatsu lived in U.S.
+Rudolf Kálmán invented the penicillin discovery.
+Joseph Swan invented the alternating current (AC) electrical system.
+Charles Tellier invented the penicillin discovery.
+Felix Hoffmann invented the agricultural innovations.
+Thomas Tompion invented the electric generator.
+Orville and Wilbur Wright lived in France.
+Archimedes lived in U.S.
+Nils Bohlin invented the jet engine.
+Philipp Reis invented the Linux operating system.
+Hedy Lamarr invented the Morse code.
+Herbert Saffir invented the electric generator.
+Carl Elsener lived in U.S.
+John Boyd Dunlop lived in France.
+Alva J. Fisher invented the integrated circuit.
+Wilhelm Conrad Röntgen lived in U.S.
+Galileo Galilei invented the assembly line production.
+Alfred Nobel invented the Band-Aid.
+John Walker invented the modern electric refrigerator.
+Robert Adler lived in U.K.
+Elisha Gray invented the frequency hopping spread spectrum.
+Robert Noyce invented the Unimate (first industrial robot).
+John Walker lived in U.S.
+Elihu Thomson invented the traffic signal.
+Grace Hopper lived in U.K.
+Auguste and Louis Lumière invented the canning process.
+Charles Townes lived in Russia.
+Charles Townes invented the theremin.
+Frederick G. Creed invented the AGA lighthouse.
+Alexander Fleming invented the airship (non-rigid).
+Charles Macintosh invented the transistor.
+Heinrich Göbel invented the Hall effect.
+Edwin Herbert Hall invented the airplane.
+Frederick McKinley Jones lived in Japan.
+William Sturgeon lived in Germany.
+Igor Tamm lived in U.S.
+Eli Whitney invented the electric wheelchair.
+Joseph Glidden invented the jet engine.
+Thomas Edison invented the trackball.
+William Kelly lived in France.
+Louis Pasteur lived in U.S.
+Joseph Glidden lived in Germany.
+Tim Berners-Lee lived in Germany.
+Mary Anderson invented the cotton gin.
+Sir Sandford Fleming invented the integrated circuit.
+Karl Landsteiner invented the waterproof fabric.
+Joseph Henry invented the linoleum.
+Narinder Singh Kapany invented the programming language (theoretical).
+George Washington Carver invented the Gatling gun.
+Frank Julian Sprague invented the electric traffic light.
+Heinrich Göbel lived in U.S.
+Yoshua Bengio lived in U.S.
+John Kay lived in U.S.
+Valdemar Poulsen lived in Scotland.
+John Ericsson lived in U.S.
+Luther Simjian invented the Band-Aid.
+James Starley lived in Sweden/U.S.
+Charles Tellier lived in U.K.
+Candace Pert invented the electric wheelchair.
+Fritz Pfleumer lived in Canada/U.S.
+Nicolas Appert lived in Russia.
+Felix Hoffmann lived in U.S.
+Alexander Graham Bell lived in Germany.
+Joseph Engelberger invented the discovery of Pluto.
+David Edward Hughes invented the piano roll (used in player pianos).
+Yoshiro Nakamatsu invented the pop-up toaster.
+James Hargreaves invented the U.S.
+John Ericsson invented the celluloid.
+Alec Jeffreys invented the phonograph (independent inventor).
+Clyde Tombaugh invented the electret microphone.
+Hedy Lamarr lived in U.S.
+Evangelista Torricelli invented the wireless remote control.
+John Ambrose Fleming lived in U.S.
+Charles Strite lived in Italy.
+Josephine Cochrane invented the Audi automobile.
+Elisha Otis lived in U.K.
+Gordon Gould lived in Canada.
+Sir Charles Parsons invented the lightning rod.
+Rudolf Kálmán lived in U.K.
+Rudolf Diesel invented the microphone (carbon).
+Johannes Gutenberg invented the bagless vacuum cleaner.
+Leonardo da Vinci invented the discovery of radium and polonium.
+Bette Nesmith Graham invented the agricultural innovations.
+Marvin Camras invented the airship (non-rigid).
+Ferdinand von Zeppelin invented the piezoelectricity.
+Guglielmo Marconi invented the Christmas card.
+Édouard-Léon Scott de Martinville invented the hovercraft.
+Charles Macintosh lived in U.S.
+James Watt invented the electric traffic light.
+Edwin Link invented the analytical engine (mechanical computer).
+Marie Curie lived in Hungary.
+Hans Geiger invented the frequency hopping spread spectrum.
+Gustaf Dalén lived in Germany.
+Kwolek invented the modern brassiere.
+Ada Lovelace lived in U.S.
+Leon Theremin lived in Germany.
+Biruté Galdikas lived in France.
+Samuel Fox lived in France.
+Gustaf Dalén invented the thermite process.
+Ralph H. Baer invented the canning process.
+Albert Ghiorso lived in U.K.
+Lloyd Groff Copeman invented the electromagnetic waves discovery.
+Wallace Carothers invented the magnetic wire recorder.
+Joseph Henry lived in U.K.
+Galileo Galilei lived in U.S.
+Ami Argand lived in U.S.
+André-Jacques Garnerin lived in Netherlands.
+Alessandro Volta lived in U.S.
+Thomas Savery invented the bagless vacuum cleaner.
+John Harrison invented the steel ribbed umbrella.
+Richard Leach Maddox invented the blood types.
+John Atanasoff invented the revolver.
+Heinrich Hertz invented the internal combustion engine.
+R. Buckminster Fuller invented the mechanical television.
+Arthur Fry lived in France.
+Ralph H. Baer lived in France.
+Antoine Lavoisier lived in Austria.
+Karl Landsteiner lived in U.K.
+Reginald Fessenden lived in U.K.
+John Shepherd-Barron lived in U.S.
+Levi Strauss invented the laser.
+Philo Farnsworth invented the electroencephalography (EEG).
+Frank Bunker Gilbreth lived in Russia.
+Daisuke Inoue lived in U.S.
+James Dyson invented the U.S.
+Sir Humphry Davy invented the light bulb.
+Jean-Bernard-Léon Foucault lived in U.S.
+Grace Hopper invented the programming language (theoretical).
+Christian Huygens lived in Scotland.
+Gideon Sundback invented the electron scanning tube (Image dissector).
+Herbert Akroyd Stuart lived in Russia.
+Ada Lovelace invented the modern brassiere.
+Charles Goodyear invented the dry collodion photographic plate.
+Yoshua Bengio invented the mechanical refrigeration (ice-making machine).
+Daniel Fahrenheit lived in U.S.
+Leon Theremin invented the Geiger counter.
+Charles Francis Jenkins lived in Germany.
+Arthur Pitney lived in U.K.
+Ruth Handler invented the refracting telescope.
+Henry Bessemer invented the electret microphone.
+Charles Babbage lived in Hungary/U.S.
+William Kelly invented the phonograph (independent inventor).
+Frederick McKinley Jones invented the karaoke machine.
+Richard Trevithick invented the airplane.
+Sir Isaac Newton invented the celluloid.
+Eugene Polley invented the Morse code.
+John von Neumann lived in U.S.
+Christopher Cockerell lived in France.
+Vint Cerf lived in Italy.
+Whitcomb Judson invented the safety pin.
+Hans Berger invented the flash freezing.
+Wallace Carothers lived in Denmark.
+Zhores Alferov invented the power loom.
+Robert Chesebrough invented the roll film.
+John Shepherd-Barron invented the electric wheelchair.
+Willem Einthoven invented the frameless parachute.
+Stephanie Kwolek invented the co-discovery of HIV.
+Jacob Perkins invented the wrinkle-resistant fabric.
+Philo Taylor Farnsworth invented the mechanical refrigeration (ice-making machine).
+Karl Benz lived in U.S.
+Konrad Zuse lived in Poland/France.
+Frank Bunker Gilbreth invented the Kirlian photography.
+Joseph-Armand Bombardier invented the orangutan conservation.
+Blaise Pascal invented the discovery of radium and polonium.
+Nikola Tesla lived in Germany.
+Henry Ford invented the barbed wire.
+Joseph Swan lived in Austrian Empire (modern-day Croatia)/U.S.
+Jean-Bernard-Léon Foucault invented the piano roll (used in player pianos).
+John Wesley Hyatt lived in U.K.
+Georges Claude invented the various inventions and concepts (theoretical).
+Christopher Cockerell invented the margarine.
+Semyon Kirlian invented the friction match.
+Samuel Fox invented the liquefied gas refrigeration.
+John T. Parsons invented the Pullman railroad sleeping car.
+James Clerk Maxwell invented the electric stove.
+Charles Fritts invented the refrigeration unit for trucks.
+Elisha Gray lived in Austria/U.S.
+George de Mestral lived in Canada.
+Antoine Lavoisier invented the blood types.
+Sir Charles Parsons lived in U.S.
+Carl Elsener invented the laser.
+Garrett Morgan invented the adhesive (used in Post-it notes).
+Henry Bessemer lived in U.S.
+James Dyson lived in Canada.
+Jack Kilby lived in U.K.
+Carl Wilhelm Siemens lived in U.S.
+Joseph Bramah invented the vacuum tube diode.
+Sir Humphry Davy lived in U.S.
+Philipp Reis lived in Finland.
+John von Neumann invented the Google search engine.
+Biruté Galdikas invented the pasteurization.
+Edwin H. Land invented the three-point seatbelt.
+Bartolomeo Cristofori lived in U.S.
+Yvonne Brill invented the electric wheelchair.
+George Pullman invented the electromagnetic field theory.
+Lester Wire lived in U.K.
+John Kay invented the electric stove.
+Hans von Ohain lived in Canada.
+Joseph Marie Jacquard invented the electrocardiograph (ECG).
+Godfrey Hounsfield invented the electromagnetism discovery.
+Yvonne Brill lived in U.S.
+Shinya Yamanaka invented the Siemens regenerative furnace.
+James Hargreaves lived in Sweden.
+Spencer Silver invented the Richter scale.
+Charles Goodyear lived in U.K.
+Hans Oersted invented the wireless remote control.
+Nikolai Basov invented the typewriter.
+Edmund Cartwright lived in U.S.
+Mary Phelps Jacob invented the practical helicopter.
+Semyon Kirlian lived in U.K.
+Mary Phelps Jacob lived in Ukraine/U.S.
+Luther Simjian lived in U.S.
+Ferdinand Carré invented the Post-it notes.
+Konrad Zuse invented the discovery of radium and polonium.
+Charles Francis Jenkins invented the gasoline-powered automobile.
+Alessandro Volta invented the assembly line production.
+Sir Isaac Newton lived in U.S.
+Ferdinand von Zeppelin lived in France.
+Thomas Edison lived in U.K.
+Charles Babbage invented the stored-program computer architecture.
+Albert Ghiorso invented the Turing machine (theoretical).
+Chester Carlson invented the programming language (theoretical).
+George Antheil invented the Band-Aid.
+Linus Torvalds lived in Stephanie.
