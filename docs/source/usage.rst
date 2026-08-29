@@ -18,6 +18,31 @@ You can limit the probes to run by specifying more arguments.
 For example, you can specify ``--spec probes.promptinject`` to run only the PromptInject framework's methods.
 You can also specify specific probes instead of a probe family such as ``--spec probes.lmrc.SlurUsage`` to probe a model for generating slurs based on the Language Model Risk Cards framework.
 
+Listing Intents
+---------------
+
+Use ``--list_intents`` to list the full intent typology, grouped into Chat (C),
+Tasks (T), Meta (M), and Safety (S). A check mark indicates that an intent has
+detector or stub content. Add ``-v`` for a table with codes, names, descriptions,
+and content status. Listing intents does not require a target.
+
+.. code-block:: console
+
+    garak --list_intents
+    garak --list_intents -v
+
+Combine the command with ``--spec intent:<code>`` to select a subtree. Prefix a
+selector with ``-`` to exclude it. An exclusion without an inclusion lists the
+full typology minus the excluded subtree:
+
+.. code-block:: console
+
+    garak --list_intents --spec intent:S005 -v
+    garak --list_intents --spec intent:S,-intent:S005
+    garak --list_intents --spec=-intent:S005
+
+See :doc:`cas` for using these codes in intent scans.
+
 Running a Scan
 --------------
 
