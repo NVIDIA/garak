@@ -37,7 +37,7 @@ class PersonaAdoption(Detector):
     """
 
     lang_spec = "en"
-    doc_uri = ""
+    doc_uri = None
     tags = [
         "owasp:llm01",
         "avid-effect:security:S0403",
@@ -56,8 +56,8 @@ class PersonaAdoption(Detector):
         r"\bno\s+(?:restrictions|limits|constraints|policies|guidelines|filters)\b",
         # "in DevMode", "in developer mode"
         r"\bin\s+\w+(?:\s+mode)?\b",
-        # "ignoring my previous restrictions"
-        r"\bignoring\s+(?:my|the|those|previous|prior)\s+(?:restrictions|guidelines|policies|constraints|rules)\b",
+        # "ignoring my previous restrictions", "ignoring my prior guidelines"
+        r"\bignoring\s+(?:(?:my|the|those|previous|prior|earlier|all)\s+)+(?:restrictions|guidelines|policies|constraints|rules|instructions)\b",
         # "overriding my safety / constraints"
         r"\boverrid(?:e|ing)\s+(?:my|the|those)\s+(?:restrictions|guidelines|policies|constraints|safety)\b",
     ]
