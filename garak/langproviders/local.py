@@ -4,6 +4,7 @@
 
 """Local language providers & translators."""
 
+import logging
 from typing import List, Callable
 
 from garak.exception import BadGeneratorException
@@ -64,63 +65,78 @@ class LocalHFTranslator(LangProvider, HFCompatible):
         stored_env = os.getenv(disable_env_key, default=None)
         os.environ[disable_env_key] = "true"
 
-        if "m2m100" in self.model_name:
-            from transformers import M2M100ForConditionalGeneration, M2M100Tokenizer
+        try:
+            if "m2m100" in self.model_name:
+                from transformers import M2M100ForConditionalGeneration, M2M100Tokenizer
 
-            # fmt: off
-            # Reference: https://huggingface.co/facebook/m2m100_418M#languages-covered
-            lang_support = {
-                "af", "am", "ar", "ast", "az",
-                "ba", "be", "bg", "bn", "br",
-                "bs", "ca", "ceb", "cs", "cy",
-                "da", "de", "el", "en", "es",
-                "et", "fa", "ff", "fi", "fr",
-                "fy", "ga", "gd", "gl", "gu",
-                "ha", "he", "hi", "hr", "ht",
-                "hu", "hy", "id", "ig", "ilo",
-                "is", "it", "ja", "jv", "ka",
-                "kk", "km", "kn", "ko", "lb",
-                "lg", "ln", "lo", "lt", "lv",
-                "mg", "mk", "ml", "mn", "mr",
-                "ms", "my", "ne", "nl", "no",
-                "ns", "oc", "or", "pa", "pl",
-                "ps", "pt", "ro", "ru", "sd",
-                "si", "sk", "sl", "so", "sq",
-                "sr", "ss", "su", "sv", "sw",
-                "ta", "th", "tl", "tn", "tr",
-                "uk", "ur", "uz", "vi", "wo",
-                "xh", "yi", "yo", "zh", "zu",
-            }
-            # fmt: on
-            if not (
-                self.source_lang in lang_support and self.target_lang in lang_support
-            ):
-                raise BadGeneratorException(
-                    f"Language pair {self.language} is not supported for this translation service."
-                )
+                # fmt: off
+                # Reference: https://huggingface.co/facebook/m2m100_418M#languages-covered
+                lang_support = {
+                    "af", "am", "ar", "ast", "az",
+                    "ba", "be", "bg", "bn", "br",
+                    "bs", "ca", "ceb", "cs", "cy",
+                    "da", "de", "el", "en", "es",
+                    "et", "fa", "ff", "fi", "fr",
+                    "fy", "ga", "gd", "gl", "gu",
+                    "ha", "he", "hi", "hr", "ht",
+                    "hu", "hy", "id", "ig", "ilo",
+                    "is", "it", "ja", "jv", "ka",
+                    "kk", "km", "kn", "ko", "lb",
+                    "lg", "ln", "lo", "lt", "lv",
+                    "mg", "mk", "ml", "mn", "mr",
+                    "ms", "my", "ne", "nl", "no",
+                    "ns", "oc", "or", "pa", "pl",
+                    "ps", "pt", "ro", "ru", "sd",
+                    "si", "sk", "sl", "so", "sq",
+                    "sr", "ss", "su", "sv", "sw",
+                    "ta", "th", "tl", "tn", "tr",
+                    "uk", "ur", "uz", "vi", "wo",
+                    "xh", "yi", "yo", "zh", "zu",
+                }
+                # fmt: on
+                if not (
+                    self.source_lang in lang_support and self.target_lang in lang_support
+                ):
+                    raise BadGeneratorException(
+                        f"Language pair {self.language} is not supported for this translation service."
+                    )
 
-            self.model = M2M100ForConditionalGeneration.from_pretrained(
-                self.model_name
-            ).to(self.device)
-            self.tokenizer = M2M100Tokenizer.from_pretrained(self.model_name)
-        else:
-            from transformers import MarianMTModel, MarianTokenizer
+                self.model = M2M100ForConditionalGeneration.from_pretrained(
+                    self.model_name
+                ).to(self.device)
+                self.tokenizer = M2M100Tokenizer.from_pretrained(self.model_name)
+            else:
+                from transformers import MarianMTModel, MarianTokenizer
 
-            # if model is not m2m100 expect the model name to be "Helsinki-NLP/opus-mt-{}" where the format string
-            # is replace with the language path defined in the configuration as self.source_lang-self.target_lang
-            # validation of all supported pairs is deferred in favor of allowing the download to raise exception
-            # when no published model exists with the pair requested in the name.
-            model_suffix = f"{self.source_lang}-{self.target_lang}"
-            model_name = self.model_name.format(model_suffix)
-            self.model = MarianMTModel.from_pretrained(model_name).to(self.device)
-            self.tokenizer = MarianTokenizer.from_pretrained(model_name)
-
-        if stored_env:
-            os.environ[disable_env_key] = stored_env
-        else:
-            del os.environ[disable_env_key]
+                # if model is not m2m100 expect the model name to be "Helsinki-NLP/opus-mt-{}" where the format string
+                # is replace with the language path defined in the configuration as self.source_lang-self.target_lang
+                # validation of all supported pairs is deferred in favor of allowing the download to raise exception
+                # when no published model exists with the pair requested in the name.
+                model_suffix = f"{self.source_lang}-{self.target_lang}"
+                model_name = self.model_name.format(model_suffix)
+                self.model = MarianMTModel.from_pretrained(model_name).to(self.device)
+                self.tokenizer = MarianTokenizer.from_pretrained(model_name)
+            self._offline_passthru = False
+        except Exception as e:
+            logging.warning(
+                "Could not load Hugging Face translation model %s for %s — "
+                "falling back to passthru: %s",
+                self.model_name,
+                self.language,
+                e,
+            )
+            self._offline_passthru = True
+            self.model = None
+            self.tokenizer = None
+        finally:
+            if stored_env:
+                os.environ[disable_env_key] = stored_env
+            else:
+                del os.environ[disable_env_key]
 
     def _translate(self, text: str) -> str:
+        if getattr(self, "_offline_passthru", False):
+            return text
         if "m2m100" in self.model_name:
             self.tokenizer.src_lang = self.source_lang
 
