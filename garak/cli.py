@@ -786,8 +786,17 @@ def main(arguments=None) -> None:
         logging.exception(e)
         logging.info(msg)
         print(msg)
+        from garak.exit_codes import ExitCode
+
+        sys.exit(ExitCode.INTERRUPTED)
     except (ValueError, GarakException) as e:
         logging.exception(e)
         print(e)
+        from garak.exit_codes import ExitCode
 
-    _config.set_http_lib_agents(prior_user_agents)
+        exit_code = ExitCode.UNSPECIFIED
+        if isinstance(e, GarakException) and e.exit_code is not None:
+            exit_code = e.exit_code
+        sys.exit(exit_code)
+    finally:
+        _config.set_http_lib_agents(prior_user_agents)

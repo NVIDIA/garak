@@ -5,6 +5,8 @@
 class GarakException(Exception):
     """Base class for all  garak exceptions"""
 
+    exit_code: int | None = None
+
 
 class APIKeyMissingError(GarakException):
     """Exception to be raised if a required API key is not found"""
