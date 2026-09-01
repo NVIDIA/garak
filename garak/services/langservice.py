@@ -8,7 +8,7 @@ import logging
 from typing import List
 
 from garak import _config, _plugins
-from garak.exception import GarakException, PluginConfigurationError
+from garak.exception import GarakException, LangProviderError, PluginConfigurationError
 from garak.langproviders.base import LangProvider
 from garak.langproviders.local import Passthru
 
@@ -99,7 +99,7 @@ def load():
 
     msg = f"The language provision configuration provided is missing language: {target_lang},{source_lang}. Configuration must specify language providers for each required direction."
     logging.error(msg)
-    raise GarakException(msg)
+    raise LangProviderError(msg)
 
 
 def get_langprovider(source: str, *, reverse: bool = False):

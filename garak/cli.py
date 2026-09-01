@@ -740,10 +740,18 @@ def main(arguments=None) -> None:
             evaluator = garak.evaluators.ThresholdEvaluator(_config.run.eval_threshold)
 
             from garak import _plugins
+            from garak.exception import GarakException, GeneratorError
 
-            generator = _plugins.load_plugin(
-                f"generators.{_config.plugins.target_type}", config_root=_config
-            )
+            try:
+                generator = _plugins.load_plugin(
+                    f"generators.{_config.plugins.target_type}", config_root=_config
+                )
+            except GarakException as e:
+                if isinstance(e, GeneratorError):
+                    raise
+                raise GeneratorError(str(e)) from e
+            except Exception as e:
+                raise GeneratorError(str(e)) from e
 
             if (
                 not _cli_config_supplied

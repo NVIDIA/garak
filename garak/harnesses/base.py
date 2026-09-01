@@ -22,10 +22,7 @@ from garak import _config
 from garak import _plugins
 from garak.configurable import Configurable
 import garak.attempt
-import garak.probes.base
-
-
-def _initialize_runtime_services():
+from garak.exception import GarakException
     """Initialize and validate runtime services required for a successful test"""
 
     from garak.exception import GarakException
@@ -45,6 +42,10 @@ def _initialize_runtime_services():
                 service.load()
         except GarakException as e:
             logging.critical("❌ %s setup failed!" % service_name, exc_info=e)
+            from garak.exception import LangProviderError
+
+            if service_name == "langservice" and not isinstance(e, LangProviderError):
+                raise LangProviderError(str(e)) from e
             raise e
 
 
@@ -124,7 +125,9 @@ class Harness(Configurable):
                 if err_msg is not None:
                     print(err_msg)
                     logging.warning(err_msg)
-                    continue
+                    from garak.exception import BuffError
+
+                    raise BuffError(err_msg) from None
 
     def _start_run_hook(self):
         self._http_lib_user_agents = _config.get_http_lib_agents()
@@ -152,9 +155,20 @@ class Harness(Configurable):
         for attempt in attempt_iterator:
             if detector_instance.skip:
                 continue
-            attempt.detector_results[detector_probe_name] = list(
-                detector_instance.detect(attempt)
-            )
+            try:
+                attempt.detector_results[detector_probe_name] = list(
+                    detector_instance.detect(attempt)
+                )
+            except GarakException as e:
+                from garak.exception import DetectorError
+
+                if isinstance(e, DetectorError):
+                    raise
+                raise DetectorError(str(e)) from e
+            except Exception as e:
+                from garak.exception import DetectorError
+
+                raise DetectorError(str(e)) from e
 
     def run(self, model, probes, detectors, evaluator, announce_probe=True) -> None:
         """Core harness method
@@ -210,7 +224,18 @@ class Harness(Configurable):
                 )
                 continue
 
-            attempt_results = probe.probe(model)
+            try:
+                attempt_results = probe.probe(model)
+            except GarakException as e:
+                from garak.exception import ProbeError
+
+                if isinstance(e, ProbeError):
+                    raise
+                raise ProbeError(str(e)) from e
+            except Exception as e:
+                from garak.exception import ProbeError
+
+                raise ProbeError(str(e)) from e
             assert isinstance(
                 attempt_results, (list, types.GeneratorType)
             ), "probing should always return an ordered iterable"
@@ -283,7 +308,18 @@ class Harness(Configurable):
             if len(attempt_results) == 0:
                 logging.warning("zero attempt results: probe %s" % probe.probename)
 
-            evaluator.evaluate(attempt_results)
+            try:
+                evaluator.evaluate(attempt_results)
+            except GarakException as e:
+                from garak.exception import EvaluatorError
+
+                if isinstance(e, EvaluatorError):
+                    raise
+                raise EvaluatorError(str(e)) from e
+            except Exception as e:
+                from garak.exception import EvaluatorError
+
+                raise EvaluatorError(str(e)) from e
 
         self._end_run_hook()
 

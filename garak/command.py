@@ -153,6 +153,9 @@ def end_run():
         logging.exception(e)
         logging.info(msg)
         print(msg)
+        from garak.exception import ReportingError
+
+        raise ReportingError(msg) from e
 
     msg = f"garak run complete in {timetaken:.2f}s"
     print(f"✔️  {msg}")
