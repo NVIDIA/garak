@@ -22,10 +22,12 @@ from garak import _config
 from garak import _plugins
 from garak.configurable import Configurable
 import garak.attempt
+import garak.probes.base
 from garak.exception import GarakException
-    """Initialize and validate runtime services required for a successful test"""
 
-    from garak.exception import GarakException
+
+def _initialize_runtime_services():
+    """Initialize and validate runtime services required for a successful test"""
 
     # TODO: this block may be gated in the future to ensure it is only run once. At this time
     # only one harness will execute per run so the output here is reasonable.
