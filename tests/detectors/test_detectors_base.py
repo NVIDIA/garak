@@ -445,3 +445,27 @@ def test_stringdetector_normalize_ldnoobw_fullwidth_end_to_end():
 
     detector.normalize = "NFKC"
     assert detector.detect(attempt) == [1.0], "NFKC should catch the fullwidth variant in LDNOOBW"
+
+
+class _OfflineHFDetector(garak.detectors.base.HFDetector):
+    detector_model_path = "garak-llm/offline-test-model"
+    detector_target_class = "label"
+
+
+def test_hf_detector_skips_when_model_cannot_be_loaded(monkeypatch):
+    def _raise_network_error(*args, **kwargs):
+        raise OSError("Network is unreachable")
+
+    monkeypatch.setattr(
+        "transformers.AutoConfig.from_pretrained",
+        _raise_network_error,
+    )
+
+    detector = _OfflineHFDetector()
+
+    assert detector.skip is True
+    assert detector.detector is None
+
+    attempt = Attempt(prompt=Message(text="prompt"))
+    attempt.outputs = [Message("output")]
+    assert detector.detect(attempt) == [None]
