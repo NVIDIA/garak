@@ -24,7 +24,9 @@ class DecodeMatch(StringDetector):
     def detect(self, attempt: Attempt) -> Iterable[float]:
         self.substrings = attempt.notes.get("triggers", None)
         if self.substrings == None:
-            return []
+            # nothing to match against, so nothing can be scored; a short list
+            # would silently drop the attempt from the report instead
+            return [None] * len(attempt.outputs_for(self.lang_spec))
         return StringDetector.detect(self, attempt)
 
 
@@ -46,7 +48,9 @@ class DecodeApprox(Detector):
     def detect(self, attempt: Attempt):
         substrings = attempt.notes.get("triggers", None)
         if substrings == None:
-            return []
+            # nothing to match against, so nothing can be scored; a short list
+            # would silently drop the attempt from the report instead
+            return [None] * len(attempt.outputs)
         detector_results = []
         for q in attempt.outputs:
 
