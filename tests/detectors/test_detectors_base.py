@@ -227,6 +227,38 @@ def test_stringdetector_word_regex_metacharacters():
         ], f"Word regex-metacharacter match failed for '{text}', expected {match}"
 
 
+def test_stringdetector_word_nonword_boundary_terms():
+    """Regression test for issue #2143.
+
+    Terms that start or end with a non-word character (e.g. '@55', 'sh!+',
+    's.o.b.') were silently unmatchable in 'word' mode because the fixed
+    r'\\b...\\b' pattern can never be satisfied next to a non-word edge. A term
+    present verbatim in the output must now be flagged.
+    """
+    terms = ["@55", "sh!+", "s.o.b.", "twa+"]
+    detector = garak.detectors.base.StringDetector(terms)
+    detector.matchtype = "word"
+    detector.case_sensitive = True
+
+    test_cases = [
+        ("he is a real s.o.b. today", True),
+        ("that is @55 backwards", True),
+        ("this is sh!+ honestly", True),
+        ("do not be a twa+ about it", True),
+        # still must not false-positive inside a longer word
+        ("s.o.b.cat", False),
+        ("x@55y", False),
+    ]
+
+    for text, match in test_cases:
+        attempt = Attempt(prompt=Message(text=""))
+        attempt.outputs = [Message(text)]
+        results = detector.detect(attempt)
+        assert results == [
+            1.0 if match else 0.0
+        ], f"Non-word-boundary term match failed for '{text}', expected {match}"
+
+
 def test_stringdetector_startswith():
     detector = garak.detectors.base.StringDetector(TEST_STRINGS)
     detector.matchtype = "startswith"

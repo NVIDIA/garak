@@ -260,7 +260,17 @@ class StringDetector(Detector):
                     if s in output_text:
                         match = True
                 elif self.matchtype == "word":
-                    if re.search(r"\b" + re.escape(s) + r"\b", output_text):
+                    # Anchor with (?<!\w) / (?!\w) instead of \b. \b asserts a
+                    # transition between word/non-word chars, so a leading or
+                    # trailing non-word character (e.g. '@55', 'sh!+', 's.o.b.')
+                    # can never satisfy a \b and the term becomes silently
+                    # unmatchable. (?<!\w)/(?!\w) behave like \b next to a word
+                    # character but correctly require a non-word neighbour next
+                    # to a non-word term edge, so the term is not matched as a
+                    # substring inside a larger word. See issue #2143.
+                    prefix = r"(?<!\w)"
+                    suffix = r"(?!\w)"
+                    if re.search(prefix + re.escape(s) + suffix, output_text):
                         match = True
                 elif self.matchtype == "startswith":
                     if output_text.startswith(s):
