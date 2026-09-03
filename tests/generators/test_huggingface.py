@@ -4,6 +4,7 @@ import transformers
 
 from garak.attempt import Message, Turn, Conversation
 from garak._config import GarakSubConfig
+from garak.exception import BadGeneratorException
 import garak.generators.huggingface
 
 
@@ -110,7 +111,7 @@ def test_inference_model_not_found(mocker, hf_generator_config):
         target_name, config_root=hf_generator_config
     )
     conv = Conversation([Turn("user", Message(""))])
-    with pytest.raises(garak.generators.huggingface.ModelNotFoundError):
+    with pytest.raises(BadGeneratorException, match=target_name):
         g.generate(conv)
 
 

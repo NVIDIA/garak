@@ -24,7 +24,11 @@ import torch
 
 from garak import _config
 from garak.attempt import Message, Conversation
-from garak.exception import TargetNameMissingError, GarakException
+from garak.exception import (
+    TargetNameMissingError,
+    GarakException,
+    BadGeneratorException,
+)
 from garak.generators.base import Generator
 from garak.resources.api.huggingface import HFCompatible
 
@@ -40,10 +44,6 @@ class HFLoadingException(GarakException):
 
 
 class HFInternalServerError(GarakException):
-    pass
-
-
-class ModelNotFoundError(GarakException):
     pass
 
 
@@ -261,7 +261,7 @@ class InferenceAPI(Generator):
             raise HFLoadingException
 
         if req_response.status_code == 404:
-            raise ModelNotFoundError(
+            raise BadGeneratorException(
                 f"🤗 Inference API returned 404 for model '{self.name}'. The model may not "
                 "be available via the legacy Inference API and may require selecting an "
                 "Inference Provider instead; see https://huggingface.co/docs/inference-providers"
