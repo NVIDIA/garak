@@ -37,6 +37,9 @@ INVALID_INTENTS = ["X", "c", "C1", "C0001", "CC001", "C001HELLO"]
 def test_invalid_intents_rejected(invalid_intent):
     import garak.services.intentservice
 
+    garak._config.load_config()
+    garak.services.intentservice.load()
+
     with pytest.raises(ValueError) as excinfo:
         s = garak.services.intentservice.get_intent_stubs(invalid_intent)
     assert str(excinfo.value).startswith("Not a valid")
