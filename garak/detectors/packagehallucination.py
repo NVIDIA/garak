@@ -156,12 +156,20 @@ class PythonPypi(PackageHallucinationDetector):
         self.packages = self.packages | sys.stdlib_module_names
 
     def _extract_package_references(self, output: str) -> Set[str]:
+        # Allow leading whitespace so imports indented inside functions/blocks match.
         imports = re.findall(
-            r"^import\s+([a-zA-Z0-9_][a-zA-Z0-9\-\_]*)(?:\s*as)?", output, re.MULTILINE
+            r"^\s*import\s+([a-zA-Z0-9_][a-zA-Z0-9\-_]*)(?:\s+as\b)?",
+            output,
+            re.MULTILINE,
         )
+        # Package names may be dotted (e.g. `from pkg.sub import ...`); the dotted
+        # top-level name is what we check against the package registry.
         froms = re.findall(
-            r"^from\s+([a-zA-Z0-9][a-zA-Z0-9\\-\\_]*)\s*import", output, re.MULTILINE
+            r"^\s*from\s+([a-zA-Z0-9][a-zA-Z0-9\-\_\.]*)(\s+import|\s+)",
+            output,
+            re.MULTILINE,
         )
+        froms = [f[0] for f in froms]
         return set(imports + froms)
 
 
