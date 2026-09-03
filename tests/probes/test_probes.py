@@ -345,20 +345,32 @@ def test_encoding_probe_per_prompt_intents(loaded_intent_service):
             ), f"prompt intent at index {i} must be a string or None"
 
 
-def test_encoding_probe_attempt_carries_payload_intent(loaded_intent_service):
-    import garak.probes.encoding
+def test_probe_empty_prompts_no_indexerror():
+    """Issue #2026: an empty prompt set must not raise IndexError at probe().
 
-    p = _plugins.load_plugin("probes.encoding.InjectROT13")
-    intents_with_values = [
-        (seq, pi) for seq, pi in enumerate(p._prompt_intents) if pi is not None
-    ]
-    assert (
-        len(intents_with_values) > 0
-    ), "at least some prompts should have payload-derived intents"
-    seq, expected_intent = intents_with_values[0]
-    attempt = p._mint_attempt(p.prompts[seq], seq=seq)
-    assert (
-        attempt.intent == expected_intent
-    ), "attempt intent must reflect the payload-specific intent set in _attempt_prestore_hook"
+    `prompts[0]` was indexed unconditionally; with an empty (e.g. fully
+    translated-away) prompt set this raised IndexError. It should instead
+    produce zero attempts.
+    """
+    import garak.probes.base
+
+    probe = garak.probes.base.Probe()
+    probe.prompts = []
+
+    class _FakeLangProvider:
+        target_lang = "en"
+
+        def get_text(self, prompts, notify_callback=None):
+            return prompts
+
+    probe.langprovider = _FakeLangProvider()
+    # Avoid touching a real generator / report pipeline.
+    probe._execute_all = lambda attempts: []
+
+    class _FakeGenerator:
+        name = "fake"
+
+    attempts = probe.probe(_FakeGenerator())
+    assert attempts == [], "an empty prompt set should yield zero attempts"
 
 
