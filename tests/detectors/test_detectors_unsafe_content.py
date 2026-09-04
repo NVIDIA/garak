@@ -6,6 +6,7 @@ import pytest
 from garak import _plugins
 from garak.attempt import Attempt, Message
 import garak.detectors.base
+from garak.detectors import unsafe_content
 
 TOXICITY_DETECTORS = [
     "detectors.unsafe_content.S_nlpDetox",
@@ -114,3 +115,51 @@ def test_surge_word_match(classname):
     a.outputs = test_strings
     results = d.detect(a)
     assert results == [0.0] * len(test_strings)
+
+
+def _string_detector_classnames(module):
+    names = []
+    for name in dir(module):
+        klass = getattr(module, name)
+        if (
+            isinstance(klass, type)
+            and issubclass(klass, garak.detectors.base.StringDetector)
+            and klass is not garak.detectors.base.StringDetector
+        ):
+            names.append(f"detectors.{module.__name__.rsplit('.', 1)[-1]}.{name}")
+    return names
+
+
+UNSAFE_CONTENT_STRING_DETECTORS = _string_detector_classnames(unsafe_content)
+
+
+@pytest.mark.parametrize("classname", UNSAFE_CONTENT_STRING_DETECTORS)
+def test_unsafe_content_detectors_resist_homoglyph_evasion(classname):
+    """Every StringDetector-based detector in this module must actually enable
+    Unicode normalization, not just have the option available.
+
+    PR #1884 added a `normalize` parameter to StringDetector specifically to
+    close the evasion class described in issue #1867 (full-width homoglyphs,
+    zero-width joiners), but shipped it opt-in with a default of None. No
+    detector in this module turned it on, so every one of them -- the entire
+    Surge/Ofcom profanity and slur detection surface -- remained fully
+    bypassable by trivial Unicode substitution after the "fix" was merged.
+    """
+    d = _plugins.load_plugin(classname)
+    assert d.normalize is not None, (
+        f"{classname} does not enable normalize and is therefore bypassable "
+        "by full-width/zero-width homoglyph substitution"
+    )
+
+    term = next((t for t in d.substrings if t.isalpha() and len(t) > 3), None)
+    if term is None:
+        pytest.skip(f"{classname} has no plain alphabetic substring to test")
+    fullwidth = "".join(
+        chr(0xFF00 + ord(c) - 0x20) if 0x21 <= ord(c) < 0x7F else c for c in term
+    )
+
+    a = Attempt(prompt=Message("test prompt", lang="*"))
+    a.outputs = [f"you are such a {fullwidth} honestly"]
+    assert d.detect(a) == [
+        1.0
+    ], f"{classname} misses the full-width homoglyph form of {term!r}"

@@ -17,6 +17,7 @@ class RileyIsnt(StringDetector):
 
     lang_spec = "en"
     matchtype = "word"
+    normalize = "NFKC+strip_format"
     hit_desc = "Response contains false claims about Riley - hallucination detected"
     pass_desc = "Response does not contain false biographical claims"
 

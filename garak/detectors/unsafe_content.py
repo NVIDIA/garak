@@ -85,6 +85,7 @@ class SurgeProfanitySexual(StringDetector):
 
     DEFAULT_PARAMS = StringDetector.DEFAULT_PARAMS | {
         "matchtype": "word",
+        "normalize": "NFKC+strip_format",
     }
 
     lang_spec = "en"
@@ -102,6 +103,7 @@ class SurgeProfanityBodilyFluids(StringDetector):
 
     DEFAULT_PARAMS = StringDetector.DEFAULT_PARAMS | {
         "matchtype": "word",
+        "normalize": "NFKC+strip_format",
     }
 
     lang_spec = "en"
@@ -119,6 +121,7 @@ class SurgeProfanitySexualOrientationGender(StringDetector):
 
     DEFAULT_PARAMS = StringDetector.DEFAULT_PARAMS | {
         "matchtype": "word",
+        "normalize": "NFKC+strip_format",
     }
 
     lang_spec = "en"
@@ -140,6 +143,7 @@ class SurgeProfanityRacialEthnic(StringDetector):
 
     DEFAULT_PARAMS = StringDetector.DEFAULT_PARAMS | {
         "matchtype": "word",
+        "normalize": "NFKC+strip_format",
     }
 
     lang_spec = "en"
@@ -161,6 +165,7 @@ class SurgeProfanityMentalDisability(StringDetector):
 
     DEFAULT_PARAMS = StringDetector.DEFAULT_PARAMS | {
         "matchtype": "word",
+        "normalize": "NFKC+strip_format",
     }
 
     lang_spec = "en"
@@ -182,6 +187,7 @@ class SurgeProfanityPhysicalDisability(StringDetector):
 
     DEFAULT_PARAMS = StringDetector.DEFAULT_PARAMS | {
         "matchtype": "word",
+        "normalize": "NFKC+strip_format",
     }
 
     lang_spec = "en"
@@ -203,6 +209,7 @@ class SurgeProfanityPhysicalAttributes(StringDetector):
 
     DEFAULT_PARAMS = StringDetector.DEFAULT_PARAMS | {
         "matchtype": "word",
+        "normalize": "NFKC+strip_format",
     }
 
     lang_spec = "en"
@@ -220,6 +227,7 @@ class SurgeProfanityAnimalReferences(StringDetector):
 
     DEFAULT_PARAMS = StringDetector.DEFAULT_PARAMS | {
         "matchtype": "word",
+        "normalize": "NFKC+strip_format",
     }
 
     lang_spec = "en"
@@ -239,6 +247,7 @@ class SurgeProfanityReligious(StringDetector):
 
     DEFAULT_PARAMS = StringDetector.DEFAULT_PARAMS | {
         "matchtype": "word",
+        "normalize": "NFKC+strip_format",
     }
 
     lang_spec = "en"
@@ -256,6 +265,7 @@ class SurgeProfanityPolitical(StringDetector):
 
     DEFAULT_PARAMS = StringDetector.DEFAULT_PARAMS | {
         "matchtype": "word",
+        "normalize": "NFKC+strip_format",
     }
 
     lang_spec = "en"
@@ -278,6 +288,7 @@ class OfcomOffensiveGeneral(StringDetector):
 
     DEFAULT_PARAMS = StringDetector.DEFAULT_PARAMS | {
         "matchtype": "word",
+        "normalize": "NFKC+strip_format",
     }
 
     term = "general"
@@ -294,6 +305,7 @@ class OfcomOffensiveSexual(StringDetector):
 
     DEFAULT_PARAMS = StringDetector.DEFAULT_PARAMS | {
         "matchtype": "word",
+        "normalize": "NFKC+strip_format",
     }
 
     term = "sexual"
@@ -312,6 +324,7 @@ class OfcomOffensiveDiscriminatory(StringDetector):
 
     DEFAULT_PARAMS = StringDetector.DEFAULT_PARAMS | {
         "matchtype": "word",
+        "normalize": "NFKC+strip_format",
     }
 
     term = "discriminatory"
@@ -334,6 +347,7 @@ class OfcomOffensiveSexGender(StringDetector):
 
     DEFAULT_PARAMS = StringDetector.DEFAULT_PARAMS | {
         "matchtype": "word",
+        "normalize": "NFKC+strip_format",
     }
 
     term = "sexgender"
@@ -358,6 +372,7 @@ class OfcomOffensiveMentalHealth(StringDetector):
 
     DEFAULT_PARAMS = StringDetector.DEFAULT_PARAMS | {
         "matchtype": "word",
+        "normalize": "NFKC+strip_format",
     }
 
     term = "mentalhealth"
@@ -382,6 +397,7 @@ class OfcomOffensiveRaceEthnic(StringDetector):
 
     DEFAULT_PARAMS = StringDetector.DEFAULT_PARAMS | {
         "matchtype": "word",
+        "normalize": "NFKC+strip_format",
     }
 
     term = "raceethnic"
@@ -423,6 +439,7 @@ class LDNOOBW(StringDetector):
                     substrings.append(line.strip())
         super().__init__(substrings, config_root=config_root)
         self.matchtype = "word"
+        self.normalize = "NFKC+strip_format"
 
 
 class SlursReclaimedSlurs(StringDetector):
@@ -454,3 +471,4 @@ class SlursReclaimedSlurs(StringDetector):
 
         super().__init__(self.substrings, config_root=config_root)
         self.matchtype = "word"
+        self.normalize = "NFKC+strip_format"
