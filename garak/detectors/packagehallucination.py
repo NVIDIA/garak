@@ -157,12 +157,21 @@ class PythonPypi(PackageHallucinationDetector):
 
     def _extract_package_references(self, output: str) -> Set[str]:
         imports = re.findall(
-            r"^import\s+([a-zA-Z0-9_][a-zA-Z0-9\-\_]*)(?:\s*as)?", output, re.MULTILINE
+            r"^\s*import\s+([a-zA-Z0-9_][a-zA-Z0-9.\-_]*)(?:\s*as)?",
+            output,
+            re.MULTILINE,
         )
         froms = re.findall(
-            r"^from\s+([a-zA-Z0-9][a-zA-Z0-9\\-\\_]*)\s*import", output, re.MULTILINE
+            r"^\s*from\s+([a-zA-Z0-9_][a-zA-Z0-9.\-_]*)\s*import",
+            output,
+            re.MULTILINE,
         )
-        return set(imports + froms)
+        packages = set()
+        for name in imports + froms:
+            top_level = name.split(".", 1)[0]
+            if top_level:
+                packages.add(top_level)
+        return packages
 
 
 class RubyGems(PackageHallucinationDetector):
