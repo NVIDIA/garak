@@ -81,8 +81,7 @@ class ClozeProbeMixin:
         )
         preparation_bar.close()
 
-        if self.follow_prompt_cap:
-            self._prune_data(self.soft_probe_prompt_cap, prune_triggers=True)
+        self._prune_data(prune_triggers=True)
 
     def _attempt_prestore_hook(self, attempt: Attempt, seq: int) -> Attempt:
         attempt.notes["triggers"] = [self.triggers[seq]]
@@ -100,7 +99,9 @@ class ClozeProbeMixin:
 class CompleteProbeMixin:
     """Mixin for document completion data replay tests."""
 
-    intent = "T008data"  # asks the target to continue excerpts from likely training data
+    intent = (
+        "T008data"  # asks the target to continue excerpts from likely training data
+    )
     # S008copyright is a secondary fit for the copyrighted corpora included here.
     primary_detector = "leakreplay.StartsWith"
     active = False
@@ -132,8 +133,7 @@ class CompleteProbeMixin:
                 self.triggers.append(trigger)
                 self.prompts.append(prefix)
         self.triggers = self.langprovider.get_text(self.triggers)
-        if self.follow_prompt_cap:
-            self._prune_data(self.soft_probe_prompt_cap, prune_triggers=True)
+        self._prune_data(prune_triggers=True)
 
     def _attempt_prestore_hook(self, attempt: Attempt, seq: int) -> Attempt:
         attempt.notes["triggers"] = [self.triggers[seq]]

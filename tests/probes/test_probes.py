@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import importlib
+import inspect
 import langcodes
 import pytest
 import re
@@ -198,6 +199,119 @@ def test_probe_prune_alignment():
     assert p.triggers[-1] in p.prompts[-1]
 
 
+def _capping_probes():
+    """Every probe that prunes its prompts, discovered rather than hand-listed.
+
+    A probe caps if it, or a probe class it inherits from, mentions ``_prune_data``
+    anywhere in its source; the base implementation itself does not count."""
+
+    def _prunes(klass):
+        for ancestor in klass.__mro__:
+            if ancestor is garak.probes.Probe or not ancestor.__module__.startswith(
+                "garak.probes"
+            ):
+                continue
+            try:
+                if "_prune_data" in inspect.getsource(ancestor):
+                    return True
+            except (OSError, TypeError):
+                continue
+        return False
+
+    found = []
+    for classname, _ in _plugins.enumerate_plugins("probes"):
+        module_name, class_name = classname.replace("probes.", "").rsplit(".", 1)
+        klass = getattr(
+            importlib.import_module(f"garak.probes.{module_name}"), class_name
+        )
+        if _prunes(klass):
+            found.append(classname)
+    return sorted(found)
+
+
+CAPPING_PROBES = _capping_probes()
+
+
+def test_capping_probe_discovery_is_not_empty():
+    assert CAPPING_PROBES, "expected to discover probes that prune prompts"
+
+
+@pytest.mark.parametrize("classname", CAPPING_PROBES)
+def test_capping_probe_honours_cap(classname, loaded_intent_service):
+    """Every pruning probe must respect soft_probe_prompt_cap."""
+    original = _config.run.soft_probe_prompt_cap
+    _config.run.soft_probe_prompt_cap = 5
+    try:
+        p = _plugins.load_plugin(classname, config_root=_config)
+        if not p.follow_prompt_cap:
+            pytest.skip(f"{classname} opts out of prompt capping")
+        assert len(p.prompts) <= 5, f"{classname} must prune to soft_probe_prompt_cap"
+    finally:
+        _config.run.soft_probe_prompt_cap = original
+
+
+@pytest.mark.parametrize("classname", CAPPING_PROBES)
+def test_capping_probe_builds_with_unset_cap(classname, loaded_intent_service):
+    """An unset cap means no cap, and must not raise."""
+    original = _config.run.soft_probe_prompt_cap
+    _config.run.soft_probe_prompt_cap = None
+    try:
+        p = _plugins.load_plugin(classname, config_root=_config)
+        assert len(p.prompts) > 0, f"{classname} must still build prompts with no cap"
+    finally:
+        _config.run.soft_probe_prompt_cap = original
+
+
+@pytest.mark.parametrize("classname", CAPPING_PROBES)
+def test_capping_probe_keeps_triggers_aligned(classname, loaded_intent_service):
+    """Pruning must not desynchronise triggers from prompts."""
+    original = _config.run.soft_probe_prompt_cap
+    _config.run.soft_probe_prompt_cap = 5
+    try:
+        p = _plugins.load_plugin(classname, config_root=_config)
+        triggers = getattr(p, "triggers", None)
+        if not triggers:
+            pytest.skip(f"{classname} carries no triggers")
+        assert len(triggers) == len(
+            p.prompts
+        ), f"{classname} left triggers out of step with prompts after pruning"
+    finally:
+        _config.run.soft_probe_prompt_cap = original
+
+
+def test_follow_prompt_cap_is_a_base_default():
+    """Opting out of capping is available to every probe, not just those declaring it."""
+    assert (
+        "follow_prompt_cap" in garak.probes.Probe.DEFAULT_PARAMS
+    ), "follow_prompt_cap must be a base default so all probes share the switch"
+
+
+def test_prune_data_respects_opt_out():
+    p = _plugins.load_plugin("probes.phrasing.PastTense")
+    p.prompts = list(range(50))
+    p.follow_prompt_cap = False
+    p._prune_data(5)
+    assert len(p.prompts) == 50, "follow_prompt_cap=False must disable pruning"
+
+
+def test_prune_data_tolerates_unset_cap():
+    p = _plugins.load_plugin("probes.phrasing.PastTense")
+    p.prompts = list(range(50))
+    p.follow_prompt_cap = True
+    p.soft_probe_prompt_cap = None
+    p._prune_data()
+    assert len(p.prompts) == 50, "an unset cap must leave prompts untouched"
+
+
+def test_prune_data_defaults_to_configured_cap():
+    p = _plugins.load_plugin("probes.phrasing.PastTense")
+    p.prompts = list(range(50))
+    p.follow_prompt_cap = True
+    p.soft_probe_prompt_cap = 6
+    p._prune_data()
+    assert len(p.prompts) == 6, "_prune_data with no cap must use soft_probe_prompt_cap"
+
+
 PROMPT_EXAMPLES = [
     "test example",
     Message(text="test example"),
@@ -360,5 +474,3 @@ def test_encoding_probe_attempt_carries_payload_intent(loaded_intent_service):
     assert (
         attempt.intent == expected_intent
     ), "attempt intent must reflect the payload-specific intent set in _attempt_prestore_hook"
-
-
