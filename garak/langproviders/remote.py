@@ -201,9 +201,9 @@ class GoogleTranslator(LangProvider):
             try:
                 auth_args = [self.api_key]
                 if self.project_id is not None:
-                    auth_kwargs = {"project": self.project_id}
+                    auth_args.append(self.project_id)
                 self.client = translate.Client.from_service_account_json(
-                    *auth_args, **auth_kwargs
+                    *auth_args, 
                 )
             except exceptions.MalformedError as e:
                 logging.warning(
