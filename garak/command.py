@@ -163,6 +163,7 @@ def _tier_name(tier_value):
     """Convert a tier int value to its enum name string."""
     try:
         from garak.probes._tier import Tier
+
         return Tier(int(tier_value)).name
     except (ValueError, TypeError):
         return ""
@@ -171,7 +172,7 @@ def _tier_name(tier_value):
 def _truncate(text, max_len=80):
     """Truncate text to max_len, appending ellipsis if needed."""
     if len(text) > max_len:
-        return text[:max_len - 1] + "…"
+        return text[: max_len - 1] + "…"
     return text
 
 
@@ -180,7 +181,12 @@ def _truncate(text, max_len=80):
 # "name" and "active" are always included and handled separately.
 _PLUGIN_TABLE_COLUMNS = {
     "probes": [
-        ("tier", lambda info: _tier_name(info.get("tier")) if info.get("tier") is not None else ""),
+        (
+            "tier",
+            lambda info: (
+                _tier_name(info.get("tier")) if info.get("tier") is not None else ""
+            ),
+        ),
         ("description", lambda info: _truncate(info.get("description", ""))),
     ],
     # Future plugin types can define their own extra columns here, e.g.:
@@ -190,7 +196,7 @@ _PLUGIN_TABLE_COLUMNS = {
 }
 
 
-def print_plugins(prefix: str, color, selected_plugins=None, verbose: int=0):
+def print_plugins(prefix: str, color, selected_plugins=None, verbose: int = 0):
     """
     Print plugins for a category (probes/detectors/generators/buffs).
 
@@ -201,7 +207,11 @@ def print_plugins(prefix: str, color, selected_plugins=None, verbose: int=0):
         verbose: Verbosity level. 0 = plain list, >=1 = markdown table with metadata.
     """
     from colorama import Style
-    from garak._plugins import enumerate_plugins, plugin_info as get_plugin_info, PLUGIN_TYPES
+    from garak._plugins import (
+        enumerate_plugins,
+        plugin_info as get_plugin_info,
+        PLUGIN_TYPES,
+    )
 
     if prefix not in PLUGIN_TYPES:
         raise ValueError(f"Requested prefix '{prefix}' is not a valid plugin type")
@@ -217,7 +227,10 @@ def print_plugins(prefix: str, color, selected_plugins=None, verbose: int=0):
             print(f"No {prefix} match the provided filter")
             return
 
-    short = [(p.replace(f"{prefix}.", ""), a, p) for p, a, *_ in [(pn, ac, pn) for pn, ac in rows]]
+    short = [
+        (p.replace(f"{prefix}.", ""), a, p)
+        for p, a, *_ in [(pn, ac, pn) for pn, ac in rows]
+    ]
     if selected_plugins is None:
         module_names = {(m.split(".")[0], True, None) for m, a, _ in short}
         short += module_names
@@ -270,9 +283,68 @@ def _print_plugins_table(sorted_items, prefix):
     print(f"{prefix}:")
     print(
         markdown_table(table_data)
-        .set_params(row_sep="markdown", padding_width=1, padding_weight="centerleft", quote=False)
+        .set_params(
+            row_sep="markdown",
+            padding_width=1,
+            padding_weight="centerleft",
+            quote=False,
+        )
         .get_markdown()
     )
+
+
+def print_intents(intent_spec=None, blocked_spec=None, verbose=0):
+    """Print the intent typology, optionally filtered by intent specifiers."""
+    from colorama import Fore, Style
+    from garak.services import intentservice
+
+    rows = intentservice.enumerate_intents(intent_spec, blocked_spec)
+    if not rows:
+        print("No intents match the provided filter")
+        return
+    if verbose >= 1:
+        from py_markdown_table.markdown_table import markdown_table
+
+        table_data = [
+            {
+                "code": row["code"],
+                "name": row["name"],
+                "description": row["description"],
+                "content": "✅" if row["content"] else "",
+            }
+            for row in rows
+        ]
+        print(
+            markdown_table(table_data)
+            .set_params(
+                row_sep="markdown",
+                padding_width=1,
+                padding_weight="centerleft",
+                quote=False,
+            )
+            .get_markdown()
+        )
+        return
+
+    branch_names = {row["code"]: row["name"] for row in rows if len(row["code"]) == 1}
+    for branch_code in ("C", "T", "M", "S"):
+        branch_rows = [
+            row
+            for row in rows
+            if row["code"].startswith(branch_code) and len(row["code"]) > 1
+        ]
+        if not branch_rows:
+            continue
+        branch_name = branch_names.get(
+            branch_code,
+            intentservice.intent_typology.get(branch_code, {}).get("name", ""),
+        )
+        print(
+            f"{Style.BRIGHT}{Fore.LIGHTCYAN_EX}{branch_code}: {branch_name}{Style.RESET_ALL}"
+        )
+        for row in branch_rows:
+            marker = " ✅" if row["content"] else ""
+            print(f"{row['code']}{marker} - {row['name']}")
 
 
 def print_probes(selected_probes=None, verbose=0):

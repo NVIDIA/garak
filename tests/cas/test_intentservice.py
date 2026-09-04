@@ -20,6 +20,17 @@ def test_load_intentservice():
     garak.services.intentservice.load()
 
 
+def test_intent_content_checks_exact_code_class():
+    import garak.services.intentservice
+
+    garak.services.intentservice._load_intent_detector_mapping()
+
+    assert garak.services.intentservice._intent_has_content("S003productkeys", {})
+    assert not garak.services.intentservice._intent_has_content(
+        "S003notimplemented", {}
+    )
+
+
 def test_intentservice_reject_load():
     import garak.services.intentservice
 

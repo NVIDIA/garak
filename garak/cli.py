@@ -3,7 +3,7 @@
 
 """Flow for invoking garak from the command line"""
 
-command_options = "list_detectors list_probes list_generators list_buffs list_config plugin_info interactive report version fix".split()
+command_options = "list_detectors list_probes list_intents list_generators list_buffs list_config plugin_info interactive report version fix".split()
 
 
 def parse_cli_plugin_config(plugin_type, args):
@@ -264,6 +264,12 @@ def main(arguments=None) -> None:
         action="store_true",
         help="list available probes. Use -v for a detailed markdown table with tier and description. "
         "Combine with --spec to filter, e.g. '--list_probes --spec probes.dan'.",
+    )
+    parser.add_argument(
+        "--list_intents",
+        action="store_true",
+        help="list the intent typology. Use -v for descriptions and combine with "
+        "--spec to filter, e.g. '--list_intents --spec intent:S005'.",
     )
     parser.add_argument(
         "--list_detectors",
@@ -554,6 +560,29 @@ def main(arguments=None) -> None:
                     parse_spec_file(_config.run.spec), skip_unknown=True
                 ).probes
             command.print_probes(selected_probes, verbose=_config.system.verbose)
+
+        elif args.list_intents:
+            from garak._spec import parse_spec_file
+            from garak import _selection
+
+            intent_spec = None
+            blocked_spec = None
+            if _config.run.spec:
+                resolved = _selection.resolve_spec(
+                    parse_spec_file(_config.run.spec), skip_unknown=True
+                )
+                if resolved.intents_explicit:
+                    intent_spec = ",".join(resolved.intents)
+                    blocked_spec = ",".join(resolved.blocked_intents)
+            try:
+                command.print_intents(
+                    intent_spec,
+                    blocked_spec,
+                    verbose=_config.system.verbose,
+                )
+            except GarakException as e:
+                print(f"❌ {e}")
+                raise SystemExit(1) from e
 
         elif args.list_detectors:
             selected_detectors = None
