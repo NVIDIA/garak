@@ -69,10 +69,10 @@ def test_aggregate_executes() -> None:
             assert agg_rec["orig_start_time"] == ref_rec["orig_start_time"]
             continue
 
-        if "uuid" in ref_rec:
+        if "run" in ref_rec:
             del (
-                ref_rec["uuid"],
-                agg_rec["uuid"],
+                ref_rec["run"],
+                agg_rec["run"],
             )  # key not found in agg rec means agg rec is out of sync (test fail)
 
         if ref_rec["entry_type"] == "digest":

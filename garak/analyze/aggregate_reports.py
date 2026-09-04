@@ -40,7 +40,9 @@ def _process_file_body(in_file, out_file, aggregate_uuid) -> dict | None:
         ):  # incomplete attempt, skip
             continue
 
-        entry["uuid"] = aggregate_uuid
+        # `run` is the run identifier in this schema, matching `init` and
+        # `plugin_cache`; `uuid` on an attempt row is that attempt's own id
+        entry["run"] = aggregate_uuid
         out_file.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
 
@@ -135,7 +137,6 @@ def main(argv=None) -> None:
             assert init["entry_type"] == "init"
             assert init["garak_version"] == version
 
-            orig_uuid = init["run"]
             init["orig_uuid"] = init["run"]
             init["run"] = aggregate_uuid
 
