@@ -70,6 +70,48 @@ def test_list_probes_with_detector_spec(capsys, options):
         assert any("🌟" in ln for ln in lines)
 
 
+def test_list_probes_warns_on_rejected_intent_selector(capsys):
+    """A malformed intent: code must not be silently dropped from the preview
+    (the run path already reports it via _check_selection; --list_probes must too)."""
+    cli.main(["--list_probes", "--spec", "probes.dan,intent:zzz"])
+    out = capsys.readouterr().out
+    assert "intent:zzz" in out, "the rejected selector must be named in the warning"
+
+    lines = _plugin_lines(out)
+    # print_plugins strips the "probes." category prefix before printing each name
+    expected = {
+        name.removeprefix("probes.")
+        for name, active in _plugins.enumerate_plugins(category="probes")
+        if active and name.startswith("probes.dan.")
+    }
+    assert expected, "fixture expects at least one active probes.dan.* plugin"
+    assert all(
+        any(name in ln for ln in lines) for name in expected
+    ), "the malformed intent: code must leave the whole dan family unfiltered"
+
+
+def test_list_buffs_warns_on_rejected_intent_selector(capsys):
+    """The --list_buffs preview must warn on a malformed intent: code and still
+    show the surviving buff, mirroring the --list_probes behaviour above."""
+    active_buffs = {
+        name for name, active in _plugins.enumerate_plugins(category="buffs") if active
+    }
+    assert (
+        "buffs.lowercase.Lowercase" in active_buffs
+    ), "fixture expects buffs.lowercase.Lowercase to be active"
+
+    cli.main(["--list_buffs", "--spec", "buffs.lowercase,intent:zzz"])
+    out = capsys.readouterr().out
+    assert "intent:zzz" in out, "the rejected selector must be named in the warning"
+
+    lines = _plugin_lines(out)
+    assert all(ln.startswith("buffs: ") for ln in lines), "expected all 'buffs:' lines"
+    # print_plugins strips the "buffs." category prefix before printing each name
+    assert any(
+        "lowercase.Lowercase" in ln for ln in lines
+    ), "the malformed intent: code must leave the requested buff in the preview"
+
+
 def test_list_probes_verbose_table(capsys):
     """Test that --list_probes -v outputs a markdown table with tier and description."""
     cli.main(["--list_probes", "-v"])
