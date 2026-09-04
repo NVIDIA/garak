@@ -5,6 +5,7 @@ from copy import deepcopy
 from pathlib import Path
 from types import GeneratorType
 from typing import List, Optional, Union, Tuple
+import logging
 import uuid
 
 from garak.exception import GarakException
@@ -405,9 +406,17 @@ class Attempt:
             and lang != "*"
             and self.prompt.last_message().lang != lang
         ):
-            return (
-                self.reverse_translation_outputs
-            )  # this needs to be wired back in for support
+            reverse_outputs = self.reverse_translation_outputs
+            if isinstance(reverse_outputs, list) and any(
+                output is not None for output in reverse_outputs
+            ):
+                return reverse_outputs
+            logging.warning(
+                "Attempt %s: reverse_translation_outputs unpopulated for lang %s; falling back to original outputs",
+                self.uuid,
+                lang,
+            )
+            return self.outputs
         return self.outputs
 
     def _expand_prompt_to_histories(self, breadth):
