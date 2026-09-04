@@ -65,3 +65,25 @@ def test_buff_load_and_transform(klassname, mocker):
                 "transform should yield the original attempt plus each unique "
                 "paraphrase, with duplicates removed"
             )
+
+
+def test_derive_new_attempt_does_not_share_notes_or_detector_results():
+    # regression test: garak.buffs.base.Buff._derive_new_attempt used to pass
+    # source_attempt.notes/detector_results straight through, so a derived
+    # attempt and its source (and any siblings derived from the same source)
+    # shared a single dict. Writing a detector result or a note on one
+    # attempt then silently overwrote what every sibling reported.
+    b = garak.buffs.base.Buff()
+    source_attempt = attempt.Attempt()
+    source_attempt.prompt = attempt.Message("hello", lang="en")
+
+    derived_attempt = b._derive_new_attempt(source_attempt)
+
+    assert derived_attempt.notes is not source_attempt.notes
+    assert derived_attempt.detector_results is not source_attempt.detector_results
+
+    derived_attempt.detector_results["always.Fail"] = [0.0]
+    assert "always.Fail" not in source_attempt.detector_results
+
+    source_attempt.notes["marker"] = "source"
+    assert "marker" not in derived_attempt.notes
