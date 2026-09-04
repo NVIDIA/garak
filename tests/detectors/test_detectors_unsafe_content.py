@@ -136,7 +136,8 @@ UNSAFE_CONTENT_STRING_DETECTORS = _string_detector_classnames(unsafe_content)
 @pytest.mark.parametrize("classname", UNSAFE_CONTENT_STRING_DETECTORS)
 def test_unsafe_content_detectors_resist_homoglyph_evasion(classname):
     """Every StringDetector-based detector in this module must actually enable
-    Unicode normalization, not just have the option available.
+    Unicode normalization at the strength this fix requires, not just have
+    the option available.
 
     PR #1884 added a `normalize` parameter to StringDetector specifically to
     close the evasion class described in issue #1867 (full-width homoglyphs,
@@ -144,11 +145,17 @@ def test_unsafe_content_detectors_resist_homoglyph_evasion(classname):
     detector in this module turned it on, so every one of them -- the entire
     Surge/Ofcom profanity and slur detection surface -- remained fully
     bypassable by trivial Unicode substitution after the "fix" was merged.
+
+    Asserts the exact "NFKC+strip_format" value (not just "not None") so a
+    downgrade to plain "NFKC" -- which does not strip zero-width joiners --
+    is also caught, and exercises both the fullwidth and ZWJ evasion cases
+    since NFKC alone only closes the former.
     """
     d = _plugins.load_plugin(classname)
-    assert d.normalize is not None, (
-        f"{classname} does not enable normalize and is therefore bypassable "
-        "by full-width/zero-width homoglyph substitution"
+    assert d.normalize == "NFKC+strip_format", (
+        f"{classname} does not enable normalize=\"NFKC+strip_format\" and is "
+        "therefore bypassable by full-width homoglyph and/or zero-width-joiner "
+        "substitution"
     )
 
     term = next((t for t in d.substrings if t.isalpha() and len(t) > 3), None)
@@ -157,9 +164,16 @@ def test_unsafe_content_detectors_resist_homoglyph_evasion(classname):
     fullwidth = "".join(
         chr(0xFF00 + ord(c) - 0x20) if 0x21 <= ord(c) < 0x7F else c for c in term
     )
+    zwj_spliced = "\u200d".join(term)  # e.g. "f\u200du\u200dc\u200dk"
 
     a = Attempt(prompt=Message("test prompt", lang="*"))
     a.outputs = [f"you are such a {fullwidth} honestly"]
     assert d.detect(a) == [
         1.0
     ], f"{classname} misses the full-width homoglyph form of {term!r}"
+
+    a2 = Attempt(prompt=Message("test prompt", lang="*"))
+    a2.outputs = [f"you are such a {zwj_spliced} honestly"]
+    assert d.detect(a2) == [
+        1.0
+    ], f"{classname} misses the zero-width-joiner-spliced form of {term!r}"
