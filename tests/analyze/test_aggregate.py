@@ -69,10 +69,10 @@ def test_aggregate_executes() -> None:
             assert agg_rec["orig_start_time"] == ref_rec["orig_start_time"]
             continue
 
-        if "uuid" in ref_rec:
+        if "run" in ref_rec:
             del (
-                ref_rec["uuid"],
-                agg_rec["uuid"],
+                ref_rec["run"],
+                agg_rec["run"],
             )  # key not found in agg rec means agg rec is out of sync (test fail)
 
         if ref_rec["entry_type"] == "digest":
@@ -102,6 +102,96 @@ def test_aggregate_executes() -> None:
         check=True,
     )
     assert result.returncode == 0, "report html generation failed over aggregate"
+
+
+def _source_completed_attempt_uuids(*filenames) -> list:
+    uuids = []
+    for filename in filenames:
+        with open(filename, encoding="utf-8") as report_file:
+            for line in report_file:
+                record = json.loads(line)
+                if record.get("entry_type") == "attempt" and record["status"] == 2:
+                    uuids.append(record["uuid"])
+    return uuids
+
+
+def test_aggregate_preserves_attempt_uuids(tmp_path) -> None:
+    """Aggregation restamps the run id, and leaves each attempt's own uuid alone."""
+    _config.load_base_config()
+
+    sources = (
+        "tests/_assets/analyze/test.report.jsonl",
+        "tests/_assets/analyze/quack.report.jsonl",
+    )
+    aggfile_name = str(tmp_path / "agg.report.jsonl")
+
+    subprocess.run(
+        [sys.executable, "-m", "garak.analyze.aggregate_reports", "-o", aggfile_name]
+        + list(sources),
+        check=True,
+        capture_output=True,
+    )
+
+    with open(aggfile_name, encoding="utf-8") as agg_file:
+        records = [json.loads(line) for line in agg_file]
+
+    aggregate_run = next(r for r in records if r["entry_type"] == "init")["run"]
+    attempts = [r for r in records if r["entry_type"] == "attempt"]
+    source_uuids = _source_completed_attempt_uuids(*sources)
+
+    agg_uuids = [a["uuid"] for a in attempts]
+    carried = records[2:-1]  # everything between the init and digest rows
+
+    assert agg_uuids == source_uuids, "attempts keep their own uuid, in source order"
+    assert aggregate_run not in set(agg_uuids), "run id must not overwrite attempt uuid"
+    assert all(
+        r["run"] == aggregate_run for r in carried
+    ), "carried rows carry the aggregate run id"
+
+
+def test_aggregate_restamps_stale_plugin_cache_run(tmp_path) -> None:
+    """A carried plugin_cache row reports the aggregate run, not its source run."""
+    _config.load_base_config()
+
+    with open("tests/_assets/analyze/test.report.jsonl", encoding="utf-8") as src_file:
+        source_lines = src_file.readlines()
+
+    stale_run = "00000000-0000-4000-8000-000000000000"
+    source_path = tmp_path / "with_plugin_cache.report.jsonl"
+    plugin_cache_row = {  # payload left empty so the digest uses the live cache
+        "entry_type": "plugin_cache",
+        "run": stale_run,
+        "plugin_cache": {},
+    }
+    with open(source_path, "w", encoding="utf-8") as out:
+        out.writelines(source_lines[:2])
+        out.write(json.dumps(plugin_cache_row, ensure_ascii=False) + "\n")
+        out.writelines(source_lines[2:])
+
+    aggfile_name = str(tmp_path / "agg.report.jsonl")
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "garak.analyze.aggregate_reports",
+            "-o",
+            aggfile_name,
+            str(source_path),
+        ],
+        check=True,
+        capture_output=True,
+    )
+
+    with open(aggfile_name, encoding="utf-8") as agg_file:
+        records = [json.loads(line) for line in agg_file]
+
+    aggregate_run = next(r for r in records if r["entry_type"] == "init")["run"]
+    carried = [r for r in records if r["entry_type"] == "plugin_cache"]
+
+    assert len(carried) == 1, "the plugin_cache row survives aggregation"
+    assert (
+        carried[0]["run"] == aggregate_run
+    ), "plugin_cache must not keep the source report's run id"
 
 
 def test_aggregate_preserves_mixed_eval_ci_format() -> None:
