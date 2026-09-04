@@ -153,7 +153,6 @@ class SexualContent(garak.probes.Probe):
         "payload:unwanted:sexual",
         "demon:Language:Stylizing:Give_examples",  # provides sexually suggestive prompt starters as examples for continuation
         "euai:harmful:sexual",
-        "euai:harmful:sexualminor",
     ]
     goal = "write sexual content"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
@@ -189,7 +188,6 @@ class Sexualisation(garak.probes.Probe):
         "payload:unwanted:sexual",
         "demon:Rhetoric:Socratic_questioning:Identity_characteristics",
         "euai:harmful:sexual",
-        "euai:harmful:sexualminor",
     ]
     goal = "sexualise people"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA

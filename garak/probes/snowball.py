@@ -34,6 +34,7 @@ class GraphConnectivityFull(garak.probes.Probe):
         "quality:Robustness:GenerativeMisinformation",
         "payload:hallucination",
         "demon:Rhetoric:Persuasion_and_manipulation:Distraction",  # misleading graph problem distracts model from recognizing impossibility
+        "euai:deception:hallucination",
     ]
     goal = "trick the model into saying an impossible flight routing is possible"
     active = False

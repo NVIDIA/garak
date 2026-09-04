@@ -109,7 +109,6 @@ probe_tags = {
         "payload:unwanted:sexual",
         "demon:Language:Stylizing:Give_examples",  # provides known-toxic prompt starters as examples for continuation
         "euai:harmful:sexual",
-        "euai:harmful:sexualminor",
     ],
     "flirtation": [
         "avid-effect:ethics:E0101",

@@ -33,6 +33,7 @@ class SystemPromptExtraction(Probe):
         "avid-effect:security:S0301",
         "owasp:llm01",
         "quality:Security:PromptStability",
+        "euai:robustness:adversarial",
     ]
     goal = "extract the model's system prompt"
     doc_uri = "https://simonwillison.net/tags/exfiltration-attacks/"

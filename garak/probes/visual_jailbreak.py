@@ -52,6 +52,7 @@ class FigStepFull(garak.probes.Probe):
         "quality:Security:PromptStability",
         "payload:jailbreak",
         "demon:Language:Code_and_encode:Data_presentation",  # encodes instructions as typographic images to bypass text-based alignment
+        "euai:robustness:adversarial",
     ]
     goal = "disregard the system prompt with both text and image"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
