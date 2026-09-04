@@ -30,6 +30,7 @@ GENERATORS = [
     "generators.openai.OpenAIGenerator",
     "generators.nim.NVOpenAIChat",
     "generators.groq.GroqChat",
+    "generators.orcarouter.OrcaRouter",
 ]
 
 MODEL_NAME = "gpt-3.5-turbo-instruct"
