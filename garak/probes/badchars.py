@@ -128,6 +128,7 @@ class BadCharacters(garak.probes.Probe):
         "quality:Security:PromptStability",
         "payload:jailbreak",
         "demon:Language:Code_and_encode:Token",  # uses invisible Unicode, homoglyphs, bidi tricks to exploit token processing
+        "euai:robustness:unexpected_behavior",
     ]
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
 

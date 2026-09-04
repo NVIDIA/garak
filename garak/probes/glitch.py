@@ -37,6 +37,7 @@ class GlitchFull(garak.probes.Probe):
         "quality:Security:PromptStability",
         "payload:generic",
         "demon:Language:Code_and_encode:Token",  # exploits rare tokenizer entries that destabilize model behavior
+        "euai:robustness:unexpected_behavior",
     ]
     tier = garak.probes.Tier.INFORMATIONAL
 

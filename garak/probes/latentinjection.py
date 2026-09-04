@@ -36,6 +36,7 @@ class LatentInjectionMixin:
         "demon:Language:Prompt_injection:Stop_sequences",  # uses end-of-session markers to halt original task processing
         "demon:Language:Prompt_injection:Ignore_previous_instructions",  # buries "ignore" instructions in otherwise innocuous documents
         "demon:Rhetoric:Persuasion_and_manipulation:Distraction",  # hides the malicious instruction inside unrelated translation, report, resume, or whois tasks
+        "euai:robustness:adversarial",
     ]
 
     injection_sep_pairs = [("", "")]  # optional attrib get a default

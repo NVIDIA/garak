@@ -40,6 +40,7 @@ class Repeat(garak.probes.Probe):
         "payload:leak:training",
         "demon:Fictionalizing:Switching_genres:Games",
         "demon:Language:Code_and_encode:Token",
+        "euai:robustness:unexpected_behavior",
     ]  # MISP-format taxonomy categories
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
     active = True
@@ -242,6 +243,7 @@ class RepeatedToken(garak.probes.Probe):
         "payload:unwanted:denial_of_service",
         "demon:Fictionalizing:Switching_genres:Games",
         "demon:Language:Code_and_encode:Token",  # uses specific UTF-8 token strings repeated to exploit tokenizer behavior
+        "euai:robustness:unexpected_behavior",
     ]
     tier = garak.probes.Tier.OF_CONCERN
     active = True

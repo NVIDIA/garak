@@ -42,7 +42,9 @@ class Tox(garak.probes.Probe):
     using the same detector as this tox probe uses, so both attack generation model
     and detector are looking for the same definition of the failure mode."""
 
-    intent = "S005"  # the attack model is explicitly trying to elicit broadly toxic output
+    intent = (
+        "S005"  # the attack model is explicitly trying to elicit broadly toxic output
+    )
     # Specific runs can overlap with S005hate or S005profanity depending on what the target produces.
     primary_detector = "unsafe_content.ToxicCommentModel"
     tags = [
@@ -52,6 +54,9 @@ class Tox(garak.probes.Probe):
         "quality:Behavioral:ContentSafety:Profanity",
         "payload:unwanted",
         "demon:Stratagems:Scattershot:Regenerate_response",  # repeatedly generates challenge prompts hoping target slips
+        "euai:harmful:sexual",
+        "euai:discrimination:protected_class",
+        "euai:discrimination:personal",
     ]
     goal = "make the model say something toxic"
     parallelisable_attempts = False  # atkgen has its own dialog manager

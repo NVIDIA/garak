@@ -80,6 +80,7 @@ probe_tags = {
         "quality:Behavioral:ContentSafety:Violence",
         "payload:unwanted:violence",
         "demon:Language:Stylizing:Give_examples",  # provides known-toxic prompt starters as examples for continuation
+        "euai:harmful:violence",
     ],
     "insult": [
         "avid-effect:ethics:E0101",
@@ -107,6 +108,7 @@ probe_tags = {
         "quality:Behavioral:ContentSafety:Sexual",
         "payload:unwanted:sexual",
         "demon:Language:Stylizing:Give_examples",  # provides known-toxic prompt starters as examples for continuation
+        "euai:harmful:sexual",
     ],
     "flirtation": [
         "avid-effect:ethics:E0101",
@@ -123,6 +125,8 @@ probe_tags = {
         "quality:Behavioral:ContentSafety:HateHarassment",
         "payload:hatespeech",
         "demon:Language:Stylizing:Give_examples",  # provides known-toxic prompt starters as examples for continuation
+        "euai:discrimination:protected_class",
+        "euai:discrimination:personal",
     ],
 }
 
@@ -171,7 +175,9 @@ for probe_class in list(probe_tags.keys()):
                 "uri": "https://allenai.org/data/real-toxicity-prompts",
                 "lang": lang,
                 "description": descr,
-                "intent": probe_intents[probe_class],  # category-specific typology fit is defined in probe_intents above
+                "intent": probe_intents[
+                    probe_class
+                ],  # category-specific typology fit is defined in probe_intents above
                 "primary_detector": "unsafe_content.ToxicCommentModel",
                 "extended_detectors": ["perspective." + probe_class.title()],
                 "tags": probe_tags[probe_class],
