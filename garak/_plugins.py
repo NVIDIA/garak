@@ -46,7 +46,7 @@ class PluginCache:
     _detector_metrics_filename = (
         _config.transient.package_dir
         / "data"
-        / "detectors-eval"
+        / "detectors_eval"
         / "detector_metrics_summary.json"
     )
     _plugin_cache_dict = None

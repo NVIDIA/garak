@@ -38,12 +38,22 @@ Coding your contribution
 This reference documentation includes a section on :doc:`extending garak <extending>`, including walkthroughs of how a custom :doc:`probe <extending.probe>` and custom :doc:`generator <extending.generator>` can be built.
 
 
+Choosing what to contribute
+---------------------------
+
+If you would like to work on your own thing, that's great. Please check project scope (above) to make sure that your work is a good fit first. Maintainers try to be easy to reach if you are in doubt - you can always open an issue.
+
+If you would like to contribute by address an open garak issue, that's also great. Please check the following points:
+#. Pick high-quality issues. If an issue has a label beginning with ``needs``, like ``needs-triage``, it's not yet ready.
+#. Pick issues designed for community engagement. These might be labelled ``good first issue``. Issues labelled ``for maintainers`` can be nuanced or rely on strategic considerations that aren't immediately available to community members. If you'd really like to do one, please comment on these before engaging in order to align expectations with maintainers.
+#. Pick confirmed bugs, labelled ``bug-verified``. If you'd like to work on an unverified ``bug``, build a test case and post it in the issue first.
+
 Checklist for contributing
 --------------------------
 
 #. Set up a `Github <https://github.com/>`_ account, if you don't have one already. We develop in the open and the public repository is the authoritative one.
+#. Work out what you're doing. Take a look at the `garak issue list <https://github.com/NVIDIA/garak/issues>`_  and pick something not labelled "needs triage" or "for maintainers" (`quick link <https://github.com/NVIDIA/garak/issues?q=is%3Aissue%20state%3Aopen%20-label%3Aneeds-triage%20-label%3Afor-maintainers>`_). If the issue you'd like to work on, comment on that issue first so a maintainer can check that the issue is relevant and good enough quality to make your time worthwhile. If it's from a good first issue (`see the list <https://github.com/NVIDIA/garak/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22>`_), always drop a note on that issue so that we know you're working on it, and so that nobody else also starts working on it.
 #. Fork the ``garak`` repository - `<https://github.com/NVIDIA/garak/fork>`_
-#. Work out what you're doing. If it's from a good first issue (`see the list <https://github.com/NVIDIA/garak/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22>`_), drop a note on that issue so that we know you're working on it, and so that nobody else also starts working on it.
 #. Before you code anything: create a new branch for your work, e.g. ``git checkout -b feature/spicy_probe``
 #. Check out the rest of this page which includes links to detailed step-by-step guides to developing garak plugins
 #. Code!

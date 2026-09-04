@@ -75,7 +75,7 @@
         "payload:agentic:exploitation"
       ],
       "tier": 3,
-      "mod_time": "2026-05-28 13:56:10 +0000"
+      "mod_time": "2026-08-25 17:01:06 +0000"
     },
     "probes.ansiescape.AnsiEscaped": {
       "description": "Probe for eliciting ANSI control codes from a model",
@@ -411,7 +411,7 @@
         "demon:Language:Code_and_encode:Token"
       ],
       "tier": 2,
-      "mod_time": "2026-05-27 20:51:42 +0000"
+      "mod_time": "2026-08-01 02:29:24 +0000"
     },
     "probes.base.IntentProbe": {
       "description": "Probe implementing a technique that tests over a range of intents",
@@ -5519,7 +5519,7 @@
         "demon:Rhetoric:Persuasion_and_manipulation:Escalating"
       ],
       "tier": 2,
-      "mod_time": "2026-05-27 20:51:42 +0000"
+      "mod_time": "2026-08-29 13:10:44 +0000"
     },
     "probes.tap.TAP": {
       "description": "Tree of Attacks with Pruning Probe, generating new attacks against the target",
@@ -5567,7 +5567,7 @@
         "demon:Language:Code_and_encode:Token"
       ],
       "tier": 2,
-      "mod_time": "2026-05-27 20:51:42 +0000"
+      "mod_time": "2026-08-29 13:10:44 +0000"
     },
     "probes.tap.TAPCached": {
       "description": "Tree of Attacks with Pruning Probe using cached attacks",
@@ -5598,7 +5598,7 @@
         "demon:Language:Code_and_encode:Token"
       ],
       "tier": 2,
-      "mod_time": "2026-05-27 20:51:42 +0000"
+      "mod_time": "2026-08-29 13:10:44 +0000"
     },
     "probes.test.Blank": {
       "description": "Blank prompt",
@@ -6100,7 +6100,8 @@
             "stop"
           ]
         },
-        "confidence_cutoff": 0.7
+        "confidence_cutoff": 0.7,
+        "verify_attempts": 2
       },
       "active": true,
       "doc_uri": "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/",
@@ -6119,7 +6120,7 @@
         "owasp:llm08",
         "quality:Security:AgentSecurity"
       ],
-      "mod_time": "2026-04-09 15:08:15 +0000"
+      "mod_time": "2026-08-26 11:04:53 +0000"
     },
     "detectors.always.Fail": {
       "description": "Always Fail (for testing & prototyping)",
@@ -6315,7 +6316,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2026-07-24 15:28:01 +0000"
+      "mod_time": "2026-08-14 20:59:20 +0000"
     },
     "detectors.base.FileDetector": {
       "description": "Detector subclass for processing attempts whose outputs are filenames for checking",
@@ -6335,7 +6336,7 @@
       "pass_desc": "Detector found no issue",
       "tags": [],
       "valid_format": "local filename",
-      "mod_time": "2026-07-24 15:28:01 +0000"
+      "mod_time": "2026-08-14 20:59:20 +0000"
     },
     "detectors.base.HFDetector": {
       "description": "Detector using a Hugging Face model",
@@ -6362,7 +6363,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2026-07-24 15:28:01 +0000"
+      "mod_time": "2026-08-14 20:59:20 +0000"
     },
     "detectors.base.StringDetector": {
       "description": "Subclass of Detector using list of substrings as detection triggers",
@@ -6384,7 +6385,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2026-07-24 15:28:01 +0000"
+      "mod_time": "2026-08-14 20:59:20 +0000"
     },
     "detectors.base.TriggerListDetector": {
       "description": "Subclass of Detector using attempt's notes[triggers] as list of strings to match",
@@ -6404,7 +6405,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2026-07-24 15:28:01 +0000"
+      "mod_time": "2026-08-14 20:59:20 +0000"
     },
     "detectors.continuation.Continuation": {
       "description": "Detect if model intiates / continues a trigger word",
@@ -8267,7 +8268,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-09-03 09:51:15 +0000"
     },
     "detectors.unsafe_content.Martin_haDistilbert": {
       "description": "Using backup of martin-ha/toxic-comment-model DistilBERT to detect toxic content",
@@ -8298,7 +8299,7 @@
       "tags": [
         "avid-effect:ethics:E0301"
       ],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-09-03 09:51:15 +0000"
     },
     "detectors.unsafe_content.OfcomOffensiveDiscriminatory": {
       "description": "UK OFCOM potentially offensive list: discriminatory",
@@ -8324,7 +8325,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-09-03 09:51:15 +0000"
     },
     "detectors.unsafe_content.OfcomOffensiveGeneral": {
       "description": "UK OFCOM potentially offensive list: general",
@@ -8349,7 +8350,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-09-03 09:51:15 +0000"
     },
     "detectors.unsafe_content.OfcomOffensiveMentalHealth": {
       "description": "UK OFCOM potentially offensive list: mental health",
@@ -8375,7 +8376,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-09-03 09:51:15 +0000"
     },
     "detectors.unsafe_content.OfcomOffensiveRaceEthnic": {
       "description": "UK OFCOM potentially offensive list: race / ethnic",
@@ -8401,7 +8402,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-09-03 09:51:15 +0000"
     },
     "detectors.unsafe_content.OfcomOffensiveSexGender": {
       "description": "UK OFCOM potentially offensive list: sex & gender",
@@ -8427,7 +8428,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-09-03 09:51:15 +0000"
     },
     "detectors.unsafe_content.OfcomOffensiveSexual": {
       "description": "UK OFCOM potentially offensive list: sexual",
@@ -8451,7 +8452,7 @@
       "tags": [
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-09-03 09:51:15 +0000"
     },
     "detectors.unsafe_content.S_nlpDetox": {
       "description": "Using s-nlp Roberta model to detect toxic content",
@@ -8482,7 +8483,7 @@
       "tags": [
         "avid-effect:ethics:E0301"
       ],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-09-03 09:51:15 +0000"
     },
     "detectors.unsafe_content.SlursReclaimedSlurs": {
       "description": "Slurs and reclaimed slurs. Detects presence of any of the items from an ethnic slur list, regardless of context.",
@@ -8509,7 +8510,7 @@
         "avid-effect:ethics:E0302",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-09-03 09:51:15 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityAnimalReferences": {
       "description": "Surge AI list: animal references",
@@ -8534,7 +8535,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-09-03 09:51:15 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityBodilyFluids": {
       "description": "Surge AI list: bodily fluids / excrement",
@@ -8558,7 +8559,7 @@
       "tags": [
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-09-03 09:51:15 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityMentalDisability": {
       "description": "Surge AI list: mental disability",
@@ -8584,7 +8585,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-09-03 09:51:15 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityPhysicalAttributes": {
       "description": "Surge AI list: physical attributes",
@@ -8609,7 +8610,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-09-03 09:51:15 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityPhysicalDisability": {
       "description": "Surge AI list: physical disability",
@@ -8635,7 +8636,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-09-03 09:51:15 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityPolitical": {
       "description": "Surge AI list: political",
@@ -8662,7 +8663,7 @@
         "avid-effect:ethics:E0302",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-09-03 09:51:15 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityRacialEthnic": {
       "description": "Surge AI list: racial / ethnic",
@@ -8688,7 +8689,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-09-03 09:51:15 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityReligious": {
       "description": "Surge AI list: religious offense",
@@ -8713,7 +8714,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-09-03 09:51:15 +0000"
     },
     "detectors.unsafe_content.SurgeProfanitySexual": {
       "description": "Surge AI list: sexual anatomy / sexual acts",
@@ -8737,7 +8738,7 @@
       "tags": [
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-09-03 09:51:15 +0000"
     },
     "detectors.unsafe_content.SurgeProfanitySexualOrientationGender": {
       "description": "Surge AI list: sexual orientation / gender",
@@ -8763,7 +8764,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-09-03 09:51:15 +0000"
     },
     "detectors.unsafe_content.ToxicCommentModel": {
       "description": "Garak's default toxicity detector",
@@ -8794,7 +8795,7 @@
       "tags": [
         "avid-effect:ethics:E0301"
       ],
-      "mod_time": "2026-02-04 19:07:43 +0000",
+      "mod_time": "2026-09-03 09:51:15 +0000",
       "hit_precision": 1.0,
       "hit_recall": 0.375,
       "hit_f1": 0.5454545454545454
@@ -8842,7 +8843,7 @@
       "tags": [
         "avid-effect:security:S0301"
       ],
-      "mod_time": "2026-08-11 19:05:57 +0000"
+      "mod_time": "2026-08-12 17:51:57 +0000"
     },
     "detectors.web_injection.MarkdownExfilContent": {
       "description": "As the basic detector, MarkdownExfilBasic, but did we exfiltrate anything?",
@@ -8863,7 +8864,7 @@
       "tags": [
         "avid-effect:security:S0301"
       ],
-      "mod_time": "2026-08-11 19:05:57 +0000"
+      "mod_time": "2026-08-12 17:51:57 +0000"
     },
     "detectors.web_injection.MarkdownExfilExtendedImage": {
       "description": "Extended version of MarkdownExfilBasic that searches for a larger variety of Markdown URI formats",
@@ -8884,7 +8885,7 @@
       "tags": [
         "avid-effect:security:S0301"
       ],
-      "mod_time": "2026-08-11 19:05:57 +0000"
+      "mod_time": "2026-08-12 17:51:57 +0000"
     },
     "detectors.web_injection.MarkdownExfilExtendedNonImage": {
       "description": "Extended version of MarkdownExfilBasic that searches for a larger variety of Markdown URI formats",
@@ -8905,7 +8906,7 @@
       "tags": [
         "avid-effect:security:S0301"
       ],
-      "mod_time": "2026-08-11 19:05:57 +0000"
+      "mod_time": "2026-08-12 17:51:57 +0000"
     },
     "detectors.web_injection.PlaygroundMarkdownExfil": {
       "description": "As the basic detector, MarkdownExfilBasic, searching specifically for PlaygroundMarkdownExfil",
@@ -8926,7 +8927,7 @@
       "tags": [
         "avid-effect:security:S0301"
       ],
-      "mod_time": "2026-08-11 19:05:57 +0000"
+      "mod_time": "2026-08-12 17:51:57 +0000"
     },
     "detectors.web_injection.XSS": {
       "description": "Look for cross site scripting (XSS) attempts by payload.",
@@ -8950,7 +8951,7 @@
       "tags": [
         "cwe:79"
       ],
-      "mod_time": "2026-08-11 19:05:57 +0000"
+      "mod_time": "2026-08-12 17:51:57 +0000"
     }
   },
   "generators": {
@@ -9004,6 +9005,13 @@
         "suppressed_params": [],
         "retry_json": true,
         "extra_params": {},
+        "transient_retry_codes": [
+          408,
+          429,
+          502,
+          503,
+          504
+        ],
         "target_name": null
       },
       "active": true,
@@ -9216,6 +9224,13 @@
         ],
         "retry_json": true,
         "extra_params": {},
+        "transient_retry_codes": [
+          408,
+          429,
+          502,
+          503,
+          504
+        ],
         "vary_seed_each_call": true,
         "vary_temp_each_call": true
       },
@@ -9282,6 +9297,13 @@
         "suppressed_params": [],
         "retry_json": true,
         "extra_params": {},
+        "transient_retry_codes": [
+          408,
+          429,
+          502,
+          503,
+          504
+        ],
         "config_ids": []
       },
       "active": true,
@@ -9630,6 +9652,13 @@
         ],
         "retry_json": true,
         "extra_params": {},
+        "transient_retry_codes": [
+          408,
+          429,
+          502,
+          503,
+          504
+        ],
         "vary_seed_each_call": true,
         "vary_temp_each_call": true,
         "max_input_len": 180000,
@@ -9650,7 +9679,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-06-04 18:32:23 +0000"
+      "mod_time": "2026-08-10 17:12:57 +0000"
     },
     "generators.nim.NVOpenAIChat": {
       "description": "Wrapper for NVIDIA NIM microservices hosted on build.nvidia.com and self-hosted.",
@@ -9678,6 +9707,13 @@
         ],
         "retry_json": true,
         "extra_params": {},
+        "transient_retry_codes": [
+          408,
+          429,
+          502,
+          503,
+          504
+        ],
         "vary_seed_each_call": true,
         "vary_temp_each_call": true
       },
@@ -9694,7 +9730,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-06-04 18:32:23 +0000"
+      "mod_time": "2026-08-10 17:12:57 +0000"
     },
     "generators.nim.NVOpenAICompletion": {
       "description": "Wrapper for NVIDIA NIM microservices hosted on build.nvidia.com and self-hosted.",
@@ -9722,6 +9758,13 @@
         ],
         "retry_json": true,
         "extra_params": {},
+        "transient_retry_codes": [
+          408,
+          429,
+          502,
+          503,
+          504
+        ],
         "vary_seed_each_call": true,
         "vary_temp_each_call": true
       },
@@ -9738,7 +9781,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-06-04 18:32:23 +0000"
+      "mod_time": "2026-08-10 17:12:57 +0000"
     },
     "generators.nim.Vision": {
       "description": "Wrapper for text and image to text NVIDIA NIM microservices hosted on build.nvidia.com and self-hosted.",
@@ -9766,6 +9809,13 @@
         ],
         "retry_json": true,
         "extra_params": {},
+        "transient_retry_codes": [
+          408,
+          429,
+          502,
+          503,
+          504
+        ],
         "vary_seed_each_call": true,
         "vary_temp_each_call": true,
         "max_input_len": 180000,
@@ -9785,7 +9835,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-06-04 18:32:23 +0000"
+      "mod_time": "2026-08-10 17:12:57 +0000"
     },
     "generators.nvcf.NvcfChat": {
       "description": "Wrapper for NVIDIA Cloud Functions Chat models via NGC. Expects NVCF_API_KEY environment variable.",
@@ -9885,7 +9935,7 @@
       },
       "parallel_capable": false,
       "supports_multiple_generations": false,
-      "mod_time": "2026-08-11 17:40:05 +0000"
+      "mod_time": "2026-08-26 11:22:03 +0000"
     },
     "generators.ollama.OllamaGeneratorChat": {
       "description": "Interface for Ollama endpoints, using the chat functionality",
@@ -9917,7 +9967,7 @@
       },
       "parallel_capable": false,
       "supports_multiple_generations": false,
-      "mod_time": "2026-08-11 17:40:05 +0000"
+      "mod_time": "2026-08-26 11:22:03 +0000"
     },
     "generators.openai.OpenAICompatible": {
       "description": "Generator base class for OpenAI compatible text2text restful API. Implements shared initialization and execution methods.",
@@ -9939,7 +9989,14 @@
         ],
         "suppressed_params": [],
         "retry_json": true,
-        "extra_params": {}
+        "extra_params": {},
+        "transient_retry_codes": [
+          408,
+          429,
+          502,
+          503,
+          504
+        ]
       },
       "active": true,
       "extra_dependency_names": [],
@@ -9954,7 +10011,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-07-31 13:41:40 +0000"
+      "mod_time": "2026-09-04 14:35:48 +0000"
     },
     "generators.openai.OpenAIGenerator": {
       "description": "Generator wrapper for OpenAI text2text models. Expects API key in the OPENAI_API_KEY environment variable",
@@ -9975,7 +10032,14 @@
         ],
         "suppressed_params": [],
         "retry_json": true,
-        "extra_params": {}
+        "extra_params": {},
+        "transient_retry_codes": [
+          408,
+          429,
+          502,
+          503,
+          504
+        ]
       },
       "active": true,
       "extra_dependency_names": [],
@@ -9990,7 +10054,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2026-07-31 13:41:40 +0000"
+      "mod_time": "2026-09-04 14:35:48 +0000"
     },
     "generators.openai.OpenAIReasoningGenerator": {
       "description": "Generator wrapper for OpenAI reasoning models, e.g. `o1` family.",
@@ -10031,7 +10095,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-07-31 13:41:40 +0000"
+      "mod_time": "2026-09-04 14:35:48 +0000"
     },
     "generators.rasa.RasaRestGenerator": {
       "description": "API interface for RASA models",

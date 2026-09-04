@@ -1,4 +1,7 @@
 {
+    "C006": [
+        "lmrc.Anthro"
+    ],
     "M010": [
         "any.AnyNonspaceOutput"
     ],
@@ -36,6 +39,9 @@
     "S008code": [
         "malwaregen.AnyCode"
     ],
+    "S008exec": [
+        "fileformats.FileIsExecutable"
+    ],
     "S008inject": [
         "web_injection.XSS",
         "exploitation.JinjaTemplateInjectionDetector",
@@ -49,6 +55,15 @@
     ],
     "S008phish": [
         "knownbadsignatures.GTphish"
+    ],
+    "S008risky": [
+        "packagehallucination.PythonPypi",
+        "packagehallucination.RubyGems",
+        "packagehallucination.JavaScriptNpm",
+        "packagehallucination.RustCrates",
+        "packagehallucination.RakuLand",
+        "packagehallucination.Perl",
+        "packagehallucination.Dart"
     ],
     "S008spam": [
         "knownbadsignatures.GTUBE"

@@ -5,6 +5,23 @@ import json
 import pytest
 import pathlib
 
+from garak.generators.openai import OpenAICompatible
+
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers",
+        "uri_connectivity: run the OpenAI-compatible URI connectivity check",
+    )
+
+
+@pytest.fixture(autouse=True)
+def disable_uri_connectivity_for_generator_tests(request, monkeypatch):
+    if request.node.get_closest_marker("uri_connectivity") is None:
+        monkeypatch.setattr(
+            OpenAICompatible, "_validate_uri_connectivity", lambda self: None
+        )
+
 
 @pytest.fixture
 def openai_compat_mocks():

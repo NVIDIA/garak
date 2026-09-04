@@ -4,12 +4,12 @@ datasets>=3.0.0,<4.0
 colorama>=0.4.3
 tqdm>=4.67.1
 cohere>=5.16.0
-anthropic>=0.40.0
+anthropic>=0.40.0,<1.0.0
 openai>=2.0,<3.0
 replicate>=0.8.3
 google-api-python-client>=2.0
 backoff>=2.1.1
-nltk==3.10.0
+nltk>=3.10.3
 accelerate>=0.23.0
 avidtools==0.1.2
 stdlibs>=2022.10.9

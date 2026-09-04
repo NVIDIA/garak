@@ -125,7 +125,7 @@ We find that using ``parallel_attempts`` usually gives a faster run completion t
 Run Config Items
 """"""""""""""""
 
-* ``system_prompt`` -- If given and not overriden by the probe itself, probes will pass the specified system prompt when possible for generators that support chat modality.
+* ``system_prompt`` -- If given and not overridden by the probe itself, probes will pass the specified system prompt when possible for generators that support chat modality.
 * ``spec`` - The unified selection spec for probes and buffs (``run.spec``); see "Selecting probes and buffs with run.spec" below. If absent, the default is all active probes (``probes.*``); use ``none`` to select no probes explicitly. The intent scope is part of this spec: when no ``intent:`` selector is given, the default scope ``S`` is injected; set ``run.spec`` ``intent:`` selectors to override
 * ``generations`` - How many times to send each prompt for inference
 * ``deprefix`` - Remove the prompt from the start of the output (some models return the prompt as part of their output)
@@ -250,7 +250,7 @@ Reporting Config Items
 * ``taxonomy`` - Which taxonomy to use to group probes when creating HTML report
 * ``show_100_pass_modules`` - Should entries scoring 100% still be detailed in the HTML report?
 * ``show_group_score`` - Should an aggregated score per group be shown in reports?
-* ``group_aggregation_function`` - How should scored of probe groups (e.g. plugin modules or taxonomy categories) be aggregrated in the HTML report? Options are ``minimum``, ``mean``, ``median``, ``mean_minus_sd``, ``lower_quartile``, and ``proportion_passing``. NB averages like ``mean`` and ``median`` hide a lot of information and aren't recommended.
+* ``group_aggregation_function`` - How should scored of probe groups (e.g. plugin modules or taxonomy categories) be aggregated in the HTML report? Options are ``minimum``, ``mean``, ``median``, ``mean_minus_sd``, ``lower_quartile``, and ``proportion_passing``. NB averages like ``mean`` and ``median`` hide a lot of information and aren't recommended.
 * ``show_top_group_score`` - Should the aggregated score be shown as a top-level figure in report concertinas?
 * ``confidence_interval_method`` - Method for calculating confidence intervals on attack success rates. Also available via CLI as ``--confidence_interval_method``. Options:
 

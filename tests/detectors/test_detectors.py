@@ -79,6 +79,22 @@ def test_detector_structure(classname):
     ), f"_supported_params must contain all DEFAULT_PARAMS; {unsupported_defaults} missing"
 
 
+def test_detector_default_name_is_class_name_string():
+    """A detector that sets no name of its own gets its class name as a string,
+    not the base Detector class object (which reaches user-facing messages)."""
+
+    class _Nameless(Detector):
+        """a detector that does not set its own name"""
+
+    base = Detector()
+    sub = _Nameless()
+
+    assert isinstance(base.name, str), "base detector name must be a string"
+    assert base.name == "Detector", "base detector name should be its class name"
+    assert isinstance(sub.name, str), "subclass detector name must be a string"
+    assert sub.name == "_Nameless", "subclass should take its own class name"
+
+
 @pytest.mark.parametrize("classname", DETECTORS)
 def test_detector_detect(classname, monkeypatch):
     monkeypatch.setattr("datasets.load_dataset", Mock(return_value=_MockDataset()))

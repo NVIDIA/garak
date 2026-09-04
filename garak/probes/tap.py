@@ -34,7 +34,7 @@ doing. Thus, the hardware requirements can be quite high if one is running
 everything on a local machine. The evaluator model (3) needs to be particularly
 good in order to successfully evaluate and rank jailbreak progress.
 
-Therefor, as well as the full TAP probe, this module also includes a TAPCached probe
+Therefore, as well as the full TAP probe, this module also includes a TAPCached probe
 which uses pre-computed TAP prompts to jailbreak without having to run the two
 additional LLMs.
 

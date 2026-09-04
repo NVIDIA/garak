@@ -4,8 +4,8 @@
 import os
 import pytest
 
-from garak.attempt import Message, Turn, Conversation
 import garak.cli
+from garak.attempt import Message, Turn, Conversation
 from garak.generators.nim import NVOpenAIChat
 
 

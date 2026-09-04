@@ -42,8 +42,8 @@ Parallel attempts
 ^^^^^^^^^^^^^^^^^
 
 Running inference in serial is slow and often takes days, sometimes weeks. 
-During probing, garak can marshall all the prompts it knows it's going to pose, and parallise these at attempt level.
-This means taht multiple generations form the same prompt still occur in serial. 
+During probing, garak can marshall all the prompts it knows it's going to pose, and parallelize these at attempt level.
+This means that multiple generations from the same prompt still occur in serial.
 
 It's recommended to use set ``system.parallel_attempts: 32`` if you're using a remotely hosted endpoint.
 This will run up to 32 inference requests at a time, and cover a broad range of probes. Run completion time depends on how fast the target is and how much compute is allocated.
@@ -55,8 +55,8 @@ On the other hand, dropped requests don't look great on the dashboards of the pe
 
 
 
-Limits in parallization
-^^^^^^^^^^^^^^^^^^^^^^^
+Limits in parallelization
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 FDs and parallelization
 """""""""""""""""""""""
