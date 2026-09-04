@@ -4,6 +4,7 @@ All `garak` generators must inherit from this.
 """
 
 import logging
+import pickle
 import random
 import re
 from typing import List, Union
@@ -210,6 +211,13 @@ class Generator(Configurable):
                         raise GarakException(msg) from o
                     else:
                         raise (o)
+                except pickle.PicklingError as p:
+                    msg = (
+                        "A generator attribute could not be sent to a parallel worker process. "
+                        "Try setting parallel_requests to 1."
+                    )
+                    logging.critical(msg)
+                    raise GarakException(msg) from p
                 finally:
                     if pool is not None:
                         pool.close()

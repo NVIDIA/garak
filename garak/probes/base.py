@@ -12,6 +12,7 @@ Abstract and common-level probe classes belong here. Contact the garak maintaine
 import copy
 import json
 import logging
+import pickle
 from collections.abc import Iterable
 import random
 from typing import Iterable, List, Set, Union
@@ -363,6 +364,13 @@ class Probe(Configurable):
                     raise GarakException(msg) from o
                 else:
                     raise (o)
+            except pickle.PicklingError as p:
+                msg = (
+                    "A probe or generator attribute could not be sent to a parallel worker "
+                    "process. Try setting parallel_attempts to 1."
+                )
+                logging.critical(msg)
+                raise GarakException(msg) from p
             finally:
                 if attempt_pool is not None:
                     attempt_pool.close()
