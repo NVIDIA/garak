@@ -17,7 +17,8 @@ import garak.attempt
 import garak.analyze
 import garak.analyze.calibration
 import garak.analyze.detector_metrics
-from garak.analyze.bootstrap_ci import calculate_bootstrap_ci
+from garak.analyze.bootstrap_ci import apply_detector_correction, calculate_bootstrap_ci
+from garak.analyze.wilson_ci import calculate_wilson_ci, fallback_wilson_if_degenerate
 import garak.resources.theme
 
 # Minimum CI width (in percentage points) to display in output
@@ -139,9 +140,25 @@ class Evaluator:
 
         ci_lower: Optional[float] = None
         ci_upper: Optional[float] = None
+        confidence_method: Optional[str] = None
         ci_method = getattr(_config.reporting, "confidence_interval_method")
         min_sample_size = _config.reporting.bootstrap_min_sample_size
-        if ci_method == "bootstrap" and outputs_evaluated >= min_sample_size:
+        if ci_method == "wilson" and outputs_evaluated >= min_sample_size:
+            confidence_method = "wilson"
+            se, sp = self.detector_metrics.get_detector_se_sp(detector_name)
+            ci_lower, ci_upper = calculate_wilson_ci(
+                successes=fails,
+                n=outputs_evaluated,
+                confidence_level=_config.reporting.bootstrap_confidence_level,
+            ) or (None, None)
+            if ci_lower is not None:
+                # Map onto the Se/Sp-corrected ASR scale so wilson and
+                # bootstrap rows report one estimand (#2033).
+                ci_lower, ci_upper = apply_detector_correction(
+                    (ci_lower, ci_upper), se, sp
+                )
+        elif ci_method == "bootstrap" and outputs_evaluated >= min_sample_size:
+            confidence_method = "bootstrap"
             # Construct individual results post-hoc (order doesn't matter for bootstrap resampling)
             binary_outcomes = [1] * fails + [0] * passes
             try:
@@ -150,8 +167,33 @@ class Evaluator:
                     results=binary_outcomes, sensitivity=se, specificity=sp
                 )
                 if ci_result is not None:
-                    ci_lower, ci_upper = ci_result
+                    # A degenerate bootstrap (0%/100% observed rate, or rates
+                    # the Se/Sp correction clips together) has zero width;
+                    # report an honest Wilson interval instead (#2033).
+                    ci_lower, ci_upper, confidence_method = (
+                        fallback_wilson_if_degenerate(
+                            ci_result[0],
+                            ci_result[1],
+                            successes=fails,
+                            n=outputs_evaluated,
+                            confidence_level=_config.reporting.bootstrap_confidence_level,
+                            sensitivity=se,
+                            specificity=sp,
+                        )
+                    )
+                    if confidence_method == "wilson":
+                        logging.warning(
+                            "Bootstrap CI degenerate for %s (probe: %s, n=%d); "
+                            "reporting Wilson interval [%.2f%%, %.2f%%] instead "
+                            "of the configured bootstrap method",
+                            detector_name,
+                            self.probename,
+                            outputs_evaluated,
+                            ci_lower,
+                            ci_upper,
+                        )
                 else:
+                    confidence_method = None
                     logging.warning(
                         "CI calculation returned None for %s (probe: %s, n=%d, Se=%.3f, Sp=%.3f)",
                         detector_name,
@@ -161,6 +203,7 @@ class Evaluator:
                         sp,
                     )
             except ValueError as e:
+                confidence_method = None
                 logging.error(
                     "CI calculation failed for %s (probe: %s, n=%d):",
                     detector_name,
@@ -206,7 +249,7 @@ class Evaluator:
 
         # Add CI fields if calculation succeeded
         if ci_lower is not None and ci_upper is not None:
-            eval_record["confidence_method"] = "bootstrap"
+            eval_record["confidence_method"] = confidence_method or "bootstrap"
             eval_record["confidence"] = _config.reporting.bootstrap_confidence_level
             eval_record["confidence_upper"] = ci_upper / 100
             eval_record["confidence_lower"] = ci_lower / 100
