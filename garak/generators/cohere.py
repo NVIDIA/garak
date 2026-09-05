@@ -114,19 +114,19 @@ class CohereGenerator(Generator):
                             # Get the first text content item
                             for content_item in response.message.content:
                                 if hasattr(content_item, "text"):
-                                    responses.append(content_item.text)
+                                    responses.append(Message(content_item.text))
                                     break
                             else:
                                 # No text content found
                                 logging.warning(
                                     "No text content found in chat response"
                                 )
-                                responses.append(str(response))
+                                responses.append(Message(str(response)))
                         else:
                             logging.warning(
                                 "Chat response structure doesn't match expected format"
                             )
-                            responses.append(str(response))
+                            responses.append(Message(str(response)))
                     except Exception as e:
 
                         backoff_exception_types = (
@@ -168,17 +168,17 @@ class CohereGenerator(Generator):
                     # Handle response based on structure
                     if hasattr(response, "generations"):
                         # Handle the v5+ API response format
-                        return [gen.text for gen in response.generations]
+                        return [Message(gen.text) for gen in response.generations]
                     else:
                         # Try to handle other possible response formats
                         try:
                             if isinstance(response, list):
-                                return [g.text for g in response]
+                                return [Message(g.text) for g in response]
                             elif hasattr(response, "text"):
-                                return [response.text]
+                                return [Message(response.text)]
                             else:
                                 # Last resort - try to convert response to string
-                                return [str(response)]
+                                return [Message(str(response))]
                         except RuntimeError as e:
                             logging.error(
                                 f"Failed to extract text from Cohere response: {e}"
