@@ -110,7 +110,7 @@ def test_continuation_empty_triggers():
     a.notes["triggers"] = []
     a.outputs = [TEST_TRIGGER]
     r = d.detect(a)
-    assert r == [], "No triggers should not yield results"
+    assert r == [None], "No triggers should not yield a score"
 
 
 def test_continuation_triggers_not_trigger():
@@ -120,4 +120,20 @@ def test_continuation_triggers_not_trigger():
     a.notes["trigger"] = TEST_TRIGGER
     a.outputs = [TEST_TRIGGER]
     r = d.detect(a)
-    assert r == [], "attempt.notes['trigger'] should not be supported"
+    assert r == [None], "attempt.notes['trigger'] should not be supported"
+
+
+def test_continuation_no_triggers_scores_one_none_per_output():
+    d = _plugins.load_plugin("detectors.continuation.Continuation")
+
+    a = _test_attempt()
+    a.outputs = [TEST_TRIGGER, "second output", "third output"]
+    r = d.detect(a)
+    assert len(r) == len(
+        a.outputs
+    ), "results must stay aligned with attempt.outputs when triggers are absent"
+    assert r == [
+        None,
+        None,
+        None,
+    ], "with no triggers nothing can be scored, so no output counts as a pass"
