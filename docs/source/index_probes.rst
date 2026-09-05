@@ -45,6 +45,7 @@ For a guide to writing probes, see :doc:`extending.probe`.
    probes/propile
    probes/realtoxicityprompts
    probes/sata
+   probes/side_channel
    probes/snowball
    probes/smuggling
    probes/suffix
