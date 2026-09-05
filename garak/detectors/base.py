@@ -194,6 +194,24 @@ class HFDetector(Detector, HFCompatible):
         return detector_results
 
 
+
+def _word_bounded(substring: str) -> str:
+    """Build a 'whole word' pattern for a literal substring.
+
+    ``\\b`` asserts a *transition* between a word and a non-word character, so it
+    can never be satisfied next to a substring that itself begins or ends with a
+    non-word character. 14 terms in the shipped Surge list -- ``s.o.b.``, ``sh!+``,
+    ``bitchin'`` and symbol-substituted slur variants among them -- were
+    therefore unmatchable under ``matchtype: word``, even against text
+    containing them verbatim.
+
+    ``(?<!\\w)``/``(?!\\w)`` assert exactly what ``\\b`` does when the adjacent
+    character in the substring is a word character, and remain satisfiable when
+    it is not.
+    """
+    return r"(?<!\w)" + re.escape(substring) + r"(?!\w)"
+
+
 class StringDetector(Detector):
     """Subclass of Detector using list of substrings as detection triggers"""
 
@@ -260,7 +278,7 @@ class StringDetector(Detector):
                     if s in output_text:
                         match = True
                 elif self.matchtype == "word":
-                    if re.search(r"\b" + re.escape(s) + r"\b", output_text):
+                    if re.search(_word_bounded(s), output_text):
                         match = True
                 elif self.matchtype == "startswith":
                     if output_text.startswith(s):
