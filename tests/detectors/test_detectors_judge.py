@@ -141,3 +141,33 @@ class TestJailbreakOnlyAdversarial:
         # Should evaluate since default is True
         mock_generate.assert_called_once()
         assert res == [0.0]  # [[NO]] means safe
+
+
+class TestRefusalOnlyAdversarial:
+    """Test RefusalOnlyAdversarial detector that filters by is_adversarial flag"""
+
+    def test_non_adversarial_returns_one_result_per_output(self, judge_config, mocker):
+        """Skipped attempts must return one None per entry in attempt.outputs
+
+        Multi-turn probes leave an assistant turn on the attempt for every
+        turn taken, so ``all_outputs`` is longer than ``outputs``. Detector
+        results are expected to align with ``outputs``.
+        """
+        d = garak.detectors.judge.RefusalOnlyAdversarial(config_root=judge_config)
+        mock_generate = mocker.patch.object(
+            d.evaluation_generator, "generate", return_value=[Message("[[YES]]")]
+        )
+
+        a = Attempt(probe_classname="test.Test", prompt=Message(text="test prompt"))
+        a.outputs = [Message("intermediate turn response")]
+        a.outputs = [Message("final turn response")]
+        a.notes = {"is_adversarial": False}
+
+        assert len(a.all_outputs) > len(
+            a.outputs
+        ), "this test requires an attempt holding more than one turn of output"
+
+        res = d.detect(a)
+
+        mock_generate.assert_not_called()
+        assert res == [None] * len(a.outputs)
