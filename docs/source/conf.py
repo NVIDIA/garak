@@ -84,6 +84,7 @@ redirects = {
     "garak.generators.test": "generators/test.html",
     "garak.generators.nim": "generators/nim.html",
     "garak.generators.openai": "generators/openai.html",
+    "garak.generators.openrouter": "generators/openrouter.html",
     "garak.generators.replicate": "generators/replicate.html",
     "garak.generators.huggingface": "generators/huggingface.html",
     "garak.generators.watsonx": "generators/watsonx.html",
