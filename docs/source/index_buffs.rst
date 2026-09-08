@@ -15,6 +15,7 @@ implemented buffs.
 
    buffs/base
    buffs/encoding
+   buffs/ignore_previous_instructions
    buffs/low_resource_languages
    buffs/lowercase
    buffs/paraphrase
