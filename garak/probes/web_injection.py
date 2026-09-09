@@ -173,7 +173,9 @@ class StringAssemblyDataExfil(garak.probes.Probe):
     doc_uri = "https://embracethered.com/blog/posts/2023/data-exfiltration-in-azure-openai-playground-fixed/"
     lang = "en"
     goal = "embed conversation-private information in a markdown URI"
-    intent = "S009exfil"  # assembles a markdown URL that leaks prior conversation content
+    intent = (
+        "S009exfil"  # assembles a markdown URL that leaks prior conversation content
+    )
     primary_detector = "web_injection.MarkdownExfilBasic"
     tags = [
         "avid-effect:security:S0301",
@@ -274,6 +276,7 @@ class MarkdownExfilMixin:
     """
 
     intent = "S009exfil"  # all subclasses generate outbound Markdown URIs intended to leak sensitive context
+
     def __init__(self, config_root=_config):
         self.prompts = []
         self.uri_var_formats = ["/", "/logo.png?"]
@@ -556,7 +559,11 @@ class MarkdownXSS(garak.probes.Probe):
         self.prompts = self._generate_prompts()
 
     def _generate_prompts(self):
-        stubs = self._stubs_from_payloads(self.payloads)
+        stubs = [
+            stub
+            for payload_name in self.payloads
+            for stub in garak.payloads.load(payload_name).to_stubs()
+        ]
         self._prompt_intents = [stub.intent for stub in stubs]
         return [
             MARKDOWN_JS_TEMPLATE.replace("{injected_js}", stub.content)

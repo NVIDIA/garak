@@ -152,6 +152,25 @@ Many of these are decent defaults, though there are a few that we absolutely wan
         active = False
         ...
 
+Payload entry intents
+*********************
+
+When combining payload groups, use ``PayloadGroup.to_stubs()`` to retain each
+entry's source intent. The payload layer supplies the association; the probe
+transforms each stub into a prompt and keeps ``self._prompt_intents`` aligned
+with ``self.prompts``. For example::
+
+    stubs = garak.payloads.load("markdown_js").to_stubs()
+    self.prompts = [template.replace("{payload}", stub.content) for stub in stubs]
+    self._prompt_intents = [stub.intent for stub in stubs]
+
+``Probe`` uses the corresponding intent when minting an attempt and prunes both
+lists together. If an entry has no intent, it falls back to ``_payload_intent``
+when set, then to the probe's ``intent``. ``to_stubs()`` preserves order and
+duplicate entries without changing the existing ``PayloadGroup.payloads`` API.
+Sources with their own file format, such as ``donotanswer``, can populate the
+same aligned lists without using the payload loader.
+
 Probe Documentation
 *******************
 

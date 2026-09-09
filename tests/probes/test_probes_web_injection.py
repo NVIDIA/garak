@@ -8,6 +8,10 @@ the intent of whichever group loaded first, so prompts built from later groups
 reported an intent they did not come from.
 """
 
+import json
+
+import pytest
+
 import garak.payloads
 from garak import _plugins
 
@@ -16,6 +20,35 @@ PROBE = "probes.web_injection.MarkdownXSS"
 # two payload groups that declare different intents
 GROUP_A = "markdown_js"  # intent: S008inject
 GROUP_B = "slur_terms_en"  # intent: S005hate
+
+
+@pytest.mark.parametrize("second_intent", ["S005hate", None])
+def test_group_association_with_duplicate_text(tmp_path, monkeypatch, second_intent):
+    groups = {}
+    for name, intent in ((GROUP_A, "S008inject"), (GROUP_B, second_intent)):
+        data = {
+            "garak_payload_name": name,
+            "payload_types": [],
+            "payloads": ["same text"],
+        }
+        if intent is not None:
+            data["intent"] = intent
+        path = tmp_path / f"{name}.json"
+        path.write_text(json.dumps(data), encoding="utf-8")
+        groups[name] = garak.payloads.PayloadGroup(name, path)
+    monkeypatch.setattr(garak.payloads, "load", groups.__getitem__)
+
+    probe = _probe_over_both_groups()
+
+    assert (
+        probe.prompts[0] == probe.prompts[1]
+    ), "exercise identical text from different groups"
+    assert (
+        probe._mint_attempt(probe.prompts[0], 0).intent == "S008inject"
+    ), "retain the first group intent"
+    assert probe._mint_attempt(probe.prompts[1], 1).intent == (
+        second_intent or probe.intent
+    ), "missing intents must fall back to the probe, not another group"
 
 
 def _probe_over_both_groups():

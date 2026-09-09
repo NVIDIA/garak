@@ -22,10 +22,9 @@ import tqdm
 from garak import _config
 from garak.configurable import Configurable
 from garak.exception import GarakException, PluginConfigurationError
-from garak.intents import Stub, TextStub
+from garak.intents import Stub
 from garak.probes._tier import Tier
 import garak.attempt
-import garak.payloads
 import garak.resources.theme
 
 
@@ -214,24 +213,6 @@ class Probe(Configurable):
     ) -> garak.attempt.Attempt:
         """hook called to process completed attempts; always called"""
         return attempt
-
-    def _stubs_from_payloads(self, payload_names: Iterable[str]) -> List[TextStub]:
-        """Load payload groups into intent-bearing stubs.
-
-        Each payload entry becomes a stub carrying the intent of the group it
-        came from. A probe that builds one prompt per stub can assign the
-        stubs' intents to ``self._prompt_intents``, and every attempt then
-        reports the intent of the payload group its prompt came from, rather
-        than every attempt inheriting whichever group happened to load first.
-        """
-        stubs = []
-        for payload_name in payload_names:
-            payload_group = garak.payloads.load(payload_name)
-            for entry in payload_group.payloads:
-                stub = TextStub(intent=payload_group.intent)
-                stub.content = entry
-                stubs.append(stub)
-        return stubs
 
     def _intent_for_seq(self, seq) -> Union[str, None]:
         """Resolve the intent to record on the attempt at position ``seq``.
@@ -989,6 +970,8 @@ class IntentProbe(Probe):
         if not self.prompts:
             # an empty active-intent set (run.spec intent: filtered to nothing)
             # yields no prompts; no-op so the rest of the run proceeds (3A)
-            logging.debug("%s has no active intents; no prompts to send", self.probename)
+            logging.debug(
+                "%s has no active intents; no prompts to send", self.probename
+            )
             return []
         return super().probe(generator)
