@@ -65,3 +65,37 @@ def test_buff_load_and_transform(klassname, mocker):
                 "transform should yield the original attempt plus each unique "
                 "paraphrase, with duplicates removed"
             )
+
+
+def test_derive_new_attempt_does_not_share_notes_or_detector_results():
+    # regression test: garak.buffs.base.Buff._derive_new_attempt used to pass
+    # source_attempt.notes/detector_results/targets/probe_params straight
+    # through, so a derived attempt and its source (and any siblings derived
+    # from the same source) shared the same dicts/lists. Writing a detector
+    # result or a note on one attempt then silently overwrote what every
+    # sibling reported, and mutating targets/probe_params on one attempt
+    # would leak into the others.
+    b = garak.buffs.base.Buff()
+    source_attempt = attempt.Attempt()
+    source_attempt.prompt = attempt.Message("hello", lang="en")
+    source_attempt.targets = ["target"]
+    source_attempt.probe_params = {"param": "value"}
+
+    derived_attempt = b._derive_new_attempt(source_attempt)
+
+    assert derived_attempt.notes is not source_attempt.notes
+    assert derived_attempt.detector_results is not source_attempt.detector_results
+    assert derived_attempt.targets is not source_attempt.targets
+    assert derived_attempt.probe_params is not source_attempt.probe_params
+
+    derived_attempt.detector_results["always.Fail"] = [0.0]
+    assert "always.Fail" not in source_attempt.detector_results
+
+    source_attempt.notes["marker"] = "source"
+    assert "marker" not in derived_attempt.notes
+
+    derived_attempt.targets.append("other target")
+    assert source_attempt.targets == ["target"]
+
+    source_attempt.probe_params["other param"] = "other value"
+    assert derived_attempt.probe_params == {"param": "value"}
