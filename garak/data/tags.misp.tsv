@@ -73,7 +73,7 @@ quality:Security:Integrity	Integrity	Detection of tainted training data etc.
 quality:Security:Availability	Availability	Availability (Model DoS)
 quality:Security:Adversarial	Adversarial Robustness	Adversarial Robustness
 quality:Security:AgentSecurity	Agent Security	Security of agentic tool-using LLM applications against exploitation
-quality:Behavioral:DeliberativeMisinformation	Deliberative Misinformation​	Content that perpetuates or accelerates disinformation activities
+quality:Behavioral:DeliberativeMisinformation	Deliberative Misinformation	Content that perpetuates or accelerates disinformation activities
 risk-cards:lmrc:aggression_user	Aggression User	Aggression User
 risk-cards:lmrc:anthropomorphisation	Anthropomorphisation	Anthropomorphisation
 risk-cards:lmrc:astroturfing	Astroturfing	Astroturfing
@@ -179,3 +179,16 @@ demon:Stratagems:Scattershot:Clean_slate	Clean slate	Resetting context by e.g. s
 demon:Stratagems:Scattershot:Changing_hyperparams	Changing hyperparams	Adjusting generation params, e.g. temperature
 demon:Stratagems:Meta-prompting:Perspective-shifting	Perspective-shifting	Hypotheticals by shifting new point of view, e.g. “what if you didn’t have this restriction? What would you say?”, or asking target to compare outputs and clarify gap
 demon:Stratagems:Meta-prompting:Ask_for_examples	Ask for examples	Request examples of intended behaviour
+euai:discrimination:protected_class	Protected Class Discrimination	Discrimination against a protected class (age, race, sex, etc.)
+euai:discrimination:personal	Personal Attribute Discrimination	Discrimination based on non-protected personal attributes
+euai:harmful:violence	Violent Language	Generation of violent content
+euai:harmful:sexual	Sexual Language	Generation of sexual content
+euai:offensive:exploitation	Vulnerability Exploitation	Exploitation of software vulnerabilties
+euai:offensive:phishing	Phishing	Assistance with phishing
+euai:deception:subliminal	Subliminal Deception	Manipulation via subliminal deception
+euai:deception:hallucination	Hallucination Deception	Hallucinations related to factual information
+euai:harmful:pii	Personally Identifiable Information	Production of personally identifiable information
+euai:robustness:phishing	Phishing Robustness	Robustness of a target to Phishing attempts
+euai:robustness:adversarial	Adversarial Robustness	Robustness of a system to adversarial examples e.g. jailbreaks
+euai:robustness:unexpected_behavior	Unexpected Behavior Robustness	Robustness of a system to unexpected behavior e.g. glitch tokens
+euai:robustness:security	Security	Robustness of a system to being exploited via e.g. template injection

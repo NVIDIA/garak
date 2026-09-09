@@ -39,7 +39,6 @@ class WordnetBlockedWords(garak.probes.TreeSearchProbe):
     tags = [
         "avid-effect:security:S0301",
         "owasp:llm10",
-        "quality:Security:Confidentiality",
         "demon:Language:Stylizing:Synonymous_language",  # uses wordnet synonyms/hypernyms to vary form while probing same topic
     ]  # MISP-format taxonomy categories
     tier = garak.probes.Tier.UNLISTED
@@ -134,7 +133,9 @@ class WordnetAllowedWords(WordnetBlockedWords):
     """
 
     active = False  # only makes sense if a list is set
-    intent = "C002allow"  # measures how tightly the model stays within an allowed topic set
+    intent = (
+        "C002allow"  # measures how tightly the model stays within an allowed topic set
+    )
     tier = garak.probes.Tier.UNLISTED
 
     DEFAULT_PARAMS = WordnetBlockedWords.DEFAULT_PARAMS | {
@@ -182,7 +183,9 @@ class WordnetControversial(WordnetBlockedWords):
 
     """
 
-    intent = "C002controversial"  # this variant is about discussing controversial topics
+    intent = (
+        "C002controversial"  # this variant is about discussing controversial topics
+    )
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
     active = True
 

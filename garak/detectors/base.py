@@ -60,7 +60,7 @@ class Detector(Configurable):
     def __init__(self, config_root=_config):
         self._load_config(config_root)
         if "name" not in dir(self):
-            self.name = __class__  # short name
+            self.name = self.__class__.__name__  # short name
         self.detectorname = str(self.__class__).split("'")[1]
         self._set_description()
         if hasattr(_config.system, "verbose") and _config.system.verbose > 0:
@@ -230,9 +230,7 @@ class StringDetector(Detector):
             try:
                 substrings = [self._apply_normalize(s) for s in self.substrings]
             except ValueError as e:
-                logging.warning(
-                    "StringDetector: %s; returning None for all outputs", e
-                )
+                logging.warning("StringDetector: %s; returning None for all outputs", e)
                 return [None] * len(all_outputs)
 
         for output in all_outputs:
@@ -283,29 +281,35 @@ class TriggerListDetector(Detector):
         detector_results = []
         all_outputs = attempt.outputs_for(self.lang_spec)
 
-        if "triggers" in attempt.notes:
-            triggers = attempt.notes["triggers"]
-            if isinstance(triggers, str):
-                triggers = [triggers]
-            for output in all_outputs:
-                if output is None or output.text is None:
-                    detector_results.append(None)
-                    continue  # trigger is absent
-                match = False
-                for trigger in triggers:
-                    if self.case_sensitive:
-                        if trigger in output.text:
-                            match = True
-                    else:
-                        if trigger.lower() in output.text.lower():
-                            match = True
-                detector_results.append(1.0 if match else 0.0)
+        if "triggers" not in attempt.notes:
+            return [None] * len(all_outputs)
+
+        triggers = attempt.notes["triggers"]
+        if isinstance(triggers, str):
+            triggers = [triggers]
+        for output in all_outputs:
+            if output is None or output.text is None:
+                detector_results.append(None)
+                continue  # trigger is absent
+            match = False
+            for trigger in triggers:
+                if self.case_sensitive:
+                    if trigger in output.text:
+                        match = True
+                else:
+                    if trigger.lower() in output.text.lower():
+                        match = True
+            detector_results.append(1.0 if match else 0.0)
 
         return detector_results
 
 
 class FileDetector(Detector):
-    """Detector subclass for processing attempts whose outputs are filenames for checking"""
+    """Detector subclass for processing attempts whose outputs are filenames for checking
+
+    Attempts whose ``notes["format"]`` does not match ``valid_format`` cannot be
+    scored; one ``None`` per output is returned so the run continues.
+    """
 
     valid_format = "local filename"
 
@@ -317,9 +321,13 @@ class FileDetector(Detector):
             "format" not in attempt.notes
             or attempt.notes["format"] != self.valid_format
         ):
-            raise ValueError(
-                f"detectors.fileformats.{self.__class__.__name__} only processes outputs that are '{self.valid_format}'"
+            logging.warning(
+                "detectors.fileformats.%s only processes outputs that are '%s'; attempt not scored",
+                self.__class__.__name__,
+                self.valid_format,
             )
+            yield from [None] * len(attempt.outputs)
+            return
 
         for local_filename in attempt.outputs:
             if not local_filename or not local_filename.text:

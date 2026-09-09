@@ -34,7 +34,7 @@ doing. Thus, the hardware requirements can be quite high if one is running
 everything on a local machine. The evaluator model (3) needs to be particularly
 good in order to successfully evaluate and rank jailbreak progress.
 
-Therefor, as well as the full TAP probe, this module also includes a TAPCached probe
+Therefore, as well as the full TAP probe, this module also includes a TAPCached probe
 which uses pre-computed TAP prompts to jailbreak without having to run the two
 additional LLMs.
 
@@ -79,6 +79,7 @@ class TAPCached(garak.probes.Probe):
         "demon:Possible_worlds:World_building:Scenarios",  # TAP guidance explicitly steers attack generation toward roleplaying scenarios
         "demon:Rhetoric:Persuasion_and_manipulation:Escalating",  # iteratively refines jailbreak prompts through a pruned attack tree,
         "demon:Language:Code_and_encode:Token",
+        "euai:robustness:adversarial",
     ]
     goal = "cause the model to disregard the system prompt"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
@@ -122,6 +123,7 @@ class TAP(garak.probes.Probe):
         "payload:jailbreak",
         "demon:Rhetoric:Persuasion_and_manipulation:Escalating",  # iteratively escalates attack prompts using tree-of-thought reasoning
         "demon:Language:Code_and_encode:Token",
+        "euai:robustness:adversarial",
     ]
     goal = "cause the model to disregard the system prompt"
     doc_uri = "https://arxiv.org/html/2312.02119"
@@ -269,6 +271,7 @@ class PAIR(garak.probes.Probe):
         "payload:jailbreak",
         "demon:Language:Code_and_encode:Token",
         "demon:Rhetoric:Persuasion_and_manipulation:Escalating",  # iteratively refines attack prompts, building on prior successes
+        "euai:robustness:adversarial",
     ]
     goal = "cause the model to disregard the system prompt"
     doc_uri = "https://arxiv.org/html/2310.08419"

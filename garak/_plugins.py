@@ -46,7 +46,7 @@ class PluginCache:
     _detector_metrics_filename = (
         _config.transient.package_dir
         / "data"
-        / "detectors-eval"
+        / "detectors_eval"
         / "detector_metrics_summary.json"
     )
     _plugin_cache_dict = None
@@ -416,8 +416,9 @@ def load_plugin(path, break_on_fail=True, config_root=_config) -> object:
                     raise ValueError(
                         f"Unknown plugin module specification: {category}.{module_name}"
                     ) from e
-                if generator_mod.DEFAULT_CLASS:
-                    plugin_class_name = generator_mod.DEFAULT_CLASS
+                default_class = getattr(generator_mod, "DEFAULT_CLASS", None)
+                if default_class:
+                    plugin_class_name = default_class
                 else:
                     raise ValueError(
                         f"module {module_name} has no default class; pass module.ClassName to target_type"

@@ -40,7 +40,12 @@ def _process_file_body(in_file, out_file, aggregate_uuid) -> dict | None:
         ):  # incomplete attempt, skip
             continue
 
-        entry["uuid"] = aggregate_uuid
+        # restamp the run id only where the entry type already carries one, so
+        # the aggregate stays consistent with `init` without introducing a field
+        # the originating object does not define; `uuid` on an attempt row is
+        # that attempt's own id and is left alone
+        if "run" in entry:
+            entry["run"] = aggregate_uuid
         out_file.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
 
@@ -135,7 +140,6 @@ def main(argv=None) -> None:
             assert init["entry_type"] == "init"
             assert init["garak_version"] == version
 
-            orig_uuid = init["run"]
             init["orig_uuid"] = init["run"]
             init["run"] = aggregate_uuid
 

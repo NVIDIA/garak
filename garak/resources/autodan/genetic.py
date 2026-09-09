@@ -7,7 +7,6 @@ import torch
 import random
 import openai
 import re
-from nltk.corpus import stopwords, wordnet
 from collections import defaultdict, OrderedDict
 import sys
 import time
@@ -16,6 +15,7 @@ from typing import Tuple, Optional, List, Union
 
 import garak.generators
 from garak.resources.api import nltk
+from nltk.corpus import stopwords, wordnet  # imported after local nltk wrapper
 from garak.resources.autodan.model_utils import AutoDanPrefixManager, forward
 from garak.generators.huggingface import Model, Pipeline
 from garak.attempt import Conversation, Turn, Message

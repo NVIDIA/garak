@@ -114,7 +114,7 @@ def _extract_to_probespec(setup: dict) -> str:
         active_probes = setup.get("plugins.probe_spec") or "probes.*"
     if isinstance(active_probes, list):
         # # aggregated reports may store a pre-rendered string, newer reports store a list
-        active_probes = ",".join([re.sub("^probes\.", "", p) for p in active_probes])
+        active_probes = ",".join([re.sub("^probes\\.", "", p) for p in active_probes])
     return active_probes
 
 

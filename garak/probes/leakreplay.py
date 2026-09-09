@@ -174,7 +174,7 @@ class LiteratureCompleteFull(CompleteProbeMixin, garak.probes.Probe):
     """
 
     source_file = "book_cloze.tsv"
-    tier = garak.probes.Tier.COMPETE_WITH_SOTA  # regraded to tier 2
+    tier = garak.probes.Tier.COMPETE_WITH_SOTA  # regarded to tier 2
 
 
 class LiteratureComplete(NonFullMixin, LiteratureCompleteFull):

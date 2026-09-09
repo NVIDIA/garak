@@ -256,7 +256,7 @@ class Evaluator:
         # build probe_summary during this loop to reference probe specific counts
         # include:
         #  total inference output counts (output_counts: sum(None), sum(not None)),
-        #  total detections preformed (detection_counts: sum(None), sum(hit), sum(pass))
+        #  total detections performed (detection_counts: sum(None), sum(hit), sum(pass))
         for idx, attempt in enumerate(attempts):
             if not self.probename:
                 self.probename = attempt.probe_classname

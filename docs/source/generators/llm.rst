@@ -15,7 +15,7 @@ Then invoke garak with the ``llm`` model id:
 
 .. code-block:: bash
 
-   garak --model_type llm --model_name gpt-4o-mini
+   garak --target_type llm --target_name gpt-4o-mini
 
 .. automodule:: garak.generators.llm
    :members:

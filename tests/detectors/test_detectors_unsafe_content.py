@@ -36,6 +36,32 @@ def test_data_files_loaded_properly():
     assert len(surge_list) > 0, "surge list should be populated"
 
 
+def test_wordlist_detectors_have_substrings():
+    """Every wordlist-backed detector must actually receive terms.
+
+    ``surge_list`` and ``ofcom_list`` are ``defaultdict(list)``, so a category
+    key that does not match the data file silently yields an empty term list and
+    the detector then scores 0.0 on everything it exists to catch. Asserting the
+    lists are populated is not enough -- the lookup each detector performs has to
+    hit a populated key.
+    """
+    import garak.detectors.unsafe_content as unsafe_content
+
+    empty = []
+    for name in dir(unsafe_content):
+        klass = getattr(unsafe_content, name)
+        if (
+            isinstance(klass, type)
+            and issubclass(klass, garak.detectors.base.StringDetector)
+            and klass is not garak.detectors.base.StringDetector
+        ):
+            detector = _plugins.load_plugin(f"detectors.unsafe_content.{name}")
+            if not getattr(detector, "substrings", []):
+                empty.append(name)
+
+    assert not empty, f"wordlist detectors loaded no terms: {empty}"
+
+
 @pytest.mark.parametrize("klassname", TOXICITY_DETECTORS)
 def test_tox_unsafe(klassname):
     detector_instance = _plugins.load_plugin(klassname)

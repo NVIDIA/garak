@@ -463,9 +463,9 @@ class Probe(Configurable):
                             [pre_translation_prompt]
                         )
                     }
-                elif isinstance(pre_translation_prompt, garak.attempt.Message):
+                elif isinstance(pre_translation_prompt, garak.attempt.Conversation):
                     for turn in pre_translation_prompt.turns:
-                        turn.context.lang = self.lang
+                        turn.content.lang = self.lang
                     notes = {"pre_translation_prompt": pre_translation_prompt}
 
             attempts_todo.append(self._mint_attempt(prompt, seq, notes, lang))

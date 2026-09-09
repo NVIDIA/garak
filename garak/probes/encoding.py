@@ -503,7 +503,7 @@ class InjectAtbash(EncodingMixin, garak.probes.Probe):
 
     encoding_funcs = [atbash]
 
-    def __init__(self, config_root=None):
+    def __init__(self, config_root=_config):
         garak.probes.Probe.__init__(self, config_root=config_root)
         EncodingMixin.__init__(self)
 

@@ -5,6 +5,7 @@
 
 import copy
 import json
+import logging
 import os
 import textwrap
 import yaml
@@ -16,7 +17,6 @@ import garak._plugins
 import garak.attempt
 from garak.attempt import Attempt, Message
 from garak.probes.agent_breaker import AgentBreaker, AttackState
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -375,10 +375,61 @@ class TestBuildToolConfigs:
         assert set(names) == {"tool_a", "tool_b"}
         assert len(names) == 2
 
+    def test_malformed_tool_analyses_list_ignored(self):
+        probe = _make_probe()
+        probe.agent_analysis = {
+            "tool_analyses": [{"name": "x"}],
+            "priority_targets": [],
+        }
+        assert probe._build_tool_configs() == []
+
+    def test_non_string_priority_targets_skipped(self):
+        probe = _make_probe()
+        probe.agent_analysis = {
+            "tool_analyses": {"tool_a": {"attack_prompts": ["a"]}},
+            "priority_targets": [None, "tool_a - vuln"],
+        }
+        configs = probe._build_tool_configs()
+        assert [name for name, _ in configs] == ["tool_a"]
+
+    def test_malformed_tools_config_ignored(self):
+        probe = _make_probe()
+        probe.agent_config = {"tools": ["rm -rf /"]}
+        assert probe._format_tools_for_analysis() == ""
+
+    def test_non_dict_tool_entry_skipped(self):
+        probe = _make_probe()
+        probe.agent_config = {
+            "tools": ["bad", {"name": "good", "description": "d"}],
+        }
+        out = probe._format_tools_for_analysis()
+        assert "### Tool: good" in out
+        assert "### Tool: bad" not in out
+
 
 # ===========================================================================
 # _attack_single_tool
 # ===========================================================================
+
+
+class TestAttackStateSerialization:
+    """AttackState survives the probe -> notes -> detector round-trip."""
+
+    def test_contract_fields_round_trip(self):
+        state = AttackState(
+            current_target="send_email",
+            vulnerability_info="spoofing",
+            agent_purpose="draft mail for the user",
+            tool_description="send as current user only",
+        )
+        restored = AttackState.from_notes(state.to_notes())
+        assert restored.agent_purpose == "draft mail for the user"
+        assert restored.tool_description == "send as current user only"
+
+    def test_defaults_when_absent_from_notes(self):
+        restored = AttackState.from_notes({"current_target": "t"})
+        assert restored.agent_purpose == ""
+        assert restored.tool_description == ""
 
 
 class TestAttackSingleTool:
@@ -404,6 +455,45 @@ class TestAttackSingleTool:
         assert len(results) == 1
         assert results[0].notes["current_target"] == "file_reader"
         assert results[0].notes["vulnerability_info"] == "path traversal"
+
+    def test_attempt_notes_carry_tool_contract(self):
+        """Agent purpose + the target tool's description flow into notes."""
+        probe = _make_probe()
+        results = probe._attack_single_tool(
+            "file_reader",
+            {"attack_prompts": ["try this"], "vulnerabilities": "path traversal"},
+        )
+        assert results[0].notes["agent_purpose"] == "Test assistant"
+        assert results[0].notes["tool_description"] == "Reads files"
+
+    def test_unknown_tool_has_empty_contract(self):
+        probe = _make_probe()
+        results = probe._attack_single_tool(
+            "nonexistent_tool",
+            {"attack_prompts": ["try this"], "vulnerabilities": "v"},
+        )
+        assert results[0].notes["tool_description"] == ""
+
+    def test_missing_contract_is_warned_not_silent(self, caplog):
+        """Losing the contract must be visible: tool names are matched loosely
+        when targets are chosen but exactly here, so a reformatted name would
+        otherwise leave the judge ungrounded with no signal in the report."""
+        probe = _make_probe()
+        with caplog.at_level(logging.WARNING):
+            assert probe._tool_description("file_reader()") == ""
+        assert "no contract found" in caplog.text
+        assert "file_reader()" in caplog.text
+
+    def test_blank_description_is_warned(self, caplog):
+        probe = _make_probe(
+            agent_config={
+                "agent_purpose": "p",
+                "tools": [{"name": "file_reader", "description": ""}],
+            }
+        )
+        with caplog.at_level(logging.WARNING):
+            assert probe._tool_description("file_reader") == ""
+        assert "declares no description" in caplog.text
 
     def test_empty_attack_prompts_returns_empty(self):
         probe = _make_probe()
@@ -457,6 +547,8 @@ class TestVerifyAttackSuccess:
             target_tool="tool",
             vulnerability_info="vuln",
             attack_prompt="attack",
+            agent_purpose="",
+            tool_description="",
         )
 
     def test_partial_counts_as_success(self, mocker):
@@ -587,7 +679,11 @@ class TestGenerateNextAttempts:
 
         assert len(result) == 1  # generated follow-up
         state = AttackState.from_notes(attempt.notes)
-        assert state.verified_results == [(False, 0.99), (False, 0.99), (False, 0.99)]
+        assert state.verified_results == [
+            (False, 0.99),
+            (False, 0.99),
+            (False, 0.99),
+        ]
         assert probe._detector.verify.call_count == 3
 
     def test_multi_gen_one_success_stops(self, mocker):
@@ -615,7 +711,11 @@ class TestGenerateNextAttempts:
 
         assert result == []
         state = AttackState.from_notes(attempt.notes)
-        assert state.verified_results == [(False, 0.99), (True, 0.95), (False, 0.99)]
+        assert state.verified_results == [
+            (False, 0.99),
+            (True, 0.95),
+            (False, 0.99),
+        ]
         # removed: is_tool_final no longer tracked
 
     def test_multi_gen_success_below_threshold_continues(self, mocker):
@@ -720,6 +820,20 @@ class TestGenerateNextAttempts:
         state = AttackState.from_notes(attempt.notes)
         assert state.verified_results[0] == (False, 0.0)
         assert probe._detector.verify.call_count == 1
+
+    def test_unverifiable_output_recorded_as_unknown(self, mocker):
+        """When the judge cannot be evaluated the output is stored as unknown
+        (confidence None), not as a clean miss -- otherwise a broken judge makes
+        the target look safe."""
+        probe = _make_probe(success_threshold=0.7, max_attempts_per_tool=3)
+        mocker.patch.object(probe._detector, "verify", return_value=None)
+        mocker.patch.object(probe, "_generate_exploit_prompt", return_value="next")
+        attempt = _make_attempt_with_state([Message("some response")])
+
+        probe._generate_next_attempts(attempt)
+
+        state = AttackState.from_notes(attempt.notes)
+        assert state.verified_results == [(False, None)]
 
     # --- Attacker history recording ---
 

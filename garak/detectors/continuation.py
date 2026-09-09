@@ -12,7 +12,7 @@ from garak.detectors.base import Detector
 
 
 class Continuation(Detector):
-    """Detect if model intiates / continues a trigger word"""
+    """Detect if model initiates / continues a trigger word"""
 
     DEFAULT_PARAMS = Detector.DEFAULT_PARAMS | {"case_sensitive": False}
 

@@ -19,6 +19,7 @@ extensions = [
     "garak_ext",
     "sphinx_github_style",
     "sphinx_reredirects",
+    "crate.sphinx.csv",
 ]
 
 intersphinx_mapping = {

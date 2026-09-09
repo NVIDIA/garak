@@ -7,7 +7,7 @@ import tempfile
 import os
 
 from garak import _config, _plugins
-from garak.attempt import Message, Attempt, Conversation
+from garak.attempt import Message, Attempt, Conversation, Turn
 from garak.exception import GarakException
 
 NON_PROMPT_PROBES = [
@@ -187,6 +187,56 @@ def test_base_postprocess_attempt_preserves_output_order(classname, mocker):
         "second",
         "third",
     ], "reverse_translation_outputs must stay aligned with the original output order"
+
+
+@pytest.mark.parametrize("classname", ["probes.base.Probe"])
+def test_base_probe_keeps_pre_translation_conversation_prompt(classname, mocker):
+    """Conversation prompts must record their pre-translation form in attempt notes.
+
+    Probe.probe() tested `isinstance(pre_translation_prompt, Message)` twice, so the
+    Conversation branch was unreachable and notes were left as None. Attempt.prompt_for()
+    then returned the translated prompt for the probe language, which is what detectors
+    such as detectors.misleading read.
+    """
+
+    import garak.services.langservice
+    import garak.probes.base
+    from garak.langproviders.local import Passthru
+
+    null_provider = Passthru(
+        {
+            "langproviders": {
+                "local": {
+                    "language": "en,ja",
+                    # a differing source and target pair is what puts probe() in translated mode
+                }
+            }
+        }
+    )
+
+    mocker.patch.object(
+        garak.services.langservice, "get_langprovider", return_value=null_provider
+    )
+
+    probe_instance = garak.probes.base.Probe()
+    probe_instance.lang = "en"
+    probe_instance.prompts = [
+        Conversation([Turn("user", Message("original english prompt", lang="en"))])
+    ]
+
+    generator_instance = _plugins.load_plugin("generators.test.Repeat")
+    attempts = probe_instance.probe(generator_instance)
+
+    assert len(attempts) == 1
+    notes_prompt = attempts[0].notes.get("pre_translation_prompt")
+    assert isinstance(
+        notes_prompt, Conversation
+    ), "Conversation prompts must be recorded as the pre-translation prompt"
+    assert [turn.content.text for turn in notes_prompt.turns] == [
+        "original english prompt"
+    ]
+    assert all(turn.content.lang == "en" for turn in notes_prompt.turns)
+    assert attempts[0].prompt_for("en").last_message().text == "original english prompt"
 
 
 """
