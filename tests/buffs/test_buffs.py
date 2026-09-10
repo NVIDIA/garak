@@ -8,6 +8,7 @@ from garak import _plugins
 from garak import attempt
 from garak.exception import GarakException
 import garak.buffs.base
+import garak.buffs.encoding
 
 BUFFS = [classname for (classname, active) in _plugins.enumerate_plugins("buffs")]
 
@@ -65,3 +66,18 @@ def test_buff_load_and_transform(klassname, mocker):
                 "transform should yield the original attempt plus each unique "
                 "paraphrase, with duplicates removed"
             )
+
+
+def test_caesar_shift():
+    b = garak.buffs.encoding.Caesar()
+    assert b.shift == 5, "Caesar buff should default to a shift of 5"
+
+    a = attempt.Attempt()
+    a.prompt = attempt.Message("Hello, World! xyz XYZ")
+    buffed_a = list(b.transform(a))
+
+    assert len(buffed_a) == 1
+    text = buffed_a[0].prompt.last_message().text
+    # letters shift by 5 (wrapping the alphabet), case is preserved,
+    # non-letters are left untouched
+    assert text.endswith("Mjqqt, Btwqi! cde CDE")
