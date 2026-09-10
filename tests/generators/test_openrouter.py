@@ -1,66 +1,29 @@
-import inspect
 import json
 import multiprocessing
 import os
 
 import httpx
-import openai
 import pytest
 import respx
 
 import garak.exception
 from garak.attempt import Message, Turn, Conversation
-from garak.generators.openrouter import OpenRouterGenerator
-from .test_openai_compatible import _make_api_status_error
-
-# ---------------------------------------------------------------------------
-# unit tests for the HTTP 402 (out of credit) wrapper, independent of any
-# live client or network mocking
-# ---------------------------------------------------------------------------
-
-
-def test_reject_insufficient_credit_raises_bad_generator_exception():
-    def failing_create(**kwargs):
-        raise _make_api_status_error(402)
-
-    wrapped = OpenRouterGenerator._reject_insufficient_credit(failing_create)
-    with pytest.raises(
-        garak.exception.BadGeneratorException, match="insufficient credit"
-    ):
-        wrapped(model="openai/gpt-4o-mini", messages=[])
-
-
-def test_reject_insufficient_credit_passes_through_other_errors():
-    def failing_create(**kwargs):
-        raise _make_api_status_error(429)
-
-    wrapped = OpenRouterGenerator._reject_insufficient_credit(failing_create)
-    with pytest.raises(openai.APIStatusError):
-        wrapped(model="openai/gpt-4o-mini", messages=[])
-
-
-def test_reject_insufficient_credit_preserves_signature():
-    def create(model, messages, n=1, temperature=None):
-        return "ok"
-
-    wrapped = OpenRouterGenerator._reject_insufficient_credit(create)
-    assert set(inspect.signature(wrapped).parameters) == {
-        "model",
-        "messages",
-        "n",
-        "temperature",
-    }
-
+from garak.generators.openrouter import OpenRouterCompatible
 
 # ---------------------------------------------------------------------------
 # full-stack tests against a mocked HTTP endpoint (respx); no credentials
 # required, no real network access
+#
+# HTTP 402 (out-of-credit) handling itself is covered generically by
+# tests/generators/test_openai_compatible.py, since it now lives in
+# OpenAICompatible's terminal_status_codes mechanism rather than being
+# OpenRouter-specific code.
 # ---------------------------------------------------------------------------
 
 
 def test_openrouter_invalid_multiple_completions(monkeypatch):
-    monkeypatch.setenv(OpenRouterGenerator.ENV_VAR, "test-fake-key-for-unit-tests")
-    generator = OpenRouterGenerator(name="openai/gpt-4o-mini")
+    monkeypatch.setenv(OpenRouterCompatible.ENV_VAR, "test-fake-key-for-unit-tests")
+    generator = OpenRouterCompatible(name="openai/gpt-4o-mini")
     with pytest.raises(AssertionError) as e_info:
         generator._call_model(
             prompt=Conversation([Turn("user", Message("this is expected to fail"))]),
@@ -70,17 +33,17 @@ def test_openrouter_invalid_multiple_completions(monkeypatch):
 
 
 def test_openrouter_missing_model_name(monkeypatch):
-    monkeypatch.setenv(OpenRouterGenerator.ENV_VAR, "test-fake-key-for-unit-tests")
+    monkeypatch.setenv(OpenRouterCompatible.ENV_VAR, "test-fake-key-for-unit-tests")
     with pytest.raises(ValueError, match="openrouter.ai/models"):
-        OpenRouterGenerator(name="")
+        OpenRouterCompatible(name="")
 
 
 @pytest.mark.respx(base_url="https://openrouter.ai/api/v1")
 def test_openrouter_call_model_suppresses_n(
     monkeypatch, openai_compat_mocks, respx_mock
 ):
-    monkeypatch.setenv(OpenRouterGenerator.ENV_VAR, "test-fake-key-for-unit-tests")
-    generator = OpenRouterGenerator(name="openai/gpt-4o-mini")
+    monkeypatch.setenv(OpenRouterCompatible.ENV_VAR, "test-fake-key-for-unit-tests")
+    generator = OpenRouterCompatible(name="openai/gpt-4o-mini")
 
     mock_response = openai_compat_mocks["chat"]
     route = respx_mock.post("chat/completions").mock(
@@ -101,8 +64,8 @@ def test_openrouter_call_model_suppresses_n(
 def test_openrouter_call_model_402_raises_bad_generator_exception(
     monkeypatch, respx_mock
 ):
-    monkeypatch.setenv(OpenRouterGenerator.ENV_VAR, "test-fake-key-for-unit-tests")
-    generator = OpenRouterGenerator(name="openai/gpt-4o-mini")
+    monkeypatch.setenv(OpenRouterCompatible.ENV_VAR, "test-fake-key-for-unit-tests")
+    generator = OpenRouterCompatible(name="openai/gpt-4o-mini")
 
     respx_mock.post("chat/completions").mock(
         return_value=httpx.Response(
@@ -139,8 +102,8 @@ def test_openrouter_402_survives_multiprocessing_pool(monkeypatch):
     process without crashing Pool's result-handling thread (see the `from
     None` rationale in openrouter.py, and NVIDIA/garak#1357).
     """
-    monkeypatch.setenv(OpenRouterGenerator.ENV_VAR, "test-fake-key-for-unit-tests")
-    generator = OpenRouterGenerator(name="openai/gpt-4o-mini")
+    monkeypatch.setenv(OpenRouterCompatible.ENV_VAR, "test-fake-key-for-unit-tests")
+    generator = OpenRouterCompatible(name="openai/gpt-4o-mini")
     prompt = Conversation([Turn("user", Message("hello"))])
 
     pool = multiprocessing.Pool(1)
@@ -163,42 +126,42 @@ def test_openrouter_402_survives_multiprocessing_pool(monkeypatch):
 
 
 @pytest.mark.skipif(
-    os.getenv(OpenRouterGenerator.ENV_VAR, None) is None,
-    reason=f"OpenRouter API key is not set in {OpenRouterGenerator.ENV_VAR}",
+    os.getenv(OpenRouterCompatible.ENV_VAR, None) is None,
+    reason=f"OpenRouter API key is not set in {OpenRouterCompatible.ENV_VAR}",
 )
 def test_openrouter_instantiate():
-    OpenRouterGenerator(name="openai/gpt-4o-mini")
+    OpenRouterCompatible(name="openai/gpt-4o-mini")
 
 
 @pytest.mark.skipif(
-    os.getenv(OpenRouterGenerator.ENV_VAR, None) is None,
-    reason=f"OpenRouter API key is not set in {OpenRouterGenerator.ENV_VAR}",
+    os.getenv(OpenRouterCompatible.ENV_VAR, None) is None,
+    reason=f"OpenRouter API key is not set in {OpenRouterCompatible.ENV_VAR}",
 )
 def test_openrouter_generate_1():
-    g = OpenRouterGenerator(name="openai/gpt-4o-mini")
+    g = OpenRouterCompatible(name="openai/gpt-4o-mini")
     result = g._call_model(
         Conversation([Turn("user", Message("this is a test"))]),
         generations_this_call=1,
     )
     assert isinstance(
         result, list
-    ), "OpenRouterGenerator _call_model should return a list"
+    ), "OpenRouterCompatible _call_model should return a list"
     assert (
         len(result) == 1
-    ), "OpenRouterGenerator _call_model result list should have one item"
+    ), "OpenRouterCompatible _call_model result list should have one item"
     assert isinstance(
         result[0], Message
-    ), "OpenRouterGenerator generate() should contain a Message"
+    ), "OpenRouterCompatible generate() should contain a Message"
     result = g.generate(
         Conversation([Turn("user", Message("this is a test"))]),
         generations_this_call=1,
     )
     assert isinstance(
         result, list
-    ), "OpenRouterGenerator generate() should return a list"
+    ), "OpenRouterCompatible generate() should return a list"
     assert (
         len(result) == 1
-    ), "OpenRouterGenerator generate() result list should have one item when generations_this_call=1"
+    ), "OpenRouterCompatible generate() result list should have one item when generations_this_call=1"
     assert isinstance(
         result[0], Message
-    ), "OpenRouterGenerator generate() should contain a Message"
+    ), "OpenRouterCompatible generate() should contain a Message"

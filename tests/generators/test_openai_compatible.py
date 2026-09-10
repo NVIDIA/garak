@@ -30,7 +30,7 @@ GENERATORS = [
     "generators.openai.OpenAIGenerator",
     "generators.nim.NVOpenAIChat",
     "generators.groq.GroqChat",
-    "generators.openrouter.OpenRouterGenerator",
+    "generators.openrouter.OpenRouterCompatible",
 ]
 
 MODEL_NAME = "gpt-3.5-turbo-instruct"
@@ -350,6 +350,27 @@ def test_transient_http_error_raises_backoff_trigger(openai_compatible_generator
     # need to wait for retry delays or exhaust the fibonacci sequence.
     unwrapped = OpenAICompatible._call_model.__wrapped__
     with pytest.raises(garak.exception.GeneratorBackoffTrigger):
+        unwrapped(openai_compatible_generator, prompt)
+
+
+def test_terminal_status_codes_raises_bad_generator_exception(
+    openai_compatible_generator,
+):
+    """A status code listed in terminal_status_codes should abort with
+    BadGeneratorException instead of being logged and skipped -- used by
+    aggregators (e.g. OpenRouter) that return e.g. HTTP 402 when the account
+    is out of credit, where retrying never helps and silently skipping every
+    prompt would let a long scan run to completion producing nothing but
+    empty results. Default is empty, so this is opt-in per subclass."""
+    prompt = _make_prompt()
+    openai_compatible_generator.generator = MagicMock()
+    openai_compatible_generator.terminal_status_codes = [402]
+    openai_compatible_generator.generator.create.side_effect = _make_api_status_error(
+        402
+    )
+
+    unwrapped = OpenAICompatible._call_model.__wrapped__
+    with pytest.raises(garak.exception.BadGeneratorException, match="HTTP 402"):
         unwrapped(openai_compatible_generator, prompt)
 
 
