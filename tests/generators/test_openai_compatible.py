@@ -374,3 +374,35 @@ def test_terminal_http_error_returns_none(openai_compatible_generator, code):
     unwrapped = OpenAICompatible._call_model.__wrapped__
     result = unwrapped(openai_compatible_generator, prompt)
     assert result == [None], f"Expected [None] for HTTP {code}, got {result!r}"
+
+
+def test_vary_params_enabled(openai_compatible_generator):
+    """Enabled flags must vary seed and temperature across calls."""
+    openai_compatible_generator.vary_seed_each_call = True
+    openai_compatible_generator.vary_temp_each_call = True
+    seeds = set()
+    temperatures = set()
+    for _ in range(10):
+        openai_compatible_generator._vary_params_each_call()
+        seeds.add(openai_compatible_generator.seed)
+        temperatures.add(openai_compatible_generator.temperature)
+    assert (
+        len(seeds) > 1
+    ), "seeds must vary across calls when vary_seed_each_call is enabled"
+    assert (
+        len(temperatures) > 1
+    ), "temperatures must vary across calls when vary_temp_each_call is enabled"
+    assert all(0 <= s <= 65535 for s in seeds)
+    assert all(0.0 <= t < 1.0 for t in temperatures)
+
+
+def test_vary_params_disabled(openai_compatible_generator):
+    """Disabled flags must leave seed and temperature untouched."""
+    openai_compatible_generator.vary_seed_each_call = False
+    openai_compatible_generator.vary_temp_each_call = False
+    openai_compatible_generator.seed = 1234
+    openai_compatible_generator.temperature = 0.5
+    for _ in range(5):
+        openai_compatible_generator._vary_params_each_call()
+        assert openai_compatible_generator.seed == 1234
+        assert openai_compatible_generator.temperature == 0.5
