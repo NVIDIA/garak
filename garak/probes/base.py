@@ -52,7 +52,7 @@ def _worker_logging_init():
             pass
         root.removeHandler(handler)
 
-    log_filename = os.environ.get("GARAK_LOG_FILE")
+    log_filename = os.environ.get(garak.GARAK_LOG_FILE_VAR)
     if log_filename:
         garak.setup_logger(log_filename)
 

@@ -18,10 +18,65 @@ try:
 except ImportError:  # pragma: no cover - fcntl is POSIX-only (no Windows)
     fcntl = None
 
+import garak
 import garak._config
 import garak._plugins
 import garak.attempt
 from garak.probes.base import _worker_logging_init
+
+
+# ---------------------------------------------------------------------------
+# Fixtures
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def garak_log_file_env():
+    """Point garak.GARAK_LOG_FILE_VAR at a fresh temp file for the duration of
+    a test, restoring whatever value (or absence) the env var had before."""
+    with tempfile.NamedTemporaryFile(suffix=".log", delete=False) as f:
+        log_path = f.name
+
+    old_env = os.environ.get(garak.GARAK_LOG_FILE_VAR)
+    os.environ[garak.GARAK_LOG_FILE_VAR] = log_path
+
+    try:
+        yield log_path
+    finally:
+        if old_env is None:
+            os.environ.pop(garak.GARAK_LOG_FILE_VAR, None)
+        else:
+            os.environ[garak.GARAK_LOG_FILE_VAR] = old_env
+        os.unlink(log_path)
+
+
+@pytest.fixture
+def garak_log_file_env_unset():
+    """Ensure garak.GARAK_LOG_FILE_VAR is absent from the environment for the
+    duration of a test, restoring whatever value it had before."""
+    old_env = os.environ.pop(garak.GARAK_LOG_FILE_VAR, None)
+    try:
+        yield
+    finally:
+        if old_env is not None:
+            os.environ[garak.GARAK_LOG_FILE_VAR] = old_env
+
+
+@pytest.fixture
+def preserve_root_handlers():
+    """Save and restore the root logger's handlers around a test that mutates
+    them directly (as _worker_logging_init does)."""
+    root = logging.getLogger()
+    original_handlers = root.handlers[:]
+    try:
+        yield root
+    finally:
+        for h in root.handlers[:]:
+            if isinstance(h, logging.FileHandler):
+                h.close()
+            root.removeHandler(h)
+        for h in original_handlers:
+            root.addHandler(h)
 
 
 # ---------------------------------------------------------------------------
@@ -88,134 +143,74 @@ def _worker_try_exclusive_lock(log_file: str) -> bool:
 # ---------------------------------------------------------------------------
 
 
-def test_worker_init_clears_inherited_handlers():
+def test_worker_init_clears_inherited_handlers(preserve_root_handlers):
     """_worker_logging_init must remove all handlers the parent process had."""
-    root = logging.getLogger()
-    original_handlers = root.handlers[:]
+    root = preserve_root_handlers
 
     mock_handler = MagicMock(spec=logging.Handler)
     root.addHandler(mock_handler)
     assert mock_handler in root.handlers
 
-    try:
-        _worker_logging_init()
-        assert mock_handler not in root.handlers, (
-            "_worker_logging_init should remove all inherited handlers"
-        )
-    finally:
-        # Restore whatever was there before (mock already removed by init)
-        for h in root.handlers[:]:
-            root.removeHandler(h)
-        for h in original_handlers:
-            root.addHandler(h)
+    _worker_logging_init()
+    assert mock_handler not in root.handlers, (
+        "_worker_logging_init should remove all inherited handlers"
+    )
 
 
-def test_worker_init_opens_file_handler_when_env_set():
-    """_worker_logging_init must install a FileHandler pointing at GARAK_LOG_FILE."""
-    root = logging.getLogger()
-    original_handlers = root.handlers[:]
+def test_worker_init_opens_file_handler_when_env_set(
+    garak_log_file_env, preserve_root_handlers
+):
+    """_worker_logging_init must install a FileHandler pointing at the log file location."""
+    root = preserve_root_handlers
+    log_path = garak_log_file_env
 
-    with tempfile.NamedTemporaryFile(suffix=".log", delete=False) as f:
-        log_path = f.name
+    # Clear handlers so basicConfig will take effect
+    for h in root.handlers[:]:
+        root.removeHandler(h)
 
-    old_env = os.environ.get("GARAK_LOG_FILE")
-    os.environ["GARAK_LOG_FILE"] = log_path
+    _worker_logging_init()
 
-    try:
-        # Clear handlers so basicConfig will take effect
-        for h in root.handlers[:]:
-            root.removeHandler(h)
-
-        _worker_logging_init()
-
-        file_handlers = [
-            h for h in root.handlers if isinstance(h, logging.FileHandler)
-        ]
-        assert len(file_handlers) >= 1, (
-            "_worker_logging_init should add a FileHandler when GARAK_LOG_FILE is set"
-        )
-        assert any(h.baseFilename == log_path for h in file_handlers), (
-            "FileHandler should point at GARAK_LOG_FILE"
-        )
-    finally:
-        for h in root.handlers[:]:
-            if isinstance(h, logging.FileHandler):
-                h.close()
-            root.removeHandler(h)
-        for h in original_handlers:
-            root.addHandler(h)
-        if old_env is None:
-            os.environ.pop("GARAK_LOG_FILE", None)
-        else:
-            os.environ["GARAK_LOG_FILE"] = old_env
-        os.unlink(log_path)
+    file_handlers = [h for h in root.handlers if isinstance(h, logging.FileHandler)]
+    assert len(file_handlers) >= 1, (
+        f"_worker_logging_init should add a FileHandler when {garak.GARAK_LOG_FILE_VAR} is set"
+    )
+    assert any(h.baseFilename == log_path for h in file_handlers), (
+        f"FileHandler should point at {garak.GARAK_LOG_FILE_VAR}"
+    )
 
 
-def test_worker_init_no_file_handler_when_env_unset():
-    """_worker_logging_init must not add a FileHandler when GARAK_LOG_FILE is absent."""
-    root = logging.getLogger()
-    original_handlers = root.handlers[:]
+def test_worker_init_no_file_handler_when_env_unset(
+    garak_log_file_env_unset, preserve_root_handlers
+):
+    """_worker_logging_init must not add a FileHandler when log file env variable is absent."""
+    root = preserve_root_handlers
 
-    old_env = os.environ.pop("GARAK_LOG_FILE", None)
+    for h in root.handlers[:]:
+        root.removeHandler(h)
 
-    try:
-        for h in root.handlers[:]:
-            root.removeHandler(h)
+    _worker_logging_init()
 
-        _worker_logging_init()
-
-        file_handlers = [
-            h for h in root.handlers if isinstance(h, logging.FileHandler)
-        ]
-        assert file_handlers == [], (
-            "_worker_logging_init should not add a FileHandler when GARAK_LOG_FILE is not set"
-        )
-    finally:
-        for h in root.handlers[:]:
-            if isinstance(h, logging.FileHandler):
-                h.close()
-            root.removeHandler(h)
-        for h in original_handlers:
-            root.addHandler(h)
-        if old_env is not None:
-            os.environ["GARAK_LOG_FILE"] = old_env
+    file_handlers = [h for h in root.handlers if isinstance(h, logging.FileHandler)]
+    assert file_handlers == [], (
+        f"_worker_logging_init should not add a FileHandler when {garak.GARAK_LOG_FILE_VAR} is not set"
+    )
 
 
-def test_worker_init_is_idempotent():
+def test_worker_init_is_idempotent(garak_log_file_env, preserve_root_handlers):
     """Calling _worker_logging_init twice must not accumulate extra handlers."""
-    root = logging.getLogger()
-    original_handlers = root.handlers[:]
+    root = preserve_root_handlers
 
-    with tempfile.NamedTemporaryFile(suffix=".log", delete=False) as f:
-        log_path = f.name
+    for h in root.handlers[:]:
+        root.removeHandler(h)
 
-    old_env = os.environ.get("GARAK_LOG_FILE")
-    os.environ["GARAK_LOG_FILE"] = log_path
+    _worker_logging_init()
+    count_after_first = len(root.handlers)
+    _worker_logging_init()
+    count_after_second = len(root.handlers)
 
-    try:
-        for h in root.handlers[:]:
-            root.removeHandler(h)
-
-        _worker_logging_init()
-        count_after_first = len(root.handlers)
-        _worker_logging_init()
-        count_after_second = len(root.handlers)
-
-        assert count_after_second <= count_after_first, (
-            "Calling _worker_logging_init twice must not add duplicate handlers"
-        )
-    finally:
-        for h in root.handlers[:]:
-            if isinstance(h, logging.FileHandler):
-                h.close()
-            root.removeHandler(h)
-        for h in original_handlers:
-            root.addHandler(h)
-        if old_env is None:
-            os.environ.pop("GARAK_LOG_FILE", None)
-        else:
-            os.environ["GARAK_LOG_FILE"] = old_env
-        os.unlink(log_path)
+    assert count_after_second <= count_after_first, (
+        "Calling _worker_logging_init twice must not add duplicate handlers"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -223,18 +218,13 @@ def test_worker_init_is_idempotent():
 # ---------------------------------------------------------------------------
 
 
-def test_parallel_workers_log_without_error():
+def test_parallel_workers_log_without_error(garak_log_file_env, preserve_root_handlers):
     """Pool workers initialised with _worker_logging_init must not raise
     RuntimeError due to shared-fd log writes (regression for issue #1355)."""
-    with tempfile.NamedTemporaryFile(suffix=".log", delete=False) as f:
-        log_path = f.name
-
-    root = logging.getLogger()
+    root = preserve_root_handlers
+    log_path = garak_log_file_env
     parent_handler = logging.FileHandler(log_path)
     root.addHandler(parent_handler)
-
-    old_env = os.environ.get("GARAK_LOG_FILE")
-    os.environ["GARAK_LOG_FILE"] = log_path
 
     errors = []
     try:
@@ -246,53 +236,31 @@ def test_parallel_workers_log_without_error():
         )
     except RuntimeError as exc:
         errors.append(str(exc))
-    finally:
-        parent_handler.close()
-        root.removeHandler(parent_handler)
-        if old_env is None:
-            os.environ.pop("GARAK_LOG_FILE", None)
-        else:
-            os.environ["GARAK_LOG_FILE"] = old_env
-        os.unlink(log_path)
 
     assert not errors, (
         f"Parallel logging raised RuntimeError (race condition): {errors}"
     )
 
 
-def test_parallel_worker_fds_are_independent():
+def test_parallel_worker_fds_are_independent(garak_log_file_env, preserve_root_handlers):
     """Each Pool worker should open its own file descriptor for the log file,
     not share the parent's inherited fd (regression for issue #1355)."""
-    with tempfile.NamedTemporaryFile(suffix=".log", delete=False) as f:
-        log_path = f.name
-
-    root = logging.getLogger()
+    root = preserve_root_handlers
+    log_path = garak_log_file_env
     parent_handler = logging.FileHandler(log_path)
     root.addHandler(parent_handler)
     parent_fd = parent_handler.stream.fileno()
 
-    old_env = os.environ.get("GARAK_LOG_FILE")
-    os.environ["GARAK_LOG_FILE"] = log_path
+    with Pool(processes=2, initializer=_worker_logging_init) as pool:
+        worker_fds = pool.map(_log_from_worker, [log_path] * 2)
 
-    try:
-        with Pool(processes=2, initializer=_worker_logging_init) as pool:
-            worker_fds = pool.map(_log_from_worker, [log_path] * 2)
-
-        # Workers that got a FileHandler should report a valid fd
-        valid_fds = [fd for fd in worker_fds if fd != -1]
-        if valid_fds:
-            assert all(fd != parent_fd for fd in valid_fds), (
-                "Worker file descriptors must differ from the parent's fd - "
-                "shared fds cause the reentrant-flush race condition"
-            )
-    finally:
-        parent_handler.close()
-        root.removeHandler(parent_handler)
-        if old_env is None:
-            os.environ.pop("GARAK_LOG_FILE", None)
-        else:
-            os.environ["GARAK_LOG_FILE"] = old_env
-        os.unlink(log_path)
+    # Workers that got a FileHandler should report a valid fd
+    valid_fds = [fd for fd in worker_fds if fd != -1]
+    if valid_fds:
+        assert all(fd != parent_fd for fd in valid_fds), (
+            "Worker file descriptors must differ from the parent's fd - "
+            "shared fds cause the reentrant-flush race condition"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -314,7 +282,9 @@ _FORK_AVAILABLE = "fork" in multiprocessing.get_all_start_methods()
         "the underlying bug cannot manifest there."
     ),
 )
-def test_worker_inherits_parent_fd_without_initializer_but_not_with_it():
+def test_worker_inherits_parent_fd_without_initializer_but_not_with_it(
+    garak_log_file_env, preserve_root_handlers
+):
     """Demonstrates the actual bug fixed by this PR (issue #1355).
 
     Root cause: when :mod:`multiprocessing` *forks* worker processes, each
@@ -352,78 +322,59 @@ def test_worker_inherits_parent_fd_without_initializer_but_not_with_it():
         pytest.skip("fcntl is not available on this platform")
 
     ctx = multiprocessing.get_context("fork")
+    root = preserve_root_handlers
+    log_path = garak_log_file_env
 
-    with tempfile.NamedTemporaryFile(suffix=".log", delete=False) as f:
-        log_path = f.name
-
-    root = logging.getLogger()
-    original_handlers = root.handlers[:]
-    for h in original_handlers:
+    for h in root.handlers[:]:
         root.removeHandler(h)
-
-    old_env = os.environ.get("GARAK_LOG_FILE")
-    os.environ["GARAK_LOG_FILE"] = log_path
 
     parent_handler = logging.FileHandler(log_path)
     root.addHandler(parent_handler)
     parent_fd = parent_handler.stream.fileno()
 
+    # Step 1: no initializer -- forked worker inherits the parent's fd
+    # table, so it must report the SAME fd as the parent. This is the
+    # exact pre-fix condition that allows concurrent/reentrant writes
+    # on a shared underlying file description to race.
+    with ctx.Pool(processes=1) as pool:
+        (fd_without_initializer,) = pool.map(_log_from_worker, [log_path])
+
+    assert fd_without_initializer == parent_fd, (
+        "Sanity check failed: a forked worker without any logging "
+        "initializer was expected to inherit the parent's exact file "
+        f"descriptor ({parent_fd}), but got {fd_without_initializer}. "
+        "If this fails, the fd-inheritance precondition for issue "
+        "#1355 is not being reproduced on this platform/Python version."
+    )
+
+    # Step 2: with _worker_logging_init -- the worker must close the
+    # inherited handler and open its own private file description. We
+    # prove this by holding an exclusive, non-blocking flock on the
+    # parent's fd: if the worker's fd still points at the SAME open
+    # file description (the pre-fix bug), a lock attempt from the
+    # worker succeeds trivially (it's the same lock). If the worker's
+    # fd is a fresh, independent open file description (the fix), the
+    # non-blocking attempt conflicts with the parent's held lock and
+    # fails.
+    fcntl.flock(parent_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
     try:
-        # Step 1: no initializer -- forked worker inherits the parent's fd
-        # table, so it must report the SAME fd as the parent. This is the
-        # exact pre-fix condition that allows concurrent/reentrant writes
-        # on a shared underlying file description to race.
-        with ctx.Pool(processes=1) as pool:
-            (fd_without_initializer,) = pool.map(_log_from_worker, [log_path])
-
-        assert fd_without_initializer == parent_fd, (
-            "Sanity check failed: a forked worker without any logging "
-            "initializer was expected to inherit the parent's exact file "
-            f"descriptor ({parent_fd}), but got {fd_without_initializer}. "
-            "If this fails, the fd-inheritance precondition for issue "
-            "#1355 is not being reproduced on this platform/Python version."
-        )
-
-        # Step 2: with _worker_logging_init -- the worker must close the
-        # inherited handler and open its own private file description. We
-        # prove this by holding an exclusive, non-blocking flock on the
-        # parent's fd: if the worker's fd still points at the SAME open
-        # file description (the pre-fix bug), a lock attempt from the
-        # worker succeeds trivially (it's the same lock). If the worker's
-        # fd is a fresh, independent open file description (the fix), the
-        # non-blocking attempt conflicts with the parent's held lock and
-        # fails.
-        fcntl.flock(parent_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        try:
-            with ctx.Pool(
-                processes=1, initializer=_worker_logging_init
-            ) as pool:
-                (worker_acquired_lock,) = pool.map(
-                    _worker_try_exclusive_lock, [log_path]
-                )
-        finally:
-            fcntl.flock(parent_fd, fcntl.LOCK_UN)
-
-        assert not worker_acquired_lock, (
-            "Worker process shared the parent's open file description "
-            "even though _worker_logging_init was used as the Pool "
-            "initializer (proven by the worker being able to acquire a "
-            "lock already exclusively held by the parent). This is the "
-            "exact race condition from issue #1355: without a fresh, "
-            "private file description per worker, concurrent or "
-            "reentrant flushes on the shared handle can raise "
-            "'RuntimeError: reentrant call inside <_io.BufferedWriter>'."
-        )
+        with ctx.Pool(processes=1, initializer=_worker_logging_init) as pool:
+            (worker_acquired_lock,) = pool.map(
+                _worker_try_exclusive_lock, [log_path]
+            )
     finally:
-        parent_handler.close()
-        root.removeHandler(parent_handler)
-        for h in original_handlers:
-            root.addHandler(h)
-        if old_env is None:
-            os.environ.pop("GARAK_LOG_FILE", None)
-        else:
-            os.environ["GARAK_LOG_FILE"] = old_env
-        os.unlink(log_path)
+        fcntl.flock(parent_fd, fcntl.LOCK_UN)
+
+    assert not worker_acquired_lock, (
+        "Worker process shared the parent's open file description "
+        "even though _worker_logging_init was used as the Pool "
+        "initializer (proven by the worker being able to acquire a "
+        "lock already exclusively held by the parent). This is the "
+        "exact race condition from issue #1355: without a fresh, "
+        "private file description per worker, concurrent or "
+        "reentrant flushes on the shared handle can raise "
+        "'RuntimeError: reentrant call inside <_io.BufferedWriter>'."
+    )
 
 
 # ---------------------------------------------------------------------------
