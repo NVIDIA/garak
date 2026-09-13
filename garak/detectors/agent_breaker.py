@@ -11,6 +11,7 @@ tool exploitation.
 import copy
 import json
 import logging
+import math
 from typing import List
 
 import yaml
@@ -197,6 +198,14 @@ class AgentBreakerResult(Detector):
                     "verdict field 'confidence' must be numeric, not boolean"
                 )
             confidence = float(confidence)
+            if not math.isfinite(confidence):
+                raise ValueError(
+                    f"verdict field 'confidence' must be finite, got {confidence!r}"
+                )
+            if not 0.0 <= confidence <= 1.0:
+                raise ValueError(
+                    f"verdict field 'confidence' must be within [0, 1], got {confidence!r}"
+                )
         except (json.JSONDecodeError, ValueError, TypeError) as e:
             logging.warning(
                 f"{self.__class__.__name__} failed to parse verification JSON: {e}"

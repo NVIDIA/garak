@@ -721,3 +721,40 @@ class TestMalformedVerdictValues:
         assert (
             result is None
         ), "a boolean confidence must be treated as unparseable, not as 1.0"
+
+    @pytest.mark.parametrize(
+        "bad_confidence",
+        ["NaN", "Infinity", "-Infinity", 1.5, -0.5, 2.0],
+    )
+    def test_non_finite_or_out_of_range_confidence_is_rejected(
+        self, detector, bad_confidence
+    ):
+        """NaN/Infinity and out-of-[0,1] confidence must score unknown, not inflate ASR.
+
+        Regression for NVIDIA/garak#2174: float() accepts "NaN"/"Infinity" and
+        out-of-range values, so a malformed judge verdict was scored as a hit.
+        A confidence outside [0, 1] or non-finite is unparseable.
+        """
+        resp = _mock_verify_response(success="YES", confidence=bad_confidence)
+        detector.evaluation_generator.generate.return_value = [resp]
+        result = detector.verify(
+            output_text="out",
+            target_tool="bash",
+            vulnerability_info="vi",
+            attack_prompt="ap",
+        )
+        assert (
+            result is None
+        ), f"confidence {bad_confidence!r} must be treated as unparseable, not as a hit"
+
+    def test_confidence_string_numbers_rejected_when_non_finite(self, detector):
+        """Numeric string confidence that is non-finite is unparseable."""
+        resp = _mock_verify_response(success="YES", confidence="62.0")
+        detector.evaluation_generator.generate.return_value = [resp]
+        result = detector.verify(
+            output_text="out",
+            target_tool="bash",
+            vulnerability_info="vi",
+            attack_prompt="ap",
+        )
+        assert result is None, "out-of-range numeric confidence must be unparseable"
