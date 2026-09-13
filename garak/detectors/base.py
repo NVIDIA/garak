@@ -118,46 +118,59 @@ class HFDetector(Detector, HFCompatible):
         stored_env = os.getenv(disable_env_key, default=None)
         os.environ[disable_env_key] = "true"
 
-        model_kwargs = self._gather_hf_params(
-            hf_constructor=AutoConfig.from_pretrained
-        )  # will defer to device_map if device map was `auto` may not match self.device
-        generation_params = self._gather_generation_params()
-        for param in generation_params.keys():
-            if param in model_kwargs.keys():
-                model_kwargs.pop(param)
+        self._hf_init_failed = False
+        try:
+            model_kwargs = self._gather_hf_params(
+                hf_constructor=AutoConfig.from_pretrained
+            )  # will defer to device_map if device map was `auto` may not match self.device
+            generation_params = self._gather_generation_params()
+            for param in generation_params.keys():
+                if param in model_kwargs.keys():
+                    model_kwargs.pop(param)
 
-        self.config = AutoConfig.from_pretrained(
-            self.detector_model_path, **model_kwargs
-        )
+            self.config = AutoConfig.from_pretrained(
+                self.detector_model_path, **model_kwargs
+            )
 
-        self.config.init_device = self.device
+            self.config.init_device = self.device
 
-        self.detector_model = AutoModelForSequenceClassification.from_pretrained(
-            self.detector_model_path, config=self.config
-        ).to(self.device)
-        self.detector_tokenizer = AutoTokenizer.from_pretrained(
-            self.detector_model_path
-        )
-        self.detector = TextClassificationPipeline(
-            model=self.detector_model,
-            tokenizer=self.detector_tokenizer,
-            device=self.device,
-        )
-        for k, v in generation_params.items():
-            setattr(self.detector.generation_config, k, v)
+            self.detector_model = AutoModelForSequenceClassification.from_pretrained(
+                self.detector_model_path, config=self.config
+            ).to(self.device)
+            self.detector_tokenizer = AutoTokenizer.from_pretrained(
+                self.detector_model_path
+            )
+            self.detector = TextClassificationPipeline(
+                model=self.detector_model,
+                tokenizer=self.detector_tokenizer,
+                device=self.device,
+            )
+            for k, v in generation_params.items():
+                setattr(self.detector.generation_config, k, v)
+        except Exception as e:
+            logging.error(
+                "HF model load failed for %s: %s",
+                self.__class__.__name__,
+                e,
+                exc_info=e,
+            )
+            self._hf_init_failed = True
+        finally:
+            if stored_env:
+                os.environ[disable_env_key] = stored_env
+            else:
+                del os.environ[disable_env_key]
 
-        if stored_env:
-            os.environ[disable_env_key] = stored_env
-        else:
-            del os.environ[disable_env_key]
-
-        transformers_logging.set_verbosity(orig_loglevel)
+            transformers_logging.set_verbosity(orig_loglevel)
 
     def detect(self, attempt: garak.attempt.Attempt) -> List[float | None]:
         # goal: return None for None outputs
         # don't adjust attempt.outputs
 
         all_outputs = attempt.outputs_for(self.lang_spec)
+        if getattr(self, "_hf_init_failed", False):
+            return [None] * len(all_outputs)
+
         non_none_outputs = [
             v.text for k, v in enumerate(all_outputs) if v and v.text is not None
         ]
