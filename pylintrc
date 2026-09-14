@@ -484,7 +484,7 @@ disable=invalid-name,
         #
         # The absolute counts above are environment-specific: they were taken
         # on pylint 4.0.5 / astroid 4.0.4 / CPython 3.13 / macOS. The same tree
-        # on pylint 4.0.6 / CPython 3.12 / Linux scores 85-88 lower. Deltas
+        # on pylint 4.0.6 / CPython 3.12 / Linux scores 93-97 lower. Deltas
         # reproduce across environments, absolute counts do not, so any
         # comparison should be on the change in count, never the count itself.
         cyclic-import,
