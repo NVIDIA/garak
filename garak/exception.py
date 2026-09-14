@@ -8,8 +8,7 @@ class ExitCode(IntEnum):
     """Exit codes for garak CLI.
 
     Wrapping tools (CI pipelines, orchestration, garak-as-a-service) can use
-    these to distinguish failure modes without parsing stderr.  Codes follow
-    the proposal in https://github.com/NVIDIA/garak/issues/1221, using
+    these to distinguish failure modes without parsing stderr, using
     positive values so they map cleanly onto POSIX/Windows exit-status
     conventions (0-255, treated as unsigned) instead of negative integers.
     Garak-specific codes (168-176) sit above the 128+signal range so they

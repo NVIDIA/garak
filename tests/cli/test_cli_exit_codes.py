@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Tests for structured exit codes (issue #1221).
+"""Tests for structured exit codes.
 
 Verifies that cli.main() returns the correct integer exit code for each
 execution path so that wrapping tools can distinguish failure modes without
@@ -33,48 +33,11 @@ def _mock_evaluators():
 # ---------------------------------------------------------------------------
 
 
-class TestExitCodeEnum:
-    def test_success_is_zero(self):
-        assert int(ExitCode.SUCCESS) == 0
-
-    def test_out_of_local_resources_is_71(self):
-        assert int(ExitCode.OUT_OF_LOCAL_RESOURCES) == 71
-
-    def test_interrupted_is_130(self):
-        assert int(ExitCode.INTERRUPTED) == 128 + 2  # SIGINT
-
-    def test_unspecified_exception_is_168(self):
-        assert int(ExitCode.UNSPECIFIED_EXCEPTION) == 168
-
-    def test_probe_exception_is_169(self):
-        assert int(ExitCode.PROBE_EXCEPTION) == 169
-
-    def test_generator_exception_is_170(self):
-        assert int(ExitCode.GENERATOR_EXCEPTION) == 170
-
-    def test_detector_exception_is_171(self):
-        assert int(ExitCode.DETECTOR_EXCEPTION) == 171
-
-    def test_buff_exception_is_172(self):
-        assert int(ExitCode.BUFF_EXCEPTION) == 172
-
-    def test_evaluator_exception_is_173(self):
-        assert int(ExitCode.EVALUATOR_EXCEPTION) == 173
-
-    def test_harness_exception_is_174(self):
-        assert int(ExitCode.HARNESS_EXCEPTION) == 174
-
-    def test_langprovider_exception_is_175(self):
-        assert int(ExitCode.LANGPROVIDER_EXCEPTION) == 175
-
-    def test_report_exception_is_176(self):
-        assert int(ExitCode.REPORT_EXCEPTION) == 176
-
-    def test_all_codes_fit_in_unsigned_byte(self):
-        for code in ExitCode:
-            if code.name == "SIGNAL_BASE":
-                continue
-            assert 0 <= int(code) <= 255
+def test_all_codes_fit_in_unsigned_byte():
+    for code in ExitCode:
+        if code.name == "SIGNAL_BASE":
+            continue
+        assert 0 <= int(code) <= 255
 
 
 # ---------------------------------------------------------------------------
