@@ -361,14 +361,14 @@ def test_bundled_config_run_spec_resolves_without_unknowns(cfg_path):
 
 def test_invalid_run_spec_exits_cleanly():
     # malformed selector should print a friendly error and exit, not traceback
-    with pytest.raises(SystemExit):
-        garak.cli.main(["--spec", "detectors.foo", "--list_config"])
+    ret = garak.cli.main(["--spec", "detectors.foo", "--list_config"])
+    assert ret == int(ExitCode.UNSPECIFIED_EXCEPTION)
 
 
 def test_invalid_legacy_cli_flag_exits_cleanly(capsys):
     # a category-prefixed value in a deprecated flag is invalid; report + exit
-    with pytest.raises(SystemExit):
-        garak.cli.main(["--probes", "probes.dan", "--list_config"])
+    ret = garak.cli.main(["--probes", "probes.dan", "--list_config"])
+    assert ret == int(ExitCode.UNSPECIFIED_EXCEPTION)
     assert "❌" in capsys.readouterr().out, "invalid legacy flag must report, not traceback"
 
 

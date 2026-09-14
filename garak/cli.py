@@ -424,7 +424,7 @@ def main(arguments=None) -> int:
         except ValueError as e:
             logging.error(e)
             print(f"❌ invalid --spec: {e}")
-            exit(1)
+            return int(ExitCode.UNSPECIFIED_EXCEPTION)
         if _legacy_selection_flags:
             logging.info(
                 "both --spec and deprecated selection flags given; --spec wins"
@@ -439,7 +439,7 @@ def main(arguments=None) -> int:
         except ValueError as e:
             logging.error(e)
             print(f"❌ invalid selection: {e}")
-            exit(1)
+            return int(ExitCode.UNSPECIFIED_EXCEPTION)
         if spec is not None:
             _config.run.spec = spec
 
