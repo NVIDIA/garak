@@ -9,21 +9,33 @@ class ExitCode(IntEnum):
 
     Wrapping tools (CI pipelines, orchestration, garak-as-a-service) can use
     these to distinguish failure modes without parsing stderr.  Codes follow
-    the proposal in https://github.com/NVIDIA/garak/issues/1221.
+    the proposal in https://github.com/NVIDIA/garak/issues/1221, using
+    positive values so they map cleanly onto POSIX/Windows exit-status
+    conventions (0-255, treated as unsigned) instead of negative integers.
+    Garak-specific codes (168-176) sit above the 128+signal range so they
+    can't collide with a signal-derived exit; `/usr/include/sysexits.h` and
+    https://tldp.org/LDP/abs/html/exitcodes.html were consulted as reference
+    points, and OUT_OF_LOCAL_RESOURCES intentionally reuses sysexits.h's
+    EX_OSERR (71) for its close semantic match.
     """
 
+    SIGNAL_BASE = 128  # base for exit codes derived from a signal number
+
+    # OS standard exits adopted from https://tldp.org/LDP/abs/html/exitcodes.html
     SUCCESS = 0
-    INTERRUPTED = -1  # ctrl-c / SIGTERM / SIGKILL
-    PROBE_EXCEPTION = -2  # unhandled exception inside a probe
-    GENERATOR_EXCEPTION = -3  # unhandled exception inside a generator
-    DETECTOR_EXCEPTION = -4  # unhandled exception inside a detector
-    BUFF_EXCEPTION = -5  # unhandled exception inside a buff
-    EVALUATOR_EXCEPTION = -6  # unhandled exception inside an evaluator
-    HARNESS_EXCEPTION = -7  # unhandled exception inside a harness
-    LANGPROVIDER_EXCEPTION = -8  # unhandled exception inside a langprovider
-    REPORT_EXCEPTION = -9  # unhandled exception during reporting
-    OUT_OF_LOCAL_RESOURCES = -10  # memory / disk exhaustion
-    UNSPECIFIED_EXCEPTION = -127  # any other unhandled exception
+    OUT_OF_LOCAL_RESOURCES = 71  # memory / disk exhaustion
+    INTERRUPTED = 130  # ctrl-c / fatal error signal 2 (128 + SIGINT)
+
+    # garak specific exit codes
+    UNSPECIFIED_EXCEPTION = 168  # any other unhandled exception
+    PROBE_EXCEPTION = 169  # unhandled exception inside a probe
+    GENERATOR_EXCEPTION = 170  # unhandled exception inside a generator
+    DETECTOR_EXCEPTION = 171  # unhandled exception inside a detector
+    BUFF_EXCEPTION = 172  # unhandled exception inside a buff
+    EVALUATOR_EXCEPTION = 173  # unhandled exception inside an evaluator
+    HARNESS_EXCEPTION = 174  # unhandled exception inside a harness
+    LANGPROVIDER_EXCEPTION = 175  # unhandled exception inside a langprovider
+    REPORT_EXCEPTION = 176  # unhandled exception during reporting
 
 
 class GarakException(Exception):

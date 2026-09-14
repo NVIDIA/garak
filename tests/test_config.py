@@ -377,8 +377,8 @@ def test_invalid_legacy_config_exits_cleanly(tmp_path, capsys):
     cfg.write_text(
         "---\nplugins:\n  buff_spec: buffs.encoding.CharCode\n", encoding="utf-8"
     )
-    with pytest.raises(SystemExit):
-        garak.cli.main(["--config", str(cfg), "--list_config"])
+    ret = garak.cli.main(["--config", str(cfg), "--list_config"])
+    assert ret == int(ExitCode.UNSPECIFIED_EXCEPTION)
     assert "❌" in capsys.readouterr().out, "invalid legacy config must report, not traceback"
 
 
