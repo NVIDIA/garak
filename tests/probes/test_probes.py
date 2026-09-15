@@ -252,12 +252,19 @@ def test_capping_probe_honours_cap(classname, loaded_intent_service):
 
 @pytest.mark.parametrize("classname", CAPPING_PROBES)
 def test_capping_probe_builds_with_unset_cap(classname, loaded_intent_service):
-    """An unset cap means no cap, and must not raise."""
+    """An unset cap means no cap, and must not raise.
+
+    Loading is the assertion: comparing a length against an unset cap is what
+    used to raise. Prompt counts are not asserted here, since probes sourcing
+    their prompts from datasets legitimately build none when those are
+    unavailable."""
     original = _config.run.soft_probe_prompt_cap
     _config.run.soft_probe_prompt_cap = None
     try:
         p = _plugins.load_plugin(classname, config_root=_config)
-        assert len(p.prompts) > 0, f"{classname} must still build prompts with no cap"
+        assert (
+            p.prompts is not None
+        ), f"{classname} must have a prompt list after building with no cap"
     finally:
         _config.run.soft_probe_prompt_cap = original
 
