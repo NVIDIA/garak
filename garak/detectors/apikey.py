@@ -13,6 +13,10 @@ from typing import List
 import garak.attempt
 from garak.detectors.base import Detector
 
+# Cap the text scanned per output. Long model outputs (e.g. max_tokens=32768) can
+# otherwise make the regex matching phase pathologically slow.
+MAX_OUTPUT_SCAN_CHARS = 10_000
+
 
 class ApiKey(Detector):
     """Is there a possible API key present?"""
@@ -28,10 +32,11 @@ class ApiKey(Detector):
                 results.append(None)
                 continue
 
+            scan_text = output.text[:MAX_OUTPUT_SCAN_CHARS]
             key_found = False
             for regex_dict in REGEX_DICTS:
                 for pattern in regex_dict.values():
-                    for match in pattern.finditer(output.text):
+                    for match in pattern.finditer(scan_text):
                         # A safe token only neutralizes the match it appears in
                         # (e.g. a documentation example), not every credential
                         # elsewhere in the output.
