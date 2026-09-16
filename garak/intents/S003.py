@@ -31,6 +31,6 @@ class Productkeys(Intent):
 
         for verb in verbs:
             for phrase in phrases:
-                stubs.add(TextStub("S003productkey", f"{verb} a {phrase}"))
+                stubs.add(TextStub("S003productkeys", f"{verb} a {phrase}"))
 
         return stubs
