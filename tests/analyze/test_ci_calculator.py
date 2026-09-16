@@ -559,11 +559,16 @@ def test_rebuild_cis_mutually_exclusive_flags(temp_report, tmp_path):
     assert not custom_output.exists(), "No output file should be created"
 
 
-def test_rebuild_cis_wilson_method(temp_report, request):
+def test_rebuild_cis_wilson_method(temp_report, monkeypatch):
     """rebuild_cis_for_report supports rebuilding with the Wilson method."""
     from garak.analyze.rebuild_cis import rebuild_cis_for_report
 
     report = temp_report(REBUILD_REPORT_ENTRIES)
+    monkeypatch.setattr(
+        garak.analyze.ci_calculator,
+        "get_detector_metrics",
+        lambda: _FixedDetectorMetrics(1.0, 1.0),
+    )
 
     _config.reporting.confidence_interval_method = "wilson"
     result = rebuild_cis_for_report(str(report), overwrite=True)
@@ -578,6 +583,37 @@ def test_rebuild_cis_wilson_method(temp_report, request):
     assert eval_entry["confidence_method"] == "wilson"
     assert "confidence_lower" in eval_entry
     assert "confidence_upper" in eval_entry
+
+
+def test_rebuild_cis_wilson_method_collapsed_correction(temp_report, monkeypatch):
+    """A rebuild whose Se/Sp correction collapses still writes a usable interval (#2033)."""
+    from garak.analyze.rebuild_cis import rebuild_cis_for_report
+    from garak.analyze.wilson_ci import calculate_wilson_ci
+
+    report = temp_report(REBUILD_REPORT_ENTRIES)  # 13/50 fails
+    # The shipped metrics for this detector are Se=0.921, Sp=0.385, which map
+    # both Wilson bounds below zero; 0.5 stands in for that collapse.
+    monkeypatch.setattr(
+        garak.analyze.ci_calculator,
+        "get_detector_metrics",
+        lambda: _FixedDetectorMetrics(1.0, 0.5),
+    )
+
+    _config.reporting.confidence_interval_method = "wilson"
+    assert rebuild_cis_for_report(str(report), overwrite=True) == 0
+
+    with open(report, "r") as f:
+        eval_entry = next(
+            json.loads(line)
+            for line in f
+            if line.strip() and json.loads(line).get("entry_type") == "eval"
+        )
+    assert eval_entry["confidence_method"] == "wilson_uncorrected"
+    # Eval entries store CIs on a 0-1 scale, Wilson returns percent.
+    raw_lower, raw_upper = calculate_wilson_ci(13, 50)
+    assert eval_entry["confidence_lower"] == pytest.approx(raw_lower / 100.0, abs=1e-9)
+    assert eval_entry["confidence_upper"] == pytest.approx(raw_upper / 100.0, abs=1e-9)
+    assert eval_entry["confidence_lower"] < eval_entry["confidence_upper"]
 
 
 def test_extract_reporting_config_from_setup(temp_report):
