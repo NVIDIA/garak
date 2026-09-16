@@ -167,7 +167,9 @@ def test_cohere_generate_api_respx(respx_mock, cohere_mock_responses):
 
     # Assert response parsing
     assert result == [
-        cohere_mock_responses["generate_response"]["json"]["generations"][0]["text"]
+        Message(
+            cohere_mock_responses["generate_response"]["json"]["generations"][0]["text"]
+        )
     ]
 
 
@@ -205,7 +207,7 @@ def test_cohere_chat_api_respx(
     if expect_error_str:
         assert result[0] is None, f"Expected None for error but got {result[0]}"
     else:
-        assert isinstance(result[0], str) and result[0]
+        assert isinstance(result[0], Message) and result[0].text
 
 
 # ─── Logging on Error Variants ─────────────────────────────────────────

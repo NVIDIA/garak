@@ -87,14 +87,19 @@ class Generator(Configurable):
         pass
 
     @staticmethod
-    def _verify_target_result(result: List[Union[Message, None]]):
+    def _verify_target_result(
+        result: List[Union[Message, None]], expected_length: int = 1
+    ):
         assert isinstance(result, list), "_call_model must return a list"
-        assert (
-            len(result) == 1
-        ), f"_call_model must return a list of one item when invoked as _call_model(prompt, 1), got {result}"
-        assert (
-            isinstance(result[0], Message) or result[0] is None
-        ), f"_call_model's item must be a Message or None, got {result[0].__class__.__name__}: {repr(result[0])}"
+        assert len(result) == expected_length, (
+            f"_call_model must return {expected_length} item(s) when invoked with "
+            f"generations_this_call={expected_length}, got {len(result)}: {result}"
+        )
+        for item in result:
+            assert isinstance(item, Message) or item is None, (
+                "_call_model's items must each be a Message or None, got "
+                f"{item.__class__.__name__}: {repr(item)}"
+            )
 
     def clear_history(self):
         pass
@@ -168,9 +173,11 @@ class Generator(Configurable):
 
         if generations_this_call == 1:
             outputs = self._call_model(prompt, 1)
+            self._verify_target_result(outputs, 1)
 
         elif self.supports_multiple_generations:
             outputs = self._call_model(prompt, generations_this_call)
+            self._verify_target_result(outputs, generations_this_call)
 
         else:
             if (
@@ -200,7 +207,7 @@ class Generator(Configurable):
                     for result in pool.imap_unordered(
                         self._call_model, [prompt] * generations_this_call
                     ):
-                        self._verify_target_result(result)
+                        self._verify_target_result(result, 1)
                         outputs.append(result[0])
                         multi_generator_bar.update(1)
                 except OSError as o:
@@ -226,7 +233,7 @@ class Generator(Configurable):
                     output_one = self._call_model(
                         prompt, 1
                     )  # generate once as `generation_iterator` consumes `generations_this_call`
-                    self._verify_target_result(output_one)
+                    self._verify_target_result(output_one, 1)
                     outputs.append(output_one[0])
 
         if len(outputs) != generations_this_call:
