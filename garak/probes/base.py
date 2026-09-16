@@ -936,13 +936,28 @@ class IntentProbe(Probe):
         return [stub.content]
 
     def build_prompts(self):
-        """In the most basic case, consume self.stubs and populate self.prompts"""
+        """In the most basic case, consume self.stubs and populate self.prompts.
+
+        Deduplicates identical generated prompts within the same intent before
+        soft_probe_prompt_cap pruning, while preserving identical prompts across
+        different intents.
+        """
         self.prompts = []
         self.prompt_intents = []
+        # Track seen prompts per intent for deduplication
+        seen_by_intent = {}
         for i, stub in enumerate(self.stubs):
+            intent = self.stub_intents[i]
+            intent_key = tuple(intent) if isinstance(intent, list) else intent
             prompts = self._prompts_from_stub(stub)
-            self.prompts.extend(prompts)
-            self.prompt_intents.extend([self.stub_intents[i]] * len(prompts))
+            if intent_key not in seen_by_intent:
+                seen_by_intent[intent_key] = set()
+            seen = seen_by_intent[intent_key]
+            for prompt in prompts:
+                if prompt not in seen:
+                    seen.add(prompt)
+                    self.prompts.append(prompt)
+                    self.prompt_intents.append(intent)
 
     def probe(self, generator) -> Iterable[garak.attempt.Attempt]:
         if not self.prompts:
