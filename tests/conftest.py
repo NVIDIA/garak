@@ -77,6 +77,21 @@ def config_cleanup(request):
     reload()
 
 
+@pytest.fixture(autouse=True)
+def clear_intentservice_state(request):
+    """Reset intentservice for each test"""
+
+    def clear_intentservice_state():
+        from garak.services import intentservice
+
+        intentservice.is_loaded = False
+        intentservice.intent_typology = {}
+        intentservice.intent_detectors = {}
+        intentservice.intents_active = set()
+
+    request.addfinalizer(clear_intentservice_state)
+
+
 def pytest_configure(config):
     config.addinivalue_line(
         "markers",
