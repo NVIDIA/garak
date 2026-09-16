@@ -71,14 +71,14 @@ def rebuild_cis_for_report(
         return 1
 
     ci_method = _config.reporting.confidence_interval_method
-    if ci_method != "bootstrap":
+    if ci_method not in ("bootstrap", "wilson"):
         print(f"❌ Unknown or disabled CI method: '{ci_method}'. Nothing to rebuild.")
         return 0
 
     from garak.analyze.ci_calculator import (
         _extract_ci_config_from_report,
         _extract_reporting_config_from_setup,
-        calculate_ci_from_report,
+        calculate_ci_from_report_with_methods,
         update_eval_entries_with_ci,
     )
     from garak.analyze.report_digest import append_report_object, build_digest
@@ -131,7 +131,7 @@ def rebuild_cis_for_report(
         )
 
     try:
-        ci_results = calculate_ci_from_report(str(report_file))
+        ci_results, ci_methods = calculate_ci_from_report_with_methods(str(report_file))
 
         if len(ci_results) == 0:
             min_samples = _config.reporting.bootstrap_min_sample_size
@@ -143,7 +143,10 @@ def rebuild_cis_for_report(
 
         print(f"📊 Updating {len(ci_results)} probe/detector pairs with new CIs")
         update_eval_entries_with_ci(
-            str(report_file), ci_results, output_path=resolved_output
+            str(report_file),
+            ci_results,
+            output_path=resolved_output,
+            confidence_methods=ci_methods,
         )
 
         target_file = Path(resolved_output) if resolved_output else report_file
@@ -201,8 +204,8 @@ if __name__ == "__main__":
         "--confidence_interval_method",
         type=str,
         default=None,
-        choices=["bootstrap", "none"],
-        help="CI method: 'bootstrap' (default) or 'none' to disable",
+        choices=["bootstrap", "wilson", "none"],
+        help="CI method: 'bootstrap' (default), 'wilson', or 'none' to disable",
     )
     parser.add_argument(
         "--bootstrap_num_iterations",
