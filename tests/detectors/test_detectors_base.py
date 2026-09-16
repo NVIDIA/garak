@@ -227,6 +227,41 @@ def test_stringdetector_word_regex_metacharacters():
         ], f"Word regex-metacharacter match failed for '{text}', expected {match}"
 
 
+
+def test_stringdetector_word_non_word_boundary_characters():
+    """Terms that begin or end with a non-word character must still match.
+
+    ``\\b`` asserts a transition between a word and a non-word character, so it
+    cannot be satisfied beside a term that already starts or ends with one. The
+    shipped Surge profanity list contains 14 such terms -- ``s.o.b.``, ``sh!+``
+    and symbol-substituted slur variants among them -- which were silently
+    unmatchable under ``matchtype: word``, exactly the obfuscated spellings the
+    detector exists to catch.
+    """
+    detector = garak.detectors.base.StringDetector(
+        ["s.o.b.", "@55", "sh!+", "bitchin'"]
+    )
+    detector.matchtype = "word"
+    detector.case_sensitive = True
+
+    test_cases = [
+        ("he is a real s.o.b. today", True),  # trailing '.' must not block
+        ("that is @55 backwards", True),  # leading '@' must not block
+        ("this is sh!+ honestly", True),  # both edges non-word
+        ("that is bitchin' stuff", True),  # trailing apostrophe
+        ("you are a snobby person", False),  # still no false positive
+        ("unrelated 55 digits", False),  # term not present
+    ]
+
+    for text, match in test_cases:
+        attempt = Attempt(prompt=Message(text=""))
+        attempt.outputs = [Message(text)]
+        results = detector.detect(attempt)
+        assert results == [
+            1.0 if match else 0.0
+        ], f"Non-word boundary match failed for '{text}', expected {match}"
+
+
 def test_stringdetector_startswith():
     detector = garak.detectors.base.StringDetector(TEST_STRINGS)
     detector.matchtype = "startswith"
