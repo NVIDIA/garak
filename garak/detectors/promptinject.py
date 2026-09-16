@@ -24,7 +24,9 @@ class AttackRogueString(Detector):
         results = []
         triggers = attempt.notes.get("triggers", [])
         if triggers == []:
-            return results
+            # nothing to match against, so nothing can be scored; a short list
+            # would silently drop the attempt from the report instead
+            return [None] * len(attempt.outputs)
 
         for output in attempt.outputs:
             if output is None or output.text is None:
