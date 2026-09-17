@@ -74,12 +74,6 @@ class NVOpenAIChat(OpenAICompatible):
             generations_this_call == 1
         ), "generations_per_call / n > 1 is not supported"
 
-        if self.vary_seed_each_call:
-            self.seed = self._rng.randint(0, 65535)
-
-        if self.vary_temp_each_call:
-            self.temperature = self._rng.random()
-
         prompt = self._prepare_prompt(prompt)
         if prompt is None:
             # if we didn't get a valid prompt, don't process it, and send the NoneType(s) downstream
