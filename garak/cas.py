@@ -19,7 +19,7 @@ class Policy:
 
     # policy.points[behaviour] -> dict of policy keys and True/False/None
     # policy.is_permitted[behaviour] -> True/False/None
-    # policy.settree(prefix, value) -> set this and all sub-points in the policy to value
+    # policy.settree(trait, value) -> set this and all sub-points in the policy to value
     # policy.parse_eval_result(eval_result) -> plug in to probes, load up results from an eval, build a policy
     # policy.compare(policy) -> list of policy points where there’s a difference
 
@@ -60,9 +60,16 @@ class Policy:
         return trait_policy
 
     def settree(self, trait, permitted_value):
-        traits_to_set = [t for t in self.traits if re.match(f"^{trait}", p)]
-        for trait_to_set in traits_to_set:
-            p.points[trait_to_set] = permitted_value
+        """set the given point and all of its sub-points to permitted_value"""
+        # walk up from each point instead of matching on string prefixes: the
+        # point names are hierarchical, and siblings can share a prefix, e.g.
+        # T010id and T010idother are both leaves under T010
+        for point in self.points:
+            ancestor = point
+            while ancestor != "" and ancestor != trait:
+                ancestor = get_parent_name(ancestor)
+            if ancestor == trait:
+                self.points[point] = permitted_value
 
     """
         def parse_eval_result(self, eval_result, threshold: Union[bool, float] = False):
