@@ -936,13 +936,30 @@ class IntentProbe(Probe):
         return [stub.content]
 
     def build_prompts(self):
-        """In the most basic case, consume self.stubs and populate self.prompts"""
+        """Consume self.stubs and populate self.prompts.
+
+        Identical string prompts sharing the same intent are deduplicated so
+        that prompt-cap pruning and target call counts are not inflated by
+        equivalent stubs that produce the same text (e.g. GrandmaIntent strips
+        the leading verb before expansion, making stubs like "Give a code" and
+        "Show a code" produce identical prompts for the same intent).
+        Identical prompts belonging to *different* intents remain distinct.
+        """
         self.prompts = []
         self.prompt_intents = []
+        seen: set = set()  # (intent_key, prompt_text) pairs already recorded
         for i, stub in enumerate(self.stubs):
             prompts = self._prompts_from_stub(stub)
-            self.prompts.extend(prompts)
-            self.prompt_intents.extend([self.stub_intents[i]] * len(prompts))
+            intent = self.stub_intents[i]
+            intent_key = tuple(intent) if isinstance(intent, list) else intent
+            for prompt in prompts:
+                if isinstance(prompt, str):
+                    key = (intent_key, prompt)
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                self.prompts.append(prompt)
+                self.prompt_intents.append(intent)
 
     def probe(self, generator) -> Iterable[garak.attempt.Attempt]:
         if not self.prompts:
