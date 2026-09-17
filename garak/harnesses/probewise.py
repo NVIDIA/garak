@@ -107,5 +107,15 @@ class ProbewiseHarness(Harness):
                     if d:
                         detectors.append(d)
 
+            if not detectors:
+                # Every detector this probe asked for failed to load. Harness.run
+                # rejects an empty detector list with ValueError, which would
+                # abort the whole scan and silently drop every probe still
+                # queued behind this one; skip just this probe instead.
+                msg = f"no detectors loaded for probe {probename}, skipping >>"
+                print(f" {msg}")
+                logging.error(msg)
+                continue
+
             super().run(model, [probe], detectors, evaluator, announce_probe=False)
             # del probe, h, detectors
