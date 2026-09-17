@@ -89,3 +89,42 @@ def test_paraphrase_transform_conversation_and_lang(mocker):
     assert paraphrased.lang == "en"
     # Verify conversations history contains the paraphrased message
     assert paraphrased.conversations[0].turns[0].content.text == "Paraphrased text"
+
+
+def test_derive_new_attempt_preserves_attributes():
+    buff = garak.buffs.base.Buff()
+    orig_attempt = attempt.Attempt(
+        intent="DirectIntent",
+        reverse_translation_outputs={"en": ["test output"]},
+        notes={"custom_note": "value"},
+        detector_results={"detector_a": [0.0, 1.0]},
+        targets=["target1"],
+        probe_params={"param1": "val1"},
+    )
+    derived = buff._derive_new_attempt(orig_attempt)
+
+    # Verify attributes preserved
+    assert derived.intent == "DirectIntent"
+    assert derived.reverse_translation_outputs == {"en": ["test output"]}
+    assert derived.notes["custom_note"] == "value"
+    assert derived.detector_results == {"detector_a": [0.0, 1.0]}
+    assert derived.targets == ["target1"]
+    assert derived.probe_params == {"param1": "val1"}
+    assert derived.notes["buff_creator"] == "Buff"
+
+    # Verify deep copy isolation: mutating derived doesn't affect orig
+    derived.notes["custom_note"] = "mutated"
+    assert orig_attempt.notes["custom_note"] == "value"
+    assert "buff_creator" not in orig_attempt.notes
+
+    derived.reverse_translation_outputs["en"].append("new output")
+    assert orig_attempt.reverse_translation_outputs == {"en": ["test output"]}
+
+    derived.detector_results["detector_a"].append(0.5)
+    assert orig_attempt.detector_results["detector_a"] == [0.0, 1.0]
+
+    derived.targets.append("target2")
+    assert orig_attempt.targets == ["target1"]
+
+    derived.probe_params["param1"] = "mutated_val"
+    assert orig_attempt.probe_params["param1"] == "val1"

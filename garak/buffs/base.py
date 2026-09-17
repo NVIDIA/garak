@@ -4,6 +4,7 @@
 """Base classes for buffs."""
 
 from collections.abc import Iterable
+import copy
 import logging
 from typing import List
 
@@ -51,12 +52,16 @@ class Buff(Configurable):
             status=source_attempt.status,
             prompt=source_attempt.prompt,
             probe_classname=source_attempt.probe_classname,
-            probe_params=source_attempt.probe_params,
-            targets=source_attempt.targets,
-            notes=source_attempt.notes,
-            detector_results=source_attempt.detector_results,
+            probe_params=copy.deepcopy(source_attempt.probe_params),
+            targets=copy.deepcopy(source_attempt.targets),
+            notes=copy.deepcopy(source_attempt.notes),
+            detector_results=copy.deepcopy(source_attempt.detector_results),
             goal=source_attempt.goal,
             seq=seq,
+            reverse_translation_outputs=copy.deepcopy(
+                source_attempt.reverse_translation_outputs
+            ),
+            intent=source_attempt.intent,
         )
         new_attempt.notes["buff_creator"] = self.__class__.__name__
         new_attempt.notes["buff_source_attempt_uuid"] = str(
