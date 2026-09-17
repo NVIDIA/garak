@@ -170,7 +170,7 @@ class NVMultimodal(NVOpenAIChat):
         "embed_data": False,
     }
 
-    modality = {"in": {"text", "image", "audio"}, "out": {"text"}}
+    modality = {"in": {"text", "image", "audio", "file"}, "out": {"text"}}
 
     def _prepare_prompt(self, conv: Conversation) -> Conversation:
         if not self.embed_data:
