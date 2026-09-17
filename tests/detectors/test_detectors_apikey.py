@@ -1,3 +1,5 @@
+import time
+
 import pytest
 
 import garak.attempt
@@ -69,3 +71,27 @@ def test_apikey_nonegroup():
     assert (
         none_group_found
     ), "nonegroup_key should return a None group in garak's DORA regexes"
+
+
+def test_apikey_long_output_no_hang():
+    # The old mongodb pattern ([^@]+) backtracked quadratically over @-less text,
+    # freezing the detector phase on long outputs (garak #2189).
+    d = _plugins.load_plugin("detectors.apikey.ApiKey")
+    a = _test_attempt(d)
+    a.outputs = ["mongodb+srv://user:" + "a" * 100_000]
+    start = time.monotonic()
+    result = d.detect(a)
+    elapsed = time.monotonic() - start
+    assert result == [0.0]
+    assert elapsed < 5.0
+
+
+def test_apikey_very_long_text():
+    d = _plugins.load_plugin("detectors.apikey.ApiKey")
+    a = _test_attempt(d)
+    a.outputs = ["A" * 200_000]
+    start = time.monotonic()
+    result = d.detect(a)
+    elapsed = time.monotonic() - start
+    assert result == [0.0]
+    assert elapsed < 5.0

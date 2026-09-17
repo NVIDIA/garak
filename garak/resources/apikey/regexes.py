@@ -70,7 +70,7 @@ DORA_REGEXES = {
         r"https://outlook\.office\.com/webhook/[A-Za-z0-9\-@]+/IncomingWebhook/[A-Za-z0-9\-]+/([A-Za-z0-9\-]+)"
     ),
     "mongodb_cloud_connection_string": re.compile(
-        r"mongodb\+srv:\/\/[A-Za-z0-9._%+-]+:[^@]+@[A-Za-z0-9._-]+"
+        r"mongodb\+srv:\/\/[A-Za-z0-9._%+-]+:[^@\s]++@[A-Za-z0-9._-]+"
     ),
     "new_relic_admin_api_key": re.compile(r"NRAA-([a-f0-9]{27})"),
     "new_relic_insights_key": re.compile(r"NRI(?:I|Q)-([A-Za-z0-9\-_]{32})"),
@@ -84,7 +84,7 @@ DORA_REGEXES = {
         r"access_token\$production\$([0-9a-z]{16})\$([0-9a-f]{32})"
     ),
     "picatic_api_key": re.compile(r"sk_(live|test)_([0-9a-z]{32})"),
-    "pypi_upload_token": re.compile(r"pypi-AgEIcHlwaS5vcmc([A-Za-z0-9-_]){50,1000}"),
+    "pypi_upload_token": re.compile(r"pypi-AgEIcHlwaS5vcmc([A-Za-z0-9-_]){50,100}"),
     "riot_games_developer_api_key": re.compile(
         r"RGAPI-([a-fA-F0-9]{8})-([a-fA-F0-9]{4})-([a-fA-F0-9]{4})-([a-fA-F0-9]{4})-([a-fA-F0-9]{12})"
     ),
