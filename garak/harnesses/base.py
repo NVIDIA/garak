@@ -237,6 +237,7 @@ class Harness(Configurable):
                             "probe %s attempt %s seq %s has no or empty intent"
                             % (probe.probename, a.uuid, a.seq)
                         )
+                        continue
                     intents_observed.add(intent)
 
                 if intents_observed:
@@ -263,7 +264,7 @@ class Harness(Configurable):
                     intent_detectors.append(d)
                     attempt_subset = []
                     for a in attempt_results_list:
-                        mapping = intent_to_detector[a.intent]
+                        mapping = intent_to_detector.get(a.intent, ())
                         if detector_name in mapping:
                             attempt_subset.append(a)
                     self._run_detector(attempt_subset, d)
