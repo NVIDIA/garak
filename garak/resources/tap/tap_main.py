@@ -403,7 +403,17 @@ def run_tap(
         #   PRUNE: PHASE 1
         ############################################################
         # Get on-topic-scores (does the adv_prompt asks for same info as original prompt)
-        on_topic_scores = attack_manager.on_topic_score(adv_prompt_list)
+        # `on_topic_score` returns None for a prompt the judge could not be
+        # evaluated on. prune() needs a sortable, >0-comparable value
+        # (red_team/conversation.py:185 sorts on it, :200 filters it), so an
+        # unjudged branch takes the 1.0 this parser used to return for
+        # unparseable output -- keeping tree expansion behaviour unchanged.
+        # Pruning is a search-budget decision, not a safety verdict, so a
+        # branch we could not judge is kept rather than discarded.
+        on_topic_scores = [
+            1.0 if score is None else score
+            for score in attack_manager.on_topic_score(adv_prompt_list)
+        ]
 
         # Prune attacks which are irrelevant
         if pruning and len(adv_prompt_list) > 1:
