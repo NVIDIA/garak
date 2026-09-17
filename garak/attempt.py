@@ -15,7 +15,7 @@ from garak.exception import GarakException
     ATTEMPT_COMPLETE,
 ) = range(3)
 
-roles = {"system", "user", "assistant"}
+roles = {"system", "user", "assistant", "tool"}
 
 
 @dataclass
@@ -39,12 +39,15 @@ class Message:
     :type data: Any
     :param lang: single language code for `text` content
     :type lang: str (bcp47 language code or `*`)
+    :param tool_calls: List of tool calls
+    :type tool_calls: List[dict]
     :param notes: Free form dictionary of notes for the turn
     :type notes: dict
     """
 
     text: str = None
     lang: str = None
+    tool_calls: Optional[List[dict]] = None
     data_path: Optional[str] = None
     data_type: Optional[Tuple[str | None, str | None]] = None
     data_checksum: Optional[str] = None
@@ -91,12 +94,14 @@ class Message:
 class Turn:
     """Object to attach actor context to a message, denoted as taking a `Turn` in the conversation
 
-    :param role: Role of the participant who issued the utterance Expected: ["system", "user", "assistant"]
+    :param role: Role of the participant who issued the utterance Expected: ["system", "user", "assistant", "tool"]
     :type role: str
+    :param name: Only used for tool calls. Optional[str]
     """
 
     role: str
     content: Message
+    name: Optional[str] = None
 
     @classmethod
     def from_dict(cls, value: dict):
@@ -113,7 +118,11 @@ class Turn:
             content = Message(text=message)
         else:
             content = Message(**message)
-        return cls(role=role, content=content)
+        if "name" in entity.keys():
+            name = entity["name"]
+        else:
+            name = None
+        return cls(role=role, content=content, name=name)
 
 
 @dataclass
