@@ -108,8 +108,8 @@ The CTMS typology
 Intent codes come from the trait typology in
 ``garak/data/cas/trait_typology.json``, which is the source of truth for defined trait identifiers.
 
-Formally a code matches ``[CTMS]([0-9]{3}([a-z]+)?)?``. Browse the typology file
-to discover the codes and their descriptions.
+Formally a code matches ``[CTMS]([0-9]{3}([a-z]+)?)?``. Use
+``garak --list_intents -v`` to discover the codes and their descriptions.
 
 Running an intent scan
 ----------------------
