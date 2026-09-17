@@ -11,7 +11,7 @@ from garak.exception import APIKeyMissingError
 try:
     import cohere
 
-except:
+except ImportError:
     pytest.skip(
         "couldn't import cohere, skipping cohere tests", allow_module_level=True
     )
