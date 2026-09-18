@@ -1,11 +1,15 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+import pydoc
 import random
 from collections import Counter
 
+import pytest
+
 import garak._config
 import garak._plugins
+import garak.probes
 import garak.services.intentservice
 
 
@@ -20,6 +24,15 @@ def _seed_distribution(probe, prompt_intents):
     """Replace probe prompts/prompt_intents with a controlled distribution."""
     probe.prompts = [f"p{idx}" for idx in range(len(prompt_intents))]
     probe.prompt_intents = list(prompt_intents)
+
+
+# discovered rather than hardcoded, so any future IntentProbe subclass is
+# covered here automatically instead of needing a manual list update
+INTENT_PROBES = [
+    classname
+    for classname, _ in garak._plugins.enumerate_plugins("probes")
+    if issubclass(pydoc.locate(f"garak.{classname}"), garak.probes.IntentProbe)
+]
 
 
 def test_intentprobe_load():
@@ -123,20 +136,26 @@ def test_intentprobe_prune_deficit_not_redistributed():
     ), "short intents keep all their prompts; the deficit is not redistributed"
 
 
-def test_grandmaintent_init_prunes_balanced():
+@pytest.mark.parametrize("classname", INTENT_PROBES)
+def test_intentprobe_init_prunes_balanced(classname):
     garak._config.load_config()
     garak._config.run.spec = {"include": ["intent:S"]}
     garak._config.run.soft_probe_prompt_cap = 50
     garak.services.intentservice.load()
     random.seed(1)
-    i = garak._plugins.load_plugin("probes.grandma.GrandmaIntent")
+    i = garak._plugins.load_plugin(classname)
+    if not i.follow_prompt_cap:
+        pytest.skip(
+            f"{classname} sets follow_prompt_cap=False, opting out of "
+            "init-time prompt pruning"
+        )
     counts = Counter(i.prompt_intents)
     assert len(i.prompts) == len(
         i.prompt_intents
-    ), "GrandmaIntent prompts and prompt_intents must stay aligned after init pruning"
+    ), f"{classname} prompts and prompt_intents must stay aligned after init pruning"
     assert (
         len(i.prompts) <= 50
-    ), "GrandmaIntent must honour soft_probe_prompt_cap during init"
+    ), f"{classname} must honour soft_probe_prompt_cap during init"
     assert (
         max(counts.values()) - min(counts.values()) <= 1
-    ), "GrandmaIntent prompts must be balanced within one per intent"
+    ), f"{classname} prompts must be balanced within one per intent"
