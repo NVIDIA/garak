@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import json
+from pathlib import Path
 import subprocess
 import sys
 import tempfile
@@ -293,3 +294,109 @@ def test_digest_handles_mixed_eval_ci_format(tmp_path) -> None:
     )
     assert "absolute_confidence_lower" in quack
     assert "absolute_confidence_upper" in quack
+
+
+PAYLOAD_ROW = {
+    "entry_type": "payload_init",
+    "loading_complete": "payload",
+    "payload_name": "test_payload",
+    "payload_path": "/tmp/test_payload.json",
+    "entries": 3,
+    "filesize": 128,
+    "mtime": "1700000000.0",
+}
+
+
+def _report_with_payload(tmp_path) -> str:
+    """A committed report plus the payload_init row garak writes when a payload
+    corpus loads (see garak/payloads.py), placed where a real run puts it: after
+    the `start_run setup` and `init` lines."""
+    source = Path(__file__).parents[1] / "_assets" / "analyze" / "test.report.jsonl"
+    lines = source.read_text(encoding="utf-8").splitlines()
+    lines.insert(2, json.dumps(PAYLOAD_ROW))
+    report = tmp_path / "payload.report.jsonl"
+    report.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return str(report)
+
+
+def test_aggregate_keeps_payload_rows(tmp_path):
+    """Aggregation must carry payload provenance through."""
+    from garak.analyze.aggregate_reports import main as aggregate_main
+
+    aggregated = str(tmp_path / "agg.report.jsonl")
+    aggregate_main(["-o", aggregated, _report_with_payload(tmp_path)])
+
+    entry_types = [
+        json.loads(line)["entry_type"]
+        for line in open(aggregated, encoding="utf-8")
+        if line.strip()
+    ]
+    assert entry_types.count("payload_init") == 1, (
+        "the payload_init row must survive aggregation, not be filtered out as an"
+        f" unlisted entry type (got {entry_types.count('payload_init')})"
+    )
+
+
+def test_aggregated_digest_names_the_payload(tmp_path):
+    """The digest rebuilt for an aggregated report must still list the payloads."""
+    from garak.analyze.aggregate_reports import main as aggregate_main
+
+    aggregated = str(tmp_path / "agg.report.jsonl")
+    aggregate_main(["-o", aggregated, _report_with_payload(tmp_path)])
+
+    digest = garak.analyze.report_digest.build_digest(aggregated)
+    payloads = digest["meta"]["payloads"]
+    assert any("test_payload" in p for p in payloads), (
+        "aggregated report claims no payload corpora were loaded:"
+        f" meta.payloads is {payloads}"
+    )
+
+
+TREE_ROWS = [
+    {
+        "entry_type": "tree_data",
+        "probe": "TestTree",
+        "detector": "always.Pass",
+        "node_id": "root",
+        "node_parent": None,
+        "node_score": 0.0,
+        "surface_forms": ["start"],
+    },
+    {
+        "entry_type": "tree_data",
+        "probe": "TestTree",
+        "detector": "always.Pass",
+        "node_id": "child",
+        "node_parent": "root",
+        "node_score": 1.0,
+        "surface_forms": ["escalated"],
+    },
+]
+
+
+def test_aggregate_keeps_tree_search_nodes(tmp_path, capsys):
+    """tree_data rows must survive aggregation, or get_tree has nothing to show."""
+    from garak.analyze.aggregate_reports import main as aggregate_main
+    from garak.analyze.get_tree import get_tree
+
+    source = tmp_path / "tree.report.jsonl"
+    base = (
+        (Path(__file__).parents[1] / "_assets" / "analyze" / "test.report.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
+    )
+    rows = base[:3] + [json.dumps(r) for r in TREE_ROWS] + base[3:]
+    source.write_text("\n".join(rows) + "\n", encoding="utf-8")
+
+    aggregated = str(tmp_path / "agg.report.jsonl")
+    aggregate_main(["-o", aggregated, str(source)])
+
+    capsys.readouterr()  # discard aggregator's own output
+    get_tree(aggregated)
+    printed = capsys.readouterr().out
+    assert (
+        "No tree data" not in printed
+    ), "aggregating a TreeSearchProbe run left get_tree with nothing to print"
+    assert (
+        "escalated" in printed
+    ), f"the explored node is missing from the tree view: {printed}"
