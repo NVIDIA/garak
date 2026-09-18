@@ -227,12 +227,12 @@ The target structure for garak ``Probe`` class docstrings include the following 
 Writing an IntentProbe
 **********************
 
-Many probes bind one technique to one intent. An ``IntentProbe`` instead runs a
-single technique across a *range* of intents supplied at run time by the intent
-service. Reach for one when your technique is intent-agnostic -- a wrapper that
-can carry many different target behaviours -- rather than tied to a specific
-failure mode. For the user-facing concepts (intents, the CTMS typology, the
-``intent:`` selector), see :doc:`cas`.
+Many probes bind one technique to one intent. An ``IntentProbe`` instead builds
+prompts for a *range* of intents supplied at run time by the intent service.
+Reach for one when your technique is an intent-agnostic wrapper that can carry
+many different target behaviours, or when establishing a direct baseline
+without transforming the intent stub. For the user-facing concepts (intents,
+the CTMS typology, the ``intent:`` selector), see :doc:`cas`.
 
 Subclass ``garak.probes.IntentProbe`` and override how a stub becomes prompts:
 
@@ -275,8 +275,10 @@ If the active intent set is empty (for example the ``intent:`` axis was filtered
 to nothing), the probe is a graceful no-op: it sends no prompts and the run
 proceeds.
 
-``grandma.GrandmaIntent`` (:doc:`probes/grandma`) is the reference
-implementation: its ``_prompts_from_stub`` expands each intent stub into many
+``baseline.Intent`` (:doc:`probes/baseline`) exposes the unchanged default
+transformation as a direct baseline.
+``grandma.GrandmaIntent`` (:doc:`probes/grandma`) demonstrates an additional
+technique: its ``_prompts_from_stub`` expands each intent stub into many
 grandmother-roleplay prompts by combining personas, actions and activities.
 
 The supporting data is separate from the probe class: the intent typology lives
