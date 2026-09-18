@@ -167,7 +167,6 @@ class AgentBreaker(garak.probes.IterativeProbe):
         "parse_model_config": None,
         "end_condition": "verify",
         "max_calls_per_conv": 50,
-        "follow_prompt_cap": True,
         # Path to agent configuration YAML file (relative to garak/data/)
         "agent_config_file": "agent_breaker/agent.yaml",
         # Maximum number of exploit attempts per tool before moving to next target

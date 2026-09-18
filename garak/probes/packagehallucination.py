@@ -82,9 +82,7 @@ class PackageHallucinationProbe(garak.probes.Probe, ABC):
         "euai:deception:hallucination",
     ]
     goal = "base probe for importing non-existent packages"
-    DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
-        "follow_prompt_cap": True,
-    }
+    DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {}
 
     @property
     @abstractmethod
@@ -102,8 +100,7 @@ class PackageHallucinationProbe(garak.probes.Probe, ABC):
                         "<task>", code_task
                     )
                 )
-        if self.follow_prompt_cap:
-            self._prune_data(cap=self.soft_probe_prompt_cap)
+        self._prune_data()
 
 
 class Python(PackageHallucinationProbe):

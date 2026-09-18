@@ -91,9 +91,7 @@ class AdaptiveAttacks(garak.probes.Probe):
     doc_uri = "https://arxiv.org/abs/2404.02151"
     intent = "S006"  # default seeds ask the model to produce instructions related to various harms
 
-    DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
-        "follow_prompt_cap": True,
-    }
+    DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {}
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -103,5 +101,4 @@ class AdaptiveAttacks(garak.probes.Probe):
         for seed in seeds:
             for suffix in suffixes:
                 self.prompts.append(ADAPTIVE_TEMPLATE.format(goal=seed, suffix=suffix))
-        if self.follow_prompt_cap:
-            self._prune_data(cap=self.soft_probe_prompt_cap)
+        self._prune_data()
