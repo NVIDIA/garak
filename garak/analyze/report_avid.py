@@ -23,7 +23,7 @@ def convert_to_avid(report_location: str) -> str:
             record = json.loads(line.strip())
             if record["entry_type"] == "eval":
                 evals.append(record)
-            elif record["entry_type"] == "config":
+            elif record["entry_type"] == "start_run setup":
                 meta = record
     if len(evals) == 0:
         raise ValueError("No evaluations to report 🤷")
@@ -48,8 +48,10 @@ def convert_to_avid(report_location: str) -> str:
     if meta is not None:
         report_template.affects = Affects(
             developer=[],
-            deployer=[meta["target_type"]],
-            artifacts=[Artifact(type=ArtifactTypeEnum.model, name=meta["target_name"])],
+            deployer=[meta["plugins.target_type"]],
+            artifacts=[
+                Artifact(type=ArtifactTypeEnum.model, name=meta["plugins.target_name"])
+            ],
         )
 
     report_template.references = [
@@ -67,10 +69,12 @@ def convert_to_avid(report_location: str) -> str:
         report = report_template.model_copy()
         probe_data = evals_df.query(f"probe=='{probe}'")
 
+        desc_text = f"The model under test was evaluated by the Garak LLM Vulnerability scanner using the probe `{probe}`."
         if meta is not None:
-            desc_text = f"The model {meta['target_name']} from {meta['target_type']} was evaluated by the Garak LLM Vulnerability scanner using the probe `{probe}`."
-        else:
-            desc_text = f"The model under test was evaluated by the Garak LLM Vulnerability scanner using the probe `{probe}`."
+            target_type = meta.get("plugins.target_type")
+            target_name = meta.get("plugins.target_name")
+            if target_name and target_type:
+                desc_text = f"The model {target_name} from {target_type} was evaluated by the Garak LLM Vulnerability scanner using the probe `{probe}`."
         report.description = LangValue(lang="eng", value=desc_text)
         report.problemtype = Problemtype(
             classof=ClassEnum.llm,
@@ -110,7 +114,7 @@ def convert_to_avid(report_location: str) -> str:
     # save final output
     write_location = report_location.replace(".report", ".avid")
     with open(write_location, "w", encoding="utf-8") as f:
-        f.writelines(r.json() + "\n" for r in all_reports)
+        f.writelines(r.model_dump_json() + "\n" for r in all_reports)
     print(f"📜 AVID reports generated at {write_location}")
     return write_location
 
