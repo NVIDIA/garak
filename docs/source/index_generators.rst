@@ -27,6 +27,7 @@ For a detailed oversight into how a generator operates, see :doc:`generators/bas
    generators/openai
    generators/nim
    generators/nvcf
+   generators/orcarouter
    generators/replicate
    generators/rest
    generators/rasa
