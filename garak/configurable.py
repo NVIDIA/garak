@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+"""Base class providing config loading, dependency injection, and env-var API key handling."""
+
 import importlib
 import logging
 import inspect
@@ -22,6 +24,13 @@ def _import_failed(absent_modules: List[str], calling_module: str):
 
 
 class Configurable:
+    """Mixin providing config-file loading, optional-dep injection, and API key resolution.
+
+    Subclasses may define ``ENV_VAR`` (str) to enable automatic API key lookup from
+    the environment. This is a dynamic class-level attribute and is intentionally not
+    declared on the base class — pylint no-member suppressions are applied where needed.
+    """
+
     # list of strings naming modules required but not explicitly in garak by default
     extra_dependency_names = []
 
@@ -109,7 +118,9 @@ class Configurable:
                 self._apply_config(plugins_config[namespaced_klass])
         self._apply_run_defaults()
         self._apply_missing_instance_defaults()
+        # pylint: disable=no-member  # ENV_VAR is a dynamic class attr defined by subclasses
         if hasattr(self, "ENV_VAR") and self.ENV_VAR:
+            # pylint: enable=no-member
             if not hasattr(self, "key_env_var"):
                 self.key_env_var = self.ENV_VAR
         self._validate_env_var()
@@ -123,14 +134,16 @@ class Configurable:
                 # skip entries for more qualified items or any plugin type
                 # should this be coupled to `_plugins`?
                 continue
+            # pylint: disable=unsupported-membership-test  # _supported_params is None or tuple; isinstance guard above ensures safety
             if (
                 isinstance(self._supported_params, tuple)
                 and k not in self._supported_params
             ):
+                # pylint: enable=unsupported-membership-test
                 # if the class has a set of supported params skip unknown params
                 # should this pass signature arguments as supported?
                 logging.warning(
-                    f"Unknown configuration key for {classname}: '{k}' - skipping"
+                    "Unknown configuration key for %s: '%s' - skipping", classname, k
                 )
                 continue
             if hasattr(self, k):
@@ -168,7 +181,9 @@ class Configurable:
 
     def _validate_env_var(self):
         if hasattr(self, "key_env_var") and self.key_env_var:
+            # pylint: disable=access-member-before-definition  # intentional: api_key is lazy-set below if absent
             if not hasattr(self, "api_key") or self.api_key is None:
+                # pylint: enable=access-member-before-definition
                 self.api_key = os.getenv(self.key_env_var, default=None)
                 if self.api_key is None:
                     if hasattr(
