@@ -371,11 +371,11 @@ def warn_unconsumed_intents(probe_names) -> None:
 
 
 # do a run
-def probewise_run(generator, probe_names, evaluator, buffs):
+def probewise_run(generator, probe_names, evaluator, buffs, resume_id=None):
     import garak.harnesses.probewise
 
     probewise_h = garak.harnesses.probewise.ProbewiseHarness()
-    probewise_h.run(generator, probe_names, evaluator, buffs)
+    probewise_h.run(generator, probe_names, evaluator, buffs, resume_id=resume_id)
 
 
 def pxd_run(generator, probe_names, detector_names, evaluator, buffs):
