@@ -14,6 +14,7 @@ garak.analyze.aggregate_reports
 
 Aggregate multiple garak reports on the same generator. 
 Useful for e.g. assembling a report that's been run one probe at a time.
+Reports that repeat a probe/detector pairing are rejected rather than combined, because two completed runs of one probe re-use its prompts and their results do not merge into one score.
 
 Invoke and see usage via command line with ``python -m garak.analyze.aggregate_reports``
 
