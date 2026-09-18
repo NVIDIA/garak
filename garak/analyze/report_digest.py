@@ -14,7 +14,7 @@ import os
 import pprint
 import re
 import sys
-from typing import IO, List
+from typing import IO, Dict, List, Optional, Tuple
 
 import sqlite3
 
@@ -55,6 +55,91 @@ def plugin_docstring_to_description(docstring):
     return docstring.split("\n")[0]
 
 
+_EVAL_COUNT_FIELDS = (
+    "passed",
+    "fails",
+    "nones",
+    "total_evaluated",
+    "total_processed",
+    "total",
+)
+_EVAL_INTERVAL_FIELDS = (
+    "confidence",
+    "confidence_lower",
+    "confidence_upper",
+    "confidence_method",
+)
+_SUMMARY_COUNT_FIELDS = ("total_evaluated", "passed", "fails", "nones")
+
+
+def _pool_intents(target: dict, incoming: Optional[dict]) -> dict:
+    for intent, counts in (incoming or {}).items():
+        pooled = target.setdefault(intent, {})
+        for field, value in counts.items():
+            pooled[field] = pooled.get(field, 0) + value
+    return target
+
+
+def _pool_repeated_pairings(evals: List[dict]) -> List[dict]:
+    """Add up eval records that repeat a probe/detector pairing.
+
+    ``garak.analyze.aggregate_reports`` copies each source report's eval rows
+    verbatim, so a probe run in several chunks arrives as several rows for one
+    pairing. Everything below reads one row per pairing: without pooling, the
+    pairing is scored and counted from one chunk and the rest vanish from the
+    digest. An interval describes a single sample set, so a pooled pairing keeps
+    none rather than one chunk's interval.
+    """
+    pooled: Dict[Tuple[str, str], dict] = {}
+    order: List[Tuple[str, str]] = []
+
+    for record in evals:
+        key = (record["probe"], record["detector"])
+        if key not in pooled:
+            copy = dict(record)
+            if copy.get("intents"):
+                copy["intents"] = {k: dict(v) for k, v in copy["intents"].items()}
+            pooled[key] = copy
+            order.append(key)
+            continue
+
+        merged = pooled[key]
+        for field in _EVAL_COUNT_FIELDS:
+            if field in merged or field in record:
+                merged[field] = merged.get(field, 0) + record.get(field, 0)
+        for field in _EVAL_INTERVAL_FIELDS:
+            merged.pop(field, None)
+        if merged.get("intents") or record.get("intents"):
+            merged["intents"] = _pool_intents(
+                dict(merged.get("intents") or {}), record.get("intents")
+            )
+
+    return [pooled[key] for key in order]
+
+
+def _record_probe_summary(summaries: dict, record: dict) -> None:
+    """Record one summary row per probe, adding up the rows that aggregation writes.
+
+    ``aggregate_reports`` emits a ``probe_summary`` per source run, so the counts
+    of a probe run in several chunks have to be summed rather than last-written.
+    """
+    existing = summaries.get(record["probe"])
+    if existing is None:
+        summaries[record["probe"]] = record
+        return
+    for section in ("inference_counts", "detection_counts"):
+        counts = existing.setdefault(section, {})
+        for field, value in (record.get(section) or {}).items():
+            if field == "detectors":
+                counts["detectors"] = sorted(
+                    set(counts.get("detectors", [])) | set(value or [])
+                )
+            elif field in _SUMMARY_COUNT_FIELDS:
+                counts[field] = counts.get(field, 0) + value
+            elif field not in counts:
+                counts[field] = value
+
+
 def _parse_report(reportfile: IO):
     reportfile.seek(0)
 
@@ -91,14 +176,21 @@ def _parse_report(reportfile: IO):
                     continue
                 plugin_cache.setdefault(category, {}).update(entries)
         elif record["entry_type"] == "probe_summary":
-            probe_summaries[record["probe"]] = record
+            _record_probe_summary(probe_summaries, record)
 
     if plugin_cache is None or len(plugin_cache) <= 0:
         from copy import deepcopy
 
         plugin_cache = deepcopy(garak._plugins.PluginCache.instance())
         plugin_cache["version"] = garak.__version__
-    return init, setup, payloads, evals, plugin_cache, probe_summaries
+    return (
+        init,
+        setup,
+        payloads,
+        _pool_repeated_pairings(evals),
+        plugin_cache,
+        probe_summaries,
+    )
 
 
 def _extract_to_probespec(setup: dict) -> str:
