@@ -200,16 +200,15 @@ class GoogleTranslator(LangProvider):
         if hasattr(self, "api_key"):
             try:
                 auth_args = [self.api_key]
+                auth_kwargs = {}
                 if self.project_id is not None:
                     auth_kwargs = {"project": self.project_id}
                 self.client = translate.Client.from_service_account_json(
                     *auth_args, **auth_kwargs
                 )
             except exceptions.MalformedError as e:
-                logging.warning(
-                    "Service account auth failed, attempting fallback to general auth!"
-                )
-                # exception handling is intentionally not implemented to raise on invalid config when authentication fails
+                logging.warning("Service account auth failed: %s", e)
+                raise
         else:
             self.client = translate.Client()
         self.ftfy = ftfy
