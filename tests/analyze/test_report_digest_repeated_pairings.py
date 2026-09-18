@@ -101,6 +101,24 @@ def test_clean_chunk_cannot_mask_a_failing_one(tmp_path):
     assert entry["absolute_defcon"] < 5, "a half-failing pairing is not minimal risk"
 
 
+def test_pooled_row_does_not_depend_on_chunk_order(tmp_path):
+    """On ``main`` one row mixes two chunks: the score comes from the best-scoring row
+    and the counts from the first row in the file, so swapping the order the reports
+    were aggregated in moves the numbers without moving the run."""
+    entries = [
+        _digest_for(rows, tmp_path)["eval"]["test"]["test.Test"]["always.Pass"]
+        for rows in (
+            [_eval(0, 10), _eval(10, 10)],
+            [_eval(10, 10), _eval(0, 10)],
+        )
+    ]
+
+    first, second = entries
+
+    assert first == second, "the same two chunks must digest the same way either order"
+    assert (first["passed"], first["total_evaluated"]) == (10, 20)
+
+
 def test_probe_and_detector_counts_agree(tmp_path):
     digest = _digest_for(
         [_eval(8, 8), _eval(16, 16), _probe_summary(8, 8), _probe_summary(16, 16)],
