@@ -33,7 +33,7 @@ class ProbewiseHarness(Harness):
         "probe_order": "alphabetical",
         "calibration_path": None,
         "calibration_aggregation": "max",
-        "uncalibrated_score": 1.0,
+        "uncalibrated_score": 0.0,
         "skip_uncalibrated_probes": False,
     }
 
@@ -85,7 +85,7 @@ class ProbewiseHarness(Harness):
                 continue
             else:
                 score = self.uncalibrated_score
-            scored_probes.append((probename, score))
+            scored_probes.append((probename, score, bool(detector_asrs)))
 
         if skipped_probes:
             logging.warning(
@@ -95,8 +95,13 @@ class ProbewiseHarness(Harness):
 
         return [
             probename
-            for probename, _ in sorted(
-                scored_probes, key=lambda probe_score: (-probe_score[1], probe_score[0])
+            for probename, _, _ in sorted(
+                scored_probes,
+                key=lambda probe_score: (
+                    -probe_score[1],
+                    not probe_score[2],
+                    probe_score[0],
+                ),
             )
         ]
 

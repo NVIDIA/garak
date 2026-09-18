@@ -16,11 +16,13 @@ rate to an attack success rate. When a probe has more than one calibrated
 detector, ``calibration_aggregation`` selects ``max``, ``mean``, ``median``, or
 ``min`` aggregation. ``max`` is the default.
 
-Probes absent from the calibration data receive ``uncalibrated_score`` (``1.0``
-by default). This allows unknown probes to run first for discovery, last with a
-score of ``0.0``, or between calibrated probes with an intermediate value. Set
-``skip_uncalibrated_probes`` to ``true`` to omit and log them. A custom
-calibration file can be selected with ``calibration_path``.
+Probes absent from the calibration data receive ``uncalibrated_score`` (``0.0``
+by default), so calibrated probes run first. Calibrated probes also precede
+uncalibrated ones when their scores tie. Set the score to ``1.0`` to move
+unknown probes ahead of lower-scoring calibrated probes, or use an intermediate
+value to place them among calibrated probes. Set ``skip_uncalibrated_probes`` to
+``true`` to omit and log them. A custom calibration file can be selected with
+``calibration_path``.
 
 The same options can be provided in a YAML configuration file:
 
@@ -31,7 +33,7 @@ The same options can be provided in a YAML configuration file:
        probewise:
          probe_order: calibration
          calibration_aggregation: max
-         uncalibrated_score: 1.0
+         uncalibrated_score: 0.0
          skip_uncalibrated_probes: false
          calibration_path:
 

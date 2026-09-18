@@ -23,6 +23,7 @@ def calibration_path(tmp_path):
                 "beta.Second/detector.One": {"mu": 0.6},
                 "beta.Second/detector.Two": {"mu": 0.1},
                 "delta.Fourth/detector.One": {"mu": 0.5},
+                "zeta.Zero/detector.One": {"mu": 1.0},
             }
         ),
         encoding="utf-8",
@@ -56,6 +57,29 @@ def test_calibration_order_loads_from_harness_config(mocker, calibration_path):
         "probes.beta.Second",
         "probes.delta.Fourth",
     ], "harness configuration should enable calibration ordering"
+
+
+def test_calibration_order_prioritizes_positive_asr(harness, calibration_path):
+    harness.probe_order = "calibration"
+    harness.calibration_path = calibration_path
+
+    assert harness._order_probes(
+        ["probes.gamma.Third", "probes.delta.Fourth", "probes.alpha.First"]
+    ) == [
+        "probes.delta.Fourth",
+        "probes.alpha.First",
+        "probes.gamma.Third",
+    ], "calibrated probes with positive ASR should lead by default"
+
+
+def test_calibrated_probe_precedes_unknown_with_equal_score(harness, calibration_path):
+    harness.probe_order = "calibration"
+    harness.calibration_path = calibration_path
+
+    assert harness._order_probes(["probes.aaa.Unknown", "probes.zeta.Zero"]) == [
+        "probes.zeta.Zero",
+        "probes.aaa.Unknown",
+    ], "calibrated probes should precede unknowns when scores tie"
 
 
 @pytest.mark.parametrize(

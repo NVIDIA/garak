@@ -10653,7 +10653,7 @@
         "probe_order": "alphabetical",
         "calibration_path": null,
         "calibration_aggregation": "max",
-        "uncalibrated_score": 1.0,
+        "uncalibrated_score": 0.0,
         "skip_uncalibrated_probes": false
       },
       "active": true,
