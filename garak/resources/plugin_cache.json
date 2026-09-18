@@ -10647,12 +10647,18 @@
       "mod_time": "2026-07-28 01:49:26 +0000"
     },
     "harnesses.probewise.ProbewiseHarness": {
+      "description": "Run probes with their recommended detectors.",
       "DEFAULT_PARAMS": {
-        "strict_modality_match": false
+        "strict_modality_match": false,
+        "probe_order": "alphabetical",
+        "calibration_path": null,
+        "calibration_aggregation": "max",
+        "uncalibrated_score": 0.0,
+        "skip_uncalibrated_probes": false
       },
       "active": true,
       "extra_dependency_names": [],
-      "mod_time": "2026-09-08 07:40:36 +0000"
+      "mod_time": "2026-09-08 18:04:28 +0000"
     },
     "harnesses.pxd.PxD": {
       "DEFAULT_PARAMS": {
