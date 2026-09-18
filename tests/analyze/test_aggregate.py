@@ -350,3 +350,53 @@ def test_aggregated_digest_names_the_payload(tmp_path):
         "aggregated report claims no payload corpora were loaded:"
         f" meta.payloads is {payloads}"
     )
+
+
+TREE_ROWS = [
+    {
+        "entry_type": "tree_data",
+        "probe": "TestTree",
+        "detector": "always.Pass",
+        "node_id": "root",
+        "node_parent": None,
+        "node_score": 0.0,
+        "surface_forms": ["start"],
+    },
+    {
+        "entry_type": "tree_data",
+        "probe": "TestTree",
+        "detector": "always.Pass",
+        "node_id": "child",
+        "node_parent": "root",
+        "node_score": 1.0,
+        "surface_forms": ["escalated"],
+    },
+]
+
+
+def test_aggregate_keeps_tree_search_nodes(tmp_path, capsys):
+    """tree_data rows must survive aggregation, or get_tree has nothing to show."""
+    from garak.analyze.aggregate_reports import main as aggregate_main
+    from garak.analyze.get_tree import get_tree
+
+    source = tmp_path / "tree.report.jsonl"
+    base = (
+        (Path(__file__).parents[1] / "_assets" / "analyze" / "test.report.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
+    )
+    rows = base[:3] + [json.dumps(r) for r in TREE_ROWS] + base[3:]
+    source.write_text("\n".join(rows) + "\n", encoding="utf-8")
+
+    aggregated = str(tmp_path / "agg.report.jsonl")
+    aggregate_main(["-o", aggregated, str(source)])
+
+    capsys.readouterr()  # discard aggregator's own output
+    get_tree(aggregated)
+    printed = capsys.readouterr().out
+    assert (
+        "No tree data" not in printed
+    ), "aggregating a TreeSearchProbe run left get_tree with nothing to print"
+    assert (
+        "escalated" in printed
+    ), f"the explored node is missing from the tree view: {printed}"
