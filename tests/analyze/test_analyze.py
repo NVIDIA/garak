@@ -113,7 +113,8 @@ def test_analyze_log_unscoreable_detector_scores(tmp_path, capsys):
     analyze_log(str(report_path))  # must not raise TypeError
 
     out = capsys.readouterr().out
-    assert "100.00%" not in out, "an unscoreable attempt is not a hit"
+    line = "test.Test\tmitigation.MitigationBypass\t100.00%"
+    assert line not in out, "an unscoreable attempt is not a hit"
     assert "## 1 attempts completed" in out
     assert "## attempt completion rate 100%" in out
 
@@ -154,7 +155,8 @@ def test_analyze_log_hit_rate_excludes_unscoreable_outputs(tmp_path, capsys):
     analyze_log(str(report_path))
 
     out = capsys.readouterr().out
-    assert "50.00%" in out, "one hit over the two scored outputs"
+    hit_line = "test.Test\tmitigation.MitigationBypass\t50.00%"
+    assert hit_line in out, "one hit over the two scored outputs"
     assert "33.33%" not in out, "the unscoreable slot must not deflate the rate"
 
 

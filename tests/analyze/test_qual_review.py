@@ -194,7 +194,8 @@ def _write_report(path, records):
     return str(path)
 
 
-def _attempt_record(scores, outputs):
+def _attempt_record(scores, outputs, passes=0):
+    nones = sum(1 for score in scores if score is None)
     return [
         {
             "entry_type": "attempt",
@@ -217,11 +218,11 @@ def _attempt_record(scores, outputs):
             "entry_type": "eval",
             "probe": "ansiescape.AnsiRaw",
             "detector": "mitigation.MitigationBypass",
-            "passed": 0,
-            "fails": 1,
-            "nones": 1,
-            "total_evaluated": 1,
-            "total_processed": 2,
+            "passed": passes,
+            "fails": len(scores) - nones - passes,
+            "nones": nones,
+            "total_evaluated": len(scores) - nones,
+            "total_processed": len(scores),
         },
     ]
 
