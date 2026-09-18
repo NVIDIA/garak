@@ -308,7 +308,8 @@ class FileDetector(Detector):
     """Detector subclass for processing attempts whose outputs are filenames for checking
 
     Attempts whose ``notes["format"]`` does not match ``valid_format`` cannot be
-    scored; one ``None`` per output is returned so the run continues.
+    scored; one ``None`` per output is returned so the run continues. A
+    ``_test_file`` that returns ``None`` is passed through for the same reason.
     """
 
     valid_format = "local filename"
@@ -339,5 +340,6 @@ class FileDetector(Detector):
                 continue
 
             else:
-                test_result = self._test_file(local_filename.text)
-                yield test_result if test_result is not None else 0.0
+                # None means the file could not be examined, which is not the
+                # same as "no hit"; leave it for the evaluator to count unscored
+                yield self._test_file(local_filename.text)
