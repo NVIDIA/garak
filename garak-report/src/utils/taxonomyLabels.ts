@@ -46,3 +46,27 @@ export function shortenTechnique(key: string): string {
   const segments = stripped.split(":");
   return segments.slice(-2).join(":");
 }
+/**
+ * Whether a taxonomy key is a hierarchical `demon:` technique key (as opposed
+ * to a flat intent code). Technique keys are the only axis that currently
+ * carries an explicit taxonomy path, so this gates the breadcrumb display.
+ */
+export function isTechniqueKey(key: string): boolean {
+  return key.startsWith("demon:");
+}
+
+/**
+ * Full taxonomy path for a hierarchical `demon:` technique key, from broadest
+ * branch to the specific leaf — the same segments {@link shortenTechnique}
+ * truncates to the last two, kept in full for breadcrumb display.
+ *
+ * @example
+ * techniquePathSegments("demon:Fictionalizing:Roleplaying:User_persona")
+ * // ["Fictionalizing", "Roleplaying", "User_persona"]
+ */
+export function techniquePathSegments(key: string): string[] {
+  return key
+    .replace(/^demon:/, "")
+    .split(":")
+    .filter(Boolean);
+}

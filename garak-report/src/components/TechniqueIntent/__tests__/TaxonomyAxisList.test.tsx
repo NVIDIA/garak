@@ -8,7 +8,7 @@
  * @license Apache-2.0
  */
 
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import type { ComponentProps } from "react";
 import TaxonomyAxisList from "../TaxonomyAxisList";
@@ -75,7 +75,9 @@ const cell = (over: Partial<MatrixCell>): MatrixCell => ({
 });
 
 // techA: 3 intents (chart path, worst-first). techB: 1 failing intent
-// (single-child detail). techC: 1 clean intent.
+// (single-child detail). techC: 1 clean intent. techD is a real hierarchical
+// demon: key, used to exercise the taxonomy-path breadcrumb (Issue #1972).
+const techD = "demon:Fictionalizing:Roleplaying:User_persona";
 const cellMap: Record<string, MatrixCell> = {
   "techA|i1": cell({
     col: "i1",
@@ -86,10 +88,11 @@ const cellMap: Record<string, MatrixCell> = {
   "techA|i3": cell({ col: "i3", score: 1, passed: 100 }),
   "techB|i1": cell({ row: "techB", col: "i1", score: 0.4, passed: 40, nAttempts: 20 }),
   "techC|i1": cell({ row: "techC", col: "i1", score: 1, passed: 100 }),
+  [`${techD}|i1`]: cell({ row: techD, col: "i1", score: 0.2, passed: 20 }),
 };
 
 const view: MatrixView = {
-  rows: ["techA", "techB", "techC"],
+  rows: ["techA", "techB", "techC", techD],
   cols: ["i1", "i2", "i3"],
   rowLabel: key => key,
   colLabel: key => key,
@@ -116,7 +119,7 @@ const renderList = (props: Partial<ComponentProps<typeof TaxonomyAxisList>> = {}
 describe("TaxonomyAxisList", () => {
   it("renders one accordion entry per visible primary group", () => {
     renderList();
-    expect(screen.getAllByTestId("accordion-item"), "a row per technique").toHaveLength(3);
+    expect(screen.getAllByTestId("accordion-item"), "a row per technique").toHaveLength(4);
   });
 
   it("renders a bar chart for every group and auto-shows detail for single-intent groups", () => {
@@ -157,6 +160,43 @@ describe("TaxonomyAxisList", () => {
       screen.getByText("What techB does"),
       "technique-axis groups surface the taxonomy description"
     ).toBeInTheDocument();
+  });
+
+it("shows a labelled taxonomy path breadcrumb in a technique group's expanded content", () => {
+  renderList();
+  expect(screen.getAllByText("Taxonomy path").length, "labelled, not a bare tag chain").toBeGreaterThan(
+    0
+  );
+  expect(screen.getByText("Fictionalizing"), "broadest branch segment").toBeInTheDocument();
+  expect(screen.getByText("Roleplaying"), "middle branch segment").toBeInTheDocument();
+});
+
+it("keeps the breadcrumb out of the always-visible trigger — it only shows once expanded", () => {
+  renderList();
+  for (const trigger of screen.getAllByTestId("accordion-trigger")) {
+    expect(
+      within(trigger).queryByText("Fictionalizing"),
+      "breadcrumb segments must not render in the collapsed trigger"
+    ).toBeNull();
+  }
+  expect(screen.getByText("Fictionalizing")).toBeInTheDocument();
+});
+
+  it("does not show a breadcrumb for flat (non-technique) group keys", () => {
+    renderList();
+    // techA/techB/techC are flat mock keys with no demon: hierarchy, so their
+    // groups should contribute no breadcrumb segments — only techD's do.
+    expect(screen.getAllByText("Fictionalizing"), "only techD's group has a breadcrumb").toHaveLength(
+      1
+    );
+  });
+
+  it("does not show a breadcrumb on the intent axis, since intent codes are flat", () => {
+    renderList({ axis: "intent" });
+    expect(
+      screen.queryByText("Fictionalizing"),
+      "intent-axis groups (flat codes) never render technique breadcrumbs"
+    ).toBeNull();
   });
 
   it("supports the intent axis and alphabetical sort", () => {

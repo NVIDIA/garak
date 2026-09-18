@@ -29,6 +29,7 @@ import { formatRate } from "../../utils/formatPercentage";
 import useSeverityColor from "../../hooks/useSeverityColor";
 import DefconBadge from "../DefconBadge";
 import TaxonomyCellChart from "./TaxonomyCellChart";
+import TaxonomyPathBadges from "./TaxonomyPathBadges";
 import {
   buildAxisGroups,
   type AxisGroup,
@@ -36,6 +37,7 @@ import {
   type MatrixView,
   type TaxonomyAxis,
 } from "../../utils/techniqueIntentRollup";
+import { isTechniqueKey } from "../../utils/taxonomyLabels";
 import type { SortOption } from "../../hooks/useModuleFilters";
 
 /**
@@ -122,7 +124,16 @@ const Stat = ({ label, value }: { label: string; value: string }) => (
  * digest provides a detector count here, so we report how many judges scored
  * the pairing rather than inventing a per-detector breakdown.
  */
-const CellDetail = ({ cell, title }: { cell: MatrixCell; title?: string }) => {
+const CellDetail = ({
+  cell,
+  title,
+  taxonomyKey,
+}: {
+  cell: MatrixCell;
+  title?: string;
+  /** Underlying key for this pairing's leaf, when it's a technique (drives the breadcrumb). */
+  taxonomyKey?: string;
+}) => {
   const { getSeverityLabelByLevel, getDefconBadgeColor } = useSeverityColor();
   const defcon = scoreToDefcon(cell.score);
   const hasFailures = cell.score < 1;
@@ -139,6 +150,14 @@ const CellDetail = ({ cell, title }: { cell: MatrixCell; title?: string }) => {
               <Text kind="label/bold/md">{getSeverityLabelByLevel(defcon)}</Text>
             </Badge>
           </Flex>
+          {taxonomyKey && isTechniqueKey(taxonomyKey) && (
+            <Stack gap="density-xxs">
+              <Text kind="label/regular/md" className="opacity-60">
+                Taxonomy path
+              </Text>
+              <TaxonomyPathBadges techniqueKey={taxonomyKey} />
+            </Stack>
+          )}
           <Flex gap="density-2xl" wrap="wrap">
             <Stat label="Pass rate" value={formatRate(cell.score)} />
             <Stat
@@ -220,6 +239,14 @@ const GroupChildrenChart = ({
   }, [initialSelected, selected, focusNonce]);
   return (
     <Stack gap="density-md" paddingY="density-sm">
+      {isTechniqueKey(group.key) && (
+        <Stack gap="density-xxs">
+          <Text kind="label/regular/md" className="opacity-60">
+            Taxonomy path
+          </Text>
+          <TaxonomyPathBadges techniqueKey={group.key} />
+        </Stack>
+      )}
       <Text kind="label/regular/md" className="opacity-60">
         Pass rate by {childNoun}. Click a bar for the pass/fail breakdown.
       </Text>
@@ -232,7 +259,11 @@ const GroupChildrenChart = ({
         />
         {selectedEntry && (
           <div ref={boxRef} style={{ scrollMarginTop: "1rem" }}>
-            <CellDetail cell={selectedEntry.cell} title={selectedEntry.otherLabel} />
+            <CellDetail
+              cell={selectedEntry.cell}
+              title={selectedEntry.otherLabel}
+              taxonomyKey={selectedEntry.otherKey}
+            />
           </div>
         )}
       </Grid>
