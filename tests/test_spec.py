@@ -315,10 +315,141 @@ def test_intent_explicit_overrides_default():
     assert res.intents_explicit is True, "user-supplied intent: marks the selection explicit"
 
 
-def test_intent_does_not_filter_probe_set():
-    with_intent = set(resolve("probes.dan,intent:S004").probes)
-    without = set(resolve("probes.dan").probes)
-    assert with_intent == without, "intent: must not add or remove probes (separate axis)"
+def test_intent_default_does_not_filter_probe_set():
+    # the injected default scope (no explicit intent:) never prunes on its own.
+    family = {p for p in _active("probes") if p.startswith("probes.dan.")}
+    injected_default = set(resolve("probes.dan").probes)
+    assert (
+        injected_default == family
+    ), "the injected default scope must not prune probes"
+
+
+def test_intent_exclude_only_ignores_unrelated_code():
+    # an exclude-only spec is a no-op when the excluded code doesn't match any
+    # selected probe's own intent -- S004 is unrelated to dan's T009ignore.
+    family = {p for p in _active("probes") if p.startswith("probes.dan.")}
+    exclude_only = set(resolve("probes.dan,-intent:S004").probes)
+    assert (
+        exclude_only == family
+    ), "an exclude-only intent spec must not prune probes it doesn't match"
+
+
+def test_intent_exclude_only_prunes_matching_probes():
+    # unlike an unrelated exclude, -intent: alone still prunes when it matches
+    # a probe's own declared intent, compared against the already-resolved
+    # candidate set -- it does not depend on the injected default scope. Every
+    # active probes.dan.* class declares T009ignore, a child of T009.
+    family = {p for p in _active("probes") if p.startswith("probes.dan.")}
+    assert family, "fixture expects at least one active probes.dan.* plugin"
+    pruned = set(resolve("probes.dan,-intent:T009").probes)
+    assert (
+        pruned == set()
+    ), "-intent:T009 must remove every dan.* probe, all of which descend from T009"
+
+
+def test_intent_descendancy_keeps_child_of_branch():
+    probes = set(resolve("probes.*,intent:S005").probes)
+    assert (
+        "probes.lmrc.Bullying" in probes
+    ), "intent:S005 keeps a probe declaring the child leaf S005bully"
+
+
+def test_intent_leaf_drops_more_generic_probe():
+    probes = set(resolve("probes.*,intent:S005hate").probes)
+    assert (
+        "probes.lmrc.SlurUsage" in probes
+    ), "intent:S005hate keeps the probe declaring S005hate"
+    assert (
+        "probes.realtoxicityprompts.RTPBlank" not in probes
+    ), "a leaf intent must not keep a probe declaring only the parent code S005"
+
+
+def test_intent_siblings_do_not_match_by_prefix():
+    # anti-regression guard: string-prefix would wrongly capture the sibling leaf
+    # S001fabperson under intent:S001fab. Descendancy walks parents, so it does not.
+    fab = set(resolve("probes.*,intent:S001fab").probes)
+    assert (
+        "probes.packagehallucination.Python" in fab
+    ), "intent:S001fab keeps a probe declaring S001fab"
+    assert (
+        "probes.goodside.WhoIsRiley" not in fab
+    ), "intent:S001fab must NOT keep the sibling leaf S001fabperson"
+    parent = set(resolve("probes.*,intent:S001").probes)
+    assert {
+        "probes.packagehallucination.Python",
+        "probes.goodside.WhoIsRiley",
+    } <= parent, "intent:S001 keeps both sibling leaves S001fab and S001fabperson"
+
+
+@pytest.mark.parametrize("token", ["intent:*", "intent:all"])
+def test_intent_all_does_not_filter(token):
+    assert set(resolve(f"probes.*,{token}").probes) == _active(
+        "probes"
+    ), "intent:* / intent:all is vacuous and must not prune the probe set"
+
+
+def test_intent_exclude_subtracts_within_explicit_include():
+    probes = set(resolve("probes.*,intent:S005,-intent:S005hate").probes)
+    assert "probes.lmrc.Bullying" in probes, "S005bully stays under intent:S005"
+    assert (
+        "probes.lmrc.SlurUsage" not in probes
+    ), "-intent:S005hate subtracts the S005hate probe while the include survives"
+
+
+def test_intent_never_prunes_intent_probe_with_empty_blocked_spec():
+    # GrandmaIntent's blocked_intent_spec is "" (blocks nothing), so it can never
+    # cover an include code: which intents it serves is IntentService's decision,
+    # made after resolution. Also the #1889 self-cancelling-axis boundary case.
+    probes = set(resolve("probes.grandma.GrandmaIntent,intent:M010degrade").probes)
+    assert (
+        "probes.grandma.GrandmaIntent" in probes
+    ), "an IntentProbe with no blocked_intent_spec is never removed by the intent filter"
+
+
+def test_intent_probe_pruned_when_blocked_spec_covers_every_include(monkeypatch):
+    # a synthetic IntentProbe whose blocked_intent_spec fully covers the sole
+    # requested include has nothing left to serve, so it drops out of selection.
+    from garak import _selection
+
+    def fake_plugin_info(name):
+        if name == "probes.fake.FullyBlockedIntent":
+            return {"intent": None, "blocked_intent_spec": "S005"}
+        return plugin_info(name)
+
+    monkeypatch.setattr(_selection._plugins, "plugin_info", fake_plugin_info)
+    assert not _selection._intent_keeps(
+        "probes.fake.FullyBlockedIntent", ["S005hate"], []
+    ), "blocked_intent_spec S005 covers the include S005hate, so the probe drops out"
+    assert _selection._intent_keeps(
+        "probes.fake.FullyBlockedIntent", ["S004"], []
+    ), "blocked_intent_spec S005 does not cover the unrelated include S004"
+
+
+def test_intent_collapse_names_codes_in_empty_reason():
+    res = resolve("probes.lmrc,intent:M010degrade")
+    assert (
+        not res.probes
+    ), "no lmrc probe carries M010degrade, so the selection collapses"
+    assert (
+        res.empty_reason and "M010degrade" in res.empty_reason
+    ), "empty_reason names the requested intent code"
+    assert (
+        "intent" in res.empty_reason
+    ), "reason must read as an intent collapse, not a tier collapse"
+
+
+def test_intent_partial_unmatched_is_silent():
+    # a valid explicit intent: that matches nothing, with the selection surviving
+    # via another code, produces no field/warning -- by symmetry with tag:.
+    matched = set(resolve("probes.*,intent:S005hate").probes)
+    partial = resolve("probes.*,intent:S005hate,intent:M010rep")
+    assert (
+        set(partial.probes) == matched
+    ), "an unmatched extra intent code leaves the surviving selection unchanged"
+    assert partial.probes, "the selection survives via the matched code S005hate"
+    assert (
+        partial.empty_reason is None
+    ), "a surviving partial-unmatched intent produces no empty_reason"
 
 
 def test_intent_invalid_format_rejected():
@@ -326,6 +457,22 @@ def test_intent_invalid_format_rejected():
     assert "intent:zzz" in res.rejected, "malformed intent code recorded in rejected"
     with pytest.raises(ValueError, match="unknown run.spec"):
         resolve("intent:zzz")
+
+
+def test_intent_malformed_code_does_not_prune_candidates():
+    unfiltered = set(resolve("probes.dan", skip_unknown=True).probes)
+    with_malformed = set(resolve("probes.dan,intent:zzz", skip_unknown=True).probes)
+    assert (
+        with_malformed == unfiltered
+    ), "a malformed intent: code must not drive pruning; it stays in `rejected` instead"
+
+
+def test_intent_malformed_exclude_code_does_not_prune_candidates():
+    unfiltered = set(resolve("probes.dan", skip_unknown=True).probes)
+    with_malformed = set(resolve("probes.dan,-intent:zzz", skip_unknown=True).probes)
+    assert (
+        with_malformed == unfiltered
+    ), "a malformed -intent: code must not drive pruning either; it stays in `rejected`"
 
 
 @pytest.mark.parametrize("token", ["intent:*", "intent:all"])

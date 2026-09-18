@@ -269,7 +269,9 @@ Two class attributes tune which intents the probe consumes:
 * ``skip_root_intents`` (default ``True``) -- skip single-letter root codes when
   gathering stubs, since a whole branch rarely has a meaningful prototypical stub.
 * ``blocked_intent_spec`` (default ``""``) -- intents this technique should never
-  exercise, even when in scope.
+  exercise, even when in scope. If it covers every intent an explicit ``intent:``
+  include asked for, ``run.spec`` resolution drops the probe from the selection
+  entirely, since it would have nothing left to serve.
 
 If the active intent set is empty (for example the ``intent:`` axis was filtered
 to nothing), the probe is a graceful no-op: it sends no prompts and the run

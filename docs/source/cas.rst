@@ -136,8 +136,21 @@ A few things to note:
 * ``intent:S003productkey`` selects that single leaf behaviour. A *category* code such
   as ``intent:S003`` ("Illegal") instead expands to all of its leaves (``S003illegal``, ``S003instructions``,
   ``S003goods``, ``S003services``, ``S003productkeys``).
+* An explicit ``intent:`` also **filters the ordinary probe selection** by
+  typology descendancy: ``garak --spec "probes.*,intent:S005hate"`` runs only the
+  probes carrying an intent beneath ``S005hate`` (plus any ``IntentProbe``, unless
+  its ``blocked_intent_spec`` covers every included code). The injected default
+  scope never filters.
 * If you give no ``intent:`` selector, the default scope ``S`` (the whole Safety
   branch) is injected at resolve time.
+
+.. note::
+
+   The intent filter reads each probe's *class* intent from the plugin cache. An
+   intent that a probe only carries per payload group (see
+   :doc:`probes/encoding` and the payloads mechanism) is not visible to the
+   filter, so filtering by such an intent will not select that probe. This is
+   inherent to filtering before probes are instantiated.
 
 Each intent carries a short imperative *stub* in the typology, which the
 technique expands into prompts. ``GrandmaIntent`` wraps each stub in a roleplay
