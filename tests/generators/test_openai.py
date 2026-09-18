@@ -190,3 +190,19 @@ def test_call_model_permission_denied_raises_garak_exception(mocker):
         generator.generate(prompt)
     error_text = str(exc_info.value)
     assert "403" in error_text or OpenAIGenerator.ENV_VAR in error_text
+
+
+@pytest.mark.usefixtures("set_fake_env")
+def test_openai_dated_chat_model_uses_chat_endpoint():
+    """A chat model carrying an -MMDD suffix must reach the chat endpoint.
+
+    The suffix branch only matches when the undated prefix is in
+    ``chat_models``, so everything arriving there is a chat model. Routing it
+    to ``client.completions`` puts a chat model on the legacy completions API,
+    which is also inconsistent with the fallback below it: an unrecognised
+    model is assumed to be a chat model and routed correctly.
+    """
+    generator = OpenAIGenerator(name="gpt-4o-mini-0718")
+
+    assert generator.generator is generator.client.chat.completions
+    assert generator.generator is not generator.client.completions
