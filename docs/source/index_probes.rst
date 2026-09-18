@@ -35,6 +35,7 @@ For a guide to writing probes, see :doc:`extending.probe`.
    probes/goodside
    probes/grandma
    probes/latentinjection
+   probes/latexinjection
    probes/leakreplay
    probes/lmrc
    probes/malwaregen
