@@ -41,6 +41,7 @@ For a guide to writing probes, see :doc:`extending.probe`.
    probes/misleading
    probes/packagehallucination
    probes/phrasing
+   probes/prefill
    probes/promptinject
    probes/propile
    probes/realtoxicityprompts
