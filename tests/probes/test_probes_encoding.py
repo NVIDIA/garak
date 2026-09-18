@@ -91,3 +91,22 @@ def test_atbash_function(plain, expected):
     encoder = InjectAtbash.atbash  # staticmethod reference
     result = encoder(plain.encode()).decode()
     assert result == expected
+
+
+@pytest.mark.parametrize(
+    "plain, shift, expected",
+    [
+        ("abc", 3, "def"),
+        ("xyz", 3, "abc"),
+        ("ABC", 3, "DEF"),
+        ("Hello, World!", 3, "Khoor, Zruog!"),
+        ("123!?", 3, "123!?"),
+        ("abc", 7, "hij"),
+        ("abc", 17, "rst"),
+    ],
+)
+def test_caesar_shift_function(plain, shift, expected):
+    from garak.probes.encoding import _caesar_shift
+
+    result = _caesar_shift(shift)(plain.encode()).decode()
+    assert result == expected
