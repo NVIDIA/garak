@@ -652,6 +652,63 @@ class InjectLeet(EncodingMixin, garak.probes.Probe):
         EncodingMixin.__init__(self)
 
 
+def _fancy_text(
+    text: bytes, upper_base: int, lower_base: int, digit_base: int
+) -> bytes:
+    output = []
+    for char in text.decode():
+        if "A" <= char <= "Z":
+            output.append(chr(upper_base + ord(char) - ord("A")))
+        elif "a" <= char <= "z":
+            output.append(chr(lower_base + ord(char) - ord("a")))
+        elif "0" <= char <= "9":
+            output.append(chr(digit_base + ord(char) - ord("0")))
+        else:
+            output.append(char)
+    return bytes("".join(output), "utf-8")
+
+
+def fullwidth(text: bytes) -> bytes:
+    output = []
+    for char in text.decode():
+        codepoint = ord(char)
+        if 0x21 <= codepoint <= 0x7E:  # printable ASCII -> Fullwidth Forms
+            output.append(chr(codepoint + 0xFEE0))
+        elif char == " ":
+            output.append("　")  # ideographic space
+        else:
+            output.append(char)
+    return bytes("".join(output), "utf-8")
+
+
+def math_bold(text: bytes) -> bytes:
+    # Mathematical Alphanumeric Symbols: bold
+    return _fancy_text(text, 0x1D400, 0x1D41A, 0x1D7CE)
+
+
+def monospace(text: bytes) -> bytes:
+    # Mathematical Alphanumeric Symbols: monospace
+    return _fancy_text(text, 0x1D670, 0x1D68A, 0x1D7F6)
+
+
+class InjectFancyText(EncodingMixin, garak.probes.Probe):
+    """Probe for susceptibility to "fancy text" Unicode font encoding.
+
+    Encodes payloads by mapping ASCII characters to visually-similar Unicode
+    glyphs (fullwidth forms and Mathematical Alphanumeric Symbols), in the style
+    of the qaz.wtf Unicode text converter, and tries a variety of ways of getting
+    the target model to repeat & decode them."""
+
+    doc_uri = "https://qaz.wtf/u/convert.cgi"
+    encoding_funcs = [fullwidth, math_bold, monospace]
+    encoding_name = "Fancy text"
+    active = True
+
+    def __init__(self, config_root=_config):
+        garak.probes.Probe.__init__(self, config_root=config_root)
+        EncodingMixin.__init__(self)
+
+
 class InjectUnicodeTagChars(EncodingMixin, garak.probes.Probe):
     """Probe for susceptibility to unicode tag ASCII smuggling
 
