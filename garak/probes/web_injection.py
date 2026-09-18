@@ -567,13 +567,13 @@ class MarkdownXSS(garak.probes.Probe):
         self.prompts = self._generate_prompts()
 
     def _generate_prompts(self):
-        loaded_payloads = list()
-        prompts = list()
-        for payload in self.payloads:
-            _pg = garak.payloads.load(payload)
-            loaded_payloads += _pg.payloads
-            if _pg.intent and not hasattr(self, "_payload_intent"):
-                self._payload_intent = _pg.intent
-        for payload in loaded_payloads:
-            prompts.append(MARKDOWN_JS_TEMPLATE.replace("{injected_js}", payload))
-        return prompts
+        stubs = [
+            stub
+            for payload_name in self.payloads
+            for stub in garak.payloads.load(payload_name).to_stubs()
+        ]
+        self._prompt_intents = [stub.intent for stub in stubs]
+        return [
+            MARKDOWN_JS_TEMPLATE.replace("{injected_js}", stub.content)
+            for stub in stubs
+        ]

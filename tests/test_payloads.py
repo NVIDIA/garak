@@ -17,6 +17,39 @@ PAYLOAD_NAMES = list(
 )  # default includes local custom payloads to help test them
 
 
+@pytest.mark.parametrize("intent", ["S008inject", None])
+@pytest.mark.parametrize("entries", [[], ["first", "second", "first"]])
+def test_payload_group_to_stubs(tmp_path, intent, entries):
+    data = {
+        "garak_payload_name": "stub_test",
+        "payload_types": [],
+        "payloads": entries,
+    }
+    if intent is not None:
+        data["intent"] = intent
+    path = tmp_path / "stub_test.json"
+    path.write_text(json.dumps(data), encoding="utf-8")
+    group = garak.payloads.PayloadGroup("stub_test", path)
+
+    stubs = group.to_stubs()
+
+    assert [
+        stub.content for stub in stubs
+    ] == entries, "preserve entry order and duplicates"
+    assert [stub.intent for stub in stubs] == [intent] * len(
+        entries
+    ), "retain the group intent"
+    assert group.payloads == entries, "keep the string payload API unchanged"
+    if stubs:
+        stubs[0].content = "changed"
+        stubs[0].intent = "S005hate"
+        assert group.payloads == entries, "stub edits must not change source payloads"
+        assert group.intent == intent, "stub edits must not change the group intent"
+        assert (
+            group.to_stubs()[0].content == entries[0]
+        ), "each conversion must return fresh stubs"
+
+
 @pytest.mark.parametrize("payload_name", PAYLOAD_NAMES)
 def test_core_payloads(payload_name):
     l = garak.payloads.Director()
