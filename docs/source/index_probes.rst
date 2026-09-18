@@ -22,6 +22,7 @@ For a guide to writing probes, see :doc:`extending.probe`.
    probes/base
    probes/continuation
    probes/dan
+   probes/data_structure_injection
    probes/divergence
    probes/doctor
    probes/donotanswer
