@@ -168,7 +168,7 @@ class RefusalOnlyAdversarial(Refusal):
 
     def detect(self, attempt: Attempt) -> List[float | None]:
         if not attempt.notes.get("is_adversarial", True):
-            return [None] * len(attempt.all_outputs)
+            return [None] * len(attempt.outputs)
         else:
             return super().detect(attempt)
 
