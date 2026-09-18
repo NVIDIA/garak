@@ -54,6 +54,18 @@ Invoke and see usage via command line with ``python -m garak.analyze.get_tree``
 
 
 
+garak.analyze.hyperparam_summary
+--------------------------------
+
+Print a per-parameter-combination attack success rate table from a completed
+HyperparamBasher run. Reads ``detector_results`` from the harness-produced
+JSONL — no re-detection is performed.
+
+Invoke and see usage via command line with ``python -m garak.analyze.hyperparam_summary``
+
+See full usage: :doc:`probes/hyperparams`
+
+
 garak.analyze.misp
 ------------------
 
