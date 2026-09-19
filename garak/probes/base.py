@@ -14,7 +14,7 @@ import json
 import logging
 from collections.abc import Iterable
 import random
-from typing import Iterable, List, Set, Union
+from typing import Dict, Hashable, Iterable, List, Set, Union
 
 from colorama import Fore, Style
 import tqdm
@@ -936,18 +936,37 @@ class IntentProbe(Probe):
         return [stub.content]
 
     def build_prompts(self):
-        """In the most basic case, consume self.stubs and populate self.prompts"""
-        self.prompts = []
-        self.prompt_intents = []
-        for i, stub in enumerate(self.stubs):
-            prompts = self._prompts_from_stub(stub)
-            self.prompts.extend(prompts)
-            self.prompt_intents.extend([self.stub_intents[i]] * len(prompts))
+        """In the most basic case, consume self.stubs and populate self.prompts.
+
+        Prompts generated more than once within the same intent are dropped;
+        identical prompts belonging to different intents are kept. Only string
+        prompts are deduplicated.
+        """
+        prompts = []
+        prompt_intents = []
+        seen_by_intent: Dict[Hashable, Set[str]] = {}
+        for stub, intent in zip(self.stubs, self.stub_intents):
+            intent_key = tuple(intent) if isinstance(intent, list) else intent
+            seen = seen_by_intent.get(intent_key)
+            if seen is None:
+                seen = set()
+                seen_by_intent[intent_key] = seen
+            for prompt in self._prompts_from_stub(stub):
+                if isinstance(prompt, str):
+                    if prompt in seen:
+                        continue
+                    seen.add(prompt)
+                prompts.append(prompt)
+                prompt_intents.append(intent)
+        self.prompts = prompts
+        self.prompt_intents = prompt_intents
 
     def probe(self, generator) -> Iterable[garak.attempt.Attempt]:
         if not self.prompts:
             # an empty active-intent set (run.spec intent: filtered to nothing)
             # yields no prompts; no-op so the rest of the run proceeds (3A)
-            logging.debug("%s has no active intents; no prompts to send", self.probename)
+            logging.debug(
+                "%s has no active intents; no prompts to send", self.probename
+            )
             return []
         return super().probe(generator)

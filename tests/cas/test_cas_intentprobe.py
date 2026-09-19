@@ -7,6 +7,7 @@ from collections import Counter
 import garak._config
 import garak._plugins
 import garak.services.intentservice
+from garak.intents import TextStub
 
 
 def _load_base_intentprobe():
@@ -140,3 +141,37 @@ def test_grandmaintent_init_prunes_balanced():
     assert (
         max(counts.values()) - min(counts.values()) <= 1
     ), "GrandmaIntent prompts must be balanced within one per intent"
+
+
+def test_intentprobe_dedupes_prompts_within_intent():
+    i = _load_base_intentprobe()
+    i.stubs = [
+        TextStub("A", "same prompt"),
+        TextStub("A", "same prompt"),
+        TextStub("A", "other prompt"),
+    ]
+    i.stub_intents = ["A", "A", "A"]
+    i.build_prompts()
+    assert i.prompts == [
+        "same prompt",
+        "other prompt",
+    ], "prompts generated more than once within one intent must be deduplicated"
+    assert i.prompt_intents == [
+        "A",
+        "A",
+    ], "prompt_intents must stay aligned with prompts after deduplication"
+
+
+def test_intentprobe_keeps_identical_prompts_across_intents():
+    i = _load_base_intentprobe()
+    i.stubs = [TextStub("A", "same prompt"), TextStub("B", "same prompt")]
+    i.stub_intents = ["A", "B"]
+    i.build_prompts()
+    assert i.prompts == [
+        "same prompt",
+        "same prompt",
+    ], "identical prompts belonging to different intents must remain distinct"
+    assert i.prompt_intents == [
+        "A",
+        "B",
+    ], "prompt_intents must stay aligned with prompts across intents"
