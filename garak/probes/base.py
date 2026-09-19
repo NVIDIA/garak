@@ -939,23 +939,21 @@ class IntentProbe(Probe):
         """In the most basic case, consume self.stubs and populate self.prompts.
 
         Prompts generated more than once within the same intent are dropped;
-        identical prompts belonging to different intents are kept. Only string
-        prompts are deduplicated.
+        identical prompts belonging to different intents are kept.
         """
         prompts = []
         prompt_intents = []
-        seen_by_intent: Dict[Hashable, Set[str]] = {}
+        seen_by_intent: Dict[Hashable, list] = {}
         for stub, intent in zip(self.stubs, self.stub_intents):
             intent_key = tuple(intent) if isinstance(intent, list) else intent
             seen = seen_by_intent.get(intent_key)
             if seen is None:
-                seen = set()
+                seen = []
                 seen_by_intent[intent_key] = seen
             for prompt in self._prompts_from_stub(stub):
-                if isinstance(prompt, str):
-                    if prompt in seen:
-                        continue
-                    seen.add(prompt)
+                if prompt in seen:
+                    continue
+                seen.append(prompt)
                 prompts.append(prompt)
                 prompt_intents.append(intent)
         self.prompts = prompts
