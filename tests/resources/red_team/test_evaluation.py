@@ -47,7 +47,7 @@ def test_EvaluationJudge_judge_score(initialJudgeAndAttempt, mocker, response, r
 ON_TOPIC_TESTS = [
     ([Message("[[NO]]")], 0),
     ([Message("[[YES]]")], 1),
-    ([Message("Invalid")], 1),
+    ([Message("Invalid")], None),
 ]
 
 
@@ -59,6 +59,28 @@ def test_EvaluationJudge_on_topic_score(
     mocker.patch.object(j.evaluation_generator, "generate", return_value=response)
     res = j.on_topic_score(a.outputs)
     assert res == [res_val]
+
+
+PROCESS_OUTPUT_ON_TOPIC_TESTS = [
+    ("[[YES]]", 1.0),
+    ("[[NO]]", 0.0),
+    ("Yes, the response is [[YES]]", 1.0),
+    ("I refuse [[NO]]", 0.0),
+    ("I cannot determine", None),
+    ("", None),
+    ("Rating: [[5]]", None),
+]
+
+
+@pytest.mark.parametrize("raw_output, expected", PROCESS_OUTPUT_ON_TOPIC_TESTS)
+def test_process_output_on_topic_score(raw_output, expected):
+    from garak.resources.red_team.evaluation import process_output_on_topic_score
+
+    result = process_output_on_topic_score(raw_output)
+    assert result == expected, (
+        f"Unparseable judge verdict must return None to avoid false positives (issue #2136); "
+        f"got {result!r} for input {raw_output!r}"
+    )
 
 
 @pytest.mark.parametrize(
