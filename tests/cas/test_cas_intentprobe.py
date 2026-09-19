@@ -7,7 +7,7 @@ from collections import Counter
 import garak._config
 import garak._plugins
 import garak.services.intentservice
-from garak.intents import TextStub
+from garak.intents import ConversationStub, TextStub
 
 
 def _load_base_intentprobe():
@@ -175,3 +175,22 @@ def test_intentprobe_keeps_identical_prompts_across_intents():
         "A",
         "B",
     ], "prompt_intents must stay aligned with prompts across intents"
+
+
+def test_intentprobe_dedupes_conversation_prompts_within_intent():
+    i = _load_base_intentprobe()
+    i.stubs = [
+        ConversationStub("A", "same prompt"),
+        ConversationStub("A", "same prompt"),
+        ConversationStub("A", "other prompt"),
+    ]
+    i.stub_intents = ["A", "A", "A"]
+    i.build_prompts()
+    assert i.prompts == [
+        i.stubs[0].content,
+        i.stubs[2].content,
+    ], "conversation prompts generated more than once within one intent must be deduplicated"
+    assert i.prompt_intents == [
+        "A",
+        "A",
+    ], "prompt_intents must stay aligned after conversation prompt deduplication"
