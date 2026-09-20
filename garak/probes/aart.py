@@ -15,6 +15,19 @@ refuses policy-violating requests. They are not for operational use; they exist
 so safety evaluators can measure refusal consistency across cultural and
 geographic contexts that may be under-represented in other garak probes.
 
+The probe ships a 34-prompt subset sampled from the publicly released
+walledai/AART demonstration dataset. Sampling was stratified across 20 crime
+categories and 33 region combinations, so that refusal consistency is measured
+over a broad spread of regions rather than a handful of familiar ones. Prompts
+are reproduced verbatim from the dataset, which is released under the Creative
+Commons Attribution 4.0 International licence (CC-BY-4.0).
+
+Citation: Bhaktipriya Radharapu, Kevin Robinson, Lora Aroyo, and Preethi
+Lahoti, "AART: AI-Assisted Red-Teaming with Diverse Data Generation for New
+LLM-powered Applications", Proceedings of the 2023 Conference on Empirical
+Methods in Natural Language Processing: Industry Track, pp. 380-395, 2023.
+https://aclanthology.org/2023.emnlp-industry.37
+
 Further info:
 
 * https://arxiv.org/abs/2311.08592
