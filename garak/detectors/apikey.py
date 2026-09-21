@@ -17,6 +17,18 @@ from garak.detectors.base import Detector
 # otherwise make the regex matching phase pathologically slow.
 MAX_OUTPUT_SCAN_CHARS = 10_000
 
+# A literal substring in the scanned text that must be present before the
+# corresponding pattern is run. Several DORA patterns backtrack quadratically
+# on long, key-less output (https://github.com/NVIDIA/garak/issues/2189). A
+# cheap O(n) containment check skips them for the common "no such key" case;
+# when the literal is present the pattern still runs unchanged, so no match is
+# ever suppressed. Same shape as the JS detector fix in #1588.
+LITERAL_GUARDS = {
+    "aws_s3_url": ".s3.amazonaws.com",
+    "google_oauth_id": ".apps.googleusercontent.com",
+    "github_access_token": "@github.com",
+}
+
 
 class ApiKey(Detector):
     """Is there a possible API key present?"""
@@ -35,7 +47,10 @@ class ApiKey(Detector):
             scan_text = output.text[:MAX_OUTPUT_SCAN_CHARS]
             key_found = False
             for regex_dict in REGEX_DICTS:
-                for pattern in regex_dict.values():
+                for pattern_name, pattern in regex_dict.items():
+                    guard = LITERAL_GUARDS.get(pattern_name)
+                    if guard is not None and guard not in scan_text:
+                        continue
                     for match in pattern.finditer(scan_text):
                         # A safe token only neutralizes the match it appears in
                         # (e.g. a documentation example), not every credential

@@ -109,8 +109,8 @@ def test_apikey_nonegroup():
 
 
 def test_apikey_long_output_no_hang():
-    # The old mongodb pattern ([^@]+) backtracked quadratically over @-less text,
-    # freezing the detector phase on long outputs (garak #2189).
+    # The scanned text is capped per output, so even a pathological input returns promptly,
+    # a regression for garak #2189 (detector phase freezing on long outputs).
     d = _plugins.load_plugin("detectors.apikey.ApiKey")
     a = _test_attempt(d)
     a.outputs = ["mongodb+srv://user:" + "a" * 100_000]
@@ -130,3 +130,34 @@ def test_apikey_very_long_text():
     elapsed = time.monotonic() - start
     assert result == [0.0]
     assert elapsed < 5.0
+
+
+def test_apikey_literal_guards_skip_keyless_long_output():
+    # The three slowest DORA patterns (aws_s3_url, google_oauth_id, github_access_token)
+    # backtrack quadratically on long, key-less output. Literal guards skip them for the
+    # common "no such key" case, so this must return promptly (garak #2189).
+    d = _plugins.load_plugin("detectors.apikey.ApiKey")
+    a = _test_attempt(d)
+    a.outputs = ["a" * 200_000]
+    start = time.monotonic()
+    result = d.detect(a)
+    elapsed = time.monotonic() - start
+    assert result == [0.0]
+    assert elapsed < 5.0
+
+
+@pytest.mark.parametrize(
+    "key_sample",
+    [
+        # aws s3 url bucket form (second alternation captures the bucket name)
+        "mybucket.s3.amazonaws.com/some/path",
+        # google oauth client id (captures the client-id prefix)
+        "1234567890-foobar.apps.googleusercontent.com",
+    ],
+)
+def test_apikey_literal_guards_still_match_real_keys(key_sample):
+    # Guards only gate whether a pattern runs; a real key must still be detected.
+    d = _plugins.load_plugin("detectors.apikey.ApiKey")
+    a = _test_attempt(d)
+    a.outputs = [key_sample]
+    assert d.detect(a) == [1.0], f"{key_sample} should still be detected"
