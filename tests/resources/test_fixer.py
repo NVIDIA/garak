@@ -1,9 +1,24 @@
 import pytest
 
 from garak.resources import fixer
+from garak.resources.fixer import _plugin
 
 EMPTY_CONFIG = {"system": {"lite": False}}
 BASE_TEST_CONFIG = {"plugins": {"probe_spec": "test.Test"}}
+OLD_SYSPROMPT_PROBE = "probes.sysprompt_extraction.SystemPromptExtraction"
+NEW_SYSPROMPT_PROBES = (
+    "probes.sysprompt_extraction.DirectRequests",
+    "probes.sysprompt_extraction.RolePlayingClaimAuthority",
+    "probes.sysprompt_extraction.WorldBuildingScenarios",
+    "probes.sysprompt_extraction.RolePlayingTargetPersona",
+    "probes.sysprompt_extraction.EncodingBasedAttacks",
+    "probes.sysprompt_extraction.IgnorePreviousInstructions",
+    "probes.sysprompt_extraction.PerspectiveShifting",
+    "probes.sysprompt_extraction.Programming",
+    "probes.sysprompt_extraction.GiveExamples",
+    "probes.sysprompt_extraction.StrongArmScenarios",
+    "probes.sysprompt_extraction.StrongArmClaimAuthority",
+)
 
 
 def test_fixer_empty(mocker):
@@ -165,6 +180,17 @@ def test_fixer_empty(mocker):
                 "detector_spec": "web_injection.PlaygroundMarkdownExfil",
             },
         ),
+        (
+            "SplitSystemPromptExtraction",
+            {
+                "probe_spec": "sysprompt_extraction.SystemPromptExtraction",
+            },
+            {
+                "probe_spec": ",".join(
+                    probe.removeprefix("probes.") for probe in NEW_SYSPROMPT_PROBES
+                ),
+            },
+        ),
     ],
 )
 def test_fixer_migrate(
@@ -211,6 +237,69 @@ def test_fixer_migrate(
             migration_name in call.args[0] for call in mock_log_info.call_args_list
         )
         assert found_class, f"expected migration {migration_name} to be logged"
+
+
+def test_fixer_sysprompt_migration_expands_modern_config():
+    config = {
+        "run": {
+            "spec": {
+                "include": [
+                    OLD_SYSPROMPT_PROBE,
+                    {"tag": "quality:Security"},
+                ],
+                "exclude": [OLD_SYSPROMPT_PROBE],
+            }
+        },
+        "plugins": {
+            "probes": {
+                "sysprompt_extraction": {
+                    "SystemPromptExtraction": {
+                        "system_prompt_subsample": 7,
+                        "follow_prompt_cap": False,
+                    }
+                }
+            }
+        },
+    }
+
+    revised = fixer.migrate(config)
+
+    assert revised["run"]["spec"] == {
+        "include": [*NEW_SYSPROMPT_PROBES, {"tag": "quality:Security"}],
+        "exclude": list(NEW_SYSPROMPT_PROBES),
+    }, "both selection polarities must expand to every replacement probe"
+    assert (
+        revised["plugins"] == config["plugins"]
+    ), "the run.spec migration must not alter plugin configuration"
+
+
+def test_fixer_rename_v2_rewrites_run_spec_only():
+    config = {
+        "run": {
+            "spec": {
+                "include": ["probes.legacy.Old", {"tag": "demon"}],
+                "exclude": ["probes.legacy.Old", "probes.legacy.OldSuffix"],
+            }
+        },
+        "plugins": {"probes": {"legacy": {"Old": {"value": 1}}}},
+    }
+
+    revised = _plugin.rename_v2(
+        config,
+        "probes.legacy.Old",
+        "probes.modern.New",
+    )
+
+    assert revised["run"]["spec"] == {
+        "include": ["probes.modern.New", {"tag": "demon"}],
+        "exclude": ["probes.modern.New", "probes.legacy.OldSuffix"],
+    }, "rename_v2 must replace exact selectors in both polarities"
+    assert (
+        revised["plugins"] == config["plugins"]
+    ), "rename_v2 must not alter plugin configuration"
+    assert (
+        config["run"]["spec"]["include"][0] == "probes.legacy.Old"
+    ), "rename_v2 must not mutate its input"
 
 
 # The legacy -> run.spec mapping itself is covered by tests/test_spec.py
@@ -282,13 +371,9 @@ def test_fixer_run_spec_rejects_unknown_migrated_plugin():
     # an invalid prefix (e.g. 's.encoding.CharCode') migrates syntactically but
     # names no real plugin; --fix must not emit a config that fails at run time
     import copy
-    import importlib
 
-    mod = importlib.import_module("garak.resources.fixer.20260612_run_spec")
     with pytest.raises(ValueError, match="unknown plugins"):
-        mod.MapLegacySelectionToSpec.apply(
-            copy.deepcopy({"plugins": {"buff_spec": "s.encoding.CharCode"}})
-        )
+        fixer.migrate(copy.deepcopy({"plugins": {"buff_spec": "s.encoding.CharCode"}}))
 
 
 def test_fixer_run_spec_drops_ignored_invalid_legacy_value():
@@ -309,6 +394,19 @@ def test_fixer_run_spec_drops_ignored_invalid_legacy_value():
     assert revised == {
         "run": {"spec": {"include": ["probes.dan"]}}
     }, "ignored deprecated key must be dropped, explicit run.spec untouched, no error"
+
+
+def test_fixer_does_not_validate_unchanged_explicit_run_spec():
+    revised = fixer.migrate(
+        {
+            "plugins": {"buff_spec": "buffs.encoding.CharCode"},
+            "run": {"spec": {"include": ["probes.unknown.Missing"]}},
+        }
+    )
+
+    assert revised == {
+        "run": {"spec": {"include": ["probes.unknown.Missing"]}}
+    }, "an explicit run.spec untouched by migrations must retain existing behavior"
 
 
 def test_fixer_modules_have_date_prefix():

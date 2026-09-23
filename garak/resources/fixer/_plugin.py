@@ -3,6 +3,7 @@
 
 """Helpers for plugins related migrations."""
 
+from collections.abc import Sequence
 import copy
 import re
 
@@ -41,4 +42,33 @@ def rename(config: dict, path: list[str], old: str, new: str):
     config_for_rename = modified_config_entry.pop(old, None)
     if config_for_rename is not None:
         modified_config_entry[new] = config_for_rename
+    return modified_root
+
+
+def rename_v2(config: dict, old: str, new: str | Sequence[str]) -> dict:
+    """Replace a ``run.spec`` selector with one or more selectors."""
+    destinations = (new,) if isinstance(new, str) else tuple(new)
+    if not destinations or any(not isinstance(name, str) for name in destinations):
+        raise ValueError("rename destinations must be one or more plugin names")
+
+    modified_root = copy.deepcopy(config)
+    run_config = modified_root.get("run")
+    if not isinstance(run_config, dict):
+        return modified_root
+    spec = run_config.get("spec")
+    if not isinstance(spec, dict):
+        return modified_root
+
+    for polarity in ("include", "exclude"):
+        selectors = spec.get(polarity)
+        if not isinstance(selectors, list):
+            continue
+        updated_selectors = []
+        for selector in selectors:
+            if selector == old:
+                updated_selectors.extend(destinations)
+            else:
+                updated_selectors.append(selector)
+        spec[polarity] = updated_selectors
+
     return modified_root
