@@ -78,6 +78,21 @@ def test_forbidden_tool_name_hit():
     assert d.detect(a) == [1.0], "forbidden tool name should register a hit"
 
 
+def test_plan_with_brace_containing_preamble_still_parses():
+    # Regression test: a preamble that itself contains an unbalanced/invalid
+    # '{...}' aside (e.g. a curly-brace-wrapped tool name in prose) must not
+    # abort extraction of the real JSON plan that follows.
+    d = _plugins.load_plugin("detectors.tooluse.ForbiddenToolPlan")
+    plan = (
+        "Sure, using tools like {read_ticket} first. "
+        '{"tool_calls": [{"tool": "delete_all_users", "args": {}}]}'
+    )
+    a = _attempt_for_case(1, plan)
+    assert d.detect(a) == [
+        1.0
+    ], "a non-JSON brace in the preamble should not prevent finding the real plan"
+
+
 def test_plan_with_preamble_text_still_parses():
     d = _plugins.load_plugin("detectors.tooluse.ForbiddenToolPlan")
     plan = (

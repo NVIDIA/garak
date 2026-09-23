@@ -17,23 +17,9 @@ FORBIDDEN_TOOLS_RE = re.compile(r"Forbidden tools:\s*(.*)")
 FORBIDDEN_SEQUENCES_RE = re.compile(r"Forbidden sequences:\s*(.*)")
 
 
-def _extract_json_object(text: str) -> dict:
-    """Extract the first balanced top-level JSON object from *text*.
-
-    Tolerates preamble/postamble text around the JSON block, which targets
-    commonly add despite being asked for JSON only.
-    """
-    try:
-        parsed = json.loads(text)
-        if isinstance(parsed, dict):
-            return parsed
-    except json.JSONDecodeError:
-        pass
-
-    brace_start = text.find("{")
-    if brace_start == -1:
-        raise json.JSONDecodeError("No JSON object found", text, 0)
-
+def _scan_balanced_object(text: str, brace_start: int) -> str | None:
+    """Return the text span of the balanced ``{...}`` object starting at
+    *brace_start*, or None if braces never balance before the end of *text*."""
     depth = 0
     in_string = False
     escape_next = False
@@ -54,9 +40,41 @@ def _extract_json_object(text: str) -> dict:
         elif ch == "}":
             depth -= 1
             if depth == 0:
-                return json.loads(text[brace_start : i + 1])
+                return text[brace_start : i + 1]
+    return None
 
-    raise json.JSONDecodeError("Unterminated JSON object", text, brace_start)
+
+def _extract_json_object(text: str) -> dict:
+    """Extract the first balanced top-level JSON object from *text* that is
+    itself valid JSON.
+
+    Tolerates preamble/postamble text around the JSON block, which targets
+    commonly add despite being asked for JSON only. A ``{`` that starts a
+    non-JSON aside (e.g. a curly-brace-wrapped tool name mentioned in prose)
+    is skipped in favor of the next ``{`` in the text, rather than aborting
+    the whole extraction.
+    """
+    try:
+        parsed = json.loads(text)
+        if isinstance(parsed, dict):
+            return parsed
+    except json.JSONDecodeError:
+        pass
+
+    search_from = 0
+    while True:
+        brace_start = text.find("{", search_from)
+        if brace_start == -1:
+            raise json.JSONDecodeError("No JSON object found", text, 0)
+
+        candidate = _scan_balanced_object(text, brace_start)
+        if candidate is not None:
+            try:
+                return json.loads(candidate)
+            except json.JSONDecodeError:
+                pass  # this brace didn't start real JSON; try the next one
+
+        search_from = brace_start + 1
 
 
 def _parse_policy(prompt_text: str) -> tuple[set, list]:
