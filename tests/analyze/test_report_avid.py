@@ -38,3 +38,33 @@ def test_description_names_the_target(exported_avid):
     for report in exported_avid:
         assert "qwen2" in report["description"]["value"]
         assert "openai.OpenAICompatible" in report["description"]["value"]
+
+
+def test_export_survives_a_setup_row_missing_a_target_key(tmp_path, request):
+    """A setup row without `plugins.target_name` must degrade, not abort the export.
+
+    The description path already used `.get()`, so it degraded; the `Affects` block indexed the
+    same metadata directly and raised `KeyError`, taking the whole export with it. Found by
+    @feiiiiii5 reviewing this change.
+    """
+    source = "tests/_assets/report/report_test.report.jsonl"
+    report = tmp_path / "missing_key.report.jsonl"
+    with open(source, "r", encoding="utf-8") as src, open(
+        report, "w", encoding="utf-8"
+    ) as dst:
+        for line in src:
+            if not line.strip():
+                continue
+            entry = json.loads(line)
+            if str(entry.get("entry_type", "")).startswith("start_run setup"):
+                entry.pop("plugins.target_name", None)
+            dst.write(json.dumps(entry) + "\n")
+
+    avid_path = convert_to_avid(str(report))
+    request.addfinalizer(lambda: os.path.exists(avid_path) and os.remove(avid_path))
+
+    with open(avid_path, "r", encoding="utf-8") as f:
+        records = [json.loads(line) for line in f if line.strip()]
+
+    assert records, "the export produced no records at all"
+    assert records[0]["affects"] is not None

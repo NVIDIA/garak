@@ -48,9 +48,12 @@ def convert_to_avid(report_location: str) -> str:
     if meta is not None:
         report_template.affects = Affects(
             developer=[],
-            deployer=[meta["plugins.target_type"]],
+            deployer=[meta.get("plugins.target_type", "unknown")],
             artifacts=[
-                Artifact(type=ArtifactTypeEnum.model, name=meta["plugins.target_name"])
+                Artifact(
+                    type=ArtifactTypeEnum.model,
+                    name=meta.get("plugins.target_name", "unknown"),
+                )
             ],
         )
 
