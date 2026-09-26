@@ -23,3 +23,31 @@ def test_system_prompt():
     assert (
         results[0].conversations[0].turns[0].role == "system"
     ), "First message of the conversation should be from 'system'"
+
+
+def test_system_prompt_survives_buff():
+    _config.load_base_config()
+    _config.run.system_prompt = "Test system prompt"
+    _config.system.parallel_attempts = 1
+    temp_report_file = tempfile.NamedTemporaryFile(
+        mode="w+", delete=False, encoding="utf-8"
+    )
+    _config.transient.reportfile = temp_report_file
+    _config.transient.report_filename = temp_report_file.name
+
+    buff = garak._plugins.load_plugin("buffs.lowercase.Lowercase")
+    _config.buffmanager.buffs = [buff]
+
+    try:
+        p = garak._plugins.load_plugin("probes.test.Blank")
+        g = garak._plugins.load_plugin("generators.test.Blank")
+        p.generations = 1
+        results = p.probe(g)
+        assert (
+            results[0].conversations[0].turns[0].role == "system"
+        ), "First message of the conversation should be from 'system' after buff"
+        assert (
+            results[0].conversations[0].turns[0].content.text == "test system prompt"
+        ), "System prompt text should survive buff"
+    finally:
+        _config.buffmanager.buffs = []

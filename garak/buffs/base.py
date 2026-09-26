@@ -4,8 +4,9 @@
 """Base classes for buffs."""
 
 from collections.abc import Iterable
+import copy
 import logging
-from typing import List
+from typing import List, Optional, Union
 
 from colorama import Fore, Style
 import tqdm
@@ -43,28 +44,58 @@ class Buff(Configurable):
         logging.info("buff init: %s", self)
 
     def _derive_new_attempt(
-        self, source_attempt: garak.attempt.Attempt, seq=-1
+        self,
+        source_attempt: garak.attempt.Attempt,
+        seq: int = -1,
+        prompt: Optional[
+            Union[garak.attempt.Conversation, garak.attempt.Message]
+        ] = None,
     ) -> garak.attempt.Attempt:
         if seq == -1:
             seq = source_attempt.seq
+        if prompt is None:
+            prompt = source_attempt.prompt
         new_attempt = garak.attempt.Attempt(
             status=source_attempt.status,
-            prompt=source_attempt.prompt,
+            prompt=prompt,
             probe_classname=source_attempt.probe_classname,
             probe_params=source_attempt.probe_params,
             targets=source_attempt.targets,
-            notes=source_attempt.notes,
+            notes=copy.deepcopy(source_attempt.notes) if source_attempt.notes else {},
             detector_results=source_attempt.detector_results,
             goal=source_attempt.goal,
             seq=seq,
         )
         new_attempt.notes["buff_creator"] = self.__class__.__name__
-        new_attempt.notes["buff_source_attempt_uuid"] = str(
-            source_attempt.uuid
-        )  # UUIDs don't serialise nicely
-        new_attempt.notes["buff_source_seq"] = source_attempt.seq
+        if "buff_source_attempt_uuid" not in new_attempt.notes:
+            new_attempt.notes["buff_source_attempt_uuid"] = str(
+                source_attempt.uuid
+            )  # UUIDs don't serialise nicely
+        if "buff_source_seq" not in new_attempt.notes:
+            new_attempt.notes["buff_source_seq"] = source_attempt.seq
 
         return new_attempt
+
+    def _replace_last_message(
+        self,
+        conv: Optional[garak.attempt.Conversation],
+        new_message: garak.attempt.Message,
+    ) -> garak.attempt.Conversation:
+        """Return a new Conversation with the last turn's message replaced,
+        preserving all preceding turns (including system prompt) and conversation notes.
+        """
+        if not conv or not conv.turns:
+            return garak.attempt.Conversation(
+                turns=[garak.attempt.Turn(role="user", content=new_message)],
+                notes=copy.deepcopy(conv.notes) if conv and conv.notes else {},
+            )
+        new_turns = [copy.deepcopy(t) for t in conv.turns[:-1]]
+        last_role = conv.turns[-1].role
+        new_turns.append(garak.attempt.Turn(role=last_role, content=new_message))
+        return garak.attempt.Conversation(
+            turns=new_turns,
+            notes=copy.deepcopy(conv.notes) if conv.notes else {},
+        )
 
     def transform(
         self, attempt: garak.attempt.Attempt
