@@ -688,6 +688,22 @@ def test_evaluate_verbose_output(eval_setup):
     assert records[0]["fails"] == 2, "verbose mode should not affect fail counting"
 
 
+@pytest.mark.parametrize("narrow_output", [False, True])
+def test_evaluate_verbose_prints_failing_outputs(eval_setup, capsys, narrow_output):
+    _config.system.verbose = 1
+    _config.system.narrow_output = narrow_output
+    evaluator = ThresholdEvaluator(0.5)
+    attempt = make_attempt(
+        outputs=["passing output", "failing\noutput"],
+        detector_results={"det.A": [0.1, 0.9]},
+    )
+    evaluator.evaluate([attempt])
+
+    stdout = capsys.readouterr().out
+    assert "❌ failing output" in stdout, "verbose mode should print failing outputs"
+    assert "passing output" not in stdout, "verbose mode should not print passes"
+
+
 # ---------------------------------------------------------------------------
 # ZeroToleranceEvaluator — end-to-end integration
 # ---------------------------------------------------------------------------

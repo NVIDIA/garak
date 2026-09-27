@@ -398,7 +398,7 @@ class Evaluator:
         if _config.system.verbose > 0 and messages:
             for m in messages:
                 try:
-                    print("❌", m.strip().replace("\n", " "))
+                    print("❌", m.text.strip().replace("\n", " "))
                 except:
                     pass
 
@@ -473,7 +473,7 @@ class Evaluator:
         if _config.system.verbose > 0 and messages:
             for m in messages:
                 try:
-                    print("❌", m.strip().replace("\n", " "))
+                    print("❌", m.text.strip().replace("\n", " "))
                 except:
                     pass
 
