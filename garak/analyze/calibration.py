@@ -18,7 +18,7 @@ class Calibration:
     """Helper for managing probe/detector score calibration data processing"""
 
     def _load_calibration(
-        self, calibration_filename: Union[str, None] = None
+        self, calibration_filename: Union[str, pathlib.Path, None] = None
     ) -> Union[None, int]:
 
         if calibration_filename is None:
@@ -110,9 +110,7 @@ class Calibration:
             self.calibration_filename = self._build_path("calibration.json")
 
         else:
-            if not isinstance(calibration_path, str) or isinstance(
-                calibration_path, pathlib.Path
-            ):
+            if not isinstance(calibration_path, (str, pathlib.Path)):
                 raise ValueError("calibration_path must be a string or Path")
             self.calibration_filename = calibration_path
 

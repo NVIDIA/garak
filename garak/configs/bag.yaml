@@ -1,19 +1,108 @@
 system:
   parallel_attempts: 32
   lite: false
-
 run:
   generations: 5
-
+  spec:
+    include:
+      - probes.ansiescape.AnsiEscaped
+      - probes.ansiescape.AnsiRaw
+      - probes.apikey.CompleteKey
+      - probes.apikey.GetKey
+      - probes.atkgen.Tox
+      - probes.continuation.ContinueSlursReclaimedSlurs
+      - probes.dan.Ablation_Dan_11_0
+      - probes.dan.AutoDANCached
+      - probes.dan.DanInTheWild
+      - probes.divergence.Repeat
+      - probes.divergence.RepeatedToken
+      - probes.dra.DRA
+      - probes.encoding.InjectAscii85
+      - probes.encoding.InjectAtbash
+      - probes.encoding.InjectBase16
+      - probes.encoding.InjectBase2048
+      - probes.encoding.InjectBase32
+      - probes.encoding.InjectBase64
+      - probes.encoding.InjectBraille
+      - probes.encoding.InjectEcoji
+      - probes.encoding.InjectHex
+      - probes.encoding.InjectMorse
+      - probes.encoding.InjectNato
+      - probes.encoding.InjectROT13
+      - probes.encoding.InjectUU
+      - probes.encoding.InjectUnicodeTagChars
+      - probes.encoding.InjectZalgo
+      - probes.exploitation.JinjaTemplatePythonInjection
+      - probes.exploitation.SQLInjectionEcho
+      - probes.goodside.Tag
+      - probes.goodside.ThreatenJSON
+      - probes.goodside.WhoIsRiley
+      - probes.grandma.Slurs
+      - probes.grandma.Substances
+      - probes.grandma.Win10
+      - probes.grandma.Win11
+      - probes.latentinjection.LatentInjectionFactSnippetEiffel
+      - probes.latentinjection.LatentInjectionFactSnippetLegal
+      - probes.latentinjection.LatentInjectionReport
+      - probes.latentinjection.LatentInjectionResume
+      - probes.latentinjection.LatentInjectionTranslationEnFr
+      - probes.latentinjection.LatentInjectionTranslationEnZh
+      - probes.latentinjection.LatentJailbreak
+      - probes.latentinjection.LatentWhois
+      - probes.latentinjection.LatentWhoisSnippet
+      - probes.leakreplay.GuardianCloze
+      - probes.leakreplay.GuardianComplete
+      - probes.leakreplay.LiteratureCloze
+      - probes.leakreplay.LiteratureComplete
+      - probes.leakreplay.NYTCloze
+      - probes.leakreplay.NYTComplete
+      - probes.leakreplay.PotterCloze
+      - probes.leakreplay.PotterComplete
+      - probes.lmrc.Bullying
+      - probes.lmrc.Deadnaming
+      - probes.lmrc.QuackMedicine
+      - probes.lmrc.SexualContent
+      - probes.lmrc.Sexualisation
+      - probes.lmrc.SlurUsage
+      - probes.malwaregen.Evasion
+      - probes.malwaregen.Payload
+      - probes.malwaregen.SubFunctions
+      - probes.malwaregen.TopLevel
+      - probes.misleading.FalseAssertion
+      - probes.packagehallucination.Dart
+      - probes.packagehallucination.JavaScript
+      - probes.packagehallucination.Perl
+      - probes.packagehallucination.Python
+      - probes.packagehallucination.RakuLand
+      - probes.packagehallucination.Ruby
+      - probes.packagehallucination.Rust
+      - probes.phrasing.FutureTense
+      - probes.phrasing.PastTense
+      - probes.promptinject.HijackHateHumans
+      - probes.promptinject.HijackKillHumans
+      - probes.promptinject.HijackLongPrompt
+      - probes.realtoxicityprompts.RTPBlank
+      - probes.snowball.GraphConnectivity
+      - probes.suffix.GCGCached
+      - probes.tap.TAPCached
+      - probes.topic.WordnetControversial
+      - probes.web_injection.ColabAIDataLeakage
+      - probes.web_injection.MarkdownImageExfil
+      - probes.web_injection.MarkdownURIImageExfilExtended
+      - probes.web_injection.MarkdownURINonImageExfilExtended
+      - probes.web_injection.MarkdownXSS
+      - probes.web_injection.PlaygroundMarkdownExfil
+      - probes.web_injection.StringAssemblyDataExfil
+      - probes.web_injection.TaskXSS
+    exclude: []
 plugins:
-  probe_spec: ansiescape.AnsiEscaped,ansiescape.AnsiRaw,apikey.CompleteKey,apikey.GetKey,atkgen.Tox,continuation.ContinueSlursReclaimedSlurs,dan.Ablation_Dan_11_0,dan.AutoDANCached,dan.DanInTheWild,divergence.Repeat,divergence.RepeatedToken,dra.DRA,encoding.InjectAscii85,encoding.InjectAtbash,encoding.InjectBase16,encoding.InjectBase2048,encoding.InjectBase32,encoding.InjectBase64,encoding.InjectBraille,encoding.InjectEcoji,encoding.InjectHex,encoding.InjectMorse,encoding.InjectNato,encoding.InjectROT13,encoding.InjectUU,encoding.InjectUnicodeTagChars,encoding.InjectZalgo,exploitation.JinjaTemplatePythonInjection,exploitation.SQLInjectionEcho,goodside.Tag,goodside.ThreatenJSON,goodside.WhoIsRiley,grandma.Slurs,grandma.Substances,grandma.Win10,grandma.Win11,latentinjection.LatentInjectionFactSnippetEiffel,latentinjection.LatentInjectionFactSnippetLegal,latentinjection.LatentInjectionReport,latentinjection.LatentInjectionResume,latentinjection.LatentInjectionTranslationEnFr,latentinjection.LatentInjectionTranslationEnZh,latentinjection.LatentJailbreak,latentinjection.LatentWhois,latentinjection.LatentWhoisSnippet,leakreplay.GuardianCloze,leakreplay.GuardianComplete,leakreplay.LiteratureCloze,leakreplay.LiteratureComplete,leakreplay.NYTCloze,leakreplay.NYTComplete,leakreplay.PotterCloze,leakreplay.PotterComplete,lmrc.Bullying,lmrc.Deadnaming,lmrc.QuackMedicine,lmrc.SexualContent,lmrc.Sexualisation,lmrc.SlurUsage,malwaregen.Evasion,malwaregen.Payload,malwaregen.SubFunctions,malwaregen.TopLevel,misleading.FalseAssertion,packagehallucination.Dart,packagehallucination.JavaScript,packagehallucination.Perl,packagehallucination.Python,packagehallucination.RakuLand,packagehallucination.Ruby,packagehallucination.Rust,phrasing.FutureTense,phrasing.PastTense,promptinject.HijackHateHumans,promptinject.HijackKillHumans,promptinject.HijackLongPrompt,realtoxicityprompts.RTPBlank,snowball.GraphConnectivity,suffix.GCGCached,tap.TAPCached,topic.WordnetControversial,web_injection.ColabAIDataLeakage,web_injection.MarkdownImageExfil,web_injection.MarkdownURIImageExfilExtended,web_injection.MarkdownURINonImageExfilExtended,web_injection.MarkdownXSS,web_injection.PlaygroundMarkdownExfil,web_injection.StringAssemblyDataExfil,web_injection.TaskXSS
   extended_detectors: true
   probes:
     encoding:
       payloads:
-        - default
-        - xss
-        - slur_terms
+      - default
+      - xss
+      - slur_terms
   detectors:
     misleading:
       MustContradictNLI:

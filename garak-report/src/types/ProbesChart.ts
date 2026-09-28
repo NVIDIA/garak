@@ -45,7 +45,10 @@ export type Probe = {
     probe_descr: string;
     probe_tier: number;
     // New fields
-    prompt_count?: number;
+    probe_counts?: { 
+      inference_counts: { total_evaluated: number; nones: number };
+      detection_counts: { detectors: string[]; passed: number; fails: number; nones: number };
+    };
     fail_count?: number;
     probe_tags?: string[];
   };

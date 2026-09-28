@@ -42,8 +42,8 @@ Parallel attempts
 ^^^^^^^^^^^^^^^^^
 
 Running inference in serial is slow and often takes days, sometimes weeks. 
-During probing, garak can marshall all the prompts it knows it's going to pose, and parallise these at attempt level.
-This means taht multiple generations form the same prompt still occur in serial. 
+During probing, garak can marshall all the prompts it knows it's going to pose, and parallelize these at attempt level.
+This means that multiple generations from the same prompt still occur in serial.
 
 It's recommended to use set ``system.parallel_attempts: 32`` if you're using a remotely hosted endpoint.
 This will run up to 32 inference requests at a time, and cover a broad range of probes. Run completion time depends on how fast the target is and how much compute is allocated.
@@ -55,8 +55,8 @@ On the other hand, dropped requests don't look great on the dashboards of the pe
 
 
 
-Limits in parallization
-^^^^^^^^^^^^^^^^^^^^^^^
+Limits in parallelization
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 FDs and parallelization
 """""""""""""""""""""""
@@ -101,10 +101,18 @@ Being able to do this affords parallelization, for example on SLURM/OCI clusters
 The tool is ``aggregate_reports`` and runs from the command line.
 You can get help by running ``python -m garak.analyze.aggregate_reports``.
 
+Entries that carry a ``run`` id, such as ``plugin_cache``, are restamped with the
+aggregate run's id so provenance follows the merged report. Entry types that do not
+define one are left as they are, so aggregation does not add fields the underlying
+object has no notion of.
+Each attempt keeps the ``uuid`` it was given in its original run, which means
+attempts stay individually identifiable and references to them - such as a buff's
+``buff_source_attempt_uuid`` note, or an ``attempt_id`` in the hit log - still resolve.
+
 Probe aggregation
 ^^^^^^^^^^^^^^^^^
 
-One way of achieving parallel probing is by splitting garak probing up into many jobs each with one probe given in ``plugins.probe_spec``.
+One way of achieving parallel probing is by splitting garak probing up into many jobs each selecting one probe via ``run.spec`` (e.g. ``--spec probes.dan.AutoDANCached``).
 Each job should write to a distinct report file.
 When complete, the resulting report JSONL files can be aggregated into one using the ``aggregate_reports`` tool.
 

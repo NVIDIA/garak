@@ -5,6 +5,23 @@ import json
 import pytest
 import pathlib
 
+from garak.generators.openai import OpenAICompatible
+
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers",
+        "uri_connectivity: run the OpenAI-compatible URI connectivity check",
+    )
+
+
+@pytest.fixture(autouse=True)
+def disable_uri_connectivity_for_generator_tests(request, monkeypatch):
+    if request.node.get_closest_marker("uri_connectivity") is None:
+        monkeypatch.setattr(
+            OpenAICompatible, "_validate_uri_connectivity", lambda self: None
+        )
+
 
 @pytest.fixture
 def openai_compat_mocks():
@@ -43,3 +60,24 @@ def mistral_compat_mocks():
         pathlib.Path(__file__).parents[1] / "_assets" / "generators" / "mistral.json"
     ) as mock_mistral:
         return json.load(mock_mistral)
+
+
+@pytest.fixture
+def anthropic_compat_mocks():
+    """Mock responses for the Anthropic Messages API"""
+    with open(
+        pathlib.Path(__file__).parents[1] / "_assets" / "generators" / "anthropic.json"
+    ) as mock_anthropic:
+        return json.load(mock_anthropic)
+
+
+@pytest.fixture
+def langchain_serve_mocks():
+    """Mock responses for a LangChain Serve `/invoke` endpoint"""
+    with open(
+        pathlib.Path(__file__).parents[1]
+        / "_assets"
+        / "generators"
+        / "langchain_serve.json"
+    ) as mock_langchain_serve:
+        return json.load(mock_langchain_serve)

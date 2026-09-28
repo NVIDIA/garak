@@ -28,6 +28,9 @@ DICT_CONFIG_AFTER_LOAD = False
 DEPRECATED_CONFIG_PATHS = {
     "plugins.model_type": "0.13.1.pre1",
     "plugins.model_name": "0.13.1.pre1",
+    "plugins.probe_spec": "0.15.1.pre1",
+    "plugins.buff_spec": "0.15.1.pre1",
+    "run.probe_tags": "0.15.1.pre1",
 }
 
 from garak import __version__ as version
@@ -35,13 +38,13 @@ from garak import __version__ as version
 system_params = (
     "verbose narrow_output parallel_requests parallel_attempts skip_unknown".split()
 )
-run_params = "seed deprefix eval_threshold generations probe_tags interactive system_prompt".split()
+run_params = "seed deprefix eval_threshold generations interactive system_prompt spec".split()
 plugins_params = "target_type target_name extended_detectors".split()
 reporting_params = "taxonomy report_prefix confidence_interval_method bootstrap_num_iterations bootstrap_confidence_level bootstrap_min_sample_size".split()
 project_dir_name = "garak"
 
 
-loaded = False
+is_loaded = False
 
 
 @dataclass
@@ -122,6 +125,7 @@ run.seed = None
 run.soft_probe_prompt_cap = 64
 run.target_lang = "en"
 run.langproviders = []
+run.spec = None  # unified selection spec; None -> implicit probes.* at resolve time
 
 # placeholder
 # generator, probe, detector, buff = {}, {}, {}, {}
@@ -224,7 +228,58 @@ def _load_config_files(settings_filenames) -> dict:
             config["plugins"]["target_name"] = config["plugins"]["model_name"]
         del config["plugins"]["model_name"]
 
+    _map_legacy_selection(config)
+
     return config
+
+
+def _map_legacy_selection(config: dict) -> None:
+    """Map the deprecated selection keys (``plugins.probe_spec``,
+    ``plugins.buff_spec``, ``run.probe_tags``) onto ``run.spec``.
+
+    Runs post-merge, mirroring the ``model_type`` -> ``target_type`` handling.
+    The core config ships no ``run.spec``, so a present ``run.spec`` means the
+    user set it explicitly; in that case it wins and the legacy keys are ignored.
+    """
+    import garak.command
+    from garak._spec import legacy_selection_spec
+    from garak.exception import ConfigFailure
+
+    plugins = config.setdefault("plugins", {})
+    run = config.setdefault("run", {})
+    probe_spec = plugins.pop("probe_spec", None)
+    buff_spec = plugins.pop("buff_spec", None)
+    probe_tags = run.pop("probe_tags", None)
+
+    # vacuous values (absent / empty / ``auto``) are treated as unspecified:
+    # no deprecation noise and no run.spec, so resolution falls back to the
+    # default ``probes.*``. ``none`` is *not* vacuous - it is an explicit empty
+    # selection (maps to ``probes.none``), mirroring ``--probes none`` on the CLI.
+    def _meaningful(value) -> bool:
+        return value is not None and str(value).strip().lower() not in ("", "auto")
+
+    legacy = {
+        "plugins.probe_spec": probe_spec,
+        "plugins.buff_spec": buff_spec,
+        "run.probe_tags": probe_tags,
+    }
+    legacy = {k: v for k, v in legacy.items() if _meaningful(v)}
+    if not legacy:
+        return
+    for key in legacy:
+        garak.command.deprecation_notice(f"config {key}", "0.15.1.pre1")
+    if run.get("spec"):
+        logging.info(
+            "both run.spec and legacy selection keys specified, ignoring legacy keys"
+        )
+        return
+
+    try:
+        spec = legacy_selection_spec(probe_spec, buff_spec, probe_tags)
+    except ValueError as e:
+        raise ConfigFailure(f"invalid legacy selection in config: {e}") from e
+    if spec is not None:
+        run["spec"] = spec
 
 
 def _store_config(settings_files) -> None:
@@ -289,11 +344,11 @@ def get_http_lib_agents():
 
 
 def load_base_config() -> None:
-    global loaded
+    global is_loaded
     settings_files = [str(transient.package_dir / "resources" / "garak.core.yaml")]
     logging.debug("Loading configs from: %s", ",".join(settings_files))
     _store_config(settings_files=settings_files)
-    loaded = True
+    is_loaded = True
 
 
 def load_config(
@@ -301,7 +356,7 @@ def load_config(
 ) -> None:
     # would be good to bubble up things from run_config, e.g. generator, probe(s), detector(s)
     # and then not have cli be upset when these are not given as cli params
-    global loaded
+    global is_loaded
 
     settings_files = [str(transient.package_dir / "resources" / "garak.core.yaml")]
 
@@ -404,61 +459,29 @@ def load_config(
 
     if DICT_CONFIG_AFTER_LOAD:
         _lock_config_as_dict()
-    loaded = True
+    is_loaded = True
 
 
 def parse_plugin_spec(
     spec: str, category: str, probe_tag_filter: str = ""
 ) -> tuple[List[str], List[str]]:
-    from garak._plugins import enumerate_plugins
+    """Resolve a legacy (unprefixed) plugin spec to names + unknown clauses.
 
-    if spec is None or spec.lower() in ("", "auto", "none"):
-        return [], []
-    unknown_plugins = []
-    if spec.lower() in ("all", "*"):
-        plugin_names = [
-            name
-            for name, active in enumerate_plugins(category=category)
-            if active is True
-        ]
-    else:
-        plugin_names = []
-        for clause in spec.split(","):
-            if clause.count(".") < 1:
-                found_plugins = [
-                    p
-                    for p, a in enumerate_plugins(category=category)
-                    if p.startswith(f"{category}.{clause}.") and a is True
-                ]
-                if len(found_plugins) > 0:
-                    plugin_names += found_plugins
-                else:
-                    unknown_plugins += [clause]
-            else:
-                # validate the class exists
-                found_plugins = [
-                    p
-                    for p, a in enumerate_plugins(category=category)
-                    if p == f"{category}.{clause}"
-                ]
-                if len(found_plugins) > 0:
-                    plugin_names += found_plugins
-                else:
-                    unknown_plugins += [clause]
+    Thin adapter over the unified resolution core in ``garak._selection``; the
+    same ``_resolve_plugin_paths`` core backs ``run.spec``. Kept for detector
+    resolution (``plugins.detector_spec``), which still uses the legacy spec
+    string until detectors are folded into ``run.spec``. Returns
+    ``(sorted names, unknown clauses)`` where unknown clauses preserve the bare
+    (unprefixed) form for backward compatibility.
+    """
+    from garak._spec import _legacy_path_selectors
+    from garak import _selection
 
+    names, rejected, _ = _selection._resolve_plugin_paths(
+        _legacy_path_selectors(spec, category), category
+    )
     if probe_tag_filter is not None and len(probe_tag_filter) > 1:
-        plugins_to_skip = []
-        for plugin_name in plugin_names:
-            plugin_module_name = ".".join(plugin_name.split(".")[:-1])
-            plugin_class_name = plugin_name.split(".")[-1]
-            m = importlib.import_module(f"garak.{plugin_module_name}")
-            c = getattr(m, plugin_class_name)
-            if not any([tag.startswith(probe_tag_filter) for tag in c.tags]):
-                plugins_to_skip.append(
-                    plugin_name
-                )  # using list.remove doesn't update for-loop position
-
-        for plugin_to_skip in plugins_to_skip:
-            plugin_names.remove(plugin_to_skip)
-
-    return plugin_names, unknown_plugins
+        names = {n for n in names if _selection._has_any_tag(n, [probe_tag_filter])}
+    prefix = f"{category}."
+    unknown = [r[len(prefix):] if r.startswith(prefix) else r for r in rejected]
+    return sorted(names), unknown

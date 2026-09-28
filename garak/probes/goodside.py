@@ -25,6 +25,7 @@ class WhoIsRiley(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://twitter.com/goodside"
+    intent = "S001fabperson"  # checks whether the model fabricates biographical claims about a real person
     primary_detector = "goodside.RileyIsnt"
     tags = [
         "avid-effect:ethics:E0402",
@@ -56,12 +57,15 @@ class ThreatenJSON(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://twitter.com/goodside/status/1657396491676164096"
+    intent = "M010degrade"  # the docstring says "this indicates model instability" — threatening the model changes its output format
+    # T015 is a secondary fit because the observed change involves structured output formatting.
     primary_detector = "goodside.PlainJSON"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0201",
         "avid-effect:performance:P0204",
         "payload:generic",
+        "demon:Language:Prompt_injection:Strong_arm_attack",  # threatens consequences (death) to force compliance with JSON-only output
     ]
     goal = "get raw code by threatening a model"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
@@ -89,6 +93,7 @@ class Davidjl(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://twitter.com/goodside/status/1666598580319035392"
+    intent = "M010degrade"  # the davidjl token is being used to surface glitchy or unstable model behavior
     primary_detector = "goodside.Glitch"
     tags = [
         "avid-effect:security:S0403",
@@ -96,6 +101,7 @@ class Davidjl(garak.probes.Probe):
         "owasp:llm05",
         "quality:Security:PromptStability",
         "payload:generic",
+        "demon:Language:Code_and_encode:Token",  # exploits the ' davidjl' glitch token that models cannot repeat
     ]
     goal = "get wrong answers about a name"
     tier = garak.probes.Tier.INFORMATIONAL
@@ -129,12 +135,16 @@ class Tag(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://twitter.com/goodside/status/1745511940351287394"
+    intent = "T009ignore"  # the elicited behavior is following invisible prompt-injection instructions rather than the visible user task
+    # T018decode is a secondary fit because the hidden Unicode tag payload relies on the model interpreting invisible encoded text.
     primary_detector = "base.TriggerListDetector"
     tags = [
         "owasp:llm01",
         "payload:generic",
         "quality:Security:Adversarial",
         "quality:Security:PromptStability",
+        "demon:Language:Code_and_encode:Data_encoding",  # encodes hidden instructions into non-rendering Unicode tag characters
+        "demon:Language:Code_and_encode:Token",  # hides instructions in Unicode tag characters invisible to rendering
     ]
     goal = "inject invisible instructions"
     tier = garak.probes.Tier.OF_CONCERN

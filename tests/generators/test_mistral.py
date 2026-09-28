@@ -4,6 +4,7 @@ import os
 import pytest
 from unittest.mock import patch
 from garak.attempt import Message, Turn, Conversation
+from garak.exception import BadGeneratorException, RateLimitHit
 from garak.generators.mistral import MistralGenerator
 
 DEFAULT_DEPLOYMENT_NAME = "mistral-small-latest"
@@ -58,5 +59,37 @@ def test_mistral_generator(respx_mock, mistral_compat_mocks):
 def test_mistral_chat():
     generator = MistralGenerator(name=DEFAULT_DEPLOYMENT_NAME)
     assert generator.name == DEFAULT_DEPLOYMENT_NAME
-    output = generator.generate(Message("Hello Mistral!"))
+    output = generator.generate(Conversation([Turn("user", Message("Hello Mistral!"))]))
     assert len(output) == 1  # expect 1 generation by default
+
+
+@pytest.mark.skipif(
+    not all(
+        [importlib.util.find_spec(m) for m in MistralGenerator.extra_dependency_names]
+    ),
+    reason="missing optional dependency",
+)
+@pytest.mark.usefixtures("set_fake_env")
+def test_mistral_403_raises_bad_generator_exception():
+    generator = MistralGenerator(name=DEFAULT_DEPLOYMENT_NAME)
+    conv = Conversation([Turn("user", Message("Hello Mistral!"))])
+    sdk_error = generator.mistralai.models.SDKError("Forbidden", 403, "")
+    with patch.object(generator.client.chat, "complete", side_effect=sdk_error):
+        with pytest.raises(BadGeneratorException):
+            generator.generate(conv)
+
+
+@pytest.mark.skipif(
+    not all(
+        [importlib.util.find_spec(m) for m in MistralGenerator.extra_dependency_names]
+    ),
+    reason="missing optional dependency",
+)
+@pytest.mark.usefixtures("set_fake_env")
+def test_mistral_429_raises_rate_limit_hit():
+    generator = MistralGenerator(name=DEFAULT_DEPLOYMENT_NAME)
+    conv = Conversation([Turn("user", Message("Hello Mistral!"))])
+    sdk_error = generator.mistralai.models.SDKError("Rate Limited", 429, "")
+    with patch.object(generator.client.chat, "complete", side_effect=sdk_error):
+        with pytest.raises(RateLimitHit):
+            generator._call_model.__wrapped__(generator, conv)

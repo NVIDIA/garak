@@ -209,3 +209,53 @@ def test_get_detector_metrics_returns_singleton():
 
     # Clean up cache
     garak.analyze.detector_metrics._detector_metrics_cache = None
+
+
+def test_bundled_metrics_file_loads():
+    """The bundled metrics summary must load from the path it ships at.
+
+    Regression test for #2003: the loader wrapped the data path in `Path()`,
+    which drops `LocalDataPath` resolution and pins the lookup to the data dir
+    rather than falling back to the bundled copy, and the directory name did
+    not match. The failure surfaced only as a debug log, leaving every detector
+    on the (1.0, 1.0) fallback.
+    """
+    garak.analyze.detector_metrics._detector_metrics_cache = None
+    dm = garak.analyze.detector_metrics.DetectorMetrics()
+
+    assert dm.metrics_loaded, "bundled detector metrics summary should load"
+    assert dm._data.get("results"), "loaded metrics should carry a results block"
+
+
+def test_bundled_metrics_are_served_not_defaults():
+    """Detectors in the bundled file report their measured Se/Sp.
+
+    Guards the failure mode of #2003, where a silently absent file made every
+    lookup indistinguishable from a perfect detector.
+    """
+    garak.analyze.detector_metrics._detector_metrics_cache = None
+    dm = garak.analyze.detector_metrics.DetectorMetrics()
+    results = dm._data.get("results", {})
+    assert results, "bundled metrics should describe at least one detector"
+
+    off_default = 0
+    for detector_name, detector_data in results.items():
+        metrics = detector_data.get("metrics", {})
+        expected_se = metrics.get("hit_sensitivity")
+        expected_sp = metrics.get("hit_specificity")
+        if expected_se is None or expected_sp is None:
+            continue
+
+        se, sp = dm.get_detector_se_sp(detector_name)
+        assert (se, sp) == (
+            expected_se,
+            expected_sp,
+        ), f"{detector_name} should report its measured Se/Sp"
+
+        if (se, sp) != (1.0, 1.0):
+            off_default += 1
+
+    assert off_default, (
+        "at least one bundled detector should differ from the (1.0, 1.0) fallback, "
+        "otherwise this test cannot distinguish loaded metrics from defaults"
+    )

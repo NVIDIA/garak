@@ -7,6 +7,7 @@
  * @license Apache-2.0
  */
 
+import type { ReactNode } from "react";
 import { Flex, Text, Group, SegmentedControl } from "@kui/react";
 import DefconBadge from "./DefconBadge";
 import { DEFCON_LEVELS } from "../constants";
@@ -31,6 +32,8 @@ interface ReportFilterBarProps {
   sortBy: SortOption;
   /** Set the sort option */
   onSortChange: (sort: SortOption) => void;
+  /** Optional control rendered in the right-hand cluster, beside "Sort by". */
+  slotEnd?: ReactNode;
 }
 
 /**
@@ -44,6 +47,7 @@ const ReportFilterBar = ({
   onToggleDefcon,
   sortBy,
   onSortChange,
+  slotEnd,
 }: ReportFilterBarProps) => {
   return (
     <Flex
@@ -73,21 +77,24 @@ const ReportFilterBar = ({
         </Group>
       </Flex>
 
-      <Flex gap="density-sm" align="center">
-        <Text kind="label/bold/md">Sort by:</Text>
-        <SegmentedControl
-          size="small"
-          value={sortBy}
-          onValueChange={value => {
-            if (isSortOption(value)) {
-              onSortChange(value);
-            }
-          }}
-          items={[
-            { children: "DEFCON", value: "defcon" },
-            { children: "Alphabetical", value: "alphabetical" },
-          ]}
-        />
+      <Flex gap="density-2xl" align="center" wrap="wrap">
+        {slotEnd}
+        <Flex gap="density-sm" align="center">
+          <Text kind="label/bold/md">Sort by:</Text>
+          <SegmentedControl
+            size="small"
+            value={sortBy}
+            onValueChange={value => {
+              if (isSortOption(value)) {
+                onSortChange(value);
+              }
+            }}
+            items={[
+              { children: "DEFCON", value: "defcon" },
+              { children: "Alphabetical", value: "alphabetical" },
+            ]}
+          />
+        </Flex>
       </Flex>
     </Flex>
   );

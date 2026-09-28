@@ -24,8 +24,14 @@ describe("useValueFormatter", () => {
     expect(result.current.formatValue(123)).toBe("123");
   });
 
-  it("formats objects and other types via String()", () => {
-    expect(result.current.formatValue({ a: 1 })).toBe("[object Object]");
+  it("formats objects as compact JSON (not '[object Object]')", () => {
+    expect(result.current.formatValue({ a: 1 })).toBe('{"a":1}');
+    expect(result.current.formatValue({ include: ["probes.dan"] })).toBe(
+      '{"include":["probes.dan"]}',
+    );
+  });
+
+  it("formats other primitives via String()", () => {
     expect(result.current.formatValue(Symbol("x"))).toBe("Symbol(x)");
   });
 });

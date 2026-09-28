@@ -10,6 +10,8 @@
 # check comment assignment
 # check dc assignment
 
+from pathlib import Path
+
 import pytest
 
 import garak.analyze
@@ -42,6 +44,22 @@ def test_constructor_with_missing_file():
     assert isinstance(c._data, dict)
     assert c._data == {}
     assert c.metadata is None
+
+    c = garak.analyze.calibration.Calibration(Path("akshjdfiojavpoij"))
+    assert c.calibration_successfully_loaded == False
+    assert isinstance(c._data, dict)
+    assert c._data == {}
+    assert c.metadata is None
+
+
+def test_constructor_with_path():
+    c = garak.analyze.calibration.Calibration(
+        Path("garak/data/calibration/calibration.json")
+    )
+    assert c.calibration_successfully_loaded == True
+    assert isinstance(c._data, dict)
+    assert len(c._data) > 0
+    assert isinstance(c.metadata, dict)
 
 
 def test_lookup():

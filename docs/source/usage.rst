@@ -15,8 +15,8 @@ You can list the probes by running the following command:
 
 You can limit the probes to run by specifying more arguments.
 
-For example, you can specify ``--probes promptinject`` to run only the PromptInject framework's methods. for example.
-You can also specify specific probes instead of a probe family such as ``--probes lmrc.SlurUsage`` to probe a model for generating slurs based on the Language Model Risk Cards framework.
+For example, you can specify ``--spec probes.promptinject`` to run only the PromptInject framework's methods.
+You can also specify specific probes instead of a probe family such as ``--spec probes.lmrc.SlurUsage`` to probe a model for generating slurs based on the Language Model Risk Cards framework.
 
 Running a Scan
 --------------
@@ -37,11 +37,11 @@ Probe a commercial model for encoding-based prompt injection (OSX/\*nix) (replac
 .. code-block:: console
 
     export OPENAI_API_KEY="sk-123XXXXXXXXXXXX"
-    garak --target_type openai --target_name gpt-5-nano --probes encoding
+    garak --target_type openai --target_name gpt-5-nano --spec probes.encoding
 
 
 Determine if the Hugging Face version of GPT2 is vulnerable to DAN 11.0:
 
 .. code-block:: console
 
-    garak --target_type huggingface --target_name gpt2 --probes dan.Dan_11_0
+    garak --target_type huggingface --target_name gpt2 --spec probes.dan.Dan_11_0

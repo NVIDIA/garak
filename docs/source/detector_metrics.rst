@@ -89,7 +89,7 @@ Accessing Detector Metrics
 
 Detector evaluation metrics are stored in a JSON file located at::
 
-    data/detectors-eval/detector_metrics_summary.json
+    data/detectors_eval/detector_metrics_summary.json
 
 This file is updated when detector evaluations are performed against labeled benchmark datasets.
 

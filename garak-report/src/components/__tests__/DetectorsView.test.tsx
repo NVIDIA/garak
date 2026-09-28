@@ -130,12 +130,32 @@ describe("DetectorsView", () => {
         probe_severity: 4,
         probe_descr: "Test",
         probe_tier: 1,
-        prompt_count: 100,
+        probe_counts: { 
+          inference_counts: { total_evaluated: 100, nones: 0 },
+          detection_counts: { detectors:[ "test.Detector"], passed: 100, fails: 0, nones: 0},
+        },
       },
     });
     render(<DetectorsView probe={probe} />);
 
     expect(screen.getByText(/100.*prompts/)).toBeInTheDocument();
+  });
+
+  it("falls back to a detector's evaluation total when probe_counts is absent", () => {
+    const probe = createMockProbe({
+      summary: {
+        probe_name: "test.Probe",
+        probe_score: 0.85,
+        probe_severity: 4,
+        probe_descr: "Test",
+        probe_tier: 1,
+        // probe_counts omitted (older report predating the digest field)
+      },
+      detectors: [createMockDetector({ total_evaluated: 250 })],
+    });
+    render(<DetectorsView probe={probe} />);
+
+    expect(screen.getByText(/250.*prompts/)).toBeInTheDocument();
   });
 
   it("renders DEFCON badge with correct level", () => {

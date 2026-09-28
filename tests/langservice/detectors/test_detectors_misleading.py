@@ -9,7 +9,7 @@ from garak.detectors.base import HFDetector
 
 
 def reverse_translate(attempt: Attempt) -> Attempt:
-    from garak.langservice import _load_langprovider
+    from garak.services.langservice import _load_langprovider
 
     langprovider_config = {
         "language": "ja,en",

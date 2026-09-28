@@ -1,0 +1,2 @@
+.txt stubs should have one stub per line. They don't support multiline content.
+Here's a new, second same stub.

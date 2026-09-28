@@ -1,5 +1,6 @@
 import datetime
 import json
+import logging
 import ssl
 from unittest.mock import MagicMock, patch
 
@@ -104,6 +105,111 @@ def test_json_rest_deeper(requests_mock):
     conv = Conversation([Turn("user", Message("Who is Enabran Tain's son?"))])
     output = generator._call_model(conv)
     assert output == [Message(DEFAULT_TEXT_RESPONSE)]
+
+
+NESTED_RESPONSE = json.dumps(
+    {"message": {"role": "assistant", "content": DEFAULT_TEXT_RESPONSE}},
+    ensure_ascii=False,
+)
+
+DEFAULT_JSON_RESPONSE = json.dumps({"text": DEFAULT_TEXT_RESPONSE}, ensure_ascii=False)
+
+CONVERSATION = Conversation([Turn("user", Message("Who is Enabran Tain's son?"))])
+
+
+@pytest.mark.usefixtures("set_rest_config")
+def test_json_rest_dict_field_aborts_before_any_success(requests_mock):
+    """A response_json_field that resolves to a dict rather than text, before any
+    generation has been extracted, means the field cannot address this endpoint's
+    responses at all: abort rather than spend inference on an empty report. The
+    old behaviour was an opaque AttributeError downstream in a detector
+    ("'dict' object has no attribute 'lower'"). See issue #1888."""
+    requests_mock.post(DEFAULT_URI, text=NESTED_RESPONSE)
+    _config.plugins.generators["rest"]["RestGenerator"]["response_json"] = True
+    _config.plugins.generators["rest"]["RestGenerator"][
+        "response_json_field"
+    ] = "message"
+    generator = RestGenerator()
+    with pytest.raises(BadGeneratorException) as exc_info:
+        generator._call_model(CONVERSATION)
+    assert "response_json_field" in str(exc_info.value)
+    assert "dict" in str(exc_info.value)
+
+
+@pytest.mark.usefixtures("set_rest_config")
+def test_json_rest_jsonpath_dict_aborts_before_any_success(requests_mock):
+    """A JSONPath response_json_field resolving to a dict is the same
+    misconfiguration and aborts the same way."""
+    requests_mock.post(DEFAULT_URI, text=NESTED_RESPONSE)
+    _config.plugins.generators["rest"]["RestGenerator"]["response_json"] = True
+    _config.plugins.generators["rest"]["RestGenerator"][
+        "response_json_field"
+    ] = "$.message"
+    generator = RestGenerator()
+    with pytest.raises(BadGeneratorException) as exc_info:
+        generator._call_model(CONVERSATION)
+    assert "response_json_field" in str(exc_info.value)
+
+
+@pytest.mark.usefixtures("set_rest_config")
+def test_json_rest_missing_field_aborts_before_any_success(requests_mock):
+    """A response_json_field absent from the response JSON aborts with an
+    actionable message rather than a bare KeyError."""
+    requests_mock.post(
+        DEFAULT_URI,
+        text=json.dumps({"unexpected": DEFAULT_TEXT_RESPONSE}, ensure_ascii=False),
+    )
+    _config.plugins.generators["rest"]["RestGenerator"]["response_json"] = True
+    _config.plugins.generators["rest"]["RestGenerator"]["response_json_field"] = "text"
+    generator = RestGenerator()
+    with pytest.raises(BadGeneratorException) as exc_info:
+        generator._call_model(CONVERSATION)
+    assert "response_json_field" in str(exc_info.value)
+
+
+@pytest.mark.usefixtures("set_rest_config")
+def test_json_rest_dict_field_skips_after_a_success(requests_mock, caplog):
+    """Once a generation has been extracted, response_json_field is known to
+    address this endpoint: a later response that does not match is a property of
+    that response, so log it and skip the generation, letting the run finish and
+    present a report."""
+    requests_mock.post(
+        DEFAULT_URI,
+        [{"text": DEFAULT_JSON_RESPONSE}, {"text": NESTED_RESPONSE}],
+    )
+    _config.plugins.generators["rest"]["RestGenerator"]["response_json"] = True
+    _config.plugins.generators["rest"]["RestGenerator"]["response_json_field"] = "text"
+    generator = RestGenerator()
+
+    assert generator._call_model(CONVERSATION) == [Message(DEFAULT_TEXT_RESPONSE)]
+
+    with caplog.at_level(logging.ERROR):
+        output = generator._call_model(CONVERSATION)
+    assert output == [None]
+    assert "response_json_field" in caplog.text
+
+
+@pytest.mark.usefixtures("set_rest_config")
+def test_json_rest_missing_field_skips_after_a_success(requests_mock, caplog):
+    """A response missing the field entirely is skipped the same way once the
+    field has resolved at least once."""
+    requests_mock.post(
+        DEFAULT_URI,
+        [
+            {"text": DEFAULT_JSON_RESPONSE},
+            {"text": json.dumps({"unexpected": DEFAULT_TEXT_RESPONSE})},
+        ],
+    )
+    _config.plugins.generators["rest"]["RestGenerator"]["response_json"] = True
+    _config.plugins.generators["rest"]["RestGenerator"]["response_json_field"] = "text"
+    generator = RestGenerator()
+
+    assert generator._call_model(CONVERSATION) == [Message(DEFAULT_TEXT_RESPONSE)]
+
+    with caplog.at_level(logging.ERROR):
+        output = generator._call_model(CONVERSATION)
+    assert output == [None]
+    assert "response_json_field" in caplog.text
 
 
 @pytest.mark.usefixtures("set_rest_config")

@@ -24,11 +24,14 @@ class AudioAchillesHeel(garak.probes.Probe):
     """
 
     lang = "en"
+    intent = "T009ignore"  # uses the audio channel to make the model disregard its existing system behavior
+    # M007 is a secondary fit because the weakness depends on multimodal input handling.
     primary_detector = "mitigation.MitigationBypass"
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
         "quality:Security:PromptStability",
+        "demon:Language:Code_and_encode:Data_presentation",  # switches to audio modality to bypass text-based alignment
     ]
     goal = "disregard the system prompt via audio component"
     tier = garak.probes.Tier.UNLISTED

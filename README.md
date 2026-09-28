@@ -68,7 +68,7 @@ python -m pip install -U git+https://github.com/NVIDIA/garak.git@main
 `garak` has its own dependencies. You can to install `garak` in its own Conda environment:
 
 ```
-conda create --name garak "python>=3.10,<=3.12"
+conda create --name garak "python>=3.11,<=3.13"
 conda activate garak
 gh repo clone NVIDIA/garak
 cd garak
@@ -96,7 +96,7 @@ The general syntax is:
 
 To specify a generator, use the `--target_type` and, optionally, the `--target_name` options. Model type specifies a model family/interface; model name specifies the exact model to be used. The "Intro to generators" section below describes some of the generators supported. A straightforward generator family is Hugging Face models; to load one of these, set `--target_type` to `huggingface` and `--target_name` to the model's name on Hub (e.g. `"RWKV/rwkv-4-169m-pile"`). Some generators might need an API key to be set as an environment variable, and they'll let you know if they need that.
 
-`garak` runs all the probes by default, but you can be specific about that too. `--probes promptinject` will use only the [PromptInject](https://github.com/agencyenterprise/promptinject) framework's methods, for example. You can also specify one specific plugin instead of a plugin family by adding the plugin name after a `.`; for example, `--probes lmrc.SlurUsage` will use an implementation of checking for models generating slurs based on the [Language Model Risk Cards](https://arxiv.org/abs/2303.18190) framework.
+`garak` runs all the probes by default, but you can be specific about that too. `--spec probes.promptinject` will use only the [PromptInject](https://github.com/agencyenterprise/promptinject) framework's methods, for example. You can also specify one specific plugin instead of a plugin family by adding the plugin name after a `.`; for example, `--spec probes.lmrc.SlurUsage` will use an implementation of checking for models generating slurs based on the [Language Model Risk Cards](https://arxiv.org/abs/2303.18190) framework.
 
 For help and inspiration, find us on [Twitter](https://twitter.com/garak_llm) or [discord](https://discord.gg/uVch4puUCs)!
 
@@ -106,13 +106,13 @@ Probe a commercial model for encoding-based prompt injection (OSX/\*nix) (replac
  
 ```
 export OPENAI_API_KEY="sk-123XXXXXXXXXXXX"
-python3 -m garak --target_type openai --target_name gpt-5-nano --probes encoding
+python3 -m garak --target_type openai --target_name gpt-5-nano --spec probes.encoding
 ```
 
 See if the Hugging Face version of GPT2 is vulnerable to DAN 11.0
 
 ```
-python3 -m garak --target_type huggingface --target_name gpt2 --probes dan.Dan_11_0
+python3 -m garak --target_type huggingface --target_name gpt2 --spec probes.dan.Dan_11_0
 ```
 
 
@@ -219,7 +219,7 @@ Example usage:
 ```
 export BEDROCK_API_KEY="your-api-key"
 export BEDROCK_REGION="us-east-1"
-garak --target_type bedrock --target_name claude-3-sonnet --probes dan
+garak --target_type bedrock --target_name claude-3-sonnet --spec probes.dan
 ```
 
 ### Test

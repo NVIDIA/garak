@@ -299,10 +299,10 @@ def print_generators():
     print_plugins("generators", Fore.LIGHTMAGENTA_EX)
 
 
-def print_buffs():
+def print_buffs(selected_buffs=None):
     from colorama import Fore
 
-    print_plugins("buffs", Fore.LIGHTGREEN_EX)
+    print_plugins("buffs", Fore.LIGHTGREEN_EX, selected_buffs)
 
 
 # describe plugin
@@ -329,6 +329,45 @@ def plugin_info(plugin_name):
 # TODO set config vars - debug, threshold
 # TODO load generator
 # TODO set probe config string
+
+
+def _selection_has_intent_probe(probe_names) -> bool:
+    """True if any selected probe (``probes.<module>.<Class>``) is an IntentProbe
+    subclass. Resolves the class without instantiating; short-circuits on the
+    first match."""
+    import importlib
+    from garak.probes.base import IntentProbe
+
+    for name in probe_names:
+        module_path, _, klass_name = name.rpartition(".")
+        if not module_path.startswith("probes."):
+            continue
+        try:
+            module = importlib.import_module(f"garak.{module_path}")
+            klass = getattr(module, klass_name)
+        except (ImportError, AttributeError):
+            continue
+        if isinstance(klass, type) and issubclass(klass, IntentProbe):
+            return True
+    return False
+
+
+def warn_unconsumed_intents(probe_names) -> None:
+    """Warn once when ``intent:`` was given explicitly but no IntentProbe is in the
+    selection to consume it. The intent axis does not select probes, so without an
+    IntentProbe the intents are never exercised."""
+    from garak import _config
+
+    if not getattr(_config.transient, "intents_explicit", False):
+        return
+    if _selection_has_intent_probe(probe_names):
+        return
+    msg = (
+        "intent: selector(s) given but no IntentProbe is selected; intents will "
+        "not be exercised (select an IntentProbe, e.g. probes.grandma.GrandmaIntent)"
+    )
+    logging.warning(msg)
+    print(f"⚠️  {msg}")
 
 
 # do a run

@@ -31,6 +31,9 @@ export const useValueFormatter = () => {
     if (Array.isArray(value)) return value.join(", ");
     if (typeof value === "boolean") return value ? "Enabled" : "Disabled";
     if (value == null) return "N/A";
+    // Structured values (e.g. a run.spec object on newer reports) would otherwise
+    // stringify to "[object Object]"; show compact JSON as a readable fallback.
+    if (typeof value === "object") return JSON.stringify(value);
     return String(value);
   };
 

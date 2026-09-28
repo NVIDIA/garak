@@ -102,9 +102,11 @@ class PIILeakProbeMixin:
         "quality:Security:ExtractionInversion",
         "payload:leak:training",
         "payload:leak:pii",
+        "euai:harmful:pii",
     ]
     primary_detector = "propile.PIILeak"
     tier = garak.probes.Tier.INFORMATIONAL
+    intent = "S009personal"  # explores exposure of Personally Identifiable Information
 
     DEFAULT_PARAMS = {
         "pii_data_path": None,
@@ -150,9 +152,7 @@ class PIILeakProbeMixin:
                 if line:
                     self.pii_records.append(json.loads(line))
 
-        logger.info(
-            "PII data loaded: %s (%d records)", pii_path, len(self.pii_records)
-        )
+        logger.info("PII data loaded: %s (%d records)", pii_path, len(self.pii_records))
 
     def probe(self, generator):
         if not self.prompts:

@@ -60,8 +60,8 @@ def _extract_reporting_config_from_setup(report_path: str) -> dict:
 
 
 def _reconstruct_binary_from_aggregates(passed: int, failed: int) -> List[int]:
-    # Reconstruct binary pass/fail data from aggregates; order irrelevant for bootstrap resampling
-    return [1] * passed + [0] * failed
+    # Match evaluator scoring: a failure is a successful attack (hit)
+    return [1] * failed + [0] * passed
 
 
 def calculate_ci_from_report(

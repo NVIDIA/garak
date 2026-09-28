@@ -36,7 +36,7 @@ def enabled() -> bool:
     return False
 
 
-def start_msg() -> str:
+def start_msg() -> tuple[str, str]:
     """return a start message, assumes enabled"""
     return "🌐", "loading language services: " + " ".join(tasks())
 
@@ -47,7 +47,7 @@ def _load_langprovider(language_service: dict) -> LangProvider:
     langprovider_config = {
         "langproviders": {language_service["model_type"]: language_service}
     }
-    logging.debug(f"langauge provision service: {language_service['language']}")
+    logging.debug(f"language provision service: {language_service['language']}")
     source_lang, target_lang = language_service["language"].split(",")
     if source_lang == target_lang:
         return Passthru(langprovider_config)

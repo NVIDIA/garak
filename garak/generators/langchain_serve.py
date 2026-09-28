@@ -63,6 +63,27 @@ class LangChainServeLLMGenerator(Generator):
             logging.error(f"URL parsing error: {e}")
             return False
 
+    @staticmethod
+    def _extract_output_text(output) -> Union[str, None]:
+        """Extract the response text from a LangServe ``/invoke`` ``output`` value.
+
+        LangServe returns the runnable's output directly under ``output``: a
+        ``str`` for string/LLM chains, or a serialised message for chat models.
+        Messages are serialised either flat (``{"content": ...}``) or via
+        LangChain's constructor form (``{"kwargs": {"content": ...}}``). Any
+        other shape is unexpected and returns ``None`` so the caller records a
+        miss instead of emitting a stringified object.
+        """
+        if isinstance(output, str):
+            return output
+        if isinstance(output, dict):
+            content = output.get("content")
+            if content is None and isinstance(output.get("kwargs"), dict):
+                content = output["kwargs"].get("content")
+            if isinstance(content, str):
+                return content
+        return None
+
     def _call_model(
         self, prompt: Conversation, generations_this_call: int = -1
     ) -> List[Union[Message, None]]:
@@ -95,7 +116,14 @@ class LangChainServeLLMGenerator(Generator):
             if "output" not in response_data:
                 logging.error(f"No output found in response: {response_data}")
                 return [None]
-            return [Message(response_data.get("output")[0])]
+            text = self._extract_output_text(response_data["output"])
+            if text is None:
+                logging.error(
+                    f"Unexpected LangServe output shape for prompt {prompt_text}: "
+                    f"{response_data['output']!r}"
+                )
+                return [None]
+            return [Message(text)]
         except json.JSONDecodeError as e:
             logging.error(
                 f"Failed to decode JSON from response: {response.text}, error: {e}"

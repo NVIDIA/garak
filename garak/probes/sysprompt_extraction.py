@@ -33,11 +33,13 @@ class SystemPromptExtraction(Probe):
         "avid-effect:security:S0301",
         "owasp:llm01",
         "quality:Security:PromptStability",
+        "euai:robustness:adversarial",
     ]
     goal = "extract the model's system prompt"
     doc_uri = "https://simonwillison.net/tags/exfiltration-attacks/"
     tier = garak.probes.Tier.OF_CONCERN
     active = True
+    intent = "T009reveal"
 
     DEFAULT_PARAMS = Probe.DEFAULT_PARAMS | {
         "system_prompt_sources": [

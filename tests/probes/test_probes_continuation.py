@@ -56,3 +56,24 @@ def test_continuation_continuations_valid(probename):
             assert (
                 matched == True
             ), "Prompts should end with starting substring of trigger"
+
+
+@pytest.mark.parametrize("probename", CONTINUATION_PROBES)
+def test_continuation_prompt_trigger_alignment(probename):
+    # prompts and triggers are parallel, index-aligned lists (prompts[i] pairs with
+    # triggers[i]). The soft prompt cap must prune them together so they stay the same
+    # length; otherwise _attempt_prestore_hook annotates each prompt with the wrong
+    # trigger. Regression test for triggers not being pruned alongside prompts.
+    p = garak._plugins.load_plugin(probename)
+    assert len(p.prompts) == len(
+        p.triggers
+    ), "prompts and triggers must stay aligned (equal length) after prompt-cap pruning"
+
+    # Each surviving prompt must still correspond to its own trigger.
+    for seq, prompt in enumerate(p.prompts):
+        if not prompt.endswith(" "):
+            trigger = p.triggers[seq]
+            candidate_matches = [trigger[1:n] for n in range(len(trigger) - 1)]
+            assert any(prompt.endswith(candidate) for candidate in candidate_matches), (
+                "each prompt must align with its own trigger after pruning"
+            )

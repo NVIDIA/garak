@@ -49,4 +49,5 @@ export { useProbeChartOptions } from "./useProbeChartOptions";
 export type { EnrichedProbeData } from "./useProbeChartOptions";
 export { useDetectorChartOptions } from "./useDetectorChartOptions";
 export type { DetectorChartOptionsResult } from "./useDetectorChartOptions";
+export { useTaxonomyCellChartOptions } from "./useTaxonomyCellChartOptions";
 

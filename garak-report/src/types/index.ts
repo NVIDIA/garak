@@ -14,7 +14,15 @@
  */
 
 // Core report types
-export type { ReportEntry, CalibrationData, ReportDetailsProps } from "./ReportEntry";
+export type {
+  ReportEntry,
+  CalibrationData,
+  ReportDetailsProps,
+  TechniqueIntentCell,
+  TechniqueIntentRow,
+  TechniqueIntentRowSummary,
+  TechniqueIntentMatrix,
+} from "./ReportEntry";
 
 // Eval data types (nested report structure)
 export type {

@@ -48,8 +48,27 @@ function injectExampleData() {
 
 // Base Vite config
 const viteConfig: UserConfig = viteDefineConfig({
-  plugins: [react(), injectExampleData(), viteSingleFile(), tailwindcss(), svgr()],
+  plugins: [
+    react(),
+    injectExampleData(),
+    // Single-file inlining is build-only. Its `config` hook sets `base: "./"`,
+    // which breaks the HMR client during `vite dev` (live edits never apply).
+    // Keep it out of the dev server so HMR works.
+    ...(isBuild ? [viteSingleFile()] : []),
+    tailwindcss(),
+    svgr(),
+  ],
   publicDir: isBuild ? false : "public",
+  // macOS fsevents watchers can silently die (e.g. after the machine sleeps),
+  // leaving HMR dead and the dev server serving stale modules. Polling is a bit
+  // heavier but detects source changes reliably. Dev-only; ignores heavy dirs.
+  server: {
+    watch: {
+      usePolling: true,
+      interval: 250,
+      ignored: ["**/node_modules/**", "**/public/reports/**", "**/.git/**"],
+    },
+  },
   build: {
     outDir: isExampleBuild ? "dist" : "../garak/analyze/ui",
     assetsInlineLimit: Infinity,

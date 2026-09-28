@@ -101,7 +101,7 @@ def test_parse_report_captures_plugin_cache_entries_and_merges():
         )
     )
 
-    *_, plugin_cache = report_digest._parse_report(report)
+    *_, plugin_cache, probe_summaries = report_digest._parse_report(report)
 
     assert set(plugin_cache["probes"]) == {
         "probes.test.Blank",
@@ -152,7 +152,7 @@ def test_parse_report_uses_live_cache_for_legacy_reports(mocker):
         )
     )
 
-    *_, plugin_cache = report_digest._parse_report(report)
+    *_, plugin_cache, probe_summries = report_digest._parse_report(report)
 
     assert plugin_cache["version"] == garak.__version__
     assert (
