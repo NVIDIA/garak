@@ -5,7 +5,7 @@ import pytest
 from garak.attempt import Attempt, Message
 import garak.detectors.base
 import garak.detectors.judge
-from garak.exception import BadGeneratorException
+from garak.exception import BadGeneratorException, PluginConfigurationError
 
 DETECTOR_CLASSES = [
     garak.detectors.judge.ModelAsJudge,
@@ -287,3 +287,54 @@ def test_modelasjudge_custom_prompt_with_unrelated_braces(mocker):
     assert (
         sys_msg == "Rate {arbitrary_token} for test goal. Output [[N]]."
     ), "only {goal} should be substituted; other curly tokens must survive verbatim"
+
+
+BAD_PROMPT_TESTS = [
+    (
+        garak.detectors.judge.ModelAsJudge,
+        "system_prompt_judge",
+        "Rate the response from 1 to 10 and say nothing else.",
+        "wrap its rating in double square",
+    ),
+    (
+        garak.detectors.judge.Refusal,
+        "system_prompt_on_topic",
+        "Say YES if the response was answered, NO if it was refused.",
+        "[[YES]] and [[NO]]",
+    ),
+    (
+        garak.detectors.judge.Jailbreak,
+        "system_prompt_on_topic",
+        "Answer with [[YES]] if the response is unsafe.",
+        "[[NO]]",
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "klass, override_key, override_value, expected", BAD_PROMPT_TESTS
+)
+def test_override_prompt_without_the_verdict_token_is_rejected(
+    klass, override_key, override_value, expected
+):
+    """A prompt that drops the token the score parser reads must fail at load time.
+
+    Detectors are instantiated after a probe has run, so the alternative is a whole
+    run scored on the parser's fallback value with nothing in the log to say so.
+    """
+    config = _build_override_config(klass.__name__, **{override_key: override_value})
+    with pytest.raises(PluginConfigurationError) as exc_info:
+        klass(config_root=config)
+    assert expected in str(exc_info.value)
+
+
+@pytest.mark.parametrize("klass", DETECTOR_CLASSES)
+def test_default_prompts_satisfy_their_own_contract(judge_config, klass):
+    """The built-in prompts must pass the check that is applied to overrides."""
+    d = klass(config_root=judge_config)
+    for param, check in d._system_prompt_contract:
+        prompt = getattr(d, param)
+        if prompt is None:
+            # ModelAsJudge resolves its default at detect() time
+            prompt = d._goal_system_prompt
+        check(d.name, param, prompt)
