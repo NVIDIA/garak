@@ -57,12 +57,9 @@ class LRLBuff(Buff):
         attempt.notes["original_responses"] = [
             msg.text for msg in outputs
         ]  # serialise-friendly
-        translated_outputs = list()
         for output in outputs:
+            output.notes["raw_response_text"] = output.text
             response = deepl_translator.translate_text(output.text, target_lang="EN-US")
-            translated_output = response.text
-            translated_outputs.append(
-                garak.attempt.Message(translated_output, lang="en")
-            )
-        attempt._replace_last_turn("assistant", translated_outputs)
+            output.text = response.text
+            output.lang = "en"
         return attempt

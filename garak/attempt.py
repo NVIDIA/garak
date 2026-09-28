@@ -456,21 +456,3 @@ class Attempt:
             "Conversation turn role must be one of '%s', got '%s'"
             % ("'/'".join(roles), role)
         )
-
-    def _replace_last_turn(self, role: str, contents: List[Message]) -> None:
-        if len(contents) != len(self.conversations):
-            raise ValueError(
-                "Message history misalignment in attempt uuid %s: tried to replace %d items in %d message histories"
-                % (str(self.uuid), len(contents), len(self.conversations))
-            )
-
-        for idx, content in enumerate(contents):
-            for turn in reversed(self.conversations[idx].turns):
-                if turn.role == role:
-                    turn.content = content
-                    break
-            else:
-                raise ValueError(
-                    "No '%s' turn to replace in message history %d of attempt uuid %s"
-                    % (role, idx, str(self.uuid))
-                )

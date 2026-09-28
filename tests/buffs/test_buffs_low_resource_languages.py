@@ -31,12 +31,19 @@ def test_untransform_replaces_generated_turns(buff, generations):
 
     assert all(
         len(c.turns) == 2 for c in a.conversations
-    ), "untransform should replace the generated turn, not add one"
+    ), "untransform should translate the generated turn in place, not add one"
     assert [m.text for m in a.outputs] == [
         f"[EN-US] saladus {i}" for i in range(generations)
     ]
+    assert all(m.lang == "en" for m in a.outputs)
+    assert [m.notes["raw_response_text"] for m in a.outputs] == [
+        f"saladus {i}" for i in range(generations)
+    ]
     assert a.all_outputs == a.outputs
     assert a.notes["original_responses"] == [f"saladus {i}" for i in range(generations)]
+    assert a.as_dict()["conversations"][0]["turns"][-1]["content"]["text"] == (
+        "[EN-US] saladus 0"
+    ), "the serialised transcript should carry the translated text"
 
 
 def test_untransform_preserves_prior_turns(buff):
