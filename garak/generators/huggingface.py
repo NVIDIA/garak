@@ -48,7 +48,6 @@ class Pipeline(Generator, HFCompatible):
 
     DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
         "hf_args": {
-            "torch_dtype": "float16",
             "do_sample": True,
             "device": None,
         },
@@ -520,7 +519,6 @@ class LLaVA(Generator, HFCompatible):
         # "exist_tokens + max_new_tokens < 4K is the golden rule."
         # https://github.com/haotian-liu/LLaVA/issues/1095#:~:text=Conceptually%2C%20as%20long%20as%20the%20total%20tokens%20are%20within%204K%2C%20it%20would%20be%20fine%2C%20so%20exist_tokens%20%2B%20max_new_tokens%20%3C%204K%20is%20the%20golden%20rule.
         "hf_args": {
-            "torch_dtype": "float16",
             "low_cpu_mem_usage": True,
             "device_map": "auto",
         },

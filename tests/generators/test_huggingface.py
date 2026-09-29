@@ -1,5 +1,6 @@
 import pytest
 import requests
+import torch
 import transformers
 
 from garak.attempt import Message, Turn, Conversation
@@ -181,3 +182,15 @@ def test_select_hf_device():
     m = mockHF("device_map", "auto")
     device = m._select_hf_device()
     assert isinstance(device, torch.device)
+
+
+@pytest.mark.parametrize("generator_class", ["Pipeline", "Model"])
+def test_torch_dtype_reaches_loaded_weights(hf_generator_config, generator_class):
+    hf_generator_config.generators["huggingface"]["hf_args"]["torch_dtype"] = "float16"
+    g = getattr(garak.generators.huggingface, generator_class)(
+        "gpt2", config_root=hf_generator_config
+    )
+    model = g.generator.model if generator_class == "Pipeline" else g.model
+    assert (
+        model.dtype == torch.float16
+    ), "hf_args torch_dtype should set the dtype of the loaded weights"
