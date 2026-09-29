@@ -455,12 +455,15 @@ class AgentBreakerChainResult(Detector):
             parsed = json.loads(
                 judgement, object_pairs_hook=cls._object_without_duplicate_keys
             )
-        except (json.JSONDecodeError, TypeError, ValueError):
+        except (json.JSONDecodeError, RecursionError, TypeError, ValueError):
             return None
 
         if not isinstance(parsed, dict) or set(parsed) != cls._EXPECTED_FIELDS:
             return None
-        if parsed["verdict"] not in cls._VERDICTS:
+        if (
+            not isinstance(parsed["verdict"], str)
+            or parsed["verdict"] not in cls._VERDICTS
+        ):
             return None
         if not all(
             isinstance(parsed[field], str) for field in ("effect", "evidence", "reason")
@@ -471,8 +474,8 @@ class AgentBreakerChainResult(Detector):
         if (
             isinstance(confidence, bool)
             or not isinstance(confidence, (int, float))
-            or not math.isfinite(confidence)
             or not 0.0 <= confidence <= 1.0
+            or not math.isfinite(confidence)
         ):
             return None
 

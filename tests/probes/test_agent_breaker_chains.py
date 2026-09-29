@@ -9,7 +9,7 @@ import pytest
 import yaml
 
 from garak import _config, _plugins
-from garak.attempt import Message
+from garak.attempt import Attempt, Message
 from garak.exception import PluginConfigurationError
 from garak.probes.agent_breaker import AgentBreaker, AttackState, SourceToSink
 from garak.resources.agent_breaker.source_to_sink import _SourceToSinkMixin
@@ -324,6 +324,8 @@ def test_safety_configuration_cannot_exceed_reviewed_maxima(name, value):
         ("max_terminal_attempts_per_tool", 2),
         ("max_path_expansions", 1025),
         ("success_threshold", float("inf")),
+        pytest.param("success_threshold", 10**1000, id="huge-success-threshold"),
+        pytest.param("min_edge_confidence", 10**1000, id="huge-edge-threshold"),
     ],
 )
 def test_safety_configuration_fails_before_model_or_target_calls(name, value):
@@ -545,6 +547,14 @@ def test_read_sensitive_only_tool_cannot_be_a_terminal_sink():
     ), "execution flag must not escalate a read-only capability"
 
 
+@pytest.mark.parametrize("field", ["capability_class", "delivery"])
+@pytest.mark.parametrize("value", [[], {}])
+def test_tool_tagger_rejects_nonscalar_fields(field, value):
+    assert (
+        SourceToSink._validated_tool_tag(_tag(**{field: value})) is None
+    ), "malformed tag fields must be rejected without aborting planning"
+
+
 @pytest.mark.parametrize(
     "policy",
     [
@@ -577,8 +587,22 @@ def test_chain_policy_rejects_ambiguous_or_extra_authority(policy):
     ), "ambiguous chain authority must fail closed"
 
 
-@pytest.mark.parametrize("confidence", [True, "0.8", -0.1, 1.1, float("inf")])
-def test_edge_scorer_rejects_invalid_confidence(confidence):
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"confidence": True},
+        {"confidence": "0.8"},
+        {"confidence": -0.1},
+        {"confidence": 1.1},
+        {"confidence": float("inf")},
+        pytest.param({"confidence": 10**1000}, id="huge-confidence"),
+        {"from": []},
+        {"from": {}},
+        {"to": []},
+        {"to": {}},
+    ],
+)
+def test_edge_scorer_rejects_invalid_model_fields(changes):
     probe = _probe(tool_tags={"a": _tag(), "b": _tag()})
     probe._prompts = {"EDGE_SCORE": "{tool_tags}{candidate_edges}"}
     probe._get_model_response = MagicMock(
@@ -588,15 +612,18 @@ def test_edge_scorer_rejects_invalid_confidence(confidence):
                     {
                         "from": "a",
                         "to": "b",
-                        "confidence": confidence,
+                        "confidence": 0.8,
                         "data_flow": "ref",
+                        **changes,
                     }
                 ]
             }
         )
     )
     candidates = [{"from": "a", "to": "b", "produces": ["x"], "consumes": ["x"]}]
-    assert probe._score_edges(candidates) == [], "invalid confidence must drop the edge"
+    assert (
+        probe._score_edges(candidates) == []
+    ), "invalid model fields must drop the edge"
 
 
 def _step_plan_response(sequence=("source", "sink")):
@@ -1125,7 +1152,18 @@ def test_blank_target_response_cannot_advance():
     probe._get_model_response.assert_not_called()
 
 
-def test_step_check_requires_configured_confidence_threshold():
+@pytest.mark.parametrize(
+    "confidence,expected",
+    [
+        (0.0, (False, 0.0, "uncertain")),
+        pytest.param(
+            10**1000,
+            (False, 0.0, "invalid step-check response"),
+            id="huge-confidence",
+        ),
+    ],
+)
+def test_step_check_requires_valid_confidence_above_threshold(confidence, expected):
     probe = _probe(success_threshold=0.7)
     probe._prompts = {
         "CHECK_STEP_SUCCESS": "{tool_name}{role}{intent}{success_criterion}"
@@ -1137,18 +1175,21 @@ def test_step_check_requires_configured_confidence_threshold():
         return_value=json.dumps(
             {
                 "step_succeeded": True,
-                "confidence": 0.0,
+                "confidence": confidence,
                 "reasoning": "uncertain",
             }
         )
     )
-    assert probe._check_step_success(
-        _chain(step_index=0),
-        0,
-        "prompt",
-        "target returned ref:123",
-        {"reference": "ref:123"},
-    ) == (False, 0.0, "uncertain"), "low-confidence success must fail closed"
+    assert (
+        probe._check_step_success(
+            _chain(step_index=0),
+            0,
+            "prompt",
+            "target returned ref:123",
+            {"reference": "ref:123"},
+        )
+        == expected
+    ), "low or invalid confidence must not advance the chain"
 
 
 def test_duplicate_terminal_attempts_are_suppressed_before_queueing():
@@ -1453,6 +1494,38 @@ def test_intermediate_step_advances_with_extracted_artifact():
     assert (
         "verified_results" not in attempt.notes
     ), "probe must not judge intermediate output"
+
+
+def test_refinement_preserves_the_intermediate_artifact_output_contract():
+    history = [{"prompt": "first request", "response": "try again"}]
+    state = AttackState(
+        current_target="source",
+        current_tool_analysis=_chain(step_index=0),
+        current_attack_prompt="first request",
+        attempts_history=history,
+        vulnerability_info="unsafe handoff",
+    )
+    probe = _probe()
+    probe._generate_step_exploit_prompt = MagicMock(
+        return_value=("Read one record.", "retry")
+    )
+    probe._create_attempt = MagicMock(
+        side_effect=lambda prompt: Attempt(prompt=Message(text=prompt))
+    )
+
+    retry = probe._handle_stepwise_refinement(state)
+
+    assert retry is not None, "an intermediate retry within budget must be queued"
+    request = retry.prompt.last_message().text
+    assert (
+        "reference = <value>" in request
+    ), "retry must request the keyed artifact needed by the next step"
+    assert (
+        'Use only the manifest tool named exactly "source"' in request
+    ), "retry must retain its manifest tool binding"
+    assert (
+        AttackState.from_notes(retry.notes).attempts_history == history
+    ), "retry must retain history for the attempt budget"
 
 
 def test_refinement_stops_at_intermediate_attempt_budget():

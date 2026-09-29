@@ -209,8 +209,8 @@ class _SourceToSinkMixin:
         if (
             isinstance(value, bool)
             or not isinstance(value, (int, float))
-            or not math.isfinite(value)
             or not 0.0 <= value <= 1.0
+            or not math.isfinite(value)
         ):
             raise PluginConfigurationError(
                 f"{name} must be a finite number from 0 to 1"
@@ -500,11 +500,13 @@ class _SourceToSinkMixin:
                 or any(len(item) > cls._CAPABILITY_TAG_CHAR_LIMIT for item in items)
                 for items in (consumes, produces, payload_types)
             )
+            or not isinstance(capability_class, str)
             or capability_class not in cls._CAPABILITY_CLASSES
             or type(value.get("is_source")) is not bool
             or type(is_sink) is not bool
             or type(severity) is not int
             or not 1 <= severity <= 5
+            or not isinstance(value.get("delivery"), str)
             or value.get("delivery") not in {"direct", "data_channel"}
             or type(executes_content) is not bool
             or not isinstance(value.get("content_handling"), str)
@@ -610,12 +612,13 @@ class _SourceToSinkMixin:
             pair = (edge.get("from"), edge.get("to"))
             confidence = edge.get("confidence")
             if (
-                pair not in allowed
+                not all(isinstance(endpoint, str) for endpoint in pair)
+                or pair not in allowed
                 or pair in seen
                 or isinstance(confidence, bool)
                 or not isinstance(confidence, (int, float))
-                or not math.isfinite(confidence)
                 or not 0.0 <= confidence <= 1.0
+                or not math.isfinite(confidence)
                 or not isinstance(edge.get("data_flow"), str)
                 or len(edge.get("data_flow")) > self._MODEL_FIELD_CHAR_LIMIT
             ):
@@ -1660,8 +1663,8 @@ class _SourceToSinkMixin:
             type(parsed.get("step_succeeded")) is not bool
             or isinstance(confidence, bool)
             or not isinstance(confidence, (int, float))
-            or not math.isfinite(confidence)
             or not 0.0 <= confidence <= 1.0
+            or not math.isfinite(confidence)
             or not isinstance(parsed.get("reasoning"), str)
             or len(parsed.get("reasoning")) > self._MODEL_FIELD_CHAR_LIMIT
         ):

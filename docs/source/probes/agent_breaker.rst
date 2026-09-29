@@ -40,6 +40,55 @@ action, and does not queue a follow-up after receiving the terminal response.
    independently audit backend effects. Without that control, treat every probe
    request, including an intermediate request, as potentially side-effecting.
 
+.. _agent-breaker-chain-local-review:
+
+Local review without a target
+-----------------------------
+
+The focused tests use local fixtures and mocked model responses. They require
+no provider credentials, running agent server, GPU, containers, or elevated
+permissions. An external reproduction environment is not a prerequisite for
+reviewing this probe's control flow.
+
+For example, from the repository root on Linux or macOS with Python 3.12,
+create a virtual environment outside the checkout and install the test
+dependencies:
+
+.. code-block:: bash
+
+   python3.12 -m venv ../garak-review-venv
+   ../garak-review-venv/bin/python -m pip install -e '.[tests]'
+
+Dependency installation requires access to the configured package index.
+Keeping the environment outside the checkout also avoids dependency import
+guards treating installed packages as local source files. Once installed,
+run the focused suite from the repository root:
+
+.. code-block:: bash
+
+   ../garak-review-venv/bin/python -m pytest -q \
+     tests/probes/test_agent_breaker_chains.py \
+     tests/detectors/test_agent_breaker_chains.py
+
+The suite covers manifest policy validation, bounded planning, exact artifact
+handoffs, terminal request budgets, separation from Single, and the terminal
+detector's input and scoring contracts.
+
+For a small example of the execution lifecycle, select its dedicated test:
+
+.. code-block:: bash
+
+   ../garak-review-venv/bin/python -m pytest -q \
+     tests/probes/test_agent_breaker_chains.py::test_provider_free_probe_lifecycle_runs_one_handoff_and_one_terminal
+
+This test supplies a scripted in-memory target and stubs model-dependent
+planning, prompt generation, and artifact extraction. It checks that one
+intermediate request passes its artifact into one terminal request, that the
+terminal metadata survives postprocessing, and that the queue stops without
+replaying the terminal request. These checks validate implementation behaviour;
+they do not measure attack success, judge accuracy, target routing, or backend
+effects. Live findings need separate validation against an authorised sandbox.
+
 Operational requirements
 ------------------------
 

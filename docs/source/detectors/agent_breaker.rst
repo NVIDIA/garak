@@ -31,6 +31,13 @@ manifest tool named by the probe.
 Scores depend on the configured judge model. Validate the chosen judge on
 held-out responses before interpreting results.
 
+The :ref:`local review instructions <agent-breaker-chain-local-review>` run
+this detector's tests with a mocked judge and require no provider credentials
+or target server. They check verdict parsing, rejection of malformed responses,
+terminal eligibility, and the exact information passed to the judge. Passing
+these tests validates the scoring contract, not a real judge's accuracy or a
+backend state change.
+
 Configure this detector under its class name so its settings do not also apply
 to Single's detector:
 
