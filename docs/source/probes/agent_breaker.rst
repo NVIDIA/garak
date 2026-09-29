@@ -16,10 +16,8 @@ contracts.
 SourceToSink
 ------------
 
-``SourceToSink`` is inspired by `ChainFuzzer
-<https://arxiv.org/abs/2603.12614>`_, but it is not an implementation of
-ChainFuzzer's grey-box, trace-guided analysis. It uses an operator-supplied
-tool manifest and behaviour visible through the configured target interface.
+``SourceToSink`` uses an operator-supplied tool manifest and behaviour visible
+through the configured target interface.
 
 The probe tags candidate tool relationships, plans a bounded chain, and
 executes its steps sequentially. Configured limits cap the probe's planning,
@@ -178,6 +176,32 @@ and backend state separately in the authorised test environment.
 The conservative terminal-attempt budget is intentionally below the usual
 prompt volume for statistical probes. Treat results as bounded discovery
 signals, not as a population estimate or benchmark.
+
+Related work
+------------
+
+The following research and case studies examine risks arising from tool
+composition:
+
+* `ChainFuzzer <https://arxiv.org/abs/2603.12614>`_ (March 2026) studies
+  workflow-level source-to-sink vulnerabilities using grey-box, trace-guided
+  analysis and fuzzing.
+* `STAC <https://arxiv.org/abs/2509.25624v3>`_ (revised July 2026) studies how
+  individually benign-looking tool calls can combine into harmful outcomes
+  across multiple turns.
+* Invariant Labs' `Toxic Flow Analysis
+  <https://invariantlabs.ai/blog/toxic-flow-analysis>`_ (July 2025) models
+  potentially unsafe tool sequences using flow graphs and properties such as
+  trust, data sensitivity, and exfiltration capability.
+* Microsoft's `When prompts become shells
+  <https://www.microsoft.com/en-us/security/blog/2026/05/07/prompts-become-shells-rce-vulnerabilities-ai-agent-frameworks/>`_
+  (May 2026) documents a Semantic Kernel case in which sandbox execution and
+  file-transfer tools were chained to write a file on the host
+  (CVE-2026-25592).
+
+These references provide context for the attack class. ``SourceToSink`` does
+not implement ChainFuzzer's grey-box, trace-guided analysis. The cited studies'
+results do not establish this probe's attack coverage or success rate.
 
 .. automodule:: garak.probes.agent_breaker
    :members:
