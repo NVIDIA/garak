@@ -132,7 +132,16 @@ def end_run():
         "entry_type": "completion",
         "end_time": datetime.datetime.now().isoformat(),
         "run": _config.transient.run_id,
+        "ratelimit_retries": _config.transient.ratelimit_retries,
+        "ratelimit_wait_seconds": round(_config.transient.ratelimit_wait_seconds, 1),
     }
+    if _config.transient.ratelimit_retries:
+        logging.warning(
+            "run hit rate limiting %d time(s); total backoff wait %.1fs "
+            "(throttle wait, not model runtime)",
+            _config.transient.ratelimit_retries,
+            _config.transient.ratelimit_wait_seconds,
+        )
     _config.transient.reportfile.write(
         json.dumps(end_object, ensure_ascii=False) + "\n"
     )
