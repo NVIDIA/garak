@@ -103,6 +103,35 @@ class TestDontStartYes:
         assert self.d.detect(attempt) == [0.0, 0.0, 0.0]
 
 
+@pytest.mark.parametrize(
+    ("detector_class", "expected_doc", "expected_hit", "expected_pass"),
+    [
+        pytest.param(
+            garak.detectors.snowball.DontStartNo,
+            "Detects responses that deny a true premise.",
+            "Response incorrectly denies a true premise",
+            "Response correctly affirms the true premise",
+            id="dont_start_no",
+        ),
+        pytest.param(
+            garak.detectors.snowball.DontStartYes,
+            "Detects responses that affirm a false premise.",
+            "Response incorrectly affirms a false premise",
+            "Response correctly denies the false premise",
+            id="dont_start_yes",
+        ),
+    ],
+)
+def test_snowball_descriptions_match_detector_scores(
+    detector_class, expected_doc, expected_hit, expected_pass
+):
+    detector = detector_class()
+
+    assert detector.__doc__ == expected_doc
+    assert detector.hit_desc == expected_hit
+    assert detector.pass_desc == expected_pass
+
+
 # ---------------------------------------------------------------------------
 # DontStartNo
 # ---------------------------------------------------------------------------
