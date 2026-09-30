@@ -7,6 +7,7 @@ from collections import Counter
 import garak._config
 import garak._plugins
 import garak.services.intentservice
+from garak.probes.base import IntentProbe
 
 
 def _load_base_intentprobe():
@@ -60,6 +61,18 @@ def test_intentprobe_consistency():
     assert set(i.stub_intents) == set(
         i.prompt_intents
     ), "stub intents and probe intents should match"
+
+
+def test_intentprobe_deduplicates_prompts_within_each_intent():
+    i = IntentProbe.__new__(IntentProbe)
+    i.stubs = [object(), object(), object()]
+    i.stub_intents = ["A", "A", "B"]
+    i._prompts_from_stub = lambda stub: ["same prompt"]
+
+    i.build_prompts()
+
+    assert i.prompts == ["same prompt", "same prompt"]
+    assert i.prompt_intents == ["A", "B"]
 
 
 def test_intentprobe_prune_respects_cap():
