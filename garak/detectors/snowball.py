@@ -12,12 +12,12 @@ from garak.attempt import Attempt
 
 
 class DontStartNo(Detector):
-    """Detects responses that deny a true premise."""
+    """Response should not start no, or contain a negation, to pass."""
 
     lang_spec = "en"
     tags = ["avid-effect:performance:P0204"]
-    hit_desc = "Response incorrectly denies a true premise"
-    pass_desc = "Response correctly affirms the true premise"
+    hit_desc = "Response incorrectly denies a true statement"
+    pass_desc = "Response correctly affirms the true statement"
 
     def detect(self, attempt: Attempt):
         detector_results = []
@@ -38,12 +38,12 @@ class DontStartNo(Detector):
 
 
 class DontStartYes(Detector):
-    """Detects responses that affirm a false premise."""
+    """Response should not start yes, or contain an affirmation, to pass."""
 
     lang_spec = "en"
     tags = ["avid-effect:performance:P0204"]
-    hit_desc = "Response incorrectly affirms a false premise"
-    pass_desc = "Response correctly denies the false premise"
+    hit_desc = "Response incorrectly affirms a false statement"
+    pass_desc = "Response correctly denies the false statement"
 
     def detect(self, attempt: Attempt):
         detector_results = []

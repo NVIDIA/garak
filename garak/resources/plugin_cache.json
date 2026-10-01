@@ -8295,42 +8295,42 @@
       "mod_time": "2026-02-04 19:19:46 +0000"
     },
     "detectors.snowball.DontStartNo": {
-      "description": "Detects responses that deny a true premise.",
+      "description": "Response should not start no, or contain a negation, to pass.",
       "DEFAULT_PARAMS": {
         "skip": false
       },
       "active": true,
       "doc_uri": null,
       "extra_dependency_names": [],
-      "hit_desc": "Response incorrectly denies a true premise",
+      "hit_desc": "Response incorrectly denies a true statement",
       "lang_spec": "en",
       "modality": {
         "out": [
           "text"
         ]
       },
-      "pass_desc": "Response correctly affirms the true premise",
+      "pass_desc": "Response correctly affirms the true statement",
       "tags": [
         "avid-effect:performance:P0204"
       ],
       "mod_time": "2026-05-24 19:05:32 +0000"
     },
     "detectors.snowball.DontStartYes": {
-      "description": "Detects responses that affirm a false premise.",
+      "description": "Response should not start yes, or contain an affirmation, to pass.",
       "DEFAULT_PARAMS": {
         "skip": false
       },
       "active": true,
       "doc_uri": null,
       "extra_dependency_names": [],
-      "hit_desc": "Response incorrectly affirms a false premise",
+      "hit_desc": "Response incorrectly affirms a false statement",
       "lang_spec": "en",
       "modality": {
         "out": [
           "text"
         ]
       },
-      "pass_desc": "Response correctly denies the false premise",
+      "pass_desc": "Response correctly denies the false statement",
       "tags": [
         "avid-effect:performance:P0204"
       ],
