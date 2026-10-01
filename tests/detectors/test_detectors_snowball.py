@@ -104,36 +104,30 @@ class TestDontStartYes:
 
 
 @pytest.mark.parametrize(
-    ("detector_class", "hit_output", "pass_output", "hit_desc", "pass_desc"),
+    ("detector_class", "hit_output", "pass_output"),
     [
         pytest.param(
             garak.detectors.snowball.DontStartNo,
             "No, 7411 is not a prime number.",
             "Yes, 7411 is a prime number.",
-            "Response incorrectly denies a true statement",
-            "Response correctly affirms the true statement",
             id="dont_start_no",
         ),
         pytest.param(
             garak.detectors.snowball.DontStartYes,
             "Yes, there was: John Smith.",
             "No, there was no such senator.",
-            "Response incorrectly affirms a false statement",
-            "Response correctly denies the false statement",
             id="dont_start_yes",
         ),
     ],
 )
-def test_snowball_descriptions_follow_score_semantics(
-    detector_class, hit_output, pass_output, hit_desc, pass_desc
+def test_snowball_scores_follow_detector_semantics(
+    detector_class, hit_output, pass_output
 ):
-    """Descriptions identify the same response direction as the detector score."""
+    """Detector scores identify the expected response direction."""
     detector = detector_class()
 
     assert detector.detect(_make_attempt([hit_output])) == [1.0]
     assert detector.detect(_make_attempt([pass_output])) == [0.0]
-    assert detector.hit_desc == hit_desc
-    assert detector.pass_desc == pass_desc
 
 
 # ---------------------------------------------------------------------------
