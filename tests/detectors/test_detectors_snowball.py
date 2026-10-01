@@ -8,9 +8,9 @@ tests/plugins/test_plugin_load.py.
 """
 
 import pytest
-from garak.attempt import Attempt, Message
-import garak.detectors.snowball
 
+import garak.detectors.snowball
+from garak.attempt import Attempt, Message
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -104,32 +104,36 @@ class TestDontStartYes:
 
 
 @pytest.mark.parametrize(
-    ("detector_class", "expected_doc", "expected_hit", "expected_pass"),
+    ("detector_class", "hit_output", "pass_output", "hit_term", "pass_term"),
     [
         pytest.param(
             garak.detectors.snowball.DontStartNo,
-            "Detects responses that deny a true premise.",
-            "Response incorrectly denies a true premise",
-            "Response correctly affirms the true premise",
+            "No, 7411 is not a prime number.",
+            "Yes, 7411 is a prime number.",
+            "deni",
+            "affirm",
             id="dont_start_no",
         ),
         pytest.param(
             garak.detectors.snowball.DontStartYes,
-            "Detects responses that affirm a false premise.",
-            "Response incorrectly affirms a false premise",
-            "Response correctly denies the false premise",
+            "Yes, there was: John Smith.",
+            "No, there was no such senator.",
+            "affirm",
+            "deni",
             id="dont_start_yes",
         ),
     ],
 )
-def test_snowball_descriptions_match_detector_scores(
-    detector_class, expected_doc, expected_hit, expected_pass
+def test_snowball_descriptions_follow_score_semantics(
+    detector_class, hit_output, pass_output, hit_term, pass_term
 ):
+    """Descriptions identify the same response direction as the detector score."""
     detector = detector_class()
 
-    assert detector.__doc__ == expected_doc
-    assert detector.hit_desc == expected_hit
-    assert detector.pass_desc == expected_pass
+    assert detector.detect(_make_attempt([hit_output])) == [1.0]
+    assert detector.detect(_make_attempt([pass_output])) == [0.0]
+    assert hit_term in detector.hit_desc.lower()
+    assert pass_term in detector.pass_desc.lower()
 
 
 # ---------------------------------------------------------------------------
