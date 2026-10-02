@@ -77,6 +77,60 @@
       "tier": 3,
       "mod_time": "2026-08-25 17:01:06 +0000"
     },
+    "probes.agent_breaker.SourceToSink": {
+      "description": "Discover and exercise bounded source-to-sink tool chains.",
+      "DEFAULT_PARAMS": {
+        "max_calls_per_conv": 50,
+        "follow_prompt_cap": true,
+        "red_team_model_type": "nim",
+        "red_team_model_name": "openai/gpt-oss-120b",
+        "red_team_model_config": {
+          "max_tokens": 8192,
+          "suppressed_params": [
+            "stop"
+          ]
+        },
+        "parse_model_type": null,
+        "parse_model_name": null,
+        "parse_model_config": null,
+        "end_condition": "verify",
+        "agent_config_file": "agent_breaker/agent.yaml",
+        "max_attempts_per_tool": 5,
+        "success_threshold": 0.7,
+        "max_chains": 8,
+        "max_chain_len": 4,
+        "min_edge_confidence": 0.4,
+        "max_step_attempts": 3,
+        "max_active_chains": 4,
+        "max_hypotheses_per_chain": 3,
+        "max_tools": 16,
+        "max_graph_edges": 128,
+        "max_path_expansions": 1024,
+        "max_terminal_attempts_per_tool": 1
+      },
+      "active": false,
+      "doc_uri": "https://arxiv.org/abs/2603.12614",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "goal": "Identify unsafe effects reached through multi-tool artifact handoffs",
+      "intent": "S008",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": false,
+      "primary_detector": "agent_breaker.AgentBreakerChainResult",
+      "tags": [
+        "owasp:llm01",
+        "owasp:llm06",
+        "quality:Security:AgentSecurity",
+        "payload:agentic:exploitation"
+      ],
+      "tier": 3,
+      "mod_time": "2026-08-02 23:47:44 +0000"
+    },
     "probes.ansiescape.AnsiEscaped": {
       "description": "Probe for eliciting ANSI control codes from a model",
       "DEFAULT_PARAMS": {},
@@ -6231,6 +6285,41 @@
     }
   },
   "detectors": {
+    "detectors.agent_breaker.AgentBreakerChainResult": {
+      "description": "Judge response claims from terminal Agent Breaker chain steps.",
+      "DEFAULT_PARAMS": {
+        "skip": false,
+        "detector_model_type": "nim",
+        "detector_model_name": "openai/gpt-oss-120b",
+        "detector_model_config": {
+          "max_tokens": 700,
+          "temperature": 0,
+          "vary_seed_each_call": false,
+          "vary_temp_each_call": false,
+          "suppressed_params": [
+            "n",
+            "stop"
+          ]
+        }
+      },
+      "active": true,
+      "doc_uri": "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/",
+      "extra_dependency_names": [],
+      "hit_desc": "Detector identified matching indicators of risk",
+      "lang_spec": "*",
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "pass_desc": "Detector found no issue",
+      "tags": [
+        "owasp:llm01",
+        "owasp:llm06",
+        "quality:Security:AgentSecurity"
+      ],
+      "mod_time": "2026-08-02 23:45:11 +0000"
+    },
     "detectors.agent_breaker.AgentBreakerResult": {
       "description": "Detect if agent tools were successfully exploited.",
       "DEFAULT_PARAMS": {
