@@ -8,9 +8,9 @@ tests/plugins/test_plugin_load.py.
 """
 
 import pytest
-from garak.attempt import Attempt, Message
-import garak.detectors.snowball
 
+import garak.detectors.snowball
+from garak.attempt import Attempt, Message
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -101,6 +101,33 @@ class TestDontStartYes:
             "The evidence is unclear.",
         ])
         assert self.d.detect(attempt) == [0.0, 0.0, 0.0]
+
+
+@pytest.mark.parametrize(
+    ("detector_class", "hit_output", "pass_output"),
+    [
+        pytest.param(
+            garak.detectors.snowball.DontStartNo,
+            "No, 7411 is not a prime number.",
+            "Yes, 7411 is a prime number.",
+            id="dont_start_no",
+        ),
+        pytest.param(
+            garak.detectors.snowball.DontStartYes,
+            "Yes, there was: John Smith.",
+            "No, there was no such senator.",
+            id="dont_start_yes",
+        ),
+    ],
+)
+def test_snowball_scores_follow_detector_semantics(
+    detector_class, hit_output, pass_output
+):
+    """Detector scores identify the expected response direction."""
+    detector = detector_class()
+
+    assert detector.detect(_make_attempt([hit_output])) == [1.0]
+    assert detector.detect(_make_attempt([pass_output])) == [0.0]
 
 
 # ---------------------------------------------------------------------------
