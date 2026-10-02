@@ -68,6 +68,38 @@ def test_tbsa_value():
     assert tbsa == 1.0, "weighted mean of T1 1.0 and T2 1.0 should be 1.0"
 
 
+def test_tbsa_tier1_uses_min_of_absolute_and_relative_defcon():
+    """A tier-1 probe:detector pair with divergent absolute/relative defcons
+    should use min(relative, absolute), not fall through to a fixed branch.
+    `probe_detector` is the joined "probe+detector" key; `tiers[1]` only ever
+    contains bare probe names, so the membership check must strip the
+    detector suffix before comparing (mirrors the correct pattern already
+    used a few lines below, at the t1_dc/t2_dc list comprehensions)."""
+    digest = {
+        "meta": {"garak_version": "0.00.0.pre0"},
+        "eval": {
+            "ansiescape": {
+                "ansiescape.AnsiRaw": {
+                    "_summary": {"probe_tier": 1},
+                    "ansiescape.AnsiRaw": {
+                        "detector_name": "ansiescape.ansiRaw",
+                        "absolute_score": 0.9,
+                        "absolute_defcon": 2,
+                        "relative_score": 0.1,
+                        "relative_defcon": 5,
+                    },
+                },
+            },
+        },
+    }
+    tbsa, _, pd_count = garak.analyze.tbsa.digest_to_tbsa(digest)
+    assert pd_count == 1
+    assert tbsa == 2.0, (
+        "tier-1 pair should use min(relative_defcon=5, absolute_defcon=2) = 2, "
+        "not fall through to relative_defcon=5"
+    )
+
+
 def test_tbsa_value_t2_OK():
     t2_ok_digest = BASE_DIGEST
     t2_ok_digest["eval"]["topic"]["topic.WordnetControversial"][
