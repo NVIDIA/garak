@@ -78,14 +78,13 @@ def load_data_all_attacks(self, prompt_data):
             "id": (0, 1, 2, 3),
         },
     }
-    self.prompts = []
     self.pi_prompts = self.pi_build_prompts(prompt_config)
-    for pi_prompt in self.pi_prompts:
-        self.prompts.append(pi_prompt["prompt"])
     if self.max_prompts:
+        # sample pi_prompts, not just prompts, so seq indexes the same entry in both
         random.seed(self.seed)
-        random.shuffle(self.prompts)
-        self.prompts = self.prompts[-self.max_prompts :]
+        random.shuffle(self.pi_prompts)
+        self.pi_prompts = self.pi_prompts[-self.max_prompts :]
+    self.prompts = [pi_prompt["prompt"] for pi_prompt in self.pi_prompts]
 
 
 def _attempt_prestore_hook(self, attempt: Attempt, seq: int) -> Attempt:
