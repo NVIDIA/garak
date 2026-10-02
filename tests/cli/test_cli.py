@@ -6,6 +6,7 @@ import pytest
 import os
 
 from garak import __app__, __description__, __version__, cli, _config
+from garak.exception import ExitCode
 
 ANSI_ESCAPE = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 
@@ -240,6 +241,6 @@ def test_spec_unquoted_multiple_selectors(capsys):
 
 def test_spec_whitespace_rejected(capsys):
     """Whitespace between selectors is rejected so quotes stay optional."""
-    with pytest.raises(SystemExit):
-        cli.main(["--spec", "probes.test.Blank, probes.test.Test", "--list_config"])
+    ret = cli.main(["--spec", "probes.test.Blank, probes.test.Test", "--list_config"])
+    assert ret == int(ExitCode.UNSPECIFIED_EXCEPTION)
     assert "invalid --spec" in capsys.readouterr().out, "spaced --spec must be rejected"
