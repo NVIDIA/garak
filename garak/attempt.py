@@ -405,9 +405,9 @@ class Attempt:
             and lang != "*"
             and self.prompt.last_message().lang != lang
         ):
-            return (
-                self.reverse_translation_outputs
-            )  # this needs to be wired back in for support
+            # Preserve detector-result alignment when translation did not
+            # produce a reverse translation for this attempt.
+            return self.reverse_translation_outputs or self.outputs
         return self.outputs
 
     def _expand_prompt_to_histories(self, breadth):
