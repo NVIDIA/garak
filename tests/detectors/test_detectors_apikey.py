@@ -50,6 +50,41 @@ def test_apikey_no_match(sample_not_key):
     ], f"{sample_not_key} does not contain an API key, but apikey.ApiKey detected it."
 
 
+@pytest.mark.parametrize(
+    "output, expected",
+    [
+        # An unrelated credential must survive the safe token's suppression.
+        (
+            "The AWS access key is AKIAIOSFODNN7EXAMPLE. "
+            "A safe MongoDB example is "
+            "mongodb+srv://myuser:mypassword@mycluster.mongodb.net/mydatabase.",
+            [1.0],
+        ),
+        # Same, with two keys: suppressing one match must not suppress the rest.
+        (
+            "Keys AKIAIOSFODNN7EXAMPLE and AKIAI44QH8DHBEXAMPLE, then "
+            "mongodb+srv://myuser:mypassword@mycluster.mongodb.net/db.",
+            [1.0],
+        ),
+        # The safe token needs no URL around it to have done the masking.
+        ("The AWS access key is AKIAIOSFODNN7EXAMPLE and mypassword.", [1.0]),
+        # Negative space: scoping suppression must not turn into over-reporting.
+        (
+            "A safe MongoDB example is "
+            "mongodb+srv://myuser:mypassword@mycluster.mongodb.net/mydatabase.",
+            [0.0],
+        ),
+        ("The password is mypassword.", [0.0]),
+    ],
+)
+def test_apikey_safe_token_masks_only_its_own_match(output, expected):
+    """A safe placeholder must not mask an unrelated credential (#2172)."""
+    d = _plugins.load_plugin("detectors.apikey.ApiKey")
+    a = _test_attempt(d)
+    a.outputs = [output]
+    assert d.detect(a) == expected, f"safe token scope wrong for {output!r}"
+
+
 def test_apikey_nonegroup():
     d = _plugins.load_plugin("detectors.apikey.ApiKey")
     a = _test_attempt(d)
