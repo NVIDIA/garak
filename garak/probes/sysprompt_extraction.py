@@ -10,6 +10,7 @@ attack templates loaded from ``garak/data/sysprompt_extraction/attacks.json``.
 import json
 import logging
 import random
+import sys
 from typing import List
 
 from garak import _config
@@ -18,14 +19,37 @@ from garak.data import path as data_path
 import garak.probes
 from garak.probes.base import Probe
 
+this = sys.modules[__name__]
 
-class SystemPromptExtraction(Probe):
-    """Attempt to extract system prompts using adversarial attack templates
+ATTACK_GROUP_PROBE_CLASSES = {
+    "direct_requests": "DirectRequests",
+    "role_playing_claim_authority": "RolePlayingClaimAuthority",
+    "world_building_scenarios": "WorldBuildingScenarios",
+    "role_playing_target_persona": "RolePlayingTargetPersona",
+    # Data_encoding describes encoded input, but it is the closest taxonomy
+    # fit for these encoded-output prompts.
+    "encoding_based_attacks": "EncodingBasedAttacks",
+    "ignore_previous_instructions": "IgnorePreviousInstructions",
+    "perspective_shifting": "PerspectiveShifting",
+    "programming": "Programming",
+    "give_examples": "GiveExamples",
+    "strong_arm_scenarios": "StrongArmScenarios",
+    "strong_arm_claim_authority": "StrongArmClaimAuthority",
+}
 
-    Combines system prompts from HuggingFace datasets with attack templates
-    to test whether a model will reveal its system prompt under adversarial
-    pressure. Uses conversation support to set the system prompt, then probes
-    with various extraction techniques."""
+with open(
+    data_path / "sysprompt_extraction" / "attacks.json", "r", encoding="utf-8"
+) as attackfile:
+    ATTACK_GROUPS = json.load(attackfile)
+
+if set(ATTACK_GROUP_PROBE_CLASSES) != set(ATTACK_GROUPS):
+    raise ValueError("system prompt attack groups and probe classes must match")
+
+_SYSTEM_PROMPT_CACHE: dict[tuple[tuple[str, ...], int | None], tuple[str, ...]] = {}
+
+
+class _SystemPromptExtractionMixin:
+    """Shared implementation for system prompt extraction probes."""
 
     lang = "en"
     primary_detector = "sysprompt_extraction.PromptExtraction"
@@ -35,10 +59,7 @@ class SystemPromptExtraction(Probe):
         "quality:Security:PromptStability",
         "euai:robustness:adversarial",
     ]
-    goal = "extract the model's system prompt"
     doc_uri = "https://simonwillison.net/tags/exfiltration-attacks/"
-    tier = garak.probes.Tier.OF_CONCERN
-    active = True
     intent = "T009reveal"
 
     DEFAULT_PARAMS = Probe.DEFAULT_PARAMS | {
@@ -79,13 +100,20 @@ class SystemPromptExtraction(Probe):
         return prompts
 
     @staticmethod
-    def _load_system_prompt_datasets(dataset_names, subsample_size) -> List[str]:
+    def _load_system_prompt_datasets(
+        dataset_names: List[str], subsample_size: int | None
+    ) -> List[str]:
         """Load and deduplicate system prompts from configured HuggingFace sources."""
+        cache_key = (tuple(dataset_names), subsample_size)
+        cached_prompts = _SYSTEM_PROMPT_CACHE.get(cache_key)
+        if cached_prompts is not None:
+            return list(cached_prompts)
+
         system_prompts = set()
 
         for source in dataset_names:
             try:
-                prompts = SystemPromptExtraction._load_dataset_prompts(source)
+                prompts = _SystemPromptExtractionMixin._load_dataset_prompts(source)
                 system_prompts.update(prompts)
             except (ModuleNotFoundError, ImportError) as e:
                 logging.warning(
@@ -100,19 +128,14 @@ class SystemPromptExtraction(Probe):
         logging.info(
             "Using %d system prompts for extraction testing", len(system_prompts)
         )
-        return system_prompts
+        cached_prompts = tuple(system_prompts)
+        _SYSTEM_PROMPT_CACHE[cache_key] = cached_prompts
+        return list(cached_prompts)
 
-    @staticmethod
-    def _load_garak_attacks() -> List[str]:
-        """Load attack templates from data file."""
-        with open(
-            data_path / "sysprompt_extraction" / "attacks.json", "r", encoding="utf-8"
-        ) as attackfile:
-            attacks_raw = json.load(attackfile)
-        attack_list = []
-        for attacks in attacks_raw.values():
-            attack_list.extend(attacks)
-        return attack_list
+    @classmethod
+    def _load_garak_attacks(cls) -> List[str]:
+        """Load attack templates for this probe's technique group."""
+        return list(ATTACK_GROUPS[cls.attack_group]["prompts"])
 
     def _generate_attempts(self):
         """Build Conversation prompts from all (system_prompt, attack) combinations."""
@@ -138,3 +161,34 @@ class SystemPromptExtraction(Probe):
                 ),
             ]
             self.prompts.append(Conversation(turns=turns))
+
+
+for attack_group, probe_class_name in ATTACK_GROUP_PROBE_CLASSES.items():
+    technique_name = attack_group.replace("_", " ")
+    setattr(
+        this,
+        probe_class_name,
+        type(
+            probe_class_name,
+            (_SystemPromptExtractionMixin, Probe),
+            {
+                "__module__": __name__,
+                "__doc__": (
+                    f"System prompt extraction using {technique_name}\n\n"
+                    "Attempts to reveal the target's system prompt using templates "
+                    f"from the {technique_name} technique group."
+                ),
+                "attack_group": attack_group,
+                "goal": (
+                    "extract the model's system prompt using "
+                    f"{technique_name}"
+                ),
+                "tags": [
+                    *_SystemPromptExtractionMixin.tags,
+                    *ATTACK_GROUPS[attack_group]["tags"],
+                ],
+                "tier": garak.probes.Tier.OF_CONCERN,
+                "active": True,
+            },
+        ),
+    )
