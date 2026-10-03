@@ -39,6 +39,7 @@ For detailed information on detector metrics and evaluation, see :doc:`../detect
    detectors/productkey
    detectors/propile
    detectors/shields
+   detectors/side_channel
    detectors/snowball
    detectors/sysprompt_extraction
    detectors/unsafe_content
