@@ -342,6 +342,24 @@ class Attempt:
                         all_outputs.append(message.content)
         return all_outputs
 
+    def _replace_last_message(self, value: Message) -> None:
+        if not self.prompt or not self.prompt.turns:
+            raise ValueError("Cannot replace a message in an empty prompt")
+        updated_prompt = Conversation.from_dict(asdict(self.prompt))
+        updated_prompt.turns[-1].content = Message(**asdict(value))
+        prompt_turn_index = len(self.prompt.turns) - 1
+        updated_conversations = []
+        for conversation in self.conversations:
+            updated_conversation = Conversation.from_dict(asdict(conversation))
+            if len(updated_conversation.turns) <= prompt_turn_index:
+                raise ValueError("Attempt conversation is missing prompt turns")
+            updated_conversation.turns[prompt_turn_index].content = Message(
+                **asdict(value)
+            )
+            updated_conversations.append(updated_conversation)
+        self._prompt = updated_prompt
+        self.conversations = updated_conversations
+
     @prompt.setter
     def prompt(self, value: Message | Conversation):
         if hasattr(self, "_prompt"):
