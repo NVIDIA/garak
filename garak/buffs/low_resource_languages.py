@@ -35,21 +35,24 @@ class LRLBuff(Buff):
     def transform(
         self, attempt: garak.attempt.Attempt
     ) -> Iterable[garak.attempt.Attempt]:
-        # transform receives a copy of the attempt should it modify the prompt in place?
+        if attempt.prompt is None or not attempt.prompt.turns:
+            yield attempt
+            return
         deepl_translator = Translator(self.api_key)
         # only process the last message, this may need to be expanded to support all `Messages` in a `Conversation`
-        prompt_text = attempt.prompt.last_message().text
-        # if extended to all messages this should be a `Message` object
-        attempt.notes["original_prompt"] = prompt_text
+        last_message = attempt.prompt.last_message()
+        prompt_text = last_message.text
         for language in LOW_RESOURCE_LANGUAGES:
-            attempt.notes["LRL_buff_dest_lang"] = language
             response = deepl_translator.translate_text(
                 prompt_text, target_lang=language
             )
             translated_prompt = response.text
-            delattr(attempt, "_prompt")  # hack to allow prompt set
-            attempt.prompt = garak.attempt.Message(translated_prompt, language)
-            yield self._derive_new_attempt(attempt)
+            new_message = garak.attempt.Message(translated_prompt, language)
+            new_conv = self._replace_last_message(attempt.prompt, new_message)
+            new_attempt = self._derive_new_attempt(attempt, prompt=new_conv)
+            new_attempt.notes["original_prompt"] = prompt_text
+            new_attempt.notes["LRL_buff_dest_lang"] = language
+            yield new_attempt
 
     def untransform(self, attempt: garak.attempt.Attempt) -> garak.attempt.Attempt:
         deepl_translator = Translator(self.api_key)

@@ -83,16 +83,14 @@ class PegasusT5(Buff, HFCompatible):
         yield self._derive_new_attempt(
             attempt
         )  # why does this yield a copy of the original with no modification?
+        if attempt.prompt is None or not attempt.prompt.turns:
+            return
         last_message = attempt.prompt.last_message()
         paraphrases = self._get_response(last_message.text)
         for paraphrase in set(paraphrases):
-            paraphrased_attempt = self._derive_new_attempt(attempt)
-            # transform receives a copy of the attempt should it modify the prompt in place?
-            delattr(paraphrased_attempt, "_prompt")  # hack to allow prompt set
-            paraphrased_attempt.prompt = garak.attempt.Message(
-                text=paraphrase, lang=last_message.lang
-            )
-            yield paraphrased_attempt
+            new_message = garak.attempt.Message(text=paraphrase, lang=last_message.lang)
+            new_conv = self._replace_last_message(attempt.prompt, new_message)
+            yield self._derive_new_attempt(attempt, prompt=new_conv)
 
 
 class Fast(Buff, HFCompatible):
@@ -203,13 +201,11 @@ class Fast(Buff, HFCompatible):
         yield self._derive_new_attempt(
             attempt
         )  # why does this yield a copy of the original with no modification?
+        if attempt.prompt is None or not attempt.prompt.turns:
+            return
         last_message = attempt.prompt.last_message()
         paraphrases = self._get_response(last_message.text)
         for paraphrase in set(paraphrases):
-            paraphrased_attempt = self._derive_new_attempt(attempt)
-            # transform receives a copy of the attempt should it modify the prompt in place?
-            delattr(paraphrased_attempt, "_prompt")  # hack to allow prompt set
-            paraphrased_attempt.prompt = garak.attempt.Message(
-                text=paraphrase, lang=last_message.lang
-            )
-            yield paraphrased_attempt
+            new_message = garak.attempt.Message(text=paraphrase, lang=last_message.lang)
+            new_conv = self._replace_last_message(attempt.prompt, new_message)
+            yield self._derive_new_attempt(attempt, prompt=new_conv)

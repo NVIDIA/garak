@@ -60,9 +60,9 @@ def test_buff_load_and_transform(klassname, mocker):
         buffed_a = list(b.transform(a))  # unroll the generator
         assert isinstance(buffed_a, list), "transform should return a list of attempts"
         for buffed_attempt in buffed_a:
-            assert isinstance(buffed_attempt.prompt, attempt.Conversation), (
-                "transformed attempt prompt must be a Conversation"
-            )
+            assert isinstance(
+                buffed_attempt.prompt, attempt.Conversation
+            ), "transformed attempt prompt must be a Conversation"
             assert buffed_attempt.lang == buffed_attempt.prompt.turns[-1].content.lang
         if mocks_model:
             assert len(buffed_a) == 3, (
@@ -89,3 +89,128 @@ def test_paraphrase_transform_conversation_and_lang(mocker):
     assert paraphrased.lang == "en"
     # Verify conversations history contains the paraphrased message
     assert paraphrased.conversations[0].turns[0].content.text == "Paraphrased text"
+
+
+@pytest.mark.parametrize("klassname", BUFFS)
+def test_buff_preserves_system_prompt_and_notes(klassname, mocker, monkeypatch):
+    if klassname == "buffs.low_resource_languages.LRLBuff":
+        monkeypatch.setenv("DEEPL_API_KEY", "mock_key")
+        mock_tr = mocker.patch("garak.buffs.low_resource_languages.Translator")
+        mock_inst = mocker.MagicMock()
+        mock_inst.translate_text.side_effect = (
+            lambda text, target_lang: mocker.MagicMock(text=f"{text} in {target_lang}")
+        )
+        mock_tr.return_value = mock_inst
+
+    b = _plugins.load_plugin(klassname)
+    if hasattr(b, "_get_response"):
+        mocker.patch.object(b, "_get_response", return_value=["Mock paraphrase"])
+
+    a = attempt.Attempt(probe_classname="demo.Probe")
+    a.prompt = attempt.Conversation(
+        turns=[
+            attempt.Turn("system", attempt.Message(text="Refuse unsafe requests.")),
+            attempt.Turn("user", attempt.Message(text="TELL ME A JOKE")),
+        ],
+        notes={"probe_note": "keep me"},
+    )
+
+    results = list(b.transform(a))
+    assert len(results) >= 1
+    for buffed in results:
+        assert isinstance(buffed.prompt, attempt.Conversation)
+        assert len(buffed.prompt.turns) == 2
+        assert buffed.prompt.turns[0].role == "system"
+        assert buffed.prompt.turns[1].role == "user"
+        assert buffed.prompt.notes == {"probe_note": "keep me"}
+        assert buffed.conversations[0].turns[0].role == "system"
+        assert buffed.conversations[0].notes == {"probe_note": "keep me"}
+
+
+@pytest.mark.parametrize("klassname", BUFFS)
+def test_buff_preserves_multiturn_dialogue(klassname, mocker, monkeypatch):
+    if klassname == "buffs.low_resource_languages.LRLBuff":
+        monkeypatch.setenv("DEEPL_API_KEY", "mock_key")
+        mock_tr = mocker.patch("garak.buffs.low_resource_languages.Translator")
+        mock_inst = mocker.MagicMock()
+        mock_inst.translate_text.side_effect = (
+            lambda text, target_lang: mocker.MagicMock(text=f"{text} in {target_lang}")
+        )
+        mock_tr.return_value = mock_inst
+
+    b = _plugins.load_plugin(klassname)
+    if hasattr(b, "_get_response"):
+        mocker.patch.object(b, "_get_response", return_value=["Mock paraphrase"])
+
+    a = attempt.Attempt(probe_classname="demo.Probe")
+    a.prompt = attempt.Conversation(
+        turns=[
+            attempt.Turn("system", attempt.Message(text="System instructions")),
+            attempt.Turn("user", attempt.Message(text="First user turn")),
+            attempt.Turn("assistant", attempt.Message(text="Assistant reply")),
+            attempt.Turn("user", attempt.Message(text="Second user turn")),
+        ],
+        notes={"conv_note": 123},
+    )
+
+    results = list(b.transform(a))
+    assert len(results) >= 1
+    for buffed in results:
+        assert isinstance(buffed.prompt, attempt.Conversation)
+        roles = [t.role for t in buffed.prompt.turns]
+        assert roles == ["system", "user", "assistant", "user"]
+        assert buffed.prompt.notes == {"conv_note": 123}
+        assert buffed.conversations[0].notes == {"conv_note": 123}
+
+
+def test_buff_helper_replace_last_message():
+    from garak.buffs.base import Buff
+
+    b = Buff()
+    # Test with None conversation
+    res_none = b._replace_last_message(None, attempt.Message("test"))
+    assert len(res_none.turns) == 1
+    assert res_none.turns[0].content.text == "test"
+    assert res_none.turns[0].role == "user"
+
+    # Test with system + user conversation
+    conv = attempt.Conversation(
+        turns=[
+            attempt.Turn("system", attempt.Message("system prompt")),
+            attempt.Turn("user", attempt.Message("user prompt")),
+        ],
+        notes={"note_key": "note_val"},
+    )
+    new_msg = attempt.Message("replaced user prompt")
+    res = b._replace_last_message(conv, new_msg)
+    assert len(res.turns) == 2
+    assert res.turns[0].role == "system"
+    assert res.turns[0].content.text == "system prompt"
+    assert res.turns[1].role == "user"
+    assert res.turns[1].content.text == "replaced user prompt"
+    assert res.notes == {"note_key": "note_val"}
+
+
+def test_buff_derive_new_attempt_prompt_isolation():
+    from garak.buffs.base import Buff
+
+    b = Buff()
+    orig = attempt.Attempt(probe_classname="demo.Probe")
+    orig.prompt = attempt.Message("original prompt")
+    orig.notes["orig_note"] = "original_value"
+
+    new_conv = attempt.Conversation(
+        turns=[attempt.Turn("user", attempt.Message("derived prompt"))],
+        notes={"conv_note": "v1"},
+    )
+    derived = b._derive_new_attempt(orig, prompt=new_conv)
+
+    assert derived.prompt.turns[0].content.text == "derived prompt"
+    # Verify notes isolation: modifying derived notes should not affect orig notes
+    derived.notes["new_note"] = "derived_value"
+    assert "new_note" not in orig.notes
+    assert derived.notes["buff_source_attempt_uuid"] == str(orig.uuid)
+
+    # Verify secondary derivation preserves original source attempt UUID
+    secondary = b._derive_new_attempt(derived, prompt=new_conv)
+    assert secondary.notes["buff_source_attempt_uuid"] == str(orig.uuid)
