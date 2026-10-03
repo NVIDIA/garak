@@ -89,3 +89,11 @@ def test_paraphrase_transform_conversation_and_lang(mocker):
     assert paraphrased.lang == "en"
     # Verify conversations history contains the paraphrased message
     assert paraphrased.conversations[0].turns[0].content.text == "Paraphrased text"
+
+
+def test_fast_uses_native_group_beam_search():
+    from garak.buffs.paraphrase import Fast
+
+    hf_args = Fast.DEFAULT_PARAMS["hf_args"]
+    assert "custom_generate" not in hf_args
+    assert "trust_remote_code" not in hf_args

@@ -103,8 +103,6 @@ class Fast(Buff, HFCompatible):
         "hf_args": {
             "device": "cpu",
             "torch_dtype": "float32",
-            "custom_generate": "transformers-community/group-beam-search",
-            "trust_remote_code": True,
         },
     }
     lang = "en"
@@ -142,12 +140,6 @@ class Fast(Buff, HFCompatible):
             if param in model_kwargs.keys():
                 model_kwargs.pop(param)
 
-        if self.hf_args.get("custom_generate", None):
-            if not self.hf_args.get("trust_remote_code", False):
-                raise ValueError(
-                    "When using a 'custom_generate' option 'trust_remote_code' must be enabled."
-                )
-
         self.para_model = AutoModelForSeq2SeqLM.from_pretrained(
             self.para_model_name, **model_kwargs
         ).to(self.device)
@@ -184,8 +176,6 @@ class Fast(Buff, HFCompatible):
                 num_beam_groups=self.num_beam_groups,
                 max_length=self.max_length,
                 diversity_penalty=self.diversity_penalty,
-                # requirements for custom generation in transformers >= 4.57.0
-                trust_remote_code=self.hf_args["trust_remote_code"],
             )
         except OSError as e:
             from garak.exception import GarakException
