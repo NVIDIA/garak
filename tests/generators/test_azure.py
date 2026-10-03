@@ -90,3 +90,24 @@ def test_azureopenai_chat_null_choices(respx_mock, openai_compat_mocks):
     conv = Conversation([Turn("user", Message("Hello OpenAI!"))])
     output = generator.generate(conv, 1)
     assert output == [None]
+
+
+DATED_CHAT_DEPLOYMENT = "gpt-4o-mini-0718"
+
+
+@pytest.mark.usefixtures("set_fake_env")
+def test_azureopenai_dated_chat_model_uses_chat_endpoint():
+    """A chat model carrying an -MMDD suffix must reach the chat endpoint.
+
+    Azure deployment names routinely carry a date suffix, so the model misses
+    the exact ``chat_models`` match and falls to the suffix branch. That branch
+    only matches when the undated prefix is in ``chat_models``, so everything
+    reaching it is a chat model, and sending it to ``client.completions`` puts
+    a chat model on the legacy completions API.
+    """
+    os.environ[AzureOpenAIGenerator.MODEL_NAME_ENV_VAR] = DATED_CHAT_DEPLOYMENT
+    generator = AzureOpenAIGenerator(name=DEFAULT_DEPLOYMENT_NAME)
+
+    assert generator.target_name == DATED_CHAT_DEPLOYMENT
+    assert generator.generator is generator.client.chat.completions
+    assert generator.generator is not generator.client.completions
