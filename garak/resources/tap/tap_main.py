@@ -404,6 +404,8 @@ def run_tap(
         ############################################################
         # Get on-topic-scores (does the adv_prompt asks for same info as original prompt)
         on_topic_scores = attack_manager.on_topic_score(adv_prompt_list)
+        # on_topic_score returns None for unparseable verdicts; treat as off-topic (0.0) so prune() sort doesn't raise TypeError
+        on_topic_scores = [s if s is not None else 0.0 for s in on_topic_scores]
 
         # Prune attacks which are irrelevant
         if pruning and len(adv_prompt_list) > 1:
@@ -434,6 +436,8 @@ def run_tap(
 
         # Get judge-scores (i.e., likelihood of jailbreak) from Evaluator
         judge_scores = attack_manager.judge_score(adv_prompt_list, target_response_list)
+        # judge_score returns None for unparseable verdicts; treat as no jailbreak (0.0) so prune() sort doesn't raise TypeError
+        judge_scores = [s if s is not None else 0.0 for s in judge_scores]
 
         ############################################################
         #   PRUNE: PHASE 2
