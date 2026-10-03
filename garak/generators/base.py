@@ -14,8 +14,36 @@ import tqdm
 from garak import _config
 from garak.attempt import Message, Conversation
 from garak.configurable import Configurable
-from garak.exception import BadGeneratorException, GarakException
+from garak.exception import BadGeneratorException, GarakException, RateLimitHit
 import garak.resources.theme
+
+
+def log_backoff_event(details):
+    """backoff.on_exception handler: make retried calls visible.
+
+    garak retries rate-limited / transiently-failing calls with fibonacci
+    backoff, which used to happen silently - a throttled run just looked
+    slow, with no hint why. This logs every backoff with the wait before
+    the next retry, and accumulates rate-limit totals on
+    _config.transient so end_run() can report them separately from model
+    runtime.
+    """
+    wait = details.get("wait") or 0
+    tries = details.get("tries") or 0
+    exc = details.get("exception")
+    exc_name = type(exc).__name__ if exc is not None else "unknown"
+    # RateLimitHit is garak's own signal; the OpenAI SDK raises its own
+    # RateLimitError for the same condition (e.g. Groq 429s via an
+    # OpenAI-compatible endpoint).
+    if isinstance(exc, RateLimitHit) or exc_name == "RateLimitError":
+        _config.transient.ratelimit_retries += 1
+        _config.transient.ratelimit_wait_seconds += wait
+    logging.warning(
+        "garak backoff on %s: waiting %.1fs before retry #%d",
+        exc_name,
+        wait,
+        tries,
+    )
 
 
 class Generator(Configurable):
