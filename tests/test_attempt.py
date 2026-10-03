@@ -3,6 +3,7 @@
 
 import contextlib
 import json
+import logging
 import os
 import pytest
 
@@ -569,7 +570,6 @@ PREFIX = "_garak_test_attempt_sticky_params"
 
 
 def test_attempt_sticky_params(capsys):
-
     cli.main(
         f"-m test.Blank -g 1 -p lmrc.QuackMedicine,test.Blank -d always.Pass --report_prefix {PREFIX}".split()
     )
@@ -582,7 +582,9 @@ def test_attempt_sticky_params(capsys):
         if record.get("entry_type") == "attempt"
         and record.get("status") == garak.attempt.ATTEMPT_COMPLETE
     ]
-    complete_with_notes = next(record for record in completed_attempts if record["notes"])
+    complete_with_notes = next(
+        record for record in completed_attempts if record["notes"]
+    )
     complete_without_notes = next(
         record for record in completed_attempts if not record["notes"]
     )
@@ -637,6 +639,57 @@ def test_outputs_for():
     assert all_output_a.outputs_for(None) == tlh_outputs
     assert all_output_a.outputs_for("*") == tlh_outputs
     assert all_output_a.outputs_for("en") == reverse_outputs
+
+
+def test_outputs_for_unpopulated_reverse_translation_falls_back(caplog):
+    tlh_prompt = garak.attempt.Message("eNa'bRaN tayn", lang="tlh")
+    tlh_outputs = [garak.attempt.Message("DajlI' QInvam", lang="tlh")]
+
+    attempt = garak.attempt.Attempt()
+    attempt.prompt = tlh_prompt
+    attempt.outputs = tlh_outputs
+
+    with caplog.at_level(logging.WARNING):
+        default_result = attempt.outputs_for("en")
+    assert (
+        default_result == tlh_outputs
+    ), "unpopulated reverse translation should fall back to original outputs"
+    assert (
+        "reverse_translation_outputs unpopulated" in caplog.text
+    ), "language mismatch without reverse translation should be logged"
+
+    attempt.reverse_translation_outputs = []
+    assert (
+        attempt.outputs_for("en") == tlh_outputs
+    ), "empty reverse_translation_outputs should fall back to original outputs"
+
+    attempt.reverse_translation_outputs = [None]
+    assert (
+        attempt.outputs_for("en") == tlh_outputs
+    ), "None-only reverse_translation_outputs should fall back to original outputs"
+
+    attempt.reverse_translation_outputs = {}
+    assert (
+        attempt.outputs_for("en") == tlh_outputs
+    ), "legacy dict default for reverse_translation_outputs should fall back to original outputs"
+
+
+def test_outputs_for_partial_reverse_translation_keeps_alignment():
+    tlh_prompt = garak.attempt.Message("eNa'bRaN tayn", lang="tlh")
+    tlh_outputs = [
+        garak.attempt.Message("DajlI' QInvam", lang="tlh"),
+        None,
+    ]
+    reverse_outputs = [garak.attempt.Message("This is a test", lang="en"), None]
+
+    attempt = garak.attempt.Attempt()
+    attempt.prompt = tlh_prompt
+    attempt.outputs = tlh_outputs
+    attempt.reverse_translation_outputs = reverse_outputs
+
+    assert (
+        attempt.outputs_for("en") == reverse_outputs
+    ), "partial reverse translation should be returned as-is to keep output alignment"
 
 
 def test_attempt_prompt_no_str():
