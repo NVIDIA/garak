@@ -3,6 +3,7 @@ import shutil
 import urllib.error
 from pathlib import Path
 import pandas as pd
+import json
 
 import garak._config
 from garak.exception import GarakException
@@ -88,3 +89,28 @@ def load_advbench(size: int = 0) -> pd.DataFrame:
         df = df.sample(n=size)
 
     return df
+
+
+def load_contexts(context_name: str) -> list[str]:
+    context_entries = list()
+    context_base_path = data_path / "contexts" / f"{context_name}.jsonl"
+
+    if not context_base_path.is_file():
+        raise GarakException(
+            f"Default location {str(context_base_path)} for {context_name} not found."
+        )
+    else:
+        try:
+            with open(context_base_path, "rb") as f:
+                context_data = json.load(f)
+        except json.decoder.JSONDecodeError as e:
+            logging.error(
+                f"Encountered JSONDecodeError when attempting to load {context_base_path}",
+                exc_info=True,
+            )
+            raise e
+
+    for context in context_data["contexts"]:
+        context_entries.append(context)
+
+    return context_entries
