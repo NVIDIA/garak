@@ -211,9 +211,11 @@ class Evaluator:
             eval_record["confidence_upper"] = ci_upper / 100
             eval_record["confidence_lower"] = ci_lower / 100
 
-        _config.transient.reportfile.write(
-            json.dumps(eval_record, ensure_ascii=False) + "\n"
-        )
+        # nothing scored means skip, not fail; nones still reach probe_summary
+        if outputs_evaluated:
+            _config.transient.reportfile.write(
+                json.dumps(eval_record, ensure_ascii=False) + "\n"
+            )
 
         eval_record.pop("entry_type")
         eval_record.pop("probe")
