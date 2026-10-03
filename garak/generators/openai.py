@@ -154,6 +154,8 @@ class OpenAICompatible(Generator):
         "retry_json": True,
         "extra_params": {},
         "transient_retry_codes": [408, 429, 502, 503, 504],
+        "vary_seed_each_call": False,
+        "vary_temp_each_call": False,
     }
 
     _unsafe_attributes = ["client", "generator"]
@@ -280,6 +282,13 @@ class OpenAICompatible(Generator):
 
         return turn_list
 
+    def _vary_params_each_call(self):
+        """Vary seed and temperature prior to generation if configured."""
+        if getattr(self, "vary_seed_each_call", False):
+            self.seed = self._rng.randint(0, 65535)
+        if getattr(self, "vary_temp_each_call", False):
+            self.temperature = self._rng.random()
+
     # noinspection PyArgumentList
     @backoff.on_exception(
         backoff.fibo,
@@ -298,6 +307,8 @@ class OpenAICompatible(Generator):
         if self.client is None:
             # reload client once when consuming the generator
             self._load_unsafe()
+
+        self._vary_params_each_call()
 
         client = self.client
         generator = self.generator
@@ -486,6 +497,8 @@ class OpenAIReasoningGenerator(OpenAIGenerator):
         "suppressed_params": set(["n", "temperature", "max_tokens", "stop"]),
         "retry_json": True,
         "max_completion_tokens": 1500,
+        "vary_seed_each_call": False,
+        "vary_temp_each_call": False,
     }
 
 
