@@ -3,6 +3,8 @@
 
 import json
 import logging
+import stat
+import tempfile
 from pathlib import Path
 from typing import Optional, Dict, List, Tuple
 
@@ -192,7 +194,10 @@ def update_eval_entries_with_ci(
     confidence_method: Optional[str] = None,
     confidence_level: Optional[float] = None
 ) -> None:
-    """Update eval entries in report JSONL with new CI values, overwrites if output_path is None"""
+    """Update eval entries with new CIs, overwriting when output_path is None.
+
+    Raises ValueError if an explicit output path refers to the input report.
+    """
     if confidence_method is None:
         confidence_method = _config.reporting.confidence_interval_method
     if confidence_level is None:
@@ -207,10 +212,21 @@ def update_eval_entries_with_ci(
     
     # Use pathlib.Path for output handling
     if output_path is None:
-        output_file = report_file.with_suffix(".tmp")
+        with tempfile.NamedTemporaryFile(
+            dir=report_file.parent,
+            prefix=".garak-ci-",
+            suffix=".tmp",
+            delete=False,
+        ) as temp_file:
+            output_file = Path(temp_file.name)
         overwrite = True
     else:
         output_file = Path(output_path)
+        if output_file.exists() and output_file.samefile(report_file):
+            raise ValueError(
+                "Output path refers to the input report. "
+                "Use --overwrite for in-place updates."
+            )
         overwrite = False
     
     try:
@@ -265,12 +281,18 @@ def update_eval_entries_with_ci(
                 outfile.write(json.dumps(entry, ensure_ascii=False) + "\n")
         
         if overwrite:
+            output_file.chmod(stat.S_IMODE(report_file.stat().st_mode))
             output_file.replace(report_file)
             logging.info("Updated report file: %s", report_file)
         else:
             logging.info("Wrote updated report to: %s", output_file)
     
     except OSError as e:
-        if overwrite and output_file.exists():
-            output_file.unlink()
         raise OSError(f"Error updating report file {report_file}: {e}")
+    finally:
+        if overwrite:
+            try:
+                output_file.unlink(missing_ok=True)
+            except PermissionError:
+                output_file.chmod(stat.S_IRUSR | stat.S_IWUSR)
+                output_file.unlink(missing_ok=True)
