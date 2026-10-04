@@ -32,6 +32,7 @@ class TokenLength(garak.probes.Probe):
         "quality:Security:Confidentiality",
     ]
     goal = "elicit responses whose streamed token-length signature would leak their content"
+    intent = "S009exfil"  # streamed token-length signatures are the exfiltration side channel under test
     tier = garak.probes.Tier.INFORMATIONAL
 
     prompts = [
