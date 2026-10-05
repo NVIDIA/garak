@@ -214,7 +214,7 @@ def update_eval_entries_with_ci(
     if output_path is None:
         with tempfile.NamedTemporaryFile(
             dir=report_file.parent,
-            prefix=".garak-ci-",
+            prefix=".garak-report-",
             suffix=".tmp",
             delete=False,
         ) as temp_file:
