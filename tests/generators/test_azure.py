@@ -108,6 +108,12 @@ def test_azureopenai_dated_chat_model_uses_chat_endpoint():
     os.environ[AzureOpenAIGenerator.MODEL_NAME_ENV_VAR] = DATED_CHAT_DEPLOYMENT
     generator = AzureOpenAIGenerator(name=DEFAULT_DEPLOYMENT_NAME)
 
-    assert generator.target_name == DATED_CHAT_DEPLOYMENT
-    assert generator.generator is generator.client.chat.completions
-    assert generator.generator is not generator.client.completions
+    assert (
+        generator.target_name == DATED_CHAT_DEPLOYMENT
+    ), "deployment name should be kept as given"
+    assert (
+        generator.generator is generator.client.chat.completions
+    ), "a dated chat model name should use the chat endpoint"
+    assert (
+        generator.generator is not generator.client.completions
+    ), "a dated chat model name should not fall back to legacy completions"

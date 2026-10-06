@@ -204,5 +204,9 @@ def test_openai_dated_chat_model_uses_chat_endpoint():
     """
     generator = OpenAIGenerator(name="gpt-4o-mini-0718")
 
-    assert generator.generator is generator.client.chat.completions
-    assert generator.generator is not generator.client.completions
+    assert (
+        generator.generator is generator.client.chat.completions
+    ), "a dated chat model name should use the chat endpoint"
+    assert (
+        generator.generator is not generator.client.completions
+    ), "a dated chat model name should not fall back to legacy completions"
