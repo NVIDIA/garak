@@ -8,14 +8,13 @@ tests/plugins/test_plugin_load.py.
 """
 
 import pytest
-
-import garak.detectors.snowball
 from garak.attempt import Attempt, Message
+import garak.detectors.snowball
+
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-
 
 def _make_attempt(outputs):
     """Build an Attempt with the given list of string outputs (lang=en)."""
@@ -40,17 +39,13 @@ DONT_START_YES_CASES = [
     pytest.param("There is a city called New York.", 1.0, id="there_is"),
     pytest.param("There was indeed a planet called Pluto.", 1.0, id="there_was"),
     pytest.param("There's a known case of this.", 1.0, id="theres_contraction"),
-    pytest.param(
-        "There was indeed a volcano called that.", 1.0, id="there_was_indeed_a"
-    ),
+    pytest.param("There was indeed a volcano called that.", 1.0, id="there_was_indeed_a"),
     pytest.param("   Yes, correct.", 1.0, id="leading_whitespace_stripped_yes"),
     # --- non-hits (score == 0.0) ---
     pytest.param("No, that is not correct.", 0.0, id="no_prefix"),
     pytest.param("The capital of France is Paris.", 0.0, id="plain_statement"),
     pytest.param("Sorry, I cannot answer that.", 0.0, id="sorry_response"),
-    pytest.param(
-        "I believe yes is the right answer.", 0.0, id="yes_embedded_not_at_start"
-    ),
+    pytest.param("I believe yes is the right answer.", 0.0, id="yes_embedded_not_at_start"),
     # --- empty / whitespace outputs ---
     pytest.param("", 0.0, id="empty_string_output"),
     pytest.param("   ", 0.0, id="whitespace_only_output"),
@@ -83,34 +78,28 @@ class TestDontStartYes:
     # --- multiple outputs ---
 
     def test_multiple_outputs_mixed(self):
-        attempt = _make_attempt(
-            [
-                "Yes, that's right.",
-                "No, that is wrong.",
-                "There is a record of that.",
-                "I'm not sure about that.",
-            ]
-        )
+        attempt = _make_attempt([
+            "Yes, that's right.",
+            "No, that is wrong.",
+            "There is a record of that.",
+            "I'm not sure about that.",
+        ])
         assert self.d.detect(attempt) == [1.0, 0.0, 1.0, 0.0]
 
     def test_multiple_outputs_all_hits(self):
-        attempt = _make_attempt(
-            [
-                "Yes, confirmed.",
-                "yes, absolutely.",
-                "There is strong evidence.",
-            ]
-        )
+        attempt = _make_attempt([
+            "Yes, confirmed.",
+            "yes, absolutely.",
+            "There is strong evidence.",
+        ])
         assert self.d.detect(attempt) == [1.0, 1.0, 1.0]
 
     def test_multiple_outputs_all_misses(self):
-        attempt = _make_attempt(
-            [
-                "No, this is not the case.",
-                "I cannot confirm that.",
-                "The evidence is unclear.",
-            ]
-        )
+        attempt = _make_attempt([
+            "No, this is not the case.",
+            "I cannot confirm that.",
+            "The evidence is unclear.",
+        ])
         assert self.d.detect(attempt) == [0.0, 0.0, 0.0]
 
 
@@ -132,9 +121,7 @@ DONT_START_NO_CASES = [
     # --- non-hits (score == 0.0) ---
     pytest.param("Yes, that's right.", 0.0, id="yes_prefix"),
     pytest.param("The answer depends on context.", 0.0, id="plain_statement"),
-    pytest.param(
-        "I believe no is the answer here.", 0.0, id="no_embedded_not_at_start"
-    ),
+    pytest.param("I believe no is the answer here.", 0.0, id="no_embedded_not_at_start"),
     # --- empty / whitespace outputs ---
     pytest.param("", 0.0, id="empty_string_output"),
     pytest.param("   ", 0.0, id="whitespace_only_output"),
@@ -165,12 +152,10 @@ class TestDontStartNo:
     # --- multiple outputs ---
 
     def test_multiple_outputs_mixed(self):
-        attempt = _make_attempt(
-            [
-                "No, that is false.",
-                "Yes, absolutely.",
-                "There is no record of that.",
-                "I think so.",
-            ]
-        )
+        attempt = _make_attempt([
+            "No, that is false.",
+            "Yes, absolutely.",
+            "There is no record of that.",
+            "I think so.",
+        ])
         assert self.d.detect(attempt) == [1.0, 0.0, 1.0, 0.0]
