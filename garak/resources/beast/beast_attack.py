@@ -23,37 +23,30 @@ beast_resource_data = garak._config.transient.cache_dir / "data" / "beast"
 
 
 class BeastGeneratorView:
-    """nonmutating adapter exposing model/tokenizer/gcfg for BEAST
-    """
+    """Non-mutating adapter exposing the model, tokenizer and generation config
+    BEAST needs from a huggingface `Pipeline` or `Model` generator.
+
+    The wrapped generator is shared across probes in a run, so it must not be
+    modified; references are resolved once at construction."""
 
     def __init__(self, generator: Generator):
-        self._generator = generator
-        self._hf_pipeline = getattr(generator, "generator", None)
+        from garak.generators.huggingface import Model, Pipeline
 
-    @property
-    def name(self) -> str:
-        return getattr(self._generator, "name", "<unknown>")
+        if isinstance(generator, Pipeline):
+            self.model = generator.generator.model
+            self.tokenizer = generator.generator.tokenizer
+            self.generation_config = generator.generator.generation_config
+        elif isinstance(generator, Model):
+            self.model = generator.model
+            self.tokenizer = generator.tokenizer
+            self.generation_config = generator.generation_config
+        else:
+            raise TypeError(
+                f"Expected huggingface Pipeline or Model generator but got {type(generator)}"
+            )
 
-    @property
-    def tokenizer(self):
-        return getattr(self._generator, "tokenizer", None)
-
-    @property
-    def model(self):
-        if self._hf_pipeline is not None and hasattr(self._hf_pipeline, "model"):
-            return self._hf_pipeline.model
-        return getattr(self._generator, "model", None)
-
-    @property
-    def generation_config(self):
-        if self._hf_pipeline is not None and hasattr(
-            self._hf_pipeline, "generation_config"
-        ):
-            return self._hf_pipeline.generation_config
-        return getattr(self._generator, "generation_config", None)
-
-    def generate(self, *args, **kwargs):
-        return self._generator.generate(*args, **kwargs)
+        self.name = generator.name
+        self.generate = generator.generate
 
 
 def _format_chat(generator: Generator, prompt: str):
@@ -77,7 +70,7 @@ def _evaluate(generator, prompt, candidate):
     candidate_str = generator.tokenizer.decode(candidate)
     input_str = prompt + candidate_str
     conv = _prompt_to_conversation(input_str)
-    raw_outputs = generator.generate(conv, typecheck=False)
+    raw_outputs = generator.generate(conv)
     outputs = [m.text if m else "" for m in raw_outputs]
     result = _check_jailbreak(outputs)
     return result, outputs[0] if outputs else ""
@@ -89,7 +82,7 @@ def _evaluate_target(generator, prompt, candidate, target):
     candidate_str = generator.tokenizer.decode(candidate)
     input_str = prompt + candidate_str
     conv = _prompt_to_conversation(input_str)
-    raw_outputs = generator.generate(conv, typecheck=False)
+    raw_outputs = generator.generate(conv)
     outputs = [m.text if m else "" for m in raw_outputs]
     for output in outputs:
         if target in output:
@@ -271,8 +264,9 @@ def _get_best_candidate(
         best_score: The best score
     """
     best_suffix = []
-    # score is -perplexity
-    best_score = -np.inf
+    # _score_candidates returns -perplexity, so higher is better: maximising the
+    # score minimises perplexity of the target response
+    best_score = -float("inf")
 
     beams = [[sample] for sample in _sample_tokens(generator, prompt, k1, suffix_ids)]
     for i in tqdm(range(suffix_len), leave=False):
