@@ -71,6 +71,8 @@ To write to a specific output path:
 
    python -m garak.analyze.rebuild_cis -r path/to/report.jsonl -o path/to/rebuilt.jsonl
 
+The output path must refer to a different file, including when using symbolic or hard links. Use ``-w`` to update the input report in-place.
+
 To override bootstrap config defaults:
 
 .. code-block:: bash
