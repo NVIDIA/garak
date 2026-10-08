@@ -521,6 +521,41 @@ class TestEarlyStopOn:
         # "all" mode: only the non-terminated branch continues
         assert len(next_attempts) == 1
 
+    def test_next_turn_attempts_get_parent_lineage(self):
+        """IterativeProbe stamps previous_attempt_id on the follow-up attempts
+        it queues, so a multi-turn conversation can be reconstructed from the
+        report without a per-probe notes convention."""
+        config = {
+            "probes": {
+                "goat": {
+                    "GOATAttack": {
+                        "red_team_model_type": "test.Repeat",
+                        "red_team_model_name": "",
+                        "custom_goals": ["Test goal"],
+                        "early_stop_on": "all",
+                    }
+                }
+            }
+        }
+        probe = _plugins.load_plugin("probes.goat.GOATAttack", config_root=config)
+        probe.attacker_model = Mock()
+        probe.attacker_model.generate.return_value = [
+            garak.attempt.Message(
+                "Observation: test\nThought: test\nStrategy: test\nResponse: next prompt"
+            )
+        ]
+
+        attempt = self._make_attempt_with_outputs(probe)
+        # one branch continues (not terminated) -> one follow-up attempt queued
+        with patch.object(
+            probe, "_should_terminate_conversation", return_value=[False, True]
+        ):
+            probe._postprocess_attempt(attempt)
+
+        assert probe.attempt_queue, "expected a follow-up attempt to be queued"
+        for child in probe.attempt_queue:
+            assert child.previous_attempt_id == str(attempt.uuid)
+
     def test_invalid_early_stop_on_raises(self):
         """Invalid early_stop_on value raises GarakException."""
         config = {

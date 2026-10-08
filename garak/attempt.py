@@ -199,6 +199,8 @@ class Attempt:
     :type reverse_translation_outputs: List(str)
     :param intent: None, or the primary intent type in this attempt
     :type notes: str|None
+    :param previous_attempt_id: uuid (as str) of the attempt this one was generated from, or None for a seed attempt. Lets post-processing and reports reconstruct a multi-turn conversation lineage without relying on per-probe notes conventions.
+    :type previous_attempt_id: str|None
 
 
     Typical use:
@@ -238,8 +240,10 @@ class Attempt:
         seq=-1,
         reverse_translation_outputs=None,
         intent=None,
+        previous_attempt_id=None,
     ) -> None:
         self.uuid = uuid.uuid4()
+        self.previous_attempt_id = previous_attempt_id
         if prompt is not None:
             if isinstance(prompt, Conversation):
                 self.conversations = [prompt]
@@ -280,6 +284,7 @@ class Attempt:
         return {
             "entry_type": "attempt",
             "uuid": str(self.uuid),
+            "previous_attempt_id": self.previous_attempt_id,
             "seq": self.seq,
             "status": self.status,
             "probe_classname": self.probe_classname,

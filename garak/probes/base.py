@@ -838,7 +838,17 @@ class IterativeProbe(Probe):
         Augments existing _postprocess_attempt() of base Probe() class with generation of attempts for subsequent turn.
         """
         processed = super()._postprocess_attempt(this_attempt)
-        next_turn_attempts = self._generate_next_attempts(this_attempt)
+        next_turn_attempts = list(self._generate_next_attempts(this_attempt))
+        # Stamp conversation lineage here, once, for every IterativeProbe
+        # subclass: the attempts emitted by _generate_next_attempts are the
+        # follow-ups seeded by this_attempt. Recording the parent uuid as a
+        # first-class attribute means post-processing, detectors, and reports
+        # can reconstruct a multi-turn conversation without each probe author
+        # hand-maintaining a notes convention. A probe that already set the
+        # lineage explicitly is not overwritten.
+        for next_attempt in next_turn_attempts:
+            if next_attempt.previous_attempt_id is None:
+                next_attempt.previous_attempt_id = str(this_attempt.uuid)
         self.attempt_queue.extend(next_turn_attempts)
         return processed
 
