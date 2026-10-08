@@ -67,7 +67,9 @@ class Probe(Configurable):
     # tier: Tier = Tier.UNLISTED
     tier: Tier = Tier.UNLISTED
 
-    DEFAULT_PARAMS = {}
+    DEFAULT_PARAMS = {
+        "follow_prompt_cap": True,
+    }
 
     _run_params = {"generations", "soft_probe_prompt_cap", "seed", "system_prompt"}
     _system_params = {"parallel_attempts", "max_workers"}
@@ -469,9 +471,26 @@ class Probe(Configurable):
 
         return attempts_completed
 
-    def _prune_data(self, cap, prune_triggers=False):
-        num_ids_to_delete = max(0, len(self.prompts) - cap)
-        ids_to_rm = random.sample(range(len(self.prompts)), num_ids_to_delete)
+    def _prune_cap(self, cap=None):
+        """Resolve the cap to prune to, or ``None`` when pruning doesn't apply.
+
+        Overrides of :meth:`_prune_data` call this so that opting out via
+        ``follow_prompt_cap``, and an unset cap, are honoured the same way
+        everywhere."""
+        if not self.follow_prompt_cap:
+            return None
+        return self.soft_probe_prompt_cap if cap is None else cap
+
+    def _prune_data(self, cap=None, prune_triggers=False):
+        """Prune ``self.prompts`` down to ``cap``, defaulting to the configured cap.
+
+        This is the single place probes prune from. Probes needing different
+        pruning semantics override this rather than capping their prompts
+        themselves; see :meth:`IntentProbe._prune_data` for an example."""
+        cap = self._prune_cap(cap)
+        if cap is None or cap >= len(self.prompts):
+            return
+        ids_to_rm = random.sample(range(len(self.prompts)), len(self.prompts) - cap)
         # delete in descending order
         ids_to_rm = sorted(ids_to_rm, reverse=True)
         for id in ids_to_rm:
@@ -712,7 +731,6 @@ class IterativeProbe(Probe):
 
     DEFAULT_PARAMS = Probe.DEFAULT_PARAMS | {
         "max_calls_per_conv": 10,
-        "follow_prompt_cap": True,
     }
 
     def __init__(self, config_root=_config):
@@ -848,10 +866,6 @@ class IntentProbe(Probe):
 
     import garak.services.intentservice
 
-    DEFAULT_PARAMS = Probe.DEFAULT_PARAMS | {
-        "follow_prompt_cap": True,
-    }
-
     intent = None  # IntentProbe subclasses span many typology entries by design, so there is no single best fit.
     skip_root_intents = True
     blocked_intent_spec = ""
@@ -862,8 +876,7 @@ class IntentProbe(Probe):
         self._populate_intents()
         self._populate_stubs()
         self.build_prompts()
-        if self.follow_prompt_cap:
-            self._prune_data(self.soft_probe_prompt_cap)
+        self._prune_data()
 
     def _attempt_prestore_hook(
         self, attempt: garak.attempt.Attempt, seq: int
@@ -871,15 +884,15 @@ class IntentProbe(Probe):
         attempt.intent = self.prompt_intents[seq]
         return attempt
 
-    def _prune_data(self, cap, prune_triggers=False):
+    def _prune_data(self, cap=None, prune_triggers=False):
         """Prune prompts to ``cap`` while balancing across intents.
 
         Unlike ``Probe._prune_data``, this keeps roughly equal representation
         (within one) for each intent in ``self.prompt_intents`` and keeps that
-        list aligned with ``self.prompts``. No pruning occurs when
-        ``cap >= len(self.prompts)``.
+        list aligned with ``self.prompts``.
         """
-        if cap >= len(self.prompts):
+        cap = self._prune_cap(cap)
+        if cap is None or cap >= len(self.prompts):
             return
 
         prompts_by_intent = {}
@@ -948,6 +961,8 @@ class IntentProbe(Probe):
         if not self.prompts:
             # an empty active-intent set (run.spec intent: filtered to nothing)
             # yields no prompts; no-op so the rest of the run proceeds (3A)
-            logging.debug("%s has no active intents; no prompts to send", self.probename)
+            logging.debug(
+                "%s has no active intents; no prompts to send", self.probename
+            )
             return []
         return super().probe(generator)
