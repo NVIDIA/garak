@@ -108,7 +108,7 @@ Adding a custom generator is fairly straight forward. One can either add a new c
 
 There is a lot you can do here. In order of increasing complexity:
 
-1. Be specific about the list of probes you request, using the `-p` command line option
+1. Be specific about the list of probes you request, using the `--spec` command line option (e.g. `--spec probes.promptinject`)
 1. Have a look at `garak`'s config options: run `garak --help` to see what there is
 1. Garak offers rich and detailed configuration for runs and its plugins, via YAML. You can find an intro guide here, [Configuring garak](https://reference.garak.ai/en/latest/configurable.html).
 
