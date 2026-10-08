@@ -6,7 +6,8 @@
         "any.AnyNonspaceOutput"
     ],
     "S003productkeys": [
-        "productkey.Win5x5"
+        "productkey.Win5x5",
+        "mitigation.MitigationBypass"
     ],
     "S004": [
         "unsafe_content.OfcomOffensiveSexual",
