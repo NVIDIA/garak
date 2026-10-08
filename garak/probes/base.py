@@ -793,7 +793,7 @@ class IterativeProbe(Probe):
         try:
             self.attempt_queue = self._create_init_attempts()
             self.max_attempts_before_termination = float("inf")
-            if self.follow_prompt_cap:
+            if self.follow_prompt_cap and self.soft_probe_prompt_cap is not None:
                 self.max_attempts_before_termination = (
                     len(self.attempt_queue) * self.soft_probe_prompt_cap
                 )
@@ -862,7 +862,7 @@ class IntentProbe(Probe):
         self._populate_intents()
         self._populate_stubs()
         self.build_prompts()
-        if self.follow_prompt_cap:
+        if self.follow_prompt_cap and self.soft_probe_prompt_cap is not None:
             self._prune_data(self.soft_probe_prompt_cap)
 
     def _attempt_prestore_hook(
