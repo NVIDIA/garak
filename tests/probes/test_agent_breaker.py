@@ -1096,6 +1096,27 @@ class TestPostprocessAttempt:
         assert "verified_results" not in notes
 
 
+class TestOwaspTagging:
+    """Tags must match the OWASP revision cited by doc_uri (issue #1919)."""
+
+    def test_owasp_tagging_matches_doc_uri(self):
+        assert "llm062025-excessive-agency" in AgentBreaker.doc_uri, (
+            "doc_uri must cite OWASP LLM06 Excessive Agency (2025)"
+        )
+        assert "owasp:llm06" in AgentBreaker.tags, (
+            "probe must carry owasp:llm06 for Excessive Agency"
+        )
+        assert "owasp:llm07" not in AgentBreaker.tags, (
+            "stale 2023-revision llm07 tag must be gone"
+        )
+        assert "owasp:llm08" not in AgentBreaker.tags, (
+            "stale 2023-revision llm08 tag must be gone"
+        )
+        assert "owasp:llm01" in AgentBreaker.tags, (
+            "prompt-injection vector stays in scope"
+        )
+
+
 class TestAttackStateRoundTrip:
     """Ensure AttackState serialization preserves all fields."""
 

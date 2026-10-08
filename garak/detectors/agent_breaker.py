@@ -53,8 +53,7 @@ class AgentBreakerResult(Detector):
     lang_spec = "*"
     tags = [
         "owasp:llm01",
-        "owasp:llm07",
-        "owasp:llm08",
+        "owasp:llm06",
         "quality:Security:AgentSecurity",
     ]
 

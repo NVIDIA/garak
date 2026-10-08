@@ -74,6 +74,20 @@ class TestDetectorInit:
     def test_tags_present(self):
         assert len(AgentBreakerResult.tags) > 0
 
+    def test_owasp_tagging_matches_doc_uri(self):
+        assert "llm062025-excessive-agency" in AgentBreakerResult.doc_uri, (
+            "doc_uri must cite OWASP LLM06 Excessive Agency (2025)"
+        )
+        assert "owasp:llm06" in AgentBreakerResult.tags, (
+            "detector must carry owasp:llm06 for Excessive Agency"
+        )
+        assert "owasp:llm07" not in AgentBreakerResult.tags, (
+            "stale 2023-revision llm07 tag must be gone"
+        )
+        assert "owasp:llm08" not in AgentBreakerResult.tags, (
+            "stale 2023-revision llm08 tag must be gone"
+        )
+
 
 class TestDetectIndependentScoring:
     """Each output should be evaluated independently."""
