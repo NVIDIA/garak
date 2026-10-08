@@ -140,3 +140,87 @@ def test_grandmaintent_init_prunes_balanced():
     assert (
         max(counts.values()) - min(counts.values()) <= 1
     ), "GrandmaIntent prompts must be balanced within one per intent"
+
+
+# ---------------------------------------------------------------------------
+# Tests for build_prompts() intra-intent deduplication (issue #2179)
+# ---------------------------------------------------------------------------
+
+def _make_stubs(stub_intent_pairs):
+    """Return (stubs, stub_intents) lists from [(content, intent), ...] pairs."""
+    from garak.intents import TextStub
+    stubs = []
+    stub_intents = []
+    for content, intent in stub_intent_pairs:
+        s = TextStub(intent=intent)
+        s.content = content
+        stubs.append(s)
+        stub_intents.append(intent)
+    return stubs, stub_intents
+
+
+def test_build_prompts_deduplicates_same_intent_duplicates():
+    """Two stubs that produce the same text for the same intent yield one prompt."""
+    probe = _load_base_intentprobe()
+    probe.stubs, probe.stub_intents = _make_stubs(
+        [("hello world", "A"), ("hello world", "A")]
+    )
+    probe.build_prompts()
+    assert probe.prompts.count("hello world") == 1, (
+        "same-intent duplicate prompt must be deduplicated"
+    )
+    assert len(probe.prompt_intents) == len(probe.prompts)
+
+
+def test_build_prompts_keeps_cross_intent_duplicates():
+    """The same text for two different intents must produce two prompts."""
+    probe = _load_base_intentprobe()
+    probe.stubs, probe.stub_intents = _make_stubs(
+        [("hello world", "A"), ("hello world", "B")]
+    )
+    probe.build_prompts()
+    assert probe.prompts.count("hello world") == 2, (
+        "cross-intent duplicate prompts must remain distinct"
+    )
+    assert len(probe.prompt_intents) == 2
+
+
+def test_build_prompts_unique_stubs_unchanged():
+    """Stubs with distinct texts are all preserved unchanged."""
+    probe = _load_base_intentprobe()
+    probe.stubs, probe.stub_intents = _make_stubs(
+        [("alpha", "A"), ("beta", "A"), ("gamma", "A")]
+    )
+    probe.build_prompts()
+    assert len(probe.prompts) == 3, "three distinct texts must all be kept"
+    assert set(probe.prompts) == {"alpha", "beta", "gamma"}
+
+
+def test_build_prompts_mixed_dedup_and_distinct():
+    """Verifies dedup of same-intent pairs while cross-intent copies survive."""
+    probe = _load_base_intentprobe()
+    probe.stubs, probe.stub_intents = _make_stubs(
+        [
+            ("dup text", "A"),  # duplicate for A
+            ("dup text", "A"),  # should be removed
+            ("dup text", "B"),  # different intent — kept
+            ("unique", "A"),    # unique — kept
+        ]
+    )
+    probe.build_prompts()
+    assert len(probe.prompts) == 3, "should keep 1 x A:'dup text', 1 x B:'dup text', 1 x A:'unique'"
+    assert probe.prompts.count("dup text") == 2
+    assert probe.prompts.count("unique") == 1
+    assert len(probe.prompt_intents) == len(probe.prompts)
+
+
+def test_build_prompts_prompts_and_intents_stay_aligned():
+    """After deduplication prompts and prompt_intents lists must have equal length."""
+    probe = _load_base_intentprobe()
+    probe.stubs, probe.stub_intents = _make_stubs(
+        [("x", "A"), ("x", "A"), ("y", "B"), ("y", "B"), ("z", "A")]
+    )
+    probe.build_prompts()
+    assert len(probe.prompts) == len(probe.prompt_intents), (
+        "prompts and prompt_intents must remain aligned after dedup"
+    )
