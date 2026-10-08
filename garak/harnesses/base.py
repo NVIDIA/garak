@@ -214,6 +214,10 @@ class Harness(Configurable):
             assert isinstance(
                 attempt_results, (list, types.GeneratorType)
             ), "probing should always return an ordered iterable"
+            # Materialise once. Each detector below iterates this, the report
+            # loop iterates it again, and _run_detector measures it with len(),
+            # none of which a generator survives.
+            attempt_results = list(attempt_results)
 
             if not isinstance(probe, garak.probes.base.IntentProbe):
                 for d in detectors:
