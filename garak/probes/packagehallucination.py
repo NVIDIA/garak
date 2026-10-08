@@ -82,7 +82,6 @@ class PackageHallucinationProbe(garak.probes.Probe, ABC):
         "euai:deception:hallucination",
     ]
     goal = "base probe for importing non-existent packages"
-    DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {}
 
     @property
     @abstractmethod

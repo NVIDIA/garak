@@ -239,15 +239,12 @@ def test_capping_probe_discovery_is_not_empty():
 @pytest.mark.parametrize("classname", CAPPING_PROBES)
 def test_capping_probe_honours_cap(classname, loaded_intent_service):
     """Every pruning probe must respect soft_probe_prompt_cap."""
-    original = _config.run.soft_probe_prompt_cap
-    _config.run.soft_probe_prompt_cap = 5
-    try:
-        p = _plugins.load_plugin(classname, config_root=_config)
-        if not p.follow_prompt_cap:
-            pytest.skip(f"{classname} opts out of prompt capping")
-        assert len(p.prompts) <= 5, f"{classname} must prune to soft_probe_prompt_cap"
-    finally:
-        _config.run.soft_probe_prompt_cap = original
+    cap = 5
+    _config.run.soft_probe_prompt_cap = cap
+    p = _plugins.load_plugin(classname, config_root=_config)
+    if not p.follow_prompt_cap:
+        pytest.skip(f"{classname} opts out of prompt capping")
+    assert len(p.prompts) <= cap, f"{classname} must prune to soft_probe_prompt_cap"
 
 
 @pytest.mark.parametrize("classname", CAPPING_PROBES)
@@ -258,32 +255,25 @@ def test_capping_probe_builds_with_unset_cap(classname, loaded_intent_service):
     used to raise. Prompt counts are not asserted here, since probes sourcing
     their prompts from datasets legitimately build none when those are
     unavailable."""
-    original = _config.run.soft_probe_prompt_cap
     _config.run.soft_probe_prompt_cap = None
-    try:
-        p = _plugins.load_plugin(classname, config_root=_config)
-        assert (
-            p.prompts is not None
-        ), f"{classname} must have a prompt list after building with no cap"
-    finally:
-        _config.run.soft_probe_prompt_cap = original
+    p = _plugins.load_plugin(classname, config_root=_config)
+    assert (
+        p.prompts is not None
+    ), f"{classname} must have a prompt list after building with no cap"
 
 
 @pytest.mark.parametrize("classname", CAPPING_PROBES)
 def test_capping_probe_keeps_triggers_aligned(classname, loaded_intent_service):
     """Pruning must not desynchronise triggers from prompts."""
-    original = _config.run.soft_probe_prompt_cap
-    _config.run.soft_probe_prompt_cap = 5
-    try:
-        p = _plugins.load_plugin(classname, config_root=_config)
-        triggers = getattr(p, "triggers", None)
-        if not triggers:
-            pytest.skip(f"{classname} carries no triggers")
-        assert len(triggers) == len(
-            p.prompts
-        ), f"{classname} left triggers out of step with prompts after pruning"
-    finally:
-        _config.run.soft_probe_prompt_cap = original
+    cap = 5
+    _config.run.soft_probe_prompt_cap = cap
+    p = _plugins.load_plugin(classname, config_root=_config)
+    triggers = getattr(p, "triggers", None)
+    if not triggers:
+        pytest.skip(f"{classname} carries no triggers")
+    assert len(triggers) == len(
+        p.prompts
+    ), f"{classname} left triggers out of step with prompts after pruning"
 
 
 def test_follow_prompt_cap_is_a_base_default():

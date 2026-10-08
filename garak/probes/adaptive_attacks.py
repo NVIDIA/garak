@@ -91,8 +91,6 @@ class AdaptiveAttacks(garak.probes.Probe):
     doc_uri = "https://arxiv.org/abs/2404.02151"
     intent = "S006"  # default seeds ask the model to produce instructions related to various harms
 
-    DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {}
-
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
         self.prompts = list()
