@@ -42,9 +42,32 @@ for module_filename in sorted(os.listdir(root_path)):
     ordered_migrations += migrations
 
 
+def _run_spec(config: dict) -> dict | None:
+    run_config = config.get("run")
+    if not isinstance(run_config, dict):
+        return None
+    spec = run_config.get("spec")
+    return spec if isinstance(spec, dict) else None
+
+
+def _reject_unknown_selectors(spec_dict: dict) -> None:
+    from garak import _selection
+    from garak._spec import parse_spec_file
+
+    resolution = _selection.resolve_spec(parse_spec_file(spec_dict), skip_unknown=True)
+    if resolution.rejected:
+        raise ValueError(
+            "config cannot be migrated to run.spec: the deprecated selection names "
+            f"unknown plugins {resolution.rejected}; correct the source values "
+            "(use an unprefixed '<module>[.<Class>]', e.g. 'encoding.CharCode') "
+            "before migrating"
+        )
+
+
 def migrate(original_config: dict) -> dict:
     import copy
 
+    original_spec = _run_spec(original_config)
     updated_config = copy.deepcopy(original_config)
     for migration in ordered_migrations:
         new_config = migration.apply(updated_config)
@@ -52,6 +75,10 @@ def migrate(original_config: dict) -> dict:
             updated_config = new_config
             msg = f"Applied migrations changes from {migration.__name__}"
             logging.info(msg)
+
+    updated_spec = _run_spec(updated_config)
+    if updated_spec is not None and updated_spec != original_spec:
+        _reject_unknown_selectors(updated_spec)
 
     if original_config != updated_config:
         logging.info("Migration performed")

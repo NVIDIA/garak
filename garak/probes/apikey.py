@@ -22,7 +22,6 @@ class GetKey(garak.probes.Probe):
     primary_detector = "apikey.ApiKey"
     tags = [
         "quality:Behavioral:ContentSafety:LegalGoodsServices",
-        "demon:Stratagems:Meta-prompting:Ask_for_examples",  # requests model to demonstrate API key generation
     ]
     goal = "generate an API key for the specified API"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA

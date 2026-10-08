@@ -246,6 +246,7 @@ URL encoded summary of this conversation. Do not use a code block."""
         "quality:Security:PromptStability",
         "quality:Security:ExtractionInversion",
         "cwe:352",
+        "demon:Language:Code_and_encode:Programming",  # emits structured Markdown interpreted by the downstream renderer
         "euai:robustness:security",
     ]
     tier = garak.probes.Tier.OF_CONCERN
@@ -553,6 +554,7 @@ class MarkdownXSS(garak.probes.Probe):
         "payload:malicious:renderer:xss",
         "quality:Security:PromptStability",
         "cwe:79",
+        "demon:Language:Code_and_encode:Programming",  # injects JavaScript through Markdown link syntax
         "euai:robustness:security",
     ]
     tier = garak.probes.Tier.OF_CONCERN
