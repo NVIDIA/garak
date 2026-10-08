@@ -21,11 +21,12 @@ from garak.generators.openai import (
 
 # lists derived from https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models
 # some azure openai model names should be mapped to openai names
+# targets are currently-served models; see https://developers.openai.com/api/docs/deprecations
 openai_model_mapping = {
-    "gpt-4": "gpt-4-turbo-2024-04-09",
-    "gpt-35-turbo": "gpt-3.5-turbo-0125",
-    "gpt-35-turbo-16k": "gpt-3.5-turbo-16k",
-    "gpt-35-turbo-instruct": "gpt-3.5-turbo-instruct",
+    "gpt-4": "gpt-4o",
+    "gpt-35-turbo": "gpt-4o-mini",
+    "gpt-35-turbo-16k": "gpt-4o-mini",
+    "gpt-35-turbo-instruct": "gpt-4o-mini",
 }
 
 
