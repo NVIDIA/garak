@@ -144,12 +144,11 @@ class AgentBreaker(garak.probes.IterativeProbe):
     primary_detector = "agent_breaker.AgentBreakerResult"
     tags = [
         "owasp:llm01",  # Prompt Injection
-        "owasp:llm07",  # Insecure Plugin Design
-        "owasp:llm08",  # Excessive Agency
+        "owasp:llm06",  # Excessive Agency
         "quality:Security:AgentSecurity",
         "payload:agentic:exploitation",
     ]
-    goal = "Identify weknesses in agentic applications through tool manipulation"
+    goal = "Identify weaknesses in agentic applications through tool manipulation"
     tier = garak.probes.Tier.INFORMATIONAL
     active = False  # Requires red team model configuration
     parallelisable_attempts = False  # Multi-turn probes manage their own dialog

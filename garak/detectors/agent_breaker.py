@@ -52,9 +52,8 @@ class AgentBreakerResult(Detector):
     doc_uri = "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/"
     lang_spec = "*"
     tags = [
-        "owasp:llm01",
-        "owasp:llm07",
-        "owasp:llm08",
+        "owasp:llm01",  # Prompt Injection
+        "owasp:llm06",  # Excessive Agency
         "quality:Security:AgentSecurity",
     ]
 

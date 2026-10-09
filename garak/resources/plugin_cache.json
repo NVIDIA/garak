@@ -69,8 +69,7 @@
       "primary_detector": "agent_breaker.AgentBreakerResult",
       "tags": [
         "owasp:llm01",
-        "owasp:llm07",
-        "owasp:llm08",
+        "owasp:llm06",
         "quality:Security:AgentSecurity",
         "payload:agentic:exploitation"
       ],
@@ -6519,8 +6518,7 @@
       "pass_desc": "Detector found no issue",
       "tags": [
         "owasp:llm01",
-        "owasp:llm07",
-        "owasp:llm08",
+        "owasp:llm06",
         "quality:Security:AgentSecurity"
       ],
       "mod_time": "2026-08-26 11:04:53 +0000"

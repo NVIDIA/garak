@@ -74,6 +74,17 @@ class TestDetectorInit:
     def test_tags_present(self):
         assert len(AgentBreakerResult.tags) > 0
 
+    def test_owasp_tags(self):
+        assert (
+            "owasp:llm06" in AgentBreakerResult.tags
+        ), "AgentBreakerResult must include owasp:llm06"
+        assert (
+            "owasp:llm07" not in AgentBreakerResult.tags
+        ), "AgentBreakerResult must not include owasp:llm07"
+        assert (
+            "owasp:llm08" not in AgentBreakerResult.tags
+        ), "AgentBreakerResult must not include owasp:llm08"
+
 
 class TestDetectIndependentScoring:
     """Each output should be evaluated independently."""
