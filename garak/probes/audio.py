@@ -66,7 +66,19 @@ class AudioAchillesHeel(garak.probes.Probe):
                 "Audio Achilles data not found. Downloading from HuggingFace."
             )
 
+            import importlib.metadata
+
             from datasets import load_dataset
+
+            _ds_version = tuple(
+                int(x)
+                for x in importlib.metadata.version("datasets").split(".")[:2]
+            )
+            if _ds_version >= (4, 0):
+                raise ImportError(
+                    "Loading audio datasets requires datasets<4.0. "
+                    "Install the audio extra: pip install 'garak[audio]'"
+                )
 
             def write_audio_to_file(audio_data, file_path, sampling_rate):
                 """Writes audio data to a file.
