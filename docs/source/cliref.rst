@@ -3,7 +3,7 @@ CLI reference for garak
 
 ::
 
-  garak LLM vulnerability scanner v0.17.1.pre1 ( https://github.com/NVIDIA/garak ) at 2026-09-09T13:19:35.106668
+  garak LLM vulnerability scanner v0.17.1.pre1 ( https://github.com/NVIDIA/garak ) at 2026-09-13T22:13:43.153343
   usage: python -m garak [-h] [--verbose] [--report_prefix REPORT_PREFIX]
                          [--narrow_output]
                          [--parallel_requests PARALLEL_REQUESTS]
@@ -26,9 +26,9 @@ CLI reference for garak
                          [--bootstrap_confidence_level BOOTSTRAP_CONFIDENCE_LEVEL]
                          [--bootstrap_min_sample_size BOOTSTRAP_MIN_SAMPLE_SIZE]
                          [--plugin_info PLUGIN_INFO] [--list_probes]
-                         [--list_detectors] [--list_generators] [--list_buffs]
-                         [--list_config] [--version] [--report REPORT]
-                         [--interactive] [--fix]
+                         [--list_intents] [--list_detectors] [--list_generators]
+                         [--list_buffs] [--list_config] [--version]
+                         [--report REPORT] [--interactive] [--fix]
   
   LLM safety & security scanning tool
   
@@ -63,8 +63,10 @@ CLI reference for garak
     --spec SPEC, -S SPEC  unified selection spec, e.g.
                           'probes.dan,-probes.dan.DanInTheWild,tag:owasp:llm01'.
                           Selectors: probes.<module>[.<Class>],
-                          buffs.<module>[.<Class>], tag:<prefix>, tier:<N|name>;
-                          '-' excludes, tier:N is inclusive (tiers 1..N).
+                          buffs.<module>[.<Class>], tag:<prefix>, tier:<N|name>,
+                          intent:<code>; '-' excludes, tier:N is inclusive
+                          (tiers 1..N). Use --list_intents to discover intent
+                          codes.
     --probes PROBES, -p PROBES
                           DEPRECATED, use --spec. list of probe names to use, or
                           'all'.
@@ -125,6 +127,9 @@ CLI reference for garak
     --list_probes         list available probes. Use -v for a detailed markdown
                           table with tier and description. Combine with --spec
                           to filter, e.g. '--list_probes --spec probes.dan'.
+    --list_intents        list the intent typology. Use -v for descriptions and
+                          combine with --spec to filter, e.g. '--list_intents
+                          --spec intent:S005'.
     --list_detectors      list available detectors. Usage: combine with
                           --detectors/-d to filter for detectors that will be
                           activated based on a `detector_spec`, e.g. '--
