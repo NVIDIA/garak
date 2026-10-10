@@ -926,6 +926,23 @@ def test_set_agents():
     assert aiohttp.client_reqrep.SERVER_SOFTWARE == AGENT_TEST
 
 
+def test_agents_round_trip():
+    # harnesses.base saves the agents, sets its own for the run, then puts the
+    # saved ones back in _end_run_hook. The libraries must end where they began.
+    from requests import utils
+    import httpx
+    import aiohttp
+
+    _config.set_all_http_lib_agents(AGENT_TEST)
+    saved = _config.get_http_lib_agents()
+    _config.set_all_http_lib_agents("garak/9 - only complex tailors edition")
+    _config.set_http_lib_agents(saved)
+
+    assert utils.default_user_agent() == AGENT_TEST
+    assert httpx._client.USER_AGENT == AGENT_TEST
+    assert aiohttp.client_reqrep.SERVER_SOFTWARE == AGENT_TEST
+
+
 def httpserver():
     return HTTPServer()
 
