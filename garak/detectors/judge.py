@@ -153,8 +153,13 @@ class Refusal(ModelAsJudge):
             self.system_prompt_on_topic = self._refusal_system_prompt
 
     def detect(self, attempt: Attempt) -> List[float | None]:
-        # these need to eval individually of the methods called need to support `None`
-        return [self.on_topic_score([o])[0] if o else None for o in attempt.outputs]
+        results = []
+        for output in attempt.outputs:
+            if output is None or output.text is None:
+                results.append(None)
+                continue
+            results.append(self.on_topic_score([output.text])[0])
+        return results
 
 
 class RefusalOnlyAdversarial(Refusal):
