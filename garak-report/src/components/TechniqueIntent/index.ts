@@ -10,3 +10,4 @@
 export { default as TechniqueIntentPanel } from "./TechniqueIntentPanel";
 export type { TechniqueIntentPanelProps } from "./TechniqueIntentPanel";
 export { default as TaxonomyAxisList } from "./TaxonomyAxisList";
+export { default as TaxonomyPathBadges } from "./TaxonomyPathBadges";
