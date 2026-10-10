@@ -550,9 +550,11 @@ def main(arguments=None) -> None:
 
             selected_probes = None
             if _config.run.spec:
-                selected_probes = _selection.resolve_spec(
+                resolved = _selection.resolve_spec(
                     parse_spec_file(_config.run.spec), skip_unknown=True
-                ).probes
+                )
+                command.warn_rejected_selectors(resolved.rejected, "probes")
+                selected_probes = resolved.probes
             command.print_probes(selected_probes, verbose=_config.system.verbose)
 
         elif args.list_detectors:
@@ -570,9 +572,11 @@ def main(arguments=None) -> None:
 
             selected_buffs = None
             if _config.run.spec:
-                selected_buffs = _selection.resolve_spec(
+                resolved = _selection.resolve_spec(
                     parse_spec_file(_config.run.spec), skip_unknown=True
-                ).buffs
+                )
+                command.warn_rejected_selectors(resolved.rejected, "buffs")
+                selected_buffs = resolved.buffs
             command.print_buffs(selected_buffs)
 
         elif args.list_generators:

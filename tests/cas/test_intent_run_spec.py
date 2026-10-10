@@ -88,11 +88,20 @@ def test_empty_axis_yields_no_prompts():
 def test_warn_unconsumed_intents_fires_without_intent_probe(capsys):
     import garak.command as command
 
+    # probes.base.Probe declares no intent of its own (unlike e.g. dan.* probes,
+    # which default to T009ignore) -- nothing here engages the intent axis at all.
     garak._config.transient.intents_explicit = True
-    command.warn_unconsumed_intents(["probes.dan.DanInTheWild"])
+    command.warn_unconsumed_intents(["probes.base.Probe"])
+    out = capsys.readouterr().out
     assert (
-        "no IntentProbe is selected" in capsys.readouterr().out
+        "no IntentProbe is selected" in out
     ), "explicit intent: with no IntentProbe in the selection must warn"
+    assert (
+        "no intent-derived prompts will be generated" in out
+    ), "the warning states no intent-derived prompts result without an IntentProbe"
+    # the message must not assert narrowing, since intent:*/intent:all and some
+    # exclude-only specs never prune the probe set
+    assert "narrowed" not in out, "the warning must not claim narrowing"
 
 
 def test_warn_unconsumed_intents_silent_with_mixed_selection(capsys):
@@ -113,3 +122,40 @@ def test_warn_unconsumed_intents_silent_when_default(capsys):
     garak._config.transient.intents_explicit = False
     command.warn_unconsumed_intents(["probes.dan.DanInTheWild"])
     assert capsys.readouterr().out == "", "the injected default (not explicit) must not warn"
+
+
+def test_warn_rejected_selectors_reports_each(capsys):
+    # generic reporter for any run.spec selector dropped under skip_unknown=True
+    # (e.g. a malformed intent: code in a --list_probes/--list_buffs preview).
+    import garak.command as command
+
+    command.warn_rejected_selectors(["intent:zzz", "probes.nonexistent"], "probes")
+    out = capsys.readouterr().out
+    assert "intent:zzz" in out, "each rejected selector must be named in the warning"
+    assert (
+        "probes.nonexistent" in out
+    ), "each rejected selector must be named in the warning"
+
+
+def test_warn_rejected_selectors_silent_when_empty(capsys):
+    import garak.command as command
+
+    command.warn_rejected_selectors([], "buffs")
+    assert capsys.readouterr().out == "", "no rejected selectors must print nothing"
+
+
+def test_probe_pruning_does_not_change_active_intent_set():
+    # the probe-selection filter and the IntentService active set are independent
+    # axes: filtering the probe set must not change which intents become active.
+    from garak._selection import resolve_spec
+    from garak._spec import parse_spec_string
+
+    res = resolve_spec(parse_spec_string("probes.*,intent:S005hate"))
+    assert res.intents == [
+        "S005hate"
+    ], "the intent axis carries the requested code regardless of probe pruning"
+    active = _load("S005hate")
+    assert (
+        "S005hate" in active
+    ), "the active intent set derives from the code, not from surviving probes"
+
