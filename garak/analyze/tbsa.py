@@ -14,6 +14,7 @@ import json
 import math
 import statistics
 import sys
+from pathlib import Path
 from typing import Tuple
 import zlib
 
@@ -268,6 +269,18 @@ def main(argv=None) -> None:
     if not report_path:
         parser.error("a report path is required (-r/--report_path)")
 
+    report_path = Path(report_path)
+    if report_path.is_dir():
+        candidates = list(report_path.glob("*.report.jsonl"))
+        if len(candidates) == 0:
+            parser.error(
+                f"{report_path} is a directory but does not contain a file ending report.jsonl"
+            )
+        candidate = candidates[0]
+        if not candidate.is_file():
+            parser.error(f"found {candidate} but this is not a file")
+        report_path = candidate
+
     if not args.quiet:
         print(
             f"garak {garak.__description__} v{garak._config.version} ( https://github.com/NVIDIA/garak ) TBSA"
@@ -282,7 +295,7 @@ def main(argv=None) -> None:
     if args.verbose and not args.quiet:
         print(f"processing> {report_path}")
 
-    with open(args.report_path, "r", encoding="utf-8") as report_file:
+    with open(report_path, "r", encoding="utf-8") as report_file:
         g = (json.loads(line.strip()) for line in report_file if line.strip())
         for record in g:
             if record["entry_type"] == "digest":
