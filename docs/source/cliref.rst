@@ -21,7 +21,7 @@ CLI reference for garak
                          [--harness_option_file HARNESS_OPTION_FILE | --harness_options HARNESS_OPTIONS]
                          [--probe_option_file PROBE_OPTION_FILE | --probe_options PROBE_OPTIONS]
                          [--taxonomy TAXONOMY]
-                         [--confidence_interval_method {bootstrap,none}]
+                         [--confidence_interval_method {bootstrap,wilson,none}]
                          [--bootstrap_num_iterations BOOTSTRAP_NUM_ITERATIONS]
                          [--bootstrap_confidence_level BOOTSTRAP_CONFIDENCE_LEVEL]
                          [--bootstrap_min_sample_size BOOTSTRAP_MIN_SAMPLE_SIZE]
@@ -107,9 +107,9 @@ CLI reference for garak
     --taxonomy TAXONOMY   specify a MISP top-level taxonomy to be used for
                           grouping probes in reporting. e.g. 'avid-effect',
                           'owasp'
-    --confidence_interval_method {bootstrap,none}
-                          method for CI calculation: 'bootstrap' (default) or
-                          'none' to disable
+    --confidence_interval_method {bootstrap,wilson,none}
+                          method for CI calculation: 'bootstrap' (default),
+                          'wilson', or 'none' to disable
     --bootstrap_num_iterations BOOTSTRAP_NUM_ITERATIONS
                           number of bootstrap iterations for CI calculation
                           (overrides config)

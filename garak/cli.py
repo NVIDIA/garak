@@ -230,8 +230,8 @@ def main(arguments=None) -> None:
         "--confidence_interval_method",
         type=str,
         default=None,
-        choices=["bootstrap", "none"],
-        help="method for CI calculation: 'bootstrap' (default) or 'none' to disable",
+        choices=["bootstrap", "wilson", "none"],
+        help="method for CI calculation: 'bootstrap' (default), 'wilson', or 'none' to disable",
     )
     parser.add_argument(
         "--bootstrap_num_iterations",
