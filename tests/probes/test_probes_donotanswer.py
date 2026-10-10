@@ -102,3 +102,42 @@ def test_donotanswer_attempts(category, loaded_intent_service):
     assert (
         len({p._mint_attempt(p.prompts[i], seq=i).intent for i in positions}) > 0
     ), f"at least one sampled attempt in {category} must have a non-empty intent"
+
+
+# The per-prompt intent contract (issue #1808): donotanswer used to carry a
+# bespoke _attempt_prestore_hook to copy its per-entry intents onto attempts.
+# The probe base now consumes an aligned self._prompt_intents list, so the
+# bespoke hook is gone; these guard that the behaviour it provided survives.
+
+
+@pytest.mark.parametrize("category", DNA_CATEGORIES)
+def test_dna_prompt_intents_align_with_prompts(category):
+    classname = f"probes.donotanswer.{category.title().replace('_', '')}"
+    p = _plugins.load_plugin(classname)
+    assert len(p._prompt_intents) == len(p.prompts)
+    assert all(i for i in p._prompt_intents), "every entry should carry an intent"
+
+
+@pytest.mark.parametrize("category", DNA_CATEGORIES)
+def test_dna_attempt_carries_its_own_entry_intent(category):
+    """Each attempt reports its own entry's intent, without a bespoke hook."""
+    classname = f"probes.donotanswer.{category.title().replace('_', '')}"
+    p = _plugins.load_plugin(classname)
+    assert not hasattr(p, "_dna_attempt_prestore_hook")
+
+    for seq in (0, len(p.prompts) // 2, len(p.prompts) - 1):
+        attempt = p._mint_attempt(p.prompts[seq], seq)
+        assert attempt.intent == p._prompt_intents[seq]
+
+
+@pytest.mark.parametrize("category", DNA_CATEGORIES)
+def test_dna_attempt_intent_varies_across_entries(category):
+    """Guards against every attempt collapsing onto one probe-wide intent."""
+    classname = f"probes.donotanswer.{category.title().replace('_', '')}"
+    p = _plugins.load_plugin(classname)
+    minted = {
+        p._mint_attempt(prompt, seq).intent
+        for seq, prompt in enumerate(p.prompts)
+    }
+    assert minted == set(p._prompt_intents)
+    assert len(minted) > 1, "these categories span more than one intent"
