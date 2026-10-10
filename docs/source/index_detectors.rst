@@ -42,5 +42,6 @@ For detailed information on detector metrics and evaluation, see :doc:`../detect
    detectors/snowball
    detectors/sysprompt_extraction
    detectors/unsafe_content
+   detectors/violence
    detectors/visual_jailbreak
    detectors/web_injection
