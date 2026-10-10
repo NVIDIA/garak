@@ -377,17 +377,25 @@ class Attempt:
         # append each list item to each history, with role:assistant
         self._add_turn("assistant", value)
 
+    def _lang_spec_matches(self, lang_spec) -> bool:
+        """whether the prompt language is covered by a detector ``lang_spec``
+
+        ``lang_spec`` is a comma-separated list of BCP47 tags, or "*"; None matches
+        """
+        if lang_spec is None:
+            return True
+        prompt_lang = self.prompt.last_message().lang
+        if prompt_lang == "*":
+            return True
+        langs = [tag.strip() for tag in lang_spec.split(",")]
+        return "*" in langs or prompt_lang in langs
+
     def prompt_for(self, lang) -> Conversation:
         """prompt for a known language
 
         When "*" or None are passed returns the prompt passed to the model
         """
-        if (
-            lang is not None
-            and self.prompt.last_message().lang != "*"
-            and lang != "*"
-            and self.prompt.last_message().lang != lang
-        ):
+        if not self._lang_spec_matches(lang):
             return self.notes.get(
                 "pre_translation_prompt", self.prompt
             )  # update if found in notes
@@ -399,12 +407,7 @@ class Attempt:
 
         When "*" or None are passed returns the original model output
         """
-        if (
-            lang is not None
-            and self.prompt.last_message().lang != "*"
-            and lang != "*"
-            and self.prompt.last_message().lang != lang
-        ):
+        if not self._lang_spec_matches(lang):
             return (
                 self.reverse_translation_outputs
             )  # this needs to be wired back in for support
