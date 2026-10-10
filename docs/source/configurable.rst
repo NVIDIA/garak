@@ -511,7 +511,21 @@ This defines a REST endpoint where:
 
 
 This should be written to a file, and the file's path passed on the command
-line with `-G`.
+line with `-G`:
+
+.. code-block:: bash
+
+    garak --target_type rest.RestGenerator -G rest_config.json --spec probes.promptinject
+
+The same JSON envelope can be passed inline with ``--generator_options``
+(useful for custom HTTP endpoints on AWS, Azure, or any REST API):
+
+.. code-block:: bash
+
+    garak --target_type rest.RestGenerator \
+      --target_name "https://your-api-endpoint.com/chat" \
+      --generator_options '{"rest": {"RestGenerator": {"req_template_json_object": {"message": "$INPUT"}, "response_json": true, "response_json_field": "reply"}}}' \
+      --spec probes.promptinject
 
 Configuration in Code
 ---------------------
