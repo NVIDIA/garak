@@ -19,6 +19,18 @@ import sys
 import garak
 
 
+def _to_text(value) -> str:
+    """Extract text from report values while tolerating legacy shapes."""
+    if isinstance(value, str):
+        return value
+    if isinstance(value, dict):
+        for key in ("text", "content", "response"):
+            nested = value.get(key)
+            if isinstance(nested, (str, dict)):
+                return _to_text(nested)
+    return str(value)
+
+
 def count_tokens(report_path: str) -> None:
     calls = 0
     input_length = 0
@@ -35,22 +47,10 @@ def count_tokens(report_path: str) -> None:
                 generations = r["run.generations"]
                 continue
             if "status" in r and r["status"] == 2:
-                input_length += len(r["prompt"]) * generations
+                input_length += len(_to_text(r["prompt"])) * generations
                 calls += generations
                 outputs = r.get("outputs", [])
                 if isinstance(outputs, list):
-
-                    def _to_text(o):
-                        if isinstance(o, str):
-                            return o
-                        if isinstance(o, dict):
-                            # common keys seen in generator outputs
-                            for k in ("text", "content", "response"):
-                                v = o.get(k)
-                                if isinstance(v, str):
-                                    return v
-                        return str(o)
-
                     output_text = "".join(_to_text(o) for o in outputs)
                 else:
                     output_text = str(outputs)
