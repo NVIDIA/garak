@@ -28,6 +28,7 @@ For detailed information on detector metrics and evaluation, see :doc:`../detect
    detectors/goodside
    detectors/judge
    detectors/knownbadsignatures
+   detectors/latexinjection
    detectors/leakreplay
    detectors/lmrc
    detectors/malwaregen
