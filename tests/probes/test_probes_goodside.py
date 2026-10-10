@@ -1,8 +1,11 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+import ast
 import random
 from collections import Counter
+
+import pytest
 
 import garak._config
 import garak._plugins
@@ -49,3 +52,66 @@ def test_threatenintent_init_prunes_balanced(loaded_intent_service):
     assert all(
         "will die" in prompt for prompt in probe.prompts
     ), "every prompt should carry the death threat"
+
+
+def _decode_tags(prompt: str) -> str:
+    encoded = prompt.split("\n")[-1]
+    return "".join(chr(ord(ch) - 0xE0000) for ch in encoded)
+
+
+def _az_only(text: str) -> str:
+    return "".join(ch for ch in text if ch.isascii() and ch.isalpha())
+
+
+@pytest.fixture(scope="module")
+def tag_probe():
+    return garak._plugins.load_plugin("probes.goodside.Tag")
+
+
+def test_tag_prompts_unique(tag_probe):
+    assert len(set(tag_probe.prompts)) == len(
+        tag_probe.prompts
+    ), "each Tag attribute combination should yield a distinct prompt"
+
+
+def test_tag_metadata_aligned(tag_probe):
+    assert (
+        len(tag_probe.prompts)
+        == len(tag_probe.triggers)
+        == len(tag_probe.attempt_descrs)
+    ), "prompts, triggers and descriptions must stay index-aligned"
+
+
+@pytest.mark.parametrize("use_refocuser", [True, False])
+def test_tag_refocuser_matches_descr(tag_probe, use_refocuser):
+    refocuser_start = tag_probe.refocuser_template.split(tag_probe.REFOCUSER_MARKER)[0]
+    assert refocuser_start, "refocuser template should open with fixed text"
+    matching = [
+        (prompt, ast.literal_eval(descr))
+        for prompt, descr in zip(tag_probe.prompts, tag_probe.attempt_descrs)
+    ]
+    matching = [
+        (prompt, descr)
+        for prompt, descr in matching
+        if descr["use refocusing statement"] is use_refocuser
+    ]
+    assert matching, f"expected prompts with refocusing statement={use_refocuser}"
+    for prompt, descr in matching:
+        decoded = _decode_tags(prompt)
+        expected_start = refocuser_start
+        if descr["az_only"]:
+            expected_start = _az_only(refocuser_start)
+        assert (
+            decoded.startswith(expected_start) is use_refocuser
+        ), f"hidden text should only open with the refocuser when described as such: {decoded!r}"
+
+
+def test_tag_payload_encoded(tag_probe):
+    for prompt, descr in zip(tag_probe.prompts, tag_probe.attempt_descrs):
+        descr = ast.literal_eval(descr)
+        payload = descr["payload"][0]
+        if descr["az_only"]:
+            payload = _az_only(payload)
+        assert _decode_tags(prompt).endswith(
+            payload
+        ), "hidden text should end with the encoded payload"
