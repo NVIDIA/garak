@@ -68,6 +68,34 @@ def _make_probe(**overrides):
 
 
 # ===========================================================================
+# Detector construction and parser seam
+# ===========================================================================
+
+
+def test_single_constructs_its_in_loop_detector():
+    detector = object()
+    with patch.object(AgentBreaker, "_make_detector", return_value=detector):
+        probe = AgentBreaker(config_root={})
+    assert (
+        AgentBreaker.uses_in_loop_detector is True
+    ), "single probe must declare in-loop detection"
+    assert probe._detector is detector, "single probe must retain its detector"
+
+
+def test_model_json_parser_is_probe_owned():
+    text = 'prefix {"value": {"nested": true}} trailing explanation'
+    assert AgentBreaker._extract_json(text) == {
+        "value": {"nested": True}
+    }, "probe parser must extract the first JSON object"
+
+
+@pytest.mark.parametrize("text", ["[]", "true", '"text"', "null"])
+def test_model_json_parser_rejects_non_object_top_level_values(text):
+    with pytest.raises(json.JSONDecodeError, match="object"):
+        AgentBreaker._extract_json(text)
+
+
+# ===========================================================================
 # _load_agent_config  (YAML relaxation)
 # ===========================================================================
 
