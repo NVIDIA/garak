@@ -9,7 +9,6 @@ import datetime
 import html
 import importlib
 import json
-import logging
 import markdown
 import os
 import pprint
@@ -28,7 +27,6 @@ import garak.analyze.calibration
 import garak.resources.scoring
 from garak.evaluators.base import CI_DISPLAY_MIN_WIDTH
 from garak.exception import ReportIncompatibleError
-
 
 if not _config.is_loaded:
     _config.load_config()
@@ -65,6 +63,7 @@ def _parse_report(reportfile: IO):
     setup = defaultdict(str)
     init = {}
     plugin_cache = None
+    probe_summaries = {}
 
     for record in [json.loads(line.strip()) for line in reportfile if line.strip()]:
         if record["entry_type"] == "eval":
@@ -91,36 +90,32 @@ def _parse_report(reportfile: IO):
                     plugin_cache["version"] = entries
                     continue
                 plugin_cache.setdefault(category, {}).update(entries)
+        elif record["entry_type"] == "probe_summary":
+            probe_summaries[record["probe"]] = record
 
     if plugin_cache is None or len(plugin_cache) <= 0:
         from copy import deepcopy
 
         plugin_cache = deepcopy(garak._plugins.PluginCache.instance())
         plugin_cache["version"] = garak.__version__
-    return init, setup, payloads, evals, plugin_cache
+    return init, setup, payloads, evals, plugin_cache, probe_summaries
 
 
-def _runspec_to_probespec(setup: dict) -> str:
-    """Render the run.spec from a start_run setup into a display probespec string.
+def _extract_to_probespec(setup: dict) -> str:
+    """Extract the probes reported utilized from a start_run setup into a display probespec string.
 
-    ``run.spec`` is ``None`` by default (implicit ``probes.*``); otherwise the
-    include/exclude selectors are rendered (excludes prefixed with ``-``).
+    ``transient.active_probes`` is ``None`` by default (implicit ``probes.*``)
+    The "display string" should include explicit probe values
+    used during the run all meta characters should be expanded
     """
-    run_spec = setup.get("run.spec")
-    if not run_spec:
-        # backward compatibility: reports predating run.spec carry plugins.probe_spec
-        return setup.get("plugins.probe_spec") or "probes.*"
-    if isinstance(run_spec, str):  # aggregated reports store a pre-rendered string
-        return run_spec
-
-    def _token(item):
-        if isinstance(item, str):
-            return item
-        return ":".join(str(part) for part in next(iter(item.items())))
-
-    parts = [_token(item) for item in run_spec.get("include", []) or []]
-    parts += ["-" + _token(item) for item in run_spec.get("exclude", []) or []]
-    return ", ".join(parts) or "probes.*"
+    active_probes = setup.get("transient.active_probes")
+    if not active_probes:
+        # backward compatibility: reports predating transient.active_probes carry plugins.probe_spec
+        active_probes = setup.get("plugins.probe_spec") or "probes.*"
+    if isinstance(active_probes, list):
+        # # aggregated reports may store a pre-rendered string, newer reports store a list
+        active_probes = ",".join([re.sub("^probes\\.", "", p) for p in active_probes])
+    return active_probes
 
 
 def _report_header_content(report_path, init, setup, payloads, config=_config) -> dict:
@@ -136,7 +131,7 @@ def _report_header_content(report_path, init, setup, payloads, config=_config) -
         "start_time": init["start_time"],
         "run_uuid": init["run_uuid"],
         "setup": setup,
-        "probespec": _runspec_to_probespec(setup),
+        "probespec": _extract_to_probespec(setup),
         "target_type": target_type,
         "target_name": target_name,
         "payloads": payloads,
@@ -282,7 +277,7 @@ def _get_group_aggregate_score(
 
 
 def _get_group_info(probe_group, group_score, taxonomy, config=_config) -> dict:
-
+    # does this need to have the probe_summaries?
     group_doc = f"Probes tagged {probe_group}"
     group_link = ""
 
@@ -314,7 +309,7 @@ def _get_group_info(probe_group, group_score, taxonomy, config=_config) -> dict:
     return group_info
 
 
-def _get_probe_result_summaries(cursor, probe_group) -> List[tuple]:
+def _get_probe_group_summaries(cursor, probe_group) -> List[tuple]:
     res = cursor.execute(
         "select probe_module, probe_class, min(score) as s from results where probe_group=? group by probe_class order by s asc, probe_class asc;",
         (probe_group,),
@@ -323,7 +318,7 @@ def _get_probe_result_summaries(cursor, probe_group) -> List[tuple]:
 
 
 def _get_probe_info(
-    probe_module, probe_class, absolute_score, report_plugin_cache=None
+    probe_module, probe_class, absolute_score, probe_summaries, report_plugin_cache=None
 ) -> dict:
     probe_classpath = f"probes.{probe_module}.{probe_class}"
     try:
@@ -341,6 +336,12 @@ def _get_probe_info(
             "the report was likely generated with a different garak version"
         ) from e
     probe_plugin_name = f"{probe_module}.{probe_class}"
+    probe_counts = {}
+    if summary := probe_summaries.get(probe_plugin_name, None):
+        summary_keys = ("inference_counts", "detection_counts")
+        for key in summary_keys:
+            probe_counts[key] = summary[key]
+
     return {
         "probe_name": probe_plugin_name,
         "probe_score": absolute_score,
@@ -350,6 +351,7 @@ def _get_probe_info(
         "probe_descr": html.escape(probe_description),
         "probe_tier": probe_tier,
         "probe_tags": probe_tags,
+        "probe_counts": probe_counts,
     }
 
 
@@ -589,7 +591,9 @@ def build_digest(report_filename: str, config=_config):
     }
 
     with open(report_filename, "r", encoding="utf-8") as reportfile:
-        init, setup, payloads, evals, report_plugin_cache = _parse_report(reportfile)
+        init, setup, payloads, evals, report_plugin_cache, probe_summaries = (
+            _parse_report(reportfile)
+        )
 
     calibration = garak.analyze.calibration.Calibration()
     calibration_used = False
@@ -615,14 +619,15 @@ def build_digest(report_filename: str, config=_config):
         group_info = _get_group_info(probe_group, group_score, taxonomy)
         report_digest["eval"][probe_group]["_summary"] = group_info
 
-        probe_result_summaries = _get_probe_result_summaries(cursor, probe_group)
-        for probe_module, probe_class, group_absolute_score in probe_result_summaries:
+        probe_group_summaries = _get_probe_group_summaries(cursor, probe_group)
+        for probe_module, probe_class, group_absolute_score in probe_group_summaries:
             report_digest["eval"][probe_group][f"{probe_module}.{probe_class}"] = {}
 
             probe_info = _get_probe_info(
                 probe_module,
                 probe_class,
                 group_absolute_score,
+                probe_summaries,
                 report_plugin_cache,
             )
 

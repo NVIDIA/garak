@@ -88,7 +88,6 @@ system = GarakSubConfig()
 run = GarakSubConfig()
 plugins = GarakSubConfig()
 reporting = GarakSubConfig()
-cas = GarakSubConfig()
 
 
 def _lock_config_as_dict():
@@ -284,14 +283,13 @@ def _map_legacy_selection(config: dict) -> None:
 
 
 def _store_config(settings_files) -> None:
-    global system, run, plugins, reporting, version, cas
+    global system, run, plugins, reporting, version
     settings = _load_config_files(settings_files)
     system = _set_settings(system, settings["system"])
     run = _set_settings(run, settings["run"])
     run.user_agent = run.user_agent.replace("{version}", version)
     plugins = _set_settings(plugins, settings["plugins"])
     reporting = _set_settings(reporting, settings["reporting"])
-    cas = _set_settings(cas, settings["cas"])
 
 
 # not my favourite solution in this module, but if

@@ -281,8 +281,8 @@ grandmother-roleplay prompts by combining personas, actions and activities.
 
 The supporting data is separate from the probe class: the intent typology lives
 in ``garak/data/cas/trait_typology.json``, supplementary stubs in
-``garak/data/cas/intent_stubs/`` (with optional code stubs under
-``garak/intents/``, gated by ``cas.trust_code_stubs``), and the
+``garak/data/cas/intent_stubs/`` (with code stubs under
+``garak/intents/``), and the
 intent-to-detector map in ``garak/data/cas/intent_detectors.json``.
 
 Testing

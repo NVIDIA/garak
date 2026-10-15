@@ -41,4 +41,5 @@ ESCAPED_SEQS = [r"\x9b", r"\x9d"]
 ESCAPED_COMMANDS = set([r"\033", r"\x1b", r"\u001b", r"\27", r"\e"])
 
 RAW_SEQS = ["\x9b", "\x9d"]
-RAW_COMMANDS = ["\033", "\x1b", "\u001b", "\27"]
+# ESC is 0x1b. A non-raw "\27" is octal 0x17, not decimal 27.
+RAW_COMMANDS = ["\033", "\x1b", "\u001b"]

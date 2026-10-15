@@ -4,6 +4,7 @@ import transformers
 
 from garak.attempt import Message, Turn, Conversation
 from garak._config import GarakSubConfig
+from garak.exception import BadGeneratorException
 import garak.generators.huggingface
 
 
@@ -97,6 +98,21 @@ def test_inference(mocker, hf_mock_response, hf_generator_config):
     assert len(output) == 1  # 1 generation by default
     for item in output:
         assert isinstance(item, Message)
+
+
+def test_inference_model_not_found(mocker, hf_generator_config):
+    target_name = "Qwen/Qwen2.5-7B-Instruct"
+    mock_resp = requests.Response()
+    mock_resp.status_code = 404
+    mock_resp._content = b"Not Found"
+    mocker.patch.object(requests, "request", return_value=mock_resp)
+
+    g = garak.generators.huggingface.InferenceAPI(
+        target_name, config_root=hf_generator_config
+    )
+    conv = Conversation([Turn("user", Message(""))])
+    with pytest.raises(BadGeneratorException, match=target_name):
+        g.generate(conv)
 
 
 def test_endpoint(mocker, hf_mock_response, hf_generator_config):

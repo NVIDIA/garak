@@ -125,7 +125,7 @@ We find that using ``parallel_attempts`` usually gives a faster run completion t
 Run Config Items
 """"""""""""""""
 
-* ``system_prompt`` -- If given and not overriden by the probe itself, probes will pass the specified system prompt when possible for generators that support chat modality.
+* ``system_prompt`` -- If given and not overridden by the probe itself, probes will pass the specified system prompt when possible for generators that support chat modality.
 * ``spec`` - The unified selection spec for probes and buffs (``run.spec``); see "Selecting probes and buffs with run.spec" below. If absent, the default is all active probes (``probes.*``); use ``none`` to select no probes explicitly. The intent scope is part of this spec: when no ``intent:`` selector is given, the default scope ``S`` is injected; set ``run.spec`` ``intent:`` selectors to override
 * ``generations`` - How many times to send each prompt for inference
 * ``deprefix`` - Remove the prompt from the start of the output (some models return the prompt as part of their output)
@@ -135,6 +135,7 @@ Run Config Items
 * ``soft_probe_prompt_cap`` - For probes that auto-scale their prompt count, the preferred limit of prompts per probe
 * ``target_lang`` - A single language (as BCP47 that the target application for LLM accepts as prompt and output
 * ``langproviders`` - A list of configurations representing providers for converting from probe language to lang_spec target languages (BCP47)
+* ``serve_detectorless_intents`` - Should the intent service provide intents for which there are no configured detectors?
 
 Plugins Config Items
 """"""""""""""""""""
@@ -189,8 +190,9 @@ Selectors (a category prefix is mandatory):
   intent service: it does **not** add or remove probes. When no ``intent:`` is
   given, the default scope ``S`` (the Safety branch) is injected at resolve
   time. Typology
-  expansion and detectorless filtering are governed by the ``cas.*`` modifiers
-  (``expand_intent_tree``, ``serve_detectorless_intents``). Only ``IntentProbe``
+  expansion and detectorless filtering are governed by the ``run.*`` intent
+  modifiers (``run.serve_detectorless_intents``).
+  Only ``IntentProbe``
   subclasses consume intents; selecting ``intent:`` without an ``IntentProbe``
   warns and proceeds.
 
@@ -248,7 +250,7 @@ Reporting Config Items
 * ``taxonomy`` - Which taxonomy to use to group probes when creating HTML report
 * ``show_100_pass_modules`` - Should entries scoring 100% still be detailed in the HTML report?
 * ``show_group_score`` - Should an aggregated score per group be shown in reports?
-* ``group_aggregation_function`` - How should scored of probe groups (e.g. plugin modules or taxonomy categories) be aggregrated in the HTML report? Options are ``minimum``, ``mean``, ``median``, ``mean_minus_sd``, ``lower_quartile``, and ``proportion_passing``. NB averages like ``mean`` and ``median`` hide a lot of information and aren't recommended.
+* ``group_aggregation_function`` - How should scored of probe groups (e.g. plugin modules or taxonomy categories) be aggregated in the HTML report? Options are ``minimum``, ``mean``, ``median``, ``mean_minus_sd``, ``lower_quartile``, and ``proportion_passing``. NB averages like ``mean`` and ``median`` hide a lot of information and aren't recommended.
 * ``show_top_group_score`` - Should the aggregated score be shown as a top-level figure in report concertinas?
 * ``confidence_interval_method`` - Method for calculating confidence intervals on attack success rates. Also available via CLI as ``--confidence_interval_method``. Options:
 
@@ -277,13 +279,6 @@ Reporting Config Items
 * ``bootstrap_num_iterations`` - Number of bootstrap resampling iterations for computing confidence intervals on attack success rates (default: 10000). Also available via CLI as ``--bootstrap_num_iterations``. Only used when ``confidence_interval_method`` is ``"bootstrap"``.
 * ``bootstrap_confidence_level`` - Confidence level for bootstrap confidence intervals, expressed as a decimal between 0 and 1 (default: 0.95 for 95% confidence intervals). Also available via CLI as ``--bootstrap_confidence_level``. Only used when ``confidence_interval_method`` is ``"bootstrap"``.
 * ``bootstrap_min_sample_size`` - Minimum sample size required for reliable bootstrap confidence interval estimates (default: 30). Also available via CLI as ``--bootstrap_min_sample_size``. Can be increased for more conservative estimates, but lowering it significantly compromises statistical validity. Only used when ``confidence_interval_method`` is ``"bootstrap"``.
-
-CAS Config Items
-""""""""""""""""
-
-* ``expand_intent_tree`` - Flag for whether child intents should be included when parsing the intent spec
-* ``serve_detectorless_intents`` - Should the intent service provide intents for which there are no configured detectors?
-* ``trust_code_stubs`` - Execute code for stub generation, as well as use static data sources
 
 Bundled Quick Configs
 ^^^^^^^^^^^^^^^^^^^^^

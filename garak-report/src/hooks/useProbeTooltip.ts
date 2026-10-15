@@ -50,7 +50,7 @@ export function useProbeTooltip(
 
       // Get prompt count from probe summary, or fallback to first detector's total
       // (all detectors evaluate the same prompts, so any detector's total_evaluated works)
-      const totalPrompts = item?.summary?.prompt_count ?? item?.detectors?.[0]?.total_evaluated;
+      const totalPrompts = item?.summary?.probe_counts?.inference_counts?.total_evaluated ?? item?.detectors?.[0]?.total_evaluated;
 
       const value = typeof params.value === "number" ? params.value : 0;
 

@@ -256,7 +256,9 @@ describe("SummaryStatsCard", () => {
 
       render(<SummaryStatsCard modules={modules} />);
 
-      expect(screen.getByTestId("notification-heading")).toHaveTextContent("Security Status");
+      expect(screen.getByTestId("notification-heading")).toHaveTextContent(
+        "Module Security Status",
+      );
     });
 
     it("renders status text within notification subheading", () => {

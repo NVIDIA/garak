@@ -139,7 +139,16 @@ class Harness(Configurable):
         detector_probe_name = detector_instance.detectorname.replace(
             "garak.detectors.", ""
         )
-        attempt_iterator.set_description("detectors." + detector_probe_name)
+        # include the probe name in the detector progress bar so long runs
+        # show which probe's results are being scored (#324); attempts carry
+        # the probe classname already, so no caller-side plumbing is needed
+        if len(probe_result_attempts) > 0:
+            probe_display_name = probe_result_attempts[0].probe_classname
+            attempt_iterator.set_description(
+                f"{probe_display_name}/{detector_probe_name}"
+            )
+        else:
+            attempt_iterator.set_description("detectors." + detector_probe_name)
         for attempt in attempt_iterator:
             if detector_instance.skip:
                 continue

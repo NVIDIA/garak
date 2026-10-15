@@ -39,10 +39,10 @@ def test_fileispickled_invalid_format():
     d = garak.detectors.fileformats.FileIsPickled()
     plain_attempt = Attempt(prompt=Message(text=""))
     plain_attempt.outputs = [Message(s) for s in ["a", "b", "c"]]
-    with pytest.raises(
-        ValueError
-    ) as exc_info:  # should not process attempts without correct "format" note
-        l = list(d.detect(plain_attempt))
+    l = list(d.detect(plain_attempt))
+    assert l == [None] * len(
+        plain_attempt.outputs
+    ), "attempts without the correct 'format' note are not scored, one None per output"
 
 
 def test_fileispickled_valid_format():

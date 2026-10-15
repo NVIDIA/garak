@@ -27,6 +27,10 @@ export { default as DefconSummaryPanel } from "./DefconSummaryPanel";
 export { default as ProbesChart } from "./ProbesChart";
 export { default as DetectorsView } from "./DetectorsView";
 
+// Technique/Intent taxonomy components
+export { TechniqueIntentPanel, TaxonomyAxisList } from "./TechniqueIntent";
+export type { TechniqueIntentPanelProps } from "./TechniqueIntent";
+
 // Subcomponent exports
 export { ProbeChartHeader, ProbeTagsList, ProbeBarChart } from "./ProbeChart";
 export { DetectorChartHeader, DetectorFilters, DetectorLollipopChart } from "./DetectorChart";

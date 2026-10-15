@@ -350,3 +350,13 @@ def test_tim_enrichment_none_fallback_for_unknown_codes():
         tech["_summary"]["description"] is None
     ), "unknown technique tag -> description None"
     assert tech[intent]["name"] is None, "unknown intent code -> name None"
+
+
+def test_runspec_falls_back_when_absent():
+    assert garak.analyze.report_digest._extract_to_probespec({}) == "probes.*"
+    assert (
+        garak.analyze.report_digest._extract_to_probespec(
+            {"plugins.probe_spec": "probes.dan"}
+        )
+        == "probes.dan"
+    ), "reports predating run.spec fall back to the legacy probe_spec"

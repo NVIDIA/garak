@@ -959,12 +959,14 @@ def test_agent_is_used_aiohttp(httpserver: HTTPServer):
     async def main():
         async with aiohttp.ClientSession() as session:
             async with session.get(httpserver.url_for("/")) as response:
-                html = await response.text()
+                return response.status
 
     httpserver.expect_request(
         "/", headers={"User-Agent": AGENT_TEST}
     ).respond_with_data("")
-    asyncio.run(main())
+    assert (
+        asyncio.run(main()) == 200
+    ), "aiohttp User-Agent should match the expected header so the request is served"
 
 
 def test_api_key_in_config():
@@ -995,6 +997,20 @@ def test_site_yaml_overrides_max_workers(capsys):
         )
         assert exc_info.type == SystemExit
         assert exc_info.value.code == 1
+
+
+# a run with parallel_attempts set should complete without error, for both the
+# serial case (1) and a parallel case (>1). uses the cheap CPU-only test
+# generator and the multi-prompt test.Test probe so that the >1 case actually
+# reaches the multiprocessing path in garak.probes.base.Probe._execute_all
+@pytest.mark.parametrize("parallel_attempts", [1, 4])
+def test_parallel_attempts_run_completes(parallel_attempts):
+    args = (
+        f"--parallel_attempts {parallel_attempts} -m test.Blank -p test.Test -g 1"
+    ).split()
+    garak.cli.main(args)
+
+    assert _config.system.parallel_attempts == parallel_attempts
 
 
 model_target_data = [

@@ -109,6 +109,13 @@ const useSeverityColor = () => {
     return getCSSColor(varName);
   }, []);
 
+  const getRiskRampColor = useCallback((level: number | null | undefined): string => {
+    const varName = isDefconKey(level)
+      ? CSS_COLOR_VARS.riskRamp[level]
+      : CSS_COLOR_VARS.riskRamp.default;
+    return getCSSColor(varName);
+  }, []);
+
   const getSeverityLabelByLevel = useCallback((defcon: number | null | undefined): string => {
     return isDefconKey(defcon) ? DEFCON_LABELS[defcon] : DEFCON_LABELS.default;
   }, []);
@@ -126,6 +133,7 @@ const useSeverityColor = () => {
     getSeverityColorByLevel,
     getSeverityColorByComment,
     getDefconColor,
+    getRiskRampColor,
     getSeverityLabelByLevel,
     getDefconBadgeColor,
   };

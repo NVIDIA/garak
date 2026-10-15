@@ -356,3 +356,63 @@ class TestWebSocketGenerator:
         assert gen.request_timeout == 20
         assert gen.connection_timeout == 10
         assert gen.verify_ssl is True
+
+    def test_not_parallel_capable(self):
+        """WebSocketGenerator must run serially; parallel processes re-auth."""
+        assert WebSocketGenerator.parallel_capable is False
+        gen = WebSocketGenerator(uri="ws://localhost:3000")
+        assert gen.parallel_capable is False
+
+    def test_repeated_calls_return_each_response(self):
+        """Later prompts must not come back empty after the first call.
+
+        _call_model used to open and close a new event loop per call while
+        keeping self.websocket, which stays bound to the first loop.
+        """
+        import asyncio
+        import threading
+
+        from websockets.asyncio.server import serve
+
+        async def handler(ws):
+            async for msg in ws:
+                await ws.send("echo:" + msg)
+
+        ready = threading.Event()
+        holder = {}
+
+        def run_server():
+            async def main():
+                async with serve(handler, "127.0.0.1", 0) as server:
+                    holder["port"] = next(iter(server.sockets)).getsockname()[1]
+                    ready.set()
+                    await asyncio.Future()
+
+            asyncio.run(main())
+
+        threading.Thread(target=run_server, daemon=True).start()
+        assert ready.wait(5), "echo server did not start"
+
+        instance_config = {
+            "generators": {
+                "websocket": {
+                    "WebSocketGenerator": {
+                        "uri": f"ws://127.0.0.1:{holder['port']}",
+                        "response_after_typing": False,
+                        "request_timeout": 5,
+                        "connection_timeout": 5,
+                    }
+                }
+            }
+        }
+        gen = WebSocketGenerator(config_root=instance_config)
+        prompts = ["hello", "world", "third"]
+        texts = []
+        loops = []
+        for prompt in prompts:
+            out = gen.generate(Conversation([Turn("user", Message(prompt))]))
+            texts.append(out[0].text if out and out[0] is not None else None)
+            loops.append(gen._loop)
+        assert texts == [f"echo:{prompt}" for prompt in prompts]
+        assert all(loop is loops[0] for loop in loops)
+        assert not loops[0].is_closed()

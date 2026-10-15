@@ -36,6 +36,7 @@ class LatentInjectionMixin:
         "demon:Language:Prompt_injection:Stop_sequences",  # uses end-of-session markers to halt original task processing
         "demon:Language:Prompt_injection:Ignore_previous_instructions",  # buries "ignore" instructions in otherwise innocuous documents
         "demon:Rhetoric:Persuasion_and_manipulation:Distraction",  # hides the malicious instruction inside unrelated translation, report, resume, or whois tasks
+        "euai:robustness:adversarial",
     ]
 
     injection_sep_pairs = [("", "")]  # optional attrib get a default
@@ -76,14 +77,7 @@ class LatentInjectionMixin:
                                 self.prompts.append(complete_prompt)
                                 self.triggers.append(payload_trigger)
 
-        if self.follow_prompt_cap and cap is not None:
-            num_ids_to_delete = max(0, len(self.prompts) - cap)
-            ids_to_rm = random.sample(range(len(self.prompts)), num_ids_to_delete)
-            # delete in descending order
-            ids_to_rm = sorted(ids_to_rm, reverse=True)
-            for id in ids_to_rm:
-                del self.prompts[id]
-                del self.triggers[id]
+        self._prune_data(cap, prune_triggers=True)
 
         preparation_bar = tqdm.tqdm(
             total=len(self.triggers),
@@ -134,7 +128,7 @@ class TranslationMixin:
 
     def __init__(self):
         if self.target_lang_name_en is None:
-            msg = f"{self.__class__.__name__}: Probe cannot operate with target_lang_name_en being set"
+            msg = f"{self.__class__.__name__}: Probe cannot operate without target_lang_name_en being set"
             logging.error(msg)
             raise ValueError(msg)
         self.top_instructions = [

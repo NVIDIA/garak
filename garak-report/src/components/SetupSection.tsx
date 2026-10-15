@@ -10,6 +10,7 @@
 import { useMemo } from "react";
 import type { SetupSectionProps } from "../types/SetupSection";
 import { useValueFormatter } from "../hooks/useValueFormatter";
+import { isRunSpecObject, runSpecTokens, type RunSpecObject } from "../utils/runSpec";
 import { Tabs, Text, Stack, Flex } from "@kui/react";
 
 /** Grouped configuration sections by category */
@@ -55,15 +56,21 @@ const SetupSection = ({ setup }: SetupSectionProps) => {
             <Stack gap="density-xl">
               {Object.entries(fields).map(([key, val]) => {
                 const isArray = Array.isArray(val);
-                const isSpecField = key.toLowerCase().includes("spec") && typeof val === "string";
+                const isSpecKey = key.toLowerCase().includes("spec");
+                // run.spec may arrive as a rendered string or, on digests that
+                // predate rendering, as the raw {include, exclude} object.
+                const isStringSpec = isSpecKey && typeof val === "string";
+                const isObjectSpec = isSpecKey && isRunSpecObject(val);
                 const display = formatValue(val);
 
-                // Handle spec fields as comma-separated lists
-                if (isSpecField) {
-                  const specItems = (val as string)
-                    .split(",")
-                    .map(s => s.trim())
-                    .filter(Boolean);
+                // Handle spec fields as one selector per line
+                if (isStringSpec || isObjectSpec) {
+                  const specItems = isObjectSpec
+                    ? runSpecTokens(val as RunSpecObject)
+                    : (val as string)
+                        .split(",")
+                        .map(s => s.trim())
+                        .filter(Boolean);
                   return (
                     <Stack key={key} gap="density-xs">
                       <Text kind="label/bold/sm">{key.replace(/_/g, " ")}:</Text>

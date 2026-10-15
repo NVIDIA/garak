@@ -30,7 +30,7 @@ jobs:
           fetch-depth: 0
           # forcing full checkout for branch access
       - name: Set up Python ${{ env.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ env.python-version }}
       - name: Check for clean merge

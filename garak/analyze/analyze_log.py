@@ -82,7 +82,11 @@ def analyze_log(report_path: str) -> None:
                                 record["probe"],
                                 record["detector"],
                                 "%0.4f"
-                                % (record["passed"] / record["total_evaluated"]),
+                                % (
+                                    record["passed"] / record["total_evaluated"]
+                                    if record["total_evaluated"]
+                                    else 0
+                                ),
                                 record["total_processed"],
                             ],
                         )

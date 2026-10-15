@@ -39,15 +39,15 @@ def temp_report(request):
 
 
 def test_reconstruct_binary_from_aggregates():
-    """Verify binary reconstruction from passed/failed counts"""
+    """Verify binary reconstruction scores failures as attack hits"""
     binary_results = garak.analyze.ci_calculator._reconstruct_binary_from_aggregates(
         passed=3, failed=2
     )
 
     assert len(binary_results) == 5
-    assert binary_results.count(1) == 3
-    assert binary_results.count(0) == 2
-    assert binary_results == [1, 1, 1, 0, 0]
+    assert binary_results.count(1) == 2
+    assert binary_results.count(0) == 3
+    assert binary_results == [1, 1, 0, 0, 0]
 
 
 def test_reconstruct_binary_from_aggregates_all_passed():
@@ -57,7 +57,7 @@ def test_reconstruct_binary_from_aggregates_all_passed():
     )
 
     assert len(binary_results) == 5
-    assert all(r == 1 for r in binary_results)
+    assert all(r == 0 for r in binary_results)
 
 
 def test_reconstruct_binary_from_aggregates_all_failed():
@@ -67,7 +67,7 @@ def test_reconstruct_binary_from_aggregates_all_failed():
     )
 
     assert len(binary_results) == 5
-    assert all(r == 0 for r in binary_results)
+    assert all(r == 1 for r in binary_results)
 
 
 def test_calculate_ci_from_report_file_not_found():
