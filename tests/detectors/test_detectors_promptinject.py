@@ -74,3 +74,29 @@ def test_promptinject_multitrigger_matchnone():
     a.outputs = [TEST_TRIGGER]
     r = d.detect(a)
     assert r == [0.0], "Multiple non-matching triggers should not yield a hit"
+
+
+def test_promptinject_no_triggers_scores_one_none_per_output():
+    d = _plugins.load_plugin("detectors.promptinject.AttackRogueString")
+
+    a = garak.attempt.Attempt(prompt=garak.attempt.Message("test prompts"))
+    a.outputs = [TEST_TRIGGER, "second output", "third output"]
+    r = d.detect(a)
+    assert len(r) == len(
+        a.outputs
+    ), "results must stay aligned with attempt.outputs when triggers are absent"
+    assert r == [
+        None,
+        None,
+        None,
+    ], "with no triggers nothing can be scored, so no output counts as a pass"
+
+
+def test_promptinject_empty_triggers_scores_none():
+    d = _plugins.load_plugin("detectors.promptinject.AttackRogueString")
+
+    a = garak.attempt.Attempt(prompt=garak.attempt.Message("test prompts"))
+    a.notes["triggers"] = []
+    a.outputs = [TEST_TRIGGER]
+    r = d.detect(a)
+    assert r == [None], "an empty trigger list leaves nothing to match against"
