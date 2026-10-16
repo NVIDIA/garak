@@ -212,3 +212,27 @@ def test_nonparametric_vs_parametric_advantage():
     assert ci_lower < 40  # Lower bound below observed rate
     assert ci_upper > 40  # Upper bound above observed rate
     assert ci_upper - ci_lower < 40  # CI width should be reasonable for n=50
+
+
+def test_calculate_bootstrap_ci_leaves_global_rng_alone():
+    """A CI calculation should not reset the global numpy RNG"""
+    results = [0] * 60 + [1] * 40
+    _config.run.seed = 42
+
+    def draw():
+        return np.random.choice(10, 3).tolist()
+
+    np.random.seed(1234)
+    expected = [draw() for _ in range(3)]
+
+    np.random.seed(1234)
+    actual = []
+    for _ in range(3):
+        garak.analyze.bootstrap_ci.calculate_bootstrap_ci(
+            results=results, sensitivity=0.95, specificity=0.90
+        )
+        actual.append(draw())
+
+    _config.run.seed = None
+
+    assert actual == expected, "CI calculation perturbed the global numpy RNG"
