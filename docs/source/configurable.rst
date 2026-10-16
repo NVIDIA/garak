@@ -183,18 +183,34 @@ Selectors (a category prefix is mandatory):
 * ``tier:<N|name>`` - filters probes by tier; **inclusive** ("log level"): ``tier:N``
   admits tiers ``1..N`` (``tier:1`` is the most critical). Names work too
   (``tier:of_concern`` == ``tier:1``).
-* ``intent:<code>`` - selects intent typology codes for intent-based probes
-  (e.g. ``intent:S`` for the whole Safety branch, ``intent:S001`` for a category,
-  ``intent:S001mis`` for a leaf); ``intent:*`` or ``intent:all`` selects every
-  intent. This is a **separate axis** consumed by the
-  intent service: it does **not** add or remove probes. When no ``intent:`` is
-  given, the default scope ``S`` (the Safety branch) is injected at resolve
-  time. Typology
-  expansion and detectorless filtering are governed by the ``run.*`` intent
-  modifiers (``run.serve_detectorless_intents``).
-  Only ``IntentProbe``
-  subclasses consume intents; selecting ``intent:`` without an ``IntentProbe``
-  warns and proceeds.
+* ``intent:<code>`` - filters probes by intent typology code, and scopes the
+  intents a selected ``IntentProbe`` exercises. Matching is by typology
+  **descendancy**, not string prefix: a branch code keeps every probe whose
+  intent lies beneath it, while a leaf keeps only probes declaring that leaf
+  (``intent:S`` keeps the whole Safety branch, ``intent:S005`` a category, and
+  ``intent:S005hate`` only the ``S005hate`` leaf -- not a probe declaring the
+  parent ``S005``, nor the sibling leaf ``S005bully``). Two exemptions: the
+  injected default scope is never a filter, and ``IntentProbe`` subclasses are
+  pruned only when their ``blocked_intent_spec`` covers every included code --
+  otherwise which intents they serve is settled later by the intent service.
+  ``intent:*`` or ``intent:all`` selects every intent and does not
+  filter. When no ``intent:`` is given, the default scope ``S`` (the Safety
+  branch) is injected at resolve time and, being the default, never prunes.
+  A lone ``-intent:<code>`` (no ``intent:`` include) also filters: it removes
+  any already-selected probe whose own declared intent descends from
+  ``<code>``, compared against the resolved candidate set rather than the
+  injected default scope; ``IntentProbe`` subclasses are unaffected, since
+  they declare no fixed intent of their own.
+  Both directions test the same descendancy, so they are complementary set
+  operations on the candidate: ``intent:<code>`` is an intersection,
+  ``-intent:<code>`` alone is a difference. When every candidate probe already
+  descends from ``<code>``, the include is a no-op and the exclude empties
+  the selection.
+  Typology expansion and detectorless filtering are governed by the ``run.*``
+  intent modifiers (``run.serve_detectorless_intents``). Only ``IntentProbe``
+  subclasses derive prompts from intents; giving an explicit ``intent:`` with no
+  ``IntentProbe`` in the selection warns and proceeds -- ordinary probes that
+  match the intent still run, but no intent-derived prompts are generated.
 
 Polarity: a bare selector (or ``+``) includes; a leading ``-`` removes. Note
 the asymmetry of ``tier``: ``tier:N`` is the inclusive filter, while ``-tier:N``
@@ -221,8 +237,10 @@ wildcard, so quote those specs (or use the ``all`` alias instead).
     garak --spec probes.all,probes.fitd.FITD
     # tiers {1,3}: tier:3 admits 1..3, then -tier:2 removes exactly tier 2
     garak --spec "+probes.*,+tier:3,-tier:2"
-    # an intent probe over one intent category (intents are a separate axis)
+    # an intent probe over one intent category (intents scope the IntentProbe)
     garak --spec probes.grandma.GrandmaIntent,intent:S004
+    # intent as a filter: only probes carrying the S005hate intent (plus IntentProbes)
+    garak --spec "probes.*,intent:S005hate"
 
 .. code-block:: yaml
 
