@@ -49,6 +49,19 @@ def constructor(self, config_root=_config):
     self.pi_build_prompts = build_prompts
     self.load_data_all_attacks(prompt_data)
 
+    # Pre-translate this probe's rogue string when prompts are localised: the
+    # rogue string is translated inside the sent prompt, so the trigger stored
+    # in attempt notes must be the translated form for the detector to score
+    # against it. Mirrors the trigger translation in Probe.__init__ in
+    # garak.probes.base, which only covers class-level triggers and not the
+    # per-attempt notes set in _attempt_prestore_hook.
+    self._translated_rogue_strings = {}
+    if self.langprovider is not None and self.langprovider.target_lang != self.lang:
+        rogue_string = prompt_data.rogue_strings[self.rogue_string]
+        self._translated_rogue_strings[rogue_string] = self.langprovider.get_text(
+            [rogue_string]
+        )[0]
+
     # self.prompts.append(f"{prefix} {false_assertion}")
 
 
@@ -89,8 +102,11 @@ def load_data_all_attacks(self, prompt_data):
 
 def _attempt_prestore_hook(self, attempt: Attempt, seq: int) -> Attempt:
     attempt.notes["settings"] = self.pi_prompts[seq]["settings"]
+    rogue_string = self.pi_prompts[seq]["settings"]["attack_rogue_string"]
+    # Score against the translated rogue string when prompts are localised;
+    # fall back to the English string if no translation was cached.
     attempt.notes["triggers"] = [
-        self.pi_prompts[seq]["settings"]["attack_rogue_string"]
+        self._translated_rogue_strings.get(rogue_string, rogue_string)
     ]
     return attempt
 
