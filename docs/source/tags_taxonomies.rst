@@ -22,7 +22,13 @@ OWASP LLM Top 10
 The `OWASP LLM Top 10`_ identifies prominent security risks affecting applications built with large language models, including prompt injection, insecure output handling, training data poisoning, excessive agency, sensitive information disclosure, and model theft.
 It provides a practical application-security framework for identifying and communicating LLM-specific vulnerabilities and their mitigations across the development and deployment lifecycle.
 
+garak carries tags for more than one edition of this list, because the numbering is not stable between editions.
+Tags without a year suffix, such as ``owasp:llm06``, refer to the original list.
+Tags carrying a ``_2026`` suffix, such as ``owasp:llm08_2026``, refer to the `OWASP GenAI LLM Top 10 2026`_ edition, which renumbered most entries.
+Sensitive information disclosure, for instance, is ``owasp:llm06`` in the original list and ``owasp:llm02_2026`` in the 2026 edition, so check the suffix before reading a tag as a category.
+
 .. _OWASP LLM Top 10: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+.. _OWASP GenAI LLM Top 10 2026: https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/
 
 .. csv-filter:: Relevant Tags
     :delim: tab
