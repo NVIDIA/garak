@@ -41,6 +41,7 @@ Check out the :doc:`usage` section for further information, including :doc:`inst
    tags_taxonomies
    cas
    faster
+   owasp_top10
    FAQ <https://github.com/NVIDIA/garak/blob/main/FAQ.md>
 
 .. toctree::
