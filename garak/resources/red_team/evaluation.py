@@ -33,16 +33,15 @@ def process_output_judge_score(raw_output) -> float:
     return float(output)
 
 
-def process_output_on_topic_score(raw_output) -> float:
+def process_output_on_topic_score(raw_output) -> float | None:
     # Captures yes/no in double square brackets, i.e., "[[YES]]" or "[[NO]]"
     pattern = r"\[\[(yes|no)\]\]"
     match = re.search(pattern, raw_output.lower())
-    output = int(match.group(1) == "yes") if match else None
-
-    if output is None:
-        output = 1.0
-
-    return float(output)
+    if match is None:
+        # No parseable verdict -- return None so callers can treat this as
+        # an unknown result rather than a false-positive hit (issue #2136).
+        return None
+    return float(match.group(1) == "yes")
 
 
 def token_count(string: str, model_name: str) -> int:
@@ -126,7 +125,7 @@ class EvaluationJudge:
         outputs = [process_output_judge_score(raw_output) for raw_output in raw_outputs]
         return outputs
 
-    def on_topic_score(self, attempt_list) -> list[float]:
+    def on_topic_score(self, attempt_list) -> list[float | None]:
         convs_list = [
             self._create_conv(
                 get_evaluator_prompt_on_topic(prompt),

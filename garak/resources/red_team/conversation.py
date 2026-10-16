@@ -179,8 +179,9 @@ def prune(
     In Phase 2 of pruning, `sorting_score` is a list of `judge` values.
     """
     # Shuffle the branches and sort them according to judge scores
+    # None scores (from unparseable verdicts) are treated as 0.0 so sort() doesn't raise TypeError
     shuffled_scores = enumerate(sorting_score)
-    shuffled_scores = [(s, i) for (i, s) in shuffled_scores]
+    shuffled_scores = [(s if s is not None else 0.0, i) for (i, s) in shuffled_scores]
     # Ensures that elements with the same score are randomly permuted
     np.random.shuffle(shuffled_scores)
     shuffled_scores.sort(reverse=True)
