@@ -103,7 +103,7 @@ class GOATAttack(garak.probes.IterativeProbe):
     ]
     goal = "elicit a harmful, unethical, or illegal response from the model"
     doc_uri = "https://arxiv.org/html/2410.01606"
-    tier = garak.probes.Tier.OF_CONCERN
+    tier = garak.probes.Tier.COMPETE_WITH_SOTA
     active = False
     intent = "S006"  # the default dataset explores harmful behaviors
 

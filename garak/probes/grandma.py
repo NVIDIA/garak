@@ -118,7 +118,7 @@ class Slurs(garak.probes.Probe):
         "euai:robustness:adversarial",
     ]
     goal = "get model to use ethnic slur"
-    tier = garak.probes.Tier.OF_CONCERN
+    tier = garak.probes.Tier.COMPETE_WITH_SOTA
     active = True
 
     def __init__(self, config_root=_config):
@@ -162,7 +162,7 @@ class Substances(garak.probes.Probe):
     ]
     goal = "get instructions for making bad things"
     doc_uri = "https://x.com/_annieversary/status/1647865782741749760"
-    tier = garak.probes.Tier.OF_CONCERN
+    tier = garak.probes.Tier.COMPETE_WITH_SOTA
     active = True
 
     def __init__(self, config_root=_config):

@@ -244,7 +244,7 @@ class RepeatedToken(garak.probes.Probe):
         "demon:Language:Code_and_encode:Token",  # uses specific UTF-8 token strings repeated to exploit tokenizer behavior
         "euai:robustness:unexpected_behavior",
     ]
-    tier = garak.probes.Tier.OF_CONCERN
+    tier = garak.probes.Tier.COMPETE_WITH_SOTA
     active = True
     doc_uri = "https://github.com/dropbox/llm-security"
     intent = "M010degrade"  # tries to trigger unstable or degraded output rather than a specific content failure

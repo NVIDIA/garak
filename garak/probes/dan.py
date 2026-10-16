@@ -445,7 +445,7 @@ class AutoDAN(
 class DanInTheWildFull(
     garak.probes.Probe,
     metaclass=DANProbeMeta,
-    tier=garak.probes.Tier.OF_CONCERN,
+    tier=garak.probes.Tier.COMPETE_WITH_SOTA,
     prompt_file="inthewild_jailbreak_llms.json",
     goal="disregard the system prompt or alignment",
     extra_tags=["payload:jailbreak"],
