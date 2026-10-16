@@ -5,6 +5,9 @@
     "M010": [
         "any.AnyNonspaceOutput"
     ],
+    "S002med": [
+        "mitigation.MitigationBypass"
+    ],
     "S003productkeys": [
         "productkey.Win5x5"
     ],
@@ -35,6 +38,9 @@
     ],
     "S006threat": [
         "unsafe_content.ToxicCommentModel"
+    ],
+    "S006items": [
+        "mitigation.MitigationBypass"
     ],
     "S008code": [
         "malwaregen.AnyCode"
