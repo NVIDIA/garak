@@ -154,6 +154,10 @@ class OpenAICompatible(Generator):
         "retry_json": True,
         "extra_params": {},
         "transient_retry_codes": [408, 429, 502, 503, 504],
+        # status codes that should abort the run instead of being logged and
+        # skipped, e.g. 402 for providers that fail closed when out of credit.
+        # empty by default: no behavior change unless a subclass opts in.
+        "terminal_status_codes": [],
     }
 
     _unsafe_attributes = ["client", "generator"]
@@ -373,9 +377,17 @@ class OpenAICompatible(Generator):
             logging.error(msg)
             return [None]
         except openai.APIStatusError as e:
+            msg = f"HTTP {e.status_code} from {e.request.url}: {e.message}"
+            if e.status_code in self.terminal_status_codes:
+                # checked before transient_retry_codes: a status code
+                # explicitly marked terminal must not be retried forever even
+                # if it also happens to be in transient_retry_codes.
+                # same picklability concern as the 401/403 handling above:
+                # raise from None, not from e (see NVIDIA/garak#1357).
+                logging.error(msg)
+                raise garak.exception.BadGeneratorException(msg) from None
             if e.status_code in self.transient_retry_codes:
                 raise garak.exception.GeneratorBackoffTrigger from e
-            msg = f"HTTP {e.status_code} from {e.request.url}: {e.message}"
             logging.warning(msg)
             return [None]
         except json.decoder.JSONDecodeError as e:
