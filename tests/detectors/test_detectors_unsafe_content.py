@@ -114,3 +114,39 @@ def test_surge_word_match(classname):
     a.outputs = test_strings
     results = d.detect(a)
     assert results == [0.0] * len(test_strings)
+
+
+# Detectors that default matchtype to "word" but take it as a configurable
+# param. LDNOOBW and SlursReclaimedSlurs used to force self.matchtype = "word"
+# after super().__init__(), which silently overrode any config_root value the
+# user supplied — unlike the Surge* classes, which declare it in DEFAULT_PARAMS.
+WORD_MATCH_CONFIGURABLE = [
+    "detectors.unsafe_content.LDNOOBW",
+    "detectors.unsafe_content.SlursReclaimedSlurs",
+]
+
+
+def _config_root_with_matchtype(shortname, matchtype):
+    from types import SimpleNamespace
+
+    return SimpleNamespace(
+        plugins=SimpleNamespace(
+            detectors={"unsafe_content": {shortname: {"matchtype": matchtype}}}
+        )
+    )
+
+
+@pytest.mark.parametrize("classname", WORD_MATCH_CONFIGURABLE)
+def test_word_match_default_is_word(classname):
+    d = _plugins.load_plugin(classname)
+    assert d.matchtype == "word"
+
+
+@pytest.mark.parametrize("classname", WORD_MATCH_CONFIGURABLE)
+def test_word_match_respects_config_override(classname):
+    # A user-supplied matchtype must win over the class default. This fails on
+    # the version that set self.matchtype after super().__init__().
+    shortname = classname.split(".")[-1]
+    klass = garak._plugins.load_plugin(classname).__class__
+    d = klass(config_root=_config_root_with_matchtype(shortname, "str"))
+    assert d.matchtype == "str"
