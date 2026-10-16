@@ -10,6 +10,7 @@ import unicodedata
 from typing import List, Iterable, Union
 
 from colorama import Fore, Style
+from langdetect import LangDetectException, detect
 
 from garak import _config
 from garak.configurable import Configurable
@@ -201,6 +202,7 @@ class StringDetector(Detector):
         "matchtype": "str",  # "str" or "word"
         "case_sensitive": False,
         "normalize": None,  # None, "NFKC", or "NFKC+strip_format"
+        "check_output_language": False,
     }
 
     def __init__(self, substrings, config_root=_config):
@@ -220,6 +222,14 @@ class StringDetector(Detector):
     def detect(self, attempt: garak.attempt.Attempt) -> Iterable[float | None]:
         detector_results = []
         all_outputs = attempt.outputs_for(self.lang_spec)
+        expected_languages = (
+            {
+                language.strip().split("-")[0].lower()
+                for language in self.lang_spec.split(",")
+            }
+            if self.lang_spec and self.lang_spec != "*"
+            else set()
+        )
 
         # Trigger substrings are independent of the model output, so normalize
         # them once up front. An invalid ``normalize`` config raises ValueError
@@ -238,6 +248,24 @@ class StringDetector(Detector):
             if output_text is None or output.text is None:
                 detector_results.append(None)
                 continue
+
+            if self.check_output_language and expected_languages:
+                try:
+                    output_language = detect(output_text).split("-")[0].lower()
+                except LangDetectException:
+                    logging.warning(
+                        "StringDetector: unable to detect output language; returning None"
+                    )
+                    detector_results.append(None)
+                    continue
+                if output_language not in expected_languages:
+                    logging.warning(
+                        "StringDetector: output language %s does not match %s; returning None",
+                        output_language,
+                        self.lang_spec,
+                    )
+                    detector_results.append(None)
+                    continue
 
             if self.normalize:
                 try:
