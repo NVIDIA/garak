@@ -451,7 +451,7 @@ class OpenAIGenerator(OpenAICompatible):
         elif "-".join(self.name.split("-")[:-1]) in chat_models and re.match(
             r"^.+-[01][0-9][0-3][0-9]$", self.name
         ):  # handle model names -MMDDish suffix
-            self.generator = self.client.completions
+            self.generator = self.client.chat.completions
         else:
             msg = f"❔ No {self.generator_family_name} API defined for '{self.name}' in generators/openai.py - please add one! Assuming chat model"
             print(msg)
