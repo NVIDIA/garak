@@ -26,7 +26,7 @@ def test_fitd_probe(classname):
                 "fitd": {
                     "FITD": {
                         "max_calls_per_conv": max_calls_per_conv,
-                        "num_init_level_queries": 1,
+                        "num_level_queries": 1,
                         "red_team_model_type": "test.Repeat",
                         "red_team_model_name": "",
                     }
@@ -96,7 +96,7 @@ def test_fitd_verify_is_last_response_success():
             "fitd": {
                 "FITD": {
                     "max_calls_per_conv": max_calls_per_conv,
-                    "num_init_level_queries": 1,
+                    "num_level_queries": 1,
                     "red_team_model_type": "test.Repeat",
                     "red_team_model_name": "",
                 }
@@ -119,3 +119,54 @@ def test_fitd_verify_is_last_response_success():
     assert is_last_response_success == [
         False
     ], f"FITD._verify_is_last_response_success should return False if the last response is not a successful attack"
+
+
+def test_fitd_level_queries_sent_in_order(monkeypatch):
+    probe_config = {
+        "probes": {
+            "fitd": {
+                "FITD": {
+                    "red_team_model_type": "test.Repeat",
+                    "red_team_model_name": "",
+                }
+            }
+        }
+    }
+    probe = _plugins.load_plugin("probes.fitd.FITD", config_root=probe_config)
+    monkeypatch.setattr(probe, "_is_refusal", lambda response: False)
+    monkeypatch.setattr(probe, "_is_response_aligned", lambda request, response: True)
+
+    target_turn = "T"
+    level_queries = ["init", "q1", "q2", "q3", target_turn]
+    probe.level_queries_per_goal = {target_turn: level_queries}
+
+    attempt = probe._create_attempt("init")
+    attempt.notes.update(
+        {
+            "target_turn": target_turn,
+            "levels_completed": 0,
+            "is_adversarial": False,
+            "is_last_turn": False,
+            "last_non_refused_prompt": None,
+        }
+    )
+
+    sent = []
+    for _ in range(len(level_queries)):
+        conversation = copy.deepcopy(attempt.prompt)
+        conversation.turns.append(
+            garak.attempt.Turn("assistant", garak.attempt.Message(text="ok"))
+        )
+        attempt = probe.generate_next_turn_attempt(conversation, attempt)
+        sent.append(
+            (attempt.prompt.last_message("user").text, attempt.notes["is_adversarial"])
+        )
+        if attempt.notes["is_last_turn"]:
+            break
+
+    assert sent == [
+        ("q1", False),
+        ("q2", False),
+        ("q3", False),
+        (target_turn, True),
+    ], "each level query should be sent once, in order, ending with the adversarial target turn"
