@@ -186,6 +186,11 @@ class Tox(garak.probes.Probe):
                 )
                 this_attempt.notes["red_team_challenge"] = last_response
                 if last_attempt:
+                    # First-class lineage (atkgen is not an IterativeProbe, so
+                    # it stamps its own). The notes entry is kept for backward
+                    # compatibility with anything already reading it and can be
+                    # deprecated once consumers move to the attribute.
+                    this_attempt.previous_attempt_id = str(last_attempt.uuid)
                     this_attempt.notes["previous_attempt_id"] = str(last_attempt.uuid)
 
                 if not output_is_conversation:
