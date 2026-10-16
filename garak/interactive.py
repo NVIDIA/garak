@@ -107,7 +107,9 @@ class GarakCommands(cmd2.CommandSet):
             logger.warning(f"Probe already set. Resetting probe to {args.probe}")
             print(f"Executing {args.probe}")
             self._cmd.probe = args.probe
-        elif not args.probe and not self._cmd.probe:
+        elif args.probe:
+            self._cmd.probe = args.probe
+        elif not self._cmd.probe:
             logger.warning("No probe set and no probe specified.")
             return None
         try:
@@ -130,9 +132,11 @@ class GarakCommands(cmd2.CommandSet):
         except ImportError as e:
             logger.error(e)
             print("Could not load generator from Garak generators.")
+            return
         except AttributeError as e:
             logger.error(e)
             print("Please check your generator model name.")
+            return
 
         evaluator = ThresholdEvaluator(self._cmd.eval_threshold)
         harness = garak.harnesses.probewise.ProbewiseHarness()
