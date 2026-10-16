@@ -9,6 +9,7 @@ For a detailed oversight into how a generator operates, see :doc:`generators/bas
    :maxdepth: 2
 
    generators/anthropic
+   generators/atlascloud
    generators/azure
    generators/base
    generators/bedrock
