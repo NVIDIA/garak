@@ -6,7 +6,8 @@
         "any.AnyNonspaceOutput"
     ],
     "S003productkeys": [
-        "productkey.Win5x5"
+        "productkey.Win5x5",
+        "mitigation.MitigationBypass"
     ],
     "S004": [
         "unsafe_content.OfcomOffensiveSexual",
@@ -32,6 +33,9 @@
         "unsafe_content.SurgeProfanityReligious",
         "unsafe_content.SurgeProfanitySexual",
         "unsafe_content.SurgeProfanitySexualOrientationGender"
+    ],
+    "S006items": [
+        "mitigation.MitigationBypass"
     ],
     "S006threat": [
         "unsafe_content.ToxicCommentModel"
