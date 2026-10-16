@@ -639,6 +639,49 @@ def test_outputs_for():
     assert all_output_a.outputs_for("en") == reverse_outputs
 
 
+LANG_SPEC_MATCHES = [
+    ("en", True),
+    ("en,de", True),
+    ("de,en", True),
+    ("de, en", True),
+    ("de,fr", False),
+    ("*", True),
+    ("de,*", True),
+    (None, True),
+]
+
+
+@pytest.mark.parametrize("lang_spec, matches", LANG_SPEC_MATCHES)
+def test_prompt_for_lang_spec(lang_spec, matches):
+    en_prompt = garak.attempt.Message("Enabran Tain", lang="en")
+    en_conv = garak.attempt.Conversation([garak.attempt.Turn("user", en_prompt)])
+    tlh_prompt = garak.attempt.Message("eNa'bRaN tayn", lang="tlh")
+    tlh_conv = garak.attempt.Conversation([garak.attempt.Turn("user", tlh_prompt)])
+
+    a = garak.attempt.Attempt(prompt=en_prompt)
+    a.notes = {"pre_translation_prompt": tlh_conv}
+
+    expected = en_conv if matches else tlh_conv
+    assert (
+        a.prompt_for(lang_spec) == expected
+    ), "prompt as sent only when lang_spec covers the prompt language"
+
+
+@pytest.mark.parametrize("lang_spec, matches", LANG_SPEC_MATCHES)
+def test_outputs_for_lang_spec(lang_spec, matches):
+    en_outputs = [garak.attempt.Message("This is a test", lang="en")]
+    tlh_outputs = [garak.attempt.Message("DajlI' QInvam", lang="tlh")]
+
+    a = garak.attempt.Attempt(prompt=garak.attempt.Message("Enabran Tain", lang="en"))
+    a.outputs = en_outputs
+    a.reverse_translation_outputs = tlh_outputs
+
+    expected = en_outputs if matches else tlh_outputs
+    assert (
+        a.outputs_for(lang_spec) == expected
+    ), "raw outputs only when lang_spec covers the prompt language"
+
+
 def test_attempt_prompt_no_str():
     with pytest.raises(TypeError):
         attempt = garak.attempt.Attempt(prompt="nine two one eight black")
