@@ -15,6 +15,7 @@ from typing import Generator, List, Union
 import garak._config
 import garak.exception
 from garak.data import path as data_path
+from garak.intents import TextStub
 
 PAYLOAD_SCHEMA = {
     "type": "object",
@@ -49,6 +50,20 @@ class PayloadGroup:
     """Represents a configured group of payloads for use with garak
     probes. Each group should have a name, one or more payload types, and
     a number of payload entries"""
+
+    def to_stubs(self) -> List[TextStub]:
+        """Return fresh stubs pairing each payload with this group's intent.
+
+        Entry order and duplicates are preserved. Missing intents remain
+        unset so the consuming probe can apply its own fallback. The existing
+        ``payloads`` list of strings is unchanged.
+        """
+        stubs = []
+        for entry in self.payloads:
+            stub = TextStub(intent=self.intent)
+            stub.content = entry
+            stubs.append(stub)
+        return stubs
 
     def _load(self):
         logging.debug("payload: Loading payload %s from %s", self.name, self.path)
