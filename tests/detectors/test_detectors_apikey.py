@@ -104,3 +104,94 @@ def test_apikey_nonegroup():
     assert (
         none_group_found
     ), "nonegroup_key should return a None group in garak's DORA regexes"
+
+
+@pytest.mark.timeout(60)
+def test_apikey_long_output_no_hang():
+    # Windowed scanning keeps even a pathological input within a bounded per-window
+    # regex cost, a regression for garak #2189 (detector phase freezing on long
+    # outputs). A controlled timeout (not a wall-clock comparison) fails the test
+    # if a catastrophic-backtracking regression ever returns.
+    d = _plugins.load_plugin("detectors.apikey.ApiKey")
+    a = _test_attempt(d)
+    a.outputs = ["mongodb+srv://user:" + "a" * 100_000]
+    assert d.detect(a) == [0.0]
+
+
+@pytest.mark.timeout(60)
+def test_apikey_very_long_text():
+    d = _plugins.load_plugin("detectors.apikey.ApiKey")
+    a = _test_attempt(d)
+    a.outputs = ["A" * 200_000]
+    assert d.detect(a) == [0.0]
+
+
+@pytest.mark.timeout(60)
+def test_apikey_literal_guards_skip_keyless_long_output():
+    # The three slowest DORA patterns (aws_s3_url, google_oauth_id, github_access_token)
+    # backtrack quadratically on long, key-less output. Literal guards skip them for the
+    # common "no such key" case, so this must return promptly (garak #2189).
+    d = _plugins.load_plugin("detectors.apikey.ApiKey")
+    a = _test_attempt(d)
+    a.outputs = ["a" * 200_000]
+    assert d.detect(a) == [0.0]
+
+
+@pytest.mark.parametrize(
+    "key_sample",
+    [
+        # aws s3 url bucket form (second alternation captures the bucket name)
+        "mybucket.s3.amazonaws.com/some/path",
+        # google oauth client id (captures the client-id prefix)
+        "1234567890-foobar.apps.googleusercontent.com",
+    ],
+)
+def test_apikey_literal_guards_still_match_real_keys(key_sample):
+    # Guards only gate whether a pattern runs; a real key must still be detected.
+    d = _plugins.load_plugin("detectors.apikey.ApiKey")
+    a = _test_attempt(d)
+    a.outputs = [key_sample]
+    assert d.detect(a) == [1.0], f"{key_sample} should still be detected"
+
+
+def test_apikey_scan_windows_cover_every_char():
+    # Regression for the review finding that a hard cap could truncate part of the
+    # response. Adjacent windows advance by half their size, so there must be no gap
+    # and the last window must reach the end of the text: every character is scanned.
+    from garak.detectors.apikey import MAX_OUTPUT_SCAN_CHARS, _iter_windows
+
+    text = "k" * 250_000
+    windows = _iter_windows(text)
+    assert windows, "expected at least one scan window"
+
+    prev_end = 0
+    for start, window in windows:
+        assert len(window) <= MAX_OUTPUT_SCAN_CHARS
+        assert start <= prev_end, f"gap before index {start}"
+        assert window == text[start : start + len(window)]
+        prev_end = start + len(window)
+
+    assert prev_end >= len(text), "last scan window does not reach the end of the text"
+
+
+def test_apikey_key_beyond_first_window_still_detected():
+    # A real key that starts past the first 10k window must not be dropped by the
+    # scan (previously it was silently truncated away).
+    d = _plugins.load_plugin("detectors.apikey.ApiKey")
+    a = _test_attempt(d)
+    key = "mybucket.s3.amazonaws.com/abcdefghijk"
+    a.outputs = ["x" * 12_000 + key]
+    assert d.detect(a) == [1.0], "key beyond the first scan window was truncated away"
+
+
+@pytest.mark.timeout(60)
+def test_apikey_key_straddling_window_boundary_detected():
+    # A key that straddles a window boundary is caught because consecutive windows
+    # overlap by half their size; without overlap this case would be split and missed.
+    from garak.detectors.apikey import MAX_OUTPUT_SCAN_CHARS
+
+    key = "1234567890-foobar.apps.googleusercontent.com"
+    d = _plugins.load_plugin("detectors.apikey.ApiKey")
+    a = _test_attempt(d)
+    a.outputs = ["y" * (MAX_OUTPUT_SCAN_CHARS - 10) + key]
+    assert d.detect(a) == [1.0], "key straddling a window boundary was missed"
