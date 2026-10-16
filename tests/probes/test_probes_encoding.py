@@ -4,6 +4,7 @@ import pytest
 import garak.probes.encoding
 from garak import _plugins
 from garak.probes.encoding import InjectAtbash
+from garak.probes.encoding import fullwidth, math_bold, monospace
 
 ENCODING_PROBES = [
     classname
@@ -89,5 +90,29 @@ def test_atbash_function(plain, expected):
     # Uppercase, Lowercase, Mixed case, and Numbers/Special characters.
 
     encoder = InjectAtbash.atbash  # staticmethod reference
+    result = encoder(plain.encode()).decode()
+    assert result == expected
+
+
+@pytest.mark.parametrize(
+    "encoder, plain, expected",
+    [
+        # Fullwidth Forms: letters, digits and punctuation are all remapped
+        (fullwidth, "abc", "ａｂｃ"),
+        (fullwidth, "XYZ", "ＸＹＺ"),
+        (fullwidth, "Hello, World! 123", "Ｈｅｌｌｏ，　Ｗｏｒｌｄ！　１２３"),
+        (fullwidth, "1234!?", "１２３４！？"),
+        # Mathematical Alphanumeric Symbols: bold (punctuation passes through)
+        (math_bold, "abc", "𝐚𝐛𝐜"),
+        (math_bold, "XYZ", "𝐗𝐘𝐙"),
+        (math_bold, "1234!?", "𝟏𝟐𝟑𝟒!?"),
+        # Mathematical Alphanumeric Symbols: monospace (punctuation passes through)
+        (monospace, "abc", "𝚊𝚋𝚌"),
+        (monospace, "XYZ", "𝚇𝚈𝚉"),
+        (monospace, "1234!?", "𝟷𝟸𝟹𝟺!?"),
+    ],
+)
+def test_fancy_text_functions(encoder, plain, expected):
+    # Fancy-text encoders map ASCII to visually-similar Unicode glyphs.
     result = encoder(plain.encode()).decode()
     assert result == expected
