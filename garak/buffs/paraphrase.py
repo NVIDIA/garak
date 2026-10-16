@@ -80,17 +80,13 @@ class PegasusT5(Buff, HFCompatible):
     def transform(
         self, attempt: garak.attempt.Attempt
     ) -> Iterable[garak.attempt.Attempt]:
-        yield self._derive_new_attempt(
-            attempt
-        )  # why does this yield a copy of the original with no modification?
+        yield self._derive_new_attempt(attempt)
         last_message = attempt.prompt.last_message()
         paraphrases = self._get_response(last_message.text)
         for paraphrase in set(paraphrases):
             paraphrased_attempt = self._derive_new_attempt(attempt)
-            # transform receives a copy of the attempt should it modify the prompt in place?
-            delattr(paraphrased_attempt, "_prompt")  # hack to allow prompt set
-            paraphrased_attempt.prompt = garak.attempt.Message(
-                text=paraphrase, lang=last_message.lang
+            paraphrased_attempt._replace_last_message(
+                garak.attempt.Message(text=paraphrase, lang=last_message.lang)
             )
             yield paraphrased_attempt
 
@@ -200,16 +196,12 @@ class Fast(Buff, HFCompatible):
     def transform(
         self, attempt: garak.attempt.Attempt
     ) -> Iterable[garak.attempt.Attempt]:
-        yield self._derive_new_attempt(
-            attempt
-        )  # why does this yield a copy of the original with no modification?
+        yield self._derive_new_attempt(attempt)
         last_message = attempt.prompt.last_message()
         paraphrases = self._get_response(last_message.text)
         for paraphrase in set(paraphrases):
             paraphrased_attempt = self._derive_new_attempt(attempt)
-            # transform receives a copy of the attempt should it modify the prompt in place?
-            delattr(paraphrased_attempt, "_prompt")  # hack to allow prompt set
-            paraphrased_attempt.prompt = garak.attempt.Message(
-                text=paraphrase, lang=last_message.lang
+            paraphrased_attempt._replace_last_message(
+                garak.attempt.Message(text=paraphrase, lang=last_message.lang)
             )
             yield paraphrased_attempt
