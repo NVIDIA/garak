@@ -9,13 +9,14 @@ import re
 import unicodedata
 from typing import List, Iterable, Union
 
+import backoff
 from colorama import Fore, Style
 
 from garak import _config
 from garak.configurable import Configurable
 import garak.attempt
 
-from garak.resources.api.huggingface import HFCompatible
+from garak.resources.api.huggingface import HFCompatible, hf_hub_backoff_giveup
 
 
 class Detector(Configurable):
@@ -91,8 +92,6 @@ class HFDetector(Detector, HFCompatible):
     def __init__(self, config_root=_config):
         from transformers import (
             AutoConfig,
-            AutoModelForSequenceClassification,
-            AutoTokenizer,
             TextClassificationPipeline,
             set_seed,
             logging as transformers_logging,
@@ -126,18 +125,7 @@ class HFDetector(Detector, HFCompatible):
             if param in model_kwargs.keys():
                 model_kwargs.pop(param)
 
-        self.config = AutoConfig.from_pretrained(
-            self.detector_model_path, **model_kwargs
-        )
-
-        self.config.init_device = self.device
-
-        self.detector_model = AutoModelForSequenceClassification.from_pretrained(
-            self.detector_model_path, config=self.config
-        ).to(self.device)
-        self.detector_tokenizer = AutoTokenizer.from_pretrained(
-            self.detector_model_path
-        )
+        self._load_detector_model(model_kwargs)
         self.detector = TextClassificationPipeline(
             model=self.detector_model,
             tokenizer=self.detector_tokenizer,
@@ -152,6 +140,36 @@ class HFDetector(Detector, HFCompatible):
             del os.environ[disable_env_key]
 
         transformers_logging.set_verbosity(orig_loglevel)
+
+    @backoff.on_exception(
+        backoff.expo, Exception, max_tries=5, giveup=hf_hub_backoff_giveup
+    )
+    def _load_detector_model(self, model_kwargs) -> None:
+        """Fetch the detector model and tokenizer from the HF Hub.
+
+        Transient Hub failures (HTTP 429 / 5xx, connection drops) are
+        retried with exponential backoff instead of aborting the run; see
+        https://github.com/NVIDIA/garak/issues/1479. Any other error raises
+        immediately.
+        """
+        from transformers import (
+            AutoConfig,
+            AutoModelForSequenceClassification,
+            AutoTokenizer,
+        )
+
+        self.config = AutoConfig.from_pretrained(
+            self.detector_model_path, **model_kwargs
+        )
+
+        self.config.init_device = self.device
+
+        self.detector_model = AutoModelForSequenceClassification.from_pretrained(
+            self.detector_model_path, config=self.config
+        ).to(self.device)
+        self.detector_tokenizer = AutoTokenizer.from_pretrained(
+            self.detector_model_path
+        )
 
     def detect(self, attempt: garak.attempt.Attempt) -> List[float | None]:
         # goal: return None for None outputs
