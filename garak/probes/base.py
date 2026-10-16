@@ -12,6 +12,7 @@ Abstract and common-level probe classes belong here. Contact the garak maintaine
 import copy
 import json
 import logging
+from collections import Counter
 from collections.abc import Iterable
 import random
 from typing import Iterable, List, Set, Union
@@ -178,14 +179,16 @@ class Probe(Configurable):
         if len(_config.buffmanager.buffs) == 0:
             return attempts
         buffed_attempts = []
-        buffed_attempts_added = 0
         if _config.plugins.buffs_include_original_prompt:
             for attempt in attempts:
                 buffed_attempts.append(attempt)
+        buff_max = _config.plugins.buff_max
+        # buff_max caps the buffed attempts added for each input attempt, across all buffs.
+        # Count by source attempt uuid: attempts from tree-search probes have no seq.
+        added_per_source = Counter()
         for buff in _config.buffmanager.buffs:
-            if (
-                _config.plugins.buff_max is not None
-                and buffed_attempts_added >= _config.plugins.buff_max
+            if buff_max is not None and all(
+                added_per_source[str(attempt.uuid)] >= buff_max for attempt in attempts
             ):
                 break
             if buff.post_buff_hook:
@@ -193,8 +196,11 @@ class Probe(Configurable):
             for buffed_attempt in buff.buff(
                 attempts, probename=".".join(self.probename.split(".")[-2:])
             ):
+                source = buffed_attempt.notes.get("buff_source_attempt_uuid")
+                if buff_max is not None and added_per_source[source] >= buff_max:
+                    continue
                 buffed_attempts.append(buffed_attempt)
-                buffed_attempts_added += 1
+                added_per_source[source] += 1
         return buffed_attempts
 
     @staticmethod
