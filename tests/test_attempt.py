@@ -639,6 +639,19 @@ def test_outputs_for():
     assert all_output_a.outputs_for("en") == reverse_outputs
 
 
+def test_outputs_for_falls_back_when_reverse_translation_is_unavailable():
+    prompt = garak.attempt.Message("eNa'bRaN tayn", lang="tlh")
+    outputs = [
+        garak.attempt.Message("DajlI' QInvam", lang="tlh"),
+        garak.attempt.Message("nuqneH", lang="tlh"),
+    ]
+
+    attempt = garak.attempt.Attempt(prompt=prompt)
+    attempt.outputs = outputs
+
+    assert attempt.outputs_for("en") == outputs
+
+
 def test_attempt_prompt_no_str():
     with pytest.raises(TypeError):
         attempt = garak.attempt.Attempt(prompt="nine two one eight black")
