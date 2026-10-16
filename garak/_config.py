@@ -10,7 +10,6 @@
 import platform
 from collections import defaultdict
 from dataclasses import dataclass
-import importlib
 import json
 import logging
 import os
