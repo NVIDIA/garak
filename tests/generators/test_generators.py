@@ -9,6 +9,7 @@ from typing import List, Union
 
 from garak import _plugins
 from garak import _config
+from garak.exception import GarakException
 
 from garak.attempt import Message, Turn, Conversation
 from garak.generators.base import Generator
@@ -38,6 +39,32 @@ def test_parallel_requests():
     assert all(
         len(item.text) > 0 for item in result
     ), "All generated Message texts should be non-empty"
+
+
+def _unpicklable_stub():
+    """Module-level stub whose __module__ is corrupted per-test to force a
+    real pickle.PicklingError (import-of-module-failed), matching the
+    dynamically-loaded-plugin failure mode reported in #361."""
+
+
+def test_parallel_requests_unpicklable_attribute_raises_garak_exception():
+    """A generator holding a non-picklable attribute must fail with a clear
+    GarakException rather than letting Pool._handle_tasks crash with a raw
+    _pickle.PicklingError (#361)."""
+    parallel_count = 2
+    _config.system.parallel_requests = parallel_count
+    _config.system.max_workers = parallel_count
+
+    g = _plugins.load_plugin("generators.test.Lipsum")
+    original_module = _unpicklable_stub.__module__
+    _unpicklable_stub.__module__ = "nonexistent_module_for_pickling_test"
+    g.unpicklable = _unpicklable_stub
+    try:
+        prompt = Conversation(Turn("user", [Message("this is a test")]))
+        with pytest.raises(GarakException):
+            g.generate(prompt=prompt, generations_this_call=3)
+    finally:
+        _unpicklable_stub.__module__ = original_module
 
 
 @pytest.mark.parametrize("classname", GENERATORS)
