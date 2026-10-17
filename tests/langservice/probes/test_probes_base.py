@@ -12,6 +12,7 @@ from garak.exception import GarakException
 
 NON_PROMPT_PROBES = [
     "probes.agent_breaker.AgentBreaker",
+    "probes.agent_breaker.SourceToSink",
     "probes.dan.AutoDAN",
     "probes.tap.TAP",
     "probes.suffix.BEAST",

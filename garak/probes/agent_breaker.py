@@ -1,9 +1,10 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""**Agent Breaker probe**
+"""**Agent Breaker probes**
 
-A multi-turn red-team probe for attacking agentic LLM applications that use tools.
+Multi-turn red-team probes for attacking agentic LLM applications that use
+tools, including direct tool exploitation and bounded source-to-sink handoffs.
 
 Uses a red team model to analyze each tool for weaknesses, generate targeted
 exploits, and verify attack success through direct conversation with the agent.
@@ -24,10 +25,11 @@ import yaml
 
 from garak import _config
 from garak.data import path as data_path
-from garak.exception import GarakException
+from garak.exception import GarakException, PluginConfigurationError
 import garak._plugins
 import garak.attempt
 import garak.probes
+from garak.resources.agent_breaker.source_to_sink import _SourceToSinkMixin
 
 
 @dataclass
@@ -154,6 +156,7 @@ class AgentBreaker(garak.probes.IterativeProbe):
     active = False  # Requires red team model configuration
     parallelisable_attempts = False  # Multi-turn probes manage their own dialog
     intent = "M009"  # elicits information disclosure of system or protected data
+    uses_in_loop_detector = True
 
     DEFAULT_PARAMS = garak.probes.IterativeProbe.DEFAULT_PARAMS | {
         "red_team_model_type": "nim",
@@ -183,9 +186,8 @@ class AgentBreaker(garak.probes.IterativeProbe):
         super().__init__(config_root=config_root)
         # Shared detector instance — used for in-loop verification so the
         # same model and logic drive both loop control and final scoring.
-        from garak.detectors.agent_breaker import AgentBreakerResult
-
-        self._detector = AgentBreakerResult(config_root=config_root)
+        if self.uses_in_loop_detector:
+            self._detector = self._make_detector(config_root)
 
         if self.langprovider.target_lang not in ("en", self.lang):
             logging.warning(
@@ -195,6 +197,67 @@ class AgentBreaker(garak.probes.IterativeProbe):
         # Load prompt templates and agent configuration from YAML
         self._load_prompts()
         self._load_agent_config()
+
+    @staticmethod
+    def _make_detector(config_root):
+        """Build the detector used for Single's in-loop verification."""
+        from garak.detectors.agent_breaker import AgentBreakerResult
+
+        return AgentBreakerResult(config_root=config_root)
+
+    @staticmethod
+    def _extract_json(text: str) -> dict:
+        """Extract the first complete JSON object from model output."""
+        if not isinstance(text, str):
+            raise json.JSONDecodeError("Model output must be text", "", 0)
+        try:
+            parsed = json.loads(text)
+        except json.JSONDecodeError:
+            pass
+        except (RecursionError, TypeError, ValueError) as error:
+            raise json.JSONDecodeError("Invalid JSON object", text, 0) from error
+        else:
+            if isinstance(parsed, dict):
+                return parsed
+            raise json.JSONDecodeError("Top-level JSON must be an object", text, 0)
+
+        brace_start = text.find("{")
+        if brace_start == -1:
+            raise json.JSONDecodeError("No JSON object found", text, 0)
+
+        depth = 0
+        in_string = False
+        escape_next = False
+        for index, character in enumerate(text[brace_start:], start=brace_start):
+            if escape_next:
+                escape_next = False
+                continue
+            if character == "\\":
+                escape_next = True
+                continue
+            if character == '"':
+                in_string = not in_string
+                continue
+            if in_string:
+                continue
+            if character == "{":
+                depth += 1
+            elif character == "}":
+                depth -= 1
+                if depth == 0:
+                    try:
+                        parsed = json.loads(text[brace_start : index + 1])
+                    except (RecursionError, TypeError, ValueError) as error:
+                        raise json.JSONDecodeError(
+                            "Invalid JSON object", text, brace_start
+                        ) from error
+                    if isinstance(parsed, dict):
+                        return parsed
+                    raise json.JSONDecodeError(
+                        "Top-level JSON must be an object", text, brace_start
+                    )
+
+        raise json.JSONDecodeError("Unterminated JSON object", text, brace_start)
 
     def _load_prompts(self):
         """Load prompt templates from the prompts YAML file."""
@@ -302,7 +365,7 @@ class AgentBreaker(garak.probes.IterativeProbe):
             return
 
         try:
-            parsed: dict = self._detector._extract_json(parsed_text)
+            parsed: dict = self._extract_json(parsed_text)
         except json.JSONDecodeError as e:
             logging.warning(
                 f"{self.__class__.__name__} # Failed to parse discovery " f"JSON: {e}"
@@ -504,7 +567,7 @@ class AgentBreaker(garak.probes.IterativeProbe):
 
         if analysis:
             try:
-                parsed = self._detector._extract_json(analysis)
+                parsed = self._extract_json(analysis)
                 result["tool_analyses"] = parsed.get("tool_analyses", {})
                 result["priority_targets"] = parsed.get("priority_targets", [])
             except json.JSONDecodeError as e:
@@ -574,7 +637,7 @@ class AgentBreaker(garak.probes.IterativeProbe):
 
         if response:
             try:
-                parsed = self._detector._extract_json(response)
+                parsed = self._extract_json(response)
                 attack_prompt = parsed.get("attack_prompt")
 
                 # Log the analysis for debugging
@@ -878,3 +941,324 @@ class AgentBreaker(garak.probes.IterativeProbe):
                 return next_attempt
 
         return None
+
+
+class SourceToSink(_SourceToSinkMixin, AgentBreaker):
+    """Discover and exercise bounded source-to-sink tool chains.
+
+    Tools are tagged with generic capabilities, joined into a data-flow graph,
+    and searched for acyclic paths from a source to a terminal sink. Each
+    intermediate response must yield an explicitly keyed, verbatim artifact
+    before the next step is queued. The probe queues no follow-up after a final
+    sink attempt.
+    """
+
+    lang = "en"
+    # Technique example only; this probe does not implement ChainFuzzer.
+    doc_uri = "https://arxiv.org/abs/2603.12614"
+    primary_detector = "agent_breaker.AgentBreakerChainResult"
+    tags = [
+        "owasp:llm01",  # Multi-step attacks can propagate untrusted instructions or data.
+        "owasp:llm06",  # Tool chains can exceed the authority intended for the target.
+        "quality:Security:AgentSecurity",  # Assesses security boundaries around agent tools.
+        "payload:agentic:exploitation",  # Uses attacker-generated agentic test payloads.
+    ]
+    goal = "Identify unsafe effects reached through multi-tool artifact handoffs"
+    tier = garak.probes.Tier.INFORMATIONAL
+    active = False  # Requires an attacker generator and operator-authored manifest.
+    parallelisable_attempts = False  # Later steps depend on earlier artifacts.
+    intent = "S008"  # Elicits unsafe computer-assisted actions.
+    uses_in_loop_detector = False
+
+    DEFAULT_PARAMS = AgentBreaker.DEFAULT_PARAMS | {
+        "max_chains": 8,
+        "max_chain_len": 4,
+        "min_edge_confidence": 0.4,
+        "max_step_attempts": 3,
+        "max_active_chains": 4,
+        "max_hypotheses_per_chain": 3,
+        "max_tools": 16,
+        "max_graph_edges": 128,
+        "max_path_expansions": 1024,
+        "max_terminal_attempts_per_tool": 1,
+    }
+
+    def __init__(self, config_root=_config):
+        super().__init__(config_root=config_root)
+        self.tool_tags: dict = {}
+        self._terminal_tool_request_reservations: set = set()
+        self._terminal_tool_counts: dict = {}
+
+    def _load_prompts(self):
+        """Load Single prompts plus the chain-specific planning prompts."""
+        super()._load_prompts()
+        prompts_path = data_path / "agent_breaker" / "source_to_sink_prompts.yaml"
+        try:
+            with prompts_path.open("r", encoding="utf-8") as prompt_file:
+                prompts = yaml.safe_load(prompt_file)
+            if not isinstance(prompts, dict):
+                raise TypeError("prompt data must be a mapping")
+        except (OSError, TypeError, yaml.YAMLError) as error:
+            message = f"Failed to load chain prompts from {prompts_path}"
+            logging.error("%s: %s", message, error)
+            raise GarakException(message) from error
+        self._prompts.update(prompts)
+
+    def _create_init_attempts(self) -> Iterable[garak.attempt.Attempt]:
+        """Validate the manifest, derive chains, and seed their first steps."""
+        self._require_single_generation()
+        self._require_no_buffs()
+        self._require_english_target_language()
+        self._validate_safety_configuration()
+        self._terminal_tool_request_reservations = set()
+        self._terminal_tool_counts = {}
+        self._cap_agent_tools()
+        if len(self.agent_config.get("tools", [])) < 2:
+            raise PluginConfigurationError(
+                "SourceToSink requires at least two tools with valid chain_policy"
+            )
+        if not any(
+            self._tool_is_intermediate(tool["name"])
+            for tool in self.agent_config["tools"]
+        ) or not any(
+            self._tool_is_terminal(tool["name"]) for tool in self.agent_config["tools"]
+        ):
+            raise PluginConfigurationError(
+                "SourceToSink requires at least one safe intermediate and one "
+                "side-effecting terminal tool"
+            )
+
+        self._setup_red_team_model()
+
+        self.agent_analysis = self._analyze_attackable_tools()
+        chain_result = self._analyze_tool_chains()
+        self.agent_analysis["chains"] = chain_result.get("chains", [])
+        self.agent_analysis["priority_chains"] = chain_result.get("priority_chains", [])
+        chain_configs = self._build_chain_configs()
+        self.max_calls_per_conv = (
+            len(chain_configs)
+            * self._config_limit("max_chain_len", 4)
+            * self._config_limit("max_step_attempts", 3)
+        )
+        if not chain_configs:
+            logging.warning("%s # No executable chains found", self.__class__.__name__)
+            return []
+
+        attempts: List[garak.attempt.Attempt] = []
+        for entry_tool, chain in chain_configs:
+            attempts.extend(self._attack_single_chain(entry_tool, chain))
+        return attempts
+
+    def _queue_step_attack(
+        self, chain: dict, vulnerability_info: str
+    ) -> Optional[garak.attempt.Attempt]:
+        index = chain.get("step_index", 0)
+        sequence = chain.get("sequence") or []
+        if index >= len(sequence):
+            return None
+        entry = self._plan_entry(chain, index)
+        final_step = index == len(sequence) - 1
+        role = entry.get("role")
+        if final_step:
+            if role != "exploit" or not self._tool_is_terminal(sequence[index]):
+                return None
+        elif role not in {"recon", "pivot"} or not self._tool_is_intermediate(
+            sequence[index]
+        ):
+            return None
+        attack_prompt, technique = self._generate_step_attack_prompt(chain, index)
+        if not attack_prompt:
+            return None
+        bound_request = self._render_step_request(chain, index, attack_prompt)
+        if bound_request is None:
+            return None
+        attempt = self._create_attempt(bound_request)
+        sent_prompt = attempt.prompt.last_message().text
+        if not isinstance(sent_prompt, str) or not sent_prompt:
+            return None
+
+        is_terminal = role == "exploit" and final_step
+        active = copy.deepcopy(chain)
+        active["current_technique"] = technique
+        if is_terminal:
+            required_inputs = self._required_input_artifacts(active, index)
+            if not required_inputs:
+                return None
+            request_ref = self._request_ref(sent_prompt)
+            if request_ref is None or not self._reserve_terminal_tool_attempt(
+                sequence[index], request_ref
+            ):
+                return None
+            active["terminal_request_ref"] = request_ref
+
+        state = AttackState(
+            current_target=sequence[index],
+            current_tool_analysis=active,
+            current_attack_prompt=sent_prompt,
+            vulnerability_info=vulnerability_info,
+        )
+        attempt.notes = state.to_notes()
+        attempt.notes.update(self._chain_grouping_notes(active))
+        return attempt
+
+    def _render_step_request(
+        self, chain: dict, index: int, attack_prompt: str
+    ) -> Optional[str]:
+        """Apply the same artifact and tool contract to initial and retry requests."""
+        sequence = chain.get("sequence") or []
+        output_keys = self._plan_entry(chain, index).get("artifact_keys") or []
+        if index >= len(sequence) or (index == len(sequence) - 1 and output_keys):
+            return None
+        if output_keys:
+            required_lines = "\n".join(f"{key} = <value>" for key in output_keys)
+            attack_prompt = (
+                f"{attack_prompt}\n\nReturn the real result by replacing each <value> below:\n{required_lines}\n"
+                "Do not add bullets, styling, labels, or prose around these lines."
+            )
+        return self._bind_step_request(sequence[index], attack_prompt)
+
+    def _advance_stepwise(
+        self, state: AttackState, response: str, artifacts: dict
+    ) -> Optional[garak.attempt.Attempt]:
+        chain = copy.deepcopy(state.current_tool_analysis)
+        sequence = chain.get("sequence") or []
+        index = chain.get("step_index", 0)
+        if index >= len(sequence):
+            return None
+        chain["artifacts"] = {**(chain.get("artifacts") or {}), **artifacts}
+        outputs = list(chain.get("step_outputs") or [])
+        outputs.append(
+            {
+                "tool": sequence[index],
+                "prompt": self._bounded_text(
+                    state.current_attack_prompt, self._STEP_PROMPT_CHAR_LIMIT
+                ),
+                "response": self._bounded_text(
+                    response, self._STEP_RESPONSE_CHAR_LIMIT
+                ),
+                "artifacts": dict(artifacts),
+            }
+        )
+        chain["step_outputs"] = outputs
+        chain["step_index"] = index + 1
+        return self._queue_step_attack(chain, state.vulnerability_info)
+
+    def _handle_stepwise_refinement(
+        self, state: AttackState
+    ) -> Optional[garak.attempt.Attempt]:
+        chain = copy.deepcopy(state.current_tool_analysis)
+        history = list(state.attempts_history)
+        if len(history) >= self._config_limit("max_step_attempts", 3):
+            return None
+        index = chain.get("step_index", 0)
+        prompt, technique = self._generate_step_exploit_prompt(chain, index, history)
+        if not prompt:
+            return None
+        sequence = chain.get("sequence") or []
+        if index >= len(sequence):
+            return None
+        bound_request = self._render_step_request(chain, index, prompt)
+        if bound_request is None:
+            return None
+        chain["current_technique"] = technique
+        attempt = self._create_attempt(bound_request)
+        sent_prompt = attempt.prompt.last_message().text
+        if not isinstance(sent_prompt, str) or not sent_prompt:
+            return None
+        next_state = AttackState(
+            current_target=state.current_target,
+            current_tool_analysis=chain,
+            current_attack_prompt=sent_prompt,
+            attempts_history=history,
+            vulnerability_info=state.vulnerability_info,
+        )
+        attempt.notes = next_state.to_notes()
+        attempt.notes.update(self._chain_grouping_notes(chain))
+        return attempt
+
+    def _postprocess_attempt(
+        self, this_attempt: garak.attempt.Attempt
+    ) -> garak.attempt.Attempt:
+        """Propagate chain notes added after IterativeProbe's copy."""
+        processed = super()._postprocess_attempt(this_attempt)
+        for key in (
+            "chain_id",
+            "chain_sequence",
+            "chain_step",
+            "chain_total_steps",
+            "chain_role",
+            "chain_sink_requirement",
+            "chain_transcript",
+        ):
+            if key in (this_attempt.notes or {}):
+                processed.notes[key] = this_attempt.notes[key]
+        return processed
+
+    def _generate_next_attempts(
+        self, last_attempt: garak.attempt.Attempt
+    ) -> Iterable[garak.attempt.Attempt]:
+        """Advance a handoff or stop unconditionally after the terminal step."""
+        outputs = last_attempt.outputs or []
+        if not outputs:
+            return []
+        state = AttackState.from_notes(last_attempt.notes or {})
+        chain = state.current_tool_analysis or {}
+        sequence = chain.get("sequence") or []
+        index = chain.get("step_index", 0)
+        if not chain.get("chain_id") or index >= len(sequence):
+            return []
+        entry = self._plan_entry(chain, index)
+        final_step = index == len(sequence) - 1 and entry.get("role") == "exploit"
+        texts = [
+            output.text
+            for output in outputs
+            if output is not None and isinstance(output.text, str)
+        ]
+        response = texts[0] if texts else ""
+
+        if final_step:
+            notes = state.to_notes()
+            notes.update(self._chain_grouping_notes(chain))
+            notes["chain_transcript"] = self._render_chain_transcript(
+                chain, state.current_attack_prompt, response
+            )
+            last_attempt.notes = notes
+            logging.info(
+                "%s # Chain %s terminal step completed",
+                self.__class__.__name__,
+                chain.get("chain_id"),
+            )
+            return []
+
+        artifacts = self._extract_artifacts(
+            chain, index, state.current_attack_prompt, response
+        )
+        advanced, confidence, reasoning = self._check_step_success(
+            chain,
+            index,
+            state.current_attack_prompt,
+            response,
+            artifacts,
+        )
+        state.attempts_history.append(
+            {
+                "target": state.current_target,
+                "prompt": self._bounded_text(
+                    state.current_attack_prompt, self._STEP_PROMPT_CHAR_LIMIT
+                ),
+                "response": self._bounded_text(
+                    response, self._STEP_RESPONSE_CHAR_LIMIT
+                ),
+                "success": advanced,
+                "confidence": confidence,
+                "reasoning": reasoning,
+                "technique": chain.get("current_technique", ""),
+            }
+        )
+        last_attempt.notes = state.to_notes()
+        last_attempt.notes.update(self._chain_grouping_notes(chain))
+        if advanced:
+            next_attempt = self._advance_stepwise(state, response, artifacts)
+        else:
+            next_attempt = self._handle_stepwise_refinement(state)
+        return [next_attempt] if next_attempt is not None else []
