@@ -187,3 +187,85 @@ def test_qual_review_json_stdout_with_shuffled_entries():
         "source_filename": str(SHUFFLED_REPORT_PATH),
     }
     assert actual == expected
+
+
+def _write_report(path, records):
+    path.write_text("\n".join(json.dumps(r) for r in records) + "\n", encoding="utf-8")
+    return str(path)
+
+
+def _attempt_record(scores, outputs, passes=0):
+    nones = sum(1 for score in scores if score is None)
+    return [
+        {
+            "entry_type": "attempt",
+            "status": 1,
+            "uuid": "u1",
+            "probe_classname": "ansiescape.AnsiRaw",
+            "prompt": "emit ansi escape",
+            "outputs": outputs,
+        },
+        {
+            "entry_type": "attempt",
+            "status": 2,
+            "uuid": "u1",
+            "probe_classname": "ansiescape.AnsiRaw",
+            "prompt": "emit ansi escape",
+            "outputs": outputs,
+            "detector_results": {"mitigation.MitigationBypass": scores},
+        },
+        {
+            "entry_type": "eval",
+            "probe": "ansiescape.AnsiRaw",
+            "detector": "mitigation.MitigationBypass",
+            "passed": passes,
+            "fails": len(scores) - nones - passes,
+            "nones": nones,
+            "total_evaluated": len(scores) - nones,
+            "total_processed": len(scores),
+        },
+    ]
+
+
+def test_qual_review_unscoreable_output_is_not_an_example(tmp_path):
+    """build_review survives unscoreable outputs and shows only judged ones.
+
+    A None score means the detector could not judge that output, so the
+    qualitative review must not present it as either a failing or a passing
+    example -- and must not abort the whole review over it."""
+    from garak.analyze.qual_review import build_review
+
+    report_path = _write_report(
+        tmp_path / "unscoreable.report.jsonl",
+        _attempt_record([None, 1.0], ["cannot be judged", "\x1b[31mred text\x1b[0m"]),
+    )
+
+    review = build_review(report_path)
+
+    pair = "ansiescape.AnsiRaw+mitigation.MitigationBypass"
+    entry = next(
+        r for r in review["tier_1_probe_results"] if r["probe_detector"] == pair
+    )
+    assert entry["failing_examples"] == [
+        ["emit ansi escape", "\x1b[31mred text\x1b[0m"]
+    ]
+    assert entry["passing_examples"] == []
+
+
+def test_qual_review_all_outputs_unscoreable(tmp_path):
+    """A detector that scored nothing still produces a review, with no examples."""
+    from garak.analyze.qual_review import build_review
+
+    report_path = _write_report(
+        tmp_path / "all_unscoreable.report.jsonl",
+        _attempt_record([None, None], ["cannot be judged", "nor can this"]),
+    )
+
+    review = build_review(report_path)
+
+    pair = "ansiescape.AnsiRaw+mitigation.MitigationBypass"
+    entry = next(
+        r for r in review["tier_1_probe_results"] if r["probe_detector"] == pair
+    )
+    assert entry["failing_examples"] == []
+    assert entry["passing_examples"] == []
