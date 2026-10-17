@@ -292,8 +292,14 @@ class WebSocketGenerator(Generator):
             await self._connect_websocket()
 
         try:
-            # Send message
-            await self.websocket.send(message)
+            try:
+                await self.websocket.send(message)
+            except self.websockets.exceptions.ConnectionClosed:
+                # the target closed the socket since the last call; reconnect once
+                logger.info("WebSocket connection was closed, reconnecting")
+                self.websocket = None
+                await self._connect_websocket()
+                await self.websocket.send(message)
             logger.debug("WebSocket message sent")
 
             # Collect response parts
@@ -345,6 +351,7 @@ class WebSocketGenerator(Generator):
                     continue
                 except self.websockets.exceptions.ConnectionClosed:
                     logger.warning("WebSocket connection closed during receive")
+                    self.websocket = None
                     break
 
             # Combine response parts

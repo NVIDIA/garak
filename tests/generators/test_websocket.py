@@ -9,6 +9,30 @@ from garak.generators.websocket import WebSocketGenerator
 from garak.attempt import Conversation, Turn, Message
 
 
+def _start_local_server(handler):
+    """Serve ``handler`` on a free local port from a daemon thread; return the port"""
+    import asyncio
+    import threading
+
+    from websockets.asyncio.server import serve
+
+    ready = threading.Event()
+    holder = {}
+
+    def run_server():
+        async def main():
+            async with serve(handler, "127.0.0.1", 0) as server:
+                holder["port"] = next(iter(server.sockets)).getsockname()[1]
+                ready.set()
+                await asyncio.Future()
+
+        asyncio.run(main())
+
+    threading.Thread(target=run_server, daemon=True).start()
+    assert ready.wait(5), "local WebSocket server did not start"
+    return holder["port"]
+
+
 class TestWebSocketGenerator:
     """Test suite for WebSocketGenerator"""
 
@@ -389,35 +413,18 @@ class TestWebSocketGenerator:
         _call_model used to open and close a new event loop per call while
         keeping self.websocket, which stays bound to the first loop.
         """
-        import asyncio
-        import threading
-
-        from websockets.asyncio.server import serve
 
         async def handler(ws):
             async for msg in ws:
                 await ws.send("echo:" + msg)
 
-        ready = threading.Event()
-        holder = {}
-
-        def run_server():
-            async def main():
-                async with serve(handler, "127.0.0.1", 0) as server:
-                    holder["port"] = next(iter(server.sockets)).getsockname()[1]
-                    ready.set()
-                    await asyncio.Future()
-
-            asyncio.run(main())
-
-        threading.Thread(target=run_server, daemon=True).start()
-        assert ready.wait(5), "echo server did not start"
+        port = _start_local_server(handler)
 
         instance_config = {
             "generators": {
                 "websocket": {
                     "WebSocketGenerator": {
-                        "uri": f"ws://127.0.0.1:{holder['port']}",
+                        "uri": f"ws://127.0.0.1:{port}",
                         "response_after_typing": False,
                         "request_timeout": 5,
                         "connection_timeout": 5,
@@ -436,3 +443,72 @@ class TestWebSocketGenerator:
         assert texts == [f"echo:{prompt}" for prompt in prompts]
         assert all(loop is loops[0] for loop in loops)
         assert not loops[0].is_closed()
+
+    @pytest.mark.asyncio
+    async def test_send_reconnects_when_connection_closed(self):
+        """A send on a socket the target already closed should reconnect and resend"""
+        from websockets.exceptions import ConnectionClosedOK
+
+        instance_config = {
+            "generators": {
+                "websocket": {
+                    "WebSocketGenerator": {
+                        "uri": "ws://localhost:3000",
+                        "response_after_typing": False,
+                    }
+                }
+            }
+        }
+        gen = WebSocketGenerator(config_root=instance_config)
+
+        closed_websocket = AsyncMock()
+        closed_websocket.send = AsyncMock(side_effect=ConnectionClosedOK(None, None))
+        fresh_websocket = AsyncMock()
+        fresh_websocket.recv = AsyncMock(return_value="Hello response")
+        gen.websocket = closed_websocket
+
+        async def reconnect():
+            gen.websocket = fresh_websocket
+
+        with patch.object(gen, "_connect_websocket", side_effect=reconnect) as connect:
+            result = await gen._send_and_receive("Hello")
+
+        connect.assert_called_once()
+        fresh_websocket.send.assert_called_once_with("Hello")
+        assert result == "Hello response", "prompt should be resent on a new connection"
+
+    @pytest.mark.parametrize("response_after_typing", [True, False])
+    def test_reconnects_after_target_closes_connection(self, response_after_typing):
+        """Prompts after the target closes the socket must still reach the target"""
+        received = []
+
+        async def handler(ws):
+            msg = await ws.recv()
+            received.append(msg)
+            await ws.send("echo:" + msg)
+            await ws.close()
+
+        port = _start_local_server(handler)
+
+        instance_config = {
+            "generators": {
+                "websocket": {
+                    "WebSocketGenerator": {
+                        "uri": f"ws://127.0.0.1:{port}",
+                        "response_after_typing": response_after_typing,
+                        "request_timeout": 5,
+                        "connection_timeout": 5,
+                    }
+                }
+            }
+        }
+        gen = WebSocketGenerator(config_root=instance_config)
+        prompts = ["hello", "world", "third"]
+        texts = []
+        for prompt in prompts:
+            out = gen.generate(Conversation([Turn("user", Message(prompt))]))
+            texts.append(out[0].text if out and out[0] is not None else None)
+        assert received == prompts, "every prompt should be sent to the target"
+        assert texts == [
+            f"echo:{prompt}" for prompt in prompts
+        ], "each prompt should get its own response"
