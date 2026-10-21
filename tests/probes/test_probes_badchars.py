@@ -1,5 +1,8 @@
 """Tests for the ``BadCharactersIntent`` probe and the ``_BadCharacterPerturbation`` renderer."""
 
+import random
+from collections import Counter
+
 import pytest
 
 import garak.attempt
@@ -109,3 +112,46 @@ def test_prune_restores_per_category_floor():
     assert len(probe.prompts) == 3, "floor must not exceed the cap"
     assert "homoglyph" in categories, "dropped category must be restored by the floor"
     assert "deletion" in categories, "donor family must still survive the reclaim"
+
+
+def test_prune_zero_cap_returns_empty() -> None:
+    """A zero cap must leave no prompt or intent to restore."""
+    probe = _load_badcharacters_intent(
+        "S009cred", serve_detectorless=False, probe_config=_SMALL_PERTURBATION
+    )
+    probe.prompts = [_category_conv("deletion")]
+    probe.prompt_intents = ["I0"]
+
+    probe._prune_data(cap=0)
+
+    assert not probe.prompts, "zero cap must remove every prompt"
+    assert not probe.prompt_intents, "zero cap must remove every aligned intent"
+
+
+def test_prune_keeps_intents_balanced_when_restoring_categories(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Restoring categories must not undo the base per-intent balance."""
+    probe = _load_badcharacters_intent(
+        "S009cred", serve_detectorless=False, probe_config=_SMALL_PERTURBATION
+    )
+    intents = ("I0", "I1", "I2", "I3")
+    categories = ("deletion", "invisible", "homoglyph", "reordering")
+    probe.prompts = [
+        _category_conv(category) for intent in intents for category in categories
+    ]
+    probe.prompt_intents = [intent for intent in intents for _category in categories]
+    monkeypatch.setattr(
+        random,
+        "sample",
+        lambda population, count: list(population)[:count],
+    )
+
+    probe._prune_data(cap=len(intents))
+
+    assert Counter(probe.prompt_intents) == Counter(
+        {intent: 1 for intent in intents}
+    ), "category restoration must preserve the base per-intent allocation"
+    assert {conv.notes["bad_character_category"] for conv in probe.prompts} == set(
+        categories
+    ), "all perturbation categories must survive when the cap allows"

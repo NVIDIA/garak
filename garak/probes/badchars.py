@@ -8,6 +8,7 @@ described in https://arxiv.org/abs/2106.09898.
 import itertools
 import logging
 import random
+from collections import Counter
 from dataclasses import dataclass
 from functools import cached_property
 from typing import Iterator, List, Sequence, Tuple
@@ -561,37 +562,76 @@ class BadCharactersIntent(garak.probes.IntentProbe):
         dominates the generation pool, so random per-intent sampling can drop a
         whole perturbation category. After the base prune runs, re-inject one
         representative per missing category by reclaiming a slot from the
-        most-represented surviving one, keeping the prompt count at ``cap``.
+        most-represented surviving one without worsening the intent balance,
+        keeping the prompt count at ``cap``.
         """
         resolved_cap = self._prune_cap(cap)
         if resolved_cap is None or resolved_cap >= len(self.prompts):
             return
 
-        representatives: dict[str, Tuple[garak.attempt.Conversation, object]] = {}
+        representatives: dict[str, dict[str, garak.attempt.Conversation]] = {}
         for conv, intent in zip(self.prompts, self.prompt_intents):
             category = conv.notes.get("bad_character_category")
             if category is not None:
-                representatives.setdefault(category, (conv, intent))
+                representatives.setdefault(category, {}).setdefault(intent, conv)
 
         super()._prune_data(cap=cap, prune_triggers=prune_triggers)
+        if not self.prompts:
+            return
 
-        surviving: dict[str, int] = {}
-        for conv in self.prompts:
-            category = conv.notes.get("bad_character_category")
-            surviving[category] = surviving.get(category, 0) + 1
+        surviving = Counter(
+            conv.notes.get("bad_character_category") for conv in self.prompts
+        )
+        intent_counts = Counter(self.prompt_intents)
 
-        for category, (conv, intent) in representatives.items():
+        for category, category_representatives in representatives.items():
             if surviving.get(category):
                 continue
-            donor = max(surviving, key=surviving.get)
-            if surviving[donor] <= 1:
-                break  # borrowing a slot would empty another family
-            donor_idx = next(
-                idx
-                for idx, existing in enumerate(self.prompts)
-                if existing.notes.get("bad_character_category") == donor
-            )
-            self.prompts[donor_idx] = conv
-            self.prompt_intents[donor_idx] = intent
+
+            replacement = None
+            for donor_idx, (existing, donor_intent) in enumerate(
+                zip(self.prompts, self.prompt_intents)
+            ):
+                donor = existing.notes.get("bad_character_category")
+                if surviving[donor] > 1 and donor_intent in category_representatives:
+                    replacement = (
+                        donor_idx,
+                        donor,
+                        donor_intent,
+                        donor_intent,
+                    )
+                    break
+
+            if replacement is None:
+                replacement_intent = min(
+                    category_representatives,
+                    key=intent_counts.__getitem__,
+                )
+                for donor_idx, (existing, donor_intent) in enumerate(
+                    zip(self.prompts, self.prompt_intents)
+                ):
+                    donor = existing.notes.get("bad_character_category")
+                    if (
+                        surviving[donor] > 1
+                        and intent_counts[donor_intent]
+                        > intent_counts[replacement_intent]
+                    ):
+                        replacement = (
+                            donor_idx,
+                            donor,
+                            donor_intent,
+                            replacement_intent,
+                        )
+                        break
+
+            if replacement is None:
+                continue
+
+            donor_idx, donor, donor_intent, replacement_intent = replacement
+            self.prompts[donor_idx] = category_representatives[replacement_intent]
+            self.prompt_intents[donor_idx] = replacement_intent
             surviving[donor] -= 1
             surviving[category] = 1
+            if replacement_intent != donor_intent:
+                intent_counts[donor_intent] -= 1
+                intent_counts[replacement_intent] += 1
