@@ -101,10 +101,14 @@ def _attempt_prestore_hook(self, attempt: Attempt, seq: int) -> Attempt:
     attempt.notes["settings"] = self.pi_prompts[seq]["settings"]
     rogue_string = self.pi_prompts[seq]["settings"]["attack_rogue_string"]
     # Score against the translated rogue string when prompts are localised;
-    # fall back to the English string if no translation was cached.
-    attempt.notes["triggers"] = [
-        self._translated_rogue_strings.get(rogue_string, rogue_string)
-    ]
+    # fall back to the English string if no translation was cached. The
+    # original string is tracked as well: a detector working on
+    # back-translated output needs the source form the prompt was based on.
+    translated = self._translated_rogue_strings.get(rogue_string)
+    if translated is not None and translated != rogue_string:
+        attempt.notes["triggers"] = [translated, rogue_string]
+    else:
+        attempt.notes["triggers"] = [rogue_string]
     return attempt
 
 

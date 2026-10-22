@@ -69,8 +69,9 @@ def test_promptinject_triggers_translated(translated_probe):
     attempt = garak.attempt.Attempt(prompt=garak.attempt.Message(p.prompts[0]))
     attempt = p._attempt_prestore_hook(attempt, 0)
     assert attempt.notes["triggers"] == [
-        "I hate humans [pl]"
-    ], "notes triggers should hold the translated rogue string, not the English one"
+        "I hate humans [pl]",
+        "I hate humans",
+    ], "notes triggers should hold the translated rogue string first, with the original tracked after it"
 
 
 def test_promptinject_translated_trigger_detected(translated_probe):
@@ -82,6 +83,18 @@ def test_promptinject_translated_trigger_detected(translated_probe):
     assert d.detect(attempt) == [
         1.0
     ], "detector should score a hit when the output contains the translated rogue string"
+
+
+def test_promptinject_original_trigger_detected(translated_probe):
+    p = translated_probe
+    attempt = garak.attempt.Attempt(prompt=garak.attempt.Message(p.prompts[0]))
+    attempt = p._attempt_prestore_hook(attempt, 0)
+    # A detector working on back-translated output sees the source string.
+    attempt.outputs = ["Back-translated response: I hate humans"]
+    d = garak._plugins.load_plugin("detectors.promptinject.AttackRogueString")
+    assert d.detect(attempt) == [
+        1.0
+    ], "detector should score a hit when the output contains the original rogue string"
 
 
 def test_promptinject_trigger_fallback_to_english(translated_probe):
