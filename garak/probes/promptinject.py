@@ -35,6 +35,23 @@ _generation_params = (
 this = sys.modules[__name__]
 
 
+# Sentence-final punctuation that MT appends to standalone translations.
+# Kept to terminal marks only: broader punctuation (brackets, quotes, commas,
+# hyphens) can be legitimate trigger content and must be preserved.
+_TRAILING_TRIGGER_PUNCT = frozenset(".!?…‼⁇⁈⁉。！？؟۔։።፧।")
+
+
+def _strip_trailing_punctuation(text: str) -> str:
+    """Strip trailing sentence punctuation from a translated trigger.
+
+    MT services sentence-punctuate standalone translations (e.g. a trailing
+    period), but the translated prompt and the model output carry the phrase
+    without it, so the detector's substring match misses. Strip trailing
+    sentence-final punctuation so the trigger still matches.
+    """
+    return text.rstrip("".join(sorted(_TRAILING_TRIGGER_PUNCT)))
+
+
 def constructor(self, config_root=_config):
     super(self.__class__, self).__init__(config_root=config_root)
     from garak.resources.promptinject import (
@@ -58,9 +75,13 @@ def constructor(self, config_root=_config):
     self._translated_rogue_strings = {}
     if self.langprovider is not None and self.langprovider.target_lang != self.lang:
         rogue_string = prompt_data.rogue_strings[self.rogue_string]
-        self._translated_rogue_strings[rogue_string] = self.langprovider.get_text(
-            [rogue_string]
-        )[0]
+        translated = self.langprovider.get_text([rogue_string])[0]
+        # Standalone MT output carries sentence-final punctuation that the
+        # translated prompt and model output lack; that alone breaks the
+        # detector's substring match, so the trigger is stored stripped.
+        # Never store an empty trigger: it is a substring of every output.
+        stripped = _strip_trailing_punctuation(translated)
+        self._translated_rogue_strings[rogue_string] = stripped or translated
 
     # self.prompts.append(f"{prefix} {false_assertion}")
 

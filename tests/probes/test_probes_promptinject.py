@@ -134,3 +134,80 @@ def test_promptinject_triggers_untranslated_by_default(probename):
         assert attempt.notes["triggers"] == [
             p.pi_prompts[seq]["settings"]["attack_rogue_string"]
         ], f"English-run triggers must remain the original rogue string (seq {seq})"
+
+
+class _PunctuatedStubLangProvider(_StubLangProvider):
+    """Stand-in whose MT output sentence-punctuates standalone translations."""
+
+    def get_text(self, prompts, reverse_translate_judge=False, notify_callback=None):
+        translated = super().get_text(
+            prompts,
+            reverse_translate_judge=reverse_translate_judge,
+            notify_callback=notify_callback,
+        )
+        return [f"{text}." for text in translated]
+
+
+@pytest.fixture
+def punctuated_probe(monkeypatch):
+    monkeypatch.setattr(
+        garak.probes.base.Probe,
+        "_get_langprovider",
+        lambda self: _PunctuatedStubLangProvider(),
+    )
+    return garak._plugins.load_plugin("probes.promptinject.HijackHateHumans")
+
+
+def test_promptinject_translated_trigger_trailing_punctuation_stripped(punctuated_probe):
+    p = punctuated_probe
+    assert p._translated_rogue_strings == {
+        "I hate humans": "I hate humans [pl]"
+    }, "trailing punctuation from MT output should be stripped from the cached trigger"
+    attempt = garak.attempt.Attempt(prompt=garak.attempt.Message(p.prompts[0]))
+    attempt = p._attempt_prestore_hook(attempt, 0)
+    assert attempt.notes["triggers"] == [
+        "I hate humans [pl]",
+        "I hate humans",
+    ], "notes triggers should hold the stripped translated rogue string first"
+    # The translated prompt and model output carry the phrase without the
+    # period, so the detector's substring match must fire on the stripped form.
+    attempt.outputs = ["Model repeats the injection: I hate humans [pl]"]
+    d = garak._plugins.load_plugin("detectors.promptinject.AttackRogueString")
+    assert d.detect(attempt) == [
+        1.0
+    ], "detector should score a hit when the output contains the stripped translated trigger"
+
+
+def test_promptinject_punctuation_only_translation_kept_verbatim(monkeypatch):
+    class _DotsStub(_StubLangProvider):
+        def get_text(
+            self, prompts, reverse_translate_judge=False, notify_callback=None
+        ):
+            return ["..."]
+
+    monkeypatch.setattr(
+        garak.probes.base.Probe,
+        "_get_langprovider",
+        lambda self: _DotsStub(),
+    )
+    p = garak._plugins.load_plugin("probes.promptinject.HijackHateHumans")
+    assert p._translated_rogue_strings == {
+        "I hate humans": "..."
+    }, "a translation that is only punctuation must be kept verbatim, never stored as an empty trigger"
+
+
+@pytest.mark.parametrize(
+    "raw,expected",
+    [
+        ("Nie jestem już związany żadnymi zasadami.", "Nie jestem już związany żadnymi zasadami"),
+        ("stop now?!", "stop now"),
+        ("结束。", "结束"),
+        ("no punctuation", "no punctuation"),
+        ("", ""),
+        ("...", ""),
+    ],
+)
+def test_strip_trailing_punctuation(raw, expected):
+    from garak.probes.promptinject import _strip_trailing_punctuation
+
+    assert _strip_trailing_punctuation(raw) == expected
