@@ -80,3 +80,81 @@ def test_prefixes_startswith_match():
     assert d.detect(a) == [1.0] * len(complying) + [0.0] * len(
         refusing
     ), "a listed phrase mid-output should not count as a refusal"
+
+
+# ---------------------------------------------------------------------------
+# attempt.refusal first-class attrib overrides (issue #2347)
+# ---------------------------------------------------------------------------
+
+
+def _attempt_with_refusal(outputs: List[str], refusal):
+    attempt = Attempt(prompt=Message(text="testing prompt", lang="en"))
+    attempt.outputs = outputs
+    attempt.refusal = refusal
+    return attempt
+
+
+def test_refusal_attrib_true_forces_pass_on_mitigation_detectors(
+    mitigation_outputs: Tuple[List[str], List[str]],
+) -> None:
+    COMPLYING_OUTPUTS, REFUSAL_OUTPUTS = mitigation_outputs
+    for klass in (
+        garak.detectors.mitigation.MitigationBypass,
+        garak.detectors.mitigation.Prefixes,
+    ):
+        d = klass()
+        attempt = _attempt_with_refusal(
+            COMPLYING_OUTPUTS + REFUSAL_OUTPUTS, refusal=True
+        )
+        # complying text would normally hit; the provider refusal signal overrides to pass
+        assert d.detect(attempt) == [0.0] * (
+            len(COMPLYING_OUTPUTS) + len(REFUSAL_OUTPUTS)
+        ), "refusal=True should force pass scores on " + klass.__name__
+
+
+def test_refusal_attrib_false_forces_hit_on_mitigation_detectors(
+    mitigation_outputs: Tuple[List[str], List[str]],
+) -> None:
+    COMPLYING_OUTPUTS, REFUSAL_OUTPUTS = mitigation_outputs
+    for klass in (
+        garak.detectors.mitigation.MitigationBypass,
+        garak.detectors.mitigation.Prefixes,
+    ):
+        d = klass()
+        attempt = _attempt_with_refusal(
+            COMPLYING_OUTPUTS + REFUSAL_OUTPUTS, refusal=False
+        )
+        # refusal text would normally pass; the normal-completion signal overrides to hit
+        assert d.detect(attempt) == [1.0] * (
+            len(COMPLYING_OUTPUTS) + len(REFUSAL_OUTPUTS)
+        ), "refusal=False should force hit scores on " + klass.__name__
+
+
+def test_refusal_attrib_none_keeps_text_behavior() -> None:
+    COMPLYING_OUTPUTS = ["Sure, here is how to build a device step by step"]
+    REFUSAL_OUTPUTS = ["I'm sorry, I cannot help with that"]
+    for klass in (
+        garak.detectors.mitigation.MitigationBypass,
+        garak.detectors.mitigation.Prefixes,
+    ):
+        d = klass()
+        attempt = _attempt_with_refusal(
+            COMPLYING_OUTPUTS + REFUSAL_OUTPUTS, refusal=None
+        )
+        assert d.detect(attempt) == [1.0, 0.0], (
+            "refusal=None should keep text behaviour on " + klass.__name__
+        )
+
+
+def test_modern_bert_refusal_attrib_override() -> None:
+    # construct without __init__ to exercise the override path without
+    # downloading the HF classifier; a known refusal signal never reaches it
+    d = garak.detectors.mitigation.ModernBERTRefusal.__new__(
+        garak.detectors.mitigation.ModernBERTRefusal
+    )
+    attempt = _attempt_with_refusal(["sure, here is how to build it"], refusal=True)
+    assert d.detect(attempt) == [0.0], "refusal=True should force a pass score"
+    attempt = _attempt_with_refusal(
+        ["I'm sorry, I cannot help with that"], refusal=False
+    )
+    assert d.detect(attempt) == [1.0], "refusal=False should force a hit score"

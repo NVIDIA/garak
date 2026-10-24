@@ -17,6 +17,13 @@ from garak.exception import GarakException
 
 roles = {"system", "user", "assistant"}
 
+# finish_reason values that describe a generation that stopped normally,
+# without the provider refusing. These are the OpenAI chat-completions values
+# for normal completion, max-token truncation, a tool call, and the legacy
+# function-call path. Other providers use different values, so this set is
+# intentionally conservative.
+NORMAL_COMPLETION_FINISH_REASONS = {"stop", "length", "tool_calls", "function_call"}
+
 
 @dataclass
 class Message:
@@ -199,6 +206,11 @@ class Attempt:
     :type reverse_translation_outputs: List(str)
     :param intent: None, or the primary intent type in this attempt
     :type notes: str|None
+    :param refusal: First-class tri-state refusal signal for this attempt.
+        True: at least one generator output carried a provider-level refusal
+        signal. False: the generator reported normal completion signals and no
+        refusal. None: unknown, the generator reported nothing.
+    :type refusal: bool|None
 
 
     Typical use:
@@ -238,6 +250,7 @@ class Attempt:
         seq=-1,
         reverse_translation_outputs=None,
         intent=None,
+        refusal=None,
     ) -> None:
         self.uuid = uuid.uuid4()
         if prompt is not None:
@@ -264,6 +277,33 @@ class Attempt:
             {} if reverse_translation_outputs is None else reverse_translation_outputs
         )
         self.intent = intent
+        self.refusal = refusal
+
+    @staticmethod
+    def derive_refusal(outputs: List["Message"]) -> Optional[bool]:
+        """Derive a tri-state refusal signal for an attempt from generator outputs.
+
+        Generator-agnostic: inspects the per-output notes (which generators
+        like OpenAICompatible fill with the provider's ``finish_reason`` and
+        ``refusal`` signals). True if any output carries a truthy ``refusal``
+        note; otherwise False if any output reports a normal-completion
+        ``finish_reason`` and none refused; else None (unknown).
+        """
+        refused = False
+        completed = False
+        for output in outputs or []:
+            if output is None:
+                continue
+            notes = output.notes or {}
+            if notes.get("refusal"):
+                refused = True
+            if notes.get("finish_reason") in NORMAL_COMPLETION_FINISH_REASONS:
+                completed = True
+        if refused:
+            return True
+        if completed:
+            return False
+        return None
 
     def as_dict(self) -> dict:
         """Converts the attempt to a dictionary."""
@@ -298,6 +338,7 @@ class Attempt:
                 for output in self.reverse_translation_outputs
             ],
             "intent": self.intent,
+            "refusal": self.refusal,
         }
 
     @property
