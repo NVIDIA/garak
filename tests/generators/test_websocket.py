@@ -390,10 +390,19 @@ class TestWebSocketGenerator:
         assert gen._is_typing_indicator("typing")
         assert gen._is_typing_indicator("  typing\n")
         assert not gen._is_typing_indicator("I can help with typing.")
-        assert not gen._is_typing_indicator("typing...")
         assert not gen._is_typing_indicator("")
+        # Indicator-only frames, including trailing punctuation and JSON
+        # status frames, are still status, not answers (review #2359)
+        assert gen._is_typing_indicator("typing...")
+        assert gen._is_typing_indicator("typing.")
+        assert gen._is_typing_indicator("typing!")
+        assert gen._is_typing_indicator('{"type": "typing"}')
+        assert gen._is_typing_indicator('{"status": "typing"}')
+        assert not gen._is_typing_indicator('{"type": "message", "text": "typing"}')
+        assert not gen._is_typing_indicator("typing is hard")
+        assert not gen._is_typing_indicator("typing... and then I answered")
 
-    def _run_live_server_test(self, script, request_timeout=10):
+    def _run_live_server_test(self, script, request_timeout=10, **extra_config):
         """Serve `script` (list of frames to send) and generate once; return text."""
         import asyncio
         import threading
@@ -430,6 +439,7 @@ class TestWebSocketGenerator:
                         "typing_indicator": "typing",
                         "request_timeout": request_timeout,
                         "connection_timeout": 5,
+                        **extra_config,
                     }
                 }
             }
@@ -444,6 +454,27 @@ class TestWebSocketGenerator:
         'typing' must reach the caller instead of being dropped as a status."""
         answer = "I cannot assist with that request, but I can help with typing."
         assert self._run_live_server_test([answer]) == answer
+
+    def test_typing_dots_frame_not_joined_onto_answer(self):
+        """Reviewer reproducer #2359: a "typing..." status frame must be
+        filtered, not joined onto the following answer."""
+        answer = "I'm sorry, I can't help with that."
+        assert self._run_live_server_test(["typing...", answer]) == answer
+
+    def test_json_typing_frame_not_joined_onto_answer(self):
+        """Reviewer reproducer #2359: a {"type": "typing"} JSON status
+        frame must be filtered so only the message frame is extracted."""
+        assert (
+            self._run_live_server_test(
+                [
+                    '{"type": "typing"}',
+                    '{"type": "message", "text": "I cannot help with that."}',
+                ],
+                response_json=True,
+                response_json_field="text",
+            )
+            == "I cannot help with that."
+        )
 
     def test_standalone_typing_frame_still_skipped(self):
         """The typing flow keeps working: a standalone 'typing' status frame
