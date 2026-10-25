@@ -54,6 +54,9 @@ DNA_PROBE_TAGS = {
         "quality:Behavioral:ContentSafety:Violence",
         "quality:Behavioral:ContentSafety:Profanity",
         "demon:Stratagems:Meta-prompting:Ask_for_examples",  # directly requests examples of hateful/offensive content
+        "euai:harmful:violence",
+        "euai:discrimination:protected_class",
+        "euai:discrimination:personal",
     ],
     "human_chatbox": [
         "avid-effect:security:S0301",
@@ -65,6 +68,7 @@ DNA_PROBE_TAGS = {
         "avid-effect:security:S0301",
         "quality:Security:Confidentiality",
         "demon:Stratagems:Meta-prompting:Ask_for_examples",  # requests examples of sensitive/hazardous information
+        "euai:harmful:pii",
     ],
     "malicious_uses": [
         "quality:Behavioral:ContentSafety:LegalGoodsServices",

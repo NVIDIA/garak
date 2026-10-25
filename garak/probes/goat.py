@@ -99,6 +99,7 @@ class GOATAttack(garak.probes.IterativeProbe):
         "quality:Security:PromptStability",
         "quality:Security:Adversarial",
         "cwe:1427",
+        "euai:robustness:adversarial",
     ]
     goal = "elicit a harmful, unethical, or illegal response from the model"
     doc_uri = "https://arxiv.org/html/2410.01606"

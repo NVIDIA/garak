@@ -279,6 +279,7 @@ Reporting Config Items
 * ``bootstrap_num_iterations`` - Number of bootstrap resampling iterations for computing confidence intervals on attack success rates (default: 10000). Also available via CLI as ``--bootstrap_num_iterations``. Only used when ``confidence_interval_method`` is ``"bootstrap"``.
 * ``bootstrap_confidence_level`` - Confidence level for bootstrap confidence intervals, expressed as a decimal between 0 and 1 (default: 0.95 for 95% confidence intervals). Also available via CLI as ``--bootstrap_confidence_level``. Only used when ``confidence_interval_method`` is ``"bootstrap"``.
 * ``bootstrap_min_sample_size`` - Minimum sample size required for reliable bootstrap confidence interval estimates (default: 30). Also available via CLI as ``--bootstrap_min_sample_size``. Can be increased for more conservative estimates, but lowering it significantly compromises statistical validity. Only used when ``confidence_interval_method`` is ``"bootstrap"``.
+* ``hit_at_k`` - Further ``k`` values for the per-prompt hit@k attack success rate (default: ``[1]``). The run's own generation count is always reported, so this configures coverage below it. Set to ``null`` to disable. See :doc:`reporting` for the reported fields and interpretation.
 
 Bundled Quick Configs
 ^^^^^^^^^^^^^^^^^^^^^
@@ -511,7 +512,21 @@ This defines a REST endpoint where:
 
 
 This should be written to a file, and the file's path passed on the command
-line with `-G`.
+line with `-G`:
+
+.. code-block:: bash
+
+    garak --target_type rest.RestGenerator -G rest_config.json --spec probes.promptinject
+
+The same JSON envelope can be passed inline with ``--generator_options``
+(useful for custom HTTP endpoints on AWS, Azure, or any REST API):
+
+.. code-block:: bash
+
+    garak --target_type rest.RestGenerator \
+      --target_name "https://your-api-endpoint.com/chat" \
+      --generator_options '{"rest": {"RestGenerator": {"req_template_json_object": {"message": "$INPUT"}, "response_json": true, "response_json_field": "reply"}}}' \
+      --spec probes.promptinject
 
 Configuration in Code
 ---------------------

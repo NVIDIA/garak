@@ -79,6 +79,7 @@ class TAPCached(garak.probes.Probe):
         "demon:Possible_worlds:World_building:Scenarios",  # TAP guidance explicitly steers attack generation toward roleplaying scenarios
         "demon:Rhetoric:Persuasion_and_manipulation:Escalating",  # iteratively refines jailbreak prompts through a pruned attack tree,
         "demon:Language:Code_and_encode:Token",
+        "euai:robustness:adversarial",
     ]
     goal = "cause the model to disregard the system prompt"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
@@ -122,6 +123,7 @@ class TAP(garak.probes.Probe):
         "payload:jailbreak",
         "demon:Rhetoric:Persuasion_and_manipulation:Escalating",  # iteratively escalates attack prompts using tree-of-thought reasoning
         "demon:Language:Code_and_encode:Token",
+        "euai:robustness:adversarial",
     ]
     goal = "cause the model to disregard the system prompt"
     doc_uri = "https://arxiv.org/html/2312.02119"
@@ -269,6 +271,7 @@ class PAIR(garak.probes.Probe):
         "payload:jailbreak",
         "demon:Language:Code_and_encode:Token",
         "demon:Rhetoric:Persuasion_and_manipulation:Escalating",  # iteratively refines attack prompts, building on prior successes
+        "euai:robustness:adversarial",
     ]
     goal = "cause the model to disregard the system prompt"
     doc_uri = "https://arxiv.org/html/2310.08419"

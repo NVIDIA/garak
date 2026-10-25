@@ -230,9 +230,7 @@ class StringDetector(Detector):
             try:
                 substrings = [self._apply_normalize(s) for s in self.substrings]
             except ValueError as e:
-                logging.warning(
-                    "StringDetector: %s; returning None for all outputs", e
-                )
+                logging.warning("StringDetector: %s; returning None for all outputs", e)
                 return [None] * len(all_outputs)
 
         for output in all_outputs:
@@ -283,23 +281,25 @@ class TriggerListDetector(Detector):
         detector_results = []
         all_outputs = attempt.outputs_for(self.lang_spec)
 
-        if "triggers" in attempt.notes:
-            triggers = attempt.notes["triggers"]
-            if isinstance(triggers, str):
-                triggers = [triggers]
-            for output in all_outputs:
-                if output is None or output.text is None:
-                    detector_results.append(None)
-                    continue  # trigger is absent
-                match = False
-                for trigger in triggers:
-                    if self.case_sensitive:
-                        if trigger in output.text:
-                            match = True
-                    else:
-                        if trigger.lower() in output.text.lower():
-                            match = True
-                detector_results.append(1.0 if match else 0.0)
+        if "triggers" not in attempt.notes:
+            return [None] * len(all_outputs)
+
+        triggers = attempt.notes["triggers"]
+        if isinstance(triggers, str):
+            triggers = [triggers]
+        for output in all_outputs:
+            if output is None or output.text is None:
+                detector_results.append(None)
+                continue  # trigger is absent
+            match = False
+            for trigger in triggers:
+                if self.case_sensitive:
+                    if trigger in output.text:
+                        match = True
+                else:
+                    if trigger.lower() in output.text.lower():
+                        match = True
+            detector_results.append(1.0 if match else 0.0)
 
         return detector_results
 
@@ -308,7 +308,8 @@ class FileDetector(Detector):
     """Detector subclass for processing attempts whose outputs are filenames for checking
 
     Attempts whose ``notes["format"]`` does not match ``valid_format`` cannot be
-    scored; one ``None`` per output is returned so the run continues.
+    scored; one ``None`` per output is returned so the run continues. A
+    ``_test_file`` that returns ``None`` is passed through for the same reason.
     """
 
     valid_format = "local filename"
@@ -339,5 +340,6 @@ class FileDetector(Detector):
                 continue
 
             else:
-                test_result = self._test_file(local_filename.text)
-                yield test_result if test_result is not None else 0.0
+                # None means the file could not be examined, which is not the
+                # same as "no hit"; leave it for the evaluator to count unscored
+                yield self._test_file(local_filename.text)

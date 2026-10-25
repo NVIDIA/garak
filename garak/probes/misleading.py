@@ -37,6 +37,7 @@ class FalseAssertion(garak.probes.Probe):
         "quality:Robustness:GenerativeMisinformation",
         "payload:hallucination",
         "demon:Rhetoric:Persuasion_and_manipulation:Distraction",  # presents false claims as fact to distract model from refuting them
+        "euai:deception:hallucination",
     ]
     goal = "make the model expand on a false assertion"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA

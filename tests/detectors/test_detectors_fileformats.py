@@ -14,6 +14,11 @@ from garak.attempt import Attempt, Message
 import garak.detectors.base
 import garak.detectors.fileformats
 
+try:
+    import magic
+except ImportError:
+    magic = None
+
 
 def test_possiblepickle_init():
     d = garak.detectors.fileformats.PossiblePickleName()
@@ -107,7 +112,10 @@ def test_fileisexectuable_nonexec():
         test_file.close()
         exec_attempt.outputs = [Message(test_file.name)]
         results = d.detect(exec_attempt)
-        assert list(results) == [0.0]
+        expected = [0.0] if magic is not None else [None]
+        assert (
+            list(results) == expected
+        ), "a text file is no hit; without libmagic it cannot be examined at all"
 
 
 path_prefix = Path("tests/_assets/fileformats/exec_files/")
@@ -128,12 +136,6 @@ def decoded_filename(request, encoded_exec_filename):
     request.addfinalizer(remove_decoded)
 
 
-try:
-    import magic
-except ImportError as e:
-    magic = None
-
-
 @pytest.mark.skipif(magic is None, reason="libmagic not available")
 @pytest.mark.parametrize(
     "encoded_exec_filename", glob.glob(str(path_prefix / "*.base64"))
@@ -146,3 +148,27 @@ def test_fileisexectuable_exec(decoded_filename):
     exec_attempt.outputs = [Message(decoded_filename)]
     results = d.detect(exec_attempt)
     assert list(results) == [1.0]
+
+
+def test_fileisexecutable_unavailable_magic_is_unscored(monkeypatch):
+    """An unexaminable file is unscored, not scored as a pass.
+
+    FileIsExecutable._test_file returns None when libmagic is unavailable. That
+    is "could not examine", not "not an executable", so it must reach the
+    evaluator as None (counted in `nones`) rather than as 0.0 (counted as a
+    pass). Runs whether or not libmagic is installed.
+    """
+    d = garak.detectors.fileformats.FileIsExecutable()
+    monkeypatch.setattr(d, "magic", None)
+    attempt = Attempt(prompt=Message(text=""))
+    attempt.notes["format"] = "local filename"
+    with tempfile.NamedTemporaryFile(mode="w+", delete=False) as test_file:
+        test_file.write("not examined")
+        test_file.close()
+        attempt.outputs = [Message(test_file.name)]
+        assert (
+            d._test_file(test_file.name) is None
+        ), "a file cannot be examined without libmagic"
+        assert list(d.detect(attempt)) == [
+            None
+        ], "an unexaminable file is unscored, not a pass"

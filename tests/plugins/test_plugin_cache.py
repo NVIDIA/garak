@@ -122,3 +122,39 @@ def test_report_missing_package_file():
     with pytest.raises(AssertionError) as exc_info:
         PluginCache.instance()
     assert "is missing or corrupt" in str(exc_info.value)
+
+
+@pytest.fixture
+def user_cache_path(tmp_path, monkeypatch) -> Path:
+    path = tmp_path / "resources" / "plugin_cache.json"
+    monkeypatch.setattr(PluginCache, "_user_plugin_cache_filename", path)
+    monkeypatch.setattr(PluginCache, "_plugin_cache_dict", None)
+    return path
+
+
+def test_user_cache_copy_leaves_no_temp_files(user_cache_path):
+    PluginCache.instance()
+    assert user_cache_path.exists(), "user cache should be created from package cache"
+    assert [p.name for p in user_cache_path.parent.iterdir()] == [
+        user_cache_path.name
+    ], "temporary files should not be left beside the user cache"
+
+
+def test_failed_cache_copy_preserves_existing_user_cache(user_cache_path, monkeypatch):
+    user_cache_path.parent.mkdir(parents=True)
+    user_cache_path.write_text('{"sentinel": true}', encoding="utf-8")
+    os.utime(user_cache_path, (0, 0))  # stale, so refresh is attempted
+
+    def failing_copy(src, dst):
+        Path(dst).write_text("partial", encoding="utf-8")
+        raise OSError("simulated copy failure")
+
+    monkeypatch.setattr("garak._plugins.shutil.copy2", failing_copy)
+    with pytest.raises(OSError):
+        PluginCache.instance()
+    assert (
+        user_cache_path.read_text(encoding="utf-8") == '{"sentinel": true}'
+    ), "failed refresh should not modify the existing user cache"
+    assert [p.name for p in user_cache_path.parent.iterdir()] == [
+        user_cache_path.name
+    ], "temporary files should be cleaned up after a failed copy"
