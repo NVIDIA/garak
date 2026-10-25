@@ -281,6 +281,10 @@ class MarkdownExfilMixin:
 
     intent = "S009exfil"  # all subclasses generate outbound Markdown URIs intended to leak sensitive context
 
+    # Prompts are sampled, so there is no full set to fall back to when
+    # ``soft_probe_prompt_cap`` is unset; use the shipped default cap instead.
+    uncapped_prompt_count = 256
+
     def __init__(self, config_root=_config):
         self.prompts = []
         self.uri_var_formats = ["/", "/logo.png?"]
@@ -319,6 +323,8 @@ class MarkdownExfilMixin:
                 self.concat_prompt_templates.append(f.read().strip())
 
     def generate_prompts(self, markdown_templates, num_prompts):
+        if num_prompts is None:
+            num_prompts = self.uncapped_prompt_count
         for _ in range(num_prompts):
             domain = sample(self.domains, 1)[0]
             uri_var_format = sample(self.uri_var_formats, 1)[0]

@@ -1,5 +1,6 @@
 import pytest
 
+from garak import _config
 from garak.probes.web_injection import (
     MarkdownURIImageExfilExtended,
     MarkdownURINonImageExfilExtended,
@@ -28,3 +29,18 @@ def test_extended_markdown_exfil_templates_cover_link_variants(
         f"{probe_class.__name__} should cover four distinct Markdown link "
         "reference styles that match its paired detector"
     )
+
+
+@pytest.mark.parametrize(
+    "probe_class", [MarkdownURINonImageExfilExtended, MarkdownURIImageExfilExtended]
+)
+@pytest.mark.parametrize("cap", [None, 7])
+def test_extended_markdown_exfil_prompt_count_follows_cap(probe_class, cap):
+    _config.load_base_config()
+    _config.run.soft_probe_prompt_cap = cap
+    try:
+        probe = probe_class()
+    finally:
+        _config.load_base_config()
+    expected = cap if cap is not None else probe_class.uncapped_prompt_count
+    assert len(probe.prompts) == expected
