@@ -31,6 +31,7 @@ class WebSocketGenerator(Generator):
     handling authentication, template-based messaging, and JSON response extraction.
 
     Configuration parameters:
+
     - uri: WebSocket URL (ws:// or wss://)
     - name: Display name for the service
     - auth_type: Authentication method (none, basic, bearer, custom)
