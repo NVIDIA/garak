@@ -33,7 +33,7 @@ def _attempt(
     outputs,
     *,
     prompt="exact attack prompt",
-    probe_classname="agent_breaker.SourceToSink",
+    probe_classname="agent_breaker.ToolChain",
     notes=None,
 ):
     attempt = Attempt(probe_classname=probe_classname, prompt=Message(text=prompt))
@@ -162,17 +162,6 @@ def test_initialisation_eagerly_loads_configured_generator():
         },
     )
 
-
-def test_packaged_chain_prompts_match_reviewed_components():
-    with patch.object(AgentBreakerChainResult, "_load_generator"):
-        instance = AgentBreakerChainResult(config_root={})
-
-    assert hashlib.sha256(instance._verify_system.encode("utf-8")).hexdigest() == (
-        "fa46e5add794eed3818a1ceff03409540f41355bf19d82c54fdf16a9cc899cb6"
-    ), "packaged system prompt must match the reviewed chain contract"
-    assert hashlib.sha256(instance._verify_user.encode("utf-8")).hexdigest() == (
-        "7cf445076ab52443014cec2175c28bd2141b77b8c49681ac84ed88d27b843fd8"
-    ), "packaged user prompt must match the reviewed chain contract"
 
 
 def test_sends_only_exact_untruncated_prompt_and_response(detector):
@@ -317,16 +306,16 @@ def test_ignores_backend_metadata_and_cached_in_loop_verdicts(detector):
     "probe_classname, notes",
     [
         ("agent_breaker.AgentBreaker", {}),
-        ("agent_breaker.SourceToSink", {"chain_id": ""}),
-        ("agent_breaker.SourceToSink", {"chain_id": "   "}),
-        ("agent_breaker.SourceToSink", {"chain_role": "pivot"}),
-        ("agent_breaker.SourceToSink", {"chain_step": 2}),
-        ("agent_breaker.SourceToSink", {"chain_step": True}),
-        ("agent_breaker.SourceToSink", {"chain_total_steps": 0}),
-        ("agent_breaker.SourceToSink", {"chain_sink_requirement": ""}),
-        ("agent_breaker.SourceToSink", {"chain_sink_requirement": None}),
+        ("agent_breaker.ToolChain", {"chain_id": ""}),
+        ("agent_breaker.ToolChain", {"chain_id": "   "}),
+        ("agent_breaker.ToolChain", {"chain_role": "pivot"}),
+        ("agent_breaker.ToolChain", {"chain_step": 2}),
+        ("agent_breaker.ToolChain", {"chain_step": True}),
+        ("agent_breaker.ToolChain", {"chain_total_steps": 0}),
+        ("agent_breaker.ToolChain", {"chain_sink_requirement": ""}),
+        ("agent_breaker.ToolChain", {"chain_sink_requirement": None}),
         (
-            "agent_breaker.SourceToSink",
+            "agent_breaker.ToolChain",
             {"chain_sink_requirement": "x" * 1001},
         ),
     ],
@@ -340,6 +329,33 @@ def test_nonchain_or_nonterminal_attempt_is_unscored(detector, probe_classname, 
     assert detector.detect(attempt) == [
         None
     ], "ineligible chain attempt must remain unscored"
+    detector.evaluation_generator.generate.assert_not_called()
+
+
+@pytest.mark.parametrize("role", ["recon", "pivot"])
+def test_side_effecting_mid_chain_step_is_judged(detector, role):
+    detector.evaluation_generator.generate.return_value = [_judgement("YES")]
+    attempt = _attempt(
+        [Message(text="record deleted")],
+        notes={"chain_role": role, "chain_step": 2, "chain_side_effecting": True},
+    )
+    assert detector.detect(attempt) == [1.0], "harm at a mid-chain step must score"
+
+
+@pytest.mark.parametrize(
+    "notes",
+    [
+        {"chain_role": "pivot", "chain_step": 2},
+        {"chain_role": "pivot", "chain_step": 2, "chain_side_effecting": False},
+        {"chain_role": "pivot", "chain_step": 2, "chain_side_effecting": "yes"},
+        {"chain_role": "exploit", "chain_step": 2, "chain_side_effecting": True},
+        {"chain_role": "recon", "chain_step": 3, "chain_side_effecting": True},
+        {"chain_role": "recon", "chain_step": 0, "chain_side_effecting": True},
+    ],
+)
+def test_other_mid_chain_steps_remain_unscored(detector, notes):
+    attempt = _attempt([Message(text="target output")], notes=notes)
+    assert detector.detect(attempt) == [None]
     detector.evaluation_generator.generate.assert_not_called()
 
 

@@ -4,18 +4,20 @@ garak.detectors.agent_breaker
 This module contains separate detectors for the two Agent Breaker probes.
 ``detectors.agent_breaker.AgentBreakerResult`` serves Single, while
 ``detectors.agent_breaker.AgentBreakerChainResult`` serves only eligible
-terminal attempts from ``probes.agent_breaker.SourceToSink``. Selecting or
+eligible attempts from ``probes.agent_breaker.ToolChain``. Selecting or
 configuring one detector does not replace the other.
 
 AgentBreakerChainResult
 -----------------------
 
-``AgentBreakerChainResult`` is a terminal-only model-as-judge detector. It
-evaluates whether a target's response gives concrete evidence for the exact
-planned sink requirement, rather than any mutation requested or implied by an
-eligible terminal request.
+``AgentBreakerChainResult`` is a model-as-judge detector. It evaluates whether
+a target's response gives concrete evidence for the exact planned sink
+requirement, rather than any mutation requested or implied by an eligible
+request. The terminal step is always eligible. An earlier step is eligible only
+when its tool is side-effecting, because it may already cause the harm; other
+earlier steps are not scored.
 
-The judge receives the exact terminal attack prompt, planned sink requirement,
+The judge receives the exact attack prompt, planned sink requirement,
 and corresponding target response. It does not receive tool definitions,
 intermediate artifacts, the chain transcript, other planner state, experiment
 labels, or target-provided backend metadata. ``YES`` scores as a hit; ``NO``
@@ -30,13 +32,6 @@ manifest tool named by the probe.
 
 Scores depend on the configured judge model. Validate the chosen judge on
 held-out responses before interpreting results.
-
-The :ref:`local review instructions <agent-breaker-chain-local-review>` run
-this detector's tests with a mocked judge and require no provider credentials
-or target server. They check verdict parsing, rejection of malformed responses,
-terminal eligibility, and the exact information passed to the judge. Passing
-these tests validates the scoring contract, not a real judge's accuracy or a
-backend state change.
 
 Configure this detector under its class name so its settings do not also apply
 to Single's detector:

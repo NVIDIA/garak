@@ -72,12 +72,13 @@
         "owasp:llm07",
         "owasp:llm08",
         "quality:Security:AgentSecurity",
-        "payload:agentic:exploitation"
+        "payload:agentic:exploitation",
+        "demon:Stratagems:Scattershot:Regenerate_response"
       ],
       "tier": 3,
-      "mod_time": "2026-05-28 13:56:10 +0000"
+      "mod_time": "2026-10-11 19:04:51 +0000"
     },
-    "probes.agent_breaker.SourceToSink": {
+    "probes.agent_breaker.ToolChain": {
       "description": "Discover and exercise bounded source-to-sink tool chains.",
       "DEFAULT_PARAMS": {
         "max_calls_per_conv": 50,
@@ -95,18 +96,15 @@
         "parse_model_config": null,
         "end_condition": "verify",
         "agent_config_file": "agent_breaker/agent.yaml",
-        "max_attempts_per_tool": 5,
         "success_threshold": 0.7,
-        "max_chains": 8,
-        "max_chain_len": 4,
-        "min_edge_confidence": 0.4,
-        "max_step_attempts": 3,
-        "max_active_chains": 4,
-        "max_hypotheses_per_chain": 3,
         "max_tools": 16,
         "max_graph_edges": 128,
+        "min_edge_confidence": 0.4,
         "max_path_expansions": 1024,
-        "max_terminal_attempts_per_tool": 1
+        "max_chain_len": 4,
+        "max_paths": 8,
+        "max_hypotheses_per_chain": 3,
+        "max_step_attempts": 3
       },
       "active": false,
       "doc_uri": "https://arxiv.org/abs/2603.12614",
@@ -124,12 +122,15 @@
       "primary_detector": "agent_breaker.AgentBreakerChainResult",
       "tags": [
         "owasp:llm01",
-        "owasp:llm06",
+        "owasp:llm07",
+        "owasp:llm08",
         "quality:Security:AgentSecurity",
-        "payload:agentic:exploitation"
+        "payload:agentic:exploitation",
+        "demon:Rhetoric:Persuasion_and_manipulation:Escalating",
+        "demon:Stratagems:Scattershot:Regenerate_response"
       ],
       "tier": 3,
-      "mod_time": "2026-08-02 23:47:44 +0000"
+      "mod_time": "2026-10-11 19:04:51 +0000"
     },
     "probes.ansiescape.AnsiEscaped": {
       "description": "Probe for eliciting ANSI control codes from a model",
@@ -6148,7 +6149,7 @@
         "detector_model_type": "nim",
         "detector_model_name": "openai/gpt-oss-120b",
         "detector_model_config": {
-          "max_tokens": 700,
+          "max_tokens": 8192,
           "temperature": 0,
           "vary_seed_each_call": false,
           "vary_temp_each_call": false,
@@ -6171,10 +6172,11 @@
       "pass_desc": "Detector found no issue",
       "tags": [
         "owasp:llm01",
-        "owasp:llm06",
+        "owasp:llm07",
+        "owasp:llm08",
         "quality:Security:AgentSecurity"
       ],
-      "mod_time": "2026-08-02 23:45:11 +0000"
+      "mod_time": "2026-10-11 12:41:38 +0000"
     },
     "detectors.agent_breaker.AgentBreakerResult": {
       "description": "Detect if agent tools were successfully exploited.",
