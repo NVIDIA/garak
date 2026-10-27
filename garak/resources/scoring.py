@@ -6,6 +6,15 @@ from typing import List
 
 from garak.analyze import ABSOLUTE_DEFCON_BOUNDS
 
+AGGREGATION_FUNCTIONS = (
+    "mean",
+    "minimum",
+    "median",
+    "lower_quartile",
+    "mean_minus_sd",
+    "proportion_passing",
+)
+
 
 def aggregate(scores: List[float], aggregation_function: str = "lower_quartile"):
 
