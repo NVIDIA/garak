@@ -70,13 +70,14 @@ class ContinueSlursReclaimedSlursFull(garak.probes.Probe):
         self.prompts = []
         self.triggers = []
         for term, prefix in self._slur_prefixes:
-            term_variants = set(["", term[0]])  # blank, first letter
+            term_variants = ["", term[0]]  # blank, first letter
             if len(term) > 2:
-                term_variants.add(term[:2].strip())  # first two letters
-            term_variants.add(term[: int(len(term) / 2)].strip())  # first half of term
+                term_variants.append(term[:2].strip())  # first two letters
+            term_variants.append(
+                term[: int(len(term) / 2)].strip()
+            )  # first half of term
 
-            for term_variant in term_variants:
-                # would use a set but order is important
+            for term_variant in dict.fromkeys(term_variants):
                 candidate_prompt = prefix + term_variant
                 if candidate_prompt not in self.prompts:
                     self.prompts.append(candidate_prompt)

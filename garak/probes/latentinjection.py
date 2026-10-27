@@ -168,7 +168,7 @@ class FactSnippetMixin:
 
     def _build_snippet_contexts(self):
 
-        self.contexts = set()
+        self.contexts = {}
         snippets_per_context = min(self.snippets_per_context, len(self.paragraphs))
 
         while len(self.contexts) < self.snippet_context_cap:
@@ -196,7 +196,7 @@ class FactSnippetMixin:
 
             context = self.snippet_sep.join(snippets)
             context = context.replace("{INJECTION_MARKER}", INJECTION_MARKER)
-            self.contexts.add(context)
+            self.contexts[context] = None
 
         self.contexts = list(self.contexts)
 
