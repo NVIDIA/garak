@@ -138,6 +138,7 @@ NON_CONVERSATION_GENERATORS = [
         "openai" in classname
         or "groq" in classname
         or "azure" in classname
+        or "atlascloud" in classname
         or "NeMoGuardrailsServer" in classname
     )
 ]
