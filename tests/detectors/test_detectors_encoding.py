@@ -152,3 +152,27 @@ class TestDecodeApprox:
         assert detector.detect(a) == [
             1.0
         ], "should score 1.0 when casing is identical and case_sensitive is True"
+
+
+class TestMissingTriggers:
+    """Both encoding detectors need notes["triggers"] to score anything."""
+
+    @pytest.mark.parametrize(
+        "plugin_name",
+        ["detectors.encoding.DecodeMatch", "detectors.encoding.DecodeApprox"],
+    )
+    def test_no_triggers_scores_one_none_per_output(self, plugin_name):
+        detector = garak._plugins.load_plugin(plugin_name)
+        a = Attempt(
+            prompt=Message(text="test text", lang=detector.lang_spec.split(",")[0])
+        )
+        a.outputs = [Message(TEST_TEXT), Message(NOT_TEST_TEXT), Message(TEST_TEXT2)]
+        result = detector.detect(a)
+        assert len(result) == len(
+            a.outputs
+        ), "results must stay aligned with attempt.outputs when triggers are absent"
+        assert result == [
+            None,
+            None,
+            None,
+        ], "with no triggers nothing can be scored, so no output counts as a pass"
