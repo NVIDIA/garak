@@ -243,3 +243,65 @@ def test_spec_whitespace_rejected(capsys):
     with pytest.raises(SystemExit):
         cli.main(["--spec", "probes.test.Blank, probes.test.Test", "--list_config"])
     assert "invalid --spec" in capsys.readouterr().out, "spaced --spec must be rejected"
+
+
+def _configure_lite_start_run(tmp_path, monkeypatch, *, list_probes):
+    _config.load_base_config()
+    monkeypatch.setattr(_config.system, "lite", True)
+    monkeypatch.setattr(_config.run, "interactive", False, raising=False)
+    monkeypatch.setattr(_config.reporting, "report_dir", str(tmp_path))
+    monkeypatch.setattr(_config.reporting, "report_prefix", None)
+    monkeypatch.setattr(_config.transient, "data_dir", tmp_path)
+    monkeypatch.setattr(
+        _config.transient,
+        "starttime_iso",
+        "2026-08-04T00:00:00",
+    )
+    monkeypatch.setattr(
+        _config.transient,
+        "cli_args",
+        argparse.Namespace(
+            list_probes=list_probes,
+            list_detectors=False,
+            list_generators=False,
+            list_buffs=False,
+            list_config=False,
+            plugin_info=False,
+        ),
+        raising=False,
+    )
+
+
+def _close_reportfile():
+    reportfile = getattr(_config.transient, "reportfile", None)
+    if reportfile is not None and not reportfile.closed:
+        reportfile.close()
+
+
+def test_start_run_hints_for_default_lite_config(tmp_path, monkeypatch, mocker):
+    from garak import command
+
+    _configure_lite_start_run(tmp_path, monkeypatch, list_probes=False)
+    hint = mocker.patch("garak.command.hint")
+
+    try:
+        command.start_run()
+    finally:
+        _close_reportfile()
+
+    hint.assert_called_once()
+    assert "optimised for speed" in hint.call_args.args[0]
+
+
+def test_start_run_does_not_hint_when_listing_probes(tmp_path, monkeypatch, mocker):
+    from garak import command
+
+    _configure_lite_start_run(tmp_path, monkeypatch, list_probes=True)
+    hint = mocker.patch("garak.command.hint")
+
+    try:
+        command.start_run()
+    finally:
+        _close_reportfile()
+
+    hint.assert_not_called()
