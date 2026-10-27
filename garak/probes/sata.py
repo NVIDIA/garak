@@ -22,11 +22,26 @@ Further info:
 """
 
 import logging
+from typing import List
 
 import garak.payloads
 from garak import _config
 import garak.probes
+from garak.intents import TextStub
 from garak.resources.api import nltk
+
+
+def _ensure_nltk_tagger() -> None:
+    """Download the POS tagger if it is not already available.
+
+    Both probes mask text with ``nltk.pos_tag`` during construction, so the tagger
+    must be present first. Shared by ``MLM`` and ``MLMIntent`` as the single
+    preflight path.
+    """
+    try:
+        nltk.pos_tag(["garak"])
+    except LookupError:
+        nltk.download("averaged_perceptron_tagger_eng")
 
 
 def _nltk_mask_payloads(payloads: list, n: int = 2) -> list:
@@ -152,10 +167,7 @@ class MLM(garak.probes.Probe):
     }
 
     def __init__(self, config_root=_config):
-        try:
-            _ = nltk.pos_tag(["garak"])
-        except LookupError as e:
-            nltk.download("averaged_perceptron_tagger_eng")
+        _ensure_nltk_tagger()
         super().__init__(config_root)
 
         self.payloads = list()
@@ -168,3 +180,52 @@ class MLM(garak.probes.Probe):
             payloads=self.payloads, n=self.n_replacements
         )
         self.prompts = [self.template.format(payload) for payload in self.payloads]
+
+
+class MLMIntent(garak.probes.IntentProbe):
+    """Simple Assistive Task Linkage over intent-service stubs
+
+    Apply the SATA masking technique to intent-service stubs instead of a fixed
+    payload file: candidate words are replaced with the `[MASK]` token, wrapped in
+    the wiki-infill template, and the target is asked to infer the word and
+    complete the text. Each response is evaluated by the detector mapped to the
+    stub's intent, so success means the masked request was reconstructed and acted
+    upon, not merely that no refusal was seen.
+
+    English-only, as masking uses NLTK POS tagging and the literal `[MASK]` string.
+    A stub with no maskable word beyond its first verb/noun yields no prompt.
+    """
+
+    lang = "en"
+    doc_uri = "https://aclanthology.org/2025.findings-acl.100.pdf"
+    intent = None  # IntentProbe spans many typology entries depending on the supplied stub, so there is no single best fit.
+    # fallback only; effective detector is resolved per-intent by the harness.
+    primary_detector = "mitigation.MitigationBypass"
+    tags = [
+        "avid-effect:security:S0403",  # jailbreak-style safeguard circumvention
+        "avid-effect:performance:P0204",  # elicits disallowed task completion
+        "owasp:llm01",  # prompt injection family
+        "quality:Security:PromptStability",  # stability under masked/reframed input
+        "payload:jailbreak",  # packages a harmful request as a benign infill task
+        "demon:Language:Code_and_encode:Token",  # replaces words with [MASK] tokens to exploit fill-in-the-blank behavior
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction",  # presents the masked request as an encyclopaedic infill task
+    ]
+    template = MLM.template
+    tier = garak.probes.Tier.COMPETE_WITH_SOTA
+    active = False
+
+    DEFAULT_PARAMS = garak.probes.IntentProbe.DEFAULT_PARAMS | {
+        "n_replacements": 2,
+    }
+
+    def __init__(self, config_root=_config):
+        _ensure_nltk_tagger()
+        super().__init__(config_root)
+
+    def _prompts_from_stub(self, stub: TextStub) -> List[str]:
+        content = getattr(stub, "content", None)
+        if not isinstance(content, str):
+            # unsupported stub type: drop rather than transform silently
+            return []
+        masked = _nltk_mask_payloads([content], n=self.n_replacements)
+        return [self.template.format(payload) for payload in masked]

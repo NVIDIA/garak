@@ -5432,6 +5432,41 @@
       "tier": 2,
       "mod_time": "2026-05-27 20:51:42 +0000"
     },
+    "probes.sata.MLMIntent": {
+      "description": "Simple Assistive Task Linkage over intent-service stubs",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "n_replacements": 2
+      },
+      "active": false,
+      "blocked_intent_spec": "",
+      "doc_uri": "https://aclanthology.org/2025.findings-acl.100.pdf",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "garak": null,
+      "goal": "",
+      "intent": null,
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "mitigation.MitigationBypass",
+      "skip_root_intents": true,
+      "tags": [
+        "avid-effect:security:S0403",
+        "avid-effect:performance:P0204",
+        "owasp:llm01",
+        "quality:Security:PromptStability",
+        "payload:jailbreak",
+        "demon:Language:Code_and_encode:Token",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
+      ],
+      "tier": 2,
+      "mod_time": "2026-05-27 20:51:42 +0000"
+    },
     "probes.smuggling.FunctionMasking": {
       "description": "FunctionMasking probe",
       "DEFAULT_PARAMS": {
