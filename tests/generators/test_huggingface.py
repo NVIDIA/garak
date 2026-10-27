@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 import pytest
 import requests
 import transformers
@@ -69,6 +71,66 @@ def test_pipeline_chat(mocker, hf_generator_config):
     assert len(output) == 1
     for item in output:
         assert isinstance(item, Message)
+
+
+def test_pipeline_text_to_audio(mocker, hf_generator_config):
+    """A configured audio pipeline returns a WAV Message."""
+
+    import numpy as np
+    import torch
+
+    class AudioPipeline:
+        model = SimpleNamespace(config=SimpleNamespace())
+
+        def __call__(self, text):
+            assert text == "speak this", "pipeline must receive the message text"
+            return {
+                "audio": np.zeros((1, 32), dtype=np.float32),
+                "sampling_rate": 16_000,
+            }
+
+    pipeline = mocker.patch(
+        "transformers.pipeline", autospec=True, return_value=AudioPipeline()
+    )
+    mocker.patch.object(
+        garak.generators.huggingface.Pipeline,
+        "_select_hf_device",
+        return_value=torch.device("cpu"),
+    )
+    hf_generator_config.generators["huggingface"]["Pipeline"] = {
+        "pipeline_task": "text-to-audio",
+        "hf_args": {"revision": "test-revision"},
+    }
+
+    generator = garak.generators.huggingface.Pipeline(
+        "test/audio", config_root=hf_generator_config
+    )
+    output = generator.generate(Conversation([Turn("user", Message("speak this"))]))[0]
+
+    assert (
+        pipeline.call_args.args[0] == "text-to-audio"
+    ), "configured pipeline task must be passed to Transformers"
+    assert (
+        "truncation" not in pipeline.call_args.kwargs
+    ), "text-only pipeline arguments must not leak into audio loading"
+    assert (
+        "do_sample" not in pipeline.call_args.kwargs
+    ), "text-generation defaults must not leak into audio loading"
+    assert (
+        pipeline.call_args.kwargs["revision"] == "test-revision"
+    ), "model revision must follow the standard Hugging Face configuration"
+    assert output is not None, "successful synthesis must return a Message"
+    assert output.data_type == (
+        "audio/wav",
+        None,
+    ), "audio synthesis must identify its output format"
+    assert output.data.startswith(b"RIFF"), "audio synthesis must produce a WAV"
+    assert (
+        output.notes["sample_rate"] == 16_000
+    ), "effective sample rate must be retained as provenance"
+    assert (
+        output.notes["revision"] == "test-revision"
+    ), "configured model revision must be retained as provenance"
 
 
 def test_inference(mocker, hf_mock_response, hf_generator_config):
