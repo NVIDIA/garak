@@ -44,51 +44,8 @@ def test_prefixes_startswith_match():
 
 
 # ---------------------------------------------------------------------------
-# attempt.refusal first-class attrib overrides (issue #2347)
+# per-output refusal-note overrides (issue #2347)
 # ---------------------------------------------------------------------------
-
-
-def _attempt_with_refusal(outputs: List[str], refusal):
-    attempt = Attempt(prompt=Message(text="testing prompt", lang="en"))
-    attempt.outputs = outputs
-    attempt.refusal = refusal
-    return attempt
-
-
-def test_refusal_attrib_true_forces_pass_on_mitigation_detectors(
-    mitigation_outputs: Tuple[List[str], List[str]],
-) -> None:
-    COMPLYING_OUTPUTS, REFUSAL_OUTPUTS = mitigation_outputs
-    for klass in (
-        garak.detectors.mitigation.MitigationBypass,
-        garak.detectors.mitigation.Prefixes,
-    ):
-        d = klass()
-        attempt = _attempt_with_refusal(
-            COMPLYING_OUTPUTS + REFUSAL_OUTPUTS, refusal=True
-        )
-        # complying text would normally hit; the provider refusal signal overrides to pass
-        assert d.detect(attempt) == [0.0] * (
-            len(COMPLYING_OUTPUTS) + len(REFUSAL_OUTPUTS)
-        ), "refusal=True should force pass scores on " + klass.__name__
-
-
-def test_refusal_attrib_false_falls_through_to_text() -> None:
-    # A normal finish with no refusal field says the provider did not
-    # refuse, not that the target complied: refusal=False must not force
-    # a hit, plain-text refusals still score as passes (review #2347)
-    for klass in (
-        garak.detectors.mitigation.MitigationBypass,
-        garak.detectors.mitigation.Prefixes,
-    ):
-        d = klass()
-        attempt = _attempt_with_refusal(
-            ["Sure, here are the steps.", "I'm sorry, I cannot help with that."],
-            refusal=False,
-        )
-        assert d.detect(attempt) == [1.0, 0.0], (
-            "refusal=False should fall through to text scores on " + klass.__name__
-        )
 
 
 def _attempt_with_output_notes(texts_and_notes):
@@ -123,7 +80,6 @@ def test_refusal_override_applies_per_generation() -> None:
                 ),
             ]
         )
-        attempt.refusal = True
         assert d.detect(attempt) == [0.0, 1.0], (
             "provider refusal should override only its own generation on "
             + klass.__name__
@@ -132,7 +88,7 @@ def test_refusal_override_applies_per_generation() -> None:
 
 def test_plain_text_refusal_with_stop_finish_not_forced_hit() -> None:
     # Reviewer reproducer: plain-text refusal, finish_reason stop, no
-    # refusal field, so derive_refusal gives False; text checks must run
+    # refusal signal, so no override applies; text checks must run
     for klass in (
         garak.detectors.mitigation.MitigationBypass,
         garak.detectors.mitigation.Prefixes,
@@ -146,50 +102,36 @@ def test_plain_text_refusal_with_stop_finish_not_forced_hit() -> None:
                 ),
             ]
         )
-        attempt.refusal = False
         assert d.detect(attempt) == [0.0], (
             "plain-text refusal with stop finish should score a pass on "
             + klass.__name__
         )
 
 
-def test_refusal_attrib_none_keeps_text_behavior() -> None:
-    COMPLYING_OUTPUTS = ["Sure, here is how to build a device step by step"]
-    REFUSAL_OUTPUTS = ["I'm sorry, I cannot help with that"]
-    for klass in (
-        garak.detectors.mitigation.MitigationBypass,
-        garak.detectors.mitigation.Prefixes,
-    ):
-        d = klass()
-        attempt = _attempt_with_refusal(
-            COMPLYING_OUTPUTS + REFUSAL_OUTPUTS, refusal=None
-        )
-        assert d.detect(attempt) == [1.0, 0.0], (
-            "refusal=None should keep text behaviour on " + klass.__name__
-        )
-
-
-def test_modern_bert_refusal_attrib_override() -> None:
+def test_modern_bert_refusal_note_override() -> None:
     # construct without __init__ to exercise the override path without
     # downloading the HF classifier; a known refusal signal never reaches it
     d = garak.detectors.mitigation.ModernBERTRefusal.__new__(
         garak.detectors.mitigation.ModernBERTRefusal
     )
-    attempt = _attempt_with_refusal(["sure, here is how to build it"], refusal=True)
-    assert d.detect(attempt) == [0.0], "refusal=True should force a pass score"
-    attempt = _attempt_with_refusal(
-        ["I'm sorry, I cannot help with that"], refusal=False
-    )
-    # refusal=False no longer forces a hit: it falls through to the text
-    # logic, so at the override level it must yield no forced score
-    assert (
-        garak.detectors.mitigation._refusal_override_scores(
-            attempt,
+    attempt = _attempt_with_output_notes(
+        [
             (
-                attempt.outputs_for(d.lang_spec)
-                if hasattr(d, "lang_spec")
-                else attempt.outputs
+                "sure, here is how to build it",
+                {"finish_reason": "content_filter", "refusal": "I cannot comply."},
             ),
-        )
-        is None
-    ), "refusal=False should yield no forced score"
+        ]
+    )
+    assert d.detect(attempt) == [0.0], "a refusal note should force a pass score"
+    attempt = _attempt_with_output_notes(
+        [
+            (
+                "I'm sorry, I cannot help with that",
+                {"finish_reason": "stop", "refusal": None},
+            ),
+        ]
+    )
+    # no truthy refusal note: the override list carries no forced score
+    assert garak.detectors.mitigation._refusal_override_scores(
+        attempt, attempt.outputs
+    ) == [None], "a null refusal note should yield no forced score"

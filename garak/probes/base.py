@@ -288,11 +288,6 @@ class Probe(Configurable):
         for output in all_outputs:
             if output is not None:
                 output.lang = this_attempt.lang
-        # Collapse the per-output finish_reason / refusal signals recorded by
-        # generators into a first-class tri-state refusal attrib, so detectors
-        # and reports can trust attempt.refusal without relying on optional
-        # per-message notes keys.
-        this_attempt.refusal = garak.attempt.Attempt.derive_refusal(all_outputs)
         # reverse translate outputs if required, this is intentionally executed in the core process
         if this_attempt.lang != self.lang:
             # account for possible None output

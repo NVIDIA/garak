@@ -509,7 +509,6 @@ def test_json_serialize():
         "notes": {},
         "goal": None,
         "intent": None,
-        "refusal": None,
         "conversations": [
             {
                 "turns": [
@@ -649,81 +648,3 @@ def test_attempt_asdict():
     a = garak.attempt.Attempt()
     a.as_dict()
 
-
-##########################
-# Test Attempt.refusal   #
-##########################
-
-
-def _make_output_message(text, finish_reason=None, refusal=None):
-    from garak.attempt import Message
-
-    message = Message(text)
-    if finish_reason is not None:
-        message.notes["finish_reason"] = finish_reason
-    if refusal is not None:
-        message.notes["refusal"] = refusal
-    return message
-
-
-def _attempt_with_outputs(messages):
-    a = garak.attempt.Attempt(prompt=garak.attempt.Message("test prompt"))
-    a.outputs = messages
-    return a
-
-
-def test_attempt_refusal_init_param():
-    a = garak.attempt.Attempt(refusal=True)
-    assert a.refusal is True, "refusal init param should be stored"
-    a = garak.attempt.Attempt(refusal=False)
-    assert a.refusal is False, "refusal init param should be stored"
-
-
-def test_attempt_refusal_in_as_dict():
-    a = _attempt_with_outputs([_make_output_message("hello", "stop")])
-    a.refusal = False
-    assert a.as_dict()["refusal"] is False, "refusal should appear in as_dict"
-    assert garak.attempt.Attempt().as_dict()["refusal"] is None, "refusal should default to None"
-
-
-def test_derive_refusal_true_when_any_output_refused():
-    attempt = _attempt_with_outputs(
-        [
-            _make_output_message("hello", "stop"),
-            _make_output_message(None, "content_filter", "I cannot comply."),
-        ]
-    )
-    assert garak.attempt.Attempt.derive_refusal(attempt.outputs) is True
-
-
-def test_derive_refusal_true_beats_normal_finish_reason():
-    # refusal text can arrive alongside a normal finish_reason; the refusal signal wins
-    attempt = _attempt_with_outputs(
-        [_make_output_message("I cannot comply.", "stop", "I cannot comply.")]
-    )
-    assert garak.attempt.Attempt.derive_refusal(attempt.outputs) is True
-
-
-def test_derive_refusal_false_on_normal_completion():
-    for finish_reason in ("stop", "length", "tool_calls", "function_call"):
-        attempt = _attempt_with_outputs([_make_output_message("hello", finish_reason)])
-        assert garak.attempt.Attempt.derive_refusal(attempt.outputs) is False, (
-            f"finish_reason {finish_reason!r} should mean no refusal"
-        )
-
-
-def test_derive_refusal_none_when_no_signals():
-    attempt = _attempt_with_outputs([_make_output_message("hello")])
-    assert garak.attempt.Attempt.derive_refusal(attempt.outputs) is None
-    # None outputs (e.g. transport errors) carry no signal and must not crash
-    attempt = _attempt_with_outputs([None, _make_output_message("hello")])
-    assert garak.attempt.Attempt.derive_refusal(attempt.outputs) is None
-
-
-def test_derive_refusal_ignores_unknown_finish_reasons():
-    attempt = _attempt_with_outputs(
-        [_make_output_message("hello", "some_future_reason")]
-    )
-    assert garak.attempt.Attempt.derive_refusal(attempt.outputs) is None, (
-        "unrecognised finish reasons must not force a False"
-    )
