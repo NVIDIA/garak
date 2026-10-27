@@ -356,6 +356,24 @@ def test_evaluate_with_nones(eval_setup):
     assert records[0]["nones"] == 2, "two None scores should be counted as nones"
 
 
+def test_evaluate_all_nones_emits_no_eval(eval_setup):
+    evaluator = ThresholdEvaluator(0.5)
+    attempt = make_attempt(
+        outputs=["out1", "out2"],
+        detector_results={"det.A": [None, None], "det.B": [0.0, 0.8]},
+    )
+    summary = evaluator.evaluate([attempt])
+    _config.transient.reportfile.flush()
+
+    records = _read_report_eval_records(_config.transient.report_filename)
+    assert [r["detector"] for r in records] == [
+        "det.B"
+    ], "detector with no scored outputs should be skipped, not scored as a fail"
+    assert (
+        summary["detection_counts"]["nones"] == 2
+    ), "skipped detector's nones should still reach probe_summary"
+
+
 def test_evaluate_multiple_attempts(eval_setup):
     evaluator = ThresholdEvaluator(0.5)
     a1 = make_attempt(
