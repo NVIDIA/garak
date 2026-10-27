@@ -77,19 +77,10 @@ def is_english(text):
 
 
 def split_input_text(input_text: str) -> list:
-    """Split input text based on the presence of ': '."""
-    if (
-        input_text is not None
-        and ": " in input_text
-        and "http://" not in input_text
-        and "https://" not in input_text
-    ):
-        split_text = input_text.splitlines()
-        split_text = [line.split(":") for line in split_text]
-        split_text = [item for sublist in split_text for item in sublist]
-    else:
-        split_text = input_text.splitlines()
-    return split_text
+    """Split input text into lines."""
+    if input_text is None:
+        return []
+    return input_text.splitlines()
 
 
 def contains_invisible_unicode(text: str) -> bool:
@@ -138,7 +129,6 @@ class LangProvider(Configurable):
     """Base class for objects that provision language"""
 
     def __init__(self, config_root: dict = {}) -> None:
-
         self._load_config(config_root=config_root)
 
         self.source_lang, self.target_lang = self.language.split(",")
@@ -192,18 +182,8 @@ class LangProvider(Configurable):
 
         return translated_lines
 
-    def _long_sentence_translate(self, line: str) -> str:
-        translated_lines = []
-        sentences = re.split(r"(\. |\?)", line.strip())
-        for sentence in sentences:
-            cleaned_sentence = self._clean_line(sentence)
-            if self._should_skip_line(cleaned_sentence):
-                translated_lines.append(cleaned_sentence)
-                continue
-            translated_line = self._translate(cleaned_sentence)
-            translated_lines.append(translated_line)
-
-        return translated_lines
+    def _long_sentence_translate(self, line: str) -> list:
+        return self._short_sentence_translate(line)
 
     def _should_skip_line(self, line: str) -> bool:
         return (
@@ -215,7 +195,7 @@ class LangProvider(Configurable):
         )
 
     def _clean_line(self, line: str) -> str:
-        return remove_english_punctuation(line.strip().lower().split())
+        return line.strip()
 
     def get_text(
         self,
