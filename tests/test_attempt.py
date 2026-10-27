@@ -647,3 +647,4 @@ def test_attempt_prompt_no_str():
 def test_attempt_asdict():
     a = garak.attempt.Attempt()
     a.as_dict()
+

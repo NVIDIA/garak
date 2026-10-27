@@ -402,12 +402,25 @@ class OpenAICompatible(Generator):
             )
             return [None]
 
+        # Keep the provider's stop reason with each output so that empty
+        # completions (e.g. content_filter blocks) stay distinguishable from
+        # transport errors in reports. Per-generation notes are the right
+        # granularity: one attempt can hold several choices with different
+        # finish reasons. getattr guards against non-compliant
+        # OpenAI-compatible servers that omit these fields.
         if is_completion:
-            reponse_message_list = [Message(c.text) for c in response.choices]
+            reponse_message_list = []
+            for c in response.choices:
+                message = Message(c.text)
+                message.notes["finish_reason"] = getattr(c, "finish_reason", None)
+                reponse_message_list.append(message)
         else:
-            reponse_message_list = [
-                Message(c.message.content) for c in response.choices
-            ]
+            reponse_message_list = []
+            for c in response.choices:
+                message = Message(c.message.content)
+                message.notes["finish_reason"] = getattr(c, "finish_reason", None)
+                message.notes["refusal"] = getattr(c.message, "refusal", None)
+                reponse_message_list.append(message)
 
         if len(reponse_message_list) != generations_this_call:
             raise garak.exception.BadGeneratorException(
