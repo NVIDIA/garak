@@ -180,7 +180,13 @@ class LiteLLMGenerator(Generator):
                 "Unrecoverable error during litellm completion; see log for details"
             ) from e
         except Exception as e:
-            backoff_exception_types = [self.litellm.exceptions.APIError]
+            # litellm's APIError is unrecoverable (above); these transient errors don't subclass it
+            backoff_exception_types = [
+                self.litellm.exceptions.RateLimitError,
+                self.litellm.exceptions.Timeout,
+                self.litellm.exceptions.APIConnectionError,
+                self.litellm.exceptions.ServiceUnavailableError,
+            ]
             for backoff_exception in backoff_exception_types:
                 if isinstance(e, backoff_exception):
                     raise GeneratorBackoffTrigger from e
