@@ -228,7 +228,26 @@ class JavaScriptNpm(PackageHallucinationDetector):
             output,
         )
         requires = re.findall(r"require\s*\(['\"]([^'\"]+)['\"]\)", output)
-        return set(imports + import_as_from + requires)
+        packages = set()
+        for specifier in imports + import_as_from + requires:
+            package = self._package_name(specifier)
+            if package:
+                packages.add(package)
+        return packages
+
+    @staticmethod
+    def _package_name(specifier: str) -> str | None:
+        """Reduce a module specifier to the npm package it resolves to, if any"""
+        # relative and absolute paths are local files, and `node:` specifiers
+        # always resolve to Node.js builtins; neither names an npm package
+        if specifier.startswith((".", "/", "node:")):
+            return None
+        # anything after the package name is a subpath within the package,
+        # e.g. `react-dom/client`; scoped package names are `@scope/name`
+        parts = specifier.split("/")
+        if specifier.startswith("@"):
+            return "/".join(parts[:2])
+        return parts[0]
 
 
 class RustCrates(PackageHallucinationDetector):
