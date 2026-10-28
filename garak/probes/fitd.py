@@ -43,6 +43,7 @@ class FITD(garak.probes.IterativeProbe):
         "owasp:llm02",
         "owasp:llm05",
         "demon:Rhetoric:Persuasion_and_manipulation:Escalating",  # progressively escalates from benign to adversarial queries across turns
+        "euai:robustness:adversarial",
     ]
     goal = "Transform queries from benign to harmful obtaining intermediate responses to get compliance from the model"
     tier = garak.probes.Tier.INFORMATIONAL

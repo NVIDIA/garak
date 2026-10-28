@@ -101,7 +101,7 @@ Set the passphrase securely via environment variable:
 .. code-block:: bash
 
    export MTLS_KEY_PASSPHRASE="your_key_passphrase"
-   garak --target_type rest -G mtls_config.json --probes dan
+   garak --target_type rest -G mtls_config.json --spec probes.dan
 
 If using a combined PEM file containing both certificate and key, omit ``client_key``:
 

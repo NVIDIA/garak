@@ -8,7 +8,7 @@ real-time bidirectional communication, similar to modern chat applications.
 
 Uses the following options from ``_config.plugins.generators["websocket"]["WebSocketGenerator"]``:
 
-* ``uri`` - the WebSocket URI (ws:// or wss://); can also be passed in --model_name
+* ``uri`` - the WebSocket URI (ws:// or wss://); can also be passed with ``--target_name``
 * ``name`` - a short name for this service; defaults to "WebSocket Generator"
 * ``auth_type`` - authentication method: "none", "basic", "bearer", or "custom"
 * ``username`` - username for basic authentication
@@ -167,9 +167,9 @@ Usage Examples
    # Set password securely via environment variable
    export WEBSOCKET_API_KEY="your_secure_password"
    
-   garak --model_type websocket.WebSocketGenerator \
+   garak --target_type websocket.WebSocketGenerator \
          --generator_options '{"websocket": {"WebSocketGenerator": {"uri": "ws://localhost:3000", "auth_type": "basic", "username": "user"}}}' \
-         --probes dan
+         --spec probes.dan
 
 **Configuration File:**
 
@@ -177,17 +177,17 @@ Save configuration to ``websocket_config.json`` and use:
 
 .. code-block:: bash
 
-   garak --model_type websocket.WebSocketGenerator \
+   garak --target_type websocket.WebSocketGenerator \
          -G websocket_config.json \
-         --probes encoding
+         --spec probes.encoding
 
 **Testing with Public Echo Server:**
 
 .. code-block:: bash
 
-   garak --model_type websocket.WebSocketGenerator \
+   garak --target_type websocket.WebSocketGenerator \
          --generator_options '{"websocket": {"WebSocketGenerator": {"uri": "wss://echo.websocket.org", "response_after_typing": false}}}' \
-         --probes dan --generations 1
+         --spec probes.dan --generations 1
 
 SSH Tunnel Support
 ------------------
@@ -200,9 +200,9 @@ The generator works seamlessly with SSH tunnels for secure remote testing:
    ssh -L 3000:target-host:3000 jump-host -N -f
    
    # Test through tunnel  
-   garak --model_type websocket.WebSocketGenerator \
+   garak --target_type websocket.WebSocketGenerator \
          --generator_options '{"websocket": {"WebSocketGenerator": {"uri": "ws://localhost:3000"}}}' \
-         --probes malwaregen
+         --spec probes.malwaregen
 
 Typing Indicators
 -----------------
@@ -221,5 +221,4 @@ This enables proper testing of streaming/real-time LLM services.
    :members:
    :undoc-members:
    :show-inheritance:
-
 

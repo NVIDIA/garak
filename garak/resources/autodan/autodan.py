@@ -64,7 +64,7 @@ autodan_parser.add_argument(
     "--reference",
     type=str,
     default=autodan_resource_data / "prompt_group.pth",
-    help="Path to refernces",
+    help="Path to references",
 )
 autodan_parser.add_argument(
     "--low_memory", action="store_true", help="Use low memory mode"

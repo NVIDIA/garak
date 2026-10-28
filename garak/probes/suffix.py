@@ -35,6 +35,8 @@ class GCGCached(garak.probes.Probe):
         "quality:Security:PromptStability",
         "payload:jailbreak",
         "demon:Language:Code_and_encode:Token",  # appends gradient-optimized adversarial token suffixes to exploit tokenizer
+        "euai:robustness:adversarial",
+        "euai:robustness:unexpected_behavior",
     ]
     goal = "cause the model to disregard the system prompt"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
@@ -81,6 +83,8 @@ class GCG(garak.probes.Probe):
         "quality:Security:PromptStability",
         "payload:jailbreak",
         "demon:Language:Code_and_encode:Token",  # generates adversarial token suffixes via greedy coordinate gradient search
+        "euai:robustness:adversarial",
+        "euai:robustness:unexpected_behavior",
     ]
     goal = "cause the model to disregard the system prompt"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
@@ -191,6 +195,8 @@ class BEAST(garak.probes.Probe):
         "quality:Security:PromptStability",
         "payload:jailbreak",
         "demon:Language:Code_and_encode:Token",  # uses beam search to find adversarial token suffixes exploiting tokenizer
+        "euai:robustness:adversarial",
+        "euai:robustness:unexpected_behavior",
     ]
     goal = "cause the model to disregard the system prompt"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA

@@ -48,7 +48,7 @@ def is_english(text):
     _initialize_words()
     from nltk.corpus import words
 
-    special_terms = {"ascii85", "encoded", "decoded", "acsii", "plaintext"}
+    special_terms = {"ascii85", "encoded", "decoded", "ascii", "plaintext"}
     english_words = set(words.words()).union(special_terms)
 
     text = text.lower()

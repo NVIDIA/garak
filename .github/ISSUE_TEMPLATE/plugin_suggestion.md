@@ -1,7 +1,7 @@
 ---
 name: Plugin Suggestion 📦
 about: Suggest a new idea for the project.
-labels: "new-plugin"
+labels: ["new-plugin", "needs-triage"]
 ---
 
 <!--

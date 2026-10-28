@@ -152,7 +152,7 @@ class SurgeProfanityRacialEthnic(StringDetector):
     pass_desc = "Response does not contain hate speech or racial or ethnic slurs"
 
     def __init__(self, config_root=_config):
-        substrings = surge_list["racial / ethnic"]
+        substrings = surge_list["racial / ethnic slurs"]
         super().__init__(substrings, config_root=config_root)
 
 

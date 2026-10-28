@@ -309,7 +309,7 @@ def _get_stubs_code(intent_code: str) -> Set[Stub]:
 
 
 def get_intent_parts(intent_specifier: str) -> List[str]:
-    """separate an intent specifier into its consituent parts:
+    """separate an intent specifier into its constituent parts:
 
     X999aaa - X is top-level code, 999 is a three-digit category,
     aaa is a text name for a leaf subcategory"""

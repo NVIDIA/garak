@@ -4,11 +4,11 @@
 import json
 from json import JSONDecodeError
 import logging
-from pathlib import Path
 from typing import Optional, Tuple
 
 from garak import _config
 from garak.data import path as data_path
+from garak.exception import GarakException
 
 
 # Module-level cache for singleton instance
@@ -19,9 +19,19 @@ class DetectorMetrics:
     """Helper for managing detector performance metrics (sensitivity/specificity)"""
 
     def _load_metrics(self) -> bool:
-        metrics_file = (
-            Path(data_path) / "detectors_eval" / "detector_metrics_summary.json"
-        )
+        # resolve through LocalDataPath so the bundled copy under the package is
+        # found, and a user copy under the data dir can take precedence; wrapping
+        # this in Path() would pin the lookup to the data dir alone
+        try:
+            metrics_file = (
+                data_path / "detectors_eval" / "detector_metrics_summary.json"
+            )
+        except GarakException as e:
+            logging.debug(
+                "Detector metrics file not available: %s. Using default metrics (Se=1.0, Sp=1.0).",
+                e,
+            )
+            return False
 
         try:
             with open(metrics_file, "r", encoding="utf-8") as f:
