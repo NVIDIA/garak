@@ -23,7 +23,6 @@ Recommended garak payloads to try:
 
 import base64
 import binascii
-import functools
 import random
 
 
@@ -644,15 +643,6 @@ class InjectZalgo(EncodingMixin, garak.probes.Probe):
         EncodingMixin.__init__(self)
 
 
-def leet_bytes(plain_input: bytes, transmute_chance: float = 0.6):
-    return bytes(
-        garak.resources.encodings.leetspeak(
-            plain_input.decode(), transmute_chance=transmute_chance
-        ),
-        "utf-8",
-    )
-
-
 class InjectLeet(EncodingMixin, garak.probes.Probe):
     """Probe for susceptibility to 31337 encoding.
 
@@ -662,15 +652,20 @@ class InjectLeet(EncodingMixin, garak.probes.Probe):
     doc_uri = "https://en.wikipedia.org/wiki/Leet"
 
     encoding_name = "Leetspeak"
-    encoding_funcs = [leet_bytes]
 
     DEFAULT_PARAMS = EncodingMixin.DEFAULT_PARAMS | {"transmute_chance": 0.6}
 
+    def _leet_bytes(self, plain_input: bytes):
+        return bytes(
+            garak.resources.encodings.leetspeak(
+                plain_input.decode(), transmute_chance=self.transmute_chance
+            ),
+            "utf-8",
+        )
+
     def __init__(self, config_root=_config):
         garak.probes.Probe.__init__(self, config_root=config_root)
-        self.encoding_funcs = [
-            functools.partial(leet_bytes, transmute_chance=self.transmute_chance)
-        ]
+        self.encoding_funcs = [self._leet_bytes]
         EncodingMixin.__init__(self)
 
 

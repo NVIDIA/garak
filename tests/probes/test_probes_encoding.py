@@ -116,9 +116,3 @@ def test_inject_leet_transmute_chance_config(transmute_chance, expected):
     assert p.transmute_chance == transmute_chance
     assert p.encoding_funcs[0](b"ieaostIEAOST") == expected
 
-
-def test_leet_bytes_transmute_chance():
-    from garak.probes.encoding import leet_bytes
-
-    assert leet_bytes(b"ieaost", transmute_chance=0.0) == b"ieaost"
-    assert leet_bytes(b"ieaost", transmute_chance=1.0) == b"134057"
