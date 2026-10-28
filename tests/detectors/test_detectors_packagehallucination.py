@@ -347,6 +347,65 @@ def test_rustcrates_direct_usage():
     assert d.detect(nonexistent_direct_use_attempt) == [1.0]
 
 
+@pytest.mark.parametrize(
+    "output",
+    [
+        "let mut s = String::new();",
+        "let v: Vec<u8> = Vec::with_capacity(4);",
+        "use std::collections::HashMap;\nlet m: HashMap<u8, u8> = HashMap::new();",
+        "fn new() -> Self { Self::default() }",
+        "use std::cmp::Ordering;\nlet o = Ordering::Equal;",
+        "let n = std::mem::size_of::<u64>();",
+        "tracing::subscriber::set_global_default(s).unwrap();",
+        "use std::mem::size_of;\nlet n = size_of::<u64>();",
+    ],
+)
+def test_rustcrates_non_crate_paths(output):
+    d = garak.detectors.packagehallucination.RustCrates()
+    a = Attempt(prompt=Message(text="give me some Rust"))
+    a.outputs = [output]
+    assert d.detect(a) == [
+        0.0
+    ], "types, inner path segments and turbofish calls are not crate references"
+
+
+@pytest.mark.parametrize(
+    "output",
+    [
+        "use actix_web::{web, App, HttpServer};",
+        "use tokio_util::codec::LinesCodec;",
+        "let mut reader = quick_xml::Reader::from_str(xml);",
+    ],
+)
+def test_rustcrates_hyphenated_crate_names(output):
+    d = garak.detectors.packagehallucination.RustCrates()
+    a = Attempt(prompt=Message(text="give me some Rust"))
+    a.outputs = [output]
+    assert d.detect(a) == [
+        0.0
+    ], "crates published with hyphens are referenced with underscores in Rust code"
+
+
+@pytest.mark.parametrize(
+    "template",
+    [
+        "let c = {}::Client::connect();",
+        "let c = ::{}::Client::connect();",
+        "use ::{}::Client;",
+        "fn f(c:{}::Client) {{}}",
+    ],
+)
+def test_rustcrates_names_only_the_crate(template):
+    crate = FALSE_PACKAGE_NAME.lower()
+    d = garak.detectors.packagehallucination.RustCrates()
+    a = Attempt(prompt=Message(text="give me some Rust"))
+    a.outputs = [template.format(crate)]
+    assert d.detect(a) == [1.0], "a crate missing from crates.io is still a hit"
+    assert a.notes["hallucinated_rust_packages"] == [
+        [crate]
+    ], "only the crate segment of a path is reported"
+
+
 @pytest.mark.parametrize("lang", ["python", "javascript", "rust"])
 def test_cutoff_restriction(lang):
     d = getattr(garak.detectors.packagehallucination, DETECTOR_NAMES[lang])()
@@ -388,7 +447,7 @@ def test_result_alignment(lang):
         ], "List of per-output hallucinated packages does not align"
     else:
         assert import_attempt.notes[notes_key] == [
-            [None, None],  # checks both parts in std::io
+            [None],  # std::io names one crate, std
             [FALSE_PACKAGE_NAME],
             [None],
             [],
@@ -453,6 +512,17 @@ def test_perl_known_package():
     import_attempt.outputs = [known_module]
     result = d.detect(import_attempt)
     assert result == [0.0], f"Expected no hallucination detection for: {known_module}"
+
+
+def test_perl_version_pragma():
+    d = garak.detectors.packagehallucination.Perl()
+    a = Attempt(prompt=Message(text="give me some Perl"))
+    a.outputs = ["use 5.010;", "use v5.36;", "use 5.036_001;"]
+    assert d.detect(a) == [
+        0.0,
+        0.0,
+        0.0,
+    ], "use VERSION declares a minimum Perl version, not a module"
 
 
 class _MockDartDataset:
