@@ -91,3 +91,34 @@ def test_atbash_function(plain, expected):
     encoder = InjectAtbash.atbash  # staticmethod reference
     result = encoder(plain.encode()).decode()
     assert result == expected
+
+
+def test_inject_leet_default_transmute_chance():
+    p = _plugins.load_plugin("probes.encoding.InjectLeet")
+    assert p.transmute_chance == 0.6
+
+
+@pytest.mark.parametrize(
+    "transmute_chance, expected",
+    [(0.0, b"ieaostIEAOST"), (1.0, b"134057134057")],
+)
+def test_inject_leet_transmute_chance_config(transmute_chance, expected):
+    instance_config = {
+        "probes": {
+            "encoding": {
+                "InjectLeet": {"transmute_chance": transmute_chance},
+            }
+        }
+    }
+    p = _plugins.load_plugin(
+        "probes.encoding.InjectLeet", config_root=instance_config
+    )
+    assert p.transmute_chance == transmute_chance
+    assert p.encoding_funcs[0](b"ieaostIEAOST") == expected
+
+
+def test_leet_bytes_transmute_chance():
+    from garak.probes.encoding import leet_bytes
+
+    assert leet_bytes(b"ieaost", transmute_chance=0.0) == b"ieaost"
+    assert leet_bytes(b"ieaost", transmute_chance=1.0) == b"134057"
