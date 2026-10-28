@@ -132,7 +132,7 @@ class NVOpenAICompletion(NVOpenAIChat):
     """
 
     def _load_unsafe(self):
-        self.client = openai.OpenAI(base_url=self.uri, api_key=self.api_key)
+        super()._load_unsafe()
         self.generator = self.client.completions
 
 
@@ -195,7 +195,7 @@ class NVMultimodal(NVOpenAIChat):
             if msg.data is not None:
                 import base64
 
-                if msg.data_path is not None:
+                if msg.data_type is not None and msg.data_type[0] is not None:
                     data_extension, _ = msg.data_type
                     if data_extension.startswith("audio"):
                         data_tag = "audio"
@@ -216,6 +216,9 @@ class NVMultimodal(NVOpenAIChat):
                     text
                     + f' <{data_tag} src="data:{data_extension};base64,{data_b64}" />'
                 )
+                prepared_msg.data_path = None
+                prepared_msg.data_type = None
+                prepared_msg.data_checksum = None
             prepared_msg.text = text
 
             prepared_conv.turns.append(Turn(turn.role, prepared_msg))
