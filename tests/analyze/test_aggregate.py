@@ -182,9 +182,40 @@ def test_aggregate_restamps_stale_plugin_cache_run(tmp_path) -> None:
     ), "plugin_cache must not keep the source report's run id"
 
 
-def test_aggregate_preserves_mixed_eval_ci_format() -> None:
-    """Aggregating a report without CI and one with CI preserves both eval formats."""
+def test_aggregate_preserves_mixed_eval_ci_format(tmp_path) -> None:
+    """Aggregating a report without CI and one with CI preserves both eval formats.
+
+    The two reports cover different probes, since ``aggregate_reports`` refuses to
+    combine reports whose probe/detector pairings repeat.
+    """
     _config.load_base_config()
+
+    with open(
+        "tests/_assets/analyze/test_with_ci.report.jsonl", encoding="utf-8"
+    ) as ci_file:
+        ci_fields = next(
+            record
+            for record in map(json.loads, ci_file)
+            if record.get("entry_type") == "eval"
+        )
+
+    with open(
+        "tests/_assets/analyze/quack.report.jsonl", encoding="utf-8"
+    ) as source_file:
+        source_records = [json.loads(line) for line in source_file]
+
+    with_ci_report = tmp_path / "quack_with_ci.report.jsonl"
+    with open(with_ci_report, "w", encoding="utf-8") as out_file:
+        for record in source_records:
+            if record["entry_type"] == "eval":
+                for field in (
+                    "confidence_method",
+                    "confidence",
+                    "confidence_lower",
+                    "confidence_upper",
+                ):
+                    record[field] = ci_fields[field]
+            out_file.write(json.dumps(record, ensure_ascii=False) + "\n")
 
     aggfile = tempfile.NamedTemporaryFile(delete=False, encoding="utf-8", mode="w")
     aggfile_name = aggfile.name
@@ -198,7 +229,7 @@ def test_aggregate_preserves_mixed_eval_ci_format() -> None:
             "-o",
             aggfile_name,
             "tests/_assets/analyze/test.report.jsonl",
-            "tests/_assets/analyze/test_with_ci.report.jsonl",
+            str(with_ci_report),
         ],
         check=True,
         capture_output=True,
@@ -293,3 +324,77 @@ def test_digest_handles_mixed_eval_ci_format(tmp_path) -> None:
     )
     assert "absolute_confidence_lower" in quack
     assert "absolute_confidence_upper" in quack
+
+
+def _run_aggregate(output_path, *input_paths) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        [sys.executable, "-m", "garak.analyze.aggregate_reports", "-o", output_path]
+        + list(input_paths),
+        capture_output=True,
+        text=True,
+    )
+
+
+def _aggregated_eval_pairings(output_path) -> list:
+    with open(output_path, encoding="utf-8") as agg_file:
+        return [
+            (record["probe"], record["detector"])
+            for record in map(json.loads, agg_file)
+            if record.get("entry_type") == "eval"
+        ]
+
+
+def test_aggregate_rejects_repeated_pairing(tmp_path) -> None:
+    """Two completed runs of one probe re-use the same prompts, so their eval rows
+    do not describe one evaluation; combining them must fail, not score silently."""
+    _config.load_base_config()
+
+    output = tmp_path / "agg.report.jsonl"
+    first = "tests/_assets/analyze/test.report.jsonl"
+    second = "tests/_assets/analyze/test_with_ci.report.jsonl"
+
+    result = _run_aggregate(output, first, second)
+
+    assert (
+        result.returncode != 0
+    ), "aggregating a repeated probe/detector pairing must fail"
+    assert (
+        "test.Test" in result.stderr and "always.Pass" in result.stderr
+    ), f"the repeated pairing must be named, stderr ended {result.stderr[-400:]}"
+    assert (
+        first in result.stderr and second in result.stderr
+    ), f"both contributing files must be named, stderr ended {result.stderr[-400:]}"
+    assert not output.exists(), "a rejected aggregation must not leave a report behind"
+
+
+def test_aggregate_rejects_a_file_listed_twice(tmp_path) -> None:
+    """Naming one report twice repeats every pairing it carries."""
+    _config.load_base_config()
+
+    one = "tests/_assets/analyze/test.report.jsonl"
+    output = tmp_path / "agg.report.jsonl"
+
+    result = _run_aggregate(output, one, one)
+
+    assert result.returncode != 0, "a report aggregated with itself must fail"
+    assert not output.exists(), "a rejected aggregation must not truncate a report"
+
+
+def test_aggregate_accepts_disjoint_pairings(tmp_path) -> None:
+    """The documented use — one probe per run, then assembled — stays allowed."""
+    _config.load_base_config()
+
+    output = tmp_path / "agg.report.jsonl"
+    result = _run_aggregate(
+        output,
+        "tests/_assets/analyze/test.report.jsonl",
+        "tests/_assets/analyze/quack.report.jsonl",
+    )
+
+    assert (
+        result.returncode == 0
+    ), f"disjoint reports must aggregate: {result.stderr[-400:]}"
+    assert sorted(_aggregated_eval_pairings(output)) == [
+        ("lmrc.QuackMedicine", "lmrc.QuackMedicine"),
+        ("test.Test", "always.Pass"),
+    ], "each disjoint pairing keeps its own eval row"

@@ -115,6 +115,7 @@ Probe aggregation
 One way of achieving parallel probing is by splitting garak probing up into many jobs each selecting one probe via ``run.spec`` (e.g. ``--spec probes.dan.AutoDANCached``).
 Each job should write to a distinct report file.
 When complete, the resulting report JSONL files can be aggregated into one using the ``aggregate_reports`` tool.
+Each probe has to be covered by exactly one of those jobs: ``aggregate_reports`` rejects reports that repeat a probe/detector pairing, because two completed runs of one probe re-use its prompts and their scores cannot be merged into one result.
 
 
 .. Aggregation with lower generations
