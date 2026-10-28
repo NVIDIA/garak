@@ -45,15 +45,15 @@ def _bootstrap_calculation(
 
     n = len(results)
     corrected_asrs = np.empty(num_iterations)
-    
+
     # No correction needed when denominator ≈ 1.0
     # This occurs when: (1) perfect detector (Se=Sp=1.0), or (2) fallback triggered above (Se+Sp-1 < 0.01)
     is_perfect_detector = np.isclose(denominator, 1.0)
-    
+
     for i in range(num_iterations):
         resampled_results = np.random.choice(results, size=n, replace=True)
         p_obs = resampled_results.mean()
-        
+
         if is_perfect_detector:
             corrected_asrs[i] = p_obs
         else:
@@ -85,6 +85,37 @@ def _bootstrap_calculation(
         )
 
     return (ci_lower, ci_upper)
+
+
+def apply_detector_correction(
+    ci_bounds: Tuple[float, float],
+    sensitivity: float,
+    specificity: float,
+) -> Tuple[float, float]:
+    """Map raw-rate CI bounds (percent) onto the Se/Sp-corrected ASR scale.
+
+    Applies the same correction as ``_bootstrap_calculation`` —
+    ``p_true = (p_obs + specificity - 1.0) / (sensitivity + specificity - 1.0)``
+    clipped to ``[0, 1]`` — so Wilson intervals report on the same estimand as
+    neighbouring bootstrap rows. When ``|Se + Sp - 1| < 0.01`` the bounds are
+    returned unchanged, matching the uncorrected fallback used there. With a
+    negative denominator the mapping is decreasing, so the corrected bounds
+    are re-ordered to stay a valid interval.
+    """
+    denominator = sensitivity + specificity - 1.0
+    lower, upper = ci_bounds
+    if abs(denominator) < 0.01:
+        return (lower, upper)
+    corrected_lower = (
+        min(1.0, max(0.0, (lower / 100.0 + specificity - 1.0) / denominator)) * 100.0
+    )
+    corrected_upper = (
+        min(1.0, max(0.0, (upper / 100.0 + specificity - 1.0) / denominator)) * 100.0
+    )
+    return (
+        min(corrected_lower, corrected_upper),
+        max(corrected_lower, corrected_upper),
+    )
 
 
 def calculate_bootstrap_ci(
