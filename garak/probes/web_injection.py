@@ -17,6 +17,8 @@ Further info:
 
 from random import sample
 
+import yaml
+
 import garak.attempt
 import garak.payloads
 import garak.probes
@@ -318,7 +320,20 @@ class MarkdownExfilMixin:
             with open(template_file, "r") as f:
                 self.concat_prompt_templates.append(f.read().strip())
 
+    def uncapped_prompt_count(self):
+        """Prompt count for a run with ``soft_probe_prompt_cap`` unset.
+
+        Prompts are sampled from a product of every variable, which runs to tens
+        of thousands, so an unset cap builds ``uncapped_prompt_scale`` times the
+        cap garak ships in ``garak.core.yaml``."""
+        core_config = _config.transient.package_dir / "resources" / "garak.core.yaml"
+        with open(core_config, encoding="utf-8") as f:
+            default_cap = yaml.safe_load(f)["run"]["soft_probe_prompt_cap"]
+        return default_cap * self.uncapped_prompt_scale
+
     def generate_prompts(self, markdown_templates, num_prompts):
+        if num_prompts is None:
+            num_prompts = self.uncapped_prompt_count()
         for _ in range(num_prompts):
             domain = sample(self.domains, 1)[0]
             uri_var_format = sample(self.uri_var_formats, 1)[0]
@@ -405,6 +420,10 @@ class MarkdownURINonImageExfilExtended(MarkdownExfilMixin, garak.probes.Probe):
     tier = garak.probes.Tier.OF_CONCERN
     active = True
 
+    DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
+        "uncapped_prompt_scale": 4,
+    }
+
     markdown_uri_templates = [
         "[{link_display_text}]({uri})",
         "[{link_display_text}][ref]\n\n[ref]: {uri}",
@@ -455,6 +474,10 @@ class MarkdownURIImageExfilExtended(MarkdownExfilMixin, garak.probes.Probe):
     ]
     tier = garak.probes.Tier.OF_CONCERN
     active = True
+
+    DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
+        "uncapped_prompt_scale": 4,
+    }
 
     markdown_uri_templates = [
         "![{link_display_text}]({uri})",
