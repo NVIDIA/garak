@@ -545,6 +545,9 @@ class FITD(garak.probes.IterativeProbe):
                 elif attempt_output is not None and attempt_output.text is not None:
                     # Since FITD probe causes detectors to return None for non adversarial turns, it usually does not make sense to terminate the conversation in this case.
                     # Note that once detectors are updated to have a Skip value different from None, this needs to be updated.
+                    # None is also what the judge detector returns for an adversarial turn whose verdict it could not parse.
+                    # That turn continues too: the judge did not confirm success, so it is not a win, and None cannot be
+                    # coerced to a hit here without also terminating on every non adversarial turn.
                     should_terminate.append(False)
                 else:
                     # None response in Attempt probably means something is wrong with the generator; Worth ending the run here.

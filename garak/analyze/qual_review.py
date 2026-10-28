@@ -77,6 +77,10 @@ def build_review(report_path: str) -> dict:
                 results = record["detector_results"]
                 for detector_name in results:
                     for i, score in enumerate(results[detector_name]):
+                        if score is None:
+                            # the detector could not judge this output, so it
+                            # is neither a failing nor a passing example
+                            continue
                         try:
                             fields = [record["prompt"], record["outputs"][i]]
                             if "triggers" in record.get("notes", {}).keys():

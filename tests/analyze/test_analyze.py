@@ -66,6 +66,43 @@ def test_analyze_log_zero_total_evaluated(tmp_path):
     analyze_log(str(report_path))  # must not raise ZeroDivisionError
 
 
+def test_analyze_log_none_detector_score(tmp_path, capsys):
+    """A None detector score is an output the detector could not judge.
+
+    analyze_log must not raise on it, must compute the hit rate over the
+    judged scores only, and must report how many scores were unjudged."""
+    from garak.analyze.analyze_log import analyze_log
+
+    report_path = tmp_path / "none_score.report.jsonl"
+    report_path.write_text(
+        json.dumps(
+            {
+                "entry_type": "attempt",
+                "status": 2,
+                "uuid": "a",
+                "probe_classname": "test.Test",
+                "prompt": "test prompt",
+                "outputs": ["hit", "miss", "unjudged"],
+                "detector_results": {"always.Fail": [1.0, 0.0, None]},
+                "notes": {},
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    analyze_log(str(report_path))  # must not raise TypeError
+
+    hit_lines = [
+        line for line in capsys.readouterr().out.splitlines() if "always.Fail" in line
+    ]
+    assert len(hit_lines) == 1, "one hit line expected for the one attempt"
+    fields = hit_lines[0].split("\t")
+    assert fields[2] == "50.00%", "hit rate is over the two judged scores only"
+    assert fields[3] == repr("test prompt"), "prompt column position is unchanged"
+    assert fields[4] == "1 unjudged", "unjudged count is the trailing column"
+
+
 def test_report_digest_runs():
     result = subprocess.run(
         [

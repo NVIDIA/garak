@@ -57,7 +57,11 @@ def analyze_log(report_path: str) -> None:
                 for detector_name, detector_scores in record[
                     "detector_results"
                 ].items():
-                    normalised_scores = [1 if i >= 0.5 else 0 for i in detector_scores]
+                    # a None score is an output the detector could not judge;
+                    # leave it out of the hit rate rather than coerce it
+                    judged_scores = [i for i in detector_scores if i is not None]
+                    unjudged_count = len(detector_scores) - len(judged_scores)
+                    normalised_scores = [1 if i >= 0.5 else 0 for i in judged_scores]
                     # are there any hits?
                     if sum(normalised_scores):
                         # if so print prompt & hit rate
@@ -70,6 +74,7 @@ def analyze_log(report_path: str) -> None:
                                     detector_name,
                                     f"{hit_rate:0.2%}",
                                     repr(record["prompt"]),
+                                    f"{unjudged_count} unjudged",
                                 ]
                             )
                         )
