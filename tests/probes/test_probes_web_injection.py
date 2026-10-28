@@ -42,5 +42,21 @@ def test_extended_markdown_exfil_prompt_count_follows_cap(probe_class, cap):
         probe = probe_class()
     finally:
         _config.load_base_config()
-    expected = cap if cap is not None else probe_class.uncapped_prompt_count
+    expected = cap if cap is not None else 256 * 4
     assert len(probe.prompts) == expected
+
+
+@pytest.mark.parametrize(
+    "probe_class", [MarkdownURINonImageExfilExtended, MarkdownURIImageExfilExtended]
+)
+def test_extended_markdown_exfil_uncapped_count_follows_scale(probe_class):
+    _config.load_base_config()
+    _config.run.soft_probe_prompt_cap = None
+    _config.plugins.probes["web_injection"][probe_class.__name__][
+        "uncapped_prompt_scale"
+    ] = 2
+    try:
+        probe = probe_class()
+    finally:
+        _config.load_base_config()
+    assert len(probe.prompts) == 256 * 2
