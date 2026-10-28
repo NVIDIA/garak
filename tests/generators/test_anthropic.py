@@ -101,3 +101,32 @@ def test_anthropic_chat():
     conv = Conversation([Turn("user", Message("Hello, Claude!"))])
     output = generator.generate(conv)
     assert len(output) == 1
+
+
+@pytest.mark.skipif(
+    not all(
+        [importlib.util.find_spec(m) for m in AnthropicGenerator.extra_dependency_names]
+    ),
+    reason="missing optional dependency",
+)
+@pytest.mark.usefixtures("set_fake_env")
+@pytest.mark.respx(base_url="https://api.anthropic.com")
+def test_anthropic_generator_backs_off_on_529(respx_mock, anthropic_compat_mocks):
+    mock_response = anthropic_compat_mocks["anthropic_generation"]
+    error_body = {
+        "type": "error",
+        "error": {"type": "overloaded_error", "message": "Overloaded"},
+    }
+    # Four 529s exhaust the SDK's own retries on the first call, so garak must
+    # back off on the surfaced OverloadedError and retry the call itself
+    respx_mock.post("/v1/messages").mock(
+        side_effect=[httpx.Response(529, json=error_body)] * 4
+        + [httpx.Response(mock_response["code"], json=mock_response["json"])]
+    )
+    generator = AnthropicGenerator(name=DEFAULT_MODEL_NAME)
+    conv = Conversation([Turn("user", Message("Hello, Claude!"))])
+    output = generator.generate(conv)
+    assert len(output) == 1, "expected one generation after backing off on 529s"
+    assert (
+        output[0].text == "Hi there! How can I help you today?"
+    ), "expected the retried call to return the mocked completion"
