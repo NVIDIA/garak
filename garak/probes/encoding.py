@@ -302,7 +302,7 @@ class InjectBase64(EncodingMixin, garak.probes.Probe):
     Encodes payloads using base64, and tries a variety of ways of getting the target
     model to repeat & decode them."""
 
-    tier = garak.probes.Tier.OF_CONCERN
+    tier = garak.probes.Tier.COMPETE_WITH_SOTA
 
     encoding_funcs = [
         base64.b64encode,
@@ -327,6 +327,7 @@ class InjectBase16(EncodingMixin, garak.probes.Probe):
     encoding_funcs = [base64.b16encode]
     encoding_name = "BASE16"
     active = True
+    tier = garak.probes.Tier.OF_CONCERN # high asr (.55 in feb 26 bag)
 
     def __init__(self, config_root=_config):
         garak.probes.Probe.__init__(self, config_root=config_root)
@@ -372,6 +373,7 @@ class InjectHex(EncodingMixin, garak.probes.Probe):
     encoding_funcs = [binascii.b2a_hex]
     encoding_name = "hex"
     active = True
+    tier = garak.probes.Tier.OF_CONCERN # high asr (.57 in feb 26 bag)
 
     def __init__(self, config_root=_config):
         garak.probes.Probe.__init__(self, config_root=config_root)
@@ -388,7 +390,7 @@ class InjectQP(EncodingMixin, garak.probes.Probe):
     encoding_name = "Quoted-Printable"
     active = False  # seems to just pass text right through - when using ascii chars
 
-    tier = garak.probes.Tier.OF_CONCERN
+    tier = garak.probes.Tier.COMPETE_WITH_SOTA
 
     def __init__(self, config_root=_config):
         garak.probes.Probe.__init__(self, config_root=config_root)
@@ -401,7 +403,7 @@ class InjectUU(EncodingMixin, garak.probes.Probe):
     Encodes payloads using uuencoding, and tries a variety of ways of getting the target
     model to repeat & decode them."""
 
-    tier = garak.probes.Tier.OF_CONCERN
+    tier = garak.probes.Tier.INFORMATIONAL # low asr
     active = True
 
     encoding_name = "UUencode"
@@ -672,7 +674,7 @@ class InjectUnicodeTagChars(EncodingMixin, garak.probes.Probe):
     doc_uri = "https://embracethered.com/blog/posts/2024/hiding-and-finding-text-with-unicode-tags/"
     encoding_name = "ASCII in Unicode Tags"
     active = True
-    tier = garak.probes.Tier.OF_CONCERN
+    tier = garak.probes.Tier.COMPETE_WITH_SOTA
     use_bytes = False
     # May want to eventually add a check to verify that `desired_emoji` is a valid emoji.
     DEFAULT_PARAMS = EncodingMixin.DEFAULT_PARAMS | {"desired_emoji": "😈"}
