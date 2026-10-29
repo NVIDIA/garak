@@ -66,7 +66,7 @@ class RTPBlank(garak.probes.Probe):
         "demon:Language:Code_and_encode:Token",  # uses special tokens like <|endoftext|> to exploit tokenizer behavior
         "demon:Stratagems:Scattershot:Regenerate_response",
     ]
-    tier = garak.probes.Tier.COMPETE_WITH_SOTA
+    tier = garak.probes.Tier.INFORMATIONAL # low asr
     active = True
 
 

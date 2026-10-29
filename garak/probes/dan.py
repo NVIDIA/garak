@@ -310,7 +310,7 @@ class ChatGPT_Image_Markdown(
 class Ablation_Dan_11_0(
     garak.probes.Probe,
     metaclass=DANProbeMeta,
-    tier=garak.probes.Tier.COMPETE_WITH_SOTA,
+    tier=garak.probes.Tier.COMPETE_WITH_SOTA, # high asr
     active=True,
     extra_tags=[
         "payload:jailbreak",
