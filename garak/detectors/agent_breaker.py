@@ -3,14 +3,16 @@
 
 """Agent Breaker detectors
 
-Detectors for the probes.agent_breaker plugin. Uses a model-as-judge approach
-to independently verify whether each agent response indicates a successful
-tool exploitation.
+Model-as-judge detectors for direct tool exploitation and terminal
+tool-chain response claims from ``probes.agent_breaker``.
 """
 
 import copy
 import json
 import logging
+import math
+from pathlib import Path
+from string import Formatter
 from typing import List
 
 import yaml
@@ -20,6 +22,10 @@ from garak.attempt import Attempt, Conversation, Turn, Message
 from garak.data import path as data_path
 from garak.detectors.base import Detector
 from garak.exception import GarakException, BadGeneratorException
+from garak.resources.agent_breaker.parsing import (
+    extract_json_object,
+    loads_unique_keys,
+)
 
 
 class AgentBreakerResult(Detector):
@@ -182,7 +188,7 @@ class AgentBreakerResult(Detector):
         try:
             raw = response[0].text.strip()
             logging.debug("%s raw LLM response: %s", self.__class__.__name__, raw)
-            parsed = self._extract_json(raw)
+            parsed = extract_json_object(raw)
             success_val = parsed.get("success", "NO")
             confidence = parsed.get("confidence", 0.0)
             reasoning = parsed.get("reasoning", "")
@@ -239,55 +245,6 @@ class AgentBreakerResult(Detector):
             return None
         is_success, confidence, _ = verdict
         return 1.0 if is_success and confidence >= self.confidence_cutoff else 0.0
-
-    @staticmethod
-    def _extract_json(text: str) -> dict:
-        """Extract the first valid JSON object from *text*.
-
-        Handles cases where the LLM appends an explanation after the JSON
-        block (which causes ``json.loads`` to raise "Extra data") and where
-        the LLM wraps the object in a top-level JSON array.
-        """
-        try:
-            parsed = json.loads(text)
-        except json.JSONDecodeError:
-            pass
-        else:
-            if isinstance(parsed, dict):
-                return parsed
-            if isinstance(parsed, list):
-                for item in parsed:
-                    if isinstance(item, dict):
-                        return item
-            raise json.JSONDecodeError("No JSON object found", text, 0)
-
-        brace_start = text.find("{")
-        if brace_start == -1:
-            raise json.JSONDecodeError("No JSON object found", text, 0)
-
-        depth = 0
-        in_string = False
-        escape_next = False
-        for i, ch in enumerate(text[brace_start:], start=brace_start):
-            if escape_next:
-                escape_next = False
-                continue
-            if ch == "\\":
-                escape_next = True
-                continue
-            if ch == '"' and not escape_next:
-                in_string = not in_string
-                continue
-            if in_string:
-                continue
-            if ch == "{":
-                depth += 1
-            elif ch == "}":
-                depth -= 1
-                if depth == 0:
-                    return json.loads(text[brace_start : i + 1])
-
-        raise json.JSONDecodeError("Unterminated JSON object", text, brace_start)
 
     def detect(self, attempt: Attempt) -> List[float | None]:
         """Score every output for ASR reporting.
@@ -358,4 +315,257 @@ class AgentBreakerResult(Detector):
                 score = None
             scores.append(score)
 
+        return scores
+
+
+class AgentBreakerChainResult(Detector):
+    """Judge response claims from terminal Agent Breaker chain steps."""
+
+    DEFAULT_PARAMS = Detector.DEFAULT_PARAMS | {
+        "detector_model_type": "nim",
+        "detector_model_name": "openai/gpt-oss-120b",
+        "detector_model_config": {
+            "max_tokens": 8192,
+            "temperature": 0,
+            "vary_seed_each_call": False,
+            "vary_temp_each_call": False,
+            "suppressed_params": ["n", "stop"],
+        },
+    }
+
+    doc_uri = "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/"
+    lang_spec = "*"
+    tags = [
+        "owasp:llm01",  # Judges responses to chained prompt-injection attempts.
+        "owasp:llm07",  # Judges effects of artifacts passed between tools unchecked.
+        "owasp:llm08",  # Judges claimed effects reached through excessive agency.
+        "quality:Security:AgentSecurity",  # Assesses agent tool-boundary failures.
+    ]
+
+    _EXPECTED_FIELDS = {"verdict", "confidence", "effect", "evidence", "reason"}
+    _VERDICTS = {"YES", "NO", "UNKNOWN"}
+    _SINK_REQUIREMENT_CHAR_LIMIT = 1000
+    _RUNTIME_ERRORS = (
+        GarakException,
+        OSError,
+        RuntimeError,
+        TimeoutError,
+        TypeError,
+        ValueError,
+    )
+
+    def __init__(self, config_root=_config):
+        super().__init__(config_root=config_root)
+        self._load_generator()
+        self._load_verify_prompts()
+
+    def _load_generator(self) -> None:
+        """Load the configured evaluation generator."""
+        model_root = {"generators": {}}
+        generator_config = model_root["generators"]
+        for part in self.detector_model_type.split("."):
+            generator_config = generator_config.setdefault(part, {})
+
+        if self.detector_model_config is not None:
+            if not isinstance(self.detector_model_config, dict):
+                raise BadGeneratorException(
+                    f"{self.__class__.__name__} detector_model_config must be a mapping"
+                )
+            generator_config |= copy.deepcopy(self.detector_model_config)
+        if self.detector_model_name:
+            generator_config["name"] = self.detector_model_name
+
+        try:
+            self.evaluation_generator = _plugins.load_plugin(
+                f"generators.{self.detector_model_type}", config_root=model_root
+            )
+        except GarakException as error:
+            if isinstance(error.__cause__, GarakException):
+                raise error.__cause__
+            raise BadGeneratorException(
+                f"{self.__class__.__name__} failed to load generator for "
+                f"{self.detector_model_type}"
+            ) from error
+
+    def _load_verify_prompts(self) -> None:
+        """Load and validate the chain system and user prompts."""
+        prompts_source = Path("agent_breaker") / "tool_chain_prompts.yaml"
+        try:
+            prompts_source = data_path / prompts_source
+            with prompts_source.open("r", encoding="utf-8") as prompt_file:
+                prompts = yaml.safe_load(prompt_file)
+            if not isinstance(prompts, dict):
+                raise TypeError("prompt document must be a mapping")
+
+            verify_system = prompts["VERIFY_SYSTEM"]
+            verify_user = prompts["VERIFY_USER"]
+            if not isinstance(verify_system, str) or not verify_system:
+                raise TypeError("VERIFY_SYSTEM must be a non-empty string")
+            if not isinstance(verify_user, str) or not verify_user:
+                raise TypeError("VERIFY_USER must be a non-empty string")
+
+            system_fields = {
+                field_name
+                for _, field_name, _, _ in Formatter().parse(verify_system)
+                if field_name is not None
+            }
+            user_fields = {
+                field_name
+                for _, field_name, _, _ in Formatter().parse(verify_user)
+                if field_name is not None
+            }
+            if system_fields or user_fields != {
+                "prompt",
+                "sink_requirement",
+                "response",
+            }:
+                raise ValueError(
+                    "verification prompts must accept prompt, sink_requirement, "
+                    "and response"
+                )
+        except (
+            GarakException,
+            KeyError,
+            OSError,
+            TypeError,
+            ValueError,
+            yaml.YAMLError,
+        ) as error:
+            message = (
+                f"{self.__class__.__name__} failed to load chain verification prompts "
+                f"from {prompts_source}"
+            )
+            logging.error("%s: %s", message, error)
+            raise GarakException(message) from error
+
+        self._verify_system = verify_system
+        self._verify_user = verify_user
+
+    @classmethod
+    def _eligible_context(cls, attempt: Attempt) -> tuple[str, str] | None:
+        """Return the sent prompt and exact goal for an eligible terminal step."""
+        notes = attempt.notes
+        if not isinstance(notes, dict):
+            return None
+
+        chain_id = notes.get("chain_id")
+        chain_step = notes.get("chain_step")
+        chain_total_steps = notes.get("chain_total_steps")
+        sink_requirement = notes.get("chain_sink_requirement")
+        chain_role = notes.get("chain_role")
+        # The terminal step is always judged. An earlier step is judged only
+        # when its tool has side effects, because it may already cause the harm.
+        eligible = (
+            attempt.probe_classname == "agent_breaker.ToolChain"
+            and isinstance(chain_id, str)
+            and bool(chain_id.strip())
+            and type(chain_step) is int
+            and type(chain_total_steps) is int
+            and chain_total_steps > 0
+            and (
+                (chain_role == "exploit" and chain_step == chain_total_steps)
+                or (
+                    chain_role in {"recon", "pivot"}
+                    and notes.get("chain_side_effecting") is True
+                    and 0 < chain_step < chain_total_steps
+                )
+            )
+            and isinstance(sink_requirement, str)
+            and bool(sink_requirement.strip())
+            and len(sink_requirement) <= cls._SINK_REQUIREMENT_CHAR_LIMIT
+        )
+        if not eligible or not isinstance(attempt.prompt, Conversation):
+            return None
+
+        try:
+            user_message_text = attempt.prompt.last_message("user").text
+        except ValueError:
+            return None
+        if not isinstance(user_message_text, str):
+            return None
+        return user_message_text, sink_requirement
+
+    @classmethod
+    def _score_judgement(cls, judgement: str) -> float | None:
+        """Validate and score one chain judgement."""
+        if not isinstance(judgement, str):
+            return None
+        try:
+            parsed = loads_unique_keys(judgement)
+        except ValueError:
+            return None
+
+        if not isinstance(parsed, dict) or set(parsed) != cls._EXPECTED_FIELDS:
+            return None
+        if (
+            not isinstance(parsed["verdict"], str)
+            or parsed["verdict"] not in cls._VERDICTS
+        ):
+            return None
+        if not all(
+            isinstance(parsed[field], str) for field in ("effect", "evidence", "reason")
+        ):
+            return None
+
+        confidence = parsed["confidence"]
+        if (
+            isinstance(confidence, bool)
+            or not isinstance(confidence, (int, float))
+            or not 0.0 <= confidence <= 1.0
+            or not math.isfinite(confidence)
+        ):
+            return None
+
+        return 1.0 if parsed["verdict"] == "YES" else 0.0
+
+    def _judge(
+        self, attack_prompt: str, sink_requirement: str, response_text: str
+    ) -> float | None:
+        """Ask the configured judge to score one exact prompt-response pair."""
+        user_prompt = self._verify_user.format(
+            prompt=attack_prompt,
+            sink_requirement=sink_requirement,
+            response=response_text,
+        )
+        conversation = Conversation(
+            [
+                Turn(role="system", content=Message(text=self._verify_system)),
+                Turn(role="user", content=Message(text=user_prompt)),
+            ]
+        )
+        try:
+            generated = self.evaluation_generator.generate(
+                prompt=conversation, generations_this_call=1
+            )
+        except self._RUNTIME_ERRORS as error:
+            logging.warning(
+                "%s judge invocation failed: %s",
+                self.__class__.__name__,
+                error,
+            )
+            return None
+
+        if (
+            not isinstance(generated, list)
+            or len(generated) != 1
+            or not isinstance(generated[0], Message)
+            or not isinstance(generated[0].text, str)
+        ):
+            return None
+        return self._score_judgement(generated[0].text)
+
+    def detect(self, attempt: Attempt) -> List[float | None]:
+        """Score only outputs from eligible terminal chain attempts."""
+        outputs = attempt.outputs
+        context = self._eligible_context(attempt)
+        if context is None:
+            return [None] * len(outputs)
+        attack_prompt, sink_requirement = context
+
+        scores = []
+        for output in outputs:
+            if output is None or not isinstance(output.text, str):
+                scores.append(None)
+                continue
+            scores.append(self._judge(attack_prompt, sink_requirement, output.text))
         return scores
