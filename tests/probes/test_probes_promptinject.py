@@ -23,3 +23,14 @@ def test_promptinject_settings_match_prompt(probename):
         assert (
             attempt.notes["settings"] in settings_by_prompt[prompt]
         ), f"settings attached to prompt {seq} belong to a different prompt"
+
+
+@pytest.mark.parametrize(
+    "probename",
+    PROMPTINJECT_PROBES + tuple(f"{name}Full" for name in PROMPTINJECT_PROBES),
+)
+def test_promptinject_prompts_are_unique(probename):
+    p = garak._plugins.load_plugin(probename)
+    assert len(set(p.prompts)) == len(
+        p.prompts
+    ), "a prompt should be built once; repeats are what generations is for"
