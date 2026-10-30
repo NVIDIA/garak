@@ -326,8 +326,7 @@ class TestWebSocketGenerator:
             test_str = "Test prompt"
             prompt = Conversation([Turn(role="user", content=Message(text=test_str))])
             result = gen._call_model(prompt)
-            assert len(result) == 1
-            assert result[0].text == ""  # Should return empty string on error
+            assert result == [None]
 
     def test_apply_replacements_nested(self):
         """Test recursive replacement in nested data structures"""
@@ -376,6 +375,7 @@ class TestWebSocketGenerator:
         assert gen.request_timeout == 20
         assert gen.connection_timeout == 10
         assert gen.verify_ssl is True
+        assert gen.reconnect_on_loss is False
 
     def test_not_parallel_capable(self):
         """WebSocketGenerator must run serially; parallel processes re-auth."""
@@ -436,3 +436,109 @@ class TestWebSocketGenerator:
         assert texts == [f"echo:{prompt}" for prompt in prompts]
         assert all(loop is loops[0] for loop in loops)
         assert not loops[0].is_closed()
+
+    def test_connection_loss_returns_none_when_reconnect_disabled(self):
+        """When server closes connection, subsequent prompts return [None] by default."""
+        import asyncio
+        import threading
+        from websockets.asyncio.server import serve
+
+        received = []
+
+        async def handler(ws):
+            async for msg in ws:
+                received.append(msg)
+                await ws.send("echo:" + msg)
+                await ws.close()
+                break
+
+        ready = threading.Event()
+        holder = {}
+
+        def run_server():
+            async def main():
+                async with serve(handler, "127.0.0.1", 0) as server:
+                    holder["port"] = next(iter(server.sockets)).getsockname()[1]
+                    ready.set()
+                    await asyncio.Future()
+
+            asyncio.run(main())
+
+        threading.Thread(target=run_server, daemon=True).start()
+        assert ready.wait(5), "echo server did not start"
+
+        instance_config = {
+            "generators": {
+                "websocket": {
+                    "WebSocketGenerator": {
+                        "uri": f"ws://127.0.0.1:{holder['port']}",
+                        "response_after_typing": False,
+                        "request_timeout": 5,
+                        "connection_timeout": 5,
+                        "reconnect_on_loss": False,
+                    }
+                }
+            }
+        }
+        gen = WebSocketGenerator(config_root=instance_config)
+        prompts = ["hello", "world", "third"]
+        outputs = [
+            gen.generate(Conversation([Turn("user", Message(p))])) for p in prompts
+        ]
+
+        assert outputs[0][0].text == "echo:hello"
+        assert outputs[1] == [None]
+        assert outputs[2] == [None]
+        assert received == ["hello"]
+
+    def test_connection_loss_reconnects_when_reconnect_enabled(self):
+        """When reconnect_on_loss is True, generator reconnects on lost connection."""
+        import asyncio
+        import threading
+        from websockets.asyncio.server import serve
+
+        received = []
+
+        async def handler(ws):
+            async for msg in ws:
+                received.append(msg)
+                await ws.send("echo:" + msg)
+                await ws.close()
+                break
+
+        ready = threading.Event()
+        holder = {}
+
+        def run_server():
+            async def main():
+                async with serve(handler, "127.0.0.1", 0) as server:
+                    holder["port"] = next(iter(server.sockets)).getsockname()[1]
+                    ready.set()
+                    await asyncio.Future()
+
+            asyncio.run(main())
+
+        threading.Thread(target=run_server, daemon=True).start()
+        assert ready.wait(5), "echo server did not start"
+
+        instance_config = {
+            "generators": {
+                "websocket": {
+                    "WebSocketGenerator": {
+                        "uri": f"ws://127.0.0.1:{holder['port']}",
+                        "response_after_typing": False,
+                        "request_timeout": 5,
+                        "connection_timeout": 5,
+                        "reconnect_on_loss": True,
+                    }
+                }
+            }
+        }
+        gen = WebSocketGenerator(config_root=instance_config)
+        prompts = ["hello", "world", "third"]
+        outputs = [
+            gen.generate(Conversation([Turn("user", Message(p))])) for p in prompts
+        ]
+
+        assert [out[0].text for out in outputs] == [f"echo:{p}" for p in prompts]
+        assert received == ["hello", "world", "third"]
