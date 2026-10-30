@@ -127,3 +127,51 @@ class HFCompatible:
             "Using %s, based on torch environment evaluation", selected_device
         )
         return selected_device
+
+
+def _hf_hub_status_code(exc: BaseException) -> int | None:
+    """Extract an HTTP status code from an exception or its cause chain.
+
+    `transformers` re-raises Hub fetch failures as plain `OSError`
+    (`raise OSError(...) from e`), so the status lives on the chained
+    `HfHubHTTPError.response.status_code`, not on the `OSError` itself.
+    """
+    seen = set()
+    while exc is not None and id(exc) not in seen:
+        seen.add(id(exc))
+        status = getattr(getattr(exc, "response", None), "status_code", None)
+        if isinstance(status, int):
+            return status
+        status = getattr(exc, "status_code", None)
+        if isinstance(status, int):
+            return status
+        exc = exc.__cause__ if exc.__cause__ is not None else exc.__context__
+    return None
+
+
+def hf_hub_backoff_giveup(exc: BaseException) -> bool:
+    """`backoff` giveup predicate for Hugging Face Hub fetches.
+
+    Returns False (keep retrying) for transient Hub conditions - HTTP 429
+    and 5xx, connection drops, timeouts - and True (raise immediately) for
+    anything else, e.g. unknown repos, bad revisions, gated repos, and auth
+    failures. See https://github.com/NVIDIA/garak/issues/1479.
+    """
+    import re
+
+    status = _hf_hub_status_code(exc)
+    if status is not None:
+        return not (status == 429 or 500 <= status <= 599)
+    try:
+        import requests
+
+        _connection_errors = (requests.ConnectionError, requests.Timeout)
+    except ImportError:  # pragma: no cover - requests is a hard dependency
+        _connection_errors = ()
+    if isinstance(exc, (ConnectionError, TimeoutError) + _connection_errors):
+        return False
+    # last resort: the wrapped message usually quotes the Hub status line,
+    # e.g. "503 Server Error: Service Temporarily Unavailable for url: ..."
+    if re.search(r"\b(429|5\d\d)\b", str(exc)):
+        return False
+    return True
