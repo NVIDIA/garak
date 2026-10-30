@@ -371,13 +371,13 @@ class OpenAICompatible(Generator):
             msg = "Bad request: " + str(repr(prompt))
             logging.exception(e)
             logging.error(msg)
-            return [None]
+            return [None] * generations_this_call
         except openai.APIStatusError as e:
             if e.status_code in self.transient_retry_codes:
                 raise garak.exception.GeneratorBackoffTrigger from e
             msg = f"HTTP {e.status_code} from {e.request.url}: {e.message}"
             logging.warning(msg)
-            return [None]
+            return [None] * generations_this_call
         except json.decoder.JSONDecodeError as e:
             logging.exception(e)
             if self.retry_json:
@@ -394,13 +394,13 @@ class OpenAICompatible(Generator):
             if self.retry_json:
                 raise garak.exception.GeneratorBackoffTrigger(msg)
             else:
-                return [None]
+                return [None] * generations_this_call
         if response.choices is None:
             logging.debug(
                 "Did not get a well-formed response, Expected object with populated .choices member, got: '%s'"
                 % repr(response)
             )
-            return [None]
+            return [None] * generations_this_call
 
         if is_completion:
             reponse_message_list = [Message(c.text) for c in response.choices]
