@@ -8,8 +8,11 @@ import inspect
 import json
 import logging
 import shutil
+import random
+import tempfile
 import os
 from datetime import datetime, timezone
+import time
 from threading import Lock
 from typing import List, Callable, Union
 from pathlib import Path
@@ -89,8 +92,20 @@ class PluginCache:
         base_time = datetime.fromtimestamp(
             os.path.getmtime(self._plugin_cache_filename), tz=timezone.utc
         )
+
+        def jitter_wait(ms_range: int) -> bool:
+            # Random jitter to avoid contention if multiple
+            # instances start at once
+            jitter_ms = random.randint(0, ms_range)
+            time.sleep(jitter_ms / 1000.0)
+            return True
+
         update_user_file = False
-        if not os.path.exists(self._user_plugin_cache_filename):
+        if (
+            not os.path.exists(self._user_plugin_cache_filename)
+            and jitter_wait(300)
+            and not os.path.exists(self._user_plugin_cache_filename)
+        ):
             update_user_file = True
         else:
             user_time = datetime.fromtimestamp(
@@ -102,7 +117,18 @@ class PluginCache:
             self._user_plugin_cache_filename.parent.mkdir(
                 mode=0o740, parents=True, exist_ok=True
             )
-            shutil.copy2(self._plugin_cache_filename, self._user_plugin_cache_filename)
+            with tempfile.NamedTemporaryFile(
+                dir=self._user_plugin_cache_filename.parent,
+                prefix=f"{self._user_plugin_cache_filename.name}.",
+                delete=False,
+            ) as temporary_file:
+                temporary_path = Path(temporary_file.name)
+            try:
+                shutil.copy2(self._plugin_cache_filename, temporary_path)
+                os.replace(temporary_path, self._user_plugin_cache_filename)
+            finally:
+                temporary_path.unlink(missing_ok=True)
+
             user_time = base_time
 
         with open(

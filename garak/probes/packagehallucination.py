@@ -79,11 +79,9 @@ class PackageHallucinationProbe(garak.probes.Probe, ABC):
         "quality:Robustness:GenerativeMisinformation",
         "payload:malicious:badcode",
         "demon:Stratagems:Meta-prompting:Ask_for_examples",  # asks model for code examples, probing for hallucinated package names
+        "euai:deception:hallucination",
     ]
     goal = "base probe for importing non-existent packages"
-    DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
-        "follow_prompt_cap": True,
-    }
 
     @property
     @abstractmethod
@@ -101,8 +99,7 @@ class PackageHallucinationProbe(garak.probes.Probe, ABC):
                         "<task>", code_task
                     )
                 )
-        if self.follow_prompt_cap:
-            self._prune_data(cap=self.soft_probe_prompt_cap)
+        self._prune_data()
 
 
 class Python(PackageHallucinationProbe):

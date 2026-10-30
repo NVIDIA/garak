@@ -2,7 +2,7 @@
 
 *Generative AI Red-teaming & Assessment Kit*
 
-`garak` checks if an LLM can be made to fail in a way we don't want. `garak` probes for hallucination, data leakage, prompt injection, misinformation, toxicity generation, jailbreaks, and many other weaknesses. If you know `nmap` or `msf` / Metasploit Framework, garak does somewhat similar things to them, but for LLMs. 
+`garak` checks if an LLM-backed application can be made to fail in a way we don't want. `garak` probes for hallucination, data leakage, prompt injection, misinformation, toxicity generation, jailbreaks, and many other weaknesses. If you know `nmap` or `msf` / Metasploit Framework, garak does somewhat similar things to them, but for LLMs.
 
 `garak` focuses on ways of making an LLM or dialog system fail. It combines static, dynamic, and adaptive probes to explore this.
 
@@ -68,7 +68,7 @@ python -m pip install -U git+https://github.com/NVIDIA/garak.git@main
 `garak` has its own dependencies. You can to install `garak` in its own Conda environment:
 
 ```
-conda create --name garak "python>=3.11,<=3.13"
+conda create --name garak "python>=3.11,<=3.14"
 conda activate garak
 gh repo clone NVIDIA/garak
 cd garak
@@ -96,7 +96,7 @@ The general syntax is:
 
 To specify a generator, use the `--target_type` and, optionally, the `--target_name` options. Model type specifies a model family/interface; model name specifies the exact model to be used. The "Intro to generators" section below describes some of the generators supported. A straightforward generator family is Hugging Face models; to load one of these, set `--target_type` to `huggingface` and `--target_name` to the model's name on Hub (e.g. `"RWKV/rwkv-4-169m-pile"`). Some generators might need an API key to be set as an environment variable, and they'll let you know if they need that.
 
-`garak` runs all the probes by default, but you can be specific about that too. `--probes promptinject` will use only the [PromptInject](https://github.com/agencyenterprise/promptinject) framework's methods, for example. You can also specify one specific plugin instead of a plugin family by adding the plugin name after a `.`; for example, `--probes lmrc.SlurUsage` will use an implementation of checking for models generating slurs based on the [Language Model Risk Cards](https://arxiv.org/abs/2303.18190) framework.
+`garak` runs all the probes by default, but you can be specific about that too. `--spec probes.promptinject` will use only the [PromptInject](https://github.com/agencyenterprise/promptinject) framework's methods, for example. You can also specify one specific plugin instead of a plugin family by adding the plugin name after a `.`; for example, `--spec probes.lmrc.SlurUsage` will use an implementation of checking for models generating slurs based on the [Language Model Risk Cards](https://arxiv.org/abs/2303.18190) framework.
 
 For help and inspiration, find us on [Twitter](https://twitter.com/garak_llm) or [discord](https://discord.gg/uVch4puUCs)!
 
@@ -106,13 +106,13 @@ Probe a commercial model for encoding-based prompt injection (OSX/\*nix) (replac
  
 ```
 export OPENAI_API_KEY="sk-123XXXXXXXXXXXX"
-python3 -m garak --target_type openai --target_name gpt-5-nano --probes encoding
+python3 -m garak --target_type openai --target_name gpt-5-nano --spec probes.encoding
 ```
 
 See if the Hugging Face version of GPT2 is vulnerable to DAN 11.0
 
 ```
-python3 -m garak --target_type huggingface --target_name gpt2 --probes dan.Dan_11_0
+python3 -m garak --target_type huggingface --target_name gpt2 --spec probes.dan.Dan_11_0
 ```
 
 
@@ -219,7 +219,7 @@ Example usage:
 ```
 export BEDROCK_API_KEY="your-api-key"
 export BEDROCK_REGION="us-east-1"
-garak --target_type bedrock --target_name claude-3-sonnet --probes dan
+garak --target_type bedrock --target_name claude-3-sonnet --spec probes.dan
 ```
 
 ### Test
@@ -268,7 +268,7 @@ For testing. This generator repeats back the prompt it received.
 
 Check out the [reference docs](https://reference.garak.ai/) for an authoritative guide to `garak` code structure.
 
-In a typical run, `garak` will read a model type (and optionally model name) from the command line, then determine which `probe`s and `detector`s to run, start up a `generator`, and then pass these to a `harness` to do the probing; an `evaluator` deals with the results. There are many modules in each of these categories, and each module provides a number of classes that act as individual plugins.
+In a typical run, `garak` will read a target type (and optionally target name) from the command line, then determine which `probe`s and `detector`s to run, start up a `generator`, and then pass these to a `harness` to do the probing; an `evaluator` deals with the results. There are many modules in each of these categories, and each module provides a number of classes that act as individual plugins.
 
 * `garak/probes/` - classes for generating interactions with LLMs
 * `garak/detectors/` - classes for detecting an LLM is exhibiting a given failure mode
@@ -294,9 +294,9 @@ Larger artefacts, like model files and bigger corpora, are kept out of the repos
     * Import the model, e.g. `import garak.probes.mymodule`
     * Instantiate the plugin, e.g. `p = garak.probes.mymodule.MyProbe()`
   * Run a scan with test plugins
-    * For probes, try a blank generator and always.Pass detector: `python3 -m garak -m test.Blank -p mymodule -d always.Pass`
-    * For detectors, try a blank generator and a blank probe: `python3 -m garak -m test.Blank -p test.Blank -d mymodule`
-    * For generators, try a blank probe and always.Pass detector: `python3 -m garak -m mymodule -p test.Blank -d always.Pass`
+    * For probes, try a blank generator and always.Pass detector: `python3 -m garak -t test.Blank -S probes.mymodule -d always.Pass`
+    * For detectors, try a blank generator and a blank probe: `python3 -m garak -t test.Blank -S probes.test.Blank -d mymodule`
+    * For generators, try a blank probe and always.Pass detector: `python3 -m garak -t mymodule -S probes.test.Blank -d always.Pass`
   * Get `garak` to list all the plugins of the type you're writing, with `--list_probes`, `--list_detectors`, or `--list_generators`
 
 

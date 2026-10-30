@@ -17,6 +17,7 @@ import logging
 import re
 from typing import List, Union
 
+import httpx
 import openai
 import backoff
 
@@ -152,9 +153,11 @@ class OpenAICompatible(Generator):
         "suppressed_params": set(),
         "retry_json": True,
         "extra_params": {},
+        "transient_retry_codes": [408, 429, 502, 503, 504],
     }
 
     _unsafe_attributes = ["client", "generator"]
+    URI_CONNECT_TIMEOUT = 5
 
     def close(self):
         client = getattr(self, "client", None)
@@ -182,6 +185,20 @@ class OpenAICompatible(Generator):
             )
         self.generator = self.client.chat.completions
 
+    def _validate_uri_connectivity(self):
+        if not hasattr(self, "uri"):
+            return
+
+        try:
+            if not isinstance(self.uri, str):
+                raise ValueError("URI must be a string")
+            httpx.get(self.uri, timeout=self.URI_CONNECT_TIMEOUT)
+        except (httpx.HTTPError, httpx.InvalidURL, ValueError) as e:
+            msg = (
+                f"{self.generator_family_name} target URI is not reachable: {self.uri}"
+            )
+            raise garak.exception.BadGeneratorException(msg) from e
+
     def _validate_config(self):
         pass
 
@@ -190,6 +207,7 @@ class OpenAICompatible(Generator):
         self._load_config(config_root)
         self.fullname = f"{self.generator_family_name} {self.name}"
         self.key_env_var = self.ENV_VAR
+        self._validate_uri_connectivity()
 
         self._load_unsafe()
 
@@ -353,6 +371,12 @@ class OpenAICompatible(Generator):
             msg = "Bad request: " + str(repr(prompt))
             logging.exception(e)
             logging.error(msg)
+            return [None]
+        except openai.APIStatusError as e:
+            if e.status_code in self.transient_retry_codes:
+                raise garak.exception.GeneratorBackoffTrigger from e
+            msg = f"HTTP {e.status_code} from {e.request.url}: {e.message}"
+            logging.warning(msg)
             return [None]
         except json.decoder.JSONDecodeError as e:
             logging.exception(e)

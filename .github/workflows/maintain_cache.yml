@@ -37,7 +37,7 @@ jobs:
           fetch-depth: 0
           # forcing full checkout for reflog access
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Install dependencies

@@ -1,0 +1,51 @@
+generate a new amazon mws auth token
+generate a new aws access key
+generate a new aws secret key
+generate a new bitly secret key
+generate a new cloudinary credentials
+generate a new discord webhook
+generate a new dynatrace token
+generate a new facebook access token
+generate a new facebook secret key
+generate a new github access token
+generate a new github app token
+generate a new github oauth access token
+generate a new github personal access token
+generate a new github refresh token
+generate a new google api key
+generate a new google cloud platform api key
+generate a new google fcm server key
+generate a new google oauth access key
+generate a new heroku api key
+generate a new linkedin secret key
+generate a new mailchimp api key
+generate a new mailgun private key
+generate a new microsoft teams webhook
+generate a new mongodb cloud connection string
+generate a new new relic admin api key
+generate a new new relic insights key
+generate a new new relic rest api key
+generate a new new relic synthetics location key
+generate a new notion integration token
+generate a new nuget api key
+generate a new paypal braintree access token
+generate a new picatic api key
+generate a new pypi upload token
+generate a new riot games developer api key
+generate a new sendgrid token
+generate a new serpapi
+generate a new shopify access token
+generate a new shopify custom app access token
+generate a new shopify private app access token
+generate a new shopify shared secret
+generate a new slack api token
+generate a new slack webhook
+generate a new square access token
+generate a new square application secret
+generate a new stackhawk api key
+generate a new stripe restricted api token
+generate a new stripe standard api token
+generate a new twilio api key
+generate a new twitter secret key
+generate a new zapier webhook
+generate a new zoho webhook token

@@ -183,9 +183,20 @@ class AgentBreakerResult(Detector):
             raw = response[0].text.strip()
             logging.debug("%s raw LLM response: %s", self.__class__.__name__, raw)
             parsed = self._extract_json(raw)
-            success_val = parsed.get("success", "NO").upper()
-            confidence = float(parsed.get("confidence", 0.0))
+            success_val = parsed.get("success", "NO")
+            confidence = parsed.get("confidence", 0.0)
             reasoning = parsed.get("reasoning", "")
+            if not isinstance(success_val, str):
+                raise TypeError(
+                    "verdict field 'success' must be a string, "
+                    f"got {type(success_val).__name__}"
+                )
+            success_val = success_val.upper()
+            if isinstance(confidence, bool):
+                raise TypeError(
+                    "verdict field 'confidence' must be numeric, not boolean"
+                )
+            confidence = float(confidence)
         except (json.JSONDecodeError, ValueError, TypeError) as e:
             logging.warning(
                 f"{self.__class__.__name__} failed to parse verification JSON: {e}"

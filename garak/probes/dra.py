@@ -108,7 +108,6 @@ class DRA(garak.probes.Probe):
         "toxic_trunc": 0.5,
         "benign_trunc": 0.5,
         "benign_full_token_prob": 0.33,
-        "follow_prompt_cap": True,
     }
 
     def __init__(self, config_root=_config):
@@ -149,6 +148,7 @@ class DRA(garak.probes.Probe):
 
         # Generate prompts for each behavior in the dataset
         self.prompts = self._generate_prompts()
+        self._prune_data()
 
     def _prefix_gen(self, question) -> str:
         """Implements the prefix generation logic for a puzzle-based obfuscation."""
@@ -255,11 +255,6 @@ class DRA(garak.probes.Probe):
                 prompt = prefix + suffix
                 prompts.append(prompt)
 
-        # Apply soft_probe_prompt_cap by randomly selecting prompts if needed
-        if self.follow_prompt_cap and self.soft_probe_prompt_cap is not None:
-            if len(prompts) > self.soft_probe_prompt_cap:
-                prompts = random.sample(prompts, self.soft_probe_prompt_cap)
-
         logging.info(
             f"DRA probe generated {len(prompts)} prompts using "
             f"{len(self.all_templates)} templates"
@@ -335,11 +330,6 @@ class DRAAdvanced(DRA):
             # Concatenate prefix + suffix
             prompt = prefix + suffix
             prompts.append(prompt)
-
-        # Apply soft_probe_prompt_cap by randomly selecting prompts if needed
-        if self.follow_prompt_cap and self.soft_probe_prompt_cap is not None:
-            if len(prompts) > self.soft_probe_prompt_cap:
-                prompts = random.sample(prompts, self.soft_probe_prompt_cap)
 
         logging.info(
             f"DRAAdvanced probe generated {len(prompts)} prompts using "

@@ -651,3 +651,73 @@ class TestContractGrounding:
         result = detector.detect(attempt)
         assert result == [1.0, 0.0]
         detector.evaluation_generator.generate.assert_not_called()
+
+
+class TestMalformedVerdictValues:
+    """A judge verdict whose values have the wrong JSON types is unparseable."""
+
+    @pytest.mark.parametrize(
+        "bad_success", [True, False, None, 1, ["YES"], {"verdict": "YES"}]
+    )
+    def test_non_string_success_is_unknown_not_crash(self, detector, bad_success):
+        """A non-string success verdict scores unknown instead of raising."""
+        resp = _mock_verify_response(success=bad_success)
+        detector.evaluation_generator.generate.return_value = [resp]
+        result = detector.verify(
+            output_text="out",
+            target_tool="bash",
+            vulnerability_info="vi",
+            attack_prompt="ap",
+        )
+        assert (
+            result is None
+        ), "a malformed success value must score as unknown, never crash the scan"
+
+    def test_malformed_success_consumes_retry_then_uses_next_verdict(self, detector):
+        """verify() retries past a malformed verdict and accepts a later valid one."""
+        malformed = _mock_verify_response(success=True)
+        valid = _mock_verify_response(success="YES")
+        detector.evaluation_generator.generate.side_effect = [[malformed], [valid]]
+        result = detector.verify(
+            output_text="out",
+            target_tool="bash",
+            vulnerability_info="vi",
+            attack_prompt="ap",
+        )
+        assert result == (
+            True,
+            0.9,
+            "exploited",
+        ), "a retry after a malformed verdict should return the next usable verdict"
+        assert detector.evaluation_generator.generate.call_count == 2
+
+    @pytest.mark.parametrize("lowercase_success", ["yes", "partial"])
+    def test_lowercase_success_verdict_still_scores_as_success(
+        self, detector, lowercase_success
+    ):
+        """Case variants of YES/PARTIAL keep scoring as success, as before."""
+        resp = _mock_verify_response(success=lowercase_success)
+        detector.evaluation_generator.generate.return_value = [resp]
+        result = detector.verify(
+            output_text="out",
+            target_tool="bash",
+            vulnerability_info="vi",
+            attack_prompt="ap",
+        )
+        assert (
+            result is not None and result[0] is True
+        ), "a lowercase verdict must still be case-normalized to a success"
+
+    def test_boolean_confidence_is_rejected(self, detector):
+        """A boolean confidence would silently become 1.0 via float(), inflating ASR."""
+        resp = _mock_verify_response(success="YES", confidence=True)
+        detector.evaluation_generator.generate.return_value = [resp]
+        result = detector.verify(
+            output_text="out",
+            target_tool="bash",
+            vulnerability_info="vi",
+            attack_prompt="ap",
+        )
+        assert (
+            result is None
+        ), "a boolean confidence must be treated as unparseable, not as 1.0"
