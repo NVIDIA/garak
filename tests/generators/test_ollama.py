@@ -15,7 +15,7 @@ OLLAMA_SERVER_UP = False
 
 try:
     import ollama
-except:
+except ImportError:
     pytest.skip(
         "couldn't import ollama, skipping ollama tests", allow_module_level=True
     )
