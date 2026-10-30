@@ -137,6 +137,7 @@ NON_CONVERSATION_GENERATORS = [
     if not (
         "openai" in classname
         or "groq" in classname
+        or "orcarouter" in classname
         or "azure" in classname
         or "NeMoGuardrailsServer" in classname
     )
