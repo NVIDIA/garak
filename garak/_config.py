@@ -76,6 +76,10 @@ class TransientConfig(GarakSubConfig):
     starttime = None
     starttime_iso = None
 
+    # rate-limit accounting, filled in by generator backoff handlers
+    ratelimit_retries = 0
+    ratelimit_wait_seconds = 0.0
+
     # initialize the user home and cache paths if they do not exist
     config_dir.mkdir(mode=0o740, parents=True, exist_ok=True)
     data_dir.mkdir(mode=0o740, parents=True, exist_ok=True)
