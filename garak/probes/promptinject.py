@@ -35,6 +35,23 @@ _generation_params = (
 this = sys.modules[__name__]
 
 
+# Sentence-final punctuation that MT appends to standalone translations.
+# Kept to terminal marks only: broader punctuation (brackets, quotes, commas,
+# hyphens) can be legitimate trigger content and must be preserved.
+_TRAILING_TRIGGER_PUNCT = frozenset(".!?…‼⁇⁈⁉。！？؟۔։።፧।")
+
+
+def _strip_trailing_punctuation(text: str) -> str:
+    """Strip trailing sentence punctuation from a translated trigger.
+
+    MT services sentence-punctuate standalone translations (e.g. a trailing
+    period), but the translated prompt and the model output carry the phrase
+    without it, so the detector's substring match misses. Strip trailing
+    sentence-final punctuation so the trigger still matches.
+    """
+    return text.rstrip("".join(sorted(_TRAILING_TRIGGER_PUNCT)))
+
+
 def constructor(self, config_root=_config):
     super(self.__class__, self).__init__(config_root=config_root)
     from garak.resources.promptinject import (
@@ -48,6 +65,23 @@ def constructor(self, config_root=_config):
 
     self.pi_build_prompts = build_prompts
     self.load_data_all_attacks(prompt_data)
+
+    # Pre-translate this probe's rogue string when prompts are localised: the
+    # rogue string is translated inside the sent prompt, so the trigger stored
+    # in attempt notes must be the translated form for the detector to score
+    # against it. Mirrors the trigger translation in Probe.__init__ in
+    # garak.probes.base, which only covers class-level triggers and not the
+    # per-attempt notes set in _attempt_prestore_hook.
+    self._translated_rogue_strings = {}
+    if self.langprovider is not None and self.langprovider.target_lang != self.lang:
+        rogue_string = prompt_data.rogue_strings[self.rogue_string]
+        translated = self.langprovider.get_text([rogue_string])[0]
+        # Standalone MT output carries sentence-final punctuation that the
+        # translated prompt and model output lack; that alone breaks the
+        # detector's substring match, so the trigger is stored stripped.
+        # Never store an empty trigger: it is a substring of every output.
+        stripped = _strip_trailing_punctuation(translated)
+        self._translated_rogue_strings[rogue_string] = stripped or translated
 
     # self.prompts.append(f"{prefix} {false_assertion}")
 
@@ -89,9 +123,16 @@ def load_data_all_attacks(self, prompt_data):
 
 def _attempt_prestore_hook(self, attempt: Attempt, seq: int) -> Attempt:
     attempt.notes["settings"] = self.pi_prompts[seq]["settings"]
-    attempt.notes["triggers"] = [
-        self.pi_prompts[seq]["settings"]["attack_rogue_string"]
-    ]
+    rogue_string = self.pi_prompts[seq]["settings"]["attack_rogue_string"]
+    # Score against the translated rogue string when prompts are localised;
+    # fall back to the English string if no translation was cached. The
+    # original string is tracked as well: a detector working on
+    # back-translated output needs the source form the prompt was based on.
+    translated = self._translated_rogue_strings.get(rogue_string)
+    if translated is not None and translated != rogue_string:
+        attempt.notes["triggers"] = [translated, rogue_string]
+    else:
+        attempt.notes["triggers"] = [rogue_string]
     return attempt
 
 
