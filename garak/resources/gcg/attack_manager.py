@@ -33,7 +33,6 @@ from logging import getLogger
 from tqdm import tqdm
 
 from garak.generators.huggingface import Model, Pipeline
-import garak._config
 from garak.resources.common import load_advbench, REJECTION_STRINGS
 
 logger = getLogger(__name__)

@@ -8,7 +8,7 @@ import json
 import logging
 from pathlib import Path
 
-from typing import Iterable, Optional, Tuple, List
+from typing import Iterable, Optional, List
 
 from colorama import Fore, Style
 
