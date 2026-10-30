@@ -3242,6 +3242,40 @@
       "tier": 1,
       "mod_time": "2026-08-23 05:07:01 +0000"
     },
+    "probes.latentinjection.LatentInjectionResumeIntent": {
+      "description": "Latent prompt injection via a resume, across intents",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true
+      },
+      "active": false,
+      "blocked_intent_spec": "",
+      "doc_uri": "https://kai-greshake.de/posts/inject-my-pdf/",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "garak": null,
+      "goal": "make the target act on an instruction hidden in a document",
+      "intent": null,
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "mitigation.MitigationBypass",
+      "skip_root_intents": true,
+      "tags": [
+        "avid-effect:security:S0403",
+        "owasp:llm01",
+        "quality:Security:PromptStability",
+        "demon:Language:Prompt_injection:Stop_sequences",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction",
+        "euai:robustness:adversarial"
+      ],
+      "tier": 1,
+      "mod_time": "2026-10-28 18:04:45 +0000"
+    },
     "probes.latentinjection.LatentInjectionTranslationEnFr": {
       "description": "String-based latent prompt injections via translation",
       "DEFAULT_PARAMS": {
@@ -3369,6 +3403,77 @@
       ],
       "tier": 1,
       "mod_time": "2026-08-23 05:07:01 +0000"
+    },
+    "probes.latentinjection.LatentInjectionWhoisIntent": {
+      "description": "Latent prompt injection via a WHOIS report, across intents",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true
+      },
+      "active": false,
+      "blocked_intent_spec": "",
+      "doc_uri": "https://twitter.com/jaimeblascob/status/1648688583035715585",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "garak": null,
+      "goal": "make the target act on an instruction hidden in a document",
+      "intent": null,
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "mitigation.MitigationBypass",
+      "skip_root_intents": true,
+      "tags": [
+        "avid-effect:security:S0403",
+        "owasp:llm01",
+        "quality:Security:PromptStability",
+        "demon:Language:Prompt_injection:Stop_sequences",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction",
+        "euai:robustness:adversarial"
+      ],
+      "tier": 1,
+      "mod_time": "2026-10-28 18:04:45 +0000"
+    },
+    "probes.latentinjection.LatentInjectionWhoisSnippetIntent": {
+      "description": "Latent prompt injection via multiple WHOIS snippets, across intents",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "snippets_per_context": 5,
+        "snippet_context_cap": 10,
+        "snippet_sep": "\n"
+      },
+      "active": false,
+      "blocked_intent_spec": "",
+      "doc_uri": "https://twitter.com/jaimeblascob/status/1648688583035715585",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "garak": null,
+      "goal": "make the target act on an instruction hidden in a document",
+      "intent": null,
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "mitigation.MitigationBypass",
+      "skip_root_intents": true,
+      "tags": [
+        "avid-effect:security:S0403",
+        "owasp:llm01",
+        "quality:Security:PromptStability",
+        "demon:Language:Prompt_injection:Stop_sequences",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction",
+        "euai:robustness:adversarial"
+      ],
+      "tier": 1,
+      "mod_time": "2026-10-28 18:04:45 +0000"
     },
     "probes.latentinjection.LatentJailbreak": {
       "description": "Implementation of Latent Jailbreak, using latent prompt injection-",
