@@ -190,11 +190,19 @@ def digest_to_tbsa(digest: dict, verbose=False, quiet=False) -> Tuple[float, str
             )
         if verbose:
             print("(results in tier 2 only)")
-        return statistics.harmonic_mean(t2_dc), pdver_hash_hex, pd_count
+        return (
+            round_final_tbsa(statistics.harmonic_mean(t2_dc)),
+            pdver_hash_hex,
+            pd_count,
+        )
     elif t2_dc == []:
         if verbose:
             print("(results in tier 1 only)")
-        return statistics.harmonic_mean(t1_dc), pdver_hash_hex, pd_count
+        return (
+            round_final_tbsa(statistics.harmonic_mean(t1_dc)),
+            pdver_hash_hex,
+            pd_count,
+        )
 
     try:
         # first_quartiles = [statistics.quantiles(t1_dc)[0], statistics.quantiles(t1_dc)[1]]
