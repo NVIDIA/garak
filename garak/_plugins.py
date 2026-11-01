@@ -375,11 +375,23 @@ class PluginProvider:
 
     @staticmethod
     def storeInstance(plugin, config_root):
-        klass_instances = PluginProvider._instance_cache.get(plugin.__class__, None)
-        if klass_instances is None:
-            klass_instances = {}
-            PluginProvider._instance_cache[plugin.__class__] = klass_instances
-        klass_instances[str(config_root)] = plugin
+        """Store a plugin instance, keeping the first instance for a key.
+
+        ``load_plugin`` constructs plugins outside the provider lock (constructors
+        may load other plugins), so two racing loaders can both construct an
+        instance for one (class, config_root) pair. The first instance stored
+        wins; a late store returns the already-cached instance so every caller
+        converges on one object instead of holding duplicates.
+        """
+        with PluginProvider._mutex:
+            klass_instances = PluginProvider._instance_cache.setdefault(
+                plugin.__class__, {}
+            )
+            cached = klass_instances.get(str(config_root))
+            if cached is not None:
+                return cached
+            klass_instances[str(config_root)] = plugin
+            return plugin
 
 
 def plugin_info(plugin: Union[Callable, str]) -> dict:
@@ -491,8 +503,11 @@ def load_plugin(path, break_on_fail=True, config_root=_config) -> object:
             )
         plugin_instance = PluginProvider.getInstance(klass, config_root)
         if plugin_instance is None:
-            plugin_instance = klass(config_root=config_root)
-            PluginProvider.storeInstance(plugin_instance, config_root)
+            # Construct outside the lock (constructors may load other plugins),
+            # then keep whichever instance won the store race.
+            plugin_instance = PluginProvider.storeInstance(
+                klass(config_root=config_root), config_root
+            )
 
     except Exception as e:
         logging.warning(
