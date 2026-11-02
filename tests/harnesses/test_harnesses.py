@@ -8,8 +8,10 @@ import pytest
 
 from garak import _plugins, _config
 
+import garak.attempt
 import garak.buffs.base
 import garak.harnesses.base
+from garak.services import intentservice
 
 HARNESSES = [
     classname for (classname, active) in _plugins.enumerate_plugins("harnesses")
@@ -179,3 +181,64 @@ def test_harness_accepts_a_generator_returning_probe(mocker, monkeypatch):
         "always.Pass",
         "always.Fail",
     }, "every detector must see the attempts, not only the first"
+
+
+def test_harness_intent_probe_keeps_detectors_for_next_probe(mocker, monkeypatch):
+    """An IntentProbe must not replace the run's detector list, so a probe
+    queued after it is still scored with detector objects (#2391)."""
+    mocker.patch("garak.harnesses.base._initialize_runtime_services")
+    monkeypatch.setattr(
+        _config.buffmanager,
+        "buffs",
+        [garak.buffs.base.Buff()],
+    )
+
+    _config.load_config()
+    _config.run.generations = 1
+    _config.transient.intent_spec = "M010"
+    _config.run.serve_detectorless_intents = False
+    temp_report_file = tempfile.NamedTemporaryFile(
+        mode="w+", suffix=".report.jsonl", delete=False
+    )
+    _config.transient.report_filename = temp_report_file.name
+    _config.transient.reportfile = open(
+        _config.transient.report_filename, "w", buffering=1, encoding="utf-8"
+    )
+
+    intentservice.load()
+
+    harness = garak.harnesses.base.Harness()
+    model = _plugins.load_plugin("generators.test.Blank")
+    intent_probe = _plugins.load_plugin("probes.grandma.GrandmaIntent")
+
+    def _intent_attempt(generator):
+        attempt = garak.attempt.Attempt(
+            prompt=garak.attempt.Message(text="probe prompt", lang="*"),
+            intent="M010",
+            seq=0,
+        )
+        attempt.probe_classname = "grandma.GrandmaIntent"
+        attempt.outputs = [
+            garak.attempt.Message(text="model response", lang="*")
+        ]
+        return [attempt]
+
+    monkeypatch.setattr(intent_probe, "probe", _intent_attempt)
+    second_probe = _plugins.load_plugin("probes.test.Blank")
+    detector = _plugins.load_plugin("detectors.always.Pass")
+    detectors = [detector]
+    evaluator = mocker.Mock()
+
+    harness.run(model, [intent_probe, second_probe], detectors, evaluator)
+
+    assert detectors == [detector], (
+        "the run's detector list must still hold detector objects after "
+        "an IntentProbe, not intent detector name strings"
+    )
+    assert evaluator.evaluate.call_count == 2, (
+        "both queued probes must reach the evaluator"
+    )
+    second_results = evaluator.evaluate.call_args_list[1].args[0]
+    assert all(
+        "always.Pass" in attempt.detector_results for attempt in second_results
+    ), "the probe after an IntentProbe must still be scored by the run's detectors"
