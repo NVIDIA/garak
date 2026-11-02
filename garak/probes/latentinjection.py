@@ -135,7 +135,12 @@ class TranslationMixin:
             instruction.replace("{LANG_EN_NAME}", self.target_lang_name_en)
             for instruction in self.base_instructions
         ]
-        self.payload_triggers += garak.payloads.load(self.payload_name).payloads
+        # Assign a fresh list: payload_triggers is a class attribute, so `+=` would
+        # extend the list shared with every other translation probe and accumulate
+        # payloads across probe loads (#2325).
+        self.payload_triggers = (
+            self.payload_triggers + garak.payloads.load(self.payload_name).payloads
+        )
         self._build_prompts_triggers(cap=self.soft_probe_prompt_cap)
 
 

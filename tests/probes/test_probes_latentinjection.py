@@ -147,3 +147,38 @@ def test_fact_snippet_build():
         assert (
             garak.probes.latentinjection.INJECTION_MARKER in context
         ), "Missing injection marker in %s" % repr(context)
+
+
+def test_translation_payloads_do_not_leak_across_probes():
+    """Each translation probe must use only its own payloads, whatever loaded before it.
+
+    payload_triggers is a class attribute; extending it in place accumulated every
+    previously loaded probe's payloads, so EnZh run after EnFr sent French
+    payloads (#2325)."""
+    from garak import _config
+
+    _config.load_base_config()
+    _plugins.load_plugin("probes.latentinjection.LatentInjectionTranslationEnFr")
+    zh = _plugins.load_plugin("probes.latentinjection.LatentInjectionTranslationEnZh")
+    chinese = garak.payloads.load("rude_chinese").payloads
+    assert set(zh.payload_triggers) == set(["Haha pwned!", *chinese]), (
+        "EnZh triggers must be exactly the default plus its own payloads,"
+        " with no payloads leaked from an earlier probe"
+    )
+
+
+def test_translation_probe_prompts_stay_distinct_on_reload():
+    """Re-instantiating a probe must not duplicate its prompts.
+
+    The shared class-attribute list grew on every load, so the Full variants
+    built repeated prompts (#2325)."""
+    from garak import _config
+
+    _config.load_base_config()
+    # instantiate directly: load_plugin caches instances, and the shared class
+    # attribute must not grow even across fresh instances
+    garak.probes.latentinjection.LatentInjectionTranslationEnZhFull()
+    probe = garak.probes.latentinjection.LatentInjectionTranslationEnZhFull()
+    assert len(probe.prompts) == len(
+        set(probe.prompts)
+    ), "reloading probes must not duplicate prompts"
