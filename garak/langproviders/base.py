@@ -183,7 +183,23 @@ class LangProvider(Configurable):
         return translated_lines
 
     def _long_sentence_translate(self, line: str) -> list:
-        return self._short_sentence_translate(line)
+        parts = re.split(r"([.!?]\s+)", line)
+        translated_parts = []
+        for i in range(0, len(parts), 2):
+            sentence = parts[i]
+            sep = parts[i + 1] if i + 1 < len(parts) else ""
+            if self._should_skip_line(sentence):
+                translated_parts.append(sentence + sep)
+                continue
+            cleaned_sentence = self._clean_line(sentence)
+            if cleaned_sentence:
+                translated_sentence = self._translate(cleaned_sentence)
+                leading_ws = sentence[: len(sentence) - len(sentence.lstrip())]
+                translated_parts.append(leading_ws + translated_sentence + sep)
+            else:
+                translated_parts.append(sentence + sep)
+
+        return ["".join(translated_parts)]
 
     def _should_skip_line(self, line: str) -> bool:
         return (
