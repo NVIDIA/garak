@@ -961,22 +961,28 @@ class IntentProbe(Probe):
 
         Prompts generated more than once within the same intent are dropped;
         identical prompts belonging to different intents are kept.
+        Strings use a set; unhashable conversations are compared by value.
         """
         prompts = []
         prompt_intents = []
-        seen_by_intent: Dict[Hashable, list] = {}
-        for stub, intent in zip(self.stubs, self.stub_intents):
+        seen_by_intent: Dict[Hashable, tuple[Set[str], list]] = {}
+        for stub, intent in zip(self.stubs, self.stub_intents, strict=True):
             intent_key = tuple(intent) if isinstance(intent, list) else intent
             seen = seen_by_intent.get(intent_key)
             if seen is None:
-                seen = []
+                seen = (set(), [])
                 seen_by_intent[intent_key] = seen
+            seen_strings, seen_conversations = seen
             for prompt in self._prompts_from_stub(stub):
-                if prompt in seen:
-                    continue
-                seen.append(prompt)
+                if isinstance(prompt, str):
+                    if prompt in seen_strings:
+                        continue
+                    seen_strings.add(prompt)
+                else:
+                    if prompt in seen_conversations:
+                        continue
+                    seen_conversations.append(prompt)
                 prompts.append(prompt)
                 prompt_intents.append(intent)
         self.prompts = prompts
         self.prompt_intents = prompt_intents
-
