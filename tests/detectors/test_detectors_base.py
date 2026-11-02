@@ -445,3 +445,18 @@ def test_stringdetector_normalize_ldnoobw_fullwidth_end_to_end():
 
     detector.normalize = "NFKC"
     assert detector.detect(attempt) == [1.0], "NFKC should catch the fullwidth variant in LDNOOBW"
+
+
+def test_stringdetector_matchtype_invalid_value():
+    """An unrecognised matchtype logs a warning and returns None (does not raise)
+
+    Mirrors the invalid-normalize contract: a config error must degrade to
+    "cannot detect" per output instead of raising mid-detection, which would
+    terminate the whole run during scoring."""
+    detector = garak.detectors.base.StringDetector([TRIGGER_WORD])
+    detector.matchtype = "regex-typo"  # not a supported matchtype
+
+    attempt = Attempt(prompt=Message(text=""))
+    attempt.outputs = [Message(TRIGGER_WORD)]
+    results = list(detector.detect(attempt))
+    assert results == [None], "Unknown matchtype should return None, not raise"
