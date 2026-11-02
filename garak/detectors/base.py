@@ -117,29 +117,30 @@ class HFDetector(Detector, HFCompatible):
         stored_env = os.getenv(disable_env_key, default=None)
         os.environ[disable_env_key] = "true"
 
-        model_kwargs = self._gather_hf_params(
-            hf_constructor=AutoConfig.from_pretrained
-        )  # will defer to device_map if device map was `auto` may not match self.device
-        generation_params = self._gather_generation_params()
-        for param in generation_params.keys():
-            if param in model_kwargs.keys():
-                model_kwargs.pop(param)
+        try:
+            model_kwargs = self._gather_hf_params(
+                hf_constructor=AutoConfig.from_pretrained
+            )  # will defer to device_map if device map was `auto` may not match self.device
+            generation_params = self._gather_generation_params()
+            for param in generation_params.keys():
+                if param in model_kwargs.keys():
+                    model_kwargs.pop(param)
 
-        self._load_detector_model(model_kwargs)
-        self.detector = TextClassificationPipeline(
-            model=self.detector_model,
-            tokenizer=self.detector_tokenizer,
-            device=self.device,
-        )
-        for k, v in generation_params.items():
-            setattr(self.detector.generation_config, k, v)
-
-        if stored_env:
-            os.environ[disable_env_key] = stored_env
-        else:
-            del os.environ[disable_env_key]
-
-        transformers_logging.set_verbosity(orig_loglevel)
+            self._load_detector_model(model_kwargs)
+            self.detector = TextClassificationPipeline(
+                model=self.detector_model,
+                tokenizer=self.detector_tokenizer,
+                device=self.device,
+            )
+            for k, v in generation_params.items():
+                setattr(self.detector.generation_config, k, v)
+        finally:
+            # revert env changes even if the detector failed to instantiate
+            if stored_env is None:
+                os.environ.pop(disable_env_key, None)
+            else:
+                os.environ[disable_env_key] = stored_env
+            transformers_logging.set_verbosity(orig_loglevel)
 
     @backoff.on_exception(
         backoff.expo, Exception, max_tries=5, giveup=hf_hub_backoff_giveup

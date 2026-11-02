@@ -9,6 +9,7 @@ retry behaviour of `HFDetector._load_detector_model`. All network access is
 mocked; no model is downloaded.
 """
 
+import os
 from types import SimpleNamespace
 
 import pytest
@@ -22,9 +23,7 @@ def _hub_error(status_code):
 
     return HfHubHTTPError(
         f"{status_code} Server Error for url: https://huggingface.co/api/models/x",
-        response=SimpleNamespace(
-            headers={}, request=None, status_code=status_code
-        ),
+        response=SimpleNamespace(headers={}, request=None, status_code=status_code),
     )
 
 
@@ -75,17 +74,13 @@ def _detector_stub():
 def _patch_transformers(monkeypatch, config_fake, model_fake, tokenizer_fake):
     import transformers
 
-    monkeypatch.setattr(
-        transformers.AutoConfig, "from_pretrained", config_fake
-    )
+    monkeypatch.setattr(transformers.AutoConfig, "from_pretrained", config_fake)
     monkeypatch.setattr(
         transformers.AutoModelForSequenceClassification,
         "from_pretrained",
         model_fake,
     )
-    monkeypatch.setattr(
-        transformers.AutoTokenizer, "from_pretrained", tokenizer_fake
-    )
+    monkeypatch.setattr(transformers.AutoTokenizer, "from_pretrained", tokenizer_fake)
     monkeypatch.setattr("time.sleep", lambda seconds: None)
 
 
@@ -151,3 +146,65 @@ def test_load_gives_up_after_max_tries_on_persistent_503(monkeypatch):
     with pytest.raises(OSError):
         _detector_stub()._load_detector_model({})
     assert calls["config"] == 5, "persistent 503 must exhaust bounded retries"
+
+
+_SAFETENSORS_ENV_KEY = "DISABLE_SAFETENSORS_CONVERSION"
+
+
+class _StubHFDetector(HFDetector):
+    """Stub HF detector; model fetch is mocked out per test"""
+
+    detector_model_path = "some-org/some-model"
+
+
+def _patch_failing_init(monkeypatch):
+    import transformers
+
+    def failing_load(path, **kwargs):
+        raise ValueError("bad config")
+
+    _patch_transformers(
+        monkeypatch,
+        failing_load,
+        lambda path, **kwargs: SimpleNamespace(),
+        lambda path, **kwargs: SimpleNamespace(),
+    )
+    monkeypatch.setattr(transformers, "TextClassificationPipeline", SimpleNamespace)
+
+
+def test_init_restores_env_when_model_load_fails(monkeypatch):
+    monkeypatch.setenv(_SAFETENSORS_ENV_KEY, "false")
+    _patch_failing_init(monkeypatch)
+
+    with pytest.raises(ValueError):
+        _StubHFDetector()
+
+    assert (
+        os.environ[_SAFETENSORS_ENV_KEY] == "false"
+    ), "pre-existing env value must survive a failed detector init"
+
+
+def test_init_removes_env_when_model_load_fails(monkeypatch):
+    monkeypatch.delenv(_SAFETENSORS_ENV_KEY, raising=False)
+    _patch_failing_init(monkeypatch)
+
+    with pytest.raises(ValueError):
+        _StubHFDetector()
+
+    assert (
+        _SAFETENSORS_ENV_KEY not in os.environ
+    ), "env var unset before init must not leak after a failed init"
+
+
+def test_init_restores_transformers_loglevel_when_model_load_fails(monkeypatch):
+    from transformers import logging as transformers_logging
+
+    orig_loglevel = transformers_logging.get_verbosity()
+    _patch_failing_init(monkeypatch)
+
+    with pytest.raises(ValueError):
+        _StubHFDetector()
+
+    assert (
+        transformers_logging.get_verbosity() == orig_loglevel
+    ), "transformers loglevel must be restored after a failed detector init"
