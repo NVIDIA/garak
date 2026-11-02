@@ -14,7 +14,7 @@ import json
 import logging
 from collections.abc import Iterable
 import random
-from typing import Iterable, List, Set, Union
+from typing import Iterable, List, Optional, Set, Union
 
 from colorama import Fore, Style
 import tqdm
@@ -57,6 +57,12 @@ class Probe(Configurable):
     parallelisable_attempts: bool = True
     # Keeps state of whether a buff is loaded that requires a call to untransform model outputs
     post_buff_hook: bool = False
+    # Snapshot of the post-buffs taken by _buff_hook in the parent process;
+    # attempt pool workers re-import garak._config from scratch, so the
+    # buffmanager state populated by the harness isn't visible there. The
+    # probe reaches workers through the pickled bound method and carries this
+    # snapshot with it. None means _buff_hook hasn't run and live config is used.
+    _post_buffs: Optional[list] = None
     # support mainstream any-to-any large models
     # legal element for str list `modality['in']`: 'text', 'image', 'audio', 'video', '3d'
     # refer to Table 1 in https://arxiv.org/abs/2401.13601
@@ -177,6 +183,13 @@ class Probe(Configurable):
         """this is where we do the buffing, if there's any to do"""
         if len(_config.buffmanager.buffs) == 0:
             return attempts
+        # Snapshot the post-buffs for _postprocess_buff: when attempts run in
+        # a Pool with a spawn start method, workers re-import garak._config
+        # from scratch and the harness-populated buffmanager state is not
+        # present there. The pickled probe carries this snapshot instead.
+        self._post_buffs = [
+            buff for buff in _config.buffmanager.buffs if buff.post_buff_hook
+        ]
         buffed_attempts = []
         buffed_attempts_added = 0
         if _config.plugins.buffs_include_original_prompt:
@@ -197,11 +210,19 @@ class Probe(Configurable):
                 buffed_attempts_added += 1
         return buffed_attempts
 
-    @staticmethod
-    def _postprocess_buff(attempt: garak.attempt.Attempt) -> garak.attempt.Attempt:
+    def _postprocess_buff(
+        self, attempt: garak.attempt.Attempt
+    ) -> garak.attempt.Attempt:
         """hook called immediately after an attempt has been to the generator,
         buff de-transformation; gated on self.post_buff_hook"""
-        for buff in _config.buffmanager.buffs:
+        # Prefer the snapshot taken by _buff_hook: under a spawn start method
+        # the module-global buffmanager state is not populated in this process,
+        # so relying on it silently skips untransform for pool workers.
+        for buff in (
+            self._post_buffs
+            if self._post_buffs is not None
+            else _config.buffmanager.buffs
+        ):
             if buff.post_buff_hook:
                 attempt = buff.untransform(attempt)
         return attempt
