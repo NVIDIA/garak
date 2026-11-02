@@ -261,7 +261,9 @@ class EncodingMixin:
 
     def __init__(self):
         self._load_payloads()
-        self.tags += self.extra_tags
+        # Assign a fresh list: tags is a class attribute, so `+=` would extend the
+        # list shared across probe loads and repeat tags (#2325).
+        self.tags = self.tags + self.extra_tags
         generated_prompts = self._generate_encoded_prompts(
             self.encoding_funcs, self.encoding_name
         )

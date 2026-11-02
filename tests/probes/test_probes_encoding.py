@@ -91,3 +91,16 @@ def test_atbash_function(plain, expected):
     encoder = InjectAtbash.atbash  # staticmethod reference
     result = encoder(plain.encode()).decode()
     assert result == expected
+
+
+def test_probe_tags_do_not_accumulate_across_loads():
+    """tags is a class attribute; extending it in place repeated tags across loads (#2325)."""
+    from garak import _config
+    import garak.probes.encoding
+
+    _config.load_base_config()
+    garak.probes.encoding.InjectHex()
+    b64_probe = garak.probes.encoding.InjectBase64()
+    assert len(b64_probe.tags) == len(
+        set(b64_probe.tags)
+    ), "a probe's tags must not repeat entries accumulated from other probes"
