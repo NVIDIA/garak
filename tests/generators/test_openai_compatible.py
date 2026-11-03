@@ -374,3 +374,63 @@ def test_terminal_http_error_returns_none(openai_compatible_generator, code):
     unwrapped = OpenAICompatible._call_model.__wrapped__
     result = unwrapped(openai_compatible_generator, prompt)
     assert result == [None], f"Expected [None] for HTTP {code}, got {result!r}"
+
+
+def test_openai_compatible_vary_seed_and_temp(openai_compatible_generator):
+    prompt = _make_prompt()
+    openai_compatible_generator.generator = MagicMock()
+    mock_choice = MagicMock()
+    mock_choice.message.content = "OK"
+    mock_choice.message.role = "assistant"
+    mock_choice.finish_reason = "stop"
+    mock_response = MagicMock(choices=[mock_choice])
+    openai_compatible_generator.generator.create.return_value = mock_response
+
+    # By default, vary_seed_each_call and vary_temp_each_call should be False
+    assert openai_compatible_generator.vary_seed_each_call is False
+    assert openai_compatible_generator.vary_temp_each_call is False
+
+    initial_seed = 42
+    initial_temp = 0.5
+    openai_compatible_generator.seed = initial_seed
+    openai_compatible_generator.temperature = initial_temp
+
+    unwrapped = OpenAICompatible._call_model.__wrapped__
+
+    # With variation disabled, seed and temperature remain constant
+    unwrapped(openai_compatible_generator, prompt)
+    assert openai_compatible_generator.seed == initial_seed
+    assert openai_compatible_generator.temperature == initial_temp
+
+    # Enable vary_seed_each_call
+    openai_compatible_generator.vary_seed_each_call = True
+    unwrapped(openai_compatible_generator, prompt)
+    first_seed = openai_compatible_generator.seed
+    assert first_seed is not None
+    assert 0 <= first_seed <= 65535
+
+    unwrapped(openai_compatible_generator, prompt)
+    second_seed = openai_compatible_generator.seed
+    assert second_seed is not None
+    assert 0 <= second_seed <= 65535
+
+    # Enable vary_temp_each_call
+    openai_compatible_generator.vary_temp_each_call = True
+    unwrapped(openai_compatible_generator, prompt)
+    first_temp = openai_compatible_generator.temperature
+    assert 0.0 <= first_temp <= 1.0
+
+    unwrapped(openai_compatible_generator, prompt)
+    second_temp = openai_compatible_generator.temperature
+    assert 0.0 <= second_temp <= 1.0
+
+
+def test_nim_and_groq_default_variation():
+    from garak.generators.nim import NVOpenAIChat
+    from garak.generators.groq import GroqChat
+
+    assert NVOpenAIChat.DEFAULT_PARAMS["vary_seed_each_call"] is True
+    assert NVOpenAIChat.DEFAULT_PARAMS["vary_temp_each_call"] is True
+
+    assert GroqChat.DEFAULT_PARAMS["vary_seed_each_call"] is True
+    assert GroqChat.DEFAULT_PARAMS["vary_temp_each_call"] is True

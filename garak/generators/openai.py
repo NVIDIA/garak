@@ -140,6 +140,8 @@ class OpenAICompatible(Generator):
     active = True
     supports_multiple_generations = False
     generator_family_name = "OpenAICompatible"  # Placeholder override when extending
+    vary_seed_each_call: bool = False
+    vary_temp_each_call: bool = False
 
     # template defaults optionally override when extending
     DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
@@ -152,6 +154,8 @@ class OpenAICompatible(Generator):
         "stop": ["#", ";"],
         "suppressed_params": set(),
         "retry_json": True,
+        "vary_seed_each_call": False,
+        "vary_temp_each_call": False,
         "extra_params": {},
         "transient_retry_codes": [408, 429, 502, 503, 504],
     }
@@ -302,6 +306,12 @@ class OpenAICompatible(Generator):
         client = self.client
         generator = self.generator
         is_completion = generator == client.completions
+
+        if getattr(self, "vary_seed_each_call", False):
+            self.seed = self._rng.randint(0, 65535)
+
+        if getattr(self, "vary_temp_each_call", False):
+            self.temperature = self._rng.random()
 
         create_args = {}
         if self.supports_multiple_generations:
@@ -485,6 +495,8 @@ class OpenAIReasoningGenerator(OpenAIGenerator):
         "stop": ["#", ";"],
         "suppressed_params": set(["n", "temperature", "max_tokens", "stop"]),
         "retry_json": True,
+        "vary_seed_each_call": False,
+        "vary_temp_each_call": False,
         "max_completion_tokens": 1500,
     }
 
