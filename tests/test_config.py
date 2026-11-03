@@ -1013,6 +1013,20 @@ def test_parallel_attempts_run_completes(parallel_attempts):
     assert _config.system.parallel_attempts == parallel_attempts
 
 
+# with both parallel_attempts and parallel_requests set, each attempt worker
+# must not try to start its own request pool (daemonic processes cannot have
+# children). test.Lipsum does not support multiple generations, so -g 3 sends
+# it down the parallel_requests path inside every attempt worker
+def test_parallel_attempts_and_requests_run_completes():
+    args = (
+        "--parallel_attempts 4 --parallel_requests 2 -m test.Lipsum -p test.Test -g 3"
+    ).split()
+    garak.cli.main(args)
+
+    assert _config.system.parallel_attempts == 4
+    assert _config.system.parallel_requests == 2
+
+
 model_target_data = [
     ("model_type", "model_name"),
     ("model_type", "target_name"),

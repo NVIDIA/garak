@@ -118,7 +118,7 @@ Setting ``parallel_requests`` to a value over one enables making all these reque
 Parameter ``parallel_requests`` has no effect if generations is set to 1.
 Setting ``parallel_requests`` higher than generations also has the same effect as setting ``parallel_requests`` equal to generations.
 
-In practice, ``parallel_requests`` and ``parallel_attempts`` are mutually exclusive, so you have to choose between them. 
+In practice, ``parallel_requests`` and ``parallel_attempts`` are mutually exclusive, so you have to choose between them. If both are set, ``parallel_attempts`` takes effect and each attempt's requests are sent serially.
 We find that using ``parallel_attempts`` usually gives a faster run completion time - especially when the number of generations is lower than the number of different prompts from a probe, which is more oftent he case than not in a default garak run.
 
 
