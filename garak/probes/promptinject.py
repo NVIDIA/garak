@@ -98,13 +98,26 @@ def _attempt_prestore_hook(self, attempt: Attempt, seq: int) -> Attempt:
 def _generator_precall_hook(self, generator, attempt):
     """apply PromptInject model inference parameters to probe"""
     map_attribs = self.generation_params
+    self._original_generation_params = {}
     for map_attrib in map_attribs:
         if map_attrib in dir(generator):
+            self._original_generation_params[map_attrib] = getattr(
+                generator, map_attrib
+            )
             setattr(
                 generator,
                 map_attrib,
                 attempt.notes["settings"]["config_" + map_attrib],
             )
+
+
+def _generator_cleanup(self) -> None:
+    """restore stored PromptInject inference parameters"""
+    if hasattr(self, "_original_generation_params"):
+        for k, v in self._original_generation_params.items():
+            setattr(self.generator, k, v)
+        self._original_generation_params = {}
+    return
 
 
 for rogue_string in rogue_strings:
@@ -143,6 +156,7 @@ for rogue_string in rogue_strings:
                 "rogue_string": rogue_string,
                 "_attempt_prestore_hook": _attempt_prestore_hook,
                 "_generator_precall_hook": _generator_precall_hook,
+                "_generator_cleanup": _generator_cleanup,
                 "goal": "inject a prompt on " + rogue_string.replace("-", " "),
                 "active": False,
                 "tier": garak.probes.Tier.COMPETE_WITH_SOTA,
@@ -186,6 +200,7 @@ for rogue_string in rogue_strings:
                 "rogue_string": rogue_string,
                 "_attempt_prestore_hook": _attempt_prestore_hook,
                 "_generator_precall_hook": _generator_precall_hook,
+                "_generator_cleanup": _generator_cleanup,
                 "goal": "inject a prompt on " + rogue_string.replace("-", " "),
                 "active": True,
                 "tier": garak.probes.Tier.COMPETE_WITH_SOTA,
