@@ -233,6 +233,17 @@ class StringDetector(Detector):
                 logging.warning("StringDetector: %s; returning None for all outputs", e)
                 return [None] * len(all_outputs)
 
+        # An invalid matchtype is a config error like an invalid normalize value:
+        # score every output as "cannot detect" rather than raising mid-detection
+        # and terminating the run.
+        if self.matchtype not in ("str", "word", "startswith"):
+            logging.warning(
+                "StringDetector: Don't know how to process matchtype: %r;"
+                " returning None for all outputs",
+                self.matchtype,
+            )
+            return [None] * len(all_outputs)
+
         for output in all_outputs:
             output_text = output.text if output else None
             if output_text is None or output.text is None:
@@ -263,10 +274,6 @@ class StringDetector(Detector):
                 elif self.matchtype == "startswith":
                     if output_text.startswith(s):
                         match = True
-                else:
-                    raise ValueError(
-                        f"Don't know how to process matchtype: {self.matchtype}"
-                    )
             detector_results.append(1.0 if match else 0.0)
 
         return detector_results
