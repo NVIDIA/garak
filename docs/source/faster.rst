@@ -101,6 +101,10 @@ Being able to do this affords parallelization, for example on SLURM/OCI clusters
 The tool is ``aggregate_reports`` and runs from the command line.
 You can get help by running ``python -m garak.analyze.aggregate_reports``.
 
+The output path must refer to a different file from every input report, including
+when using symbolic or hard links. An output path that aliases an input is rejected
+before any report is written.
+
 Entries that carry a ``run`` id, such as ``plugin_cache``, are restamped with the
 aggregate run's id so provenance follows the merged report. Entry types that do not
 define one are left as they are, so aggregation does not add fields the underlying
