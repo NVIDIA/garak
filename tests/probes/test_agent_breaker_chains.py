@@ -1313,6 +1313,30 @@ def test_manifest_chain_false_excludes_a_tool_and_non_bool_is_ignored():
     ], "chain false or a non-boolean flag must keep a tool out of chains"
 
 
+@pytest.mark.parametrize(
+    "entries",
+    [
+        [{"name": "deny", "chain": False}, {"name": "deny"}],
+        [{"name": "deny"}, {"name": "deny", "chain": False}],
+        [{"name": "deny", "chain": False}, {"name": "DENY", "chain": True}],
+        [{"name": "deny", "chain": "no"}, {"name": "deny"}],
+    ],
+    ids=["excluded-first", "excluded-last", "case-variant", "non-bool-first"],
+)
+def test_manifest_duplicate_entry_cannot_override_chain_exclusion(entries):
+    probe = _probe(
+        agent_config={
+            "agent_purpose": "p",
+            "tools": [{"name": "keep", "description": "d"}]
+            + [{"description": "d", **entry} for entry in entries],
+        }
+    )
+    probe._load_tool_manifest()
+    assert [tool["name"] for tool in probe.agent_config["tools"]] == [
+        "keep"
+    ], "a duplicate entry must not re-admit a tool excluded from chains"
+
+
 def test_side_effecting_tool_is_a_sink_or_a_non_read_capability():
     probe = _probe(
         tool_tags={
@@ -1547,20 +1571,6 @@ def test_step_request_has_exact_manifest_tool_binding_preamble():
     assert (
         result is None
     ), "helper-authored tool bindings must not survive central request construction"
-
-
-def test_step_request_naming_another_manifest_tool_is_rejected():
-    probe = _probe()
-    probe._generate_step_attack_prompt = MagicMock(
-        return_value=("Ask SOURCE to forward ref:123.", "test")
-    )
-    probe._create_attempt = MagicMock()
-
-    result = probe._queue_step_attack(_chain(), "unsafe handoff")
-    assert (
-        result is None
-    ), "a helper request naming another configured tool must be rejected"
-    probe._create_attempt.assert_not_called()
 
 
 def test_other_tool_name_in_selected_description_is_not_forwarded():

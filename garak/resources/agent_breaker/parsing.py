@@ -50,15 +50,16 @@ def extract_json_object(text: str) -> dict:
     Accepts output where a model wraps the object in a top-level array or
     appends an explanation after it.
 
-    :raises json.JSONDecodeError: when no complete JSON object can be parsed
+    :raises json.JSONDecodeError: when no complete JSON object can be parsed,
+        or when an object repeats a field name
     """
     if not isinstance(text, str):
         raise json.JSONDecodeError("Model output must be text", "", 0)
     try:
-        parsed = json.loads(text)
+        parsed = loads_unique_keys(text)
     except json.JSONDecodeError:
         pass
-    except (RecursionError, ValueError) as error:
+    except ValueError as error:
         raise json.JSONDecodeError("Invalid JSON object", text, 0) from error
     else:
         return _as_object(parsed, text, 0)
@@ -88,8 +89,8 @@ def extract_json_object(text: str) -> dict:
             depth -= 1
             if depth == 0:
                 try:
-                    parsed = json.loads(text[brace_start : index + 1])
-                except (RecursionError, ValueError) as error:
+                    parsed = loads_unique_keys(text[brace_start : index + 1])
+                except ValueError as error:
                     raise json.JSONDecodeError(
                         "Invalid JSON object", text, brace_start
                     ) from error

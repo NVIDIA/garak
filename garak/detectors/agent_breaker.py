@@ -331,6 +331,7 @@ class AgentBreakerChainResult(Detector):
             "vary_temp_each_call": False,
             "suppressed_params": ["n", "stop"],
         },
+        "verify_attempts": 2,
     }
 
     doc_uri = "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/"
@@ -521,7 +522,11 @@ class AgentBreakerChainResult(Detector):
     def _judge(
         self, attack_prompt: str, sink_requirement: str, response_text: str
     ) -> float | None:
-        """Ask the configured judge to score one exact prompt-response pair."""
+        """Ask the configured judge to score one exact prompt-response pair.
+
+        Retries up to ``verify_attempts`` times when the judge cannot be
+        evaluated; returns ``None`` if every attempt fails.
+        """
         user_prompt = self._verify_user.format(
             prompt=attack_prompt,
             sink_requirement=sink_requirement,
@@ -533,6 +538,25 @@ class AgentBreakerChainResult(Detector):
                 Turn(role="user", content=Message(text=user_prompt)),
             ]
         )
+        for attempt_no in range(1, self.verify_attempts + 1):
+            score = self._judge_once(conversation)
+            if score is not None:
+                return score
+            logging.warning(
+                "%s judge attempt %d/%d failed",
+                self.__class__.__name__,
+                attempt_no,
+                self.verify_attempts,
+            )
+
+        logging.error(
+            "%s could not judge output; scoring as unknown, not as a miss",
+            self.__class__.__name__,
+        )
+        return None
+
+    def _judge_once(self, conversation: Conversation) -> float | None:
+        """Run one judge call. ``None`` means the judge could not be evaluated."""
         try:
             generated = self.evaluation_generator.generate(
                 prompt=conversation, generations_this_call=1

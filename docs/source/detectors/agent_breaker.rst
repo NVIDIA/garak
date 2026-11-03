@@ -4,7 +4,7 @@ garak.detectors.agent_breaker
 This module contains separate detectors for the two Agent Breaker probes.
 ``detectors.agent_breaker.AgentBreakerResult`` serves Single, while
 ``detectors.agent_breaker.AgentBreakerChainResult`` serves only eligible
-eligible attempts from ``probes.agent_breaker.ToolChain``. Selecting or
+attempts from ``probes.agent_breaker.ToolChain``. Selecting or
 configuring one detector does not replace the other.
 
 AgentBreakerChainResult

@@ -19,7 +19,6 @@ import copy
 import json
 import logging
 import math
-import re
 from dataclasses import dataclass, field
 from typing import Iterable, List, Optional, Tuple
 
@@ -1053,6 +1052,14 @@ class ToolChain(AgentBreaker):
                 f"{self.__class__.__name__} manifest {self.agent_config_file} must "
                 "give agent_purpose as text and tools as a list"
             )
+        # Any entry without chain: true excludes its name, whatever the entry order.
+        excluded = {
+            tool["name"].strip().casefold()
+            for tool in raw_tools
+            if isinstance(tool, dict)
+            and isinstance(tool.get("name"), str)
+            and tool.get("chain", True) is not True
+        }
         tools = []
         seen = set()
         for tool in raw_tools:
@@ -1071,6 +1078,7 @@ class ToolChain(AgentBreaker):
                     name,
                 )
                 continue
+            seen.add(name.casefold())
             chain_flag = tool.get("chain", True)
             if not isinstance(chain_flag, bool):
                 logging.warning(
@@ -1079,7 +1087,7 @@ class ToolChain(AgentBreaker):
                     name,
                 )
                 continue
-            if not chain_flag:
+            if name.casefold() in excluded:
                 logging.info(
                     "%s # Tool %s is excluded from chains by the manifest",
                     self.__class__.__name__,
@@ -1103,7 +1111,6 @@ class ToolChain(AgentBreaker):
                     ),
                 }
             )
-            seen.add(name.casefold())
         self.agent_config = {
             "agent_purpose": self._bounded_text(purpose, self._FIELD_CHAR_LIMIT),
             "tools": tools,
@@ -2471,12 +2478,6 @@ class ToolChain(AgentBreaker):
             ),
         }
 
-    @staticmethod
-    def _request_explicitly_names_tool(request: str, tool_name: str) -> bool:
-        """Return whether a request contains a configured tool's exact name."""
-        pattern = rf"(?<!\w){re.escape(tool_name)}(?!\w)"
-        return re.search(pattern, request, flags=re.IGNORECASE) is not None
-
     def _bind_step_request(self, tool_name: str, helper_request: str) -> Optional[str]:
         """Bind one helper request to the exact operator-authored manifest tool."""
         if (
@@ -2496,25 +2497,16 @@ class ToolChain(AgentBreaker):
         ]
         if len(matches) != 1:
             return None
-        for tool in configured_tools:
-            other_name = tool.get("name") if isinstance(tool, dict) else None
-            if (
-                isinstance(other_name, str)
-                and other_name != tool_name
-                and self._request_explicitly_names_tool(helper_request, other_name)
-            ):
-                logging.warning(
-                    "%s # Rejecting helper request for %s because it names other tool %s",
-                    self.__class__.__name__,
-                    tool_name,
-                    other_name,
-                )
-                return None
         preamble = self._TOOL_BOUND_REQUEST_PREAMBLE.format(
             tool_name=json.dumps(tool_name, ensure_ascii=False),
         )
         bound_request = preamble + helper_request.strip()
-        if len(bound_request) > self._STEP_TEXT_CHAR_LIMIT:
+        if len(bound_request) > self._STEP_TEXT_CHAR_LIMIT + len(preamble):
+            logging.warning(
+                "%s # Bound request is too long: %s",
+                self.__class__.__name__,
+                bound_request,
+            )
             return None
         return bound_request
 
@@ -2699,18 +2691,6 @@ class ToolChain(AgentBreaker):
             return self._reject_step_request(
                 target_tool, "output keys are not a list of strings", helper_request
             )
-        for other_tool in self.agent_config.get("tools", []):
-            other_name = (
-                other_tool.get("name") if isinstance(other_tool, dict) else None
-            )
-            if (
-                isinstance(other_name, str)
-                and other_name != target_tool
-                and self._request_explicitly_names_tool(helper_request, other_name)
-            ):
-                return self._reject_step_request(
-                    target_tool, "helper request names another tool", helper_request
-                )
         cleaned = helper_request.strip()
         lowered = cleaned.casefold()
         if "<value>" in lowered:

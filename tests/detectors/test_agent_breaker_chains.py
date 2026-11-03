@@ -285,6 +285,37 @@ def test_judge_runtime_failure_is_unscored(detector, error):
     ], "judge failure must remain unscored"
 
 
+@pytest.mark.parametrize(
+    "failure",
+    [
+        RuntimeError("judge failed"),
+        [Message(text="not JSON")],
+        [],
+    ],
+    ids=["runtime-error", "malformed-judgement", "incomplete-response"],
+)
+def test_judge_retries_after_failure(detector, failure):
+    detector.verify_attempts = 2
+    detector.evaluation_generator.generate.side_effect = [failure, [_judgement("YES")]]
+    assert detector.detect(_attempt([Message(text="target output")])) == [
+        1.0
+    ], "a failed judge call must be retried before giving up"
+    assert (
+        detector.evaluation_generator.generate.call_count == 2
+    ), "judge must stop retrying after the first usable verdict"
+
+
+def test_judge_gives_up_after_verify_attempts(detector):
+    detector.verify_attempts = 3
+    detector.evaluation_generator.generate.side_effect = RuntimeError("judge failed")
+    assert detector.detect(_attempt([Message(text="target output")])) == [
+        None
+    ], "judge failing on every attempt must remain unscored"
+    assert (
+        detector.evaluation_generator.generate.call_count == 3
+    ), "judge must be called exactly verify_attempts times"
+
+
 def test_ignores_backend_metadata_and_cached_in_loop_verdicts(detector):
     detector.evaluation_generator.generate.return_value = [_judgement("NO")]
     attempt = _attempt(
