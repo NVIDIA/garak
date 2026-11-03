@@ -33,6 +33,13 @@ If you use custom modules not included in garak's default list, include these in
 Garak's plugin loader (``garak._plugins.load_plugin()``) will manage the import and inject the requested module as ``self.<module>``.
 
 
+Changing garak's own configuration
+----------------------------------
+
+Plugins get their configurable values from ``DEFAULT_PARAMS``, and need nothing else.
+Adding a value to garak's *core* configuration, with a command-line switch to go with it, takes
+a few more steps -- these are described in :doc:`adding a configuration option <extending.cli>`.
+
 Guides to writing plugins
 -------------------------
 
