@@ -18,7 +18,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -291,7 +291,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -422,7 +422,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "quality:Security:PromptStability",
@@ -609,7 +609,7 @@
       "active": true,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.RefusalModel"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -643,7 +643,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.RefusalModel"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -689,7 +689,7 @@
       "active": false,
       "doc_uri": "https://arxiv.org/html/2310.04451",
       "extended_detectors": [
-        "mitigation.RefusalModel"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -722,7 +722,7 @@
       "active": true,
       "doc_uri": "https://arxiv.org/html/2310.04451",
       "extended_detectors": [
-        "mitigation.RefusalModel"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -755,7 +755,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.RefusalModel"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -788,7 +788,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.RefusalModel"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -821,7 +821,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.RefusalModel"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -854,7 +854,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.RefusalModel"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -887,7 +887,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.RefusalModel"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -930,7 +930,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -961,7 +961,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -982,7 +982,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.RefusalModel"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -1015,7 +1015,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.RefusalModel"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -1049,7 +1049,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.RefusalModel"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -1082,7 +1082,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.RefusalModel"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -1115,7 +1115,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.RefusalModel"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -1148,7 +1148,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.RefusalModel"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -1181,7 +1181,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.RefusalModel"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -1214,7 +1214,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.RefusalModel"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -1247,7 +1247,7 @@
       "active": true,
       "doc_uri": "https://not-just-memorization.github.io/extracting-training-data-from-chatgpt.html",
       "extended_detectors": [
-        "mitigation.RefusalModel"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "get the model to leak data by asking it to repeat words",
@@ -1282,7 +1282,7 @@
       "active": false,
       "doc_uri": "https://not-just-memorization.github.io/extracting-training-data-from-chatgpt.html",
       "extended_detectors": [
-        "mitigation.RefusalModel"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "get the model to leak data by asking it to repeat words",
@@ -1366,7 +1366,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "owasp:llm01",
         "avid-effect:security:S0301",
@@ -1399,7 +1399,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "owasp:llm01",
         "avid-effect:security:S0301",
@@ -1433,7 +1433,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "owasp:llm01",
         "avid-effect:security:S0301",
@@ -1466,7 +1466,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:ethics:E0301",
         "quality:Behavioral:ContentSafety:Toxicity",
@@ -1499,7 +1499,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0301",
         "quality:Behavioral:ContentSafety:Unauthorized",
@@ -1526,7 +1526,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "owasp:llm06",
         "avid-effect:security:S0301",
@@ -1555,7 +1555,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "quality:Behavioral:ContentSafety:LegalGoodsServices",
         "demon:Stratagems:Meta-prompting:Ask_for_examples"
@@ -1581,7 +1581,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "quality:Robustness:GenerativeMisinformation",
         "avid-effect:ethics:E0402",
@@ -1615,7 +1615,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -1652,7 +1652,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2851,7 +2851,7 @@
       "active": true,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.RefusalModel"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "get model to use ethnic slur",
@@ -2899,7 +2899,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "risk-cards:lmrc:providing_illegal_info",
         "quality:Behavioral:ContentSafety:LegalGoodsServices",
@@ -2918,7 +2918,7 @@
       "active": true,
       "doc_uri": "https://www.independent.co.uk/tech/chatgpt-microsoft-windows-11-grandma-exploit-b2360213.html",
       "extended_detectors": [
-        "mitigation.RefusalModel"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "get model to output Win 10 product keys",
@@ -2951,7 +2951,7 @@
       "active": true,
       "doc_uri": "https://www.independent.co.uk/tech/chatgpt-microsoft-windows-11-grandma-exploit-b2360213.html",
       "extended_detectors": [
-        "mitigation.RefusalModel"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "get model to output Win 11 product keys",
@@ -4408,7 +4408,7 @@
       "doc_uri": "https://arxiv.org/html/2304.13734",
       "extended_detectors": [
         "misleading.MustRefuteClaimKW",
-        "mitigation.RefusalModel",
+        "mitigation.NoRefusal",
         "misleading.MustContradictNLI"
       ],
       "extra_dependency_names": [],
@@ -5419,7 +5419,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -5450,7 +5450,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "quality:Security:PromptStability",
@@ -5485,7 +5485,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.MitigationBypassKW",
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -5515,7 +5515,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "quality:Security:PromptStability",
@@ -5725,7 +5725,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -5766,7 +5766,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -5797,7 +5797,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -5880,7 +5880,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -5930,7 +5930,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -5962,7 +5962,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -6049,7 +6049,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
@@ -6085,7 +6085,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
@@ -6128,7 +6128,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.RefusalModel",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",

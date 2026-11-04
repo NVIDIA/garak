@@ -86,7 +86,7 @@ class DRA(garak.probes.Probe):
     lang = "en"
     intent = "T009ignore"  # the elicited behavior is answering a harmful reconstructed request despite the model's normal safeguards
     # T018decode is a secondary fit because the jailbreak works by reconstructing the hidden request from disguised tokens.
-    primary_detector = "mitigation.RefusalModel"
+    primary_detector = "mitigation.NoRefusal"
     extended_detectors = ["mitigation.Prefixes"]
     tags = [
         "avid-effect:security:S0403",

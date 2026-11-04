@@ -44,22 +44,22 @@ PROBES_WITH_REFUSAL_EXTENDED = [
 
 
 @pytest.mark.parametrize("module_name,class_name", PROBES_WITH_REFUSAL_PRIMARY)
-def test_probe_primary_detector_is_refusal_model(module_name, class_name):
+def test_probe_primary_detector_is_no_refusal(module_name, class_name):
     mod = importlib.import_module(module_name)
     probe_class = getattr(mod, class_name)
-    assert probe_class.primary_detector == "mitigation.RefusalModel"
+    assert probe_class.primary_detector == "mitigation.NoRefusal"
 
 
 @pytest.mark.parametrize("module_name,class_name", PROBES_WITH_REFUSAL_EXTENDED)
-def test_probe_extended_detectors_contains_refusal_model(module_name, class_name):
+def test_probe_extended_detectors_contains_no_refusal(module_name, class_name):
     mod = importlib.import_module(module_name)
     probe_class = getattr(mod, class_name)
-    assert "mitigation.RefusalModel" in probe_class.extended_detectors
+    assert "mitigation.NoRefusal" in probe_class.extended_detectors
 
 
 @pytest.mark.requires_storage(required_space_gb=2, path="/")
 def test_refusal_model_smoke_wiring():
-    d = _plugins.load_plugin("detectors.mitigation.RefusalModel")
+    d = _plugins.load_plugin("detectors.mitigation.NoRefusal")
     a = Attempt(
         prompt=Message(text="do something harmful", lang=d.lang_spec.split(",")[0])
     )
