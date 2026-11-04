@@ -47,6 +47,7 @@ class WebSocketGenerator(Generator):
     - connection_timeout: Seconds to wait for connection
     - max_response_length: Maximum response length
     - verify_ssl: SSL certificate verification
+    - reconnect_on_loss: Re-establish connection if the server drops or closes the WebSocket
     """
 
     DEFAULT_PARAMS = {
@@ -67,6 +68,7 @@ class WebSocketGenerator(Generator):
         "connection_timeout": 10,
         "max_response_length": 10000,
         "verify_ssl": True,
+        "reconnect_on_loss": False,
     }
 
     ENV_VAR = "WEBSOCKET_API_KEY"
@@ -111,6 +113,7 @@ class WebSocketGenerator(Generator):
         # The connection cannot be used from another loop, so both are reused.
         self.websocket = None
         self._loop = None
+        self._connected_once = False
 
         # Validate jsonpath if using JSON responses
         if self.response_json and self.response_json_field:
@@ -263,6 +266,7 @@ class WebSocketGenerator(Generator):
 
             logger.debug(f"Connecting to WebSocket: {self.uri}")
             self.websocket = await self.websockets.connect(self.uri, **connect_args)
+            self._connected_once = True
             logger.info(f"WebSocket connected to {self.uri}")
 
         except self.websockets.exceptions.InvalidURI as e:
@@ -288,12 +292,33 @@ class WebSocketGenerator(Generator):
 
     async def _send_and_receive(self, message: str) -> str:
         """Send message and receive response with timeout and typing indicator handling"""
+        if (
+            self.websocket is not None
+            and getattr(self.websocket, "closed", None) is True
+        ):
+            self.websocket = None
+
         if not self.websocket:
+            if self._connected_once and not getattr(self, "reconnect_on_loss", False):
+                msg = f"WebSocket connection to {self.uri} was closed and reconnect_on_loss is False"
+                logger.error(msg)
+                raise ConnectionError(msg)
             await self._connect_websocket()
 
         try:
-            # Send message
-            await self.websocket.send(message)
+            # Send message (retry once after reconnect if reconnect_on_loss is enabled and socket closed)
+            try:
+                await self.websocket.send(message)
+            except self.websockets.exceptions.ConnectionClosed:
+                if not getattr(self, "reconnect_on_loss", False):
+                    raise
+                logger.info(
+                    f"WebSocket connection lost during send; reconnecting to {self.uri}"
+                )
+                self.websocket = None
+                await self._connect_websocket()
+                await self.websocket.send(message)
+
             logger.debug("WebSocket message sent")
 
             # Collect response parts
@@ -345,6 +370,12 @@ class WebSocketGenerator(Generator):
                     continue
                 except self.websockets.exceptions.ConnectionClosed:
                     logger.warning("WebSocket connection closed during receive")
+                    if self.websocket:
+                        self.websocket = None
+                    if not response_parts:
+                        raise ConnectionError(
+                            "WebSocket connection closed during receive without response"
+                        )
                     break
 
             # Combine response parts
@@ -353,10 +384,13 @@ class WebSocketGenerator(Generator):
 
             return full_response
 
-        except OSError as e:
+        except (OSError, self.websockets.exceptions.ConnectionClosed) as e:
             logger.error(f"Network error in WebSocket communication: {e}")
             if self.websocket:
-                await self.websocket.close()
+                try:
+                    await self.websocket.close()
+                except Exception:
+                    pass
                 self.websocket = None
             raise ConnectionError(f"WebSocket network error: {e}") from e
 
@@ -419,12 +453,12 @@ class WebSocketGenerator(Generator):
 
         except (ConnectionError, BadGeneratorException) as e:
             logger.error(f"WebSocket generation failed: {e}")
-            return [Message(text="")]
+            return [None]
         except GarakException:
             raise
         except Exception as e:
             logger.error(f"Unexpected error in WebSocket generation: {e}")
-            return [Message(text="")]
+            return [None]
 
     def __del__(self):
         """Close the WebSocket connection and the event loop it is bound to."""
@@ -433,7 +467,7 @@ class WebSocketGenerator(Generator):
             return
         try:
             websocket = getattr(self, "websocket", None)
-            if websocket is not None:
+            if websocket is not None and getattr(websocket, "closed", None) is not True:
                 loop.run_until_complete(websocket.close())
         except Exception as e:
             logger.warning("websocket teardown error", exc_info=e)
