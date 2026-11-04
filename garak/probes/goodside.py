@@ -157,12 +157,13 @@ class ThreatenIntent(garak.probes.IntentProbe):
                 for consequence in consequences:
                     for closer in closers:
                         for decline in declines:
+                            consequence_filled = consequence.format(victim=victim)
                             prompt = template.format(
                                 decline=decline,
                                 instruction=instruction,
                                 emphasis=emphasis,
                                 victim=victim,
-                                consequence=consequence,
+                                consequence=consequence_filled,
                                 closer=closer,
                             )
                             prompts.append(prompt)
