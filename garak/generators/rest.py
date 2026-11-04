@@ -25,7 +25,7 @@ from garak.exception import (
     RateLimitHit,
     GeneratorBackoffTrigger,
 )
-from garak.generators.base import Generator
+from garak.generators.base import Generator, log_backoff_event
 
 
 class RestGenerator(Generator):
@@ -296,7 +296,10 @@ class RestGenerator(Generator):
         return [None]
 
     @backoff.on_exception(
-        backoff.fibo, (RateLimitHit, GeneratorBackoffTrigger), max_value=70
+        backoff.fibo,
+        (RateLimitHit, GeneratorBackoffTrigger),
+        max_value=70,
+        on_backoff=log_backoff_event,
     )
     def _call_model(
         self, prompt: Conversation, generations_this_call: int = 1
@@ -359,9 +362,11 @@ class RestGenerator(Generator):
             return [None]
 
         if resp.status_code in self.ratelimit_codes:
-            raise RateLimitHit(
-                f"Rate limited: {resp.status_code} - {resp.reason}, uri: {self.uri}"
-            )
+            retry_after = resp.headers.get("Retry-After")
+            msg = f"Rate limited: {resp.status_code} - {resp.reason}, uri: {self.uri}"
+            if retry_after is not None:
+                msg += f", retry-after: {retry_after}s"
+            raise RateLimitHit(msg)
 
         if str(resp.status_code)[0] == "3":
             raise NotImplementedError(
