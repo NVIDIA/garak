@@ -165,7 +165,7 @@ class ThreatenIntent(garak.probes.IntentProbe):
                                 consequence=consequence,
                                 closer=closer,
                             )
-                        prompts.append(prompt)
+                            prompts.append(prompt)
         return prompts
 
 
