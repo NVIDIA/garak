@@ -14,7 +14,7 @@ import json
 import logging
 from collections.abc import Iterable
 import random
-from typing import Iterable, List, Set, Union
+from typing import Dict, Hashable, Iterable, List, Set, Union
 
 from colorama import Fore, Style
 import tqdm
@@ -957,10 +957,32 @@ class IntentProbe(Probe):
         return [stub.content]
 
     def build_prompts(self):
-        """In the most basic case, consume self.stubs and populate self.prompts"""
-        self.prompts = []
-        self.prompt_intents = []
-        for i, stub in enumerate(self.stubs):
-            prompts = self._prompts_from_stub(stub)
-            self.prompts.extend(prompts)
-            self.prompt_intents.extend([self.stub_intents[i]] * len(prompts))
+        """In the most basic case, consume self.stubs and populate self.prompts.
+
+        Prompts generated more than once within the same intent are dropped;
+        identical prompts belonging to different intents are kept.
+        Strings use a set; unhashable conversations are compared by value.
+        """
+        prompts = []
+        prompt_intents = []
+        seen_by_intent: Dict[Hashable, tuple[Set[str], list]] = {}
+        for stub, intent in zip(self.stubs, self.stub_intents, strict=True):
+            intent_key = tuple(intent) if isinstance(intent, list) else intent
+            seen = seen_by_intent.get(intent_key)
+            if seen is None:
+                seen = (set(), [])
+                seen_by_intent[intent_key] = seen
+            seen_strings, seen_conversations = seen
+            for prompt in self._prompts_from_stub(stub):
+                if isinstance(prompt, str):
+                    if prompt in seen_strings:
+                        continue
+                    seen_strings.add(prompt)
+                else:
+                    if prompt in seen_conversations:
+                        continue
+                    seen_conversations.append(prompt)
+                prompts.append(prompt)
+                prompt_intents.append(intent)
+        self.prompts = prompts
+        self.prompt_intents = prompt_intents
