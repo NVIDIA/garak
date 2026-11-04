@@ -374,3 +374,16 @@ def test_terminal_http_error_returns_none(openai_compatible_generator, code):
     unwrapped = OpenAICompatible._call_model.__wrapped__
     result = unwrapped(openai_compatible_generator, prompt)
     assert result == [None], f"Expected [None] for HTTP {code}, got {result!r}"
+
+
+@pytest.mark.parametrize("code", [400, 404])
+def test_terminal_http_error_fills_every_generation(openai_compatible_generator, code):
+    """With multiple generations, a terminal error yields one None per requested
+    generation, so generate() records the attempt instead of raising."""
+    openai_compatible_generator.generator = MagicMock()
+    openai_compatible_generator.generator.create.side_effect = _make_api_status_error(
+        code
+    )
+
+    result = openai_compatible_generator.generate(_make_prompt(), 3)
+    assert result == [None, None, None]
