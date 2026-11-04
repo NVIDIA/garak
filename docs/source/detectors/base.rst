@@ -12,6 +12,11 @@ Attributes
 1. **tags** MISP-format taxonomy categories
 1. **modality**  Which modalities does this detector work on? ``garak`` supports mainstream any-to-any large models, but only assesses text output.
 
+``StringDetector`` also supports the opt-in ``check_output_language`` option.
+When enabled, outputs are scored only when their detected primary language
+matches ``lang_spec``; mismatches or undetectable outputs are left unscored.
+The default is ``False`` because language detection is heuristic.
+
 
 .. automodule:: garak.detectors.base
    :members:
