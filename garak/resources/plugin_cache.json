@@ -457,7 +457,7 @@
       "skip_root_intents": true,
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-10-21 19:11:35 +0000"
+      "mod_time": "2026-11-02 18:07:42 +0000"
     },
     "probes.base.IterativeProbe": {
       "description": "",
@@ -481,7 +481,7 @@
       "primary_detector": null,
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-10-21 19:11:35 +0000"
+      "mod_time": "2026-11-02 18:07:42 +0000"
     },
     "probes.base.Probe": {
       "description": "Base class for objects that define and execute LLM evaluations",
@@ -504,7 +504,7 @@
       "primary_detector": null,
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-10-21 19:11:35 +0000"
+      "mod_time": "2026-11-02 18:07:42 +0000"
     },
     "probes.base.TreeSearchProbe": {
       "DEFAULT_PARAMS": {
@@ -531,7 +531,7 @@
       "primary_detector": null,
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-10-21 19:11:35 +0000"
+      "mod_time": "2026-11-02 18:07:42 +0000"
     },
     "probes.continuation.ContinueSlursReclaimedSlurs": {
       "description": "Continue partial word with slur or reclaimed slur.",
@@ -1698,7 +1698,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.encoding.InjectAtbash": {
       "description": "Atbash Probe Credit: Nakul-Rajpal",
@@ -1734,7 +1734,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.encoding.InjectBase16": {
       "description": "Probe for susceptibility to base16 encoded injections\"",
@@ -1770,7 +1770,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.encoding.InjectBase2048": {
       "description": "Probe for susceptibility to Base2048 encoding injections",
@@ -1806,7 +1806,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.encoding.InjectBase32": {
       "description": "Probe for susceptibility to base32 encoded injections",
@@ -1842,7 +1842,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.encoding.InjectBase64": {
       "description": "Probe for susceptibility to base64 encoded injections",
@@ -1878,7 +1878,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.encoding.InjectBraille": {
       "description": "Probe for susceptibility to Braille encoding injections. Credit Wally#3422",
@@ -1914,7 +1914,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.encoding.InjectEcoji": {
       "description": "Probe for susceptibility to Ecoji encoding.",
@@ -1950,7 +1950,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.encoding.InjectHex": {
       "description": "Probe for susceptibility to hex encoded injections",
@@ -1986,7 +1986,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.encoding.InjectLeet": {
       "description": "Probe for susceptibility to 31337 encoding.",
@@ -2022,7 +2022,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.encoding.InjectMime": {
       "description": "Probe for susceptibility to MIME encoding injections",
@@ -2058,7 +2058,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.encoding.InjectMorse": {
       "description": "Probe for susceptibility to Morse encoding. Credit Wally#3422",
@@ -2094,7 +2094,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.encoding.InjectNato": {
       "description": "Probe for susceptibility to Nato phonetic alphabet encoding.",
@@ -2130,7 +2130,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.encoding.InjectQP": {
       "description": "Probe for susceptibility to QP encoded injections",
@@ -2166,7 +2166,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.encoding.InjectROT13": {
       "description": "Probe for susceptibility to ROT13 encoding injections",
@@ -2202,7 +2202,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.encoding.InjectSneakyBits": {
       "description": "Probe for susceptibility to unicode variant selector ASCII smuggling",
@@ -2239,7 +2239,7 @@
         "demon:Language:Code_and_encode:Token"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.encoding.InjectUU": {
       "description": "Probe for susceptibility to UU encoded injections",
@@ -2275,7 +2275,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.encoding.InjectUnicodeTagChars": {
       "description": "Probe for susceptibility to unicode tag ASCII smuggling",
@@ -2313,7 +2313,7 @@
         "demon:Language:Code_and_encode:Token"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.encoding.InjectUnicodeVariantSelectors": {
       "description": "Probe for susceptibility to unicode variant selector ASCII smuggling",
@@ -2350,7 +2350,7 @@
         "demon:Language:Code_and_encode:Token"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.encoding.InjectZalgo": {
       "description": "Probe for susceptibility to Zalgo encoding.",
@@ -2386,7 +2386,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.exploitation.JinjaTemplatePythonInjection": {
       "description": "Attempts to execute Python code via Jinja templating",
@@ -3009,7 +3009,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetEiffelFull": {
       "description": "String-based latent prompt injections in fact snippets on the Eiffel Tower",
@@ -3044,7 +3044,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetLegal": {
       "description": "String-based latent prompt injections in legal snippets",
@@ -3079,7 +3079,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetLegalFull": {
       "description": "String-based latent prompt injections in legal snippets",
@@ -3114,7 +3114,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.latentinjection.LatentInjectionReport": {
       "description": "String-based latent prompt injections via a report",
@@ -3146,7 +3146,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.latentinjection.LatentInjectionReportFull": {
       "description": "String-based latent prompt injections via a report",
@@ -3178,7 +3178,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.latentinjection.LatentInjectionResume": {
       "description": "String-based latent prompt injections via a resume",
@@ -3209,7 +3209,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.latentinjection.LatentInjectionResumeFull": {
       "description": "String-based latent prompt injections via a resume",
@@ -3240,7 +3240,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnFr": {
       "description": "String-based latent prompt injections via translation",
@@ -3272,7 +3272,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnFrFull": {
       "description": "String-based latent prompt injections via translation",
@@ -3304,7 +3304,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnZh": {
       "description": "Latent prompt injection in Chinese context (\u7b80\u4f53\u5b57)",
@@ -3336,7 +3336,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnZhFull": {
       "description": "Latent prompt injection in Chinese context (\u7b80\u4f53\u5b57)",
@@ -3368,7 +3368,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.latentinjection.LatentJailbreak": {
       "description": "Implementation of Latent Jailbreak, using latent prompt injection-",
@@ -3401,7 +3401,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.latentinjection.LatentJailbreakFull": {
       "description": "Implementation of Latent Jailbreak, using latent prompt injection-",
@@ -3434,7 +3434,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.latentinjection.LatentWhois": {
       "description": "Latent prompt injections in whois probe reports",
@@ -3465,7 +3465,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.latentinjection.LatentWhoisSnippet": {
       "description": "String-based latent prompt injections in whois reports",
@@ -3500,7 +3500,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.latentinjection.LatentWhoisSnippetFull": {
       "description": "String-based latent prompt injections in whois reports",
@@ -3535,7 +3535,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-10-17 15:07:25 +0000"
     },
     "probes.leakreplay.GuardianCloze": {
       "description": "Lightweight version of Guardian cloze test for data leakage.",
@@ -4799,7 +4799,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-10-01 00:13:26 +0000"
+      "mod_time": "2026-10-13 04:12:18 +0000"
     },
     "probes.promptinject.HijackHateHumansFull": {
       "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
@@ -4840,7 +4840,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-10-01 00:13:26 +0000"
+      "mod_time": "2026-10-13 04:12:18 +0000"
     },
     "probes.promptinject.HijackKillHumans": {
       "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
@@ -4882,7 +4882,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-10-01 00:13:26 +0000"
+      "mod_time": "2026-10-13 04:12:18 +0000"
     },
     "probes.promptinject.HijackKillHumansFull": {
       "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
@@ -4923,7 +4923,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-10-01 00:13:26 +0000"
+      "mod_time": "2026-10-13 04:12:18 +0000"
     },
     "probes.promptinject.HijackLongPrompt": {
       "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
@@ -4965,7 +4965,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-10-01 00:13:26 +0000"
+      "mod_time": "2026-10-13 04:12:18 +0000"
     },
     "probes.promptinject.HijackLongPromptFull": {
       "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
@@ -5006,7 +5006,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-10-01 00:13:26 +0000"
+      "mod_time": "2026-10-13 04:12:18 +0000"
     },
     "probes.propile.PIILeakQuadruplet": {
       "description": "ProPILE quadruplet probe: uses name + two PIIs to elicit the third.",
@@ -10903,7 +10903,7 @@
       },
       "active": true,
       "extra_dependency_names": [],
-      "mod_time": "2026-10-21 19:33:22 +0000"
+      "mod_time": "2026-11-03 11:35:39 +0000"
     },
     "harnesses.probewise.ProbewiseHarness": {
       "DEFAULT_PARAMS": {
