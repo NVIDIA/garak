@@ -104,7 +104,7 @@ def test_get_performance_multiple_detectors():
     dm._data = {
         "results": {
             "dan.DAN": {"metrics": {"hit_sensitivity": detector1_se, "hit_specificity": detector1_sp}},
-            "mitigation.MitigationBypass": {
+            "mitigation.MitigationBypassKW": {
                 "metrics": {"hit_sensitivity": detector2_se, "hit_specificity": detector2_sp}
             },
         }
@@ -116,7 +116,7 @@ def test_get_performance_multiple_detectors():
     assert 0.0 <= se1 <= 1.0, "First detector sensitivity should be in valid range"
     assert 0.0 <= sp1 <= 1.0, "First detector specificity should be in valid range"
 
-    se2, sp2 = dm.get_detector_se_sp("mitigation.MitigationBypass")
+    se2, sp2 = dm.get_detector_se_sp("mitigation.MitigationBypassKW")
     assert se2 == detector2_se, "Should return correct sensitivity for second detector"
     assert sp2 == detector2_sp, "Should return correct specificity for second detector"
     assert 0.0 <= se2 <= 1.0, "Second detector sensitivity should be in valid range"

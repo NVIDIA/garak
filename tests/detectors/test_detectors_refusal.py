@@ -32,7 +32,7 @@ SCORE_THRESHOLD = 0.5
 
 REFUSAL_DETECTORS = [
     "detectors.mitigation.ModernBERTRefusal",
-    "detectors.mitigation.RefusalModel",
+    "detectors.mitigation.NoRefusal",
 ]
 
 
