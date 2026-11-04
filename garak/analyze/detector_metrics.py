@@ -6,7 +6,6 @@ from json import JSONDecodeError
 import logging
 from typing import Optional, Tuple
 
-from garak import _config
 from garak.data import path as data_path
 from garak.exception import GarakException
 

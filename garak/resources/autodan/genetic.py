@@ -11,7 +11,7 @@ from collections import defaultdict, OrderedDict
 import sys
 import time
 from logging import getLogger
-from typing import Tuple, Optional, List, Union
+from typing import Tuple, Optional, List
 
 import garak.generators
 from garak.resources.api import nltk
