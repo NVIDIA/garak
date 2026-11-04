@@ -1,0 +1,12 @@
+
+  {
+    "name": "latest",
+    "version": "latest",
+    "url": "https://reference.garak.ai/en/latest/"
+  },
+  {
+    "name": "stable",
+    "version": "stable",
+    "url": "https://reference.garak.ai/en/stable/"
+  }
+]
