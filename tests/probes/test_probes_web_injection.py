@@ -57,7 +57,14 @@ def test_group_association_with_duplicate_text(tmp_path, monkeypatch, second_int
 
 def _probe_over_both_groups():
     instance_config = {
-        "probes": {"web_injection": {"MarkdownXSS": {"payloads": [GROUP_A, GROUP_B]}}}
+        "probes": {
+            "web_injection": {
+                "MarkdownXSS": {
+                    "payloads": [GROUP_A, GROUP_B],
+                    "soft_probe_prompt_cap": None,
+                }
+            }
+        }
     }
     return _plugins.load_plugin(PROBE, config_root=instance_config)
 

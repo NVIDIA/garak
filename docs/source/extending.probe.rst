@@ -171,6 +171,12 @@ duplicate entries without changing the existing ``PayloadGroup.payloads`` API.
 Sources with their own file format, such as ``donotanswer``, can populate the
 same aligned lists without using the payload loader.
 
+If one stub produces several prompts, repeat its intent for every generated
+prompt. ``TaskXSS`` does this for each task and payload pair; ``sata.MLM`` does
+it for each masked variant. A stub that produces no prompts contributes no
+entries to either list. Task template metadata does not replace the payload's
+intent.
+
 Probe Documentation
 *******************
 
