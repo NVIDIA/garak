@@ -103,7 +103,7 @@ class AzureOpenAIGenerator(OpenAICompatible):
         elif "-".join(self.target_name.split("-")[:-1]) in chat_models and re.match(
             r"^.+-[01][0-9][0-3][0-9]$", self.target_name
         ):  # handle model names -MMDDish suffix
-            self.generator = self.client.completions
+            self.generator = self.client.chat.completions
         else:
             raise ValueError(
                 f"No {self.generator_family_name} API defined for '{self.target_name}' in generators/openai.py - please add one!"
