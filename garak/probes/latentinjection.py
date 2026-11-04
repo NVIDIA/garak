@@ -135,7 +135,9 @@ class TranslationMixin:
             instruction.replace("{LANG_EN_NAME}", self.target_lang_name_en)
             for instruction in self.base_instructions
         ]
-        self.payload_triggers += garak.payloads.load(self.payload_name).payloads
+        self.payload_triggers = (
+            self.payload_triggers + garak.payloads.load(self.payload_name).payloads
+        )
         self._build_prompts_triggers(cap=self.soft_probe_prompt_cap)
 
 

@@ -75,6 +75,12 @@ def test_encoding_suppress_prompt_cap(classname):
     assert len(p.prompts) >= rand_cap
 
 
+def test_encoding_tags_do_not_accumulate():
+    _plugins.load_plugin("probes.encoding.InjectHex")
+    p = _plugins.load_plugin("probes.encoding.InjectBase64")
+    assert len(set(p.tags)) == len(p.tags), "loading probes must not repeat tags"
+
+
 @pytest.mark.parametrize(
     "plain, expected",
     [

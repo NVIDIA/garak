@@ -261,7 +261,7 @@ class EncodingMixin:
 
     def __init__(self):
         self._load_payloads()
-        self.tags += self.extra_tags
+        self.tags = self.tags + self.extra_tags
         generated_prompts = self._generate_encoded_prompts(
             self.encoding_funcs, self.encoding_name
         )
