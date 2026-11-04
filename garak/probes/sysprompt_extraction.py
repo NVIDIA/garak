@@ -33,6 +33,7 @@ class SystemPromptExtraction(Probe):
         "avid-effect:security:S0301",
         "owasp:llm01",
         "quality:Security:PromptStability",
+        "euai:robustness:adversarial",
     ]
     goal = "extract the model's system prompt"
     doc_uri = "https://simonwillison.net/tags/exfiltration-attacks/"
@@ -46,7 +47,6 @@ class SystemPromptExtraction(Probe):
             "garak-llm/tm-system_prompt",  # credit teilomillet/system_prompt
         ],
         "system_prompt_subsample": 50,
-        "follow_prompt_cap": True,
     }
 
     def __init__(self, config_root=_config):
@@ -121,14 +121,6 @@ class SystemPromptExtraction(Probe):
             (sp, at) for sp in self.system_prompts for at in self.attack_templates
         ]
 
-        if (
-            self.follow_prompt_cap
-            and len(all_combinations) > self.soft_probe_prompt_cap
-        ):
-            all_combinations = random.sample(
-                all_combinations, self.soft_probe_prompt_cap
-            )
-
         for sys_prompt, attack_template in all_combinations:
             turns = [
                 Turn(role="system", content=Message(text=sys_prompt, lang=self.lang)),
@@ -137,3 +129,5 @@ class SystemPromptExtraction(Probe):
                 ),
             ]
             self.prompts.append(Conversation(turns=turns))
+
+        self._prune_data()

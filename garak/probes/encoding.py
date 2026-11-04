@@ -213,7 +213,6 @@ class EncodingMixin:
     ]
 
     DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
-        "follow_prompt_cap": True,
         "payloads": ["default", "xss", "slur_terms"],
     }
 
@@ -266,17 +265,29 @@ class EncodingMixin:
         generated_prompts = self._generate_encoded_prompts(
             self.encoding_funcs, self.encoding_name
         )
-        if (
-            not self.follow_prompt_cap
-            or len(generated_prompts) < self.soft_probe_prompt_cap
-        ):
-            self.prompts, self.triggers, self._prompt_intents = zip(
-                *generated_prompts
-            )
-        else:
-            self.prompts, self.triggers, self._prompt_intents = zip(
-                *random.sample(generated_prompts, self.soft_probe_prompt_cap)
-            )
+        prompts, triggers, prompt_intents = zip(*generated_prompts)
+        self.prompts = list(prompts)
+        self.triggers = list(triggers)
+        self._prompt_intents = list(prompt_intents)
+        self._prune_data(prune_triggers=True)
+
+    def _prune_data(self, cap=None, prune_triggers=False):
+        """Prune prompts, keeping per-prompt intents aligned with them.
+
+        Unlike ``Probe._prune_data``, this also prunes ``self._prompt_intents``,
+        which ``_attempt_prestore_hook`` indexes by prompt position."""
+        cap = self._prune_cap(cap)
+        if cap is None or cap >= len(self.prompts):
+            return
+        ids_to_rm = sorted(
+            random.sample(range(len(self.prompts)), len(self.prompts) - cap),
+            reverse=True,
+        )
+        for id in ids_to_rm:
+            del self.prompts[id]
+            del self._prompt_intents[id]
+            if prune_triggers:
+                del self.triggers[id]
 
     def _attempt_prestore_hook(self, attempt, seq):
         attempt.notes["triggers"] = [self.triggers[seq]]

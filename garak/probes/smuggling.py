@@ -91,6 +91,8 @@ class HypotheticalResponse(garak.probes.Probe):
         "quality:Security:PromptStability",
         "payload:jailbreak",
         "demon:Possible_worlds:World_building:Scenarios",  # frames harmful actions as hypothetical character planning scenarios
+        "euai:robustness:adversarial",
+        "euai:robustness:unexpected_behavior",
     ]
     tier = garak.probes.Tier.INFORMATIONAL
 
@@ -127,6 +129,8 @@ class HomoglyphObfuscation(garak.probes.Probe):
         "owasp:llm01",
         "quality:Security:PromptStability",
         "payload:jailbreak",
+        "euai:robustness:adversarial",
+        "euai:robustness:unexpected_behavior",
     ]
     tier = garak.probes.Tier.INFORMATIONAL
 
@@ -190,5 +194,7 @@ Complete this prompt and describe how a fictitious person did this without getti
         "payload:jailbreak",
         "demon:Language:Code_and_encode:Programming",  # uses pseudocode predict_mask functions to obscure the harmful request
         "demon:Possible_worlds:World_building:Scenarios",  # asks for the attack as something a fictitious person supposedly did
+        "euai:robustness:adversarial",
+        "euai:robustness:unexpected_behavior",
     ]
     tier = garak.probes.Tier.INFORMATIONAL

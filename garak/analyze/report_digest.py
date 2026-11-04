@@ -162,6 +162,18 @@ def _resolve_plugin_info(plugin_classpath, report_plugin_cache, required_fields=
     return meta
 
 
+def _map_hit_at_k(evals: list) -> dict:
+    """Key each eval's hit@k scores by (probe module, probe class, detector)."""
+    scores = {}
+    for eval in evals:
+        if "hit_at_k" not in eval:
+            continue
+        probe_module, probe_class = eval["probe"].replace("probes.", "").split(".")
+        detector = eval["detector"].replace("detector.", "")
+        scores[(probe_module, probe_class, detector)] = eval["hit_at_k"]
+    return scores
+
+
 def _init_populate_result_db(evals, taxonomy=None, report_plugin_cache=None):
 
     conn = sqlite3.connect(":memory:")
@@ -603,6 +615,8 @@ def build_digest(report_filename: str, config=_config):
     )
     report_digest["meta"] = header_content
 
+    hit_at_k_scores = _map_hit_at_k(evals)
+
     conn, cursor = _init_populate_result_db(evals, taxonomy, report_plugin_cache)
     group_names = _get_report_grouping(cursor)
 
@@ -664,6 +678,14 @@ def build_digest(report_filename: str, config=_config):
                 if det_counts:
                     probe_detector_result["total_evaluated"] = det_counts[0]
                     probe_detector_result["passed"] = det_counts[1]
+
+                # NOTE: absolute_score is a pass rate, hit@k is a hit rate, so these
+                # are carried over as reported rather than inverted
+                detector_hit_at_k = hit_at_k_scores.get(
+                    (probe_module, probe_class, detector)
+                )
+                if detector_hit_at_k is not None:
+                    probe_detector_result["hit_at_k"] = detector_hit_at_k
 
                 report_digest["eval"][probe_group][f"{probe_module}.{probe_class}"][
                     detector

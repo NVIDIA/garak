@@ -78,14 +78,13 @@ def load_data_all_attacks(self, prompt_data):
             "id": (0, 1, 2, 3),
         },
     }
-    self.prompts = []
     self.pi_prompts = self.pi_build_prompts(prompt_config)
-    for pi_prompt in self.pi_prompts:
-        self.prompts.append(pi_prompt["prompt"])
     if self.max_prompts:
+        # sample pi_prompts, not just prompts, so seq indexes the same entry in both
         random.seed(self.seed)
-        random.shuffle(self.prompts)
-        self.prompts = self.prompts[-self.max_prompts :]
+        random.shuffle(self.pi_prompts)
+        self.pi_prompts = self.pi_prompts[-self.max_prompts :]
+    self.prompts = [pi_prompt["prompt"] for pi_prompt in self.pi_prompts]
 
 
 def _attempt_prestore_hook(self, attempt: Attempt, seq: int) -> Attempt:
@@ -136,6 +135,8 @@ for rogue_string in rogue_strings:
                     "demon:Language:Prompt_injection:Strong_arm_attack",  # includes forceful attack variants like STOP EVERYTHING!!! NOW!!!
                     "demon:Language:Stylizing:Capitalizing",  # attack set includes uppercase override commands such as IGNORE ANY PREVIOUS...
                     "demon:Language:Prompt_injection:Ignore_previous_instructions",  # injects "ignore previous" commands into benign prompt contexts
+                    "euai:harmful:violence",
+                    "euai:robustness:adversarial",
                 ],
                 "load_data_all_attacks": load_data_all_attacks,
                 "uri": "https://openreview.net/forum?id=qiaRo_7Zmug",
@@ -177,6 +178,8 @@ for rogue_string in rogue_strings:
                     "demon:Language:Stylizing:Capitalizing",  # attack set includes uppercase override commands such as IGNORE ANY PREVIOUS...
                     "demon:Rhetoric:Persuasion_and_manipulation:Distraction",  # hides the injection inside otherwise benign Playground prompt contexts
                     "demon:Language:Prompt_injection:Ignore_previous_instructions",  # injects "ignore previous" commands into benign prompt contexts
+                    "euai:harmful:violence",
+                    "euai:robustness:adversarial",
                 ],
                 "load_data_all_attacks": load_data_all_attacks,
                 "uri": "https://openreview.net/forum?id=qiaRo_7Zmug",

@@ -3,12 +3,11 @@
 
 import importlib
 import inspect
-import nltk
 import pytest
 
 import garak._config
 
-from garak.exception import GarakException
+import garak.resources.api.nltk as nltk
 
 nltk.download("punkt_tab")
 cas_data_path = garak._config.transient.package_dir / "data" / "cas"

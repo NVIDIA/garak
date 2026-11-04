@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "garak"
-version = "0.16.1.pre1"
+version = "0.17.2.pre1"
 authors = [
   { name = "Leon Derczynski", email="lderczynski@nvidia.com" },
   { name = "Subho Majumdar", email="subho@vijil.ai" },
@@ -118,6 +118,35 @@ authors = [
   { name = "Tim Ren" },
   { name = "Anurag Jain" },
   { name = "Manu Nicholas Jacob" },
+  { name = "Sahil Panchal" },
+  { name = "TheRisenPhoenix" },
+  { name = "Imran Ahamed" },
+  { name = "nightcityblade" },
+  { name = "Swayam Shah" },
+  { name = "Koral Chapnik Verbun" },
+  { name = "Mohammed Aftab" },
+  { name = "Hitarth Jain" },
+  { name = "motodriver" },
+  { name = "Mohammed Alkindi" },
+  { name = "Vaggelis Giannopoulos" },
+  { name = "Yanran Xie" },
+  { name = "Barney Chambers" },
+  { name = "Sushant Lokhande" },
+  { name = "Sarvesha Kumar Kombaiah Seetha" },
+  { name = "Nathan Benincase" },
+  { name = "Saikrishna Bodapati" },
+  { name = "Pujitha Paladugu" },
+  { name = "Vamsi Bommareddy" },
+  { name = "Denel John" },
+  { name = "MRX-72" },
+  { name = "Reeveson Masilamani" },
+  { name = "Vishnu Rajeev" },
+  { name = "Sasha Mitchell" },
+  { name = "Anneshu Nag" },
+  { name = "Chirag Gupta" },
+  { name = "Ting Wei Chang" },
+  { name = "Yiğit Erdoğan" },
+  { name = "Somay Kousis" },
 ]
 license = "Apache-2.0"
 license-files = ["LICENSE"]
@@ -125,25 +154,26 @@ description = "LLM vulnerability scanner"
 readme = "README.md"
 classifiers = [
     "Development Status :: 3 - Alpha",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Operating System :: OS Independent",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
   "mikeshardmind-base2048>=1.0.2",
-  "transformers>=5.14.1,<6.0",
-  "datasets>=3.0.0,<4.0",
+  "transformers>=5.14.1,<5.20.0",
+  "datasets>=5.0.1,<6.0",
   "colorama>=0.4.3",
   "tqdm>=4.67.1",
   "cohere>=5.16.0",
-  "anthropic>=0.40.0",
+  "anthropic>=0.40.0,<1.0.0",
   "openai>=2.0,<3.0",
   "replicate>=0.8.3",
   "google-api-python-client>=2.0",
   "backoff>=2.1.1",
-  "nltk==3.10.0",
+  "nltk>=3.10.3",
   "accelerate>=0.23.0",
   "avidtools==0.1.2",
   "stdlibs>=2022.10.9",

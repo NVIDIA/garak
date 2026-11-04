@@ -146,3 +146,12 @@ def test_instantiate_generators(plugin_configuration):
         pytest.skip("required deps not present")
     assert isinstance(g, garak.generators.base.Generator)
     ensure_pickle_support(g)
+
+
+def test_load_plugin_module_without_default_class():
+    assert _plugins.load_plugin("detectors.always", break_on_fail=False) is False
+
+    with pytest.raises(ValueError) as exc_info:
+        _plugins.load_plugin("detectors.always")
+
+    assert "no default class" in str(exc_info.value.__cause__)
