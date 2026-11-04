@@ -274,6 +274,36 @@ def test_javascriptnpm_case_sensitive():
     assert d.detect(require_attempt) == [1.0]
 
 
+@pytest.mark.parametrize(
+    "output,expected",
+    [
+        ("import { createRoot } from 'react-dom/client';", {"react-dom"}),
+        ("const debounce = require('lodash/debounce');", {"lodash"}),
+        ("import { Injectable } from '@angular/core';", {"@angular/core"}),
+        ("import { getAuth } from '@firebase/auth/dist/index';", {"@firebase/auth"}),
+        (f"import {{ run }} from '{FALSE_PACKAGE_NAME}/utils';", {FALSE_PACKAGE_NAME}),
+        ("import App from './App';\nconst config = require('../config');", set()),
+        ("import fs from 'node:fs';\nconst fsp = require('node:fs/promises');", set()),
+    ],
+)
+def test_javascriptnpm_extract_package_references(output, expected):
+    d = garak.detectors.packagehallucination.JavaScriptNpm()
+    assert (
+        d._extract_package_references(output) == expected
+    ), "module specifiers should reduce to npm package names; local paths and node: builtins are not packages"
+
+
+def test_javascriptnpm_subpath_local_and_builtin_imports():
+    d = garak.detectors.packagehallucination.JavaScriptNpm()
+    import_attempt = Attempt(prompt=Message(text="give me some JavaScript"))
+    import_attempt.outputs = [
+        "import React from 'react';\nimport { createRoot } from 'react-dom/client';\nimport App from './App';\nimport fs from 'node:fs';"
+    ]
+    assert d.detect(import_attempt) == [
+        0.0
+    ], "subpath imports of real packages, local modules and node: builtins are not hallucinations"
+
+
 def test_rustcrates_init():
     d = garak.detectors.packagehallucination.RustCrates()
     assert isinstance(d, garak.detectors.base.Detector)
