@@ -17,6 +17,7 @@ import garak.attempt
 import garak.analyze
 import garak.analyze.calibration
 import garak.analyze.detector_metrics
+import garak.analyze.hit_at_k
 from garak.analyze.bootstrap_ci import calculate_bootstrap_ci
 import garak.resources.theme
 
@@ -72,8 +73,12 @@ class Evaluator:
         intent_counts: dict[str, dict[str, int]] = defaultdict(
             lambda: {"passed": 0, "total_evaluated": 0, "nones": 0}
         )
+        # per-prompt (scoreable outputs, attack successes) to estimate hit@k
+        per_attempt_counts: List[Tuple[int, int]] = []
         for attempt in attempts:
             intent = attempt.intent
+            attempt_scoreable = 0
+            attempt_hits = 0
             for idx, score in enumerate(attempt.detector_results[detector_name]):
                 if score is None:
                     nones += 1
@@ -81,11 +86,14 @@ class Evaluator:
                         intent_counts[intent]["nones"] += 1
                 elif self.test(float(score)):
                     passes += 1
+                    attempt_scoreable += 1
                     if intent is not None:
                         intent_counts[intent]["passed"] += 1
                         intent_counts[intent]["total_evaluated"] += 1
                 else:  # if we don't pass
                     fails += 1
+                    attempt_scoreable += 1
+                    attempt_hits += 1
                     if intent is not None:
                         intent_counts[intent]["total_evaluated"] += 1
                     messages.append(
@@ -134,8 +142,17 @@ class Evaluator:
                         + "\n"  # generator,probe,prompt,trigger,result,detector,score,run id,attemptid,
                     )
 
+            per_attempt_counts.append((attempt_scoreable, attempt_hits))
+
         outputs_evaluated = passes + fails
         outputs_processed = passes + fails + nones
+
+        hit_at_k_ks = getattr(_config.reporting, "hit_at_k", None)
+        hit_at_k_scores = (
+            garak.analyze.hit_at_k.estimate_hit_at_k(per_attempt_counts, hit_at_k_ks)
+            if hit_at_k_ks is not None
+            else {}
+        )
 
         ci_lower: Optional[float] = None
         ci_upper: Optional[float] = None
@@ -183,7 +200,13 @@ class Evaluator:
         else:
             print_func = self.print_results_wide
         print_func(
-            detector_name, passes, outputs_evaluated, messages, ci_lower, ci_upper
+            detector_name,
+            passes,
+            outputs_evaluated,
+            messages,
+            ci_lower,
+            ci_upper,
+            hit_at_k_scores,
         )
 
         # Build eval record
@@ -202,6 +225,12 @@ class Evaluator:
             eval_record["intents"] = {
                 intent_key: dict(counts)
                 for intent_key, counts in sorted(intent_counts.items())
+            }
+
+        # hit@k attack success rate: per-prompt "does at least one of k tries breach?"
+        if hit_at_k_scores:
+            eval_record["hit_at_k"] = {
+                str(k): scores for k, scores in hit_at_k_scores.items()
             }
 
         # Add CI fields if calculation succeeded
@@ -329,6 +358,17 @@ class Evaluator:
             ]
         return zscore, zrating_symbol
 
+    @staticmethod
+    def _format_hit_at_k(hit_at_k_scores: Optional[dict]) -> str:
+        """Render hit@k scores as a compact ``hit@1: 20.00%`` suffix."""
+        if not hit_at_k_scores:
+            return ""
+        parts = [
+            f"hit@{k}: {scores['score'] * 100:.2f}%"
+            for k, scores in hit_at_k_scores.items()
+        ]
+        return "  " + "  ".join(parts)
+
     def print_results_wide(
         self,
         detector_name,
@@ -337,6 +377,7 @@ class Evaluator:
         messages: Optional[List] = None,
         ci_lower: Optional[float] = None,
         ci_upper: Optional[float] = None,
+        hit_at_k_scores: Optional[dict] = None,
     ):
         """Print the evaluator's summary"""
 
@@ -386,7 +427,7 @@ class Evaluator:
                     ci_text = f" [{ci_lower:.2f}%, {ci_upper:.2f}%]"
 
             print(
-                f"   ({Fore.LIGHTRED_EX}attack success rate:{Style.RESET_ALL} {failrate:6.2f}%{ci_text})",
+                f"   ({Fore.LIGHTRED_EX}attack success rate:{Style.RESET_ALL} {failrate:6.2f}%{ci_text}{self._format_hit_at_k(hit_at_k_scores)})",
                 end="",
             )
         if _config.system.show_z and zscore is not None:
@@ -410,6 +451,7 @@ class Evaluator:
         messages: Optional[List] = None,
         ci_lower: Optional[float] = None,
         ci_upper: Optional[float] = None,
+        hit_at_k_scores: Optional[dict] = None,
     ):
         """Print the evaluator's summary"""
 
@@ -462,7 +504,7 @@ class Evaluator:
                     ci_text = f" [{ci_lower:.2f}%, {ci_upper:.2f}%]"
 
             print(
-                f"    {Fore.LIGHTRED_EX}attack success rate:{Style.RESET_ALL} {failrate:6.2f}%{ci_text}",
+                f"    {Fore.LIGHTRED_EX}attack success rate:{Style.RESET_ALL} {failrate:6.2f}%{ci_text}{self._format_hit_at_k(hit_at_k_scores)}",
                 end="",
             )
         if failrate > 0.0 and _config.system.show_z and zscore is not None:
