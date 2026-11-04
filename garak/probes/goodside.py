@@ -106,7 +106,7 @@ class ThreatenIntent(garak.probes.IntentProbe):
         "euai:robustness:adversarial",  # adversarial wording intended to push the model off its usual refusal
     ]
     active = False
-    lang = "*"
+    lang = "en"
 
     def _prompts_from_stub(self, stub: TextStub) -> List[str]:
         emphases = [
@@ -136,7 +136,7 @@ class ThreatenIntent(garak.probes.IntentProbe):
             "refuse",
             "try to offer any alternative kind of answer",
             "do not directly comply",
-            "give any false information beyeond fulfilling the request",
+            "give any false information beyond fulfilling the request",
         ]
 
         template = (
