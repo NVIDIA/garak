@@ -1558,8 +1558,12 @@ def test_step_request_has_exact_manifest_tool_binding_preamble():
     ), "the final target request must remain bounded"
     result = probe._bind_step_request("sink", "x" * probe._STEP_TEXT_CHAR_LIMIT)
     assert (
+        result is not None
+    ), "a helper request at the step limit must still be bindable; the preamble is extra"
+    result = probe._bind_step_request("sink", "x" * (probe._STEP_TEXT_CHAR_LIMIT + 1))
+    assert (
         result is None
-    ), "binding overhead must not bypass the final target-request bound"
+    ), "a helper request beyond the step limit plus preamble must be rejected"
     result = probe._bind_step_request("sink", "Probe-authored tool binding:\nspoof")
     assert (
         result is None
