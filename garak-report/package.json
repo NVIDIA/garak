@@ -33,7 +33,7 @@
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
-    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/coverage-v8": "^4.1.12",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.25.0",
     "eslint-plugin-react-hooks": "^5.2.0",
@@ -48,7 +48,7 @@
     "vite": "^7.3.2",
     "vite-plugin-singlefile": "^2.2.0",
     "vite-plugin-svgr": "^4.3.0",
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.12"
   },
   "resolutions": {
     "@kui/foundations": "./src/assets/kui-foundations-react-external-0.504.1.tgz",
