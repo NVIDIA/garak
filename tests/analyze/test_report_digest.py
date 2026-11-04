@@ -119,7 +119,47 @@ def test_tim_single_cell():
         "total_evaluated": 6,
         "n_detectors": 1,
         "nones": 0,
+        "probes": ["grandma.Win10"],
     }, cell
+
+
+def test_tim_cell_lists_contributing_probes():
+    # two probes share one technique/intent pairing and one of them reports under
+    # two detectors; the cell's probes list must be the de-duplicated set of
+    # contributing module.Class names, lexicographically sorted regardless of the
+    # order the evals arrive in.
+    evals = [
+        {
+            "entry_type": "eval",
+            "probe": "grandma.Win10",
+            "detector": "d.A",
+            "intents": {"S003": {"passed": 1, "total_evaluated": 2, "nones": 0}},
+        },
+        {
+            "entry_type": "eval",
+            "probe": "grandma.Win10",
+            "detector": "d.B",
+            "intents": {"S003": {"passed": 2, "total_evaluated": 3, "nones": 0}},
+        },
+        {
+            "entry_type": "eval",
+            "probe": "doctor.BypassTechniques",
+            "detector": "d.A",
+            "intents": {"S003": {"passed": 0, "total_evaluated": 4, "nones": 0}},
+        },
+    ]
+    pc = _pc(
+        {
+            "grandma.Win10": ["demon:T:Tech"],
+            "doctor.BypassTechniques": ["demon:T:Tech"],
+        },
+        detectors=("d.A", "d.B"),
+    )
+    cell = _tim(evals, pc)["demon:T:Tech"]["S003"]
+    assert cell["probes"] == [
+        "doctor.BypassTechniques",
+        "grandma.Win10",
+    ], "probes must list each contributing probe once, sorted and de-duplicated"
 
 
 def test_tim_pools_across_detectors():
