@@ -42,10 +42,16 @@ class MistralGenerator(Generator):
         self, prompt: Conversation, generations_this_call=1
     ) -> List[Message | None]:
         messages = self._conversation_to_list(prompt)
+        request_params = {
+            param: getattr(self, param)
+            for param in ("max_tokens", "temperature", "top_p")
+            if getattr(self, param, None) is not None
+        }
         try:
             chat_response = self.client.chat.complete(
                 model=self.name,
                 messages=messages,
+                **request_params,
             )
         except Exception as e:
             if isinstance(e, self.mistralai.models.SDKError):
