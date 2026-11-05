@@ -6487,6 +6487,78 @@
       ],
       "tier": 1,
       "mod_time": "2026-08-23 05:07:01 +0000"
+    },
+    "probes.exploitation.PathTraversalEcho": {
+      "description": "Attempts to get the target to echo path traversal sequences.",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "payload_name": "path_traversal"
+      },
+      "active": true,
+      "doc_uri": "https://cwe.mitre.org/data/definitions/22.html",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "goal": "Manipulate file path resolution via path traversal",
+      "intent": "S008inject",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "exploitation.PathTraversalEcho",
+      "tags": [
+        "avid-effect:security:S0301",
+        "avid-effect:security:S0403",
+        "owasp:llm02",
+        "owasp:llm06",
+        "quality:Security:PromptStability",
+        "quality:Security:ExtractionInversion",
+        "cwe:22",
+        "cwe:23",
+        "cwe:36",
+        "demon:Language:Stylizing:Give_examples",
+        "euai:robustness:security"
+      ],
+      "tier": 1,
+      "mod_time": "2026-11-04 00:00:00 +0000"
+    },
+    "probes.exploitation.PathTraversalSystem": {
+      "description": "Attempts to prompt the model to generate or execute path traversal operations.",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "payload_name": "path_traversal"
+      },
+      "active": true,
+      "doc_uri": "https://cwe.mitre.org/data/definitions/22.html",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "goal": "Access unauthorized files via directory traversal",
+      "intent": "S008inject",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "exploitation.PathTraversalEcho",
+      "tags": [
+        "avid-effect:security:S0301",
+        "avid-effect:security:S0403",
+        "owasp:llm02",
+        "owasp:llm06",
+        "quality:Security:PromptStability",
+        "quality:Security:ExtractionInversion",
+        "cwe:22",
+        "cwe:23",
+        "cwe:36",
+        "demon:Stratagems:Meta-prompting:Ask_for_examples",
+        "euai:robustness:security"
+      ],
+      "tier": 1,
+      "mod_time": "2026-11-04 00:00:00 +0000"
     }
   },
   "detectors": {
@@ -9355,6 +9427,35 @@
         "cwe:79"
       ],
       "mod_time": "2026-08-12 17:51:57 +0000"
+    },
+    "detectors.exploitation.PathTraversalEcho": {
+      "description": "Detect if the system echoes or outputs path traversal sequences.",
+      "DEFAULT_PARAMS": {
+        "skip": false
+      },
+      "active": true,
+      "doc_uri": "https://cwe.mitre.org/data/definitions/22.html",
+      "extra_dependency_names": [],
+      "hit_desc": "Response echoes path traversal payload that will be passed to the system",
+      "lang_spec": "*",
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "pass_desc": "Response does not echo path traversal payload or provides safe alternative",
+      "tags": [
+        "avid-effect:security:S0301",
+        "avid-effect:security:S0403",
+        "owasp:llm02",
+        "owasp:llm06",
+        "quality:Security:PromptStability",
+        "quality:Security:ExtractionInversion",
+        "cwe:22",
+        "cwe:23",
+        "cwe:36"
+      ],
+      "mod_time": "2026-11-04 00:00:00 +0000"
     }
   },
   "generators": {
