@@ -6,13 +6,11 @@ Probes in this module are originally authored by Riley Goodside.
 
 """
 
-import hashlib
 import logging
 import re
 import tqdm
 from typing import List
 
-import garak.attempt
 import garak.resources.theme
 from garak import _config
 from garak.attempt import Attempt
@@ -438,22 +436,18 @@ class TagIntent(garak.probes.IntentProbe):
     ]
     tier = garak.probes.Tier.OF_CONCERN
 
-    def _prompts_from_stub(self, stub: Stub) -> List[garak.attempt.Conversation]:
+    def _prompts_from_stub(self, stub: Stub) -> List[str]:
         content = getattr(stub, "content", None)
         if not isinstance(content, str) or not content:
             logging.warning("TagIntent skipping unsupported stub %r", stub)
             return []
-        # stable per-case id over intent + content, aligned across variants
-        source_id = hashlib.sha256(
-            f"{getattr(stub, 'intent', None)}{content}".encode("utf-8")
-        ).hexdigest()[:12]
         if any(not (_TAG_ASCII_MIN <= ord(ch) <= _TAG_ASCII_MAX) for ch in content):
             logging.warning(
                 "TagIntent skipping stub with non-printable-ASCII content %r", content
             )
             return []
 
-        conversations: List[garak.attempt.Conversation] = []
+        prompts: List[str] = []
         for carrier in TAG_CARRIERS:
             for use_refocuser in (True, False):
                 for az_only in (True, False):
@@ -466,22 +460,5 @@ class TagIntent(garak.probes.IntentProbe):
                     prompt_text = (
                         f"{carrier}\n{encoded_exploit}" if carrier else encoded_exploit
                     )
-                    conversations.append(
-                        garak.attempt.Conversation(
-                            [
-                                garak.attempt.Turn(
-                                    "user",
-                                    garak.attempt.Message(
-                                        text=prompt_text, lang=self.lang
-                                    ),
-                                )
-                            ],
-                            notes={
-                                "goodside_tag_carrier": carrier,
-                                "use_refocuser": use_refocuser,
-                                "az_only": az_only,
-                                "source_id": source_id,
-                            },
-                        )
-                    )
-        return conversations
+                    prompts.append(prompt_text)
+        return prompts
