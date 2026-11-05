@@ -133,12 +133,7 @@ class Tag(garak.probes.Probe):
 
     There's a page of unicode tags corresponding to the alphabet that don't render,
     but some models will interpret these anyway. Following instructions posed in this
-    unicode page allows attackers to hide prompt injections in browsers.
-
-    This is a fixed, trigger-based test. ``goodside.TagIntent`` applies the same
-    Unicode Tag technique across intent-service stubs, while
-    ``encoding.InjectUnicodeTagChars`` uses the same encoding to measure whether
-    the target decodes and echoes known plaintext."""
+    unicode page allows attackers to hide prompt injections in browsers."""
 
     lang = "en"
     doc_uri = "https://twitter.com/goodside/status/1745511940351287394"
