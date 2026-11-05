@@ -57,13 +57,9 @@ class LRLBuff(Buff):
         attempt.notes["original_responses"] = [
             msg.text for msg in outputs
         ]  # serialise-friendly
-        translated_outputs = list()
         for output in outputs:
+            output.notes["raw_response_text"] = output.text
             response = deepl_translator.translate_text(output.text, target_lang="EN-US")
-            translated_output = response.text
-            translated_outputs.append(
-                garak.attempt.Message(translated_output, lang="en")
-            )
-        # does this work as expected? Setting outputs would _add_ a new turn not replace the originals
-        attempt.outputs = translated_outputs
+            output.text = response.text
+            output.lang = "en"
         return attempt
