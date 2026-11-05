@@ -17,6 +17,6 @@ def leetspeak(input: str, transmute_chance: float = 0.6) -> str:
     )
     # mix it up
     output = "".join(
-        [processed[i] if random.random() > 0.5 else input[i] for i in range(len(input))]
+        [processed[i] if random.random() < transmute_chance else input[i] for i in range(len(input))]
     )
     return output
