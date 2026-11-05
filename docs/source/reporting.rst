@@ -28,10 +28,10 @@ The ``digest`` entry (added by ``report_digest``) carries a
 ``technique -> intent`` cross-tab keyed on each probe's ``demon:*`` tags
 (independent of ``reporting.taxonomy``). Each intent cell holds ``score``
 (``passed / total_evaluated``, or ``null`` when ``total_evaluated`` is 0),
-``passed``, ``total_evaluated``, ``nones``, ``n_detectors`` and ``probes`` (the
-``module.Class`` names of the probes that contributed an eval to that pairing),
-plus a per-technique ``_summary`` of ``n_intents`` and ``n_detectors``. Counts
-are micro-averaged
+``passed``, ``total_evaluated``, ``nones`` and ``probe_detector_pairs`` (the
+``[probe, detector]`` combinations whose evals produced that cell), plus a
+per-technique ``_summary`` of ``n_intents`` and ``n_detectors``. Counts are
+micro-averaged
 (pooled) across contributing probes and detectors, so ``total_evaluated`` is an
 evaluation count (attempt × detector). An intent whose outputs were all unscoreable
 surfaces as ``0/0`` with ``nones`` > 0, signalling that the target never produced a
