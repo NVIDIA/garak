@@ -17,8 +17,6 @@ Further info:
 
 from random import sample
 
-import yaml
-
 import garak.attempt
 import garak.payloads
 import garak.probes
@@ -320,21 +318,14 @@ class MarkdownExfilMixin:
             with open(template_file, "r") as f:
                 self.concat_prompt_templates.append(f.read().strip())
 
-    def uncapped_prompt_count(self):
-        """Prompt count for a run with ``soft_probe_prompt_cap`` unset.
+    def generate_prompts(self, markdown_templates):
+        """Sample ``generated_prompt_count`` prompts, then prune to the run's cap.
 
-        Prompts are sampled from a product of every variable, which runs to tens
-        of thousands, so an unset cap builds ``uncapped_prompt_scale`` times the
-        cap garak ships in ``garak.core.yaml``."""
-        core_config = _config.transient.package_dir / "resources" / "garak.core.yaml"
-        with open(core_config, encoding="utf-8") as f:
-            default_cap = yaml.safe_load(f)["run"]["soft_probe_prompt_cap"]
-        return default_cap * self.uncapped_prompt_scale
-
-    def generate_prompts(self, markdown_templates, num_prompts):
-        if num_prompts is None:
-            num_prompts = self.uncapped_prompt_count()
-        for _ in range(num_prompts):
+        The product of every variable runs to tens of thousands, so the probe
+        samples a fixed number and leaves the cap to ``_prune_data``, which
+        honours ``soft_probe_prompt_cap`` and ``follow_prompt_cap`` as every
+        other probe does."""
+        for _ in range(self.generated_prompt_count):
             domain = sample(self.domains, 1)[0]
             uri_var_format = sample(self.uri_var_formats, 1)[0]
             uri_var_name = sample(self.uri_var_names, 1)[0]
@@ -379,6 +370,7 @@ class MarkdownExfilMixin:
                     injected_output_fomat="print",
                 )
             self.prompts.append(prompt)
+        self._prune_data()
 
 
 class MarkdownURINonImageExfilExtended(MarkdownExfilMixin, garak.probes.Probe):
@@ -421,7 +413,7 @@ class MarkdownURINonImageExfilExtended(MarkdownExfilMixin, garak.probes.Probe):
     active = True
 
     DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
-        "uncapped_prompt_scale": 4,
+        "generated_prompt_count": 1024,
     }
 
     markdown_uri_templates = [
@@ -434,7 +426,7 @@ class MarkdownURINonImageExfilExtended(MarkdownExfilMixin, garak.probes.Probe):
     def __init__(self, config_root=_config):
         garak.probes.Probe.__init__(self, config_root=config_root)
         MarkdownExfilMixin.__init__(self, config_root=config_root)
-        self.generate_prompts(self.markdown_uri_templates, self.soft_probe_prompt_cap)
+        self.generate_prompts(self.markdown_uri_templates)
 
 
 class MarkdownURIImageExfilExtended(MarkdownExfilMixin, garak.probes.Probe):
@@ -476,7 +468,7 @@ class MarkdownURIImageExfilExtended(MarkdownExfilMixin, garak.probes.Probe):
     active = True
 
     DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
-        "uncapped_prompt_scale": 4,
+        "generated_prompt_count": 1024,
     }
 
     markdown_uri_templates = [
@@ -489,7 +481,7 @@ class MarkdownURIImageExfilExtended(MarkdownExfilMixin, garak.probes.Probe):
     def __init__(self, config_root=_config):
         garak.probes.Probe.__init__(self, config_root=config_root)
         MarkdownExfilMixin.__init__(self, config_root=config_root)
-        self.generate_prompts(self.markdown_uri_templates, self.soft_probe_prompt_cap)
+        self.generate_prompts(self.markdown_uri_templates)
 
 
 class TaskXSS(garak.probes.Probe):
