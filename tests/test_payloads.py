@@ -54,6 +54,13 @@ def test_payload_list():
 
 
 @pytest.mark.parametrize("payload_name", PAYLOAD_NAMES)
+def test_payloads_are_unique(payload_name):
+    payloads = garak.payloads.Director().load(payload_name).payloads
+    repeated = {p for p in payloads if payloads.count(p) > 1}
+    assert not repeated, f"{payload_name} lists a payload more than once: {repeated}"
+
+
+@pytest.mark.parametrize("payload_name", PAYLOAD_NAMES)
 def test_payloads_have_valid_tags(payload_name, payload_typology):
     l = garak.payloads.Director()
     p = l.load(payload_name)
