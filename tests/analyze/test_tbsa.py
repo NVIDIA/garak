@@ -105,6 +105,17 @@ def test_tbsa_single_tier_rounded(tier):
     assert tbsa == 3.4, "single-tier TBSA must pass through round_final_tbsa"
 
 
+@pytest.mark.parametrize("tier", [1, 2])
+def test_tbsa_single_tier_rounded_distinguishes_truncation(tier):
+    # harmonic mean of 4, 3, 3 is 3.2727: rounding gives 3.3, truncation gives 3.2
+    tbsa, _, pd_count = garak.analyze.tbsa.digest_to_tbsa(
+        _single_tier_digest(tier, [4, 3, 3]), quiet=True
+    )
+    assert pd_count == 3, "all three probe/detector pairs should contribute"
+    assert tbsa == 3.3, "single-tier TBSA must round, not truncate"
+    assert tbsa != 3.2, "truncated value must not be returned"
+
+
 def test_hash_varies():
     _, base_hash, __ = garak.analyze.tbsa.digest_to_tbsa(BASE_DIGEST)
     altered_version_digest = BASE_DIGEST
