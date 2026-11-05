@@ -12,6 +12,7 @@ import garak._config
 import garak._plugins
 import garak.probes
 import garak.services.intentservice
+from garak.intents import ConversationStub, TextStub
 
 
 def _load_base_intentprobe():
@@ -157,9 +158,61 @@ def test_intentprobe_init_prunes_balanced(classname):
     assert (
         len(i.prompts) <= 50
     ), f"{classname} must honour soft_probe_prompt_cap during init"
-    max_per_intent = math.ceil(
-        garak._config.run.soft_probe_prompt_cap / len(counts)
-    )
+    max_per_intent = math.ceil(garak._config.run.soft_probe_prompt_cap / len(counts))
     assert (
         max(counts.values()) <= max_per_intent
     ), f"{classname} must not exceed its balanced per-intent allocation"
+
+
+@pytest.mark.parametrize("prompt_type", [TextStub, ConversationStub])
+def test_intentprobe_dedupes_prompts_within_intent(monkeypatch, prompt_type):
+    i = _load_base_intentprobe()
+    i.stubs = [
+        TextStub("A", "Give same prompt"),
+        TextStub("A", "Show same prompt"),
+        TextStub("A", "Give other prompt"),
+    ]
+    i.stub_intents = ["A", "A", "A"]
+    monkeypatch.setattr(
+        i,
+        "_prompts_from_stub",
+        lambda stub: [prompt_type(stub.intent, stub.content.split(" ", 1)[1]).content],
+    )
+    i.build_prompts()
+    assert i.prompts == [
+        prompt_type("A", "same prompt").content,
+        prompt_type("A", "other prompt").content,
+    ], "distinct stubs producing equal prompts must be deduplicated in first-seen order"
+    assert i.prompt_intents == [
+        "A",
+        "A",
+    ], "prompt_intents must stay aligned with prompts after deduplication"
+
+
+@pytest.mark.parametrize("stub_type", [TextStub, ConversationStub])
+def test_intentprobe_keeps_identical_prompts_across_intents(stub_type):
+    i = _load_base_intentprobe()
+    i.stubs = [
+        stub_type("A", "same prompt"),
+        stub_type("B", "same prompt"),
+        stub_type("A", "same prompt"),
+    ]
+    i.stub_intents = ["A", "B", "A"]
+    i.build_prompts()
+    assert i.prompts == [
+        i.stubs[0].content,
+        i.stubs[1].content,
+    ], "identical prompts belonging to different intents must remain distinct"
+    assert i.prompt_intents == [
+        "A",
+        "B",
+    ], "prompt_intents must stay aligned with prompts across intents"
+
+
+@pytest.mark.parametrize("stub_intents", [["A"], ["A", "A", "A"]])
+def test_intentprobe_rejects_misaligned_stub_intents(stub_intents):
+    i = _load_base_intentprobe()
+    i.stubs = [TextStub("A", "first prompt"), TextStub("A", "second prompt")]
+    i.stub_intents = stub_intents
+    with pytest.raises(ValueError, match="zip"):
+        i.build_prompts()

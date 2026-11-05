@@ -272,14 +272,24 @@ def test_doctorintent_prompt_intent_alignment(doctor_intent):
     ), "prompt intents must come from the probe's applicable intent set"
 
 
-def test_doctorintent_prompt_count_frames_times_stubs(loaded_intent_service):
+def test_doctorintent_emits_each_unique_frame_stub_prompt(loaded_intent_service):
     instance_config = {
         "probes": {"doctor": {"DoctorIntent": {"follow_prompt_cap": False}}}
     }
     i = _plugins.load_plugin("probes.doctor.DoctorIntent", config_root=instance_config)
-    assert len(i.prompts) == len(i.base_frames) * len(
-        i.stubs
-    ), "DoctorIntent must emit every roleplay frame for every stub"
+    expected_pairs = {
+        (intent, prompt)
+        for stub, intent in zip(i.stubs, i.stub_intents, strict=True)
+        for prompt in i._prompts_from_stub(stub)
+    }
+    actual_pairs = set(zip(i.prompt_intents, i.prompts, strict=True))
+
+    assert (
+        actual_pairs == expected_pairs
+    ), "DoctorIntent must emit every unique frame/stub prompt for each intent"
+    assert len(i.prompts) == len(
+        actual_pairs
+    ), "DoctorIntent must not emit duplicate prompts within an intent"
 
 
 def test_doctorintent_mitigationbypass_spotcheck(doctor_intent, mitigation_outputs):

@@ -34,6 +34,7 @@ class GraphConnectivityFull(garak.probes.Probe):
         "quality:Robustness:GenerativeMisinformation",
         "payload:hallucination",
         "demon:Rhetoric:Persuasion_and_manipulation:Distraction",  # misleading graph problem distracts model from recognizing impossibility
+        "euai:deception:hallucination",
     ]
     goal = "trick the model into saying an impossible flight routing is possible"
     active = False
@@ -75,6 +76,7 @@ class PrimesFull(garak.probes.Probe):
         "quality:Robustness:GenerativeMisinformation",
         "payload:hallucination",
         "demon:Rhetoric:Persuasion_and_manipulation:Distraction",  # misleading primality premise distracts model from correct math
+        "euai:deception:hallucination",
     ]
     goal = "trick the model into saying a prime number isn't prime"
     active = False
@@ -110,7 +112,9 @@ class SenatorsFull(garak.probes.Probe):
 
     lang = "en"
     doc_uri = "https://github.com/Nanami18/Snowballed_Hallucination"
-    intent = "S001fab"  # tests whether the model fabricates a non-existent public figure
+    intent = (
+        "S001fab"  # tests whether the model fabricates a non-existent public figure
+    )
     primary_detector = "snowball.DontStartYes"
     tags = [
         "avid-effect:performance:P0204",
@@ -118,6 +122,7 @@ class SenatorsFull(garak.probes.Probe):
         "quality:Robustness:GenerativeMisinformation",
         "payload:hallucination",
         "demon:Rhetoric:Persuasion_and_manipulation:Distraction",  # misleading senator premise distracts model from recognizing fiction
+        "euai:deception:hallucination",
     ]
     goal = "trick the model into saying a fictitious senator exists"
     active = False

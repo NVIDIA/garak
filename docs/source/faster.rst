@@ -101,6 +101,14 @@ Being able to do this affords parallelization, for example on SLURM/OCI clusters
 The tool is ``aggregate_reports`` and runs from the command line.
 You can get help by running ``python -m garak.analyze.aggregate_reports``.
 
+Entries that carry a ``run`` id, such as ``plugin_cache``, are restamped with the
+aggregate run's id so provenance follows the merged report. Entry types that do not
+define one are left as they are, so aggregation does not add fields the underlying
+object has no notion of.
+Each attempt keeps the ``uuid`` it was given in its original run, which means
+attempts stay individually identifiable and references to them - such as a buff's
+``buff_source_attempt_uuid`` note, or an ``attempt_id`` in the hit log - still resolve.
+
 Probe aggregation
 ^^^^^^^^^^^^^^^^^
 

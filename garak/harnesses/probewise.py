@@ -37,7 +37,7 @@ class ProbewiseHarness(Harness):
         * if the probe specifies a ``primary_detector``; ``_config.args`` is
         set; and ``_config.args.extended_detectors`` is true; the union of
         ``primary_detector`` and ``extended_detectors`` are used.
-        * if the probe specifices a ``primary_detector`` and ``_config.args.extended_detectors``
+        * if the probe specifies a ``primary_detector`` and ``_config.args.extended_detectors``
         if false, or ``_config.args`` is not set, then only the detector in
         ``primary_detector`` is used.
         * if the probe does not specify ``primary_detector`` value, or this is

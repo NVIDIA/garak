@@ -214,6 +214,20 @@ class Harness(Configurable):
             assert isinstance(
                 attempt_results, (list, types.GeneratorType)
             ), "probing should always return an ordered iterable"
+            # Materialise once. Each detector below iterates this, the report
+            # loop iterates it again, and _run_detector measures it with len(),
+            # none of which a generator survives.
+            attempt_results = list(attempt_results)
+
+            # A probe that produced no attempts (e.g. an IntentProbe with no
+            # active intents) is skipped here rather than running detectors over
+            # nothing (see #1889).
+            if isinstance(attempt_results, list) and len(attempt_results) == 0:
+                logging.info(
+                    "harness: probe %s produced no attempts; skipping",
+                    probe.probename,
+                )
+                continue
 
             if not isinstance(probe, garak.probes.base.IntentProbe):
                 for d in detectors:
@@ -243,14 +257,18 @@ class Harness(Configurable):
                     from garak.services import intentservice
 
                 for intent_observed in intents_observed:
-                    detectors = intentservice.get_detectors(intent_observed)
-                    if detectors is None:
+                    # Keep per-intent names in a local variable. The
+                    # ``detectors`` parameter holds detector objects for
+                    # every probe in this run; reassigning it here would
+                    # corrupt scoring for all later probes.
+                    detectors_for_intent = intentservice.get_detectors(intent_observed)
+                    if detectors_for_intent is None:
                         logging.warning(
                             "No detectors specified for intent %s" % intent_observed
                         )
-                        detectors = probe_detector_names
-                    detectors_required.update(detectors)
-                    intent_to_detector[intent_observed] = detectors
+                        detectors_for_intent = probe_detector_names
+                    detectors_required.update(detectors_for_intent)
+                    intent_to_detector[intent_observed] = detectors_for_intent
 
                 logging.info(
                     "For probe %s, selected detectors %s based on intents"

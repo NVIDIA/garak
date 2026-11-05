@@ -38,6 +38,7 @@ Check out the :doc:`usage` section for further information, including :doc:`inst
    configurable
    cliref
    reporting
+   tags_taxonomies
    cas
    faster
    FAQ <https://github.com/NVIDIA/garak/blob/main/FAQ.md>

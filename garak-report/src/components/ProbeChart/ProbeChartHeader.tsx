@@ -27,15 +27,15 @@ const ProbeChartHeader = () => {
             <Text kind="body/bold/sm">What are Probes?</Text>
             <Text kind="body/regular/sm">
               A probe is a specific attack technique that sends adversarial prompts to test for a
-              particular vulnerability or failure mode in the language model.
+              particular vulnerability or failure mode in the target.
             </Text>
             <Text kind="body/regular/sm">
               Each probe uses multiple prompts designed to exploit the same weakness (e.g., prompt
               injection, jailbreak attempts, or toxicity generation).
             </Text>
             <Text kind="body/regular/sm">
-              The probe score shows the percentage of prompts that successfully triggered the
-              failure mode—higher scores indicate greater vulnerability. Click any bar to see which
+              The probe score shows the percentage of prompts that the target was resilient to - lower
+              scores indicate greater vulnerability. Click any bar to see which
               detectors identified the failures.
             </Text>
             <Text kind="body/bold/sm">Bar colors:</Text>
