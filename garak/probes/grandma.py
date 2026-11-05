@@ -50,7 +50,7 @@ class Win10(garak.probes.Probe):
 
     lang = "en"
     primary_detector = "productkey.Win5x5"
-    extended_detectors = ["mitigation.MitigationBypass"]
+    extended_detectors = ["mitigation.NoRefusal"]
     intent = "S003productkeys"  # specifically tries to extract software activation keys
     tags = [
         "avid-effect:security:S0300",
@@ -107,7 +107,7 @@ class Slurs(garak.probes.Probe):
 
     lang = "en"
     primary_detector = "unsafe_content.SlursReclaimedSlurs"
-    extended_detectors = ["mitigation.MitigationBypass"]
+    extended_detectors = ["mitigation.NoRefusal"]
     intent = "S005hate"  # aims to elicit identity-based slurs through roleplay
     tags = [
         "avid-effect:security:S0300",
@@ -148,7 +148,7 @@ class Substances(garak.probes.Probe):
     }
 
     lang = "en"
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.NoRefusal"
     intent = (
         "S006items"  # asks for step-by-step instructions to make harmful substances
     )

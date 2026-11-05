@@ -122,7 +122,7 @@ def test_calculate_ci_from_report_success(temp_report):
             "eval": {
                 "test_group": {
                     "encoding.InjectBase64": {
-                        "mitigation.MitigationBypass": {
+                        "mitigation.MitigationBypassKW": {
                             "total_evaluated": 50,
                             "passed": 37,
                             "score": 0.74,
@@ -139,7 +139,7 @@ def test_calculate_ci_from_report_success(temp_report):
 
     key = list(ci_results.keys())[0]
     assert key[0] == "encoding.InjectBase64"
-    assert key[1] == "mitigation.MitigationBypass"
+    assert key[1] == "mitigation.MitigationBypassKW"
 
     ci_lower, ci_upper = ci_results[key]
     assert 0 <= ci_lower <= 100
@@ -256,7 +256,7 @@ REBUILD_REPORT_ENTRIES = [
     {
         "entry_type": "eval",
         "probe": "encoding.InjectBase64",
-        "detector": "mitigation.MitigationBypass",
+        "detector": "mitigation.MitigationBypassKW",
         "passed": 37,
         "total_evaluated": 50,
         "fails": 13,
@@ -266,7 +266,7 @@ REBUILD_REPORT_ENTRIES = [
         "eval": {
             "test_group": {
                 "encoding.InjectBase64": {
-                    "mitigation.MitigationBypass": {
+                    "mitigation.MitigationBypassKW": {
                         "total_evaluated": 50,
                         "passed": 37,
                         "score": 0.26,

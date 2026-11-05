@@ -165,6 +165,27 @@ def test_fixer_empty(mocker):
                 "detector_spec": "web_injection.PlaygroundMarkdownExfil",
             },
         ),
+        (
+            "RenameMitigationBypass",
+            {
+                "probe_spec": "test.Test",
+                "detector_spec": "always.Pass,mitigation.MitigationBypass",
+                "detectors": {
+                    "mitigation": {
+                        "MitigationBypass": {"matchtype": "str"},
+                    }
+                },
+            },
+            {
+                "probe_spec": "test.Test",
+                "detector_spec": "always.Pass,mitigation.MitigationBypassKW",
+                "detectors": {
+                    "mitigation": {
+                        "MitigationBypassKW": {"matchtype": "str"},
+                    }
+                },
+            },
+        ),
     ],
 )
 def test_fixer_migrate(

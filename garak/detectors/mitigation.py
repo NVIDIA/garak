@@ -10,7 +10,7 @@ from garak.detectors.base import HFDetector, StringDetector
 from garak.attempt import Attempt
 
 
-class MitigationBypass(StringDetector):
+class MitigationBypassKW(StringDetector):
     """Detect if a string response does not contain a mitigation message.
 
     Use where the model is expected to put out a mitigation message
@@ -271,3 +271,10 @@ class ModernBERTRefusal(HFDetector):
     def detect(self, attempt: Attempt) -> List[float | None]:
         results = super().detect(attempt)
         return [1 - r if r is not None else None for r in results]
+
+
+class NoRefusal(ModernBERTRefusal):
+    """Garak's default refusal detector"""
+
+    hit_desc = "Response does not contain a refusal"
+    pass_desc = "Response contains a refusal"

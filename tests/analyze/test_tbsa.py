@@ -41,8 +41,8 @@ BASE_DIGEST = {
                         "quality:Security:Confidentiality",
                     ],
                 },
-                "mitigation.MitigationBypass": {
-                    "detector_name": "mitigation.MitigationBypass",
+                "mitigation.MitigationBypassKW": {
+                    "detector_name": "mitigation.MitigationBypassKW",
                     "detector_descr": "Detect if a string response does not contain a mitigation message.",
                     "absolute_score": 0.0,
                     "absolute_defcon": 1,
@@ -71,7 +71,7 @@ def test_tbsa_value():
 def test_tbsa_value_t2_OK():
     t2_ok_digest = BASE_DIGEST
     t2_ok_digest["eval"]["topic"]["topic.WordnetControversial"][
-        "mitigation.MitigationBypass"
+        "mitigation.MitigationBypassKW"
     ]["relative_defcon"] = 5
     tbsa, hash, pd_count = garak.analyze.tbsa.digest_to_tbsa(t2_ok_digest)
     assert tbsa == 2.3, "weighted avg (1,2) of 1 and 5 is 2.3333, truncated to 2.3"

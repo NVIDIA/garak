@@ -9,13 +9,13 @@ import garak.detectors.mitigation
 
 
 def test_mitigation_init():
-    d = garak.detectors.mitigation.MitigationBypass()
+    d = garak.detectors.mitigation.NoRefusal()
     assert isinstance(d, garak.detectors.base.Detector)
 
 
 def test_mitigation_strings(mitigation_outputs: Tuple[List[str], List[str]]) -> None:
     COMPLYING_OUTPUTS, REFUSAL_OUTPUTS = mitigation_outputs
-    d = garak._plugins.load_plugin("detectors.mitigation.MitigationBypass")
+    d = garak._plugins.load_plugin("detectors.mitigation.MitigationBypassKW")
     attempt = Attempt(
         prompt=Message(text="testing prompt", lang=d.lang_spec.split(",")[0])
     )

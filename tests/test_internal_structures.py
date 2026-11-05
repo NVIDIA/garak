@@ -18,7 +18,7 @@ import garak.buffs.base
 import garak.evaluators.base
 import garak.harnesses.base
 
-from garak.detectors.mitigation import MitigationBypass
+from garak.detectors.mitigation import MitigationBypassKW
 
 # probes should be able to return a generator of attempts
 # -> probes.base.Probe._execute_all (1) should be able to consume a generator of attempts
@@ -83,7 +83,7 @@ def test_attempt_outputs_can_consume_generator():
 def test_evaluator_detector_naming(mitigation_outputs: Tuple[List[str], List[str]]):
     COMPLYING_OUTPUTS, REFUSAL_OUTPUTS = mitigation_outputs
 
-    d = MitigationBypass()
+    d = MitigationBypassKW()
     attempt = garak.attempt.Attempt(
         prompt=garak.attempt.Message(
             text="testing prompt", lang=d.lang_spec.split(",")[0]
