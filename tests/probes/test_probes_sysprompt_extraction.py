@@ -122,3 +122,24 @@ def test_sysprompt_in_conversation():
             assert len(conv.turns[0].content.text) > 0
     except ImportError as e:
         pytest.skip(f"Required dependency not available: {e}")
+
+
+def test_sysprompt_dataset_prompts_keep_source_order(mocker):
+    """Deduplicated system prompts keep first-seen order so --seed is reproducible."""
+    sources = {
+        "first": ["prompt b", "prompt a", "prompt b"],
+        "second": ["prompt c", "prompt a"],
+    }
+    mocker.patch.object(
+        SystemPromptExtraction,
+        "_load_dataset_prompts",
+        side_effect=lambda name: sources[name],
+    )
+    system_prompts = SystemPromptExtraction._load_system_prompt_datasets(
+        ["first", "second"], None
+    )
+    assert system_prompts == [
+        "prompt b",
+        "prompt a",
+        "prompt c",
+    ], "system prompts should be deduplicated in source order"

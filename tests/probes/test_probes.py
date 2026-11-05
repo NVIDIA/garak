@@ -471,3 +471,42 @@ def test_encoding_probe_attempt_carries_payload_intent(loaded_intent_service):
     assert (
         attempt.intent == expected_intent
     ), "attempt intent must reflect the payload-specific intent set in _attempt_prestore_hook"
+
+
+_PROMPT_DIGEST_SCRIPT = """
+import hashlib, random, sys
+from garak import _config, _plugins
+_config.load_base_config()
+_config.run.seed = 42
+random.seed(42)
+p = _plugins.load_plugin(sys.argv[1])
+print(hashlib.sha256("\\x00".join(p.prompts).encode()).hexdigest())
+"""
+
+
+@pytest.mark.parametrize(
+    "classname",
+    [
+        "probes.continuation.ContinueSlursReclaimedSlurs",
+        "probes.latentinjection.LatentWhoisSnippet",
+        "probes.latentinjection.LatentInjectionFactSnippetEiffel",
+    ],
+)
+def test_seeded_prompts_independent_of_hash_seed(classname):
+    import os
+    import subprocess
+    import sys
+
+    digests = set()
+    for hash_seed in ("1", "2"):
+        result = subprocess.run(
+            [sys.executable, "-c", _PROMPT_DIGEST_SCRIPT, classname],
+            env=os.environ | {"PYTHONHASHSEED": hash_seed},
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        digests.add(result.stdout.strip().splitlines()[-1])
+    assert (
+        len(digests) == 1
+    ), "with a fixed seed, prompts must not depend on set iteration order"

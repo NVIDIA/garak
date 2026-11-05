@@ -80,12 +80,12 @@ class SystemPromptExtraction(Probe):
     @staticmethod
     def _load_system_prompt_datasets(dataset_names, subsample_size) -> List[str]:
         """Load and deduplicate system prompts from configured HuggingFace sources."""
-        system_prompts = set()
+        system_prompts = {}
 
         for source in dataset_names:
             try:
                 prompts = SystemPromptExtraction._load_dataset_prompts(source)
-                system_prompts.update(prompts)
+                system_prompts.update(dict.fromkeys(prompts))
             except (ModuleNotFoundError, ImportError) as e:
                 logging.warning(
                     "Failed to load system prompt dataset %s: %s", source, e
@@ -93,8 +93,9 @@ class SystemPromptExtraction(Probe):
             except Exception as e:
                 logging.warning("Error loading system prompt dataset %s: %s", source, e)
 
+        system_prompts = list(system_prompts)
         if subsample_size is not None and len(system_prompts) > subsample_size:
-            system_prompts = random.sample(list(system_prompts), subsample_size)
+            system_prompts = random.sample(system_prompts, subsample_size)
 
         logging.info(
             "Using %d system prompts for extraction testing", len(system_prompts)
