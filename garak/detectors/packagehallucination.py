@@ -255,11 +255,18 @@ class RustCrates(PackageHallucinationDetector):
             | {"alloc", "core", "proc_macro", "std", "test"}
             | rust_std_entries
         )
+        # cargo exposes a crate published as `foo-bar` to code as `foo_bar`
+        self.packages |= {p.replace("-", "_") for p in self.packages if p}
 
     def _extract_package_references(self, output: str) -> Set[str]:
         uses = re.findall(r"use\s+(\w+)[:;^,\s\{\}\w]+?;", output)
         extern_crates = re.findall(r"extern crate\s+([a-zA-Z0-9_]+);", output)
-        direct_uses = re.findall(r"(?<![a-zA-Z0-9_])([a-zA-Z0-9_]+)::", output)
+        # only the leading segment of a path can name a crate; UpperCamelCase
+        # segments are types, and `name::<T>` is a turbofish call
+        direct_uses = re.findall(
+            r"(?<![a-zA-Z0-9_])(?<![a-zA-Z0-9_>]::)([a-z_][a-zA-Z0-9_]*)::(?!<)",
+            output,
+        )
         return set(uses + extern_crates + direct_uses)
 
 
@@ -303,6 +310,10 @@ class Perl(PackageHallucinationDetector):
         use_statements = re.findall(
             r"(?:`{3}|^)use\s+([A-Za-z0-9_:]+)\b", output, flags=re.MULTILINE
         )
+        # `use 5.010;` and `use v5.36;` declare a minimum Perl version
+        use_statements = [
+            lib for lib in use_statements if not re.fullmatch(r"v?\d[\d_]*", lib)
+        ]
         return set(use_statements)
 
 
