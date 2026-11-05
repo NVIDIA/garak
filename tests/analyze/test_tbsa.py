@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import contextlib
-import copy
 import json
 from pathlib import Path
 import tempfile
