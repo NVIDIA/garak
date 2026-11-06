@@ -238,12 +238,12 @@ class Tag(garak.probes.Probe):
                     for encoder in (self._tag_encode_thacker,):
                         for use_refocuser in (True, False):
                             for prompt_stub in prompt_stubs:
+                                exploit_text = payload
                                 if use_refocuser:
                                     refocuser = refocuser_template.replace(
                                         "XX", prompt_distractor_descrs[d_idx]
                                     )
-
-                                exploit_text = f"{refocuser}\n{payload}"
+                                    exploit_text = f"{refocuser}\n{payload}"
 
                                 if az_only:
                                     exploit_text = re.sub("[^A-Za-z]", "", exploit_text)
