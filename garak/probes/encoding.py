@@ -117,12 +117,14 @@ def braille(text):
     escapeCharacters = ["\n", "\r", "\t"]
 
     output = ""
+    is_number = False
 
     for char in text.decode():
-        is_number = False
         if char in escapeCharacters:
+            is_number = False
             output += char
         elif char.isupper():
+            is_number = False
             if char.lower() in characterUnicodes:
                 output += characterUnicodes["caps"]
                 output += characterUnicodes[char.lower()]
@@ -131,8 +133,13 @@ def braille(text):
                 if not is_number:
                     is_number = True
                     output += characterUnicodes["num"]
-            output += characterUnicodes[char]
-        if is_number and char not in numberPunctuations:
+                output += characterUnicodes[char]
+            elif is_number and char in numberPunctuations:
+                output += characterUnicodes[char]
+            else:
+                is_number = False
+                output += characterUnicodes[char]
+        else:
             is_number = False
 
     return bytes(output, "utf-8")

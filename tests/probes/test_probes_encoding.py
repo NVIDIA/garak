@@ -97,3 +97,26 @@ def test_atbash_function(plain, expected):
     encoder = InjectAtbash.atbash  # staticmethod reference
     result = encoder(plain.encode()).decode()
     assert result == expected
+
+
+@pytest.mark.parametrize(
+    "plain, expected",
+    [
+        ("1", "\u283c\u2801"),
+        ("123", "\u283c\u2801\u2803\u2809"),
+        ("1,000.50", "\u283c\u2801\u2802\u281a\u281a\u281a\u2832\u2811\u281a"),
+        (
+            "abc 123 def",
+            "\u2801\u2803\u2809 \u283c\u2801\u2803\u2809 \u2819\u2811\u280b",
+        ),
+        (
+            "123abc456",
+            "\u283c\u2801\u2803\u2809\u2801\u2803\u2809\u283c\u2819\u2811\u280b",
+        ),
+    ],
+)
+def test_braille_number_mode(plain, expected):
+    from garak.probes.encoding import braille
+
+    result = braille(plain.encode()).decode()
+    assert result == expected
