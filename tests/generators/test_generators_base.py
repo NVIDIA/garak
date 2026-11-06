@@ -116,3 +116,45 @@ def test_native_multiple_generations_bypasses_pool(parallel_capable):
             outputs = generator.generate(prompt, generations_this_call=3)
             call.assert_called_once_with(prompt, 3)
     assert [output.text for output in outputs] == ["hello"] * 3
+
+
+def _generate_in_worker(generations):
+    generator = Generator(name="worker test")
+    generator.parallel_requests = 2
+    generator.max_workers = 2
+    generator._call_model = lambda prompt, generations_this_call=1: [
+        Message(text="hello")
+    ]
+    prompt = Conversation([Turn("user", Message("hello"))])
+    return [output.text for output in generator.generate(prompt, generations)]
+
+
+def test_pool_worker_sends_requests_serially():
+    """A daemonic pool worker cannot start a pool, so requests run serially."""
+    generator = Generator(name="worker test")
+    generator.parallel_requests = 2
+    generator.max_workers = 2
+    prompt = Conversation([Turn("user", Message("hello"))])
+    with patch("multiprocessing.current_process") as current_process:
+        current_process.return_value.daemon = True
+        with patch(
+            "multiprocessing.Pool", side_effect=AssertionError("unexpected pool")
+        ):
+            with patch.object(
+                generator, "_call_model", return_value=[Message(text="hello")]
+            ) as call:
+                outputs = generator.generate(prompt, generations_this_call=3)
+                assert call.call_count == 3
+    assert [output.text for output in outputs] == ["hello"] * 3
+
+
+def test_parallel_requests_inside_attempt_pool():
+    """parallel_requests inside a real attempt pool worker completes."""
+    from multiprocessing import Pool
+
+    pool = Pool(1)
+    try:
+        assert pool.apply(_generate_in_worker, (3,)) == ["hello"] * 3
+    finally:
+        pool.close()
+        pool.join()
