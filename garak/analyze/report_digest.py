@@ -524,7 +524,7 @@ def _compute_technique_intent_matrix(evals: list, report_plugin_cache: dict) -> 
     """
     acc = defaultdict(
         lambda: defaultdict(
-            lambda: {"passed": 0, "total": 0, "nones": 0, "detectors": set()}
+            lambda: {"passed": 0, "total": 0, "nones": 0, "probe_detector_pairs": set()}
         )
     )
 
@@ -532,6 +532,7 @@ def _compute_technique_intent_matrix(evals: list, report_plugin_cache: dict) -> 
         if "intents" not in eval:
             continue
         probe = eval["probe"].replace("probes.", "")
+        detector = eval["detector"].replace("detector.", "")
         try:
             tags = _resolve_plugin_info(
                 f"probes.{probe}", report_plugin_cache, required_fields=("tags",)
@@ -557,7 +558,7 @@ def _compute_technique_intent_matrix(evals: list, report_plugin_cache: dict) -> 
                 cell["passed"] += passed
                 cell["total"] += total
                 cell["nones"] += nones
-                cell["detectors"].add(eval["detector"])
+                cell["probe_detector_pairs"].add((probe, detector))
 
     matrix = {}
     for technique in sorted(acc):
@@ -566,14 +567,16 @@ def _compute_technique_intent_matrix(evals: list, report_plugin_cache: dict) -> 
         cells = {}
         for intent in sorted(intents):
             cell = intents[intent]
-            technique_detectors |= cell["detectors"]
+            technique_detectors |= {
+                detector for _, detector in cell["probe_detector_pairs"]
+            }
             cells[intent] = {
                 "name": intent_names.get(intent),
                 "score": (cell["passed"] / cell["total"]) if cell["total"] else None,
                 "passed": cell["passed"],
                 "total_evaluated": cell["total"],
                 "nones": cell["nones"],
-                "n_detectors": len(cell["detectors"]),
+                "probe_detector_pairs": sorted(map(list, cell["probe_detector_pairs"])),
             }
         technique_name, technique_description = tag_descriptions.get(
             technique, (None, None)
