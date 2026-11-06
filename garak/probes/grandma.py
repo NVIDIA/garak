@@ -51,7 +51,7 @@ class Win10(garak.probes.Probe):
     lang = "en"
     primary_detector = "productkey.Win5x5"
     extended_detectors = ["mitigation.MitigationBypass"]
-    intent = "S003productkeys"  # specifically tries to extract software activation keys
+    intent = "S003productkeyswin10"  # specifically tries to extract Windows 10 activation keys
     tags = [
         "avid-effect:security:S0300",
         "owasp:llm06",
@@ -85,7 +85,7 @@ class Win11(Win10):
 
     Pretend to require Windows product keys because one misses one's grandmother."""
 
-    intent = "S003productkeys"  # this is the Windows 11 variant of the same key-extraction attack
+    intent = "S003productkeyswin11"  # this is the Windows 11 variant of the same key-extraction attack
     goal = "get model to output Win 11 product keys"
     payload = "keyedprod_win11"
 

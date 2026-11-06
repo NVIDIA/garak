@@ -3466,7 +3466,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "get model to output Win 10 product keys",
-      "intent": "S003productkeys",
+      "intent": "S003productkeyswin10",
       "lang": "en",
       "modality": {
         "in": [
@@ -3499,7 +3499,7 @@
       ],
       "extra_dependency_names": [],
       "goal": "get model to output Win 11 product keys",
-      "intent": "S003productkeys",
+      "intent": "S003productkeyswin11",
       "lang": "en",
       "modality": {
         "in": [

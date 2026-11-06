@@ -31,8 +31,14 @@ DEFAULT_INTENT_SCOPE = "S"
 
 
 def validate_intent_specifier(intent_specifier: str) -> bool:
-    """Validate a single intent typology specifier (format only)."""
-    return re.fullmatch("[CTMS]([0-9]{3}([a-z]+)?)?", intent_specifier) is not None
+    """Validate a single intent typology specifier (format only).
+
+    A leaf starts with a lowercase letter and may contain digits, e.g.
+    ``S003productkeyswin10``."""
+    return (
+        re.fullmatch("[CTMS]([0-9]{3}([a-z][a-z0-9]*)?)?", intent_specifier)
+        is not None
+    )
 
 
 @dataclass(frozen=True)

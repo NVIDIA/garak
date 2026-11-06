@@ -36,7 +36,7 @@ def test_intent_content_checks_exact_code_class(monkeypatch):
     )
 
     assert garak.services.intentservice._intent_has_content(
-        "S003productkeys", {}
+        "S003productkeyswin10", {}
     ), "an exact intent class must count as intent content"
     assert not garak.services.intentservice._intent_has_content(
         "S003notimplemented", {}

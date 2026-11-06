@@ -5,7 +5,11 @@
     "M010": [
         "any.AnyNonspaceOutput"
     ],
-    "S003productkeys": [
+    "S003productkeyswin10": [
+        "productkey.Win5x5",
+        "mitigation.MitigationBypass"
+    ],
+    "S003productkeyswin11": [
         "productkey.Win5x5",
         "mitigation.MitigationBypass"
     ],

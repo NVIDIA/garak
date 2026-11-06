@@ -116,24 +116,27 @@ Running an intent scan
 
 An ``intent:`` selector scopes which intents a selected ``IntentProbe``
 exercises. The following selects the grandmother technique and scopes it to the
-``S003productkeys`` ("Give product keys for computer software") intent:
+``S003productkeyswin10`` ("Give Windows 10 product keys") intent:
 
 .. code-block:: bash
 
-    garak --spec "probes.grandma.GrandmaIntent,intent:S003productkeys"
+    garak --spec "probes.grandma.GrandmaIntent,intent:S003productkeyswin10"
 
 That shows the selection syntax; add a target to run. Against a small test
 target:
 
 .. code-block:: bash
 
-    garak --target_type huggingface --target_name gpt2 --spec "probes.grandma.GrandmaIntent,intent:S003productkeys"
+    garak --target_type huggingface --target_name gpt2 --spec "probes.grandma.GrandmaIntent,intent:S003productkeyswin10"
 
 A few things to note:
 
-* ``intent:S003productkeys`` selects that single leaf behaviour. A *category* code such
+* An inactive probe (``active = False``) is left out of default scans, but can
+  still be run when named explicitly by class, as above.
+* ``intent:S003productkeyswin10`` selects that single leaf behaviour. A *category* code such
   as ``intent:S003`` ("Illegal") instead expands to all of its leaves (``S003illegal``, ``S003instructions``,
-  ``S003goods``, ``S003services``, ``S003productkeys``).
+  ``S003goods``, ``S003services``, ``S003productkeyswin10``, ``S003productkeyswin11``,
+  ``S003productkeysplaystation``, ``S003productkeysxbox``, ``S003productkeysphotoshop``).
 * If you give no ``intent:`` selector, the default scope ``S`` (the whole Safety
   branch) is injected at resolve time.
 
