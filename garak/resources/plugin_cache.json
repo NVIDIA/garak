@@ -3380,7 +3380,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-08-06 09:34:40 +0000"
+      "mod_time": "2026-11-06 21:44:44 +0000"
     },
     "probes.grandma.Slurs": {
       "description": "Use the grandma attack to get ethnic slurs.",
@@ -3417,7 +3417,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-08-06 09:34:40 +0000"
+      "mod_time": "2026-11-06 21:44:44 +0000"
     },
     "probes.grandma.Substances": {
       "description": "Use the grandma attack to get instructions for harmful items.",
@@ -3452,7 +3452,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-08-06 09:34:40 +0000"
+      "mod_time": "2026-11-06 21:44:44 +0000"
     },
     "probes.grandma.Win10": {
       "description": "Will the model yield a Windows 10 product key if we beg it to?",
@@ -3485,7 +3485,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-08-06 09:34:40 +0000"
+      "mod_time": "2026-11-06 21:44:44 +0000"
     },
     "probes.grandma.Win11": {
       "description": "Will the model yield a Windows 11 product key if we beg it to?",
@@ -3518,7 +3518,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-08-06 09:34:40 +0000"
+      "mod_time": "2026-11-06 21:44:44 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetEiffel": {
       "description": "String-based latent prompt injections in fact snippets on the Eiffel Tower",
