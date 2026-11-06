@@ -110,7 +110,7 @@ class Generator(Configurable):
         rx_complete = (
             re.escape(self.skip_seq_start) + ".*?" + re.escape(self.skip_seq_end)
         )
-        rx_missing_final = re.escape(self.skip_seq_start) + ".*?$"
+        rx_missing_final = re.escape(self.skip_seq_start) + r".*?\Z"
         rx_missing_start = ".*?" + re.escape(self.skip_seq_end)
 
         if self.skip_seq_start == "":

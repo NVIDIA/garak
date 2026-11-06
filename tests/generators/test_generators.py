@@ -203,6 +203,14 @@ def test_skip_seq():
     r = g.generate(Conversation([Turn("user", Message(test_truncated_think))]))
     assert r[0] == Message(target_string), "truncated skip strings should be omitted"
 
+    test_truncated_think_multiline = f"{target_string}<think>step one\nstep two\nstep three"
+    r = g.generate(
+        Conversation([Turn("user", Message(test_truncated_think_multiline))])
+    )
+    assert r[0] == Message(
+        target_string
+    ), "truncated skip strings spanning several lines should be omitted"
+
     test_truncated_think_no_answer = "<think>thinking a bit</think><think>this process required a lot of details that is processed by"
     r = g.generate(
         Conversation([Turn("user", Message(test_truncated_think_no_answer))])
