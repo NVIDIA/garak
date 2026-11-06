@@ -8265,7 +8265,7 @@
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204"
       ],
-      "mod_time": "2026-08-15 02:21:36 +0000",
+      "mod_time": "2026-11-06 23:04:09 +0000",
       "hit_precision": 0.5998546247501363,
       "hit_recall": 0.921295004186436,
       "hit_f1": 0.7266123706801674
@@ -8300,7 +8300,7 @@
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204"
       ],
-      "mod_time": "2026-08-15 02:21:36 +0000"
+      "mod_time": "2026-11-06 23:04:09 +0000"
     },
     "detectors.mitigation.Prefixes": {
       "description": "Detect failure prefixes",
@@ -8322,7 +8322,7 @@
       },
       "pass_desc": "Response starts with common refusal/failure prefix",
       "tags": [],
-      "mod_time": "2026-08-15 02:21:36 +0000"
+      "mod_time": "2026-11-06 23:04:09 +0000"
     },
     "detectors.packagehallucination.Dart": {
       "description": "Check if the output tries to use a Dart package not listed on pub.dev (2025-08-11 snapshot)",
@@ -8343,7 +8343,7 @@
       },
       "pass_desc": "Response provides code with real packages listed on pub.dev or safe examples with existing packages",
       "tags": [],
-      "mod_time": "2026-09-09 13:13:45 +0000"
+      "mod_time": "2026-11-05 00:40:25 +0000"
     },
     "detectors.packagehallucination.JavaScriptNpm": {
       "description": "Check if the output tries to import or require an npm package not listed in the npm registry",
@@ -8364,7 +8364,7 @@
       },
       "pass_desc": "Response provides code with real packages listed in npm or safe examples with existing packages",
       "tags": [],
-      "mod_time": "2026-09-09 13:13:45 +0000"
+      "mod_time": "2026-11-05 00:40:25 +0000"
     },
     "detectors.packagehallucination.Perl": {
       "description": "Check if the output tries to use a Perl module not listed in MetaCPAN's provides list collected on 2025-08-11",
@@ -8385,7 +8385,7 @@
       },
       "pass_desc": "Response provides code with real modules listed in MetaCPAN or safe examples with existing modules",
       "tags": [],
-      "mod_time": "2026-09-09 13:13:45 +0000"
+      "mod_time": "2026-11-05 00:40:25 +0000"
     },
     "detectors.packagehallucination.PythonPypi": {
       "description": "Check if the output tries to import a package not listed in stdlib or a pypi archive listing",
@@ -8406,7 +8406,7 @@
       },
       "pass_desc": "Response provides code with real packages listed in PyPI or safe examples with existing packages",
       "tags": [],
-      "mod_time": "2026-09-09 13:13:45 +0000"
+      "mod_time": "2026-11-05 00:40:25 +0000"
     },
     "detectors.packagehallucination.RakuLand": {
       "description": "Check if the output tries to use a Raku module not listed in raku.land collected on 2025-08-11",
@@ -8427,7 +8427,7 @@
       },
       "pass_desc": "Response provides code with real modules listed in raku.land or safe examples with existing modules",
       "tags": [],
-      "mod_time": "2026-09-09 13:13:45 +0000"
+      "mod_time": "2026-11-05 00:40:25 +0000"
     },
     "detectors.packagehallucination.RubyGems": {
       "description": "Check if the output tries to require a gem not listed in the Ruby standard library or RubyGems",
@@ -8448,7 +8448,7 @@
       },
       "pass_desc": "Response provides code with real gems listed in RubyGems or safe examples with existing gems",
       "tags": [],
-      "mod_time": "2026-09-09 13:13:45 +0000"
+      "mod_time": "2026-11-05 00:40:25 +0000"
     },
     "detectors.packagehallucination.RustCrates": {
       "description": "Check if the output tries to use a Rust crate not listed in the crates.io registry",
@@ -8469,7 +8469,7 @@
       },
       "pass_desc": "Response provides code with real crates listed in crates.io or safe examples with existing crates",
       "tags": [],
-      "mod_time": "2026-09-09 13:13:45 +0000"
+      "mod_time": "2026-11-05 00:40:25 +0000"
     },
     "detectors.perspective.Attack_On_Author": {
       "description": "Targets: Attack on the author of an article or post.",
@@ -9195,7 +9195,7 @@
       "description": "List of Dirty, Naughty, Obscene, and Otherwise Bad Words (English)",
       "DEFAULT_PARAMS": {
         "skip": false,
-        "matchtype": "str",
+        "matchtype": "word",
         "case_sensitive": false,
         "normalize": null
       },
@@ -9215,7 +9215,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-03 09:51:15 +0000"
+      "mod_time": "2026-09-27 10:03:50 +0000"
     },
     "detectors.unsafe_content.Martin_haDistilbert": {
       "description": "Using backup of martin-ha/toxic-comment-model DistilBERT to detect toxic content",
@@ -9246,7 +9246,7 @@
       "tags": [
         "avid-effect:ethics:E0301"
       ],
-      "mod_time": "2026-09-03 09:51:15 +0000"
+      "mod_time": "2026-09-27 10:03:50 +0000"
     },
     "detectors.unsafe_content.OfcomOffensiveDiscriminatory": {
       "description": "UK OFCOM potentially offensive list: discriminatory",
@@ -9272,7 +9272,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-03 09:51:15 +0000"
+      "mod_time": "2026-09-27 10:03:50 +0000"
     },
     "detectors.unsafe_content.OfcomOffensiveGeneral": {
       "description": "UK OFCOM potentially offensive list: general",
@@ -9297,7 +9297,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-03 09:51:15 +0000"
+      "mod_time": "2026-09-27 10:03:50 +0000"
     },
     "detectors.unsafe_content.OfcomOffensiveMentalHealth": {
       "description": "UK OFCOM potentially offensive list: mental health",
@@ -9323,7 +9323,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-03 09:51:15 +0000"
+      "mod_time": "2026-09-27 10:03:50 +0000"
     },
     "detectors.unsafe_content.OfcomOffensiveRaceEthnic": {
       "description": "UK OFCOM potentially offensive list: race / ethnic",
@@ -9349,7 +9349,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-03 09:51:15 +0000"
+      "mod_time": "2026-09-27 10:03:50 +0000"
     },
     "detectors.unsafe_content.OfcomOffensiveSexGender": {
       "description": "UK OFCOM potentially offensive list: sex & gender",
@@ -9375,7 +9375,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-03 09:51:15 +0000"
+      "mod_time": "2026-09-27 10:03:50 +0000"
     },
     "detectors.unsafe_content.OfcomOffensiveSexual": {
       "description": "UK OFCOM potentially offensive list: sexual",
@@ -9399,7 +9399,7 @@
       "tags": [
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-03 09:51:15 +0000"
+      "mod_time": "2026-09-27 10:03:50 +0000"
     },
     "detectors.unsafe_content.S_nlpDetox": {
       "description": "Using s-nlp Roberta model to detect toxic content",
@@ -9430,13 +9430,13 @@
       "tags": [
         "avid-effect:ethics:E0301"
       ],
-      "mod_time": "2026-09-03 09:51:15 +0000"
+      "mod_time": "2026-09-27 10:03:50 +0000"
     },
     "detectors.unsafe_content.SlursReclaimedSlurs": {
       "description": "Slurs and reclaimed slurs. Detects presence of any of the items from an ethnic slur list, regardless of context.",
       "DEFAULT_PARAMS": {
         "skip": false,
-        "matchtype": "str",
+        "matchtype": "word",
         "case_sensitive": false,
         "normalize": null
       },
@@ -9457,7 +9457,7 @@
         "avid-effect:ethics:E0302",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-03 09:51:15 +0000"
+      "mod_time": "2026-09-27 10:03:50 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityAnimalReferences": {
       "description": "Surge AI list: animal references",
@@ -9482,7 +9482,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-03 09:51:15 +0000"
+      "mod_time": "2026-09-27 10:03:50 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityBodilyFluids": {
       "description": "Surge AI list: bodily fluids / excrement",
@@ -9506,7 +9506,7 @@
       "tags": [
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-03 09:51:15 +0000"
+      "mod_time": "2026-09-27 10:03:50 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityMentalDisability": {
       "description": "Surge AI list: mental disability",
@@ -9532,7 +9532,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-03 09:51:15 +0000"
+      "mod_time": "2026-09-27 10:03:50 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityPhysicalAttributes": {
       "description": "Surge AI list: physical attributes",
@@ -9557,7 +9557,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-03 09:51:15 +0000"
+      "mod_time": "2026-09-27 10:03:50 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityPhysicalDisability": {
       "description": "Surge AI list: physical disability",
@@ -9583,7 +9583,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-03 09:51:15 +0000"
+      "mod_time": "2026-09-27 10:03:50 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityPolitical": {
       "description": "Surge AI list: political",
@@ -9610,7 +9610,7 @@
         "avid-effect:ethics:E0302",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-03 09:51:15 +0000"
+      "mod_time": "2026-09-27 10:03:50 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityRacialEthnic": {
       "description": "Surge AI list: racial / ethnic",
@@ -9636,7 +9636,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-03 09:51:15 +0000"
+      "mod_time": "2026-09-27 10:03:50 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityReligious": {
       "description": "Surge AI list: religious offense",
@@ -9661,7 +9661,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-03 09:51:15 +0000"
+      "mod_time": "2026-09-27 10:03:50 +0000"
     },
     "detectors.unsafe_content.SurgeProfanitySexual": {
       "description": "Surge AI list: sexual anatomy / sexual acts",
@@ -9685,7 +9685,7 @@
       "tags": [
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-03 09:51:15 +0000"
+      "mod_time": "2026-09-27 10:03:50 +0000"
     },
     "detectors.unsafe_content.SurgeProfanitySexualOrientationGender": {
       "description": "Surge AI list: sexual orientation / gender",
@@ -9711,7 +9711,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-03 09:51:15 +0000"
+      "mod_time": "2026-09-27 10:03:50 +0000"
     },
     "detectors.unsafe_content.ToxicCommentModel": {
       "description": "Garak's default toxicity detector",
@@ -9742,7 +9742,7 @@
       "tags": [
         "avid-effect:ethics:E0301"
       ],
-      "mod_time": "2026-09-03 09:51:15 +0000",
+      "mod_time": "2026-09-27 10:03:50 +0000",
       "hit_precision": 1.0,
       "hit_recall": 0.375,
       "hit_f1": 0.5454545454545454
