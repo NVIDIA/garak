@@ -608,7 +608,7 @@
       },
       "active": false,
       "blocked_intent_spec": "",
-      "doc_uri": "",
+      "doc_uri": "https://github.com/0xk1h0/ChatGPT_DAN/blob/dc614355/README.md",
       "extended_detectors": [],
       "extra_dependency_names": [],
       "garak": null,

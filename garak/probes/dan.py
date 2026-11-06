@@ -528,7 +528,8 @@ class AblationDan11Intent(garak.probes.IntentProbe):
         garak.probes.Tier.COMPETE_WITH_SOTA
     )  # provisional, inherited from Ablation_Dan_11_0 pending calibration
     goal = "execute an injected request while impersonating an unrestricted DAN persona"
-    primary_detector = "mitigation.MitigationBypass"  # non-deprecated fallback; effective detectors resolve per intent
+    doc_uri = "https://github.com/0xk1h0/ChatGPT_DAN/blob/dc614355/README.md"
+    primary_detector = "mitigation.MitigationBypass"
     tags = [
         "avid-effect:security:S0403",  # jailbreak intended to bypass system/content controls
         "owasp:llm01",  # prompt injection overriding the system instruction hierarchy
