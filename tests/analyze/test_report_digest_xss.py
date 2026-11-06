@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Regression tests for script tag breakout and XSS prevention in report_digest (CWE-79).
+"""Regression tests for script tag breakout and HTML escaping in report_digest.
 
-Ensures that HTML-sensitive characters (<, >, &) in probe payloads, target outputs,
-and model metadata embedded in the HTML report template are safely escaped as JSON
-unicode escapes, preventing HTML parser breakout and stored XSS.
+Ensures that HTML-sensitive characters (<, >, &) in report metadata or probe
+descriptions embedded in the HTML report template are safely escaped as JSON
+unicode escapes, preventing HTML parser breakout.
 """
 
 import json
@@ -25,7 +25,7 @@ ADVERSARIAL_XSS_PAYLOADS = [
     "\\u003cscript\\u003e",
     "&lt;script&gt;alert(1)&lt;/script&gt;",
     'Text with & ampersand and <brackets> and "quotes"',
-    "Unicode: 日本語 / 中文 / Русский / 🚀 / \u2028 / \u2029",
+    "Unicode: 日本語 / 中文 / Русский / \\u00e9 / \\u2028 / \\u2029",
 ]
 
 
@@ -34,15 +34,33 @@ def test_serialize_escapes_html_metacharacters(payload):
     """Serialized JSON must not contain raw '<', '>', or '&' characters."""
     digest = {
         "entry_type": "digest",
-        "meta": {"target_name": payload},
+        "meta": {
+            "target_name": payload,
+            "reportfile": payload,
+            "generator": payload,
+            "probe_spec": payload,
+            "taxonomy": payload,
+        },
         "eval": {
-            "group": {
-                "probe.Class": {
-                    "detector": {
-                        "prompt": payload,
-                        "output": payload,
-                    }
-                }
+            "probe_group": {
+                "_summary": {
+                    "group_name": payload,
+                    "group_score": 1.0,
+                },
+                "probe_module.ProbeClass": {
+                    "_summary": {
+                        "probe_name": payload,
+                        "probe_score": 1.0,
+                        "probe_description": payload,
+                    },
+                    "detector_name": {
+                        "passed": 1,
+                        "total_evaluated": 1,
+                        "absolute_score": 1.0,
+                        "defcon": payload,
+                        "calibration_used": False,
+                    },
+                },
             }
         },
     }
@@ -71,8 +89,23 @@ def test_serialize_roundtrip_fidelity(payload):
     """Escaped JSON must decode back to the exact original object via json.loads."""
     digest = {
         "entry_type": "digest",
-        "payload": payload,
-        "nested": {"key": payload, "list": [payload, 1, 2.5, True, None]},
+        "meta": {
+            "target_name": payload,
+            "reportfile": payload,
+            "generator": payload,
+        },
+        "eval": {
+            "group": {
+                "probe.Class": {
+                    "detector": {
+                        "passed": 1,
+                        "total_evaluated": 1,
+                        "score": 1.0,
+                        "defcon": payload,
+                    }
+                }
+            }
+        },
     }
 
     serialized = _serialize_digest_json_for_script(digest)

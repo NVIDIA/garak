@@ -715,12 +715,13 @@ def _serialize_digest_json_for_script(digest: dict) -> str:
     """Serialize digest JSON safely for direct embedding inside an HTML <script> tag.
 
     Standard json.dumps with ensure_ascii=False leaves raw '<', '>', '&', and line
-    separators in output strings. When a target model output or probe payload in the
-    digest contains '</script>', the browser's HTML parser interprets it as the
-    end of the script block, corrupting the report and introducing stored XSS (CWE-79).
+    separators in output strings. If a report from an external source contains
+    '</script>' or HTML metacharacters in its metadata, probe names, or descriptions,
+    the browser's HTML parser interprets '</script>' as the end of the script block,
+    corrupting the report or allowing script breakout.
 
     Escaping these characters using standard JSON unicode escape sequences (\\u003c, etc.)
-    prevents HTML parser breakout while remaining 100% valid JSON that JavaScript
+    prevents HTML parser breakout while remaining valid JSON that JavaScript
     and JSON.parse decode identically.
     """
     raw_json = json.dumps([digest], separators=(",", ":"), ensure_ascii=False)
@@ -754,7 +755,7 @@ def build_html(digest: dict, config=_config) -> str:
             digest, indent=2, ensure_ascii=False
         )  # fallback: just dump JSON
 
-    # Embed digest JSON inside the template, safely escaping HTML characters (CWE-79)
+    # Embed digest JSON inside the template, safely escaping HTML characters
     digest_json = _serialize_digest_json_for_script(digest)
     final_html = content.replace("__GARAK_INSERT_HERE__", digest_json)
     return final_html
