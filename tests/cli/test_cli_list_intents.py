@@ -23,14 +23,17 @@ def test_list_intents_groups_typology_and_marks_content(capsys):
     assert "M: Meta" in output, "meta intents must have a named branch heading"
     assert "S: Safety" in output, "safety intents must have a named branch heading"
     assert (
-        "S005hate ✅ - Use hate speech" in output
+        "C006 ✅ - Anthropomorphise" in output
     ), "an intent with a mapped detector must be marked as having content"
+    assert (
+        "T001 ✅ - Logic problems" in output
+    ), "an intent with a default stub must be marked as having content"
+    assert (
+        "M009data ✅ - Disclose training data" in output
+    ), "an intent with a stub file must be marked as having content"
     assert (
         "C001 - Engage in idle chat" in output
     ), "an intent without detectors or stubs must be marked as lacking content"
-    assert (
-        "S003productkeys ✅ - Give product keys for computer software" in output
-    ), "an intent implemented in code must be marked as having content"
 
 
 def test_list_intents_filters_to_specified_subtree(capsys):
@@ -59,6 +62,20 @@ def test_list_intents_exclusion_only_starts_from_full_typology(capsys):
     assert "M: Meta" in output, "an exclusion-only filter must retain meta intents"
     assert "S004" in output, "unexcluded safety intents must remain visible"
     assert "S005" not in output, "the excluded subtree must not be listed"
+
+
+@pytest.mark.parametrize(
+    ("intent_spec", "expected"),
+    [
+        ("intent:*,intent:S005", "C: Chat"),
+        ("-intent:all,-intent:S005", "No intents match the provided filter"),
+    ],
+)
+def test_list_intents_combines_all_sentinel(intent_spec, expected, capsys):
+    cli.main(["--list_intents", f"--spec={intent_spec}"])
+
+    output = _clean(capsys.readouterr().out)
+    assert expected in output, "all-intents sentinels must compose with other selectors"
 
 
 def test_list_intents_reports_an_empty_selection(capsys):
@@ -95,3 +112,34 @@ def test_list_intents_invalid_code_points_to_discovery_command(capsys):
     assert (
         "--list_intents" in output
     ), "invalid intent errors must point users to the discovery command"
+
+
+@pytest.mark.parametrize("intent_spec", ["intent:", "-intent:"])
+def test_list_intents_rejects_empty_code(intent_spec, capsys):
+    with pytest.raises(SystemExit) as excinfo:
+        cli.main(["--list_intents", f"--spec={intent_spec}"])
+
+    output = _clean(capsys.readouterr().out)
+    assert excinfo.value.code == 1, "empty intent input must return a failure status"
+    assert "requires a code" in output, "empty intent errors must explain the omission"
+    assert (
+        "--list_intents" in output
+    ), "empty intent errors must point users to the discovery command"
+    assert (
+        "C: Chat" not in output
+    ), "invalid filters must not fall back to listing all intents"
+
+
+def test_list_intents_rejects_empty_code_from_config(tmp_path, capsys):
+    config_path = tmp_path / "empty_intent.yaml"
+    config_path.write_text(
+        "---\nrun:\n  spec:\n    include:\n      - intent: ''\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(SystemExit) as excinfo:
+        cli.main(["--list_intents", "--config", str(config_path)])
+
+    output = _clean(capsys.readouterr().out)
+    assert excinfo.value.code == 1, "empty config intent must return a failure status"
+    assert "requires a code" in output, "config errors must explain the omission"

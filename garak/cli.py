@@ -576,24 +576,25 @@ def main(arguments=None) -> None:
             from garak._spec import parse_spec_file
             from garak import _selection
 
-            intent_spec = None
-            blocked_spec = None
-            if _config.run.spec:
-                parsed_spec = parse_spec_file(_config.run.spec)
-                resolved = _selection.resolve_spec(parsed_spec, skip_unknown=True)
-                if resolved.intents_explicit:
-                    if any(
-                        selector.kind == "intent" for selector in parsed_spec.include
-                    ):
-                        intent_spec = ",".join(resolved.intents)
-                    blocked_spec = ",".join(resolved.blocked_intents)
             try:
+                intent_spec = None
+                blocked_spec = None
+                if _config.run.spec:
+                    parsed_spec = parse_spec_file(_config.run.spec)
+                    resolved = _selection.resolve_spec(parsed_spec, skip_unknown=True)
+                    if resolved.intents_explicit:
+                        if any(
+                            selector.kind == "intent"
+                            for selector in parsed_spec.include
+                        ):
+                            intent_spec = ",".join(resolved.intents)
+                        blocked_spec = ",".join(resolved.blocked_intents)
                 command.print_intents(
                     intent_spec,
                     blocked_spec,
                     verbose=_config.system.verbose,
                 )
-            except GarakException as e:
+            except (ValueError, GarakException) as e:
                 print(f"❌ {e}")
                 raise SystemExit(1) from e
 

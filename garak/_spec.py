@@ -175,6 +175,11 @@ def _classify(token: str, include: bool) -> Selector:
     # use one ``intent:`` per code.
     if token.startswith("intent:"):
         value = token[7:].strip()
+        if not value:
+            raise ValueError(
+                "run.spec intent selector requires a code; "
+                "use --list_intents to discover intent codes"
+            )
         if "," in value:
             raise ValueError(
                 f"run.spec intent selector {value!r}: use one intent: per code "

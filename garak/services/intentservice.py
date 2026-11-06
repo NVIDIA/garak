@@ -91,11 +91,14 @@ def _expand_intent_spec(
 
     expanded_intents = set()
 
-    if intent_spec in (None, "*", "all", ""):
+    if intent_spec in (None, ""):
         expanded_intents.update(intent_typology.keys())
     else:
         for intent_prefix in intent_spec.split(","):
-            if expand_subnodes:
+            intent_prefix = intent_prefix.strip()
+            if intent_prefix.lower() in ("*", "all"):
+                expanded_intents.update(intent_typology.keys())
+            elif expand_subnodes:
                 expanded_intents.update(
                     _expand_intent_specifier_children(intent_prefix)
                 )
@@ -124,13 +127,13 @@ def _expand_intent_specifier_children(intent_specifier: str) -> Set[str]:
 
 def _validate_intent_codes(intent_spec: str | None) -> None:
     """Fail-closed when a requested include code is well-formed but absent from
-    the loaded typology (e.g. ``S999``). Vacuous specs (``None``/``*``/``all``/
-    ``""``) select everything and are not validated."""
+    the loaded typology (e.g. ``S999``). Vacuous specs (``None``/``""``) select
+    everything; ``*`` and ``all`` are valid in any selector combination."""
 
-    if intent_spec in (None, "*", "all", ""):
+    if intent_spec in (None, ""):
         return
     for code in (c.strip() for c in intent_spec.split(",")):
-        if code and code not in intent_typology:
+        if code and code.lower() not in ("*", "all") and code not in intent_typology:
             raise GarakException(
                 f"intent code '{code}' is not in the loaded intent typology; "
                 "use --list_intents to view available codes"

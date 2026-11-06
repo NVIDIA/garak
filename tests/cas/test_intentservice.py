@@ -21,15 +21,26 @@ def test_load_intentservice():
     garak.services.intentservice.load()
 
 
-def test_intent_content_checks_exact_code_class():
+def test_intent_content_checks_exact_code_class(monkeypatch):
     import garak.services.intentservice
 
-    garak.services.intentservice._load_intent_detector_mapping()
+    monkeypatch.setattr(
+        garak.services.intentservice,
+        "get_detectors",
+        lambda *_args, **_kwargs: None,
+    )
+    monkeypatch.setattr(
+        garak.services.intentservice,
+        "_glob_stubs",
+        lambda *_args, **_kwargs: set(),
+    )
 
-    assert garak.services.intentservice._intent_has_content("S003productkeys", {})
+    assert garak.services.intentservice._intent_has_content(
+        "S003productkeys", {}
+    ), "an exact intent class must count as intent content"
     assert not garak.services.intentservice._intent_has_content(
         "S003notimplemented", {}
-    )
+    ), "a missing exact intent class must not count as intent content"
 
 
 def test_populate_intents_rejects_unknown_blocked_code():
