@@ -78,6 +78,7 @@ def main(argv=None) -> None:
     import argparse
     import garak._config
     import garak.analyze.report_digest
+    from garak.resources.scoring import AGGREGATION_FUNCTIONS
 
     garak._config.load_config()
     print(
@@ -91,8 +92,18 @@ def main(argv=None) -> None:
         allow_abbrev=False,
     )
     p.add_argument("-o", "--output_path", help="Output filename", required=True)
+    p.add_argument(
+        "--group_aggregation_function",
+        choices=AGGREGATION_FUNCTIONS,
+        help="Method for combining probe scores (overrides the active config)",
+    )
     p.add_argument("infiles", nargs="+", help="garak jsonl reports to be aggregated")
     a = p.parse_args(argv)
+    if a.group_aggregation_function is not None:
+        garak._config.reporting.group_aggregation_function = (
+            a.group_aggregation_function
+        )
+    aggregation_function = garak._config.reporting.group_aggregation_function
 
     # get the list of files
     in_filenames = a.infiles
@@ -120,6 +131,20 @@ def main(argv=None) -> None:
                 setup["plugins.target_name"] = setup["plugins.model_name"]
             target_name = setup["plugins.target_name"]
             version = setup["_config.version"]
+            garak._config.reporting.taxonomy = setup.get("reporting.taxonomy")
+            original_aggregation_function = setup.get(
+                "reporting.group_aggregation_function"
+            )
+            if (
+                original_aggregation_function is not None
+                and original_aggregation_function != aggregation_function
+            ):
+                print(
+                    f"Report used {original_aggregation_function} aggregation; "
+                    f"rebuilding with {aggregation_function}",
+                    file=sys.stderr,
+                )
+            setup["reporting.group_aggregation_function"] = aggregation_function
             setup["aggregation"] = in_filenames
             # drop deprecated selection keys carried from the lead report; the
             # aggregated probespec lives in run.spec (pre-rendered string form)

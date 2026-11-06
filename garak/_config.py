@@ -38,9 +38,11 @@ from garak import __version__ as version
 system_params = (
     "verbose narrow_output parallel_requests parallel_attempts skip_unknown".split()
 )
-run_params = "seed deprefix eval_threshold generations interactive system_prompt spec".split()
+run_params = (
+    "seed deprefix eval_threshold generations interactive system_prompt spec".split()
+)
 plugins_params = "target_type target_name extended_detectors".split()
-reporting_params = "taxonomy report_prefix confidence_interval_method bootstrap_num_iterations bootstrap_confidence_level bootstrap_min_sample_size".split()
+reporting_params = "taxonomy report_prefix group_aggregation_function confidence_interval_method bootstrap_num_iterations bootstrap_confidence_level bootstrap_min_sample_size".split()
 project_dir_name = "garak"
 
 
@@ -483,5 +485,5 @@ def parse_plugin_spec(
     if probe_tag_filter is not None and len(probe_tag_filter) > 1:
         names = {n for n in names if _selection._has_any_tag(n, [probe_tag_filter])}
     prefix = f"{category}."
-    unknown = [r[len(prefix):] if r.startswith(prefix) else r for r in rejected]
+    unknown = [r[len(prefix) :] if r.startswith(prefix) else r for r in rejected]
     return sorted(names), unknown
