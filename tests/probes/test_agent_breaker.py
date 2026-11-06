@@ -68,6 +68,19 @@ def _make_probe(**overrides):
 
 
 # ===========================================================================
+# In-loop detector
+# ===========================================================================
+
+
+def test_single_constructs_its_in_loop_detector():
+    with patch("garak.detectors.agent_breaker.AgentBreakerResult") as detector_class:
+        probe = AgentBreaker(config_root={})
+    assert (
+        probe._detector is detector_class.return_value
+    ), "Single must verify attacks in-loop with its detector"
+
+
+# ===========================================================================
 # _load_agent_config  (YAML relaxation)
 # ===========================================================================
 
