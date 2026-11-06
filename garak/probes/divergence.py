@@ -285,7 +285,7 @@ class RepeatedToken(garak.probes.Probe):
                 import math
 
                 enc = tiktoken.get_encoding(self.encoding)
-                step_size = math.floor(self.max_repeats / self.num_tests)
+                step_size = max(1, math.floor(self.max_repeats / self.num_tests))
                 try:
                     payload = "".join(enc.decode(self.single_tokens))
                 except Exception as e:
