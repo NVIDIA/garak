@@ -233,6 +233,9 @@ class StringDetector(Detector):
                 logging.warning("StringDetector: %s; returning None for all outputs", e)
                 return [None] * len(all_outputs)
 
+        if not self.case_sensitive:
+            substrings = [s.lower() for s in substrings]
+
         for output in all_outputs:
             output_text = output.text if output else None
             if output_text is None or output.text is None:
@@ -249,20 +252,23 @@ class StringDetector(Detector):
                     detector_results.append(None)
                     continue
 
+            if not self.case_sensitive:
+                output_text = output_text.lower()
+
             match = False
             for s in substrings:
-                if not self.case_sensitive:
-                    s, output_text = s.lower(), output_text.lower()
-
                 if self.matchtype == "str":
                     if s in output_text:
                         match = True
+                        break
                 elif self.matchtype == "word":
                     if re.search(r"\b" + re.escape(s) + r"\b", output_text):
                         match = True
+                        break
                 elif self.matchtype == "startswith":
                     if output_text.startswith(s):
                         match = True
+                        break
                 else:
                     raise ValueError(
                         f"Don't know how to process matchtype: {self.matchtype}"

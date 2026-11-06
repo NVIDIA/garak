@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+import re
 import pytest
 
 from garak.attempt import Attempt, Message
@@ -203,7 +204,7 @@ def test_stringdetector_word_boundary_matching():
 
 def test_stringdetector_word_regex_metacharacters():
     """Substrings with regex metacharacters must be matched literally in 'word' mode.Several built-in wordlists (e.g. the Surge profanity list) contain entries
-    such as `c*nt`, `s.o.b.` and `pu$sy`. Without escaping, these were interpreted as regex patterns, 
+    such as `c*nt`, `s.o.b.` and `pu$sy`. Without escaping, these were interpreted as regex patterns,
     causing false positives (`s.o.b.` matching benign words like `snobby`) and false negatives (the literal obfuscated
     term never matching itself, e.g. `pu$sy`).
     """
@@ -276,7 +277,9 @@ def test_stringdetector_normalize_default_no_change():
     attempt = Attempt(prompt=Message(text=""))
     attempt.outputs = [Message(FULLWIDTH_HELLO)]
     results = detector.detect(attempt)
-    assert results == [0.0], "Fullwidth homoglyph should bypass detection without normalize"
+    assert results == [
+        0.0
+    ], "Fullwidth homoglyph should bypass detection without normalize"
 
 
 def test_stringdetector_normalize_nfkc_catches_fullwidth():
@@ -289,7 +292,9 @@ def test_stringdetector_normalize_nfkc_catches_fullwidth():
     attempt = Attempt(prompt=Message(text=""))
     attempt.outputs = [Message(FULLWIDTH_HELLO)]
     results = detector.detect(attempt)
-    assert results == [1.0], "NFKC normalization should catch fullwidth homoglyph evasion"
+    assert results == [
+        1.0
+    ], "NFKC normalization should catch fullwidth homoglyph evasion"
 
 
 def test_stringdetector_normalize_nfkc_preserves_ascii_match():
@@ -315,7 +320,9 @@ def test_stringdetector_normalize_nfkc_zwj_not_stripped():
     attempt = Attempt(prompt=Message(text=""))
     attempt.outputs = [Message(ZWJ_HELLO)]
     results = detector.detect(attempt)
-    assert results == [0.0], "NFKC alone should not strip ZWJ (use NFKC+strip_format for that)"
+    assert results == [
+        0.0
+    ], "NFKC alone should not strip ZWJ (use NFKC+strip_format for that)"
 
 
 def test_stringdetector_normalize_strip_format_catches_zwj():
@@ -384,7 +391,9 @@ def test_stringdetector_normalize_nfkc_combining_mark_limitation():
     attempt = Attempt(prompt=Message(text=""))
     attempt.outputs = [Message(COMBINING_HELLO)]
     results = detector.detect(attempt)
-    assert results == [0.0], "NFKC precomposes combining marks; ASCII trigger still misses"
+    assert results == [
+        0.0
+    ], "NFKC precomposes combining marks; ASCII trigger still misses"
 
 
 def test_stringdetector_normalize_matchtype_word_and_startswith():
@@ -407,7 +416,8 @@ def test_stringdetector_normalize_matchtype_word_and_startswith():
 
 def test_stringdetector_normalize_case_insensitive_composition():
     """case_sensitive=False and NFKC compose: a fullwidth UPPERCASE homoglyph matches a
-    lowercase trigger only when case-insensitive (both lower-casing and NFKC run first)."""
+    lowercase trigger only when case-insensitive (both lower-casing and NFKC run first).
+    """
     detector = garak.detectors.base.StringDetector([TRIGGER_WORD])
     detector.matchtype = "str"
     detector.normalize = "NFKC"
@@ -416,10 +426,14 @@ def test_stringdetector_normalize_case_insensitive_composition():
     attempt.outputs = [Message(FULLWIDTH_HELLO_UPPER)]
 
     detector.case_sensitive = True
-    assert detector.detect(attempt) == [0.0], "case-sensitive should not match uppercase variant"
+    assert detector.detect(attempt) == [
+        0.0
+    ], "case-sensitive should not match uppercase variant"
 
     detector.case_sensitive = False
-    assert detector.detect(attempt) == [1.0], "case-insensitive + NFKC should match uppercase variant"
+    assert detector.detect(attempt) == [
+        1.0
+    ], "case-insensitive + NFKC should match uppercase variant"
 
 
 def test_stringdetector_normalize_ldnoobw_fullwidth_end_to_end():
@@ -441,7 +455,60 @@ def test_stringdetector_normalize_ldnoobw_fullwidth_end_to_end():
     attempt.outputs = [Message(fullwidth)]
 
     detector.normalize = None
-    assert detector.detect(attempt) == [0.0], "fullwidth variant should evade without normalize"
+    assert detector.detect(attempt) == [
+        0.0
+    ], "fullwidth variant should evade without normalize"
 
     detector.normalize = "NFKC"
-    assert detector.detect(attempt) == [1.0], "NFKC should catch the fullwidth variant in LDNOOBW"
+    assert detector.detect(attempt) == [
+        1.0
+    ], "NFKC should catch the fullwidth variant in LDNOOBW"
+
+
+def test_stringdetector_word_matchtype_early_break_on_match(mocker):
+    detector = garak.detectors.base.StringDetector(["target", "extra1", "extra2"])
+    detector.matchtype = "word"
+    attempt = Attempt(prompt=Message(text=""))
+    attempt.outputs = [Message("this contains target and extra1")]
+
+    spy = mocker.spy(re, "escape")
+    results = detector.detect(attempt)
+    assert results == [1.0]
+    assert spy.call_count == 1
+
+
+@pytest.mark.parametrize("matchtype", ["str", "startswith"])
+def test_stringdetector_early_break_iteration(matchtype):
+    class MonitoredSubstrings:
+        def __init__(self, items):
+            self.items = items
+            self.iterated = []
+
+        def __iter__(self):
+            for item in self.items:
+                self.iterated.append(item)
+                yield item
+
+    monitored = MonitoredSubstrings(["alpha", "beta", "gamma"])
+    detector = garak.detectors.base.StringDetector(monitored)
+    detector.case_sensitive = True
+    detector.matchtype = matchtype
+    attempt = Attempt(prompt=Message(text=""))
+    attempt.outputs = [Message("alpha text")]
+
+    results = detector.detect(attempt)
+    assert results == [1.0]
+    assert monitored.iterated == ["alpha"]
+
+
+def test_stringdetector_case_insensitive_precomputed_lowercasing():
+    detector = garak.detectors.base.StringDetector(["FoO", "BaR", "BaZ"])
+    detector.case_sensitive = False
+    attempt = Attempt(prompt=Message(text=""))
+    attempt.outputs = [
+        Message("contains fOo here"),
+        Message("CONTAINS BAR HERE"),
+        Message("clean output"),
+    ]
+    results = detector.detect(attempt)
+    assert results == [1.0, 1.0, 0.0]
