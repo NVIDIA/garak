@@ -609,7 +609,7 @@ def test_rest_mtls_pickle_roundtrip(real_mtls_cert_files):
 
 
 @pytest.mark.usefixtures("set_rest_config")
-def test_json_rest_multi_element_list(requests_mock):
+def test_json_rest_multi_element_list(requests_mock, caplog):
     requests_mock.post(
         "https://www.wikidata.org/wiki/Q22971",
         text=json.dumps(["first response", "second response"], ensure_ascii=False),
@@ -618,12 +618,14 @@ def test_json_rest_multi_element_list(requests_mock):
     _config.plugins.generators["rest"]["RestGenerator"]["response_json_field"] = "$"
     generator = RestGenerator()
     conv = Conversation([Turn("user", Message("Who is Enabran Tain's son?"))])
-    output = generator.generate(conv)
+    with caplog.at_level(logging.WARNING):
+        output = generator.generate(conv)
     assert output == [Message("first response")]
+    assert any("selecting the first" in record.message for record in caplog.records)
 
 
 @pytest.mark.usefixtures("set_rest_config")
-def test_json_rest_multi_element_objects_list(requests_mock):
+def test_json_rest_multi_element_objects_list(requests_mock, caplog):
     requests_mock.post(
         "https://www.wikidata.org/wiki/Q22971",
         text=json.dumps(
@@ -634,12 +636,16 @@ def test_json_rest_multi_element_objects_list(requests_mock):
     _config.plugins.generators["rest"]["RestGenerator"]["response_json_field"] = "text"
     generator = RestGenerator()
     conv = Conversation([Turn("user", Message("Who is Enabran Tain's son?"))])
-    output = generator.generate(conv)
+    with caplog.at_level(logging.WARNING):
+        output = generator.generate(conv)
     assert output == [Message("primary")]
+    assert any(
+        "selecting the first item" in record.message for record in caplog.records
+    )
 
 
 @pytest.mark.usefixtures("set_rest_config")
-def test_json_rest_jsonpath_multi_match(requests_mock):
+def test_json_rest_jsonpath_multi_match(requests_mock, caplog):
     requests_mock.post(
         "https://www.wikidata.org/wiki/Q22971",
         text=json.dumps(
@@ -658,5 +664,9 @@ def test_json_rest_jsonpath_multi_match(requests_mock):
     ] = "$.choices[*].text"
     generator = RestGenerator()
     conv = Conversation([Turn("user", Message("Who is Enabran Tain's son?"))])
-    output = generator.generate(conv)
+    with caplog.at_level(logging.WARNING):
+        output = generator.generate(conv)
     assert output == [Message("candidate 1")]
+    assert any(
+        "selecting the first result" in record.message for record in caplog.records
+    )

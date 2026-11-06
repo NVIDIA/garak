@@ -400,10 +400,22 @@ class RestGenerator(Generator):
             try:
                 if isinstance(response_object, list):
                     items = [item[self.response_json_field] for item in response_object]
+                    if len(items) > 1:
+                        logging.warning(
+                            "RestGenerator: response contains %d items for field %r; selecting the first item as single generation",
+                            len(items),
+                            self.response_json_field,
+                        )
                     response = [items[0]] if items else []
                 else:
                     response_val = response_object[self.response_json_field]
                     if isinstance(response_val, list):
+                        if len(response_val) > 1:
+                            logging.warning(
+                                "RestGenerator: response_json_field %r returned a list of %d items; selecting the first item as single generation",
+                                self.response_json_field,
+                                len(response_val),
+                            )
                         response = [response_val[0]] if response_val else []
                     else:
                         response = [response_val]
@@ -423,10 +435,21 @@ class RestGenerator(Generator):
             if len(responses) == 1:
                 response_value = responses[0].value
                 if isinstance(response_value, list):
+                    if len(response_value) > 1:
+                        logging.warning(
+                            "RestGenerator: JSONPath %r returned a list of %d items; selecting the first item as single generation",
+                            self.response_json_field,
+                            len(response_value),
+                        )
                     response = [response_value[0]] if response_value else []
                 else:
                     response = [response_value]
             elif len(responses) > 1:
+                logging.warning(
+                    "RestGenerator: JSONPath %r matched %d results; selecting the first result as single generation",
+                    self.response_json_field,
+                    len(responses),
+                )
                 response = [responses[0].value]
             else:
                 logging.error(
