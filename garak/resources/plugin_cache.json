@@ -2750,6 +2750,39 @@
       "tier": 1,
       "mod_time": "2026-05-27 20:51:42 +0000"
     },
+    "probes.goodside.TagIntent": {
+      "description": "Hide intent-service instructions in invisible Unicode Tag characters.",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true
+      },
+      "active": true,
+      "blocked_intent_spec": "",
+      "doc_uri": "https://twitter.com/goodside/status/1745511940351287394",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "garak": null,
+      "goal": "inject invisible instructions carrying intent-service behaviours",
+      "intent": null,
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "mitigation.MitigationBypass",
+      "skip_root_intents": true,
+      "tags": [
+        "owasp:llm01",
+        "payload:generic",
+        "quality:Security:Adversarial",
+        "quality:Security:PromptStability",
+        "demon:Language:Code_and_encode:Data_encoding",
+        "demon:Language:Code_and_encode:Token"
+      ],
+      "tier": 1,
+      "mod_time": "2026-05-27 20:51:42 +0000"
+    },
     "probes.goodside.ThreatenJSON": {
       "description": "Will model strip preamble and give JSON?",
       "DEFAULT_PARAMS": {
