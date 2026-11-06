@@ -210,7 +210,7 @@ class RestGenerator(Generator):
                     ssl_ctx.check_hostname = False
                     ssl_ctx.verify_mode = ssl.CERT_NONE
             # re-read passphrase from env var if cleared or missing
-            # may be lost during pickle roundtrip 
+            # may be lost during pickle roundtrip
             passphrase = self.client_key_passphrase
             if passphrase is None and self.client_key_passphrase_env_var is not None:
                 passphrase = os.getenv(self.client_key_passphrase_env_var)
@@ -399,11 +399,14 @@ class RestGenerator(Generator):
         if self.response_json_field[0] != "$":
             try:
                 if isinstance(response_object, list):
-                    response = [
-                        item[self.response_json_field] for item in response_object
-                    ]
+                    items = [item[self.response_json_field] for item in response_object]
+                    response = [items[0]] if items else []
                 else:
-                    response = [response_object[self.response_json_field]]
+                    response_val = response_object[self.response_json_field]
+                    if isinstance(response_val, list):
+                        response = [response_val[0]] if response_val else []
+                    else:
+                        response = [response_val]
             except (KeyError, TypeError):
                 return self._response_extraction_failed(
                     "RestGenerator could not read response_json_field %r from the "
@@ -412,27 +415,28 @@ class RestGenerator(Generator):
                     % (self.response_json_field, repr(resp.content)[:500])
                 )
         else:
-            field_path_expr = jsonpath_ng.parse(self.response_json_field)
+            if hasattr(self, "json_expr") and self.json_expr is not None:
+                field_path_expr = self.json_expr
+            else:
+                field_path_expr = jsonpath_ng.parse(self.response_json_field)
             responses = field_path_expr.find(response_object)
             if len(responses) == 1:
                 response_value = responses[0].value
-                if isinstance(response_value, str):
-                    response = [response_value]
-                elif isinstance(response_value, list):
-                    response = response_value
+                if isinstance(response_value, list):
+                    response = [response_value[0]] if response_value else []
                 else:
-                    # not text/list (e.g. a nested object); surface a clear
-                    # error via the type validation below instead of silently
-                    # returning an empty result
                     response = [response_value]
             elif len(responses) > 1:
-                response = [r.value for r in responses]
+                response = [responses[0].value]
             else:
                 logging.error(
                     "RestGenerator JSONPath in response_json_field yielded nothing. Response content: %s"
                     % repr(resp.content)
                 )
                 return [None]
+
+        if not response:
+            return [None]
 
         # the targeted field must resolve to text before it is wrapped in a
         # Message; a mismatched response_json_field can match a dict/list/number
