@@ -421,4 +421,10 @@ def test_probe_prompt_translation(classname, mocker):
         # this only exists in goodside should it be standardized in some way?
         expected_provision_calls += len(probe_instance.attempt_descrs) * 2
 
+    if hasattr(probe_instance, "_translated_rogue_strings"):
+        # promptinject probes pre-translate their rogue string once when prompts
+        # are localised, so the trigger stored in attempt notes matches the
+        # translated prompt the detector scores against
+        expected_provision_calls += len(probe_instance._translated_rogue_strings)
+
     assert prompt_mock.call_count == expected_provision_calls
