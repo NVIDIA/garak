@@ -137,3 +137,19 @@ def test_nvcf_is_input_value_error_parses_defensively(content, expected):
     """
     response = _FakeResponse(500, content)
     assert garak.generators.nvcf.NvcfChat._is_input_value_error(response) is expected
+
+
+@pytest.mark.parametrize("klassname", PLUGINS)
+def test_nvcf_extra_params_none_does_not_raise(klassname):
+    from garak.attempt import Message, Turn, Conversation
+
+    _config.plugins.generators["nvcf"] = {}
+    _config.plugins.generators["nvcf"][klassname] = {}
+    _config.plugins.generators["nvcf"][klassname]["name"] = "placeholder name"
+    _config.plugins.generators["nvcf"][klassname]["api_key"] = "placeholder key"
+    g = _plugins.load_plugin(f"generators.nvcf.{klassname}")
+    g.extra_params = None
+    conv = Conversation([Turn("user", Message("whatever prompt"))])
+    test_payload = g._build_payload(conv)
+    assert isinstance(test_payload, dict)
+    assert "extra_params" not in test_payload

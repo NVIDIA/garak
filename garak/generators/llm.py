@@ -130,7 +130,8 @@ class LLMGenerator(Generator):
         for param_name, param_value in param_map.items():
             if param_value and param_name in self._accepted_params:
                 prompt_kwargs[param_name] = param_value
-        prompt_kwargs.update(self.extra_params)
+        if getattr(self, "extra_params", None) is not None:
+            prompt_kwargs.update(self.extra_params)
 
         return [
             self._call_single(text_prompt, system_text, prompt_kwargs)
