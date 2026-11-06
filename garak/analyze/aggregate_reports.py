@@ -33,6 +33,8 @@ def _process_file_body(in_file, out_file, aggregate_uuid) -> dict | None:
             "eval",
             "probe_summary",
             "plugin_cache",
+            "payload_init",
+            "tree_data",
         ):
             continue
         if (
