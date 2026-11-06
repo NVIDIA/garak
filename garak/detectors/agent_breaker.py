@@ -220,6 +220,7 @@ class AgentBreakerResult(Detector):
         attack_prompt: str,
         agent_purpose: str = "",
         tool_description: str = "",
+        cutoff: float | None = None,
     ) -> float | None:
         """Thin wrapper around :meth:`verify` for use in :meth:`detect`.
 
@@ -238,7 +239,8 @@ class AgentBreakerResult(Detector):
         if verdict is None:
             return None
         is_success, confidence, _ = verdict
-        return 1.0 if is_success and confidence >= self.confidence_cutoff else 0.0
+        effective_cutoff = self.confidence_cutoff if cutoff is None else cutoff
+        return 1.0 if is_success and confidence >= effective_cutoff else 0.0
 
     @staticmethod
     def _extract_json(text: str) -> dict:
@@ -308,15 +310,13 @@ class AgentBreakerResult(Detector):
         if not attempt.outputs:
             return [None]
 
+        cutoff = attempt.notes.get("success_threshold", self.confidence_cutoff)
+
         # Fast path: reuse the per-output verdicts the probe computed in-loop.
         verified_results = attempt.notes.get("verified_results", [])
         if verified_results:
             scores = [
-                (
-                    None
-                    if conf is None
-                    else (1.0 if success and conf >= self.confidence_cutoff else 0.0)
-                )
+                (None if conf is None else (1.0 if success and conf >= cutoff else 0.0))
                 for success, conf, *_ in verified_results
             ]
             logging.info(
@@ -348,6 +348,7 @@ class AgentBreakerResult(Detector):
                     attack_prompt=attack_prompt,
                     agent_purpose=agent_purpose,
                     tool_description=tool_description,
+                    cutoff=cutoff,
                 )
             except Exception:
                 logging.exception(

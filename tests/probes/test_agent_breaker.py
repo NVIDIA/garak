@@ -889,6 +889,100 @@ class TestGenerateNextAttempts:
 
         state = AttackState.from_notes(attempt.notes)
         assert state.attempts_history[-1]["success"] is True
+        assert state.attempts_history[-1]["response"] == "leaked data"
+
+    def test_qualifying_success_preferred_over_higher_confidence_refusal(self, mocker):
+        """Regression test for Issue #2381: a successful exploit must be recorded
+        in history even when a refusal has higher confidence."""
+        probe = _make_probe(success_threshold=0.7)
+        mocker.patch.object(
+            probe._detector,
+            "verify",
+            side_effect=[
+                (False, 1.0, "The agent refused the unauthorized grant."),
+                (True, 0.95, "The agent confirmed the unauthorized grant."),
+            ],
+        )
+        attempt = _make_attempt_with_state(
+            [
+                Message("I refused. No access was granted."),
+                Message("I granted outsider access to file-1."),
+            ]
+        )
+
+        next_attempts = list(probe._generate_next_attempts(attempt))
+
+        # Attack succeeded, so loop broke out
+        assert next_attempts == []
+        state = AttackState.from_notes(attempt.notes)
+        entry = state.attempts_history[-1]
+        assert entry["success"] is True
+        assert entry["confidence"] == 0.95
+        assert entry["response"] == "I granted outsider access to file-1."
+        assert entry["reasoning"] == "The agent confirmed the unauthorized grant."
+
+    def test_history_success_false_when_verdict_below_threshold(self, mocker):
+        """When an output has is_success=True (e.g. PARTIAL) but confidence is below
+        success_threshold, history success must be False and loop should continue."""
+        probe = _make_probe(success_threshold=0.7)
+        mocker.patch.object(
+            probe._detector,
+            "verify",
+            side_effect=[
+                (True, 0.4, "partial access granted but insufficient"),
+            ],
+        )
+        mocker.patch.object(
+            probe, "_generate_exploit_prompt", return_value="next_payload"
+        )
+        attempt = _make_attempt_with_state([Message("partial output")])
+
+        next_attempts = list(probe._generate_next_attempts(attempt))
+
+        assert len(next_attempts) == 1
+        state = AttackState.from_notes(attempt.notes)
+        entry = state.attempts_history[-1]
+        assert entry["success"] is False
+        assert entry["confidence"] == 0.4
+        assert entry["response"] == "partial output"
+
+    def test_multiple_qualifying_successes_selects_highest_confidence(self, mocker):
+        """When multiple outputs succeed above threshold, pick the highest-confidence exploit."""
+        probe = _make_probe(success_threshold=0.7)
+        mocker.patch.object(
+            probe._detector,
+            "verify",
+            side_effect=[
+                (False, 1.0, "strong refusal"),
+                (True, 0.80, "partial exploit success"),
+                (True, 0.95, "complete exploit success"),
+            ],
+        )
+        attempt = _make_attempt_with_state(
+            [
+                Message("refusal"),
+                Message("exploit 80"),
+                Message("exploit 95"),
+            ]
+        )
+
+        probe._generate_next_attempts(attempt)
+
+        state = AttackState.from_notes(attempt.notes)
+        entry = state.attempts_history[-1]
+        assert entry["success"] is True
+        assert entry["confidence"] == 0.95
+        assert entry["response"] == "exploit 95"
+
+    def test_probe_detector_threshold_sync(self):
+        """Probe success_threshold and its internal detector cutoff remain synchronized."""
+        probe = _make_probe(success_threshold=0.7)
+        assert probe.success_threshold == 0.7
+        assert probe._detector.confidence_cutoff == 0.7
+
+        probe.success_threshold = 0.9
+        assert probe.success_threshold == 0.9
+        assert probe._detector.confidence_cutoff == 0.9
 
     def test_history_appends_not_replaces(self, mocker):
         """Each call appends to history, preserving previous entries."""

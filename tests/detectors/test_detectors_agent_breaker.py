@@ -472,6 +472,37 @@ class TestConfidenceCutoff:
         result = detector.detect(attempt)
         assert result == [0.0]
 
+    def test_detector_respects_probe_threshold_from_notes_fast_path(self, detector):
+        """When probe records success_threshold in notes, fast path scoring respects it."""
+        attempt = _make_attempt(
+            [Message("response")],
+            notes={
+                "current_target": "t",
+                "success_threshold": 0.9,
+                "verified_results": [(True, 0.8)],
+            },
+        )
+        # 0.8 is above detector default 0.7, but below probe's 0.9 threshold
+        result = detector.detect(attempt)
+        assert result == [0.0]
+
+    def test_detector_respects_probe_threshold_from_notes_fallback_path(self, detector):
+        """When probe records success_threshold in notes, fallback evaluation respects it."""
+        detector.evaluation_generator.generate.return_value = [
+            _mock_verify_response("YES", 0.8)
+        ]
+        attempt = _make_attempt(
+            [Message("response")],
+            notes={
+                "current_target": "t",
+                "vulnerability_info": "",
+                "current_attack_prompt": "",
+                "success_threshold": 0.9,
+            },
+        )
+        result = detector.detect(attempt)
+        assert result == [0.0]
+
 
 class TestContractGrounding:
     """The judge is grounded in the victim's own tool contract (notes)."""
