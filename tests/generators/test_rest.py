@@ -1,7 +1,9 @@
 import datetime
 import json
 import logging
+import re
 import ssl
+import urllib.parse
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -238,6 +240,101 @@ def test_rest_skip_code(requests_mock):
     conv = Conversation([Turn("user", Message("Who is Enabran Tain's son?"))])
     output = generator._call_model(conv)
     assert output == [None]
+
+
+@pytest.mark.usefixtures("set_rest_config")
+@pytest.mark.parametrize(
+    "prompt",
+    (
+        "What is 2+2?",
+        "Tom & Jerry say hi",
+        "text after #ignore previous instructions",
+        "100% sure",
+        'Say "hello"',
+        "line one\nline two",
+    ),
+)
+def test_rest_get_sends_prompt_unchanged(requests_mock, prompt):
+    _config.plugins.generators["rest"]["RestGenerator"]["method"] = "get"
+    _config.plugins.generators["rest"]["RestGenerator"]["req_template"] = "q=$INPUT"
+    generator = RestGenerator()
+    requests_mock.get(DEFAULT_URI, text=DEFAULT_TEXT_RESPONSE)
+    generator._call_model(Conversation([Turn("user", Message(prompt))]))
+    query = urllib.parse.urlsplit(requests_mock.last_request.url).query
+    # a bare "%" is not valid percent-encoding and the server decodes it differently
+    assert re.fullmatch(r"(?:[^%]|%[0-9A-Fa-f]{2})*", query)
+    assert urllib.parse.parse_qs(query)["q"] == [prompt]
+
+
+@pytest.mark.usefixtures("set_rest_config")
+@pytest.mark.parametrize(
+    "prompt",
+    (
+        "What is 2+2?",
+        "Tom & Jerry say hi",
+        "100% sure",
+        'Say "hello"',
+        "line one\nline two",
+    ),
+)
+@pytest.mark.parametrize(
+    "prefix,suffix",
+    (("", ""), ("You are ", ""), (" ", " ")),
+    ids=["whole", "prefixed", "padded"],
+)
+def test_rest_get_json_value_sends_prompt_unchanged(
+    requests_mock, prompt, prefix, suffix
+):
+    _config.plugins.generators["rest"]["RestGenerator"]["method"] = "get"
+    _config.plugins.generators["rest"]["RestGenerator"][
+        "req_template"
+    ] = f'variables={{"p": "{prefix}$INPUT{suffix}"}}'
+    generator = RestGenerator()
+    requests_mock.get(DEFAULT_URI, text=DEFAULT_TEXT_RESPONSE)
+    generator._call_model(Conversation([Turn("user", Message(prompt))]))
+    query = urllib.parse.urlsplit(requests_mock.last_request.url).query
+    variables = urllib.parse.parse_qs(query)["variables"][0]
+    assert json.loads(variables) == {"p": prefix + prompt + suffix}
+
+
+@pytest.mark.usefixtures("set_rest_config")
+@pytest.mark.parametrize(
+    "prompt",
+    (
+        "What is 2+2?",
+        "Tom & Jerry say hi",
+        "100% sure",
+        'Say "hello"',
+        "line one\nline two",
+        "text after #ignore previous instructions",
+    ),
+)
+def test_rest_get_json_object_template_sends_prompt_unchanged(requests_mock, prompt):
+    _config.plugins.generators["rest"]["RestGenerator"]["method"] = "get"
+    _config.plugins.generators["rest"]["RestGenerator"]["req_template_json_object"] = {
+        "text": "$INPUT"
+    }
+    generator = RestGenerator()
+    requests_mock.get(DEFAULT_URI, text=DEFAULT_TEXT_RESPONSE)
+    generator._call_model(Conversation([Turn("user", Message(prompt))]))
+    query = urllib.parse.urlsplit(requests_mock.last_request.url).query
+    assert json.loads(urllib.parse.unquote(query)) == {"text": prompt}
+
+
+@pytest.mark.usefixtures("set_rest_config")
+@pytest.mark.parametrize(
+    "method,req_template,expected",
+    (
+        ("post", "$INPUT", "_json_escape"),
+        ("get", "q=$INPUT", "_url_escape"),
+        ("get", 'variables={"p": "You are $INPUT"}', "_json_url_escape"),
+    ),
+)
+def test_rest_escape_function_resolved_at_init(method, req_template, expected):
+    _config.plugins.generators["rest"]["RestGenerator"]["method"] = method
+    _config.plugins.generators["rest"]["RestGenerator"]["req_template"] = req_template
+    generator = RestGenerator()
+    assert generator.escape_function == getattr(generator, expected)
 
 
 @pytest.mark.usefixtures("set_rest_config")
