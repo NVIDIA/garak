@@ -147,6 +147,31 @@ def cleanup(request):
     request.addfinalizer(remove_reports)
 
 
+def test_attempt_previous_attempt_id_defaults_none_and_serializes():
+    """A seed attempt has no parent; lineage is exported by as_dict()."""
+    a = garak.attempt.Attempt(prompt=garak.attempt.Message("seed"))
+    assert a.previous_attempt_id is None
+    d = a.as_dict()
+    assert d["previous_attempt_id"] is None
+    json.dumps(d, default=str)  # report serialization must not break
+
+
+def test_attempt_previous_attempt_id_records_lineage():
+    """A follow-up attempt can point back at the attempt it was generated from,
+    both via the constructor and by assignment, and it survives as_dict()."""
+    parent = garak.attempt.Attempt(prompt=garak.attempt.Message("turn 1"))
+
+    via_ctor = garak.attempt.Attempt(
+        prompt=garak.attempt.Message("turn 2"),
+        previous_attempt_id=str(parent.uuid),
+    )
+    assert via_ctor.previous_attempt_id == str(parent.uuid)
+
+    via_assign = garak.attempt.Attempt(prompt=garak.attempt.Message("turn 2b"))
+    via_assign.previous_attempt_id = str(parent.uuid)
+    assert via_assign.as_dict()["previous_attempt_id"] == str(parent.uuid)
+
+
 def test_attempt_turn_taking():
     a = garak.attempt.Attempt()
     assert a.conversations == [
@@ -473,6 +498,7 @@ def test_json_serialize():
     del att_dict["uuid"]
     assert att_dict == {
         "entry_type": "attempt",
+        "previous_attempt_id": None,
         "seq": -1,
         "status": 0,
         "probe_classname": None,
