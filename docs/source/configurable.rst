@@ -193,6 +193,10 @@ Selectors (a category prefix is mandatory):
   injected default scope is never a filter, and ``IntentProbe`` subclasses are
   pruned only when their ``blocked_intent_spec`` covers every included code --
   otherwise which intents they serve is settled later by the intent service.
+  A ``probes.<module>`` family is filterable, but a fully-qualified
+  ``probes.<module>.<Class>`` is a mandatory selector: if the intent filter makes
+  an explicitly named probe ineligible, resolution fails with an error naming the
+  probe and the conflicting intent rather than dropping it silently.
   ``intent:*`` or ``intent:all`` selects every intent and does not
   filter. When no ``intent:`` is given, the default scope ``S`` (the Safety
   branch) is injected at resolve time and, being the default, never prunes.

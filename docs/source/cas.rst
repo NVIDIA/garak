@@ -140,7 +140,9 @@ A few things to note:
   typology descendancy: ``garak --spec "probes.*,intent:S005hate"`` runs only the
   probes carrying an intent beneath ``S005hate`` (plus any ``IntentProbe``, unless
   its ``blocked_intent_spec`` covers every included code). The injected default
-  scope never filters.
+  scope never filters. A probe *family* is narrowed down, but an explicitly named
+  probe that the intent makes ineligible is an unsatisfiable request: resolution
+  fails with an error naming the probe and the conflicting intent.
 * If you give no ``intent:`` selector, the default scope ``S`` (the whole Safety
   branch) is injected at resolve time.
 

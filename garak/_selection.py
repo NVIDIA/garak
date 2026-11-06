@@ -116,6 +116,26 @@ def _intent_excluded(name: str, excludes: List[str]) -> bool:
     return code is not None and _intent_under(code, excludes)
 
 
+def _intent_conflict_reason(
+    names: List[str], includes: List[str], excludes: List[str]
+) -> str:
+    """Build the run.spec error for explicitly named probes the intent filter excludes."""
+    clauses = []
+    for name in names:
+        code = _plugins.plugin_info(name).get("intent")
+        if excludes and _intent_under(code, excludes):
+            culprit = ", ".join(f"-intent:{c}" for c in excludes)
+            clauses.append(f"'{name}' declares intent '{code}', excluded by {culprit}")
+        else:
+            culprit = ", ".join(f"intent:{c}" for c in includes)
+            clauses.append(f"'{name}' declares intent '{code}', outside {culprit}")
+    return (
+        "run.spec cannot be resolved as requested: "
+        + "; ".join(clauses)
+        + "; drop the probe class or widen the intent selection"
+    )
+
+
 def _empty_reason(spec: _spec.Spec) -> str:
     """Best-effort explanation of why a spec resolved to no probes."""
     tier_ceilings = [int(s.value) for s in spec.include if s.kind == "tier"]
@@ -169,8 +189,10 @@ def resolve_spec(spec: _spec.Spec, skip_unknown: bool = False) -> _spec.Resoluti
     ``IntentProbe`` subclasses are pruned only when their
     ``blocked_intent_spec`` covers every included code. A lone ``-intent:``
     (no include) also prunes: probes whose own declared intent descends from
-    an excluded code drop out of the already-resolved candidate set. This is
-    the single entry point used by the CLI and harnesses.
+    an excluded code drop out of the already-resolved candidate set. An
+    explicitly named probe the intent filter excludes raises ``ValueError``
+    (even under ``skip_unknown``). This is the single entry point used by the
+    CLI and harnesses.
     """
     rejected: List[str] = []
     inactive_modules: List[str] = []
@@ -228,6 +250,31 @@ def resolve_spec(spec: _spec.Spec, skip_unknown: bool = False) -> _spec.Resoluti
         for c in intent_excludes
         if c.lower() not in ("*", "all") and _spec.validate_intent_specifier(c)
     ]
+    # Capture explicitly named, intent-declaring probes still present so the
+    # filter below can fail closed on a mandatory selector it would drop.
+    # IntentProbe (intent None) and -probes-excluded names are exempt.
+    required_intent_classes: set = set()
+    if intent_filter or intent_exclude_filter:
+        probe_excludes = [
+            s
+            for s in spec.exclude
+            if s.kind == "plugin_path" and s.category == "probes"
+        ]
+        excluded_names = (
+            _resolve_plugin_paths(probe_excludes, "probes")[0]
+            if probe_excludes
+            else set()
+        )
+        required_intent_classes = {
+            s.value
+            for s in spec.include
+            if s.kind == "plugin_path"
+            and s.category == "probes"
+            and s.value.count(".") >= 2
+            and s.value in candidate
+            and s.value not in excluded_names
+            and _plugins.plugin_info(s.value).get("intent") is not None
+        }
     if intent_filter:
         candidate = {
             p
@@ -238,6 +285,13 @@ def resolve_spec(spec: _spec.Spec, skip_unknown: bool = False) -> _spec.Resoluti
         candidate = {
             p for p in candidate if not _intent_excluded(p, intent_exclude_filter)
         }
+    dropped_required = sorted(required_intent_classes - candidate)
+    if dropped_required:
+        raise ValueError(
+            _intent_conflict_reason(
+                dropped_required, intent_filter, intent_exclude_filter
+            )
+        )
 
     # Buffs: union of buffs.* includes (no implicit default)
     buff_includes = [

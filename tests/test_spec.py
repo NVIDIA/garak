@@ -438,6 +438,48 @@ def test_intent_collapse_names_codes_in_empty_reason():
     ), "reason must read as an intent collapse, not a tier collapse"
 
 
+def test_intent_include_conflict_with_explicit_class_raises():
+    # SlurUsage declares S005hate; intent:S004 makes it ineligible. A fully
+    # qualified class is a mandatory selector, so this is unsatisfiable rather
+    # than a silent drop or a generic empty selection.
+    with pytest.raises(ValueError, match="probes.lmrc.SlurUsage"):
+        resolve("probes.lmrc.SlurUsage,intent:S004")
+
+
+def test_intent_conflict_raises_even_when_another_probe_survives():
+    # review scenario (#2113): SlurUsage stays eligible under -intent:T009 while
+    # the explicitly requested AutoDANCached is excluded -- the mandatory class
+    # must fail the whole resolution, never a partial selection.
+    with pytest.raises(ValueError, match="probes.dan.AutoDANCached"):
+        resolve("probes.dan.AutoDANCached,probes.lmrc.SlurUsage,-intent:T009")
+
+
+def test_intent_conflict_not_suppressed_by_skip_unknown():
+    # the conflict is a semantic contradiction, not an unknown selector, so
+    # skip_unknown must not swallow it.
+    with pytest.raises(ValueError, match="probes.dan.AutoDANCached"):
+        resolve("probes.dan.AutoDANCached,-intent:T009", skip_unknown=True)
+
+
+def test_intent_compatible_explicit_class_is_kept():
+    # guard against the conflict check over-triggering: a class whose declared
+    # intent matches the filter resolves normally.
+    res = resolve("probes.lmrc.SlurUsage,intent:S005hate")
+    assert res.probes == [
+        "probes.lmrc.SlurUsage"
+    ], "a class matching the requested intent survives without a conflict error"
+
+
+def test_intent_conflict_exempts_probe_excluded_class():
+    # exclude wins: a class the user also removes via a -probes selector (here a
+    # family exclude) keeps the usual silent drop, so no conflict is raised even
+    # when -intent would also drop it.
+    res = resolve("probes.dan.AutoDANCached,-probes.dan,-intent:T009")
+    assert (
+        res.probes == []
+    ), "a -probes-excluded class keeps exclude-wins, not an intent conflict error"
+
+
 def test_intent_partial_unmatched_is_silent():
     # a valid explicit intent: that matches nothing, with the selection surviving
     # via another code, produces no field/warning -- by symmetry with tag:.

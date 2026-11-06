@@ -112,6 +112,26 @@ def test_list_buffs_warns_on_rejected_intent_selector(capsys):
     ), "the malformed intent: code must leave the requested buff in the preview"
 
 
+def test_list_probes_errors_on_explicit_class_intent_conflict(capsys):
+    """An explicitly requested probe class made ineligible by an intent selector
+    must fail resolution, not print a partial preview (issue #2113 review)."""
+    cli.main(
+        [
+            "--list_probes",
+            "--spec",
+            "probes.dan.AutoDANCached,probes.lmrc.SlurUsage,-intent:T009",
+        ]
+    )
+    out = capsys.readouterr().out
+    assert (
+        "probes.dan.AutoDANCached" in out
+    ), "the conflict error must name the explicitly requested class"
+    lines = _plugin_lines(out)
+    assert not any(
+        "lmrc.SlurUsage" in ln for ln in lines
+    ), "no partial probe selection may be printed when resolution fails"
+
+
 def test_list_probes_verbose_table(capsys):
     """Test that --list_probes -v outputs a markdown table with tier and description."""
     cli.main(["--list_probes", "-v"])
