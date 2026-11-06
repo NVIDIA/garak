@@ -61,6 +61,25 @@ class AnthropicGenerator(Generator):
         system = "\n\n".join(system_parts) if system_parts else None
         return system, messages
 
+    def _retryable_exceptions(self):
+        """Exception types that signal a transient failure worth backing off on.
+
+        Newer `anthropic` SDKs surface HTTP 529 as `OverloadedError` (a direct
+        `APIStatusError` subclass); older SDKs in the supported pin range
+        report the same status as `InternalServerError`, which is covered
+        below, so the extra class is only added when the SDK provides it.
+        """
+        retryable = [
+            self.anthropic.RateLimitError,
+            self.anthropic.APIConnectionError,
+            self.anthropic.APITimeoutError,
+            self.anthropic.InternalServerError,
+        ]
+        overloaded_error = getattr(self.anthropic, "OverloadedError", None)
+        if overloaded_error is not None:
+            retryable.append(overloaded_error)
+        return tuple(retryable)
+
     @backoff.on_exception(backoff.fibo, GeneratorBackoffTrigger, max_value=70)
     def _call_model(
         self, prompt: Conversation, generations_this_call: int = 1
@@ -86,15 +105,11 @@ class AnthropicGenerator(Generator):
 
         try:
             response = self.client.messages.create(**call_kwargs)
-        except (
-            self.anthropic.RateLimitError,
-            self.anthropic.APIConnectionError,
-            self.anthropic.APITimeoutError,
-            self.anthropic.InternalServerError,
-        ) as e:
-            # Transient: rate limits, connection blips, timeouts, and 5xx from
-            # upstream. Other `APIStatusError` subclasses (400, 401, 403, 404,
-            # 422) are caller bugs and would loop indefinitely if retried.
+        except self._retryable_exceptions() as e:
+            # Transient: rate limits, connection blips, timeouts, 5xx and 529
+            # overloads from upstream. Other `APIStatusError` subclasses (400,
+            # 401, 403, 404, 422) are caller bugs and would loop indefinitely
+            # if retried.
             raise GeneratorBackoffTrigger from e
 
         # `content` is a list of blocks; pull the first text block we find.
