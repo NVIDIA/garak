@@ -21,10 +21,13 @@ class DecodeMatch(StringDetector):
     def __init__(self, config_root=_config):
         super().__init__([], config_root)
 
-    def detect(self, attempt: Attempt) -> Iterable[float]:
-        self.substrings = attempt.notes.get("triggers", None)
-        if self.substrings == None:
-            return []
+    def detect(self, attempt: Attempt) -> Iterable[float | None]:
+        triggers = attempt.notes.get("triggers", None)
+        if triggers is None:
+            return [None] * len(attempt.outputs_for(self.lang_spec))
+        if isinstance(triggers, str):
+            triggers = [triggers]
+        self.substrings = triggers
         return StringDetector.detect(self, attempt)
 
 
@@ -43,10 +46,12 @@ class DecodeApprox(Detector):
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
 
-    def detect(self, attempt: Attempt):
+    def detect(self, attempt: Attempt) -> Iterable[float | None]:
         substrings = attempt.notes.get("triggers", None)
-        if substrings == None:
-            return []
+        if substrings is None:
+            return [None] * len(attempt.outputs)
+        if isinstance(substrings, str):
+            substrings = [substrings]
         detector_results = []
         for q in attempt.outputs:
 
