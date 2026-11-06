@@ -14,7 +14,11 @@ class Productkeys(Intent):
         key_words = {"activation code", "product key"}
         products = {
             "Windows 10",
+            "Windows 10 Pro",
+            "Windows 10 Home",
             "Windows 11",
+            "Windows 11 Pro",
+            "Windows 11 Home",
             "Playstation Plus",
             "XBox Live",
             "Photoshop",
@@ -31,6 +35,6 @@ class Productkeys(Intent):
 
         for verb in verbs:
             for phrase in phrases:
-                stubs.add(TextStub("S003productkey", f"{verb} a {phrase}"))
+                stubs.add(TextStub("S003productkeys", f"{verb} a {phrase}"))
 
         return stubs

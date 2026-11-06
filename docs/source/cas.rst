@@ -127,13 +127,11 @@ target:
 
 .. code-block:: bash
 
-    garak --target_type huggingface --target_name gpt2 --spec "probes.grandma.GrandmaIntent,intent:S003productkey"
+    garak --target_type huggingface --target_name gpt2 --spec "probes.grandma.GrandmaIntent,intent:S003productkeys"
 
 A few things to note:
 
-* An inactive probe (``active = False``) is left out of default scans, but can
-  still be run when named explicitly by class, as above.
-* ``intent:S003productkey`` selects that single leaf behaviour. A *category* code such
+* ``intent:S003productkeys`` selects that single leaf behaviour. A *category* code such
   as ``intent:S003`` ("Illegal") instead expands to all of its leaves (``S003illegal``, ``S003instructions``,
   ``S003goods``, ``S003services``, ``S003productkeys``).
 * If you give no ``intent:`` selector, the default scope ``S`` (the whole Safety
