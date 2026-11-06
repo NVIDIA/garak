@@ -353,19 +353,39 @@ def _selection_has_intent_probe(probe_names) -> bool:
 
 
 def warn_unconsumed_intents(probe_names) -> None:
-    """Warn once when ``intent:`` was given explicitly but no IntentProbe is in the
-    selection to consume it. The intent axis does not select probes, so without an
-    IntentProbe the intents are never exercised."""
-    from garak import _config
+    """Warn once when an ``intent:`` selector was given explicitly but neither
+    an IntentProbe nor a probe with its own declared ``intent`` is in the
+    selection. A probe with its own ``intent`` (e.g. ``dan.AutoDANCached``)
+    already consumes the axis by being selected for it, even though it
+    derives no stub-based prompts."""
+    from garak import _config, _plugins
 
     if not getattr(_config.transient, "intents_explicit", False):
         return
     if _selection_has_intent_probe(probe_names):
         return
+    if any(
+        _plugins.plugin_info(name).get("intent") is not None
+        for name in probe_names
+        if name.startswith("probes.")
+    ):
+        return
     msg = (
-        "intent: selector(s) given but no IntentProbe is selected; intents will "
-        "not be exercised (select an IntentProbe, e.g. probes.grandma.GrandmaIntent)"
+        "intent: selector(s) given but no IntentProbe is selected, so no "
+        "intent-derived prompts will be generated (add an IntentProbe, "
+        "e.g. probes.grandma.GrandmaIntent)"
     )
+    logging.warning(msg)
+    print(f"⚠️  {msg}")
+
+
+def warn_rejected_selectors(rejected, namespace: str) -> None:
+    """Warn when ``run.spec`` selectors (e.g. a malformed ``intent:`` code) were
+    rejected and silently dropped from a preview such as ``--list_probes``,
+    mirroring the reporting the run path already does via ``_check_selection``."""
+    if not rejected:
+        return
+    msg = f"unusable {namespace} selector(s), skipped: {', '.join(rejected)}"
     logging.warning(msg)
     print(f"⚠️  {msg}")
 
