@@ -59,9 +59,11 @@ def test_nonexistent_code_fails_closed():
 
 def test_serve_detectorless_flag_governs_expansion():
     garak._config.run.serve_detectorless_intents = False
-    assert _load("S001") == set(), "S001 is detectorless; dropped by default"
+    assert _load("T001") == set(), "T001 is detectorless; dropped by default"
     garak._config.run.serve_detectorless_intents = True
-    assert "S001mis" in _load("S001"), "serve_detectorless_intents keeps detectorless S001 codes"
+    assert "T001invalid" in _load(
+        "T001"
+    ), "serve_detectorless_intents keeps detectorless T001 codes"
 
 
 def test_all_intents_selector_spans_branches():
