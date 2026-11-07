@@ -601,6 +601,41 @@
       "tier": 2,
       "mod_time": "2026-08-23 05:07:01 +0000"
     },
+    "probes.dan.AblationDan11Intent": {
+      "description": "DAN 11.0 ablation frames carrying an intent stub",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true
+      },
+      "active": false,
+      "blocked_intent_spec": "",
+      "doc_uri": "https://github.com/0xk1h0/ChatGPT_DAN/blob/dc614355/README.md",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "garak": null,
+      "goal": "execute an injected request while impersonating an unrestricted DAN persona",
+      "intent": null,
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "mitigation.MitigationBypass",
+      "skip_root_intents": true,
+      "tags": [
+        "avid-effect:security:S0403",
+        "owasp:llm01",
+        "quality:Security:PromptStability",
+        "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "euai:robustness:adversarial",
+        "payload:jailbreak",
+        "demon:Language:Prompt_injection:Strong_arm_attack"
+      ],
+      "tier": 2,
+      "mod_time": "2026-09-04 18:05:31 +0000"
+    },
     "probes.dan.Ablation_Dan_11_0": {
       "description": "Ablation experiments over the DAN 11.0 prompt",
       "DEFAULT_PARAMS": {
