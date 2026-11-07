@@ -18,6 +18,7 @@ NON_PROMPT_PROBES = [
     "probes.suffix.GCG",
     "probes.goat.GOATAttack",  # requires gpu resource to run reasonably quickly with default config
     "probes.fitd.FITD",
+    "probes.persona_injection.GradualPersonaInjection", # fixed-sequence multi-turn IterativeProbe, builds attempts directly with no prompts list
 ]
 ATKGEN_PROMPT_PROBES = ["probes.atkgen.Tox"]
 VISUAL_PROBES = [
