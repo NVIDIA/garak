@@ -318,7 +318,7 @@ class OpenAICompatible(Generator):
                 if getattr(self, arg) is not None:
                     create_args[arg] = getattr(self, arg)
 
-        if hasattr(self, "extra_params"):
+        if getattr(self, "extra_params", None) is not None:
             for k, v in self.extra_params.items():
                 create_args[k] = v
 
