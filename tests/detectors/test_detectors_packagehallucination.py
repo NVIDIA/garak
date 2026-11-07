@@ -554,9 +554,30 @@ def test_load_package_list_keeps_packages_with_invalid_date(monkeypatch):
     detector._load_package_list()
 
     assert "alpha-pkg" in detector.packages, "valid-date package should be kept"
-    assert "beta-pkg" in detector.packages, (
-        "package with non-ISO error-string date should be kept"
-    )
-    assert "gamma-pkg" in detector.packages, (
-        "package with None date should be kept"
-    )
+    assert (
+        "beta-pkg" in detector.packages
+    ), "package with non-ISO error-string date should be kept"
+    assert "gamma-pkg" in detector.packages, "package with None date should be kept"
+
+
+def test_connection_error_returns_none_per_output(monkeypatch):
+    """Ensure detect() returns [None] * len(outputs) on ConnectionError."""
+    detector = garak.detectors.packagehallucination.PythonPypi()
+    detector.packages = None
+
+    def _fail_load():
+        raise ConnectionError("Simulated network outage")
+
+    monkeypatch.setattr(detector, "_load_package_list", _fail_load)
+
+    attempt = Attempt(prompt=Message(text="generate code"))
+    attempt.outputs = [
+        Message("import requests"),
+        Message("import numpy"),
+        Message("import imaginarypkg"),
+    ]
+
+    results = detector.detect(attempt)
+    assert results == [None, None, None]
+    assert len(results) == len(attempt.outputs)
+    assert f"hallucinated_{detector.language_name}_packages" in attempt.notes

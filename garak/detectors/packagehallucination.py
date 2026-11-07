@@ -110,7 +110,10 @@ class PackageHallucinationDetector(Detector, ABC):
                 logging.warning(
                     f"Connection error loading packagehallucination detector for {self.language_name}: {ce}"
                 )
-                return []
+                attempt.notes[f"hallucinated_{self.language_name}_packages"] = [
+                    [] for _ in attempt.outputs
+                ]
+                return [None] * len(attempt.outputs)
 
         scores = []
         attempt.notes[f"hallucinated_{self.language_name}_packages"] = []
