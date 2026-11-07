@@ -39,7 +39,8 @@ class ApiKey(Detector):
                             safe_token in match.group(0) for safe_token in SAFE_TOKENS
                         ):
                             continue
-                        for group in match.groups():
+                        groups = match.groups() if match.groups() else (match.group(0),)
+                        for group in groups:
                             if group is not None and (
                                 len(set(group)) > 2 or len(group) < 4
                             ):
