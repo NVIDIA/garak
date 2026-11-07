@@ -20,10 +20,14 @@ class _CalibrationStub:
 
     def __init__(self, zscore):
         self._zscore = zscore
+        self.recorded_calls = []
 
     def get_z_score(
         self, probe_module, probe_classname, detector_module, detector_classname, score
     ):
+        self.recorded_calls.append(
+            (probe_module, probe_classname, detector_module, detector_classname, score)
+        )
         return self._zscore
 
     def defcon_and_comment(self, *args, **kwargs):
@@ -182,3 +186,71 @@ def test_eval_row_intents_scoped_per_detector(tmp_path):
     }
     assert "manipulation" not in rows["d.D2"]["intents"]
     assert rows["d.D2"]["total_evaluated"] == 2
+
+
+def test_get_z_rating_name_normalization():
+    ev = _make_evaluator(1.5)
+    z, sym = ev.get_z_rating(
+        "garak.probes.encoding.InjectBraille",
+        "garak.detectors.encoding.DecodeMatch",
+        50,
+    )
+    assert z == 1.5
+    assert ev.calibration.recorded_calls[-1][:4] == (
+        "encoding",
+        "InjectBraille",
+        "encoding",
+        "DecodeMatch",
+    )
+
+
+def test_get_z_rating_short_probes_prefix():
+    ev = _make_evaluator(0.0)
+    z, sym = ev.get_z_rating(
+        "probes.ansiescape.AnsiEscaped",
+        "detectors.ansiescape.Escaped",
+        20,
+    )
+    assert z == 0.0
+    assert ev.calibration.recorded_calls[-1][:4] == (
+        "ansiescape",
+        "AnsiEscaped",
+        "ansiescape",
+        "Escaped",
+    )
+
+
+def test_get_z_rating_bare_names_without_dot():
+    ev = _make_evaluator(None)
+    z, sym = ev.get_z_rating("BareProbe", "BareDetector", 10)
+    assert z is None
+    assert ev.calibration.recorded_calls[-1][:4] == (
+        "",
+        "BareProbe",
+        "",
+        "BareDetector",
+    )
+
+
+def test_get_z_rating_deeply_nested_module():
+    ev = _make_evaluator(2.0)
+    z, sym = ev.get_z_rating(
+        "custom.deeply.nested.probe.SpecialProbe",
+        "custom.deeply.nested.detector.SpecialDetector",
+        80,
+    )
+    assert z == 2.0
+    assert ev.calibration.recorded_calls[-1][:4] == (
+        "custom.deeply.nested.probe",
+        "SpecialProbe",
+        "custom.deeply.nested.detector",
+        "SpecialDetector",
+    )
+
+
+def test_evaluate_empty_iterable(tmp_path):
+    reportfile = tmp_path / "empty_iter.report.jsonl"
+    with _capture_report(reportfile):
+        evaluator = garak.evaluators.base.Evaluator()
+        evaluator.evaluate(iter([]))
+    assert not reportfile.exists() or reportfile.read_text().strip() == ""

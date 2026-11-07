@@ -257,15 +257,15 @@ class Evaluator:
         outputs results once per detector
         """
 
-        if isinstance(attempts, list) and len(attempts) == 0:
+        attempts = list(
+            attempts
+        )  # iterable is preferred but we select them by idx later
+
+        if len(attempts) == 0:
             logging.error(
                 "evaluators.base.Evaluator.evaluate called with list of 0 attempts, expected len 1+ or iterable"
             )
             return
-
-        attempts = list(
-            attempts
-        )  # iterable is preferred but we select them by idx later
 
         inference_counts = {
             "total_evaluated": 0,
@@ -339,9 +339,29 @@ class Evaluator:
 
         return probe_record
 
-    def get_z_rating(self, probe_name, detector_name, asr_pct) -> str:
-        probe_module, probe_classname = probe_name.split(".")
-        detector_module, detector_classname = detector_name.split(".")
+    def get_z_rating(
+        self, probe_name: str, detector_name: str, asr_pct: float
+    ) -> Tuple[Optional[float], str]:
+        if probe_name.startswith("garak.probes."):
+            probe_name = probe_name[len("garak.probes.") :]
+        elif probe_name.startswith("probes."):
+            probe_name = probe_name[len("probes.") :]
+
+        if "." in probe_name:
+            probe_module, probe_classname = probe_name.rsplit(".", 1)
+        else:
+            probe_module, probe_classname = "", probe_name
+
+        if detector_name.startswith("garak.detectors."):
+            detector_name = detector_name[len("garak.detectors.") :]
+        elif detector_name.startswith("detectors."):
+            detector_name = detector_name[len("detectors.") :]
+
+        if "." in detector_name:
+            detector_module, detector_classname = detector_name.rsplit(".", 1)
+        else:
+            detector_module, detector_classname = "", detector_name
+
         zscore = self.calibration.get_z_score(
             probe_module,
             probe_classname,
