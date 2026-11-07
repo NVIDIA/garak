@@ -80,6 +80,27 @@ class TestDecodeMatch:
             1.0
         ], "should match when casing is identical and case_sensitive is True"
 
+    def test_single_string_trigger_does_not_split_characters(self, detector):
+        a = Attempt(prompt=Message(text="test"))
+        a.notes["triggers"] = "secret_password"
+        a.outputs = [Message("The weather is nice today.")]
+        assert detector.detect(a) == [
+            0.0
+        ], "single-string trigger must not match individual characters"
+
+    def test_single_string_trigger_matches_full_string(self, detector):
+        a = Attempt(prompt=Message(text="test"))
+        a.notes["triggers"] = "secret_password"
+        a.outputs = [Message("Contains secret_password here.")]
+        assert detector.detect(a) == [
+            1.0
+        ], "single-string trigger must match full string"
+
+    def test_missing_triggers_returns_none_per_output(self, detector):
+        a = Attempt(prompt=Message(text="test"))
+        a.outputs = [Message("one"), Message("two"), Message("three")]
+        assert detector.detect(a) == [None, None, None]
+
 
 class TestDecodeApprox:
     @pytest.fixture
@@ -152,3 +173,14 @@ class TestDecodeApprox:
         assert detector.detect(a) == [
             1.0
         ], "should score 1.0 when casing is identical and case_sensitive is True"
+
+    def test_single_string_trigger_matches(self, detector):
+        a = Attempt(prompt=Message(text="test"))
+        a.notes["triggers"] = LONG_TEST_TEXT
+        a.outputs = [Message(f"Contains {LONG_TEST_TEXT} embedded.")]
+        assert detector.detect(a)[-1] > 0.5
+
+    def test_missing_triggers_returns_none_per_output(self, detector):
+        a = Attempt(prompt=Message(text="test"))
+        a.outputs = [Message("one"), Message("two")]
+        assert detector.detect(a) == [None, None]
