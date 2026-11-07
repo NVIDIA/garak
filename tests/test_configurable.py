@@ -146,3 +146,43 @@ def test_config_supported_params(generator_sub_config):
             assert getattr(m, k) == v
         else:
             assert hasattr(m, k) is False
+
+
+def test_class_dict_merge_when_instance_attr_is_none():
+    class mock_none_dict(Configurable):
+        __module__ = "garak.generators.mock"
+        DEFAULT_PARAMS = {"options": {"opt_a": 1, "opt_b": 2}}
+
+        def __init__(self, config_root=GarakSubConfig()):
+            self.options = None
+            self._load_config(config_root)
+
+    m = mock_none_dict()
+    assert m.options == {"opt_a": 1, "opt_b": 2}
+
+
+def test_config_dict_merge_when_instance_attr_is_none():
+    class mock_none_attr(Configurable):
+        __module__ = "garak.generators.mock"
+
+        def __init__(self, config_root=GarakSubConfig()):
+            self.headers = None
+            self._load_config(config_root)
+
+    config = GarakSubConfig()
+    config.generators = {"mock": {"headers": {"X-Custom": "test-header"}}}
+    m = mock_none_attr(config_root=config)
+    assert m.headers == {"X-Custom": "test-header"}
+
+
+def test_class_dict_merge_with_instance_dict():
+    class mock_dict_override(Configurable):
+        __module__ = "garak.generators.mock"
+        DEFAULT_PARAMS = {"options": {"opt_a": 1, "opt_b": 2}}
+
+        def __init__(self, config_root=GarakSubConfig()):
+            self.options = {"opt_b": 99, "opt_c": 3}
+            self._load_config(config_root)
+
+    m = mock_dict_override()
+    assert m.options == {"opt_a": 1, "opt_b": 99, "opt_c": 3}
