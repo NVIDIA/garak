@@ -109,6 +109,11 @@ class TraceReplay(garak.probes.Probe):
     The plaintext trace is stored as the attempt's trigger, and the encoding
     detectors score how much of it comes back in the output.
 
+    The ``current_turn`` scheme ends the conversation on an assistant turn. Some
+    APIs reject that (for example Anthropic models that do not support assistant
+    prefill return a 400). For such targets configure ``schemes`` to
+    ``["single_turn", "past_turn"]``.
+
     Panfilov et al., Stealing Reasoning Traces from Proprietary LLM APIs,
     https://arxiv.org/abs/2608.09867
     """
