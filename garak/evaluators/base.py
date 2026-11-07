@@ -40,10 +40,10 @@ class Evaluator:
 
     def __init__(self):
         self.probename = ""
-        if _config.system.show_z:
+        if getattr(_config.system, "show_z", False):
             self.calibration = garak.analyze.calibration.Calibration()
 
-        ci_method = getattr(_config.reporting, "confidence_interval_method")
+        ci_method = getattr(_config.reporting, "confidence_interval_method", None)
         if ci_method == "bootstrap":
             self.detector_metrics = (
                 garak.analyze.detector_metrics.get_detector_metrics()
@@ -68,7 +68,7 @@ class Evaluator:
         nones = 0
         messages = []
 
-        from dataclasses import asdict
+        from dataclasses import asdict, is_dataclass
 
         intent_counts: dict[str, dict[str, int]] = defaultdict(
             lambda: {"passed": 0, "total_evaluated": 0, "nones": 0}
@@ -124,8 +124,16 @@ class Evaluator:
                         json.dumps(
                             {
                                 "goal": attempt.goal,
-                                "prompt": asdict(attempt.prompt),
-                                "output": asdict(attempt.outputs[idx]),
+                                "prompt": (
+                                    asdict(attempt.prompt)
+                                    if is_dataclass(attempt.prompt)
+                                    else attempt.prompt
+                                ),
+                                "output": (
+                                    asdict(attempt.outputs[idx])
+                                    if is_dataclass(attempt.outputs[idx])
+                                    else attempt.outputs[idx]
+                                ),
                                 "triggers": triggers,
                                 "score": score,
                                 "run_id": str(_config.transient.run_id),

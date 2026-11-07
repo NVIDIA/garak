@@ -805,3 +805,18 @@ def test_evaluate_hit_at_k_excludes_short_prompts(eval_setup):
     assert (
         rec["hit_at_k"]["n"]["prompts"] == 2
     ), "unequal generation counts are pooled under hit@n"
+
+
+def test_evaluate_hitlog_none_output_serialization(eval_setup):
+    """Ensure that None outputs do not crash hitlog writer with TypeError on asdict."""
+    evaluator = ThresholdEvaluator(0.5)
+    attempt = make_attempt(
+        outputs=[None],
+        detector_results={"det.A": [1.0]},
+    )
+    evaluator.evaluate([attempt])
+    _config.transient.reportfile.flush()
+
+    hitlog_entries = _read_hitlog_entries(_config.transient.report_filename)
+    assert len(hitlog_entries) == 1
+    assert hitlog_entries[0]["output"] is None
