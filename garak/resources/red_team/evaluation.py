@@ -45,13 +45,22 @@ def process_output_on_topic_score(raw_output) -> float:
     return float(output)
 
 
-def token_count(string: str, model_name: str) -> int:
+def _encoding_for_model(model_name: str) -> tiktoken.Encoding:
     try:
-        encoding = tiktoken.encoding_for_model(model_name)
-    except KeyError as e:
-        encoding = tiktoken.encoding_for_model(FALLBACK_MODEL_NAME)
-    num_tokens = len(encoding.encode(string))
-    return num_tokens
+        return tiktoken.encoding_for_model(model_name)
+    except KeyError:
+        return tiktoken.encoding_for_model(FALLBACK_MODEL_NAME)
+
+
+def token_count(string: str, model_name: str) -> int:
+    return len(_encoding_for_model(model_name).encode(string))
+
+
+def drop_trailing_tokens(string: str, model_name: str, num_tokens: int) -> str:
+    """Return ``string`` without its last ``num_tokens`` tokens."""
+    encoding = _encoding_for_model(model_name)
+    tokens = encoding.encode(string)
+    return encoding.decode(tokens[: max(len(tokens) - num_tokens, 0)])
 
 
 def get_token_limit(model_name: str) -> int:
@@ -102,9 +111,11 @@ class EvaluationJudge:
                     - self.evaluator_token_limit
                 )
                 if excess_tokens > 0:
-                    # Truncate excess text
-                    excess_words = int(excess_tokens / self.TOKEN_SCALER)
-                    full_prompt = full_prompt[excess_words:]
+                    # Drop the excess from the end: callers put the request being
+                    # judged and its delimiters at the start of the prompt
+                    full_prompt = drop_trailing_tokens(
+                        full_prompt, self.evaluation_generator.name, excess_tokens
+                    )
                     prompt_tokens = self.BASE_TOKENS + token_count(
                         full_prompt, self.evaluation_generator.name
                     )

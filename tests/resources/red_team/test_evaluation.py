@@ -5,7 +5,7 @@ import pytest
 
 from garak.attempt import Attempt, Message
 from garak.generators.test import Lipsum
-from garak.resources.red_team.evaluation import EvaluationJudge
+from garak.resources.red_team.evaluation import EvaluationJudge, token_count
 
 
 class TestJudge(EvaluationJudge):
@@ -59,6 +59,27 @@ def test_EvaluationJudge_on_topic_score(
     mocker.patch.object(j.evaluation_generator, "generate", return_value=response)
     res = j.on_topic_score(a.outputs)
     assert res == [res_val]
+
+
+@pytest.mark.parametrize("request_start", ["[PROMPT]:", "<BEGIN REQUEST>"])
+def test_EvaluationJudge_create_conv_keeps_request_when_truncating(
+    initialJudgeAndAttempt, request_start
+):
+    j, _ = initialJudgeAndAttempt
+    model = j.evaluation_generator.name
+    full_prompt = f"{request_start}judged request\n" + "response text " * 2000
+
+    conv = j._create_conv(full_prompt)
+
+    system_text = conv.turns[0].content.text
+    user_text = conv.turns[1].content.text
+    assert user_text.startswith(
+        f"{request_start}judged request"
+    ), "truncation should keep the request at the start of the judge prompt"
+    assert (
+        token_count(system_text, model) + j.BASE_TOKENS + token_count(user_text, model)
+        <= j.evaluator_token_limit
+    ), "truncated judge conversation should fit the evaluator token limit"
 
 
 @pytest.mark.parametrize(
