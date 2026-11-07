@@ -90,13 +90,17 @@ class Report:
         # set up a generic AVID report template
         report_template = ar.Report()
         if self.metadata is not None:
+            target_type = self.metadata.get("plugins.target_type")
+            # generators that need no name leave target_name null in the
+            # report; avid's Artifact.name must be a string
+            target_name = self.metadata.get("plugins.target_name") or target_type
             report_template.affects = ac.Affects(
                 developer=[],
-                deployer=[self.metadata["plugins.target_type"]],
+                deployer=[target_type],
                 artifacts=[
                     ac.Artifact(
                         type=ae.ArtifactTypeEnum.model,
-                        name=self.metadata["plugins.target_name"],
+                        name=target_name,
                     )
                 ],
             )

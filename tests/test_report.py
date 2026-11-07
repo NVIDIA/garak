@@ -52,6 +52,33 @@ def sample_report_without_metadata(tmp_path):
 
 
 @pytest.fixture
+def sample_report_null_target_name(tmp_path):
+    """Report from a generator that takes no target name, e.g. test.Blank"""
+    report_file = tmp_path / "test_null_target_name.report.jsonl"
+
+    lines = [
+        {
+            "entry_type": "start_run setup",
+            "plugins.target_type": "test.Blank",
+            "plugins.target_name": None,
+        },
+        {
+            "entry_type": "eval",
+            "probe": "test.Test",
+            "detector": "always.Pass",
+            "passed": 5,
+            "total_evaluated": 10,
+        },
+    ]
+
+    with open(report_file, "w") as f:
+        for line in lines:
+            f.write(json.dumps(line, ensure_ascii=False) + "\n")
+
+    return str(report_file)
+
+
+@pytest.fixture
 def exported_avid_report(sample_report, request):
     """Fixture that exports a report and returns AVID file path with auto-cleanup"""
     avid_file = sample_report.replace(".report", ".avid")
@@ -275,3 +302,22 @@ def test_export_works_without_metadata(sample_report_without_metadata):
     assert os.path.exists(avid_file)
 
     os.remove(avid_file)
+
+
+def test_export_works_with_null_target_name(sample_report_null_target_name):
+    """Test export works when the run had a target type but no target name"""
+    r = Report(report_location=sample_report_null_target_name).load().get_evaluations()
+    assert r.metadata["plugins.target_name"] is None, "fixture must have no target name"
+
+    r.export()
+
+    avid_file = sample_report_null_target_name.replace(".report", ".avid")
+    assert os.path.exists(avid_file), "export must write the avid file"
+    with open(avid_file, "r") as f:
+        report = json.loads(f.readline())
+    assert report["affects"]["deployer"] == [
+        "test.Blank"
+    ], "deployer is the target type"
+    assert (
+        report["affects"]["artifacts"][0]["name"] == "test.Blank"
+    ), "artifact name falls back to the target type"
