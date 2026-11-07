@@ -452,7 +452,7 @@ class FITD(garak.probes.IterativeProbe):
             )
             if new_levels_completed < len(self.level_queries_per_goal[target_turn]) - 1:
                 next_turn_str = self.level_queries_per_goal[target_turn][
-                    new_levels_completed + 1
+                    new_levels_completed
                 ]
                 next_turn_conv.turns.append(
                     garak.attempt.Turn(
