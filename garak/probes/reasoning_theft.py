@@ -191,9 +191,13 @@ class TraceReplay(garak.probes.Probe):
         return Turn(role="assistant", content=Message(text=text, lang=self.lang))
 
     def _build_prompt(self, scheme: str, request: str, item: dict, block: str):
+        # Every scheme returns a Conversation: Probe.probe() picks its prompt
+        # handling from the type of the first prompt, so a list mixing plain
+        # strings with Conversations would have the conversations treated as
+        # strings and their turns lost.
         if scheme == "single_turn":
             instruction = request.format(location="below", prefill=PREFILL)
-            return instruction + "\n\n" + block
+            return Conversation(turns=[self._user_turn(instruction + "\n\n" + block)])
 
         if scheme == "past_turn":
             instruction = request.format(

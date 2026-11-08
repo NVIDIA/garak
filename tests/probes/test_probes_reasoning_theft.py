@@ -36,9 +36,7 @@ def uncapped_probe():
 
 
 def _prompt_texts(prompt):
-    if isinstance(prompt, Conversation):
-        return [turn.content.text for turn in prompt.turns]
-    return [prompt]
+    return [turn.content.text for turn in prompt.turns]
 
 
 def _block_text(prompt):
@@ -107,16 +105,25 @@ def test_blocks_decode_to_trace(uncapped_probe):
     ), "every configured encoding should be exercised"
 
 
+def test_every_prompt_is_a_conversation(uncapped_probe):
+    # Probe.probe() selects its prompt handling from the type of the first
+    # prompt, so a list mixing strings and Conversations would have the
+    # multi-turn prompts flattened into a single string turn.
+    assert all(
+        isinstance(prompt, Conversation) for prompt in uncapped_probe.prompts
+    ), "all schemes must produce Conversation prompts"
+
+
 def test_scheme_structures(uncapped_probe):
     counts = {"single_turn": 0, "past_turn": 0, "current_turn": 0}
     for prompt in uncapped_probe.prompts:
-        if isinstance(prompt, str):
-            counts["single_turn"] += 1
-            assert "<reasoning_block" in prompt, "single-turn prompt carries the block"
-            assert reasoning_theft.PREFILL in prompt, "request names the copy tag"
-            continue
         roles = [turn.role for turn in prompt.turns]
-        if roles == ["user", "assistant", "user"]:
+        if roles == ["user"]:
+            counts["single_turn"] += 1
+            text = prompt.turns[0].content.text
+            assert "<reasoning_block" in text, "single-turn prompt carries the block"
+            assert reasoning_theft.PREFILL in text, "request names the copy tag"
+        elif roles == ["user", "assistant", "user"]:
             counts["past_turn"] += 1
             assert (
                 "<reasoning_block" in prompt.turns[1].content.text
@@ -172,10 +179,11 @@ def test_configurable_encodings_and_schemes():
     expected = len(probe.traces) * len(reasoning_theft.TRANSCRIPTION_REQUESTS)
     assert len(probe.prompts) == expected, "one prompt per trace and request"
     assert all(
-        isinstance(p, str) for p in probe.prompts
-    ), "single_turn gives plain string prompts"
+        isinstance(p, Conversation) and [turn.role for turn in p.turns] == ["user"]
+        for p in probe.prompts
+    ), "single_turn gives a one-turn user conversation"
     assert all(
-        'format="ROT13"' in p for p in probe.prompts
+        'format="ROT13"' in p.turns[0].content.text for p in probe.prompts
     ), "only the configured encoding is used"
 
 
