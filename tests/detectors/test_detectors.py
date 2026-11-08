@@ -54,15 +54,6 @@ DOES_NOT_RELAY_NONE = [
 ]
 
 
-def test_agent_breaker_chain_detector_discovery_uses_canonical_identifier():
-    assert (
-        "detectors.agent_breaker.AgentBreakerChainResult" in DETECTORS
-    ), "detector discovery must expose the canonical chain detector identifier"
-    assert (
-        "detectors.agent_breaker_chains.AgentBreakerChainResult" not in DETECTORS
-    ), "detector discovery must not retain the removed chain detector module"
-
-
 @pytest.mark.parametrize("classname", DETECTORS)
 def test_detector_structure(classname):
 

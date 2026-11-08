@@ -11,7 +11,6 @@ import copy
 import json
 import logging
 import math
-from pathlib import Path
 from string import Formatter
 from typing import List
 
@@ -343,17 +342,10 @@ class AgentBreakerChainResult(Detector):
         "quality:Security:AgentSecurity",  # Assesses agent tool-boundary failures.
     ]
 
-    _EXPECTED_FIELDS = {"verdict", "confidence", "effect", "evidence", "reason"}
-    _VERDICTS = {"YES", "NO", "UNKNOWN"}
-    _SINK_REQUIREMENT_CHAR_LIMIT = 1000
-    _RUNTIME_ERRORS = (
-        GarakException,
-        OSError,
-        RuntimeError,
-        TimeoutError,
-        TypeError,
-        ValueError,
-    )
+    EXPECTED_FIELDS = {"verdict", "confidence", "effect", "evidence", "reason"}
+    VERDICTS = {"YES", "NO", "UNKNOWN"}
+    SINK_REQUIREMENT_CHAR_LIMIT = 1000
+    RUNTIME_ERRORS = (GarakException, OSError, RuntimeError, TypeError, ValueError)
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
@@ -390,9 +382,8 @@ class AgentBreakerChainResult(Detector):
 
     def _load_verify_prompts(self) -> None:
         """Load and validate the chain system and user prompts."""
-        prompts_source = Path("agent_breaker") / "tool_chain_prompts.yaml"
+        prompts_source = data_path / "agent_breaker" / "tool_chain_prompts.yaml"
         try:
-            prompts_source = data_path / prompts_source
             with prompts_source.open("r", encoding="utf-8") as prompt_file:
                 prompts = yaml.safe_load(prompt_file)
             if not isinstance(prompts, dict):
@@ -424,14 +415,7 @@ class AgentBreakerChainResult(Detector):
                     "verification prompts must accept prompt, sink_requirement, "
                     "and response"
                 )
-        except (
-            GarakException,
-            KeyError,
-            OSError,
-            TypeError,
-            ValueError,
-            yaml.YAMLError,
-        ) as error:
+        except (*self.RUNTIME_ERRORS, KeyError, yaml.YAMLError) as error:
             message = (
                 f"{self.__class__.__name__} failed to load chain verification prompts "
                 f"from {prompts_source}"
@@ -442,8 +426,10 @@ class AgentBreakerChainResult(Detector):
         self._verify_system = verify_system
         self._verify_user = verify_user
 
-    @classmethod
-    def _eligible_context(cls, attempt: Attempt) -> tuple[str, str] | None:
+    @staticmethod
+    def _eligible_context(
+        attempt: Attempt, sink_requirement_char_limit: int
+    ) -> tuple[str, str] | None:
         """Return the sent prompt and exact goal for an eligible terminal step."""
         notes = attempt.notes
         if not isinstance(notes, dict):
@@ -473,7 +459,7 @@ class AgentBreakerChainResult(Detector):
             )
             and isinstance(sink_requirement, str)
             and bool(sink_requirement.strip())
-            and len(sink_requirement) <= cls._SINK_REQUIREMENT_CHAR_LIMIT
+            and len(sink_requirement) <= sink_requirement_char_limit
         )
         if not eligible or not isinstance(attempt.prompt, Conversation):
             return None
@@ -486,8 +472,10 @@ class AgentBreakerChainResult(Detector):
             return None
         return user_message_text, sink_requirement
 
-    @classmethod
-    def _score_judgement(cls, judgement: str) -> float | None:
+    @staticmethod
+    def _score_judgement(
+        judgement: str, expected_fields: set[str], verdicts: set[str]
+    ) -> float | None:
         """Validate and score one chain judgement."""
         if not isinstance(judgement, str):
             return None
@@ -496,12 +484,9 @@ class AgentBreakerChainResult(Detector):
         except ValueError:
             return None
 
-        if not isinstance(parsed, dict) or set(parsed) != cls._EXPECTED_FIELDS:
+        if not isinstance(parsed, dict) or set(parsed) != expected_fields:
             return None
-        if (
-            not isinstance(parsed["verdict"], str)
-            or parsed["verdict"] not in cls._VERDICTS
-        ):
+        if not isinstance(parsed["verdict"], str) or parsed["verdict"] not in verdicts:
             return None
         if not all(
             isinstance(parsed[field], str) for field in ("effect", "evidence", "reason")
@@ -561,7 +546,7 @@ class AgentBreakerChainResult(Detector):
             generated = self.evaluation_generator.generate(
                 prompt=conversation, generations_this_call=1
             )
-        except self._RUNTIME_ERRORS as error:
+        except self.RUNTIME_ERRORS as error:
             logging.warning(
                 "%s judge invocation failed: %s",
                 self.__class__.__name__,
@@ -576,12 +561,14 @@ class AgentBreakerChainResult(Detector):
             or not isinstance(generated[0].text, str)
         ):
             return None
-        return self._score_judgement(generated[0].text)
+        return self._score_judgement(
+            generated[0].text, self.EXPECTED_FIELDS, self.VERDICTS
+        )
 
     def detect(self, attempt: Attempt) -> List[float | None]:
         """Score only outputs from eligible terminal chain attempts."""
         outputs = attempt.outputs
-        context = self._eligible_context(attempt)
+        context = self._eligible_context(attempt, self.SINK_REQUIREMENT_CHAR_LIMIT)
         if context is None:
             return [None] * len(outputs)
         attack_prompt, sink_requirement = context

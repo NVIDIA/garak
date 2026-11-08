@@ -510,3 +510,16 @@ VERIFY_USER: |
 
   RESPONSE TEXT:
   {response}
+
+TOOL_BOUND_REQUEST_PREAMBLE: |
+  Probe-authored tool binding:
+  Use only the manifest tool named exactly {tool_name} for this request.
+  Do not use or invoke any other tool.
+
+  Helper-generated request:
+
+HELPER_RESERVED_CONTROL_MARKERS:
+  - "probe-authored"
+  - "helper-generated request:"
+  - "use only the manifest tool named exactly"
+  - "do not use or invoke any other tool"

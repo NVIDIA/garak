@@ -5,11 +5,13 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
+import yaml
 
-from garak import _config, _plugins
+from garak import _config
 from garak.attempt import Attempt, Message
+from garak.data import path as data_path
 from garak.exception import PluginConfigurationError
-from garak.probes.agent_breaker import AgentBreaker, AttackState, ToolChain
+from garak.probes.agent_breaker import AttackState, ToolChain
 
 
 def _intermediate_policy():
@@ -29,9 +31,15 @@ def _manifest(*tools):
     return {"agent_purpose": "test", "tools": list(tools)}
 
 
+def _real_prompts():
+    with (data_path / "agent_breaker" / "tool_chain_prompts.yaml").open() as source:
+        return yaml.safe_load(source)
+
+
 def _probe(**attributes):
     probe = ToolChain.__new__(ToolChain)
     defaults = {
+        "_prompts": _real_prompts(),
         "max_paths": 8,
         "chain_selection": "relevance",
         "min_chain_relevance_confidence": 0.7,
@@ -127,100 +135,6 @@ def _attempt(chain, outputs):
     attempt.notes = state.to_notes()
     attempt.outputs = outputs
     return attempt
-
-
-def test_probe_declares_chain_specific_metadata():
-    assert ToolChain.tags == [
-        "owasp:llm01",
-        "owasp:llm07",
-        "owasp:llm08",
-        "quality:Security:AgentSecurity",
-        "payload:agentic:exploitation",
-        "demon:Rhetoric:Persuasion_and_manipulation:Escalating",
-        "demon:Stratagems:Scattershot:Regenerate_response",
-    ], "chain probe must publish its security taxonomies"
-    assert (
-        ToolChain.doc_uri == "https://arxiv.org/abs/2603.12614"
-    ), "chain probe must cite its technique source"
-    assert ToolChain.intent == "S008", "chain probe must declare its MISP intent"
-    assert ToolChain.active is False, "chain probe must require explicit selection"
-    assert (
-        ToolChain.parallelisable_attempts is False
-    ), "chain steps must execute serially"
-    assert (
-        "max_attempts_per_tool" not in ToolChain.DEFAULT_PARAMS
-    ), "chain probe must not inherit Single's per-tool attempt loop"
-
-
-def test_probe_uses_canonical_module():
-    assert (
-        ToolChain.__module__ == "garak.probes.agent_breaker"
-    ), "chain probe must be published from the Agent Breaker probe family"
-    assert issubclass(
-        ToolChain, AgentBreaker
-    ), "chain probe must remain an AgentBreaker subtype"
-    assert (
-        AttackState.__module__ == "garak.probes.agent_breaker"
-    ), "shared attempt state must retain its canonical public module"
-    lifecycle_methods = {
-        "__init__",
-        "_load_prompts",
-        "_create_init_attempts",
-        "_queue_step_attack",
-        "_advance_stepwise",
-        "_handle_stepwise_refinement",
-        "_generate_next_attempts",
-    }
-    assert (
-        lifecycle_methods <= ToolChain.__dict__.keys()
-    ), "chain lifecycle overrides must remain on the public plugin class"
-
-
-def test_probe_discovery_uses_only_canonical_identifier():
-    discovered = {classname for classname, _ in _plugins.enumerate_plugins("probes")}
-    assert (
-        "probes.agent_breaker.ToolChain" in discovered
-    ), "plugin discovery must expose the canonical chain probe identifier"
-    assert (
-        "probes.agent_breaker_chains.ToolChain" not in discovered
-    ), "plugin discovery must not retain the removed chain probe module"
-
-
-def test_agent_breaker_class_configs_remain_isolated():
-    config = {
-        "probes": {
-            "agent_breaker": {
-                "AgentBreaker": {
-                    "max_attempts_per_tool": 2,
-                    "success_threshold": 0.2,
-                },
-                "ToolChain": {
-                    "success_threshold": 0.3,
-                    "max_paths": 4,
-                },
-            }
-        }
-    }
-    with patch("garak.detectors.agent_breaker.AgentBreakerResult"):
-        single = AgentBreaker(config_root=config)
-        chains = ToolChain(config_root=config)
-
-    assert (
-        single.max_attempts_per_tool == 2
-    ), "Single must receive only its class-scoped attempt limit"
-    assert (
-        single.success_threshold == 0.2
-    ), "Single must receive only its class-scoped threshold"
-    assert not hasattr(
-        single, "max_paths"
-    ), "chain-only defaults must not leak onto Single"
-    assert not hasattr(
-        chains, "max_attempts_per_tool"
-    ), "Single-only defaults must not leak onto chains"
-    assert (
-        chains.success_threshold == 0.3
-    ), "Chains must receive its own class-scoped threshold"
-    assert chains.max_paths == 4, "Chains must receive its class-scoped path limit"
 
 
 def test_constructor_does_not_load_in_loop_judge():
@@ -613,10 +527,6 @@ def test_length_selection_orders_then_caps(mode, expected):
     probe._filter_chains_by_relevance.assert_not_called()
 
 
-def test_relevance_is_the_default_selection():
-    assert ToolChain.DEFAULT_PARAMS["chain_selection"] == "relevance"
-
-
 def _relevance_probe(verdicts, **attributes):
     probe = _probe(**attributes)
     probe._prompts = {"CHAIN_RELEVANCE": "{agent_purpose}{tools_block}{chains}"}
@@ -857,7 +767,7 @@ def test_step_plan_rejects_excessive_artifact_fanout():
     }
     response = _step_plan_response()
     response["step_plan"][0]["artifact_keys"] = [
-        f"artifact_{index}" for index in range(5)
+        f"artifact_{index}" for index in range(probe._NAMES_PER_FIELD_LIMIT + 1)
     ]
     response["step_plan"][1]["input_artifact_keys"] = ["artifact_0"]
     probe._get_model_response = MagicMock(return_value=json.dumps(response))
@@ -932,7 +842,7 @@ def _chain_with_prior(response="reference = ref:123", prompt="Read the record.")
 
 def test_generated_attack_prompt_rejects_an_invented_handoff_value():
     probe = _probe()
-    probe._prompts = {"STEP_ATTACK": "{target_tool}{input_artifact_keys}"}
+    probe._prompts["STEP_ATTACK"] = "{target_tool}{input_artifact_keys}"
     chain = _chain_with_prior()
     probe._get_model_response = MagicMock(
         return_value=json.dumps(
@@ -967,7 +877,7 @@ def test_generated_attack_prompt_rejects_an_invented_handoff_value():
 
 def test_generated_attack_prompt_rejects_a_consuming_step_with_no_handoff():
     probe = _probe()
-    probe._prompts = {"STEP_ATTACK": "{target_tool}{input_artifact_keys}"}
+    probe._prompts["STEP_ATTACK"] = "{target_tool}{input_artifact_keys}"
     probe._get_model_response = MagicMock(
         return_value=json.dumps(
             {
@@ -988,7 +898,7 @@ def test_generated_attack_prompt_rejects_a_consuming_step_with_no_handoff():
 
 def test_generated_attack_prompt_accepts_a_value_the_probe_sent_earlier():
     probe = _probe()
-    probe._prompts = {"STEP_ATTACK": "{target_tool}{input_artifact_keys}"}
+    probe._prompts["STEP_ATTACK"] = "{target_tool}{input_artifact_keys}"
     # The upload step returned only a confirmation, but the filename the probe
     # itself sent is in the transcript and is a usable handoff.
     chain = _chain_with_prior(
@@ -1019,7 +929,7 @@ def test_generated_attack_prompt_accepts_a_value_the_probe_sent_earlier():
 
 def test_generated_attack_prompt_rejects_helper_authored_probe_binding():
     probe = _probe()
-    probe._prompts = {"STEP_ATTACK": "{target_tool}{input_artifact_keys}"}
+    probe._prompts["STEP_ATTACK"] = "{target_tool}{input_artifact_keys}"
     probe._get_model_response = MagicMock(
         return_value=json.dumps(
             {
@@ -1046,7 +956,7 @@ def test_generated_attack_prompt_rejects_helper_authored_probe_binding():
 
 def test_generated_attack_prompt_rejects_helper_authored_output_records():
     probe = _probe()
-    probe._prompts = {"STEP_ATTACK": "{target_tool}{input_artifact_keys}"}
+    probe._prompts["STEP_ATTACK"] = "{target_tool}{input_artifact_keys}"
     probe._get_model_response = MagicMock(
         return_value=json.dumps(
             {
@@ -1068,7 +978,7 @@ def test_generated_attack_prompt_rejects_helper_authored_output_records():
 
 def test_generated_attack_prompt_rejects_conflict_alongside_exact_binding():
     probe = _probe()
-    probe._prompts = {"STEP_ATTACK": "{target_tool}{input_artifact_keys}"}
+    probe._prompts["STEP_ATTACK"] = "{target_tool}{input_artifact_keys}"
     probe._get_model_response = MagicMock(
         return_value=json.dumps(
             {

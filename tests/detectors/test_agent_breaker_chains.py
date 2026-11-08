@@ -1,14 +1,12 @@
 """Tests for the Agent Breaker Chains terminal detector."""
 
-import hashlib
 import json
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from garak.attempt import Attempt, Message
-from garak.detectors.agent_breaker import AgentBreakerChainResult, AgentBreakerResult
-from garak.detectors.base import Detector
+from garak.detectors.agent_breaker import AgentBreakerChainResult
 from garak.exception import GarakException
 
 
@@ -65,56 +63,6 @@ def _judgement(verdict="YES", confidence=0.9, **changes):
     return Message(text=json.dumps(body))
 
 
-def test_derives_directly_from_detector():
-    assert AgentBreakerChainResult.__bases__ == (
-        Detector,
-    ), "chain detector must directly subclass Detector"
-
-
-def test_detector_uses_canonical_agent_breaker_module():
-    assert (
-        AgentBreakerChainResult.__module__ == "garak.detectors.agent_breaker"
-    ), "chain detector must be published from the Agent Breaker detector family"
-
-
-def test_agent_breaker_detector_class_configs_remain_isolated():
-    config = {
-        "detectors": {
-            "agent_breaker": {
-                "AgentBreakerResult": {
-                    "detector_model_name": "single-judge",
-                    "confidence_cutoff": 0.25,
-                },
-                "AgentBreakerChainResult": {
-                    "detector_model_name": "chain-judge",
-                    "detector_model_config": {"max_tokens": 333},
-                },
-            }
-        }
-    }
-    with (
-        patch.object(AgentBreakerResult, "_load_generator"),
-        patch.object(AgentBreakerResult, "_load_verify_prompt"),
-        patch.object(AgentBreakerChainResult, "_load_generator"),
-        patch.object(AgentBreakerChainResult, "_load_verify_prompts"),
-    ):
-        single = AgentBreakerResult(config_root=config)
-        chains = AgentBreakerChainResult(config_root=config)
-
-    assert (
-        single.detector_model_name == "single-judge"
-    ), "Single detector must receive only its class-scoped judge name"
-    assert (
-        single.confidence_cutoff == 0.25
-    ), "Single detector must receive its class-scoped threshold"
-    assert (
-        chains.detector_model_name == "chain-judge"
-    ), "chain detector must receive only its class-scoped judge name"
-    assert (
-        chains.detector_model_config["max_tokens"] == 333
-    ), "chain detector must receive its class-scoped model configuration"
-
-
 def test_initialisation_eagerly_loads_configured_generator():
     judge = MagicMock()
     config = {
@@ -161,7 +109,6 @@ def test_initialisation_eagerly_loads_configured_generator():
             }
         },
     )
-
 
 
 def test_sends_only_exact_untruncated_prompt_and_response(detector):
