@@ -9,13 +9,14 @@ import re
 import unicodedata
 from typing import List, Iterable, Union
 
+import backoff
 from colorama import Fore, Style
 
 from garak import _config
 from garak.configurable import Configurable
 import garak.attempt
 
-from garak.resources.api.huggingface import HFCompatible
+from garak.resources.api.huggingface import HFCompatible, hf_hub_backoff_giveup
 
 
 class Detector(Configurable):
@@ -91,8 +92,6 @@ class HFDetector(Detector, HFCompatible):
     def __init__(self, config_root=_config):
         from transformers import (
             AutoConfig,
-            AutoModelForSequenceClassification,
-            AutoTokenizer,
             TextClassificationPipeline,
             set_seed,
             logging as transformers_logging,
@@ -118,13 +117,47 @@ class HFDetector(Detector, HFCompatible):
         stored_env = os.getenv(disable_env_key, default=None)
         os.environ[disable_env_key] = "true"
 
-        model_kwargs = self._gather_hf_params(
-            hf_constructor=AutoConfig.from_pretrained
-        )  # will defer to device_map if device map was `auto` may not match self.device
-        generation_params = self._gather_generation_params()
-        for param in generation_params.keys():
-            if param in model_kwargs.keys():
-                model_kwargs.pop(param)
+        try:
+            model_kwargs = self._gather_hf_params(
+                hf_constructor=AutoConfig.from_pretrained
+            )  # will defer to device_map if device map was `auto` may not match self.device
+            generation_params = self._gather_generation_params()
+            for param in generation_params.keys():
+                if param in model_kwargs.keys():
+                    model_kwargs.pop(param)
+
+            self._load_detector_model(model_kwargs)
+            self.detector = TextClassificationPipeline(
+                model=self.detector_model,
+                tokenizer=self.detector_tokenizer,
+                device=self.device,
+            )
+            for k, v in generation_params.items():
+                setattr(self.detector.generation_config, k, v)
+        finally:
+            # revert env changes even if the detector failed to instantiate
+            if stored_env is None:
+                os.environ.pop(disable_env_key, None)
+            else:
+                os.environ[disable_env_key] = stored_env
+            transformers_logging.set_verbosity(orig_loglevel)
+
+    @backoff.on_exception(
+        backoff.expo, Exception, max_tries=5, giveup=hf_hub_backoff_giveup
+    )
+    def _load_detector_model(self, model_kwargs) -> None:
+        """Fetch the detector model and tokenizer from the HF Hub.
+
+        Transient Hub failures (HTTP 429 / 5xx, connection drops) are
+        retried with exponential backoff instead of aborting the run; see
+        https://github.com/NVIDIA/garak/issues/1479. Any other error raises
+        immediately.
+        """
+        from transformers import (
+            AutoConfig,
+            AutoModelForSequenceClassification,
+            AutoTokenizer,
+        )
 
         self.config = AutoConfig.from_pretrained(
             self.detector_model_path, **model_kwargs
@@ -138,20 +171,6 @@ class HFDetector(Detector, HFCompatible):
         self.detector_tokenizer = AutoTokenizer.from_pretrained(
             self.detector_model_path
         )
-        self.detector = TextClassificationPipeline(
-            model=self.detector_model,
-            tokenizer=self.detector_tokenizer,
-            device=self.device,
-        )
-        for k, v in generation_params.items():
-            setattr(self.detector.generation_config, k, v)
-
-        if stored_env:
-            os.environ[disable_env_key] = stored_env
-        else:
-            del os.environ[disable_env_key]
-
-        transformers_logging.set_verbosity(orig_loglevel)
 
     def detect(self, attempt: garak.attempt.Attempt) -> List[float | None]:
         # goal: return None for None outputs
