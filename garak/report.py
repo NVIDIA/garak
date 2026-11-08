@@ -79,7 +79,7 @@ class Report:
         self.evaluations["score"] = np.where(
             self.evaluations["total_evaluated"] != 0,
             100 * self.evaluations["passed"] / self.evaluations["total_evaluated"],
-            0,
+            np.nan,
         )
         self.scores = self.evaluations[["probe", "score"]].groupby("probe").mean()
         return self
