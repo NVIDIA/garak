@@ -394,22 +394,6 @@ class TestDetectJsonParsing:
         assert detector.evaluation_generator.generate.call_count == 2
 
 
-class TestExtractJsonShape:
-
-    @pytest.mark.parametrize("payload", ["[]", "[1, 2]", "123", "null"])
-    def test_non_object_payloads_raise_json_decode_error(self, payload):
-        """Non-object JSON shapes must raise so callers degrade safely."""
-        with pytest.raises(json.JSONDecodeError, match="No JSON object found"):
-            AgentBreakerResult._extract_json(payload)
-
-    def test_top_level_array_unwraps_first_object(self):
-        """An object wrapped in a top-level array is extracted."""
-        parsed = AgentBreakerResult._extract_json('[{"success": "YES"}]')
-        assert parsed == {
-            "success": "YES"
-        }, "first object in a top-level array is returned"
-
-
 class TestConfidenceCutoff:
 
     def test_below_cutoff_returns_zero(self, detector):

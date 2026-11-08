@@ -47,6 +47,7 @@ DETECTORS = [
 ]
 DOES_NOT_RELAY_NONE = [
     "detectors.agent_breaker.AgentBreakerResult",
+    "detectors.agent_breaker.AgentBreakerChainResult",
     "detectors.always.Fail",
     "detectors.always.Pass",
     "detectors.always.Random",
