@@ -38,6 +38,7 @@ from garak.resources import encodings
 import garak.probes
 
 TRACES_PATH = data_path / "reasoning_theft" / "traces.json"
+TRACE_KEYS = ("trace", "task", "answer")
 
 # Encodings standing in for the provider's opaque reasoning block. Only the
 # first encoder of each strategy is used so that each (trace, encoding) pair
@@ -109,10 +110,22 @@ class TraceReplay(garak.probes.Probe):
     The plaintext trace is stored as the attempt's trigger, and the encoding
     detectors score how much of it comes back in the output.
 
-    The ``current_turn`` scheme ends the conversation on an assistant turn. Some
-    APIs reject that (for example Anthropic models that do not support assistant
-    prefill return a 400). For such targets configure ``schemes`` to
-    ``["single_turn", "past_turn"]``.
+    Only ``single_turn`` runs by default. The other two schemes put the block in a
+    turn that is not the last one, and a target is only really probed by them if its
+    generator sends the whole conversation. Several garak generators build their
+    request from ``prompt.last_message()`` alone, so under ``past_turn`` and
+    ``current_turn`` they would never transmit the block: the target cannot comply,
+    the attempt is scored as a pass, and the result is false assurance rather than a
+    measurement. Enable them only against a generator that sends conversation
+    history, for example ``openai`` on a chat model, ``anthropic``, ``nim`` or
+    ``bedrock``::
+
+        {"probes": {"reasoning_theft": {"TraceReplay":
+            {"schemes": ["single_turn", "past_turn", "current_turn"]}}}}
+
+    ``current_turn`` additionally ends the conversation on an assistant turn, which
+    some APIs reject outright (Anthropic models without assistant prefill return a
+    400); drop it for those targets.
 
     Panfilov et al., Stealing Reasoning Traces from Proprietary LLM APIs,
     https://arxiv.org/abs/2608.09867
@@ -137,7 +150,9 @@ class TraceReplay(garak.probes.Probe):
 
     DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
         "encodings": list(ENCODINGS.keys()),
-        "schemes": list(SCHEMES),
+        # Only the single-turn scheme carries the block in the last turn, so it is
+        # the only one that reaches every generator. See the class docstring.
+        "schemes": ["single_turn"],
     }
 
     def __init__(self, config_root=_config):
@@ -150,29 +165,59 @@ class TraceReplay(garak.probes.Probe):
         self._prune_data(prune_triggers=True)
 
     def _validate_params(self):
-        unknown_encodings = [e for e in self.encodings if e not in ENCODINGS]
-        if unknown_encodings:
-            raise PluginConfigurationError(
-                f"{self.__class__.__name__} encodings must be from {sorted(ENCODINGS)}, got {unknown_encodings}"
-            )
-        unknown_schemes = [s for s in self.schemes if s not in SCHEMES]
-        if unknown_schemes:
-            raise PluginConfigurationError(
-                f"{self.__class__.__name__} schemes must be from {list(SCHEMES)}, got {unknown_schemes}"
-            )
+        self.encodings = self._checked_choice(
+            self.encodings, sorted(ENCODINGS), "encodings"
+        )
+        self.schemes = self._checked_choice(self.schemes, list(SCHEMES), "schemes")
 
-    @staticmethod
-    def _load_traces() -> list:
-        with open(TRACES_PATH, "r", encoding="utf-8") as trace_file:
-            return json.load(trace_file)
+    def _checked_choice(self, configured, permitted: list, param: str) -> list:
+        """Reject an empty or unrecognised setting, and drop repeated entries.
+
+        An empty list would otherwise build no prompts at all, leaving a probe that
+        reports nothing and fails nothing; a repeated entry would send the same
+        prompt twice.
+        """
+        unknown = [value for value in configured if value not in permitted]
+        if unknown:
+            raise PluginConfigurationError(
+                f"{self.__class__.__name__} {param} must be from {permitted}, got {unknown}"
+            )
+        deduplicated = list(dict.fromkeys(configured))
+        if not deduplicated:
+            raise PluginConfigurationError(
+                f"{self.__class__.__name__} {param} must name at least one of {permitted}"
+            )
+        return deduplicated
+
+    def _load_traces(self) -> list:
+        try:
+            with open(TRACES_PATH, "r", encoding="utf-8") as trace_file:
+                traces = json.load(trace_file)
+        except json.JSONDecodeError as exc:
+            raise PluginConfigurationError(
+                f"{self.__class__.__name__} could not parse {TRACES_PATH}: {exc}"
+            ) from exc
+        if not isinstance(traces, list) or not traces:
+            raise PluginConfigurationError(
+                f"{self.__class__.__name__} expects {TRACES_PATH} to hold a non-empty list"
+            )
+        for index, item in enumerate(traces):
+            missing = [
+                key
+                for key in TRACE_KEYS
+                if not isinstance(item, dict) or key not in item
+            ]
+            if missing:
+                raise PluginConfigurationError(
+                    f"{self.__class__.__name__} entry {index} of {TRACES_PATH} is missing {missing}"
+                )
+        return traces
 
     @staticmethod
     def _encode_trace(trace: str, encoding_name: str) -> str:
-        encoder = ENCODINGS[encoding_name].encoders[0]
-        encoded = encoder(bytes(trace, "utf-8"))
-        if isinstance(encoded, bytes):
-            encoded = encoded.decode()
-        return encoded.strip()
+        # Only the first encoder of the strategy is used, so each (trace, encoding)
+        # pair yields one block.
+        return ENCODINGS[encoding_name].encode(trace)[0].strip()
 
     @staticmethod
     def _block(encoded: str, encoding_name: str) -> str:
