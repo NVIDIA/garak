@@ -8,7 +8,9 @@ described in https://arxiv.org/abs/2106.09898.
 import itertools
 import logging
 import random
+from collections import Counter
 from dataclasses import dataclass
+from functools import cached_property
 from typing import Iterator, List, Sequence, Tuple
 
 import garak.attempt
@@ -17,6 +19,7 @@ import garak.probes
 from garak import _config
 from garak.data import path as data_path
 from garak.exception import PluginConfigurationError
+from garak.intents import Stub
 
 ASCII_PRINTABLE = tuple(chr(i) for i in range(0x20, 0x7F))
 DEFAULT_INVISIBLE = ("\u200b", "\u200c", "\u200d")  # ZWSP, ZWNJ, ZWJ
@@ -148,42 +151,14 @@ class BadCharacters(garak.probes.Probe):
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
-        if self.perturbation_budget <= 0:
-            raise PluginConfigurationError(
-                "perturbation_budget must be a positive integer"
-            )
 
-        self._homoglyph_map = _load_homoglyph_map()
-        categories = self.enabled_categories
-        if isinstance(categories, str):
-            categories = [categories]
-        self._enabled_categories = {
-            cat.lower() for cat in categories if isinstance(cat, str)
-        }
-        if not self._enabled_categories:
-            raise PluginConfigurationError(
-                "enabled_categories must include at least one entry"
-            )
-
-        self._generators = {
-            "invisible": self._generate_invisible_variants,
-            "homoglyph": self._generate_homoglyph_variants,
-            "reordering": self._generate_reordering_variants,
-            "deletion": self._generate_deletion_variants,
-        }
-        supported_categories = set(self._generators)
-        unknown_categories = self._enabled_categories - supported_categories
-        if unknown_categories:
-            logging.warning(
-                "Unknown BadCharacters categories %s; skipping",
-                sorted(unknown_categories),
-            )
-            self._enabled_categories &= supported_categories
-        if not self._enabled_categories:
-            raise PluginConfigurationError(
-                "enabled_categories must include at least one recognized entry "
-                f"{sorted(supported_categories)}"
-            )
+        self._perturbation = _BadCharacterPerturbation(
+            enabled_categories=self.enabled_categories,
+            perturbation_budget=self.perturbation_budget,
+            max_position_candidates=self.max_position_candidates,
+            max_reorder_candidates=self.max_reorder_candidates,
+            max_ascii_variants=self.max_ascii_variants,
+        )
 
         payload_group = garak.payloads.load(self.payload_name)
         self._source_payloads = payload_group.payloads
@@ -193,7 +168,9 @@ class BadCharacters(garak.probes.Probe):
         self._seen_prompts: set[str] = set()
 
         for idx, payload in enumerate(self._source_payloads):
-            for text, metadata in self._generate_variants(payload, idx):
+            for text, metadata in self._perturbation.variants(payload):
+                metadata["source_payload_index"] = idx
+                metadata["source_payload_excerpt"] = self._excerpt(payload)
                 self._append_prompt(text, metadata)
 
         if not self.prompts:
@@ -219,22 +196,151 @@ class BadCharacters(garak.probes.Probe):
         )
         self.prompts.append(conversation)
 
-    def _generate_variants(
-        self, payload: str, payload_idx: int
-    ) -> Iterator[Tuple[str, dict]]:
-        for category in self._enabled_categories:
+    @staticmethod
+    def _excerpt(payload: str, limit: int = 96) -> str:
+        flattened = " ".join(payload.split())
+        if len(flattened) <= limit:
+            return flattened
+        return f"{flattened[: limit - 1]}…"
+
+    def _prune_data(self, cap=None, prune_triggers=False) -> None:
+        """Prune prompts while keeping category balance and seedable shuffling.
+
+        Unlike ``Probe._prune_data``, which truncates at random, this preserves
+        coverage across bad-character categories."""
+        if not self.prompts:
+            return
+        cap = self._prune_cap(cap)
+        if cap is None or cap <= 0 or len(self.prompts) <= cap:
+            return
+
+        grouped: dict[str, List[garak.attempt.Conversation]] = {}
+        for conv in self.prompts:
+            category = conv.notes.get("bad_character_category", "unknown")
+            grouped.setdefault(category, []).append(conv)
+
+        if hasattr(_config, "run") and getattr(_config.run, "seed", None) is not None:
+            rng = random.Random(_config.run.seed)
+            for group in grouped.values():
+                rng.shuffle(group)
+        else:
+            for group in grouped.values():
+                random.shuffle(group)
+
+        total = len(self.prompts)
+        allocation: dict[str, int] = {}
+        remaining = cap
+        for category, group in grouped.items():
+            share = min(len(group), max(1, round(cap * len(group) / total)))
+            allocation[category] = share
+            remaining -= share
+
+        while remaining > 0:
+            progress = False
+            for category, group in grouped.items():
+                if allocation.get(category, 0) < len(group):
+                    allocation[category] += 1
+                    remaining -= 1
+                    progress = True
+                    if remaining == 0:
+                        break
+            if not progress:
+                break
+
+        selection: List[garak.attempt.Conversation] = []
+        for category, group in grouped.items():
+            take = min(len(group), allocation.get(category, 0))
+            selection.extend(group[:take])
+        self.prompts = selection[:cap]
+
+
+PERTURBATION_PARAMS = {
+    "perturbation_budget": 1,
+    "enabled_categories": [
+        "invisible",
+        "homoglyph",
+        "reordering",
+        "deletion",
+    ],
+    "max_position_candidates": 24,  # caps insertion positions sampled per payload, bounding variant explosion
+    "max_reorder_candidates": 24,  # caps adjacent-pair positions sampled for bidi reordering per payload
+    "max_ascii_variants": len(ASCII_PRINTABLE),
+}
+
+
+class _BadCharacterPerturbation:
+    """Standalone renderer for the bad-character technique.
+
+    Maps base text plus a fixed configuration to an iterator of
+    ``(perturbed_text, metadata)`` pairs. It owns the four perturbation
+    families, position selection, the homoglyph map, the bidi swap sequence and
+    the deletion/backspace pairs, and deliberately applies no Unicode
+    normalisation. Adapters supply their own source provenance on top of the
+    returned transformation metadata."""
+
+    def __init__(
+        self,
+        enabled_categories,
+        perturbation_budget: int,
+        max_position_candidates: int,
+        max_reorder_candidates: int,
+        max_ascii_variants: int,
+        homoglyph_map: dict[str, List[str]] | None = None,
+    ) -> None:
+        if perturbation_budget <= 0:
+            raise PluginConfigurationError(
+                "perturbation_budget must be a positive integer"
+            )
+        self.perturbation_budget = perturbation_budget
+        self.max_position_candidates = max_position_candidates
+        self.max_reorder_candidates = max_reorder_candidates
+        self.max_ascii_variants = max_ascii_variants
+        self._homoglyph_map = (
+            homoglyph_map if homoglyph_map is not None else _load_homoglyph_map()
+        )
+
+        categories = enabled_categories
+        if isinstance(categories, str):
+            categories = [categories]
+        resolved = {cat.lower() for cat in categories if isinstance(cat, str)}
+        if not resolved:
+            raise PluginConfigurationError(
+                "enabled_categories must include at least one entry"
+            )
+
+        self._generators = {
+            "invisible": self._generate_invisible_variants,
+            "homoglyph": self._generate_homoglyph_variants,
+            "reordering": self._generate_reordering_variants,
+            "deletion": self._generate_deletion_variants,
+        }
+        supported_categories = set(self._generators)
+        unknown_categories = resolved - supported_categories
+        if unknown_categories:
+            logging.warning(
+                "Unknown BadCharacters categories %s; skipping",
+                sorted(unknown_categories),
+            )
+            resolved &= supported_categories
+        if not resolved:
+            raise PluginConfigurationError(
+                "enabled_categories must include at least one recognized entry "
+                f"{sorted(supported_categories)}"
+            )
+        self.enabled_categories = resolved
+
+    def variants(self, text: str) -> Iterator[Tuple[str, dict]]:
+        """Yield every perturbed variant of ``text`` with transformation metadata."""
+        for category in self.enabled_categories:
             generator = self._generators.get(category)
             if generator is None:
                 continue
-            for variant_text, details in generator(payload):
-                metadata = {
+            for variant_text, details in generator(text):
+                yield variant_text, {
                     "bad_character_category": category,
                     "perturbation_count": details.get("count"),
                     "operations": details.get("operations"),
-                    "source_payload_index": payload_idx,
-                    "source_payload_excerpt": self._excerpt(payload),
                 }
-                yield variant_text, metadata
 
     def _generate_invisible_variants(self, payload: str) -> Iterator[Tuple[str, dict]]:
         positions = self._select_positions(len(payload), self.max_position_candidates)
@@ -315,7 +421,8 @@ class BadCharacters(garak.probes.Probe):
                         },
                     }
 
-    def _inject_sequences(self, payload: str, insertions: List[Tuple[int, str]]) -> str:
+    @staticmethod
+    def _inject_sequences(payload: str, insertions: List[Tuple[int, str]]) -> str:
         result = payload
         offset = 0
         for position, value in sorted(insertions, key=lambda item: item[0]):
@@ -324,7 +431,8 @@ class BadCharacters(garak.probes.Probe):
             offset += len(value)
         return result
 
-    def _apply_swaps(self, payload: str, indices: Sequence[int]) -> str:
+    @staticmethod
+    def _apply_swaps(payload: str, indices: Sequence[int]) -> str:
         working: List = list(payload)
         swaps_done = 0
         for original_idx in sorted(indices):
@@ -342,8 +450,8 @@ class BadCharacters(garak.probes.Probe):
     def _non_overlapping(indices: Sequence[int]) -> bool:
         return all(b - a >= 2 for a, b in zip(indices, indices[1:]))
 
+    @staticmethod
     def _select_positions(
-        self,
         length: int,
         cap: int,
         include_endpoint: bool = True,
@@ -386,59 +494,144 @@ class BadCharacters(garak.probes.Probe):
         selected = [ASCII_PRINTABLE[i] for i in range(0, len(ASCII_PRINTABLE), step)]
         return selected[:limit]
 
-    @staticmethod
-    def _excerpt(payload: str, limit: int = 96) -> str:
-        flattened = " ".join(payload.split())
-        if len(flattened) <= limit:
-            return flattened
-        return f"{flattened[: limit - 1]}…"
 
-    def _prune_data(self, cap=None, prune_triggers=False) -> None:
-        """Prune prompts while keeping category balance and seedable shuffling.
+class BadCharactersIntent(garak.probes.IntentProbe):
+    """Imperceptible character perturbations applied across intents.
 
-        Unlike ``Probe._prune_data``, which truncates at random, this preserves
-        coverage across bad-character categories."""
+    Serves the Bad Characters technique through the intent service: each intent
+    stub is perturbed with invisible Unicode, homoglyphs, bidi swaps and
+    deletion/backspace pairs while its intent is preserved on the attempt. The
+    whole stub is perturbed unchanged (identity) because, unlike the doctor and
+    grandma roleplays, there is no frame to supply a replacement verb.
+    """
+
+    lang = "en"
+    active = True
+    doc_uri = "https://arxiv.org/abs/2106.09898"
+    intent = (
+        None  # IntentProbe spans the typology; the attempt intent comes from each stub
+    )
+    goal = "inject imperceptible text perturbations that bypass refusal policies across intents"
+    # fallback only: the harness needs a detector when an intent has no
+    # intentservice mapping; it does not make a detectorless intent eligible.
+    primary_detector = "mitigation.MitigationBypass"
+    tags = [
+        "avid-effect:security:S0403",  # evasion: adversarial example crafted to slip past controls
+        "quality:Security:PromptStability",  # tests output stability under imperceptible input perturbation
+        "payload:jailbreak",  # goal is to bypass refusal policies
+        "demon:Language:Code_and_encode:Token",  # uses invisible Unicode, homoglyphs, bidi tricks to exploit token processing
+        "euai:robustness:unexpected_behavior",  # EU AI Act robustness: unexpected behaviour from perturbed input
+    ]
+    tier = garak.probes.Tier.COMPETE_WITH_SOTA
+
+    DEFAULT_PARAMS = garak.probes.IntentProbe.DEFAULT_PARAMS | PERTURBATION_PARAMS
+
+    @cached_property
+    def _perturbation(self) -> _BadCharacterPerturbation:
+        # Built lazily: IntentProbe.__init__ runs the stub hooks before the
+        # subclass __init__ body, but after config is loaded.
+        return _BadCharacterPerturbation(
+            enabled_categories=self.enabled_categories,
+            perturbation_budget=self.perturbation_budget,
+            max_position_candidates=self.max_position_candidates,
+            max_reorder_candidates=self.max_reorder_candidates,
+            max_ascii_variants=self.max_ascii_variants,
+        )
+
+    def _prompts_from_stub(self, stub: Stub) -> List[garak.attempt.Conversation]:
+        content = getattr(stub, "content", None)
+        if not isinstance(content, str) or not content:
+            logging.warning("BadCharactersIntent skipping unsupported stub %r", stub)
+            return []
+        return [
+            garak.attempt.Conversation(
+                [
+                    garak.attempt.Turn(
+                        "user", garak.attempt.Message(text=text, lang=self.lang)
+                    )
+                ],
+                notes=metadata,
+            )
+            for text, metadata in self._perturbation.variants(content)
+        ]
+
+    def _prune_data(self, cap=None, prune_triggers=False):
+        """Prune per intent, then restore the legacy floor of one per category.
+
+        ``IntentProbe`` balances across intents only. The deletion family
+        dominates the generation pool, so random per-intent sampling can drop a
+        whole perturbation category. After the base prune runs, re-inject one
+        representative per missing category by reclaiming a slot from the
+        most-represented surviving one without worsening the intent balance,
+        keeping the prompt count at ``cap``.
+        """
+        resolved_cap = self._prune_cap(cap)
+        if resolved_cap is None or resolved_cap >= len(self.prompts):
+            return
+
+        representatives: dict[str, dict[str, garak.attempt.Conversation]] = {}
+        for conv, intent in zip(self.prompts, self.prompt_intents):
+            category = conv.notes.get("bad_character_category")
+            if category is not None:
+                representatives.setdefault(category, {}).setdefault(intent, conv)
+
+        super()._prune_data(cap=cap, prune_triggers=prune_triggers)
         if not self.prompts:
             return
-        cap = self._prune_cap(cap)
-        if cap is None or cap <= 0 or len(self.prompts) <= cap:
-            return
 
-        grouped: dict[str, List[garak.attempt.Conversation]] = {}
-        for conv in self.prompts:
-            category = conv.notes.get("bad_character_category", "unknown")
-            grouped.setdefault(category, []).append(conv)
+        surviving = Counter(
+            conv.notes.get("bad_character_category") for conv in self.prompts
+        )
+        intent_counts = Counter(self.prompt_intents)
 
-        if hasattr(_config, "run") and getattr(_config.run, "seed", None) is not None:
-            rng = random.Random(_config.run.seed)
-            for group in grouped.values():
-                rng.shuffle(group)
-        else:
-            for group in grouped.values():
-                random.shuffle(group)
+        for category, category_representatives in representatives.items():
+            if surviving.get(category):
+                continue
 
-        total = len(self.prompts)
-        allocation: dict[str, int] = {}
-        remaining = cap
-        for category, group in grouped.items():
-            share = min(len(group), max(1, round(cap * len(group) / total)))
-            allocation[category] = share
-            remaining -= share
+            replacement = None
+            for donor_idx, (existing, donor_intent) in enumerate(
+                zip(self.prompts, self.prompt_intents)
+            ):
+                donor = existing.notes.get("bad_character_category")
+                if surviving[donor] > 1 and donor_intent in category_representatives:
+                    replacement = (
+                        donor_idx,
+                        donor,
+                        donor_intent,
+                        donor_intent,
+                    )
+                    break
 
-        while remaining > 0:
-            progress = False
-            for category, group in grouped.items():
-                if allocation.get(category, 0) < len(group):
-                    allocation[category] += 1
-                    remaining -= 1
-                    progress = True
-                    if remaining == 0:
+            if replacement is None:
+                replacement_intent = min(
+                    category_representatives,
+                    key=intent_counts.__getitem__,
+                )
+                for donor_idx, (existing, donor_intent) in enumerate(
+                    zip(self.prompts, self.prompt_intents)
+                ):
+                    donor = existing.notes.get("bad_character_category")
+                    if (
+                        surviving[donor] > 1
+                        and intent_counts[donor_intent]
+                        > intent_counts[replacement_intent]
+                    ):
+                        replacement = (
+                            donor_idx,
+                            donor,
+                            donor_intent,
+                            replacement_intent,
+                        )
                         break
-            if not progress:
-                break
 
-        selection: List[garak.attempt.Conversation] = []
-        for category, group in grouped.items():
-            take = min(len(group), allocation.get(category, 0))
-            selection.extend(group[:take])
-        self.prompts = selection[:cap]
+            if replacement is None:
+                continue
+
+            donor_idx, donor, donor_intent, replacement_intent = replacement
+            self.prompts[donor_idx] = category_representatives[replacement_intent]
+            self.prompt_intents[donor_idx] = replacement_intent
+            surviving[donor] -= 1
+            surviving[category] = 1
+            if replacement_intent != donor_intent:
+                intent_counts[donor_intent] -= 1
+                intent_counts[replacement_intent] += 1

@@ -433,6 +433,48 @@
       "tier": 2,
       "mod_time": "2026-08-23 05:07:01 +0000"
     },
+    "probes.badchars.BadCharactersIntent": {
+      "description": "Imperceptible character perturbations applied across intents.",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "perturbation_budget": 1,
+        "enabled_categories": [
+          "invisible",
+          "homoglyph",
+          "reordering",
+          "deletion"
+        ],
+        "max_position_candidates": 24,
+        "max_reorder_candidates": 24,
+        "max_ascii_variants": 95
+      },
+      "active": true,
+      "blocked_intent_spec": "",
+      "doc_uri": "https://arxiv.org/abs/2106.09898",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "garak": null,
+      "goal": "inject imperceptible text perturbations that bypass refusal policies across intents",
+      "intent": null,
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "mitigation.MitigationBypass",
+      "skip_root_intents": true,
+      "tags": [
+        "avid-effect:security:S0403",
+        "quality:Security:PromptStability",
+        "payload:jailbreak",
+        "demon:Language:Code_and_encode:Token",
+        "euai:robustness:unexpected_behavior"
+      ],
+      "tier": 2,
+      "mod_time": "2026-08-23 05:07:01 +0000"
+    },
     "probes.base.IntentProbe": {
       "description": "Probe implementing a technique that tests over a range of intents",
       "DEFAULT_PARAMS": {
