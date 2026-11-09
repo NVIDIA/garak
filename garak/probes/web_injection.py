@@ -133,7 +133,7 @@ style block to not confuse the user."""
         "demon:Language:Prompt_injection:Ignore_previous_instructions",  # injects attacker instructions that override normal rendering behavior
         "euai:robustness:security",
     ]
-    tier = garak.probes.Tier.OF_CONCERN
+    tier = garak.probes.Tier.INFORMATIONAL # low asr
     active = True
 
     DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
@@ -194,7 +194,7 @@ class StringAssemblyDataExfil(garak.probes.Probe):
         "euai:robustness:security",
     ]
     template = CONCAT_TEMPLATE
-    tier = garak.probes.Tier.OF_CONCERN
+    tier = garak.probes.Tier.OF_CONCERN # high asr
     active = True
 
     def __init__(self, config_root=_config):
