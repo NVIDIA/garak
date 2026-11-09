@@ -9,7 +9,21 @@ References:
 https://kai-greshake.de/posts/puzzle-22745/
 https://embracethered.com/blog/posts/2024/hiding-and-finding-text-with-unicode-tags/
 https://embracethered.com/blog/posts/2025/sneaky-bits-and-ascii-smuggler/
+https://twitter.com/rez0__/status/1745545813512663203
 """
+
+
+def encode_unicode_tags(payload: str) -> str:
+    """Encode text as Unicode Tag code points without adding a carrier.
+
+    Args:
+        payload (str): Text to encode.
+
+    Returns:
+        str: Payload encoded as Unicode Tag characters.
+    """
+
+    return "".join(chr(0xE0000 + ord(ch)) for ch in payload)
 
 
 def tag_char_smuggling(payload: str, desired_emoji: str = "😈"):
@@ -26,8 +40,7 @@ def tag_char_smuggling(payload: str, desired_emoji: str = "😈"):
         desired_emoji + encoded payload (str): Payload encoded in unicode tags attached to the emoji.
     """
 
-    encoded_payload = "".join(chr(0xE0000 + ord(ch)) for ch in payload)
-    return desired_emoji + encoded_payload
+    return desired_emoji + encode_unicode_tags(payload)
 
 
 def variant_smuggling(payload: str):

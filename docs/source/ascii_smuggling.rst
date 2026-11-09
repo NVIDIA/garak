@@ -14,22 +14,11 @@ This allows us to append arbitrary ASCII text to an emoji, hidden in the tags.
 
 .. code-block:: python
 
+    def encode_unicode_tags(payload: str) -> str:
+        return "".join(chr(0xE0000 + ord(ch)) for ch in payload)
+
     def tag_char_smuggling(payload: str, desired_emoji: str = "😈"):
-    """
-    Use Unicode tags to smuggle ASCII characters.
-    For tag char smuggling to work, it must be appended to an emoji, per the Unicode spec.
-    https://unicode.org/reports/tr51/
-
-    Args:
-        payload (str): The payload we wish to hide.
-        desired_emoji (str): Must be an emoji per unicode spec. Defaults to 😈
-
-    Returns:
-        desired_emoji + encoded payload (str): Payload encoded in unicode tags attached to the emoji.
-    """
-
-    encoded_payload = "".join(chr(0xE0000 + ord(ch)) for ch in payload)
-    return desired_emoji + encoded_payload
+        return desired_emoji + encode_unicode_tags(payload)
 
 Variant Smuggling
 -----------------
