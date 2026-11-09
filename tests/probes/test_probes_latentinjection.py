@@ -4,6 +4,7 @@
 import pytest
 
 from garak import _plugins
+import garak.exception
 import garak.payloads
 import garak.probes.base
 import garak.probes.latentinjection
@@ -67,13 +68,22 @@ def test_latentinjection_structure(classname):
         assert isinstance(pair[1], str)
 
 
-def test_whois_payload_injection_marker():
-    marker = "{INJECTION_MARKER}"
-    payload_name = "whois_injection_contexts"
-    for id, payload in enumerate(garak.payloads.load(payload_name).payloads):
-        assert (
-            marker in payload
-        ), f"Each whois payload must contain {marker} but this was not found in {payload_name} payload {id}"
+@pytest.mark.parametrize(
+    ("contexts", "error"),
+    [
+        ([], "must not be empty"),
+        (["context without a marker"], "entry 0 must contain"),
+    ],
+)
+def test_context_payload_validation(mocker, contexts, error):
+    mocker.patch.object(
+        garak.payloads,
+        "load",
+        return_value=mocker.Mock(payloads=contexts),
+    )
+
+    with pytest.raises(garak.exception.PayloadFailure, match=error):
+        garak.probes.latentinjection._load_context_payload("invalid_contexts")
 
 
 def test_translation_mixin_requires_target_lang():
