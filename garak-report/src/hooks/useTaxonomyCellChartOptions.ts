@@ -9,13 +9,14 @@
  */
 
 import { useMemo } from "react";
+import { format } from "echarts";
 import useSeverityColor from "./useSeverityColor";
 import { scoreToDefcon, THEME_COLORS, CHART_OPACITY } from "../constants";
 import { formatRate } from "../utils/formatPercentage";
 import type { AxisCell } from "../utils/techniqueIntentRollup";
 
 /** Pixels of vertical space per bar, used to size the chart to its data. */
-const ROW_PX = 30;
+const ROW_PX = 48;
 
 /**
  * Builds ECharts options for the horizontal, DEFCON-coloured cell bar chart and
@@ -30,11 +31,13 @@ const ROW_PX = 30;
 export function useTaxonomyCellChartOptions(
   cells: AxisCell[],
   selectedKey: string | null,
-  isDark?: boolean,
+  isDark?: boolean
 ) {
   const { getSeverityColorByLevel } = useSeverityColor();
   const textColor = isDark ? THEME_COLORS.text.dark : THEME_COLORS.text.light;
-  const splitLineColor = isDark ? THEME_COLORS.chart.splitLine.dark : THEME_COLORS.chart.splitLine.light;
+  const splitLineColor = isDark
+    ? THEME_COLORS.chart.splitLine.dark
+    : THEME_COLORS.chart.splitLine.light;
 
   const option = useMemo(
     () => ({
@@ -46,14 +49,18 @@ export function useTaxonomyCellChartOptions(
           const p = Array.isArray(params) ? params[0] : params;
           const cell = cells[p.dataIndex];
           if (!cell) return "";
-          return `${cell.otherLabel}<br/>${formatRate(cell.cell.score)} · ${cell.cell.nEvaluations.toLocaleString()} evals`;
+          const outcome =
+            cell.cell.score == null
+              ? `${cell.cell.nones.toLocaleString()} undetermined results`
+              : `${formatRate(cell.cell.score)} · ${cell.cell.nEvaluations.toLocaleString()} evals`;
+          return `${format.encodeHTML(cell.otherLabel)}<br/>${outcome}`;
         },
       },
       xAxis: {
         type: "value",
         min: 0,
         max: 100,
-        axisLabel: { formatter: "{value}%", color: textColor },
+        axisLabel: { formatter: "{value}%", color: textColor, hideOverlap: true },
         splitLine: { lineStyle: { color: splitLineColor } },
       },
       yAxis: {
@@ -64,7 +71,15 @@ export function useTaxonomyCellChartOptions(
         // triggerEvent (on the axis, not the label) makes label clicks fire, so a
         // label click can select the row just like clicking its bar.
         triggerEvent: true,
-        axisLabel: { color: textColor },
+        axisLabel: {
+          color: textColor,
+          width: 144,
+          height: 42,
+          lineHeight: 14,
+          overflow: "break",
+          lineOverflow: "truncate",
+          formatter: (label: string, index: number) => cells[index]?.otherName ?? label,
+        },
       },
       series: [
         {
@@ -73,19 +88,28 @@ export function useTaxonomyCellChartOptions(
           data: cells.map(c => {
             const dimmed = !!selectedKey && selectedKey !== c.otherKey;
             return {
-              value: Math.round(c.cell.score * 100),
+              value: c.cell.score == null ? null : Math.round(c.cell.score * 100),
               itemStyle: {
-                color: getSeverityColorByLevel(scoreToDefcon(c.cell.score)),
+                color:
+                  c.cell.score == null
+                    ? splitLineColor
+                    : getSeverityColorByLevel(scoreToDefcon(c.cell.score)),
                 opacity: dimmed ? CHART_OPACITY.dimmed : CHART_OPACITY.full,
                 borderRadius: 2,
               },
             };
           }),
-          label: { show: true, position: "right", formatter: "{c}%", color: textColor, fontWeight: 600 },
+          label: {
+            show: true,
+            position: "right",
+            formatter: "{c}%",
+            color: textColor,
+            fontWeight: 600,
+          },
         },
       ],
     }),
-    [cells, selectedKey, getSeverityColorByLevel, textColor, splitLineColor],
+    [cells, selectedKey, getSeverityColorByLevel, textColor, splitLineColor]
   );
 
   const height = Math.max(120, cells.length * ROW_PX + 32);

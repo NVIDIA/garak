@@ -1,8 +1,7 @@
 /**
  * @file techniqueIntentRollup.ts
  * @description Builds a renderable view of the technique × intent matrix.
- *              Rows and columns are ordered worst-first so risk surfaces
- *              immediately.
+ *              Techniques are ordered worst-first; intents follow code order.
  * @module utils
  *
  * @copyright NVIDIA Corporation 2023-2026
@@ -11,6 +10,7 @@
 
 import type {
   IntentTypology,
+  ProbeDetectorPair,
   TechniqueIntentCell,
   TechniqueIntentMatrix,
 } from "../types/ReportEntry";
@@ -30,24 +30,25 @@ interface MatrixEntry {
   techniqueDescription?: string;
   /** Human-readable intent name (falls back to the code when absent). */
   intentName?: string;
-  /** 0-1 pass rate. Pairings the digest left unevaluated (null) are dropped. */
-  score: number;
+  /** 0-1 pass rate, or null when every result was undetermined. */
+  score: number | null;
   nEvaluations: number;
   /** Distinct prompts behind the pairing (`nEvaluations` is prompts × detectors). 0 on older reports. */
   nAttempts: number;
   passed: number;
   /** Undetermined evaluations (detector returned no verdict). */
   nones: number;
-  /** Detectors that scored this pairing (a count; the digest carries no names). */
+  /** Detectors that scored this pairing. */
   nDetectors: number;
+  probeDetectorPairs?: ProbeDetectorPair[];
 }
 
 /** A single technique × intent matrix cell. */
 export interface MatrixCell {
   row: string;
   col: string;
-  /** 0-1 pass rate for this pairing. */
-  score: number;
+  /** 0-1 pass rate, or null when every result was undetermined. */
+  score: number | null;
   /** Total evaluations for the pairing. */
   nEvaluations: number;
   /** Distinct prompts for the pairing (0 on older reports). */
@@ -58,6 +59,8 @@ export interface MatrixCell {
   nones: number;
   /** Detectors that scored the pairing. */
   nDetectors: number;
+  /** Contributing probe/detector combinations on newer reports. */
+  probeDetectorPairs?: ProbeDetectorPair[];
 }
 
 /** A fully built, renderable matrix. */
@@ -66,6 +69,10 @@ export interface MatrixView {
   cols: string[];
   rowLabel: (key: string) => string;
   colLabel: (key: string) => string;
+  /** Human-readable intent name, without its secondary code. */
+  colName: (key: string) => string;
+  /** Whether technique rows reuse probe/detector results for the same intent. */
+  sharedResults: boolean;
   /** Technique description for a row key, when the taxonomy provides one. */
   rowDescription: (key: string) => string | undefined;
   /** Intent description for a column key, when known. */
@@ -81,28 +88,29 @@ const flatten = (matrix: TechniqueIntentMatrix): MatrixEntry[] => {
     for (const intent of Object.keys(row)) {
       if (intent === "_summary") continue; // reserved per-row summary, not a cell
       const cell = row[intent] as TechniqueIntentCell | undefined;
-      // A null score (or nothing evaluated) means this pairing was never probed —
-      // drop it so it can't land in the severity bands or worst-first ordering.
-      if (!cell || cell.score == null || cell.total_evaluated === 0) continue;
+      if (!cell || (cell.total_evaluated === 0 && cell.nones === 0)) continue;
       entries.push({
         technique,
         intent,
         techniqueName: summary?.name ?? undefined,
         techniqueDescription: summary?.description ?? undefined,
         intentName: cell.name ?? undefined,
-        score: cell.score,
+        score: cell.total_evaluated > 0 ? cell.score : null,
         nEvaluations: cell.total_evaluated,
         nAttempts: cell.n_attempts ?? 0,
         passed: cell.passed,
         nones: cell.nones,
-        nDetectors: cell.n_detectors,
+        nDetectors: cell.probe_detector_pairs
+          ? new Set(cell.probe_detector_pairs.map(([, detector]) => detector)).size
+          : (cell.n_detectors ?? 0),
+        probeDetectorPairs: cell.probe_detector_pairs,
       });
     }
   }
   return entries;
 };
 
-/** Which taxonomy axis a list is organised by (the other axis nests inside). */
+/** Technique and intent axes. */
 export type TaxonomyAxis = "technique" | "intent";
 
 /** One nested (cross-axis) entry under an {@link AxisGroup}. */
@@ -111,39 +119,34 @@ export interface AxisCell {
   otherKey: string;
   /** Display label for the cross-axis key. */
   otherLabel: string;
+  /** Name-only chart label; the full label retains its identifying code. */
+  otherName?: string;
   /** The underlying matrix cell for this pairing. */
   cell: MatrixCell;
 }
 
 /**
- * A primary-axis entry for the accordion lists: a technique (with its intents)
+ * A primary-axis summary: a technique (with its intents)
  * or an intent (with its techniques). Scored conservatively — the group score
- * is its worst child cell — to stay consistent with the heatmap.
+ * is its worst measured child cell, or null when no verdict is available.
  */
 export interface AxisGroup {
   /** Active-level primary key (row or column key). */
   key: string;
   /** Display label for the primary key. */
   label: string;
-  /** Taxonomy description for the primary key (technique axis only, when known). */
+  /** Taxonomy description for the primary key, when known. */
   description?: string;
-  /** Worst (minimum) child-cell score — the conservative summary. */
-  score: number;
-  /** Total evaluations pooled across the group's cells. */
-  nEvaluations: number;
-  /** Total distinct prompts pooled across the group's cells (0 on older reports). */
-  nAttempts: number;
+  /** Worst measured child score, or null when no pairing has a verdict. */
+  score: number | null;
   /** Worst-first cross-axis entries. */
   cells: AxisCell[];
 }
 
 /**
- * Reshapes a {@link MatrixView} into worst-first {@link AxisGroup}s for the
- * accordion lists. With `axis="technique"` each group is a technique row and its
- * cells are the intents it was probed against; with `axis="intent"` the roles
- * swap. The primary order follows the view's own worst-first axis ordering, and
- * each group's cells are sorted worst-first, so the most-vulnerable items surface
- * first in both dimensions.
+ * Groups pairings along an axis in the view's order. Within each group, measured
+ * pairings are worst-first and undetermined pairings follow. Counts stay on
+ * individual cells because contributing probe results can overlap.
  *
  * @param view - A built matrix view
  * @param axis - Which axis to make primary
@@ -151,8 +154,9 @@ export interface AxisGroup {
 export function buildAxisGroups(view: MatrixView, axis: TaxonomyAxis): AxisGroup[] {
   const primaries = axis === "technique" ? view.rows : view.cols;
   const secondaries = axis === "technique" ? view.cols : view.rows;
-  const primaryLabel = axis === "technique" ? view.rowLabel : view.colLabel;
+  const primaryLabel = axis === "technique" ? view.rowLabel : view.colName;
   const secondaryLabel = axis === "technique" ? view.colLabel : view.rowLabel;
+  const secondaryName = axis === "technique" ? view.colName : view.rowLabel;
   // Both axes now carry a taxonomy description (technique rows, intent columns).
   const primaryDescription = axis === "technique" ? view.rowDescription : view.colDescription;
   const cellOf = (primary: string, secondary: string) =>
@@ -163,103 +167,25 @@ export function buildAxisGroups(view: MatrixView, axis: TaxonomyAxis): AxisGroup
     const cells: AxisCell[] = [];
     for (const secondary of secondaries) {
       const cell = cellOf(primary, secondary);
-      if (cell) cells.push({ otherKey: secondary, otherLabel: secondaryLabel(secondary), cell });
+      if (cell)
+        cells.push({
+          otherKey: secondary,
+          otherLabel: secondaryLabel(secondary),
+          otherName: secondaryName(secondary),
+          cell,
+        });
     }
     if (!cells.length) continue;
-    cells.sort((a, b) => a.cell.score - b.cell.score);
+    cells.sort((a, b) => (a.cell.score ?? 2) - (b.cell.score ?? 2));
     groups.push({
       key: primary,
       label: primaryLabel(primary),
       description: primaryDescription?.(primary),
-      score: Math.min(...cells.map(c => c.cell.score)),
-      nEvaluations: cells.reduce((sum, c) => sum + c.cell.nEvaluations, 0),
-      nAttempts: cells.reduce((sum, c) => sum + c.cell.nAttempts, 0),
+      score: cells[0].cell.score,
       cells,
     });
   }
   return groups;
-}
-
-/** A technique×intent pairing that fails far worse than either axis usually does. */
-export interface NotablePairing {
-  /** Row (technique) key. */
-  rowKey: string;
-  /** Column (intent) key. */
-  colKey: string;
-  /** Display label for the technique. */
-  rowLabel: string;
-  /** Display label for the intent. */
-  colLabel: string;
-  /** This pairing's pass rate (0-1). */
-  score: number;
-  /** Evaluations behind the pairing. */
-  nEvaluations: number;
-  /** Best pass rate the technique reaches against any intent. */
-  rowBest: number;
-  /** Best pass rate the intent reaches against any technique. */
-  colBest: number;
-  /** How far below `min(rowBest, colBest)` this pairing sits (the "surprise"). */
-  gap: number;
-}
-
-/**
- * Finds **interaction** pairings: cells that score far worse than either their
- * technique or their intent manages elsewhere. These are the only thing a 2D
- * matrix reveals that the two 1D lists can't — a combination that's uniquely
- * dangerous even though the technique is usually fine and the intent is usually
- * resisted. When the matrix is separable (the common case, where the intent
- * drives the score and techniques behave alike), this returns nothing.
- *
- * A pairing is notable when `min(rowBest, colBest) - score >= margin`, i.e. both
- * its row and its column reach a much safer score somewhere else. Single-cell
- * rows/columns can never qualify (there's no "elsewhere" to compare against).
- *
- * @param view - A built matrix view
- * @param opts - `margin` (default 0.5) and `limit` (default 5, worst-surprise first)
- */
-export function findNotablePairings(
-  view: MatrixView,
-  opts?: { margin?: number; limit?: number }
-): NotablePairing[] {
-  const margin = opts?.margin ?? 0.5;
-  const limit = opts?.limit ?? 5;
-
-  const cells: MatrixCell[] = [];
-  for (const row of view.rows) {
-    for (const col of view.cols) {
-      const cell = view.cell(row, col);
-      if (cell) cells.push(cell);
-    }
-  }
-
-  const rowBest = new Map<string, number>();
-  const colBest = new Map<string, number>();
-  for (const cell of cells) {
-    rowBest.set(cell.row, Math.max(rowBest.get(cell.row) ?? 0, cell.score));
-    colBest.set(cell.col, Math.max(colBest.get(cell.col) ?? 0, cell.score));
-  }
-
-  const notable: NotablePairing[] = [];
-  for (const cell of cells) {
-    const rb = rowBest.get(cell.row) ?? 0;
-    const cb = colBest.get(cell.col) ?? 0;
-    const gap = Math.min(rb, cb) - cell.score;
-    if (gap >= margin) {
-      notable.push({
-        rowKey: cell.row,
-        colKey: cell.col,
-        rowLabel: view.rowLabel(cell.row),
-        colLabel: view.colLabel(cell.col),
-        score: cell.score,
-        nEvaluations: cell.nEvaluations,
-        rowBest: rb,
-        colBest: cb,
-        gap,
-      });
-    }
-  }
-  notable.sort((a, b) => b.gap - a.gap);
-  return notable.slice(0, limit);
 }
 
 /**
@@ -284,12 +210,10 @@ export function buildMatrixView(
     if (entry.intentName) intentNames.set(entry.intent, entry.intentName);
   }
   const rowLabel = (key: string) => techniqueNames.get(key) ?? shortenTechnique(key);
-  // Intent columns keep their taxonomy code visible alongside the name
-  // ("C006 - Anthropomorphise") so the slug is unambiguous; codes with no known
-  // name fall back to the bare code.
+  const colName = (key: string) => typologyIntentName(key, typology) ?? intentNames.get(key) ?? key;
   const colLabel = (key: string) => {
-    const name = typologyIntentName(key, typology) ?? intentNames.get(key);
-    return name ? `${key} - ${name}` : key;
+    const name = colName(key);
+    return name !== key ? `${name} (${key})` : key;
   };
   const rowDescription = (key: string) => techniqueDescriptions.get(key);
   const colDescription = (key: string) => typologyIntentDescription(key, typology);
@@ -307,28 +231,39 @@ export function buildMatrixView(
       passed: entry.passed,
       nones: entry.nones,
       nDetectors: entry.nDetectors,
+      probeDetectorPairs: entry.probeDetectorPairs,
     });
   }
 
-  // Worst-first ordering for axes: a row/column's rank is its worst cell.
+  // Technique rank uses its weakest verdict; unscored rows follow scored rows.
   const rowWorst = new Map<string, number>();
-  const colWorst = new Map<string, number>();
+  const evidence = new Map<string, string>();
+  let sharedResults = false;
   for (const cell of cellMap.values()) {
-    rowWorst.set(cell.row, Math.min(rowWorst.get(cell.row) ?? 1, cell.score));
-    colWorst.set(cell.col, Math.min(colWorst.get(cell.col) ?? 1, cell.score));
+    rowWorst.set(cell.row, Math.min(rowWorst.get(cell.row) ?? 2, cell.score ?? 2));
+    for (const pair of cell.probeDetectorPairs ?? []) {
+      const key = JSON.stringify([cell.col, ...pair]);
+      const previous = evidence.get(key);
+      if (previous !== undefined && previous !== cell.row) sharedResults = true;
+      evidence.set(key, cell.row);
+    }
   }
   const byWorstThenName = (worst: Map<string, number>) => (a: string, b: string) => {
     const diff = (worst.get(a) ?? 1) - (worst.get(b) ?? 1);
     return diff !== 0 ? diff : a.localeCompare(b);
   };
   const rows = [...rowWorst.keys()].sort(byWorstThenName(rowWorst));
-  const cols = [...colWorst.keys()].sort(byWorstThenName(colWorst));
+  const cols = [...new Set(entries.map(entry => entry.intent))].sort((a, b) =>
+    a.localeCompare(b, "en", { numeric: true })
+  );
 
   return {
     rows,
     cols,
     rowLabel,
     colLabel,
+    colName,
+    sharedResults,
     rowDescription,
     colDescription,
     cell: (row, col) => cellMap.get(cellKey(row, col)),

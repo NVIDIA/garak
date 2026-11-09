@@ -60,4 +60,44 @@ describe("useTaxonomyCellChartOptions", () => {
       few.result.current.height
     );
   });
+
+  it("keeps an unscored result out of the numeric pass-rate scale", () => {
+    const unknown = cellOf("unknown", 1);
+    unknown.cell = { ...unknown.cell, score: null, passed: 0, nEvaluations: 0, nones: 210 };
+    const { result } = renderHook(() => useTaxonomyCellChartOptions([unknown], null));
+    expect(
+      seriesData(result.current.option)[0].value,
+      "missing verdicts are never plotted as zero pass rate"
+    ).toBeNull();
+    expect(
+      result.current.option.tooltip.formatter({ dataIndex: 0 }),
+      "the preview retains unscored results"
+    ).toContain("210 undetermined results");
+  });
+
+  it("escapes supplied taxonomy names in the chart preview", () => {
+    const named = { ...cellOf("custom", 1), otherLabel: "Intent <img src=x>" };
+    const { result } = renderHook(() => useTaxonomyCellChartOptions([named], null));
+    expect(
+      result.current.option.tooltip.formatter({ dataIndex: 0 }),
+      "taxonomy text cannot become tooltip HTML"
+    ).toContain("Intent &lt;img src=x&gt;");
+  });
+
+  it("uses the readable name on the axis while retaining the full identity for selection", () => {
+    const named = {
+      ...cellOf("X", 1),
+      otherLabel: "Readable intent (X)",
+      otherName: "Readable intent",
+    };
+    const { result } = renderHook(() => useTaxonomyCellChartOptions([named], null));
+    expect(
+      result.current.option.yAxis.axisLabel.formatter(named.otherLabel, 0),
+      "chart labels put the human name first"
+    ).toBe("Readable intent");
+    expect(
+      result.current.option.yAxis.data,
+      "clicks still resolve the complete pairing identity"
+    ).toEqual([named.otherLabel]);
+  });
 });
