@@ -272,22 +272,13 @@ def _configure_lite_start_run(tmp_path, monkeypatch, *, list_probes):
     )
 
 
-def _close_reportfile():
-    reportfile = getattr(_config.transient, "reportfile", None)
-    if reportfile is not None and not reportfile.closed:
-        reportfile.close()
-
-
 def test_start_run_hints_for_default_lite_config(tmp_path, monkeypatch, mocker):
     from garak import command
 
     _configure_lite_start_run(tmp_path, monkeypatch, list_probes=False)
     hint = mocker.patch("garak.command.hint")
 
-    try:
-        command.start_run()
-    finally:
-        _close_reportfile()
+    command.start_run()
 
     hint.assert_called_once()
     assert "optimised for speed" in hint.call_args.args[0]
@@ -299,9 +290,6 @@ def test_start_run_does_not_hint_when_listing_probes(tmp_path, monkeypatch, mock
     _configure_lite_start_run(tmp_path, monkeypatch, list_probes=True)
     hint = mocker.patch("garak.command.hint")
 
-    try:
-        command.start_run()
-    finally:
-        _close_reportfile()
+    command.start_run()
 
     hint.assert_not_called()
