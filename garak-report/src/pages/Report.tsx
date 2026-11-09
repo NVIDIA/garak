@@ -8,7 +8,7 @@
  * @license Apache-2.0
  */
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Flex, Spinner, Grid, StatusMessage, Tabs } from "@kui/react";
 import Footer from "../components/Footer";
 import ReportHeader from "../components/Header";
@@ -22,6 +22,7 @@ import useFlattenedModules from "../hooks/useFlattenedModules";
 import { useReportData } from "../hooks/useReportData";
 import { useModuleFilters } from "../hooks/useModuleFilters";
 import { useThemeMode } from "../hooks/useThemeMode";
+import { isEvalProbe } from "../types/Eval";
 
 /** Props for the Report page component */
 interface ReportProps {
@@ -45,11 +46,30 @@ function Report({ onThemeChange, currentTheme = "system" }: ReportProps) {
   const { selectedReport, calibrationData, setupData } = useReportData();
 
   // Flatten modules from report
-  const allModules = useFlattenedModules(selectedReport);
+  const [probeTargetName, setProbeTargetName] = useState<string>();
+  const reportModules = useFlattenedModules(selectedReport);
+  const navigationModules = useFlattenedModules(
+    probeTargetName ? selectedReport : null,
+    probeTargetName
+  );
+  const allModules = probeTargetName ? navigationModules : reportModules;
+  const probeTarget = allModules
+    .find(module => module.probes?.some(probe => probe.probe_name === probeTargetName))
+    ?.probes.find(probe => probe.probe_name === probeTargetName);
 
   // Filter and sort modules
   const { modules, selectedDefcons, sortBy, toggleDefcon, setSortBy } =
     useModuleFilters(allModules);
+  const [activeTab, setActiveTab] = useState("modules");
+  const openProbe = (name: string) => {
+    const group = Object.values(selectedReport?.eval ?? {}).find(group => isEvalProbe(group[name]));
+    if (!group) return;
+    if (!selectedDefcons.includes(group._summary.group_defcon)) {
+      toggleDefcon(group._summary.group_defcon);
+    }
+    setProbeTargetName(name);
+    setActiveTab("modules");
+  };
 
   // Theme mode
   const { isDark, toggleTheme } = useThemeMode(currentTheme, onThemeChange);
@@ -96,9 +116,11 @@ function Report({ onThemeChange, currentTheme = "system" }: ReportProps) {
       {modules.length > 0 ? (
         <ErrorBoundary fallbackMessage="Failed to load modules. Please refresh the page.">
           <ModuleAccordion
+            key={`${selectedReport?.meta.run_uuid}:${probeTarget?.probe_name}`}
             modules={modules}
             accordionKey={selectedReport?.meta.run_uuid ?? "default"}
             isDark={isDark}
+            initialProbe={probeTarget}
           />
         </ErrorBoundary>
       ) : (
@@ -111,13 +133,23 @@ function Report({ onThemeChange, currentTheme = "system" }: ReportProps) {
     </Flex>
   );
 
+  const minEvaluations = selectedReport.meta.setup?.["reporting.bootstrap_min_sample_size"];
   const techniqueIntentSection = (
     <ErrorBoundary fallbackMessage="Failed to load technique/intent analysis.">
       <Flex direction="col" style={{ width: "100%" }}>
         <TechniqueIntentPanel
+          key={selectedReport.meta.run_uuid}
           techniqueIntent={selectedReport.technique_intent_matrix}
           intentTypology={selectedReport.intent_typology}
+          minEvaluations={
+            typeof minEvaluations === "number" &&
+            Number.isInteger(minEvaluations) &&
+            minEvaluations >= 0
+              ? minEvaluations
+              : undefined
+          }
           isDark={isDark}
+          onProbeSelect={openProbe}
         />
       </Flex>
     </ErrorBoundary>
@@ -138,7 +170,7 @@ function Report({ onThemeChange, currentTheme = "system" }: ReportProps) {
             />
           </ErrorBoundary>
           <ErrorBoundary fallbackMessage="Failed to load summary statistics. Please refresh the page.">
-            <SummaryStatsCard modules={allModules} />
+            <SummaryStatsCard modules={reportModules} />
           </ErrorBoundary>
         </Grid>
 
@@ -146,7 +178,8 @@ function Report({ onThemeChange, currentTheme = "system" }: ReportProps) {
             Older reports without TI data keep the original single view. */}
         {hasTechniqueIntent ? (
           <Tabs
-            defaultValue="modules"
+            value={activeTab}
+            onValueChange={setActiveTab}
             items={[
               { value: "modules", children: "Modules", slotContent: modulesSection },
               {

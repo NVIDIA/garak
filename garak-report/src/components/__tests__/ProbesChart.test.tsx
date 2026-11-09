@@ -30,7 +30,7 @@ vi.mock("@kui/react", () => ({
     </div>
   ),
   Grid: ({ children, cols, ...props }: MockGridProps) => (
-    <div data-testid="grid" cols={String(cols)} {...props}>
+    <div data-testid="grid" data-cols={JSON.stringify(cols)} {...props}>
       {children}
     </div>
   ),
@@ -371,7 +371,7 @@ describe("ProbesChart", () => {
       
       const grid = screen.getByTestId("grid");
       expect(grid).toBeInTheDocument();
-      expect(grid).toHaveAttribute("cols", "1");
+      expect(grid).toHaveAttribute("data-cols", JSON.stringify({ base: 1, md: 1 }));
       expect(screen.queryByTestId("detectors-view")).not.toBeInTheDocument();
     });
 
@@ -385,7 +385,7 @@ describe("ProbesChart", () => {
       
       const grid = screen.getByTestId("grid");
       expect(grid).toBeInTheDocument();
-      expect(grid).toHaveAttribute("cols", "2");
+      expect(grid).toHaveAttribute("data-cols", JSON.stringify({ base: 1, md: 2 }));
       expect(screen.getByTestId("detectors-view")).toBeInTheDocument();
     });
   });

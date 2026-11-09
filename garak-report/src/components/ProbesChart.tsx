@@ -8,7 +8,7 @@
  * @license Apache-2.0
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import DetectorsView from "./DetectorsView";
 import useSeverityColor from "../hooks/useSeverityColor";
 import type { ProbesChartProps } from "../types/ProbesChart";
@@ -31,9 +31,20 @@ const ProbesChart = ({
   selectedProbe,
   setSelectedProbe,
   isDark,
+  focusSelectedProbe,
 }: ProbesChartProps & { isDark?: boolean }) => {
   const { getSeverityColorByLevel, getSeverityLabelByLevel } = useSeverityColor();
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
+  const detailRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const detail = detailRef.current;
+    if (!focusSelectedProbe || !detail) return;
+    detail.focus({ preventScroll: true });
+    window.scrollBy({
+      top: detail.getBoundingClientRect().top - parseFloat(getComputedStyle(detail).scrollMarginTop),
+      behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ? "auto" : "smooth",
+    });
+  }, [focusSelectedProbe, selectedProbe]);
 
   const probesData = useMemo(() => {
     // Sort probes alphabetically by class name for consistent ordering
@@ -102,7 +113,7 @@ const ProbesChart = ({
       {filtered.length === 0 ? (
         <p className="text-sm italic text-gray-500 py-8">No probes meet the current filter.</p>
       ) : (
-        <Grid cols={selectedProbe ? 2 : 1}>
+        <Grid cols={{ base: 1, md: selectedProbe ? 2 : 1 }}>
           <Stack gap="density-md">
             <ProbeChartHeader />
             <ProbeTagsList tags={allTags} />
@@ -121,11 +132,19 @@ const ProbesChart = ({
             />
           </Stack>
           {selectedProbe && (
-            <DetectorsView
-              probe={selectedProbe}
-              isDark={isDark}
-              data-testid="detectors-view"
-            />
+            <div
+              ref={detailRef}
+              tabIndex={-1}
+              role="region"
+              aria-label={`${selectedProbe.probe_name} probe details`}
+              style={{ scrollMarginTop: "4rem" }}
+            >
+              <DetectorsView
+                probe={selectedProbe}
+                isDark={isDark}
+                data-testid="detectors-view"
+              />
+            </div>
           )}
         </Grid>
       )}

@@ -11,11 +11,13 @@
 import type { ModuleData } from "./Module";
 import type { EvalData } from "./Eval";
 
+/** A contributing probe and the detector that evaluated its outputs. */
+export type ProbeDetectorPair = [probe: string, detector: string];
+
 /**
  * One technique×intent cell from `digest.technique_intent_matrix`. `score` is a
  * 0-1 pass rate (higher is safer) or `null` when nothing was evaluated. The
- * digest pools detectors into a count (`n_detectors`); it does not carry their
- * names at this granularity.
+ * digest pools outcomes across the contributing probe/detector pairs.
  */
 export type TechniqueIntentCell = {
   /** Human-readable intent name from the taxonomy (null when untitled). */
@@ -26,7 +28,10 @@ export type TechniqueIntentCell = {
   nones: number;
   /** Distinct prompts (attempts) for this pairing; `total_evaluated` is prompts × detectors. Absent on older reports. */
   n_attempts?: number;
-  n_detectors: number;
+  /** Detector count on reports predating probe/detector provenance. */
+  n_detectors?: number;
+  /** Actual contributing probe/detector combinations; absent on older reports. */
+  probe_detector_pairs?: ProbeDetectorPair[];
 };
 
 /** Per-technique metadata carried under the reserved `_summary` key of each row. */
