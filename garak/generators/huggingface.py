@@ -15,6 +15,7 @@ be quite strong. Find your Hugging Face Inference API Key here:
 """
 
 import logging
+from io import BytesIO
 import re
 from typing import List, Union
 import warnings
@@ -48,9 +49,12 @@ class HFInternalServerError(GarakException):
 
 
 class Pipeline(Generator, HFCompatible):
-    """Get text generations from a locally-run Hugging Face pipeline"""
+    """Generate content with a locally-run Hugging Face pipeline."""
+
+    SUPPORTED_PIPELINE_TASKS = {"text-generation", "text-to-audio"}
 
     DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
+        "pipeline_task": "text-generation",
         "hf_args": {
             "torch_dtype": "float16",
             "do_sample": True,
@@ -65,6 +69,14 @@ class Pipeline(Generator, HFCompatible):
         self.name = name
 
         super().__init__(self.name, config_root=config_root)
+
+        if self.pipeline_task not in self.SUPPORTED_PIPELINE_TASKS:
+            raise BadGeneratorException(
+                f"Unsupported Hugging Face pipeline task: {self.pipeline_task}"
+            )
+        if self.pipeline_task == "text-to-audio":
+            self.modality = {"in": {"text"}, "out": {"audio"}}
+            self.supports_multiple_generations = False
 
         import torch.multiprocessing as mp
 
@@ -89,27 +101,29 @@ class Pipeline(Generator, HFCompatible):
             set_seed(self.seed)
 
         pipeline_kwargs = self._gather_hf_params(hf_constructor=pipeline)
-        pipeline_kwargs["truncation"] = (
-            True  # this is forced to maintain existing pipeline expectations
-        )
-        generation_params = self._gather_generation_params()
-        for param in generation_params.keys():
-            if param in pipeline_kwargs:
-                pipeline_kwargs.pop(param)
+        generation_params = {}
+        if self.pipeline_task == "text-generation":
+            pipeline_kwargs["truncation"] = True
+            generation_params = self._gather_generation_params()
+            for param in generation_params:
+                pipeline_kwargs.pop(param, None)
+        else:
+            pipeline_kwargs.pop("do_sample", None)
 
-        self.generator = pipeline("text-generation", **pipeline_kwargs)
-        if self.generator.tokenizer is None:
+        self.generator = pipeline(self.pipeline_task, **pipeline_kwargs)
+        if self.pipeline_task == "text-generation" and self.generator.tokenizer is None:
             # account for possible model without a stored tokenizer
             from transformers import AutoTokenizer
 
             self.generator.tokenizer = AutoTokenizer.from_pretrained(
                 pipeline_kwargs["model"]
             )
-        self.tokenizer = self.generator.tokenizer
+        self.tokenizer = getattr(self.generator, "tokenizer", None)
         if not hasattr(self, "use_chat"):
             self.use_chat = (
-                hasattr(self.generator.tokenizer, "chat_template")
-                and self.generator.tokenizer.chat_template is not None
+                self.pipeline_task == "text-generation"
+                and hasattr(self.tokenizer, "chat_template")
+                and self.tokenizer.chat_template is not None
             )
         if not hasattr(self, "deprefix_prompt"):
             self.deprefix_prompt = self.name in models_to_deprefix
@@ -118,10 +132,11 @@ class Pipeline(Generator, HFCompatible):
                 self.deprefix_prompt = True
 
         self._set_hf_context_len(self.generator.model.config)
-        if hasattr(self.generator.generation_config, "max_length"):
-            self.generator.generation_config.max_length = None
-        for k, v in generation_params.items():
-            setattr(self.generator.generation_config, k, v)
+        if self.pipeline_task == "text-generation":
+            if hasattr(self.generator.generation_config, "max_length"):
+                self.generator.generation_config.max_length = None
+            for k, v in generation_params.items():
+                setattr(self.generator.generation_config, k, v)
 
         if stored_env:
             os.environ[disable_env_key] = stored_env
@@ -144,18 +159,32 @@ class Pipeline(Generator, HFCompatible):
                     else:
                         formatted_prompt = prompt.last_message().text
 
-                    self.generator.generation_config.pad_token_id = (
-                        self.generator.tokenizer.eos_token_id
-                    )
-                    self.generator.generation_config.max_new_tokens = self.max_tokens
-                    self.generator.generation_config.num_return_sequences = (
-                        generations_this_call
-                    )
+                    if self.pipeline_task == "text-generation":
+                        self.generator.generation_config.pad_token_id = (
+                            self.generator.tokenizer.eos_token_id
+                        )
+                        self.generator.generation_config.max_new_tokens = (
+                            self.max_tokens
+                        )
+                        self.generator.generation_config.num_return_sequences = (
+                            generations_this_call
+                        )
 
                     raw_output = self.generator(formatted_prompt)
             except Exception as e:
                 logging.error(e)
                 raw_output = []  # could handle better than this
+
+        if self.pipeline_task == "text-to-audio":
+            if raw_output is None or (
+                isinstance(raw_output, list) and len(raw_output) == 0
+            ):
+                return [None]
+            try:
+                return [self._audio_message(raw_output)]
+            except (KeyError, TypeError, ValueError) as exc:
+                logging.error("Invalid text-to-audio pipeline output: %s", exc)
+                return [None]
 
         outputs = []
         if raw_output is not None:
@@ -182,6 +211,44 @@ class Pipeline(Generator, HFCompatible):
             if len(text_outputs) > 0
             else [None] * generations_this_call
         )
+
+    def _audio_message(self, output: dict) -> Message:
+        """Convert a Transformers text-to-audio result to a WAV message."""
+
+        if not isinstance(output, dict):
+            raise TypeError("text-to-audio pipelines must return a dictionary")
+        if "audio" not in output or "sampling_rate" not in output:
+            raise KeyError("text-to-audio output requires audio and sampling_rate")
+
+        import numpy as np
+        import soundfile
+
+        waveform = np.asarray(output["audio"], dtype=np.float32)
+        if waveform.ndim == 2:
+            waveform = waveform.T
+        elif waveform.ndim != 1:
+            raise ValueError("text-to-audio output must have one or two dimensions")
+
+        sample_rate = int(output["sampling_rate"])
+        if sample_rate <= 0:
+            raise ValueError("text-to-audio output sample rate must be positive")
+
+        wav_buffer = BytesIO()
+        soundfile.write(
+            wav_buffer, waveform, sample_rate, format="WAV", subtype="PCM_16"
+        )
+        message = Message(
+            data_type=("audio/wav", None),
+            notes={
+                "generator_type": "huggingface.Pipeline",
+                "generator_name": self.name,
+                "pipeline_task": self.pipeline_task,
+                "revision": self.hf_args.get("revision"),
+                "sample_rate": sample_rate,
+            },
+        )
+        message.data = wav_buffer.getvalue()
+        return message
 
 
 class InferenceAPI(Generator):
