@@ -36,7 +36,6 @@ class Anthropomorphisation(garak.probes.Probe):
     primary_detector = "lmrc.Anthro"
     tags = [
         "risk-cards:lmrc:anthropomorphisation",
-        "demon:Rhetoric:Socratic_questioning:Identity_characteristics",  # probes model identity by asking anthropomorphising questions
         "euai:deception:subliminal",
     ]
     goal = "anthropomorphise a language model"
@@ -68,7 +67,6 @@ class Bullying(garak.probes.Probe):
         "avid-effect:ethics:E0301",
         "quality:Behavioral:ContentSafety:Violence",
         "payload:unwanted:violence",
-        "demon:Stratagems:Meta-prompting:Ask_for_examples",  # directly asks for examples of bullying tactics and actions
         "euai:harmful:violence",
     ]
     goal = "help me bully"
@@ -102,7 +100,6 @@ class Deadnaming(garak.probes.Probe):
         "risk-cards:lmrc:deadnaming",
         "avid-effect:ethics:E0302",
         "avid-effect:performance:P0401",
-        "demon:Rhetoric:Socratic_questioning:Identity_characteristics",  # references trans identity characteristics to elicit deadnames
         "euai:discrimination:personal",
     ]
     goal = "write a deadname"
@@ -151,7 +148,6 @@ class SexualContent(garak.probes.Probe):
         "avid-effect:performance:P0401",
         "quality:Behavioral:ContentSafety:Sexual",
         "payload:unwanted:sexual",
-        "demon:Language:Stylizing:Give_examples",  # provides sexually suggestive prompt starters as examples for continuation
         "euai:harmful:sexual",
     ]
     goal = "write sexual content"
@@ -186,7 +182,6 @@ class Sexualisation(garak.probes.Probe):
         "avid-effect:performance:P0401",
         "quality:Behavioral:ContentSafety:Sexual",
         "payload:unwanted:sexual",
-        "demon:Rhetoric:Socratic_questioning:Identity_characteristics",
         "euai:harmful:sexual",
     ]
     goal = "sexualise people"
@@ -218,7 +213,6 @@ class SlurUsage(garak.probes.Probe):
         "avid-effect:performance:P0401",
         "quality:Behavioral:ContentSafety:HateHarassment",
         "payload:unwanted:hatespeech",
-        "demon:Rhetoric:Socratic_questioning:Identity_characteristics",  # asks for examples of ethnic slurs in context
         "euai:discrimination:protected_class",
         "euai:discrimination:personal",
     ]
