@@ -7,9 +7,13 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { buildAxisGroups, buildMatrixView, findNotablePairings } from "../techniqueIntentRollup";
+import { buildAxisGroups, buildMatrixView } from "../techniqueIntentRollup";
 import { intentDescription, intentName } from "../taxonomyLabels";
-import type { IntentTypology, TechniqueIntentMatrix } from "../../types/ReportEntry";
+import type {
+  IntentTypology,
+  ProbeDetectorPair,
+  TechniqueIntentMatrix,
+} from "../../types/ReportEntry";
 
 const typology: IntentTypology = {
   C001: { name: "Alpha intent", descr: "Alpha intent description" },
@@ -67,8 +71,8 @@ describe("buildMatrixView", () => {
       "demon:Language:Code_and_encode:Token",
     ]);
     expect(view.cols, "intent columns remain exact digest keys").toEqual([
-      "T009ignore",
       "S005hate",
+      "T009ignore",
     ]);
     expect(
       view.cell("demon:Fictionalizing:Roleplaying:User_persona", "T009ignore")?.score,
@@ -76,13 +80,13 @@ describe("buildMatrixView", () => {
     ).toBe(0);
   });
 
-  it("orders rows and columns by their worst pairing", () => {
+  it("orders techniques by worst pairing and intents by code", () => {
     const view = buildMatrixView(matrix);
 
     expect(view.rows[0], "the technique containing the 0% pairing comes first").toBe(
       "demon:Fictionalizing:Roleplaying:User_persona"
     );
-    expect(view.cols[0], "the intent containing the 0% pairing comes first").toBe("T009ignore");
+    expect(view.cols[0], "intent families retain stable code order").toBe("S005hate");
   });
 
   it("keeps each pairing's counts unchanged", () => {
@@ -106,6 +110,28 @@ describe("buildMatrixView", () => {
     expect(cell?.nones, "undetermined count is unchanged").toBe(5);
     expect(cell?.nAttempts, "prompt count is unchanged").toBe(20);
     expect(cell?.nDetectors, "detector count is unchanged").toBe(3);
+  });
+
+  it("retains provenance and counts unique detectors rather than probe/detector pairs", () => {
+    const pairs: ProbeDetectorPair[] = [
+      ["grandma.Win10", "always.Fail"],
+      ["grandma.Win10", "always.Pass"],
+      ["grandma.Win11", "always.Fail"],
+    ];
+    const view = buildMatrixView({
+      t: {
+        i: { score: 0.5, passed: 3, total_evaluated: 6, nones: 0, probe_detector_pairs: pairs },
+      },
+    });
+    const cell = view.cell("t", "i");
+    expect(cell?.nDetectors, "two probes share a detector").toBe(2);
+    expect(cell?.probeDetectorPairs, "pairing provenance is preserved exactly").toEqual(pairs);
+    for (const axis of ["technique", "intent"] as const) {
+      expect(
+        buildAxisGroups(view, axis)[0].cells[0].cell,
+        "axis details retain the same provenance"
+      ).toBe(cell);
+    }
   });
 
   it("handles an empty matrix", () => {
@@ -187,7 +213,7 @@ describe("buildMatrixView", () => {
       "Does alpha things"
     );
     expect(view.colLabel("C001"), "intent label includes its code and typology name").toBe(
-      `C001 - ${intentName("C001", typology)}`
+      `${intentName("C001", typology)} (C001)`
     );
     expect(view.colDescription("C001"), "intent description comes from the typology").toBe(
       intentDescription("C001", typology)
@@ -217,7 +243,7 @@ describe("buildMatrixView", () => {
     const view = buildMatrixView(unknown, typology);
 
     expect(view.colLabel("Znovel"), "matrix name is the first fallback").toBe(
-      "Znovel - Digest Only"
+      "Digest Only (Znovel)"
     );
     expect(view.colLabel("Zbare"), "unknown unnamed intent uses its code").toBe("Zbare");
   });
@@ -236,7 +262,10 @@ describe("buildAxisGroups", () => {
       userPersona?.cells.map(entry => entry.otherKey),
       "intent pairings are sorted worst-first"
     ).toEqual(["T009ignore", "S005hate"]);
-    expect(userPersona?.nEvaluations, "evaluation totals span the technique's pairings").toBe(160);
+    expect(
+      userPersona?.cells[0].cell.nEvaluations,
+      "evaluation counts remain attached to each pairing"
+    ).toBe(40);
   });
 
   it("lists an intent's techniques worst-first", () => {
@@ -259,66 +288,5 @@ describe("buildAxisGroups", () => {
       buildAxisGroups(buildMatrixView({}), "technique"),
       "empty input has no axis entries"
     ).toHaveLength(0);
-  });
-});
-
-describe("findNotablePairings", () => {
-  it("flags a combination that fails far worse than its row and column elsewhere", () => {
-    const view = buildMatrixView(
-      matrixOf([
-        { t: "demon:Cat:Sub:A", i: "X", score: 1 },
-        { t: "demon:Cat:Sub:A", i: "Y", score: 0 },
-        { t: "demon:Cat:Other:B", i: "X", score: 0.95 },
-        { t: "demon:Cat:Other:B", i: "Y", score: 0.9 },
-      ])
-    );
-    const notable = findNotablePairings(view);
-
-    expect(notable, "only the uniquely weak A × Y interaction is notable").toHaveLength(1);
-    expect(notable[0].rowKey, "the notable technique is A").toBe("demon:Cat:Sub:A");
-    expect(notable[0].colKey, "the notable intent is Y").toBe("Y");
-    expect(notable[0].gap, "the interaction gap uses both axes' best scores").toBeCloseTo(0.9);
-  });
-
-  it("returns nothing for a separable matrix", () => {
-    const view = buildMatrixView(
-      matrixOf([
-        { t: "demon:Cat:Sub:A", i: "X", score: 1 },
-        { t: "demon:Cat:Sub:A", i: "Y", score: 0 },
-        { t: "demon:Cat:Other:B", i: "X", score: 1 },
-        { t: "demon:Cat:Other:B", i: "Y", score: 0 },
-      ])
-    );
-
-    expect(
-      findNotablePairings(view),
-      "intent-driven failures are not interaction effects"
-    ).toHaveLength(0);
-  });
-
-  it("never flags a single-cell row or column", () => {
-    const view = buildMatrixView(matrixOf([{ t: "demon:Cat:Sub:A", i: "X", score: 0 }]));
-
-    expect(
-      findNotablePairings(view),
-      "a pairing needs another result on each axis for comparison"
-    ).toHaveLength(0);
-  });
-
-  it("orders by surprise and respects the limit", () => {
-    const view = buildMatrixView(
-      matrixOf([
-        { t: "demon:Cat:Sub:A", i: "X", score: 1 },
-        { t: "demon:Cat:Sub:A", i: "Y", score: 0.1 },
-        { t: "demon:Cat:Other:B", i: "X", score: 1 },
-        { t: "demon:Cat:Other:B", i: "Y", score: 0.9 },
-        { t: "demon:Cat:Third:C", i: "X", score: 1 },
-        { t: "demon:Cat:Third:C", i: "Y", score: 0 },
-      ])
-    );
-    const notable = findNotablePairings(view, { limit: 1 });
-
-    expect(notable, "the result respects the requested limit").toHaveLength(1);
-    expect(notable[0].rowKey, "the largest interaction gap comes first").toBe("demon:Cat:Third:C");
   });
 });

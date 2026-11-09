@@ -11,7 +11,13 @@ import type {
 
 // Mock Kaizen components
 vi.mock("@kui/react", () => ({
-  Notification: ({ status, slotHeading, slotSubheading, slotFooter, ...props }: MockNotificationProps) => (
+  Notification: ({
+    status,
+    slotHeading,
+    slotSubheading,
+    slotFooter,
+    ...props
+  }: MockNotificationProps) => (
     <div data-testid="notification" data-status={status} {...props}>
       <div data-testid="notification-heading">{slotHeading}</div>
       <div data-testid="notification-subheading">{slotSubheading}</div>
@@ -131,12 +137,23 @@ describe("SummaryStatsCard", () => {
       expect(screen.getByText("2/3 modules are below DC-3")).toBeInTheDocument();
     });
 
-    it("displays all secure message when no concerning modules", () => {
+    it("describes the aggregate threshold without claiming every result is secure", () => {
       const modules = [createMockModule(4), createMockModule(5)];
 
       render(<SummaryStatsCard modules={modules} />);
 
-      expect(screen.getByText("2 modules evaluated - all secure")).toBeInTheDocument();
+      expect(
+        screen.getByText("0/2 modules are below DC-3"),
+        "zero modules breach the aggregate threshold"
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText("Based on module aggregate scores."),
+        "aggregate scope is explicit"
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText(/all secure/),
+        "a module aggregate does not certify all probe results"
+      ).toBeNull();
     });
 
     it("correctly identifies concerning modules as DEFCON <= 2", () => {
@@ -257,7 +274,7 @@ describe("SummaryStatsCard", () => {
       render(<SummaryStatsCard modules={modules} />);
 
       expect(screen.getByTestId("notification-heading")).toHaveTextContent(
-        "Module Security Status",
+        "Module Security Status"
       );
     });
 

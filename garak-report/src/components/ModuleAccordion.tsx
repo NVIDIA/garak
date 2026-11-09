@@ -23,6 +23,8 @@ interface ModuleAccordionProps {
   accordionKey: string;
   /** Whether dark theme is active */
   isDark: boolean;
+  /** Probe to open when navigating from the technique/intent details. */
+  initialProbe?: Probe;
 }
 
 /** Format aggregation function name for display */
@@ -39,9 +41,12 @@ const formatAggregation = (fn: string | undefined): string => {
  * @param props - Component props
  * @returns Accordion with module list and expandable charts
  */
-const ModuleAccordion = ({ modules, accordionKey, isDark }: ModuleAccordionProps) => {
-  const [selectedProbe, setSelectedProbe] = useState<Probe | null>(null);
-  const [openAccordionValue, setOpenAccordionValue] = useState<string>("");
+const ModuleAccordion = ({ modules, accordionKey, isDark, initialProbe }: ModuleAccordionProps) => {
+  const [selectedProbe, setSelectedProbe] = useState<Probe | null>(initialProbe ?? null);
+  const [openAccordionValue, setOpenAccordionValue] = useState(
+    () =>
+      modules.find(module => module.probes?.some(probe => probe === initialProbe))?.group_name ?? ""
+  );
   const { getDefconBadgeColor } = useSeverityColor();
 
   return (
@@ -102,6 +107,7 @@ const ModuleAccordion = ({ modules, accordionKey, isDark }: ModuleAccordionProps
               setSelectedProbe={setSelectedProbe}
               selectedProbe={selectedProbe}
               isDark={isDark}
+              focusSelectedProbe={selectedProbe === initialProbe}
             />
           </ErrorBoundary>
         ),
@@ -116,4 +122,3 @@ const ModuleAccordion = ({ modules, accordionKey, isDark }: ModuleAccordionProps
 };
 
 export default ModuleAccordion;
-

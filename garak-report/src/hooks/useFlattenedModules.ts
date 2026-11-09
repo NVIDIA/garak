@@ -67,6 +67,7 @@ function buildDetector(name: string, data: EvalDetectorData): Detector | null {
  * handles filtering based on score thresholds and configuration flags.
  *
  * @param report - The raw report data from backend containing nested eval structure
+ * @param revealProbe - Include this probe's group and passing detectors when navigating to it
  * @returns Flattened array of modules with their probes and detectors
  *
  * @example
@@ -75,7 +76,10 @@ function buildDetector(name: string, data: EvalDetectorData): Detector | null {
  * // Returns: [{ group_name: "category.probe", summary: {...}, probes: [...] }]
  * ```
  */
-export default function useFlattenedModules(report: ReportEntry | null): ModuleData[] {
+export default function useFlattenedModules(
+  report: ReportEntry | null,
+  revealProbe?: string
+): ModuleData[] {
   return useMemo(() => {
     if (!report) return [];
 
@@ -105,7 +109,11 @@ export default function useFlattenedModules(report: ReportEntry | null): ModuleD
 
       // Decide if this group should be shown
       /* istanbul ignore else */
-      if (groupSummary.score < 1 || show100Pass) {
+      if (
+        groupSummary.score < 1 ||
+        show100Pass ||
+        (revealProbe && isEvalProbe(evalGroup[revealProbe]))
+      ) {
         const groupObj: ModuleData = {
           group_name: groupName,
           summary: groupSummary,
@@ -132,7 +140,7 @@ export default function useFlattenedModules(report: ReportEntry | null): ModuleD
             if (!isEvalDetectorData(detectorData)) return;
 
             const detector = buildDetector(detectorName, detectorData);
-            if (detector && (detector.absolute_score < 1 || show100Pass)) {
+            if (detector && (detector.absolute_score < 1 || show100Pass || probeName === revealProbe)) {
               probeEntry.detectors.push(detector);
             }
           });
@@ -145,5 +153,5 @@ export default function useFlattenedModules(report: ReportEntry | null): ModuleD
     });
 
     return flat;
-  }, [report]);
+  }, [report, revealProbe]);
 }
