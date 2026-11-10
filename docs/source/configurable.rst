@@ -77,6 +77,7 @@ Let's take a look at the core config.
         generators: {}
         buffs: {}
         harnesses: {}
+        injectors: {}
         probes:
             encoding:
                 payloads:
@@ -150,6 +151,7 @@ Plugins Config Items
 * ``generators`` - Root note for generator plugin configs
 * ``buffs`` - Root note for buff plugin configs
 * ``harnesses`` - Root note for harness plugin configs
+* ``injectors`` - Root note for injector plugin configs
 * ``probes`` - Root note for probe plugin configs
 
 .. note::

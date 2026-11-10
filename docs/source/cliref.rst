@@ -19,6 +19,7 @@ CLI reference for garak
                          [--detector_option_file DETECTOR_OPTION_FILE | --detector_options DETECTOR_OPTIONS]
                          [--generator_option_file GENERATOR_OPTION_FILE | --generator_options GENERATOR_OPTIONS]
                          [--harness_option_file HARNESS_OPTION_FILE | --harness_options HARNESS_OPTIONS]
+                         [--injector_option_file INJECTOR_OPTION_FILE | --injector_options INJECTOR_OPTIONS]
                          [--probe_option_file PROBE_OPTION_FILE | --probe_options PROBE_OPTIONS]
                          [--taxonomy TAXONOMY]
                          [--confidence_interval_method {bootstrap,none}]
@@ -102,6 +103,11 @@ CLI reference for garak
                           harness
     --harness_options HARNESS_OPTIONS
                           options to pass to harness, formatted as a JSON dict
+    --injector_option_file INJECTOR_OPTION_FILE
+                          path to JSON file containing options to pass to
+                          injector
+    --injector_options INJECTOR_OPTIONS
+                          options to pass to injector, formatted as a JSON dict
     --probe_option_file PROBE_OPTION_FILE, -P PROBE_OPTION_FILE
                           path to JSON file containing options to pass to probe
     --probe_options PROBE_OPTIONS

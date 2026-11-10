@@ -20,8 +20,8 @@ from pathlib import Path
 from garak import _config
 from garak.exception import GarakException, ConfigFailure
 
-PLUGIN_TYPES = ("probes", "detectors", "generators", "harnesses", "buffs")
-PLUGIN_CLASSES = ("Probe", "Detector", "Generator", "Harness", "Buff")
+PLUGIN_TYPES = ("probes", "detectors", "generators", "harnesses", "buffs", "injectors")
+PLUGIN_CLASSES = ("Probe", "Detector", "Generator", "Harness", "Buff", "Injector")
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S %z"
 
 

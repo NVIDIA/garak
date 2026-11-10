@@ -11546,5 +11546,16 @@
       "lang": "en",
       "mod_time": "2026-09-16 16:21:20 +0000"
     }
+  },
+  "injectors": {
+    "injectors.base.Injector": {
+      "description": "Base class for an injector.",
+      "DEFAULT_PARAMS": {},
+      "active": true,
+      "capabilities": [],
+      "doc_uri": "",
+      "extra_dependency_names": [],
+      "mod_time": "2026-11-10 12:27:28 +0000"
+    }
   }
 }

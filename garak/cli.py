@@ -206,11 +206,17 @@ def main(arguments=None) -> None:
     plugin_types = sorted(
         zip([type.lower() for type in _plugins.PLUGIN_CLASSES], _plugins.PLUGIN_TYPES)
     )
+    # short flags defined by earlier or later arguments; a plugin type whose
+    # name starts with one of these gets no short flag for its option file
+    reserved_short_flags = {"-I"}  # --interactive
     for plugin_type, _ in plugin_types:
         probe_args = parser.add_mutually_exclusive_group()
+        option_file_flags = [f"--{plugin_type}_option_file"]
+        short_flag = f"-{plugin_type[0].upper()}"
+        if short_flag not in reserved_short_flags:
+            option_file_flags.append(short_flag)
         probe_args.add_argument(
-            f"--{plugin_type}_option_file",
-            f"-{plugin_type[0].upper()}",
+            *option_file_flags,
             type=str,
             help=f"path to JSON file containing options to pass to {plugin_type}",
         )
