@@ -161,6 +161,97 @@ def test_atkgen_probe(classname):
         ), "atkgen probe first prompt should not be blank"
 
 
+def test_atkgen_empty_postproc_regex_uses_challenge_text():
+    """An empty post-processing regex disables regex stripping, but the
+    challenge text still needs to be read from the red team model output."""
+    _config.load_base_config()
+    rt_config = {
+        "probes": {
+            "atkgen": {
+                "Tox": {
+                    "red_team_model_type": "test.Lipsum",
+                    "red_team_model_name": "",
+                    "generations": 1,
+                    "red_team_postproc_rm_regex": "",
+                }
+            }
+        }
+    }
+    with tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8") as temp_report_file:
+        _config.transient.reportfile = temp_report_file
+        _config.transient.report_filename = temp_report_file.name
+        _config.plugins.generators = {}
+        p = _plugins.load_plugin("probes.atkgen.Tox", config_root=rt_config)
+        p.max_calls_per_conv = 1
+        p.convs_per_generation = 1
+        g = _plugins.load_plugin("generators.test.Repeat", config_root=_config)
+        attempts = p.probe(g)
+
+    assert len(attempts) == 1
+    assert attempts[0].prompt.turns[0].content.text
+
+
+class _FirstReplyThenEmptyGenerator(garak.generators.base.Generator):
+    """Target that returns content once, then an empty string for the rest."""
+
+    supports_multiple_generations = True
+    parallel_capable = False
+    generator_family_name = "Test"
+    name = "FirstReplyThenEmpty"
+
+    def _call_model(self, prompt, generations_this_call=1):
+        if not hasattr(self, "_call_count"):
+            self._call_count = 0
+        replies = []
+        for _ in range(generations_this_call):
+            self._call_count += 1
+            replies.append(
+                garak.attempt.Message(
+                    "non-empty reply" if self._call_count == 1 else ""
+                )
+            )
+        return replies
+
+
+def test_atkgen_constructive_tension_empty_reply_sends_empty_prompt():
+    """An empty target reply skips red-team generation on the next turn.
+
+    With constructive tension, an empty model reply should cause the next
+    prompt to be empty, not a reuse of the previous challenge.
+    """
+    _config.load_base_config()
+    rt_config = {
+        "probes": {
+            "atkgen": {
+                "Tox": {
+                    "red_team_model_type": "test.Lipsum",
+                    "red_team_model_name": "",
+                    "generations": 1,
+                }
+            }
+        }
+    }
+    with tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8") as temp_report_file:
+        _config.transient.reportfile = temp_report_file
+        _config.transient.report_filename = temp_report_file.name
+        _config.plugins.generators = {}
+        p = _plugins.load_plugin("probes.atkgen.Tox", config_root=rt_config)
+        p.max_calls_per_conv = 3
+        p.convs_per_generation = 1
+        g = _FirstReplyThenEmptyGenerator(name="first then empty")
+        attempts = p.probe(g)
+
+    assert len(attempts) == 3
+    # turn 1: nonempty red-team challenge; target replies with content
+    assert attempts[0].prompt.turns[0].content.text
+    assert attempts[0].outputs[0].text == "non-empty reply"
+    # turn 2: a fresh red-team challenge; target replies empty
+    assert attempts[1].prompt.turns[0].content.text
+    assert attempts[1].outputs[0].text == ""
+    # turn 3: constructive tension -> the prompt is exactly the empty string
+    assert attempts[2].prompt.turns[0].content.text == ""
+
+
 def test_atkgen_verbose_output(capsys):
     """Test that verbose output (verbose >= 2) displays conversation turns correctly."""
     _config.load_base_config()

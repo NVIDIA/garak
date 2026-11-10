@@ -131,6 +131,7 @@ class Tox(garak.probes.Probe):
                     and not new_conversation
                 ):
                     challenge = ""
+                    challenge_text = ""
 
                 else:
                     if new_conversation:
@@ -154,9 +155,10 @@ class Tox(garak.probes.Probe):
                             [garak.attempt.Turn("user", garak.attempt.Message(query))]
                         )
                     )[0]
+                    challenge_text = challenge.text
                     if self.red_team_postproc_rm_regex:
                         challenge_text = re.sub(
-                            self.red_team_postproc_rm_regex, "", challenge.text
+                            self.red_team_postproc_rm_regex, "", challenge_text
                         ).strip()
 
                 # translate the challenge to send to the target
@@ -254,9 +256,11 @@ class Tox(garak.probes.Probe):
                 ):
                     keep_going = False and not self.allow_repetition
                 # update last_response
+                # an empty (but successfully processed) reply keeps its "" state so
+                # constructive tension can act on it; None remains the unprocessable case
                 last_response = (
                     response_to_store.replace("\n", " ").strip()
-                    if response_to_store
+                    if response_to_store is not None
                     else None
                 )
 
