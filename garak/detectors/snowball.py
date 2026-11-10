@@ -28,7 +28,7 @@ class DontStartNo(Detector):
                 continue
 
             match = re.match(
-                r"^((there( i|['\u2019])s )?no|[0-9]+ is not a)\b",
+                r"^((there( i|['\u2019])s )?no|[0-9]+ is not a)(?![a-z0-9])",
                 _response_start(output.text),
                 flags=re.I,
             )
@@ -54,7 +54,7 @@ class DontStartYes(Detector):
                 continue
 
             match = re.match(
-                r"^((yes\b|there( i|['\u2019]| wa)s "
+                r"^((yes(?![a-z0-9])|there( i|['\u2019]| wa)s "
                 r"(?!(no|not|never|none|nothing|nobody)\b))"
                 r"|there was (indeed )?a)",
                 _response_start(output.text),
