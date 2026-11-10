@@ -116,3 +116,9 @@ def test_native_multiple_generations_bypasses_pool(parallel_capable):
             outputs = generator.generate(prompt, generations_this_call=3)
             call.assert_called_once_with(prompt, 3)
     assert [output.text for output in outputs] == ["hello"] * 3
+
+
+def test_base_generator_has_no_capabilities():
+    """A plain text target offers no interaction surface for injectors."""
+    generator = Generator(name="capabilities test")
+    assert generator.list_capabilities() == set()

@@ -13,6 +13,7 @@ import tqdm
 
 from garak import _config
 from garak.attempt import Message, Conversation
+from garak.capabilities import Capability
 from garak.configurable import Configurable
 from garak.exception import BadGeneratorException, GarakException
 import garak.resources.theme
@@ -82,6 +83,19 @@ class Generator(Configurable):
 
         Can return None if no response was elicited"""
         raise NotImplementedError
+
+    def list_capabilities(self) -> set[Capability]:
+        """Return the interaction surfaces this target draws content from.
+
+        Capability names describe the channels through which a target can
+        receive untrusted content during a generation, for example
+        ``Capability.MCP`` for a target that queries external MCP servers.
+        Probes match these names against injector ``capabilities`` to find a
+        surface they can occupy; a plain text target offers no such channel.
+        Every name is a ``Capability`` member; support for a new surface
+        starts with adding a member to ``garak.capabilities``.
+        """
+        return set()
 
     def _pre_generate_hook(self):
         pass

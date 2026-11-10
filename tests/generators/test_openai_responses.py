@@ -10,6 +10,7 @@ from unittest.mock import MagicMock, patch
 import openai
 
 from garak.attempt import Message, Turn, Conversation
+from garak.capabilities import Capability
 from garak.generators.openai import OpenAIResponsesGenerator
 
 FAKE_API_KEY = "sk-test-fake-key"
@@ -115,7 +116,91 @@ def test_custom_uri_and_tools(set_fake_env, mock_openai_client):
     assert kwargs.get("base_url") == "http://localhost:8321/v1/"
 
 
-# ── _call_model ───────────────────────────────────────────────────────────────
+# ── capabilities ───────────────────────────────────────────────────────────────
+
+
+def test_default_capabilities_are_empty(generator):
+    assert generator.list_capabilities() == set()
+
+
+def test_capabilities_derived_from_tools(set_fake_env, mock_openai_client):
+    gen = OpenAIResponsesGenerator(
+        name="my-model",
+        config_root={
+            "generators": {
+                "openai": {
+                    "OpenAIResponsesGenerator": {
+                        "tools": [
+                            {"type": "mcp", "server_url": "http://localhost:8888/sse"},
+                            {"type": "web_search"},
+                        ],
+                    }
+                }
+            }
+        },
+    )
+    caps = gen.list_capabilities()
+    assert caps == {"mcp", "web_search"}, "equality with raw names must hold"
+    assert Capability.MCP in caps, "known tool types must map to enum members"
+    assert all(
+        isinstance(c, Capability) for c in caps
+    ), "every capability must be an enum member"
+
+
+def test_unmapped_tool_types_are_dropped(set_fake_env, mock_openai_client):
+    gen = OpenAIResponsesGenerator(
+        name="my-model",
+        config_root={
+            "generators": {
+                "openai": {
+                    "OpenAIResponsesGenerator": {
+                        "tools": [{"type": "image_generation"}],
+                    }
+                }
+            }
+        },
+    )
+    assert (
+        gen.list_capabilities() == set()
+    ), "a tool type garak cannot name carries no capability"
+
+
+def test_tool_type_aliases_map_to_capabilities(set_fake_env, mock_openai_client):
+    """Upstream tool types naming a known surface map onto its member."""
+    gen = OpenAIResponsesGenerator(
+        name="my-model",
+        config_root={
+            "generators": {
+                "openai": {
+                    "OpenAIResponsesGenerator": {
+                        "tools": [
+                            {"type": "file_search"},
+                            {"type": "code_interpreter"},
+                            {"type": "local_shell"},
+                        ],
+                    }
+                }
+            }
+        },
+    )
+    caps = gen.list_capabilities()
+    assert caps == {
+        Capability.FILE,
+        Capability.CODE,
+        Capability.SHELL,
+    }, "aliases must map onto the members for the surfaces they describe"
+    assert all(
+        isinstance(c, Capability) for c in caps
+    ), "every capability must be an enum member"
+
+
+def test_capability_membership_check(generator):
+    generator.tools = [{"type": "mcp", "server_url": "http://localhost:8888/sse"}]
+    assert Capability.MCP in generator.list_capabilities()
+    assert "function" not in generator.list_capabilities()
+
+
+# ── _call_model ────────────────────────────────────────────────────────────────
 
 
 def test_call_model_returns_message(generator):

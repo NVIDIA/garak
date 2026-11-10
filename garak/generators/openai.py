@@ -23,6 +23,7 @@ import backoff
 
 from garak import _config
 from garak.attempt import Message, Conversation
+from garak.capabilities import Capability
 import garak.exception
 from garak.generators.base import Generator
 
@@ -489,6 +490,17 @@ class OpenAIReasoningGenerator(OpenAIGenerator):
     }
 
 
+# Responses API tool types mapped onto garak capabilities; tool types absent
+# here carry no capability and are dropped
+RESPONSES_TOOL_CAPABILITIES = {
+    "mcp": Capability.MCP,
+    "web_search": Capability.WEB_SEARCH,
+    "file_search": Capability.FILE,
+    "code_interpreter": Capability.CODE,
+    "local_shell": Capability.SHELL,
+}
+
+
 class OpenAIResponsesGenerator(OpenAICompatible):
     """Generator using the OpenAI Responses API with server-side tool orchestration.
 
@@ -520,6 +532,26 @@ class OpenAIResponsesGenerator(OpenAICompatible):
 
     def _generator_is_valid(self) -> bool:
         return self.generator == self.client.responses
+
+    def list_capabilities(self) -> set[Capability]:
+        """Server-side tool types in ``tools`` are this target's capabilities.
+
+        The Responses API runs the tool loop on the server, so each configured
+        tool type is a channel the target pulls untrusted content from. Tool
+        types are mapped onto ``Capability`` through
+        ``RESPONSES_TOOL_CAPABILITIES``; unmapped types are dropped, because
+        no injector can occupy a surface garak does not name.
+        """
+        capabilities = set()
+        for tool in self.tools or []:
+            if not isinstance(tool, dict) or "type" not in tool:
+                continue
+            capability = RESPONSES_TOOL_CAPABILITIES.get(tool["type"])
+            if capability is None:
+                logging.debug("tool type %r maps to no capability", tool["type"])
+                continue
+            capabilities.add(capability)
+        return capabilities
 
     def _load_unsafe(self):
         kwargs = {"api_key": getattr(self, "api_key", None)}

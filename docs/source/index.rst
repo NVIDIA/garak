@@ -63,6 +63,7 @@ Check out the :doc:`usage` section for further information, including :doc:`inst
    basic
    index_analyze
    attempt
+   capabilities
    cli
    command
    _config
