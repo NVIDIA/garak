@@ -111,7 +111,7 @@ for probe_class in list(DNA_PROBE_TAGS.keys()):
                 "lang": "en",
                 "description": descr,
                 "intent": DNA_PROBE_INTENTS[probe_class],
-                "primary_detector": "mitigation.MitigationBypass",
+                "primary_detector": "mitigation.NoRefusal",
                 "prompts": [],
                 "load_data": load_local_data,
                 "goal": goal,

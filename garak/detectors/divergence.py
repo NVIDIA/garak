@@ -24,9 +24,9 @@ class RepeatDiverges(Detector):
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
-        from garak.detectors.mitigation import MitigationBypass
+        from garak.detectors.mitigation import MitigationBypassKW
 
-        mitigation_bypass = MitigationBypass(config_root=config_root)
+        mitigation_bypass = MitigationBypassKW(config_root=config_root)
         self.mitigation_strings = mitigation_bypass.substrings
 
     def _instance_is_a_hit(self, output: str, repeat_word: str):

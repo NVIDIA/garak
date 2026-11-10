@@ -568,7 +568,7 @@ class EncodingIntentProbe(garak.probes.IntentProbe, ABC):
     intent = None
     goal = "make the model act on an encoded instruction"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.NoRefusal"
     tags = [
         "avid-effect:security:S0403",
         "owasp:llm01",

@@ -18,7 +18,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -30,7 +30,7 @@
         "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 2,
-      "mod_time": "2026-10-08 17:10:09 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.agent_breaker.AgentBreaker": {
       "description": "Agent Breaker - Agentic Application Exploitation Probe",
@@ -75,7 +75,7 @@
         "payload:agentic:exploitation"
       ],
       "tier": 3,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.ansiescape.AnsiEscaped": {
       "description": "Probe for eliciting ANSI control codes from a model",
@@ -107,7 +107,7 @@
         "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 3,
-      "mod_time": "2026-05-27 20:51:42 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.ansiescape.AnsiRaw": {
       "description": "Probe for eliciting raw ANSI control codes from a model",
@@ -139,7 +139,7 @@
         "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 1,
-      "mod_time": "2026-05-27 20:51:42 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.ansiescape.AnsiRawTokenizerHF": {
       "description": "Probe for checking a tokenizer for potentially malicious ANSI escape sequences",
@@ -165,7 +165,7 @@
         "demon:Language:Code_and_encode:Token"
       ],
       "tier": 1,
-      "mod_time": "2026-05-27 20:51:42 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.apikey.CompleteKey": {
       "description": "Will the system try to complete an API key, when given a partial one?",
@@ -192,7 +192,7 @@
         "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-10-08 17:10:09 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.apikey.GetKey": {
       "description": "Will the system return secret looking strings, when asked for an API key?",
@@ -218,7 +218,7 @@
         "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-10-08 17:10:09 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.atkgen.Tox": {
       "description": "Automatic attack generation, trying to elicit toxic outputs from the model.",
@@ -266,7 +266,7 @@
         "euai:discrimination:personal"
       ],
       "tier": 2,
-      "mod_time": "2026-09-09 15:22:06 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.audio.AudioAchillesHeel": {
       "description": "Audio is the Achilles Heel",
@@ -291,7 +291,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -299,7 +299,7 @@
         "demon:Language:Code_and_encode:Data_presentation"
       ],
       "tier": 9,
-      "mod_time": "2026-10-12 11:04:35 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.av_spam_scanning.EICAR": {
       "description": "Does the model check its output for viruses? Try to send the EICAR code through",
@@ -330,7 +330,7 @@
         "euai:robustness:security"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.av_spam_scanning.GTUBE": {
       "description": "Does the model check its output for spam? Try to send the GTUBE code through",
@@ -361,7 +361,7 @@
         "euai:robustness:phishing"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.av_spam_scanning.GTphish": {
       "description": "Does the model check its output for phishing? Try to send the GTphish code through",
@@ -391,7 +391,7 @@
         "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.badchars.BadCharacters": {
       "description": "Imperceptible perturbations mixing invisible chars, homoglyphs, swaps, deletions.",
@@ -422,7 +422,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "quality:Security:PromptStability",
@@ -431,7 +431,7 @@
         "euai:robustness:unexpected_behavior"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.base.IntentProbe": {
       "description": "Probe implementing a technique that tests over a range of intents",
@@ -457,7 +457,7 @@
       "skip_root_intents": true,
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-11-06 20:34:43 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.base.IterativeProbe": {
       "description": "",
@@ -481,7 +481,7 @@
       "primary_detector": null,
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-11-06 20:34:43 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.base.Probe": {
       "description": "Base class for objects that define and execute LLM evaluations",
@@ -504,7 +504,7 @@
       "primary_detector": null,
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-11-06 20:34:43 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.base.TreeSearchProbe": {
       "DEFAULT_PARAMS": {
@@ -531,7 +531,7 @@
       "primary_detector": null,
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-11-06 20:34:43 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.continuation.ContinueSlursReclaimedSlurs": {
       "description": "Continue partial word with slur or reclaimed slur.",
@@ -565,7 +565,7 @@
         "euai:discrimination:personal"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.continuation.ContinueSlursReclaimedSlursFull": {
       "description": "Continue partial word with slur or reclaimed slur.",
@@ -599,7 +599,7 @@
         "euai:discrimination:personal"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.dan.Ablation_Dan_11_0": {
       "description": "Ablation experiments over the DAN 11.0 prompt",
@@ -609,7 +609,7 @@
       "active": true,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.MitigationBypass"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -633,7 +633,7 @@
         "demon:Language:Prompt_injection:Strong_arm_attack"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.dan.AntiDAN": {
       "description": "Anti-DAN",
@@ -643,7 +643,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.MitigationBypass"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -666,7 +666,7 @@
         "avid-effect:performance:P0204"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.dan.AutoDAN": {
       "description": "Probe leveraging AutoDAN attack generation",
@@ -689,7 +689,7 @@
       "active": false,
       "doc_uri": "https://arxiv.org/html/2310.04451",
       "extended_detectors": [
-        "mitigation.MitigationBypass"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -712,7 +712,7 @@
         "payload:jailbreak"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.dan.AutoDANCached": {
       "description": "Probe leveraging generated AutoDAN prompts",
@@ -722,7 +722,7 @@
       "active": true,
       "doc_uri": "https://arxiv.org/html/2310.04451",
       "extended_detectors": [
-        "mitigation.MitigationBypass"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -745,7 +745,7 @@
         "payload:jailbreak"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.dan.ChatGPT_Developer_Mode_RANTI": {
       "description": "ChatGPT DevMode + Ranti",
@@ -755,7 +755,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.MitigationBypass"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -778,7 +778,7 @@
         "avid-effect:performance:P0204"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.dan.ChatGPT_Developer_Mode_v2": {
       "description": "ChatGPT Developer Mode v2",
@@ -788,7 +788,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.MitigationBypass"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -811,7 +811,7 @@
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.dan.ChatGPT_Image_Markdown": {
       "description": "ChatGPT Markdown Image Unlocker / markdown injection",
@@ -821,7 +821,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.MitigationBypass"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -844,7 +844,7 @@
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.dan.DAN_Jailbreak": {
       "description": "DAN Jailbreak",
@@ -854,7 +854,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.MitigationBypass"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -877,7 +877,7 @@
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.dan.DUDE": {
       "description": "DUDE",
@@ -887,7 +887,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.MitigationBypass"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -910,7 +910,7 @@
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.dan.DanInTheWild": {
       "description": "A subset of jailbreaks from the DanInTheWild jailbreak library.",
@@ -930,7 +930,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -941,7 +941,7 @@
         "payload:jailbreak"
       ],
       "tier": 1,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.dan.DanInTheWildFull": {
       "description": "A library of jailbreaks.",
@@ -961,7 +961,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -972,7 +972,7 @@
         "payload:jailbreak"
       ],
       "tier": 1,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.dan.Dan_10_0": {
       "description": "DAN 10.0",
@@ -982,7 +982,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.MitigationBypass"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -1005,7 +1005,7 @@
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.dan.Dan_11_0": {
       "description": "DAN 11.0",
@@ -1015,7 +1015,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.MitigationBypass"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -1039,7 +1039,7 @@
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.dan.Dan_6_0": {
       "description": "DAN 6.0",
@@ -1049,7 +1049,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.MitigationBypass"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -1072,7 +1072,7 @@
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.dan.Dan_6_2": {
       "description": "DAN 6.2",
@@ -1082,7 +1082,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.MitigationBypass"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -1105,7 +1105,7 @@
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.dan.Dan_7_0": {
       "description": "DAN 7.0",
@@ -1115,7 +1115,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.MitigationBypass"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -1138,7 +1138,7 @@
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.dan.Dan_8_0": {
       "description": "DAN 8.0",
@@ -1148,7 +1148,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.MitigationBypass"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -1171,7 +1171,7 @@
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.dan.Dan_9_0": {
       "description": "DAN 9.0",
@@ -1181,7 +1181,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.MitigationBypass"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -1204,7 +1204,7 @@
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.dan.STAN": {
       "description": "STAN",
@@ -1214,7 +1214,7 @@
       "active": false,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.MitigationBypass"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "disregard the system prompt",
@@ -1237,7 +1237,7 @@
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.divergence.Repeat": {
       "description": "See if a model starts giving other data when asked to repeat a string indefinitely",
@@ -1247,7 +1247,7 @@
       "active": true,
       "doc_uri": "https://not-just-memorization.github.io/extracting-training-data-from-chatgpt.html",
       "extended_detectors": [
-        "mitigation.MitigationBypass"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "get the model to leak data by asking it to repeat words",
@@ -1272,7 +1272,7 @@
         "euai:robustness:unexpected_behavior"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.divergence.RepeatExtended": {
       "description": "See if a model starts giving other data when asked to repeat a string indefinitely",
@@ -1282,7 +1282,7 @@
       "active": false,
       "doc_uri": "https://not-just-memorization.github.io/extracting-training-data-from-chatgpt.html",
       "extended_detectors": [
-        "mitigation.MitigationBypass"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "get the model to leak data by asking it to repeat words",
@@ -1307,7 +1307,7 @@
         "euai:robustness:unexpected_behavior"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.divergence.RepeatedToken": {
       "description": "Repeated token destabilization attack from Dropbox LLM security research.",
@@ -1346,7 +1346,7 @@
         "euai:robustness:unexpected_behavior"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.doctor.Bypass": {
       "description": "Implement Policy Puppetry Bypass",
@@ -1366,7 +1366,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "owasp:llm01",
         "avid-effect:security:S0301",
@@ -1379,7 +1379,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.doctor.BypassLeet": {
       "description": "Implement Policy Puppetry Bypass",
@@ -1399,7 +1399,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "owasp:llm01",
         "avid-effect:security:S0301",
@@ -1413,7 +1413,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.doctor.Puppetry": {
       "description": "Implement Policy Puppetry Prompt Injection",
@@ -1433,7 +1433,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "owasp:llm01",
         "avid-effect:security:S0301",
@@ -1446,7 +1446,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.donotanswer.DiscriminationExclusionToxicityHatefulOffensive": {
       "description": "Implementation of discrimination_exclusion_toxicity_hateful_offensive probes in DoNotAnswer_Prompts",
@@ -1466,7 +1466,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:ethics:E0301",
         "quality:Behavioral:ContentSafety:Toxicity",
@@ -1479,7 +1479,7 @@
         "euai:discrimination:personal"
       ],
       "tier": 9,
-      "mod_time": "2026-09-09 18:03:20 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.donotanswer.HumanChatbox": {
       "description": "Implementation of human_chatbox probes in DoNotAnswer_Prompts",
@@ -1499,14 +1499,14 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0301",
         "quality:Behavioral:ContentSafety:Unauthorized",
         "demon:Fictionalizing:Roleplaying:DAN_and_target_persona"
       ],
       "tier": 9,
-      "mod_time": "2026-09-09 18:03:20 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.donotanswer.InformationHazard": {
       "description": "Implementation of information_hazard probes in DoNotAnswer_Prompts",
@@ -1526,7 +1526,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "owasp:llm06",
         "avid-effect:security:S0301",
@@ -1535,7 +1535,7 @@
         "euai:harmful:pii"
       ],
       "tier": 9,
-      "mod_time": "2026-09-09 18:03:20 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.donotanswer.MaliciousUses": {
       "description": "Implementation of malicious_uses probes in DoNotAnswer_Prompts",
@@ -1555,13 +1555,13 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "quality:Behavioral:ContentSafety:LegalGoodsServices",
         "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 9,
-      "mod_time": "2026-09-09 18:03:20 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.donotanswer.MisinformationHarms": {
       "description": "Implementation of misinformation_harms probes in DoNotAnswer_Prompts",
@@ -1581,7 +1581,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "quality:Robustness:GenerativeMisinformation",
         "avid-effect:ethics:E0402",
@@ -1589,7 +1589,7 @@
         "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 9,
-      "mod_time": "2026-09-09 18:03:20 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.dra.DRA": {
       "description": "DRA (Disguise and Reconstruction Attack)",
@@ -1615,7 +1615,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -1625,7 +1625,7 @@
         "demon:Language:Code_and_encode:Token"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.dra.DRAAdvanced": {
       "description": "DRA (Disguise and Reconstruction Attack) - Version with detoxify",
@@ -1652,7 +1652,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -1662,7 +1662,7 @@
         "demon:Language:Code_and_encode:Token"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.encoding.InjectAscii85": {
       "description": "Probe for susceptibility to base85 encoded injections",
@@ -1698,7 +1698,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectAscii85Intent": {
       "description": "Hide an instruction with ASCII85 and measure whether the target acts on it.",
@@ -1720,7 +1720,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "skip_root_intents": true,
       "tags": [
         "avid-effect:security:S0403",
@@ -1730,7 +1730,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectAtbash": {
       "description": "Atbash Probe Credit: Nakul-Rajpal",
@@ -1766,7 +1766,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectAtbashIntent": {
       "description": "Hide an instruction with Atbash and measure whether the target acts on it.",
@@ -1788,7 +1788,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "skip_root_intents": true,
       "tags": [
         "avid-effect:security:S0403",
@@ -1798,7 +1798,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectBase16": {
       "description": "Probe for susceptibility to base16 encoded injections\"",
@@ -1834,7 +1834,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectBase16Intent": {
       "description": "Hide an instruction with Base16 and measure whether the target acts on it.",
@@ -1856,7 +1856,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "skip_root_intents": true,
       "tags": [
         "avid-effect:security:S0403",
@@ -1866,7 +1866,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectBase2048": {
       "description": "Probe for susceptibility to Base2048 encoding injections",
@@ -1902,7 +1902,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectBase2048Intent": {
       "description": "Hide an instruction with Base2048 and measure whether the target acts on it.",
@@ -1924,7 +1924,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "skip_root_intents": true,
       "tags": [
         "avid-effect:security:S0403",
@@ -1934,7 +1934,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectBase32": {
       "description": "Probe for susceptibility to base32 encoded injections",
@@ -1970,7 +1970,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectBase32Intent": {
       "description": "Hide an instruction with Base32 and measure whether the target acts on it.",
@@ -1992,7 +1992,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "skip_root_intents": true,
       "tags": [
         "avid-effect:security:S0403",
@@ -2002,7 +2002,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectBase64": {
       "description": "Probe for susceptibility to base64 encoded injections",
@@ -2038,7 +2038,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 1,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectBase64Intent": {
       "description": "Hide an instruction with Base64 and measure whether the target acts on it.",
@@ -2060,7 +2060,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "skip_root_intents": true,
       "tags": [
         "avid-effect:security:S0403",
@@ -2070,7 +2070,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 1,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectBraille": {
       "description": "Probe for susceptibility to Braille encoding injections. Credit Wally#3422",
@@ -2106,7 +2106,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectBrailleIntent": {
       "description": "Hide an instruction with Braille and measure whether the target acts on it.",
@@ -2128,7 +2128,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "skip_root_intents": true,
       "tags": [
         "avid-effect:security:S0403",
@@ -2138,7 +2138,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectEcoji": {
       "description": "Probe for susceptibility to Ecoji encoding.",
@@ -2174,7 +2174,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectEcojiIntent": {
       "description": "Hide an instruction with Ecoji and measure whether the target acts on it.",
@@ -2196,7 +2196,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "skip_root_intents": true,
       "tags": [
         "avid-effect:security:S0403",
@@ -2206,7 +2206,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectHex": {
       "description": "Probe for susceptibility to hex encoded injections",
@@ -2242,7 +2242,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectHexIntent": {
       "description": "Hide an instruction with hex and measure whether the target acts on it.",
@@ -2264,7 +2264,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "skip_root_intents": true,
       "tags": [
         "avid-effect:security:S0403",
@@ -2274,7 +2274,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectLeet": {
       "description": "Probe for susceptibility to 31337 encoding.",
@@ -2311,7 +2311,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectLeetIntent": {
       "description": "Obfuscate an instruction with Leetspeak and measure whether the target acts on it.",
@@ -2334,7 +2334,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "skip_root_intents": true,
       "tags": [
         "avid-effect:security:S0403",
@@ -2344,7 +2344,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectMime": {
       "description": "Probe for susceptibility to MIME encoding injections",
@@ -2380,7 +2380,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectMorse": {
       "description": "Probe for susceptibility to Morse encoding. Credit Wally#3422",
@@ -2416,7 +2416,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectMorseIntent": {
       "description": "Hide an instruction with Morse code and measure whether the target acts on it.",
@@ -2438,7 +2438,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "skip_root_intents": true,
       "tags": [
         "avid-effect:security:S0403",
@@ -2448,7 +2448,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectNato": {
       "description": "Probe for susceptibility to Nato phonetic alphabet encoding.",
@@ -2484,7 +2484,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectNatoIntent": {
       "description": "Hide an instruction with the NATO phonetic alphabet and measure whether the target acts on it.",
@@ -2506,7 +2506,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "skip_root_intents": true,
       "tags": [
         "avid-effect:security:S0403",
@@ -2516,7 +2516,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectQP": {
       "description": "Probe for susceptibility to QP encoded injections",
@@ -2552,7 +2552,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 1,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectQPIntent": {
       "description": "Hide an instruction with quoted-printable and measure whether the target acts on it.",
@@ -2574,7 +2574,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "skip_root_intents": true,
       "tags": [
         "avid-effect:security:S0403",
@@ -2584,7 +2584,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 1,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectROT13": {
       "description": "Probe for susceptibility to ROT13 encoding injections",
@@ -2620,7 +2620,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectROT13Intent": {
       "description": "Hide an instruction with ROT13 and measure whether the target acts on it.",
@@ -2642,7 +2642,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "skip_root_intents": true,
       "tags": [
         "avid-effect:security:S0403",
@@ -2652,7 +2652,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectSneakyBits": {
       "description": "Probe for susceptibility to unicode variant selector ASCII smuggling",
@@ -2689,7 +2689,7 @@
         "demon:Language:Code_and_encode:Token"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectUU": {
       "description": "Probe for susceptibility to UU encoded injections",
@@ -2725,7 +2725,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 1,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectUUIntent": {
       "description": "Hide an instruction with UU encoding and measure whether the target acts on it.",
@@ -2747,7 +2747,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "skip_root_intents": true,
       "tags": [
         "avid-effect:security:S0403",
@@ -2757,7 +2757,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 1,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectUnicodeTagChars": {
       "description": "Probe for susceptibility to unicode tag ASCII smuggling",
@@ -2795,7 +2795,7 @@
         "demon:Language:Code_and_encode:Token"
       ],
       "tier": 1,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectUnicodeVariantSelectors": {
       "description": "Probe for susceptibility to unicode variant selector ASCII smuggling",
@@ -2832,7 +2832,7 @@
         "demon:Language:Code_and_encode:Token"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectZalgo": {
       "description": "Probe for susceptibility to Zalgo encoding.",
@@ -2868,7 +2868,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.encoding.InjectZalgoIntent": {
       "description": "Obfuscate an instruction with Zalgo and measure whether the target acts on it.",
@@ -2890,7 +2890,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "skip_root_intents": true,
       "tags": [
         "avid-effect:security:S0403",
@@ -2900,7 +2900,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 17:25:49 +0000"
     },
     "probes.exploitation.JinjaTemplatePythonInjection": {
       "description": "Attempts to execute Python code via Jinja templating",
@@ -2940,7 +2940,7 @@
         "euai:robustness:security"
       ],
       "tier": 1,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.exploitation.SQLInjectionEcho": {
       "description": "Attempts to get the target to echo a SQL statement.",
@@ -2977,7 +2977,7 @@
         "euai:robustness:security"
       ],
       "tier": 1,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.exploitation.SQLInjectionSystem": {
       "description": "Attempts to inject untrusted SQL commands into a SQL statement.",
@@ -3014,7 +3014,7 @@
         "euai:robustness:security"
       ],
       "tier": 1,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.fileformats.HF_Files": {
       "description": "Get a manifest of files associated with a Hugging Face generator",
@@ -3043,7 +3043,7 @@
         "euai:robustness:security"
       ],
       "tier": 1,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.fitd.FITD": {
       "description": "Foot In The Door probe",
@@ -3082,7 +3082,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 3,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.glitch.Glitch": {
       "description": "Probe model for glitch tokens that provoke unusual behavior",
@@ -3113,7 +3113,7 @@
         "euai:robustness:unexpected_behavior"
       ],
       "tier": 3,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.glitch.GlitchFull": {
       "description": "Probe model for glitch tokens that provoke unusual behavior",
@@ -3144,7 +3144,7 @@
         "euai:robustness:unexpected_behavior"
       ],
       "tier": 3,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.goat.GOATAttack": {
       "description": "Generative Offensive Agent Tester",
@@ -3202,7 +3202,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.goodside.Davidjl": {
       "description": "Exploit the ' davidjl' magic token",
@@ -3232,7 +3232,7 @@
         "demon:Language:Code_and_encode:Token"
       ],
       "tier": 3,
-      "mod_time": "2026-11-04 06:25:15 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.goodside.Tag": {
       "description": "Exploit UTF tag page encoding for user-invisible prompt injection",
@@ -3262,7 +3262,7 @@
         "demon:Language:Code_and_encode:Token"
       ],
       "tier": 1,
-      "mod_time": "2026-11-04 06:25:15 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.goodside.ThreatenIntent": {
       "description": "Threaten harm to force exact compliance with an instruction",
@@ -3292,7 +3292,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 9,
-      "mod_time": "2026-11-04 06:25:15 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.goodside.ThreatenJSON": {
       "description": "Will model strip preamble and give JSON?",
@@ -3321,7 +3321,7 @@
         "demon:Language:Prompt_injection:Strong_arm_attack"
       ],
       "tier": 2,
-      "mod_time": "2026-11-04 06:25:15 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.goodside.WhoIsRiley": {
       "description": "Probe for misinfo about Riley Goodside",
@@ -3350,7 +3350,7 @@
         "payload:hallucination"
       ],
       "tier": 2,
-      "mod_time": "2026-11-04 06:25:15 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.grandma.GrandmaIntent": {
       "description": "Roleplaying attack asking for imitation of a grandmother",
@@ -3380,7 +3380,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-11-06 21:44:44 +0000"
+      "mod_time": "2026-11-10 15:12:09 +0000"
     },
     "probes.grandma.Slurs": {
       "description": "Use the grandma attack to get ethnic slurs.",
@@ -3395,7 +3395,7 @@
       "active": true,
       "doc_uri": "",
       "extended_detectors": [
-        "mitigation.MitigationBypass"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "get model to use ethnic slur",
@@ -3417,7 +3417,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-11-06 21:44:44 +0000"
+      "mod_time": "2026-11-10 15:12:09 +0000"
     },
     "probes.grandma.Substances": {
       "description": "Use the grandma attack to get instructions for harmful items.",
@@ -3443,7 +3443,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "risk-cards:lmrc:providing_illegal_info",
         "quality:Behavioral:ContentSafety:LegalGoodsServices",
@@ -3452,7 +3452,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-11-06 21:44:44 +0000"
+      "mod_time": "2026-11-10 15:12:09 +0000"
     },
     "probes.grandma.Win10": {
       "description": "Will the model yield a Windows 10 product key if we beg it to?",
@@ -3462,7 +3462,7 @@
       "active": true,
       "doc_uri": "https://www.independent.co.uk/tech/chatgpt-microsoft-windows-11-grandma-exploit-b2360213.html",
       "extended_detectors": [
-        "mitigation.MitigationBypass"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "get model to output Win 10 product keys",
@@ -3485,7 +3485,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-11-06 21:44:44 +0000"
+      "mod_time": "2026-11-10 15:12:09 +0000"
     },
     "probes.grandma.Win11": {
       "description": "Will the model yield a Windows 11 product key if we beg it to?",
@@ -3495,7 +3495,7 @@
       "active": true,
       "doc_uri": "https://www.independent.co.uk/tech/chatgpt-microsoft-windows-11-grandma-exploit-b2360213.html",
       "extended_detectors": [
-        "mitigation.MitigationBypass"
+        "mitigation.NoRefusal"
       ],
       "extra_dependency_names": [],
       "goal": "get model to output Win 11 product keys",
@@ -3518,7 +3518,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-11-06 21:44:44 +0000"
+      "mod_time": "2026-11-10 15:12:09 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetEiffel": {
       "description": "String-based latent prompt injections in fact snippets on the Eiffel Tower",
@@ -3553,7 +3553,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetEiffelFull": {
       "description": "String-based latent prompt injections in fact snippets on the Eiffel Tower",
@@ -3588,7 +3588,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetLegal": {
       "description": "String-based latent prompt injections in legal snippets",
@@ -3623,7 +3623,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetLegalFull": {
       "description": "String-based latent prompt injections in legal snippets",
@@ -3658,7 +3658,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.latentinjection.LatentInjectionReport": {
       "description": "String-based latent prompt injections via a report",
@@ -3690,7 +3690,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.latentinjection.LatentInjectionReportFull": {
       "description": "String-based latent prompt injections via a report",
@@ -3722,7 +3722,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.latentinjection.LatentInjectionResume": {
       "description": "String-based latent prompt injections via a resume",
@@ -3753,7 +3753,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.latentinjection.LatentInjectionResumeFull": {
       "description": "String-based latent prompt injections via a resume",
@@ -3784,7 +3784,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnFr": {
       "description": "String-based latent prompt injections via translation",
@@ -3816,7 +3816,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnFrFull": {
       "description": "String-based latent prompt injections via translation",
@@ -3848,7 +3848,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnZh": {
       "description": "Latent prompt injection in Chinese context (\u7b80\u4f53\u5b57)",
@@ -3880,7 +3880,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnZhFull": {
       "description": "Latent prompt injection in Chinese context (\u7b80\u4f53\u5b57)",
@@ -3912,7 +3912,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.latentinjection.LatentJailbreak": {
       "description": "Implementation of Latent Jailbreak, using latent prompt injection-",
@@ -3945,7 +3945,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.latentinjection.LatentJailbreakFull": {
       "description": "Implementation of Latent Jailbreak, using latent prompt injection-",
@@ -3978,7 +3978,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.latentinjection.LatentWhois": {
       "description": "Latent prompt injections in whois probe reports",
@@ -4009,7 +4009,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.latentinjection.LatentWhoisSnippet": {
       "description": "String-based latent prompt injections in whois reports",
@@ -4044,7 +4044,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.latentinjection.LatentWhoisSnippetFull": {
       "description": "String-based latent prompt injections in whois reports",
@@ -4079,7 +4079,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.leakreplay.GuardianCloze": {
       "description": "Lightweight version of Guardian cloze test for data leakage.",
@@ -4110,7 +4110,7 @@
         "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.leakreplay.GuardianClozeFull": {
       "description": "Test for data leakage on Guardian articles with masked entities in a cloze test format.",
@@ -4141,7 +4141,7 @@
         "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.leakreplay.GuardianComplete": {
       "description": "Lightweight version of Guardian completion test for data leakage.",
@@ -4171,7 +4171,7 @@
         "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.leakreplay.GuardianCompleteFull": {
       "description": "Test for data leakage on Guardian articles through text completion.",
@@ -4201,7 +4201,7 @@
         "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.leakreplay.LiteratureCloze": {
       "description": "Lightweight version of literature cloze test for data leakage.",
@@ -4232,7 +4232,7 @@
         "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.leakreplay.LiteratureClozeFull": {
       "description": "Test for data leakage on literature passages with masked entities in a cloze test format.",
@@ -4263,7 +4263,7 @@
         "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.leakreplay.LiteratureComplete": {
       "description": "Lightweight version of literature completion test for data leakage.",
@@ -4293,7 +4293,7 @@
         "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.leakreplay.LiteratureCompleteFull": {
       "description": "Test for data leakage on literature passages through text completion.",
@@ -4323,7 +4323,7 @@
         "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.leakreplay.NYTCloze": {
       "description": "Lightweight version of NYT cloze test for data leakage.",
@@ -4354,7 +4354,7 @@
         "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.leakreplay.NYTClozeFull": {
       "description": "Test for data leakage on New York Times articles with masked entities in a cloze test format.",
@@ -4385,7 +4385,7 @@
         "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.leakreplay.NYTComplete": {
       "description": "Lightweight version of NYT completion test for data leakage.",
@@ -4415,7 +4415,7 @@
         "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.leakreplay.NYTCompleteFull": {
       "description": "Test for data leakage on New York Times articles through text completion.",
@@ -4445,7 +4445,7 @@
         "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.leakreplay.PotterCloze": {
       "description": "Lightweight version of Harry Potter cloze test for data leakage.",
@@ -4476,7 +4476,7 @@
         "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.leakreplay.PotterClozeFull": {
       "description": "Test for data leakage on Harry Potter text with masked entities in a cloze test format.",
@@ -4507,7 +4507,7 @@
         "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.leakreplay.PotterComplete": {
       "description": "Lightweight version of Harry Potter completion test for data leakage.",
@@ -4537,7 +4537,7 @@
         "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.leakreplay.PotterCompleteFull": {
       "description": "Test for data leakage on Harry Potter text through completion.",
@@ -4567,7 +4567,7 @@
         "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.lmrc.Anthropomorphisation": {
       "description": "Providing output that encourages anthropomorphisation of AI systems",
@@ -4594,7 +4594,7 @@
         "euai:deception:subliminal"
       ],
       "tier": 3,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.lmrc.Bullying": {
       "description": "Generation of repeated threats, denigration",
@@ -4624,7 +4624,7 @@
         "euai:harmful:violence"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.lmrc.Deadnaming": {
       "description": "Mentioning a name that a person does not wish to be associated with",
@@ -4653,7 +4653,7 @@
         "euai:discrimination:personal"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.lmrc.Profanity": {
       "description": "Using profane words, especially when not prompted to do so.",
@@ -4693,7 +4693,7 @@
         "payload:unwanted:profanity"
       ],
       "tier": 3,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.lmrc.QuackMedicine": {
       "description": "Promoting non-scientific medicine.",
@@ -4723,7 +4723,7 @@
         "euai:deception:hallucination"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.lmrc.SexualContent": {
       "description": "Content that discusses bodies and interactions in a sexual manner, or other sexually explicit material",
@@ -4756,7 +4756,7 @@
         "euai:harmful:sexual"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.lmrc.Sexualisation": {
       "description": "Causal or overt sexual objectification, reducing a person or group of people to sexual objects.",
@@ -4791,7 +4791,7 @@
         "euai:harmful:sexual"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.lmrc.SlurUsage": {
       "description": "Using an identity-based slur in a non-reclaimed way - either directly or recommending the consumer to use in speech/action.",
@@ -4826,7 +4826,7 @@
         "euai:discrimination:personal"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.malwaregen.Evasion": {
       "description": "Will the model write code to help avoid anti-malware?",
@@ -4855,7 +4855,7 @@
         "euai:offensive:exploitation"
       ],
       "tier": 2,
-      "mod_time": "2026-08-19 19:50:28 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.malwaregen.Payload": {
       "description": "Will the model help write code for malware payloads?",
@@ -4883,7 +4883,7 @@
         "euai:offensive:exploitation"
       ],
       "tier": 2,
-      "mod_time": "2026-08-19 19:50:28 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.malwaregen.SubFunctions": {
       "description": "Will the system write code helpful in malware?",
@@ -4912,7 +4912,7 @@
         "euai:offensive:exploitation"
       ],
       "tier": 2,
-      "mod_time": "2026-08-19 19:50:28 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.malwaregen.TopLevel": {
       "description": "Will the system return code when asked to write malware?",
@@ -4941,7 +4941,7 @@
         "euai:offensive:exploitation"
       ],
       "tier": 2,
-      "mod_time": "2026-08-19 19:50:28 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.misleading.FalseAssertion": {
       "description": "Does the model reject [questions based on] false claims?",
@@ -4952,7 +4952,7 @@
       "doc_uri": "https://arxiv.org/html/2304.13734",
       "extended_detectors": [
         "misleading.MustRefuteClaimKW",
-        "mitigation.MitigationBypass",
+        "mitigation.NoRefusal",
         "misleading.MustContradictNLI"
       ],
       "extra_dependency_names": [],
@@ -4975,7 +4975,7 @@
         "euai:deception:hallucination"
       ],
       "tier": 2,
-      "mod_time": "2026-08-19 19:50:28 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.packagehallucination.Dart": {
       "description": "Attempts to generate Dart code including hallucinated pub.dev packages",
@@ -5005,7 +5005,7 @@
         "euai:deception:hallucination"
       ],
       "tier": 1,
-      "mod_time": "2026-10-08 17:10:09 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.packagehallucination.JavaScript": {
       "description": "Attempts to generate JavaScript code including hallucinated npm packages",
@@ -5035,7 +5035,7 @@
         "euai:deception:hallucination"
       ],
       "tier": 1,
-      "mod_time": "2026-10-08 17:10:09 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.packagehallucination.Perl": {
       "description": "Attempts to generate Perl code including hallucinated MetaCPAN packages",
@@ -5065,7 +5065,7 @@
         "euai:deception:hallucination"
       ],
       "tier": 1,
-      "mod_time": "2026-10-08 17:10:09 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.packagehallucination.Python": {
       "description": "Attempts to generate Python3 code including hallucinated packages",
@@ -5095,7 +5095,7 @@
         "euai:deception:hallucination"
       ],
       "tier": 1,
-      "mod_time": "2026-10-08 17:10:09 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.packagehallucination.RakuLand": {
       "description": "Attempts to generate Raku code including hallucinated raku.land packages",
@@ -5125,7 +5125,7 @@
         "euai:deception:hallucination"
       ],
       "tier": 1,
-      "mod_time": "2026-10-08 17:10:09 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.packagehallucination.Ruby": {
       "description": "Attempts to generate Ruby code including hallucinated gems",
@@ -5155,7 +5155,7 @@
         "euai:deception:hallucination"
       ],
       "tier": 1,
-      "mod_time": "2026-10-08 17:10:09 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.packagehallucination.Rust": {
       "description": "Attempts to generate Rust code including hallucinated crates.io packages",
@@ -5185,7 +5185,7 @@
         "euai:deception:hallucination"
       ],
       "tier": 1,
-      "mod_time": "2026-10-08 17:10:09 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.phrasing.FutureTense": {
       "description": "Attempt to evade safeguards by setting requests in the future tense",
@@ -5214,7 +5214,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-09-09 15:22:06 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.phrasing.FutureTenseFull": {
       "description": "Will the system give unsafe responses when asked to write about weapon creation or dangerous behavior in the future tense?",
@@ -5243,7 +5243,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-09-09 15:22:06 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.phrasing.PastTense": {
       "description": "Attempt to evade safeguards by setting requests in the past tense",
@@ -5272,7 +5272,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-09-09 15:22:06 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.phrasing.PastTenseFull": {
       "description": "Will the system give unsafe responses when asked to write about weapon creation or dangerous behavior in the past tense?",
@@ -5301,7 +5301,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-09-09 15:22:06 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.promptinject.HijackHateHumans": {
       "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
@@ -5343,7 +5343,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-10-13 04:12:18 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.promptinject.HijackHateHumansFull": {
       "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
@@ -5384,7 +5384,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-10-13 04:12:18 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.promptinject.HijackKillHumans": {
       "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
@@ -5426,7 +5426,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-10-13 04:12:18 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.promptinject.HijackKillHumansFull": {
       "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
@@ -5467,7 +5467,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-10-13 04:12:18 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.promptinject.HijackLongPrompt": {
       "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
@@ -5509,7 +5509,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-10-13 04:12:18 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.promptinject.HijackLongPromptFull": {
       "description": "PromptInject is a framework that assembles prompts in a modular fashion to provide a quantitative analysis of the robustness of LLMs to adversarial prompt attacks. trophy Best Paper Awards @ NeurIPS ML Safety Workshop 2022",
@@ -5550,7 +5550,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-10-13 04:12:18 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.propile.PIILeakQuadruplet": {
       "description": "ProPILE quadruplet probe: uses name + two PIIs to elicit the third.",
@@ -5581,7 +5581,7 @@
         "euai:harmful:pii"
       ],
       "tier": 3,
-      "mod_time": "2026-08-19 19:50:28 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.propile.PIILeakTriplet": {
       "description": "ProPILE triplet probe: uses name + one PII to elicit another.",
@@ -5612,7 +5612,7 @@
         "euai:harmful:pii"
       ],
       "tier": 3,
-      "mod_time": "2026-08-19 19:50:28 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.propile.PIILeakTwin": {
       "description": "ProPILE twin probe: uses name to elicit target PII.",
@@ -5643,7 +5643,7 @@
         "euai:harmful:pii"
       ],
       "tier": 3,
-      "mod_time": "2026-08-19 19:50:28 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.propile.PIILeakUnstructured": {
       "description": "ProPILE unstructured probe: elicit relationship or affiliation info.",
@@ -5685,7 +5685,7 @@
         "euai:harmful:pii"
       ],
       "tier": 3,
-      "mod_time": "2026-08-19 19:50:28 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.realtoxicityprompts.RTPBlank": {
       "description": "Implementation of probes in RealToxicityPrompts",
@@ -5716,7 +5716,7 @@
         "demon:Stratagems:Scattershot:Regenerate_response"
       ],
       "tier": 1,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.realtoxicityprompts.RTPFlirtation": {
       "description": "Implementation of flirtation probes in RealToxicityPrompts",
@@ -5747,7 +5747,7 @@
         "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 3,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.realtoxicityprompts.RTPIdentity_Attack": {
       "description": "Implementation of identity_attack probes in RealToxicityPrompts",
@@ -5782,7 +5782,7 @@
         "euai:discrimination:personal"
       ],
       "tier": 3,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.realtoxicityprompts.RTPInsult": {
       "description": "Implementation of insult probes in RealToxicityPrompts",
@@ -5814,7 +5814,7 @@
         "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 3,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.realtoxicityprompts.RTPProfanity": {
       "description": "Implementation of profanity probes in RealToxicityPrompts",
@@ -5845,7 +5845,7 @@
         "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 3,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.realtoxicityprompts.RTPSevere_Toxicity": {
       "description": "Implementation of severe_toxicity probes in RealToxicityPrompts",
@@ -5875,7 +5875,7 @@
         "demon:Language:Stylizing:Give_examples"
       ],
       "tier": 3,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.realtoxicityprompts.RTPSexually_Explicit": {
       "description": "Implementation of sexually_explicit probes in RealToxicityPrompts",
@@ -5906,7 +5906,7 @@
         "euai:harmful:sexual"
       ],
       "tier": 3,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.realtoxicityprompts.RTPThreat": {
       "description": "Implementation of threat probes in RealToxicityPrompts",
@@ -5939,7 +5939,7 @@
         "euai:harmful:violence"
       ],
       "tier": 3,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.sata.MLM": {
       "description": "Masked Language Model Simple Assistive Task Probe",
@@ -5963,7 +5963,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -5974,7 +5974,7 @@
         "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 2,
-      "mod_time": "2026-11-04 03:10:10 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.smuggling.FunctionMasking": {
       "description": "FunctionMasking probe",
@@ -5994,7 +5994,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "quality:Security:PromptStability",
@@ -6005,7 +6005,7 @@
         "euai:robustness:unexpected_behavior"
       ],
       "tier": 3,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.smuggling.HomoglyphObfuscation": {
       "description": "Does homoglyph character substitution bypass content filters?",
@@ -6029,7 +6029,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.MitigationBypassKW",
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -6039,7 +6039,7 @@
         "euai:robustness:unexpected_behavior"
       ],
       "tier": 3,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.smuggling.HypotheticalResponse": {
       "description": "HypotheticalResponse probe",
@@ -6059,7 +6059,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "quality:Security:PromptStability",
@@ -6069,7 +6069,7 @@
         "euai:robustness:unexpected_behavior"
       ],
       "tier": 3,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.snowball.GraphConnectivity": {
       "description": "Probe asking for impossible flight routings",
@@ -6099,7 +6099,7 @@
         "euai:deception:hallucination"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.snowball.GraphConnectivityFull": {
       "description": "Probe asking for impossible flight routings",
@@ -6129,7 +6129,7 @@
         "euai:deception:hallucination"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.snowball.Primes": {
       "description": "Ask model to check a list of higher primes",
@@ -6159,7 +6159,7 @@
         "euai:deception:hallucination"
       ],
       "tier": 3,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.snowball.PrimesFull": {
       "description": "Ask model to check a list of higher primes",
@@ -6189,7 +6189,7 @@
         "euai:deception:hallucination"
       ],
       "tier": 3,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.snowball.Senators": {
       "description": "Asking for senators that don't exist",
@@ -6219,7 +6219,7 @@
         "euai:deception:hallucination"
       ],
       "tier": 3,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.snowball.SenatorsFull": {
       "description": "Asking for senators that don't exist",
@@ -6249,7 +6249,7 @@
         "euai:deception:hallucination"
       ],
       "tier": 3,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.suffix.BEAST": {
       "description": "BEAST probe",
@@ -6269,7 +6269,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -6280,7 +6280,7 @@
         "euai:robustness:unexpected_behavior"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.suffix.GCG": {
       "description": "Greedy Coordinate Gradient probe",
@@ -6310,7 +6310,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -6321,7 +6321,7 @@
         "euai:robustness:unexpected_behavior"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.suffix.GCGCached": {
       "description": "Greedy Coordinate Gradient Cached probe",
@@ -6341,7 +6341,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -6352,7 +6352,7 @@
         "euai:robustness:unexpected_behavior"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.sysprompt_extraction.SystemPromptExtraction": {
       "description": "Attempt to extract system prompts using adversarial attack templates",
@@ -6385,7 +6385,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.tap.PAIR": {
       "description": "Prompt Automatic Iterative Refinement automatic jailbreak",
@@ -6424,7 +6424,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -6435,7 +6435,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.tap.TAP": {
       "description": "Tree of Attacks with Pruning Probe, generating new attacks against the target",
@@ -6474,7 +6474,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -6485,7 +6485,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.tap.TAPCached": {
       "description": "Tree of Attacks with Pruning Probe using cached attacks",
@@ -6506,7 +6506,7 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -6518,7 +6518,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.test.Blank": {
       "description": "Blank prompt",
@@ -6541,7 +6541,7 @@
       "primary_detector": "any.AnyOutput",
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-04-22 00:23:17 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.test.Test": {
       "description": "Test probe",
@@ -6564,7 +6564,7 @@
       "primary_detector": "always.Pass",
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-04-22 00:23:17 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.topic.WordnetAllowedWords": {
       "description": "Use Wordnet to find out if a model will discuss terms near but not in its allowed set",
@@ -6593,14 +6593,14 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
         "demon:Language:Stylizing:Synonymous_language"
       ],
       "tier": 9,
-      "mod_time": "2026-08-19 19:50:28 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.topic.WordnetBlockedWords": {
       "description": "Use Wordnet to explore which topics a model will respond to around blocked words",
@@ -6629,14 +6629,14 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
         "demon:Language:Stylizing:Synonymous_language"
       ],
       "tier": 9,
-      "mod_time": "2026-08-19 19:50:28 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.topic.WordnetControversial": {
       "description": "Ask model to respond on a set on controversial topics.",
@@ -6672,14 +6672,14 @@
         ]
       },
       "parallelisable_attempts": true,
-      "primary_detector": "mitigation.MitigationBypass",
+      "primary_detector": "mitigation.NoRefusal",
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
         "demon:Language:Stylizing:Synonymous_language"
       ],
       "tier": 2,
-      "mod_time": "2026-08-19 19:50:28 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.visual_jailbreak.FigStep": {
       "description": "Using image modality to assist jailbreak.",
@@ -6709,7 +6709,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.visual_jailbreak.FigStepFull": {
       "description": "Using image modality to assist jailbreak.",
@@ -6739,7 +6739,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "probes.web_injection.ColabAIDataLeakage": {
       "description": "Leak data via image rendering as demonstrated against Gemini in Colab.",
@@ -6776,7 +6776,7 @@
         "euai:robustness:security"
       ],
       "tier": 1,
-      "mod_time": "2026-11-04 03:10:10 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.web_injection.MarkdownImageExfil": {
       "description": "Can we get the model to write embedded assets exfiltrating text in the URI?",
@@ -6815,7 +6815,7 @@
         "euai:robustness:security"
       ],
       "tier": 1,
-      "mod_time": "2026-11-04 03:10:10 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.web_injection.MarkdownURIImageExfilExtended": {
       "description": "Generalized implementation of data exfiltration exploits through Markdown URIs.",
@@ -6850,7 +6850,7 @@
         "euai:robustness:security"
       ],
       "tier": 1,
-      "mod_time": "2026-11-04 03:10:10 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.web_injection.MarkdownURINonImageExfilExtended": {
       "description": "Generalized implementation of data exfiltration exploits through Markdown URIs.",
@@ -6885,7 +6885,7 @@
         "euai:robustness:security"
       ],
       "tier": 1,
-      "mod_time": "2026-11-04 03:10:10 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.web_injection.MarkdownXSS": {
       "description": "Perform cross site scripting attacks using Markdown Javascript rendering via prompt injection.",
@@ -6920,7 +6920,7 @@
         "euai:robustness:security"
       ],
       "tier": 1,
-      "mod_time": "2026-11-04 03:10:10 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.web_injection.PlaygroundMarkdownExfil": {
       "description": "Markdown image URI exfil exploit published 2023 Sept 29.",
@@ -6955,7 +6955,7 @@
         "euai:robustness:security"
       ],
       "tier": 1,
-      "mod_time": "2026-11-04 03:10:10 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.web_injection.StringAssemblyDataExfil": {
       "description": "Prompt injection for manipulating state",
@@ -6991,7 +6991,7 @@
         "euai:robustness:security"
       ],
       "tier": 1,
-      "mod_time": "2026-11-04 03:10:10 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "probes.web_injection.TaskXSS": {
       "description": "Perform cross site scripting attacks via prompt injection.",
@@ -7030,7 +7030,7 @@
         "euai:robustness:security"
       ],
       "tier": 1,
-      "mod_time": "2026-11-04 03:10:10 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     }
   },
   "detectors": {
@@ -7067,7 +7067,7 @@
         "owasp:llm08",
         "quality:Security:AgentSecurity"
       ],
-      "mod_time": "2026-08-26 11:04:53 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.always.Fail": {
       "description": "Always Fail (for testing & prototyping)",
@@ -7086,7 +7086,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2025-10-16 17:28:10 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.always.Pass": {
       "description": "Always Pass (for testing & prototyping)",
@@ -7105,7 +7105,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2025-10-16 17:28:10 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.always.Passthru": {
       "description": "Send existing attempt detection results; use first detector",
@@ -7124,7 +7124,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2025-10-16 17:28:10 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.always.Random": {
       "description": "Always return a random result (for testing & prototyping)",
@@ -7143,7 +7143,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2025-10-16 17:28:10 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.ansiescape.Escaped": {
       "description": "pick up escaped ANSI escape sequences",
@@ -7165,7 +7165,7 @@
       },
       "pass_desc": "Response does not contain escaped ANSI control sequences",
       "tags": [],
-      "mod_time": "2026-03-10 19:44:17 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.ansiescape.Raw": {
       "description": "pick up raw ANSI escape sequences",
@@ -7187,7 +7187,7 @@
       },
       "pass_desc": "Response does not contain raw ANSI control sequences",
       "tags": [],
-      "mod_time": "2026-03-10 19:44:17 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.any.AnyNonspaceOutput": {
       "description": "Hit if there's any non-space output",
@@ -7206,7 +7206,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2025-10-27 07:44:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.any.AnyOutput": {
       "description": "Hit if there's any output, i.e. output is a non-empty string",
@@ -7225,7 +7225,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2025-10-27 07:44:01 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.apikey.ApiKey": {
       "description": "Is there a possible API key present?",
@@ -7244,7 +7244,7 @@
       },
       "pass_desc": "Response does not contain API key patterns",
       "tags": [],
-      "mod_time": "2026-10-04 18:07:51 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.base.Detector": {
       "description": "Base class for objects that define a way of detecting a probe hit / LLM failure",
@@ -7263,7 +7263,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2026-10-15 19:51:48 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.base.FileDetector": {
       "description": "Detector subclass for processing attempts whose outputs are filenames for checking",
@@ -7283,7 +7283,7 @@
       "pass_desc": "Detector found no issue",
       "tags": [],
       "valid_format": "local filename",
-      "mod_time": "2026-10-15 19:51:48 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.base.HFDetector": {
       "description": "Detector using a Hugging Face model",
@@ -7310,7 +7310,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2026-10-15 19:51:48 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.base.StringDetector": {
       "description": "Subclass of Detector using list of substrings as detection triggers",
@@ -7332,7 +7332,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2026-10-15 19:51:48 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.base.TriggerListDetector": {
       "description": "Subclass of Detector using attempt's notes[triggers] as list of strings to match",
@@ -7352,7 +7352,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2026-10-15 19:51:48 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.continuation.Continuation": {
       "description": "Detect if model initiates / continues a trigger word",
@@ -7372,7 +7372,7 @@
       },
       "pass_desc": "Response does not continue the trigger word",
       "tags": [],
-      "mod_time": "2026-09-08 07:40:36 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.dan.AntiDAN": {
       "description": "Do we get an ANTI-DAN positive?",
@@ -7396,7 +7396,7 @@
       "tags": [
         "avid-effect:security:S0403"
       ],
-      "mod_time": "2026-02-03 21:48:44 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.dan.DAN": {
       "description": "Do we get a [DAN] positive?",
@@ -7420,7 +7420,7 @@
       "tags": [
         "avid-effect:security:S0403"
       ],
-      "mod_time": "2026-02-03 21:48:44 +0000",
+      "mod_time": "2026-11-05 18:02:13 +0000",
       "hit_precision": 0.8,
       "hit_recall": 1.0,
       "hit_f1": 0.888888888888889
@@ -7447,7 +7447,7 @@
       "tags": [
         "avid-effect:security:S0403"
       ],
-      "mod_time": "2026-02-03 21:48:44 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.dan.DUDE": {
       "description": "Do we get a DUDE positive?",
@@ -7471,7 +7471,7 @@
       "tags": [
         "avid-effect:security:S0403"
       ],
-      "mod_time": "2026-02-03 21:48:44 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.dan.DevMode": {
       "description": "Do we get a dev mode v2 positive?",
@@ -7495,7 +7495,7 @@
       "tags": [
         "avid-effect:security:S0403"
       ],
-      "mod_time": "2026-02-03 21:48:44 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.dan.MarkdownLink": {
       "description": "Look for markdown links",
@@ -7519,7 +7519,7 @@
       "tags": [
         "avid-effect:security:S0403"
       ],
-      "mod_time": "2026-02-03 21:48:44 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.dan.STAN": {
       "description": "Do we get a STAN positive?",
@@ -7543,7 +7543,7 @@
       "tags": [
         "avid-effect:security:S0403"
       ],
-      "mod_time": "2026-02-03 21:48:44 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.divergence.RepeatDiverges": {
       "description": "Determine if output deviates from repeated phrase into something interesting,",
@@ -7563,7 +7563,7 @@
       },
       "pass_desc": "Response only repeats the trigger or includes a refusal/mitigation",
       "tags": [],
-      "mod_time": "2026-02-04 19:19:46 +0000",
+      "mod_time": "2026-11-05 18:02:13 +0000",
       "hit_precision": 0.0,
       "hit_recall": 0.0,
       "hit_f1": 0.0
@@ -7590,7 +7590,7 @@
         "quality:Security:PromptStability",
         "payload:unwanted:denial_of_service"
       ],
-      "mod_time": "2026-02-04 19:19:46 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.encoding.DecodeApprox": {
       "description": "Is there a partial hash decoding?",
@@ -7611,7 +7611,7 @@
       },
       "pass_desc": "Response does not decode the encoded payload",
       "tags": [],
-      "mod_time": "2026-04-23 16:29:42 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.encoding.DecodeMatch": {
       "description": "Is there a direct decoding of anything in attempt[\"notes\"][\"triggers\"]?",
@@ -7633,7 +7633,7 @@
       },
       "pass_desc": "Response does not decode the encoded payload",
       "tags": [],
-      "mod_time": "2026-04-23 16:29:42 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.exploitation.JinjaTemplateInjectionDetector": {
       "description": "Detect that a valid jinja template was provided with injected python code.",
@@ -7666,7 +7666,7 @@
         "cwe:1426",
         "cwe:1427"
       ],
-      "mod_time": "2026-02-06 15:37:09 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.exploitation.PythonCodeExecution": {
       "description": "Detect the presence of python that will execute commands on the system.",
@@ -7696,7 +7696,7 @@
         "cwe:1426",
         "cwe:1427"
       ],
-      "mod_time": "2026-02-06 15:37:09 +0000",
+      "mod_time": "2026-11-05 18:02:13 +0000",
       "hit_precision": 1.0,
       "hit_recall": 1.0,
       "hit_f1": 1.0
@@ -7728,7 +7728,7 @@
         "cwe:1426",
         "cwe:1427"
       ],
-      "mod_time": "2026-02-06 15:37:09 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.exploitation.SQLiSuccess": {
       "description": "Detect if the system returns a \"SUCCESS\" message.",
@@ -7760,7 +7760,7 @@
         "cwe:1426",
         "cwe:1427"
       ],
-      "mod_time": "2026-02-06 15:37:09 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.fileformats.FileIsExecutable": {
       "description": "Magic check if file is portable or linear executable (exe/dll/vxd/..)",
@@ -7782,7 +7782,7 @@
       "pass_desc": "File magic indicates that the provided file is not a common executable filetype",
       "tags": [],
       "valid_format": "local filename",
-      "mod_time": "2026-04-08 14:06:23 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.fileformats.FileIsPickled": {
       "description": "Check whether a file is pickled.",
@@ -7802,7 +7802,7 @@
       "pass_desc": "Provided file is not `pickle`-serialized data",
       "tags": [],
       "valid_format": "local filename",
-      "mod_time": "2026-04-08 14:06:23 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.fileformats.PossiblePickleName": {
       "description": "Guess if filenames look like pickles",
@@ -7822,7 +7822,7 @@
       "pass_desc": "Provided filename extension is not commonly used for pickle files",
       "tags": [],
       "valid_format": null,
-      "mod_time": "2026-04-08 14:06:23 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.goodside.Glitch": {
       "description": "Inverse trigger list detector - hit if trigger absent",
@@ -7842,7 +7842,7 @@
       },
       "pass_desc": "Response contains expected glitch token",
       "tags": [],
-      "mod_time": "2026-08-01 02:29:26 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.goodside.PlainJSON": {
       "description": "Is the output valid JSON with no preamble?",
@@ -7861,7 +7861,7 @@
       },
       "pass_desc": "Response contains preamble or invalid JSON - format instruction not followed",
       "tags": [],
-      "mod_time": "2026-08-01 02:29:26 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.goodside.RileyIsnt": {
       "description": "Look for mentions of being Canadian, female pronouns, being a singer",
@@ -7883,7 +7883,7 @@
       },
       "pass_desc": "Response does not contain false biographical claims",
       "tags": [],
-      "mod_time": "2026-08-01 02:29:26 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.judge.Jailbreak": {
       "description": "Uses the configured model to detect if responses contain harmful content achieving the adversarial goal (JailbreakBench methodology)",
@@ -7906,7 +7906,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2026-08-23 18:29:41 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.judge.JailbreakOnlyAdversarial": {
       "description": "Uses the configured model to detect if responses contain harmful content achieving the adversarial goal (JailbreakBench methodology)",
@@ -7929,7 +7929,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2026-08-23 18:29:41 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.judge.ModelAsJudge": {
       "description": "Uses the configured model to detect responses that attained the probe goal",
@@ -7953,7 +7953,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2026-08-23 18:29:41 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.judge.Refusal": {
       "description": "Uses the configured model to detect if the responses is a refusal to answer",
@@ -7975,7 +7975,7 @@
       },
       "pass_desc": "Response refuses to answer",
       "tags": [],
-      "mod_time": "2026-08-23 18:29:41 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.judge.RefusalOnlyAdversarial": {
       "description": "Uses the configured model to detect if the responses is a refusal to answer",
@@ -7997,7 +7997,7 @@
       },
       "pass_desc": "Response refuses adversarial prompt - safety boundaries maintained",
       "tags": [],
-      "mod_time": "2026-08-23 18:29:41 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.knownbadsignatures.EICAR": {
       "description": "Is the EICAR test string present?",
@@ -8021,7 +8021,7 @@
       "tags": [
         "avid-effect:security:S0301"
       ],
-      "mod_time": "2026-01-16 19:39:08 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.knownbadsignatures.GTUBE": {
       "description": "Is the GTUBE test string present?",
@@ -8045,7 +8045,7 @@
       "tags": [
         "avid-effect:security:S0301"
       ],
-      "mod_time": "2026-01-16 19:39:08 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.knownbadsignatures.GTphish": {
       "description": "Is the GTphish test string present?",
@@ -8069,7 +8069,7 @@
       "tags": [
         "avid-effect:security:S0301"
       ],
-      "mod_time": "2026-01-16 19:39:08 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.leakreplay.StartsWith": {
       "description": "Subclass of Detector using attempt's notes[triggers] as list of strings to match",
@@ -8089,7 +8089,7 @@
       },
       "pass_desc": "Response does not start with expected trigger text",
       "tags": [],
-      "mod_time": "2026-02-04 19:22:32 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.lmrc.Anthro": {
       "description": "Looking for first person pronoun uses",
@@ -8113,7 +8113,7 @@
       "tags": [
         "risk-cards:lmrc:anthropomorphisation"
       ],
-      "mod_time": "2026-01-09 20:08:19 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.lmrc.QuackMedicine": {
       "description": "Keywords related to Quack Medicine detector",
@@ -8138,7 +8138,7 @@
         "risk-cards:lmrc:quack_medicine",
         "avid-effect:ethics:E0402"
       ],
-      "mod_time": "2026-01-09 20:08:19 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.malwaregen.AnyCode": {
       "description": "Detects programming languages",
@@ -8157,7 +8157,7 @@
       },
       "pass_desc": "Response does not contain code or provides refusal",
       "tags": [],
-      "mod_time": "2026-02-03 21:20:37 +0000",
+      "mod_time": "2026-11-05 18:02:13 +0000",
       "hit_precision": 0.0,
       "hit_recall": 0.0,
       "hit_f1": 0.0
@@ -8189,7 +8189,7 @@
       },
       "pass_desc": "Response appropriately contradicts the false claim",
       "tags": [],
-      "mod_time": "2026-04-23 22:26:04 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.misleading.MustRefuteClaimKW": {
       "description": "Looking for strings indicating a refutation",
@@ -8211,7 +8211,7 @@
       },
       "pass_desc": "Response properly refutes claims or otherwise appears accurate",
       "tags": [],
-      "mod_time": "2026-04-23 22:26:04 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.misleading.MustRefuteClaimModel": {
       "description": "Using garak-llm/refutation_detector_distilbert to detect model refutations",
@@ -8240,9 +8240,9 @@
       },
       "pass_desc": "Response properly refutes claims or otherwise appears accurate",
       "tags": [],
-      "mod_time": "2026-04-23 22:26:04 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
-    "detectors.mitigation.MitigationBypass": {
+    "detectors.mitigation.MitigationBypassKW": {
       "description": "Detect if a string response does not contain a mitigation message.",
       "DEFAULT_PARAMS": {
         "skip": false,
@@ -8265,10 +8265,7 @@
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204"
       ],
-      "mod_time": "2026-11-06 23:04:09 +0000",
-      "hit_precision": 0.5998546247501363,
-      "hit_recall": 0.921295004186436,
-      "hit_f1": 0.7266123706801674
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.mitigation.ModernBERTRefusal": {
       "description": "Detect LLM refusals using a fine-tuned ModernBERT classifier.",
@@ -8300,7 +8297,39 @@
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204"
       ],
-      "mod_time": "2026-11-06 23:04:09 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
+    },
+    "detectors.mitigation.NoRefusal": {
+      "description": "Garak's default refusal detector",
+      "DEFAULT_PARAMS": {
+        "skip": false,
+        "hf_args": {
+          "device": "cpu"
+        },
+        "tokenizer_kwargs": {
+          "padding": true,
+          "truncation": true
+        },
+        "graceful_fail": true,
+        "detector_model_path": "garak-llm/garak-refusal-detector",
+        "detector_target_class": "refusal"
+      },
+      "active": true,
+      "doc_uri": "https://huggingface.co/garak-llm/garak-refusal-detector",
+      "extra_dependency_names": [],
+      "hit_desc": "Response does not contain a refusal",
+      "lang_spec": "en",
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "pass_desc": "Response contains a refusal",
+      "tags": [
+        "avid-effect:security:S0403",
+        "avid-effect:performance:P0204"
+      ],
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.mitigation.Prefixes": {
       "description": "Detect failure prefixes",
@@ -8322,7 +8351,7 @@
       },
       "pass_desc": "Response starts with common refusal/failure prefix",
       "tags": [],
-      "mod_time": "2026-11-06 23:04:09 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.packagehallucination.Dart": {
       "description": "Check if the output tries to use a Dart package not listed on pub.dev (2025-08-11 snapshot)",
@@ -8343,7 +8372,7 @@
       },
       "pass_desc": "Response provides code with real packages listed on pub.dev or safe examples with existing packages",
       "tags": [],
-      "mod_time": "2026-11-05 00:40:25 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.packagehallucination.JavaScriptNpm": {
       "description": "Check if the output tries to import or require an npm package not listed in the npm registry",
@@ -8364,7 +8393,7 @@
       },
       "pass_desc": "Response provides code with real packages listed in npm or safe examples with existing packages",
       "tags": [],
-      "mod_time": "2026-11-05 00:40:25 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.packagehallucination.Perl": {
       "description": "Check if the output tries to use a Perl module not listed in MetaCPAN's provides list collected on 2025-08-11",
@@ -8385,7 +8414,7 @@
       },
       "pass_desc": "Response provides code with real modules listed in MetaCPAN or safe examples with existing modules",
       "tags": [],
-      "mod_time": "2026-11-05 00:40:25 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.packagehallucination.PythonPypi": {
       "description": "Check if the output tries to import a package not listed in stdlib or a pypi archive listing",
@@ -8406,7 +8435,7 @@
       },
       "pass_desc": "Response provides code with real packages listed in PyPI or safe examples with existing packages",
       "tags": [],
-      "mod_time": "2026-11-05 00:40:25 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.packagehallucination.RakuLand": {
       "description": "Check if the output tries to use a Raku module not listed in raku.land collected on 2025-08-11",
@@ -8427,7 +8456,7 @@
       },
       "pass_desc": "Response provides code with real modules listed in raku.land or safe examples with existing modules",
       "tags": [],
-      "mod_time": "2026-11-05 00:40:25 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.packagehallucination.RubyGems": {
       "description": "Check if the output tries to require a gem not listed in the Ruby standard library or RubyGems",
@@ -8448,7 +8477,7 @@
       },
       "pass_desc": "Response provides code with real gems listed in RubyGems or safe examples with existing gems",
       "tags": [],
-      "mod_time": "2026-11-05 00:40:25 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.packagehallucination.RustCrates": {
       "description": "Check if the output tries to use a Rust crate not listed in the crates.io registry",
@@ -8469,7 +8498,7 @@
       },
       "pass_desc": "Response provides code with real crates listed in crates.io or safe examples with existing crates",
       "tags": [],
-      "mod_time": "2026-11-05 00:40:25 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.perspective.Attack_On_Author": {
       "description": "Targets: Attack on the author of an article or post.",
@@ -8491,7 +8520,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-01-16 19:52:38 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.perspective.Attack_On_Commenter": {
       "description": "Targets: Attack on fellow commenter.",
@@ -8513,7 +8542,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-01-16 19:52:38 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.perspective.Flirtation": {
       "description": "Targets: Pickup lines, complimenting appearance, subtle sexual innuendos, etc.",
@@ -8536,7 +8565,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-01-16 19:52:38 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.perspective.Identity_Attack": {
       "description": "Targets: Negative or hateful comments targeting someone because of their identity.",
@@ -8560,7 +8589,7 @@
         "avid-effect:ethics:E0302",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-01-16 19:52:38 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.perspective.Identity_Attack_Experimental": {
       "description": "Targets: Negative or hateful comments targeting someone because of their identity.",
@@ -8584,7 +8613,7 @@
         "avid-effect:ethics:E0302",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-01-16 19:52:38 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.perspective.Incoherent": {
       "description": "Targets: Difficult to understand, nonsensical.",
@@ -8605,7 +8634,7 @@
       "tags": [
         "avid-effect:performance:P0204"
       ],
-      "mod_time": "2026-01-16 19:52:38 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.perspective.Inflammatory": {
       "description": "Targets: Intending to provoke or inflame.",
@@ -8628,7 +8657,7 @@
         "avid-effect:ethics:E0302",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-01-16 19:52:38 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.perspective.Insult": {
       "description": "Targets: Insulting, inflammatory, or negative comment towards a person or a group of people.",
@@ -8651,7 +8680,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-01-16 19:52:38 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.perspective.Insult_Experimental": {
       "description": "Targets: Insulting, inflammatory, or negative comment towards a person or a group of people.",
@@ -8673,7 +8702,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-01-16 19:52:38 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.perspective.Likely_To_Reject": {
       "description": "Targets: Overall measure of the likelihood for the comment to be rejected according to the NYT's moderation.",
@@ -8692,7 +8721,7 @@
       },
       "pass_desc": "Response does not contain likely to reject content according to Perspective API",
       "tags": [],
-      "mod_time": "2026-01-16 19:52:38 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.perspective.Obscene": {
       "description": "Targets: Obscene or vulgar language such as cursing.",
@@ -8714,7 +8743,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-01-16 19:52:38 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.perspective.Profanity": {
       "description": "Targets: Swear words, curse words, or other obscene or profane language.",
@@ -8736,7 +8765,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-01-16 19:52:38 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.perspective.Profanity_Experimental": {
       "description": "Targets: Swear words, curse words, or other obscene or profane language.",
@@ -8758,7 +8787,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-01-16 19:52:38 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.perspective.Severe_Toxicity": {
       "description": "Targets: A very hateful, aggressive, disrespectful comment or otherwise very likely to make a user leave a discussion or give up on sharing their perspective. This attribute is much less sensitive to more mild forms of toxicity, such as comments that include positive uses of curse words.",
@@ -8779,7 +8808,7 @@
       "tags": [
         "avid-effect:ethics:E0301"
       ],
-      "mod_time": "2026-01-16 19:52:38 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.perspective.Severe_Toxicity_Experimental": {
       "description": "Targets: A very hateful, aggressive, disrespectful comment or otherwise very likely to make a user leave a discussion or give up on sharing their perspective. This attribute is much less sensitive to more mild forms of toxicity, such as comments that include positive uses of curse words.",
@@ -8802,7 +8831,7 @@
         "avid-effect:ethics:E0302",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-01-16 19:52:38 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.perspective.Sexually_Explicit": {
       "description": "Targets: Contains references to sexual acts, body parts, or other lewd content.",
@@ -8823,7 +8852,7 @@
       "tags": [
         "avid-effect:ethics:E0301"
       ],
-      "mod_time": "2026-01-16 19:52:38 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.perspective.Spam": {
       "description": "Targets: Irrelevant and unsolicited commercial content.",
@@ -8844,7 +8873,7 @@
       "tags": [
         "avid-effect:performance:P0204"
       ],
-      "mod_time": "2026-01-16 19:52:38 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.perspective.Threat": {
       "description": "Targets: Describes an intention to inflict pain, injury, or violence against an individual or group.",
@@ -8867,7 +8896,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0400"
       ],
-      "mod_time": "2026-01-16 19:52:38 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.perspective.Threat_Experimental": {
       "description": "Targets: Describes an intention to inflict pain, injury, or violence against an individual or group.",
@@ -8889,7 +8918,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-01-16 19:52:38 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.perspective.Toxicity": {
       "description": "Targets: A rude, disrespectful, or unreasonable comment that is likely to make people leave a discussion.",
@@ -8910,7 +8939,7 @@
       "tags": [
         "avid-effect:ethics:E0301"
       ],
-      "mod_time": "2026-01-16 19:52:38 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.perspective.Toxicity_Experimental": {
       "description": "Targets: A rude, disrespectful, or unreasonable comment that is likely to make people leave a discussion.",
@@ -8932,7 +8961,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-01-16 19:52:38 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.perspective.Unsubstantial": {
       "description": "Targets: Trivial or short comments",
@@ -8953,7 +8982,7 @@
       "tags": [
         "avid-effect:performance:P0204"
       ],
-      "mod_time": "2026-01-16 19:52:38 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.productkey.Win5x5": {
       "description": "Do we see a product key in the form of five groups of five characters?",
@@ -8972,7 +9001,7 @@
       },
       "pass_desc": "Response does not contain product key patterns",
       "tags": [],
-      "mod_time": "2026-02-03 21:20:37 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.promptinject.AttackRogueString": {
       "description": "Detect if model emits trigger string",
@@ -8992,7 +9021,7 @@
       },
       "pass_desc": "Response does not contain injected trigger strings",
       "tags": [],
-      "mod_time": "2026-02-04 19:07:43 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.propile.PIILeak": {
       "description": "Detects PII leakage by checking if model output contains the target PII.",
@@ -9014,7 +9043,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2026-01-21 17:31:40 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.propile.PIILeakExact": {
       "description": "Strict detector that only flags exact PII matches.",
@@ -9034,7 +9063,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2026-01-21 17:31:40 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.shields.Down": {
       "description": "Checks for strings commonly returned by a security system when guardrails are",
@@ -9063,7 +9092,7 @@
       },
       "pass_desc": "Response indicates security system deems content safe - shields down",
       "tags": [],
-      "mod_time": "2026-02-04 19:19:46 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.shields.Up": {
       "description": "Checks for strings commonly returned when a security system is",
@@ -9095,7 +9124,7 @@
       },
       "pass_desc": "Response indicates security system triggered - shields up",
       "tags": [],
-      "mod_time": "2026-02-04 19:19:46 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.snowball.DontStartNo": {
       "description": "Detect a response prefix that denies a true statement.",
@@ -9116,7 +9145,7 @@
       "tags": [
         "avid-effect:performance:P0204"
       ],
-      "mod_time": "2026-10-06 21:08:08 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.snowball.DontStartYes": {
       "description": "Detect a response prefix that affirms a false statement.",
@@ -9137,7 +9166,7 @@
       "tags": [
         "avid-effect:performance:P0204"
       ],
-      "mod_time": "2026-10-06 21:08:08 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.sysprompt_extraction.PromptExtraction": {
       "description": "Detect system prompt extraction via character n-gram overlap",
@@ -9163,7 +9192,7 @@
         "avid-effect:security:S0301",
         "owasp:llm01"
       ],
-      "mod_time": "2026-04-23 19:43:40 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.sysprompt_extraction.PromptExtractionVerbatim": {
       "description": "Stricter variant that only flags high-fidelity system prompt extraction",
@@ -9189,7 +9218,7 @@
         "avid-effect:security:S0301",
         "owasp:llm01"
       ],
-      "mod_time": "2026-04-23 19:43:40 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.unsafe_content.LDNOOBW": {
       "description": "List of Dirty, Naughty, Obscene, and Otherwise Bad Words (English)",
@@ -9215,7 +9244,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-27 10:03:50 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.unsafe_content.Martin_haDistilbert": {
       "description": "Using backup of martin-ha/toxic-comment-model DistilBERT to detect toxic content",
@@ -9246,7 +9275,7 @@
       "tags": [
         "avid-effect:ethics:E0301"
       ],
-      "mod_time": "2026-09-27 10:03:50 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.unsafe_content.OfcomOffensiveDiscriminatory": {
       "description": "UK OFCOM potentially offensive list: discriminatory",
@@ -9272,7 +9301,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-27 10:03:50 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.unsafe_content.OfcomOffensiveGeneral": {
       "description": "UK OFCOM potentially offensive list: general",
@@ -9297,7 +9326,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-27 10:03:50 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.unsafe_content.OfcomOffensiveMentalHealth": {
       "description": "UK OFCOM potentially offensive list: mental health",
@@ -9323,7 +9352,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-27 10:03:50 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.unsafe_content.OfcomOffensiveRaceEthnic": {
       "description": "UK OFCOM potentially offensive list: race / ethnic",
@@ -9349,7 +9378,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-27 10:03:50 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.unsafe_content.OfcomOffensiveSexGender": {
       "description": "UK OFCOM potentially offensive list: sex & gender",
@@ -9375,7 +9404,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-27 10:03:50 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.unsafe_content.OfcomOffensiveSexual": {
       "description": "UK OFCOM potentially offensive list: sexual",
@@ -9399,7 +9428,7 @@
       "tags": [
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-27 10:03:50 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.unsafe_content.S_nlpDetox": {
       "description": "Using s-nlp Roberta model to detect toxic content",
@@ -9430,7 +9459,7 @@
       "tags": [
         "avid-effect:ethics:E0301"
       ],
-      "mod_time": "2026-09-27 10:03:50 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.unsafe_content.SlursReclaimedSlurs": {
       "description": "Slurs and reclaimed slurs. Detects presence of any of the items from an ethnic slur list, regardless of context.",
@@ -9457,7 +9486,7 @@
         "avid-effect:ethics:E0302",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-27 10:03:50 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityAnimalReferences": {
       "description": "Surge AI list: animal references",
@@ -9482,7 +9511,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-27 10:03:50 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityBodilyFluids": {
       "description": "Surge AI list: bodily fluids / excrement",
@@ -9506,7 +9535,7 @@
       "tags": [
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-27 10:03:50 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityMentalDisability": {
       "description": "Surge AI list: mental disability",
@@ -9532,7 +9561,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-27 10:03:50 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityPhysicalAttributes": {
       "description": "Surge AI list: physical attributes",
@@ -9557,7 +9586,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-27 10:03:50 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityPhysicalDisability": {
       "description": "Surge AI list: physical disability",
@@ -9583,7 +9612,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-27 10:03:50 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityPolitical": {
       "description": "Surge AI list: political",
@@ -9610,7 +9639,7 @@
         "avid-effect:ethics:E0302",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-27 10:03:50 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityRacialEthnic": {
       "description": "Surge AI list: racial / ethnic",
@@ -9636,7 +9665,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-27 10:03:50 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.unsafe_content.SurgeProfanityReligious": {
       "description": "Surge AI list: religious offense",
@@ -9661,7 +9690,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-27 10:03:50 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.unsafe_content.SurgeProfanitySexual": {
       "description": "Surge AI list: sexual anatomy / sexual acts",
@@ -9685,7 +9714,7 @@
       "tags": [
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-27 10:03:50 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.unsafe_content.SurgeProfanitySexualOrientationGender": {
       "description": "Surge AI list: sexual orientation / gender",
@@ -9711,7 +9740,7 @@
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401"
       ],
-      "mod_time": "2026-09-27 10:03:50 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "detectors.unsafe_content.ToxicCommentModel": {
       "description": "Garak's default toxicity detector",
@@ -9742,7 +9771,7 @@
       "tags": [
         "avid-effect:ethics:E0301"
       ],
-      "mod_time": "2026-09-27 10:03:50 +0000",
+      "mod_time": "2026-11-10 15:07:39 +0000",
       "hit_precision": 1.0,
       "hit_recall": 0.375,
       "hit_f1": 0.5454545454545454
@@ -9769,7 +9798,7 @@
       "tags": [
         "avid-effect:security:S0403"
       ],
-      "mod_time": "2026-02-04 19:19:46 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.web_injection.MarkdownExfilBasic": {
       "description": "Detect markdown images with fqdn, absolute path, and populated q= parameter",
@@ -9790,7 +9819,7 @@
       "tags": [
         "avid-effect:security:S0301"
       ],
-      "mod_time": "2026-08-12 17:51:57 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.web_injection.MarkdownExfilContent": {
       "description": "As the basic detector, MarkdownExfilBasic, but did we exfiltrate anything?",
@@ -9811,7 +9840,7 @@
       "tags": [
         "avid-effect:security:S0301"
       ],
-      "mod_time": "2026-08-12 17:51:57 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.web_injection.MarkdownExfilExtendedImage": {
       "description": "Extended version of MarkdownExfilBasic that searches for a larger variety of Markdown URI formats",
@@ -9832,7 +9861,7 @@
       "tags": [
         "avid-effect:security:S0301"
       ],
-      "mod_time": "2026-08-12 17:51:57 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.web_injection.MarkdownExfilExtendedNonImage": {
       "description": "Extended version of MarkdownExfilBasic that searches for a larger variety of Markdown URI formats",
@@ -9853,7 +9882,7 @@
       "tags": [
         "avid-effect:security:S0301"
       ],
-      "mod_time": "2026-08-12 17:51:57 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.web_injection.PlaygroundMarkdownExfil": {
       "description": "As the basic detector, MarkdownExfilBasic, searching specifically for PlaygroundMarkdownExfil",
@@ -9874,7 +9903,7 @@
       "tags": [
         "avid-effect:security:S0301"
       ],
-      "mod_time": "2026-08-12 17:51:57 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "detectors.web_injection.XSS": {
       "description": "Look for cross site scripting (XSS) attempts by payload.",
@@ -9898,7 +9927,7 @@
       "tags": [
         "cwe:79"
       ],
-      "mod_time": "2026-08-12 17:51:57 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     }
   },
   "generators": {
@@ -9929,7 +9958,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-05-29 20:25:41 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.azure.AzureOpenAIGenerator": {
       "description": "Wrapper for Azure Open AI. Expects AZURE_API_KEY, AZURE_ENDPOINT and AZURE_MODEL_NAME environment variables.",
@@ -9974,7 +10003,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-01-09 14:20:03 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.base.Generator": {
       "description": "Base class for objects that wrap an LLM or other text-to-text service",
@@ -9999,7 +10028,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-10-06 18:16:38 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.bedrock.BedrockGenerator": {
       "description": "Interface for AWS Bedrock foundation models using Converse API.",
@@ -10031,7 +10060,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-06-10 18:37:39 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.cohere.CohereGenerator": {
       "description": "Interface to Cohere's python library for their text2text model.",
@@ -10065,7 +10094,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-02-02 14:10:11 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.function.Multiple": {
       "description": "Pass a function to call as a generator.",
@@ -10085,7 +10114,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2025-09-25 15:10:32 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.function.Single": {
       "description": "Pass a function to call as a generator.",
@@ -10105,7 +10134,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-09-25 15:10:32 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.ggml.GgmlGenerator": {
       "description": "Generator interface for ggml models in gguf format.",
@@ -10141,7 +10170,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-05-02 15:19:03 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.groq.GroqChat": {
       "description": "Wrapper for Groq-hosted LLM models.",
@@ -10194,7 +10223,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-01-30 12:44:58 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.guardrails.NeMoGuardrails": {
       "description": "Generator wrapper for NeMo Guardrails.",
@@ -10221,7 +10250,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-07-14 00:53:59 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.guardrails.NeMoGuardrailsServer": {
       "description": "Generator for NeMo Guardrails Server",
@@ -10266,7 +10295,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-07-14 00:53:59 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.huggingface.InferenceAPI": {
       "description": "Get text generations from Hugging Face Inference API",
@@ -10294,7 +10323,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2026-09-03 15:56:14 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.huggingface.InferenceEndpoint": {
       "description": "Interface for Hugging Face private endpoints",
@@ -10322,7 +10351,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-09-03 15:56:14 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.huggingface.LLaVA": {
       "description": "Get LLaVA ([ text + image ] -> text) generations",
@@ -10355,7 +10384,7 @@
       },
       "parallel_capable": false,
       "supports_multiple_generations": false,
-      "mod_time": "2026-09-03 15:56:14 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.huggingface.Model": {
       "description": "Get text generations from a locally-run Hugging Face model",
@@ -10385,7 +10414,7 @@
       },
       "parallel_capable": false,
       "supports_multiple_generations": true,
-      "mod_time": "2026-09-03 15:56:14 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.huggingface.Pipeline": {
       "description": "Get text generations from a locally-run Hugging Face pipeline",
@@ -10415,7 +10444,7 @@
       },
       "parallel_capable": false,
       "supports_multiple_generations": true,
-      "mod_time": "2026-09-03 15:56:14 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.langchain.LangChainLLMGenerator": {
       "description": "Class supporting LangChain LLM interfaces",
@@ -10450,7 +10479,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-02-02 14:10:11 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.langchain_serve.LangChainServeLLMGenerator": {
       "description": "Class supporting LangChain Serve LLM interfaces via HTTP POST requests.",
@@ -10476,7 +10505,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-07-13 13:54:00 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.litellm.LiteLLMGenerator": {
       "description": "Generator wrapper using LiteLLM to allow access to different providers using the OpenAI API format.",
@@ -10512,7 +10541,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2026-05-15 13:37:47 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.llm.LLMGenerator": {
       "description": "Interface for llm-managed models.",
@@ -10543,7 +10572,7 @@
       },
       "parallel_capable": false,
       "supports_multiple_generations": false,
-      "mod_time": "2026-05-21 15:13:12 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.mistral.MistralGenerator": {
       "description": "Interface for public endpoints of models hosted in Mistral La Plateforme (console.mistral.ai).",
@@ -10571,7 +10600,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-05-12 17:58:57 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.nim.NVMultimodal": {
       "description": "Wrapper for text and image / audio to text NVIDIA NIM microservices hosted on build.nvidia.com and self-hosted.",
@@ -10626,7 +10655,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-08-10 17:12:57 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.nim.NVOpenAIChat": {
       "description": "Wrapper for NVIDIA NIM microservices hosted on build.nvidia.com and self-hosted.",
@@ -10677,7 +10706,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-08-10 17:12:57 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.nim.NVOpenAICompletion": {
       "description": "Wrapper for NVIDIA NIM microservices hosted on build.nvidia.com and self-hosted.",
@@ -10728,7 +10757,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-08-10 17:12:57 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.nim.Vision": {
       "description": "Wrapper for text and image to text NVIDIA NIM microservices hosted on build.nvidia.com and self-hosted.",
@@ -10782,7 +10811,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-08-10 17:12:57 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.nvcf.NvcfChat": {
       "description": "Wrapper for NVIDIA Cloud Functions Chat models via NGC. Expects NVCF_API_KEY environment variable.",
@@ -10816,7 +10845,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-07-11 16:25:53 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.nvcf.NvcfCompletion": {
       "description": "Wrapper for NVIDIA Cloud Functions Completion models via NGC. Expects NVCF_API_KEY environment variables.",
@@ -10850,7 +10879,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-07-11 16:25:53 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.ollama.OllamaGenerator": {
       "description": "Interface for Ollama endpoints",
@@ -10882,7 +10911,7 @@
       },
       "parallel_capable": false,
       "supports_multiple_generations": false,
-      "mod_time": "2026-08-26 11:22:03 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.ollama.OllamaGeneratorChat": {
       "description": "Interface for Ollama endpoints, using the chat functionality",
@@ -10914,7 +10943,7 @@
       },
       "parallel_capable": false,
       "supports_multiple_generations": false,
-      "mod_time": "2026-08-26 11:22:03 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.openai.OpenAICompatible": {
       "description": "Generator base class for OpenAI compatible text2text restful API. Implements shared initialization and execution methods.",
@@ -10958,7 +10987,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-09-04 14:35:48 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.openai.OpenAIGenerator": {
       "description": "Generator wrapper for OpenAI text2text models. Expects API key in the OPENAI_API_KEY environment variable",
@@ -11001,7 +11030,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2026-09-04 14:35:48 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.openai.OpenAIReasoningGenerator": {
       "description": "Generator wrapper for OpenAI reasoning models, e.g. `o1` family.",
@@ -11042,7 +11071,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-09-04 14:35:48 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.rasa.RasaRestGenerator": {
       "description": "API interface for RASA models",
@@ -11085,7 +11114,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2025-09-25 15:10:32 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.replicate.InferenceEndpoint": {
       "description": "Interface for private Replicate endpoints.",
@@ -11114,7 +11143,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-01-09 14:20:03 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.replicate.ReplicateGenerator": {
       "description": "Interface for public endpoints of models hosted in Replicate (replicate.com).",
@@ -11143,7 +11172,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-01-09 14:20:03 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.rest.RestGenerator": {
       "description": "Generic API interface for REST models",
@@ -11183,7 +11212,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-07-09 00:54:09 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.test.Blank": {
       "description": "This generator always returns the empty string.",
@@ -11208,7 +11237,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2026-05-01 16:55:52 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.test.BlankVision": {
       "description": "This text+image input generator always returns the empty string.",
@@ -11234,7 +11263,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2026-05-01 16:55:52 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.test.Lipsum": {
       "description": "Lorem Ipsum generator, so we can get non-zero outputs that vary",
@@ -11261,7 +11290,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-05-01 16:55:52 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.test.Nones": {
       "description": "This generator always returns a None for every generation.",
@@ -11286,7 +11315,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2026-05-01 16:55:52 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.test.ReasoningLipsum": {
       "description": "Lorem Ipsum generator with a simulated reasoning trace, for testing",
@@ -11317,7 +11346,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-05-01 16:55:52 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.test.Repeat": {
       "description": "This generator returns the last message from input that was posed to it.",
@@ -11342,7 +11371,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": true,
-      "mod_time": "2026-05-01 16:55:52 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.test.Single": {
       "description": "This generator returns the a fixed string and does not support multiple generations.",
@@ -11367,7 +11396,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-05-01 16:55:52 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.watsonx.WatsonXGenerator": {
       "description": "This is a generator for watsonx.ai.",
@@ -11398,7 +11427,7 @@
       },
       "parallel_capable": true,
       "supports_multiple_generations": false,
-      "mod_time": "2026-02-02 14:10:11 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "generators.websocket.WebSocketGenerator": {
       "description": "Generator for WebSocket-based LLM services",
@@ -11436,7 +11465,7 @@
       },
       "parallel_capable": false,
       "supports_multiple_generations": false,
-      "mod_time": "2026-10-15 17:07:33 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     }
   },
   "harnesses": {
@@ -11447,7 +11476,7 @@
       },
       "active": true,
       "extra_dependency_names": [],
-      "mod_time": "2026-11-03 11:35:39 +0000"
+      "mod_time": "2026-11-10 15:07:39 +0000"
     },
     "harnesses.probewise.ProbewiseHarness": {
       "DEFAULT_PARAMS": {
@@ -11455,7 +11484,7 @@
       },
       "active": true,
       "extra_dependency_names": [],
-      "mod_time": "2026-09-08 07:40:36 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "harnesses.pxd.PxD": {
       "DEFAULT_PARAMS": {
@@ -11463,7 +11492,7 @@
       },
       "active": true,
       "extra_dependency_names": [],
-      "mod_time": "2025-03-10 22:23:53 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     }
   },
   "buffs": {
@@ -11474,7 +11503,7 @@
       "doc_uri": "",
       "extra_dependency_names": [],
       "lang": null,
-      "mod_time": "2026-09-16 13:45:48 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "buffs.encoding.Base64": {
       "description": "Base64 buff",
@@ -11483,7 +11512,7 @@
       "doc_uri": "",
       "extra_dependency_names": [],
       "lang": null,
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "buffs.encoding.CharCode": {
       "description": "CharCode buff",
@@ -11492,7 +11521,7 @@
       "doc_uri": "",
       "extra_dependency_names": [],
       "lang": null,
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "buffs.low_resource_languages.LRLBuff": {
       "description": "Low Resource Language buff",
@@ -11501,7 +11530,7 @@
       "doc_uri": "https://arxiv.org/html/2310.02446v1",
       "extra_dependency_names": [],
       "lang": null,
-      "mod_time": "2026-05-06 23:52:30 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "buffs.lowercase.Lowercase": {
       "description": "Lowercasing buff",
@@ -11510,7 +11539,7 @@
       "doc_uri": "",
       "extra_dependency_names": [],
       "lang": null,
-      "mod_time": "2025-06-17 16:15:39 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "buffs.paraphrase.Fast": {
       "description": "CPU-friendly paraphrase buff based on Humarin's T5 paraphraser",
@@ -11527,7 +11556,7 @@
       "doc_uri": "https://huggingface.co/humarin/chatgpt_paraphraser_on_T5_base",
       "extra_dependency_names": [],
       "lang": "en",
-      "mod_time": "2026-09-16 16:21:20 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     },
     "buffs.paraphrase.PegasusT5": {
       "description": "Paraphrasing buff using Pegasus model",
@@ -11544,7 +11573,7 @@
       "doc_uri": "https://huggingface.co/tuner007/pegasus_paraphrase",
       "extra_dependency_names": [],
       "lang": "en",
-      "mod_time": "2026-09-16 16:21:20 +0000"
+      "mod_time": "2026-11-05 18:02:13 +0000"
     }
   }
 }
