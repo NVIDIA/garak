@@ -3,7 +3,7 @@
 
 """Flow for invoking garak from the command line"""
 
-command_options = "list_detectors list_probes list_generators list_buffs list_config plugin_info interactive report version fix".split()
+command_options = "list_detectors list_probes list_intents list_generators list_buffs list_config plugin_info interactive report version fix".split()
 
 
 def parse_cli_plugin_config(plugin_type, args):
@@ -164,7 +164,8 @@ def main(arguments=None) -> None:
         default=_config.run.spec,
         help="unified selection spec, e.g. 'probes.dan,-probes.dan.DanInTheWild,tag:owasp:llm01'. "
         "Selectors: probes.<module>[.<Class>], buffs.<module>[.<Class>], tag:<prefix>, "
-        "tier:<N|name>; '-' excludes, tier:N is inclusive (tiers 1..N).",
+        "tier:<N|name>, intent:<code>; '-' excludes, tier:N is inclusive (tiers 1..N). "
+        "Use --list_intents to discover intent codes.",
     )
     # probes (DEPRECATED: use --spec)
     parser.add_argument(
@@ -264,6 +265,12 @@ def main(arguments=None) -> None:
         action="store_true",
         help="list available probes. Use -v for a detailed markdown table with tier and description. "
         "Combine with --spec to filter, e.g. '--list_probes --spec probes.dan'.",
+    )
+    parser.add_argument(
+        "--list_intents",
+        action="store_true",
+        help="list the intent typology. Use -v for descriptions and combine with "
+        "--spec to filter, e.g. '--list_intents --spec intent:S005'.",
     )
     parser.add_argument(
         "--list_detectors",
@@ -493,6 +500,16 @@ def main(arguments=None) -> None:
                 f"bootstrap_min_sample_size must be > 0, got {_config.reporting.bootstrap_min_sample_size}"
             )
 
+        if _config.reporting.hit_at_k is not None and (
+            not isinstance(_config.reporting.hit_at_k, list)
+            or not all(
+                isinstance(k, int) and k >= 1 for k in _config.reporting.hit_at_k
+            )
+        ):
+            raise ValueError(
+                f"hit_at_k must be a list of integers >= 1 or null, got {_config.reporting.hit_at_k}"
+            )
+
     except ValueError as e:
         logging.exception(e)
         print(e)
@@ -556,6 +573,32 @@ def main(arguments=None) -> None:
                 command.warn_rejected_selectors(resolved.rejected, "probes")
                 selected_probes = resolved.probes
             command.print_probes(selected_probes, verbose=_config.system.verbose)
+
+        elif args.list_intents:
+            from garak._spec import parse_spec_file
+            from garak import _selection
+
+            try:
+                intent_spec = None
+                blocked_spec = None
+                if _config.run.spec:
+                    parsed_spec = parse_spec_file(_config.run.spec)
+                    resolved = _selection.resolve_spec(parsed_spec, skip_unknown=True)
+                    if resolved.intents_explicit:
+                        if any(
+                            selector.kind == "intent"
+                            for selector in parsed_spec.include
+                        ):
+                            intent_spec = ",".join(resolved.intents)
+                        blocked_spec = ",".join(resolved.blocked_intents)
+                command.print_intents(
+                    intent_spec,
+                    blocked_spec,
+                    verbose=_config.system.verbose,
+                )
+            except (ValueError, GarakException) as e:
+                print(f"❌ {e}")
+                raise SystemExit(1) from e
 
         elif args.list_detectors:
             selected_detectors = None

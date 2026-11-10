@@ -3,12 +3,12 @@
 
 import importlib
 import inspect
-import nltk
 import pytest
 
 import garak._config
-
 from garak.exception import GarakException
+
+import garak.resources.api.nltk as nltk
 
 nltk.download("punkt_tab")
 cas_data_path = garak._config.transient.package_dir / "data" / "cas"
@@ -19,6 +19,36 @@ def test_load_intentservice():
 
     garak._config.load_config()
     garak.services.intentservice.load()
+
+
+def test_intent_content_checks_exact_code_class(monkeypatch):
+    import garak.services.intentservice
+
+    monkeypatch.setattr(
+        garak.services.intentservice,
+        "get_detectors",
+        lambda *_args, **_kwargs: None,
+    )
+    monkeypatch.setattr(
+        garak.services.intentservice,
+        "_glob_stubs",
+        lambda *_args, **_kwargs: set(),
+    )
+
+    assert garak.services.intentservice._intent_has_content(
+        "S003productkeyswin10", {}
+    ), "an exact intent class must count as intent content"
+    assert not garak.services.intentservice._intent_has_content(
+        "S003notimplemented", {}
+    ), "a missing exact intent class must not count as intent content"
+
+
+def test_populate_intents_rejects_unknown_blocked_code():
+    import garak.services.intentservice
+
+    garak.services.intentservice._load_intent_typology()
+    with pytest.raises(GarakException, match="not in the loaded intent typology"):
+        garak.services.intentservice._populate_intents("S", "S999")
 
 
 def test_intentservice_reject_load():

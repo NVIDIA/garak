@@ -6,14 +6,17 @@ import errno
 import json
 import os
 import httpx
+import openai
 import pathlib
 import respx
 import pytest
 import importlib
 import inspect
+from unittest.mock import MagicMock, patch
 
 from collections.abc import Iterable
 
+import garak.exception
 from garak.attempt import Message, Turn, Conversation
 import garak.generators.openai as openai_generator
 from garak.generators.openai import OpenAICompatible, OpenAIGenerator
@@ -95,7 +98,8 @@ def compatible() -> Iterable[OpenAICompatible]:
 def build_test_instance(module_klass):
     stored_env = os.getenv(module_klass.ENV_VAR, None)
     os.environ[module_klass.ENV_VAR] = ENV_VAR
-    class_instance = module_klass(name=MODEL_NAME)
+    with patch.object(OpenAICompatible, "_validate_uri_connectivity"):
+        class_instance = module_klass(name=MODEL_NAME)
     if stored_env is not None:
         os.environ[module_klass.ENV_VAR] = stored_env
     else:
@@ -110,6 +114,36 @@ def build_unloaded_compatible():
     generator.api_key = ENV_VAR
     generator.generator_family_name = "OpenAICompatible"
     return generator
+
+
+@pytest.mark.uri_connectivity
+def test_openai_compatible_uri_connectivity_check(mocker):
+    generator = build_unloaded_compatible()
+    get = mocker.patch(
+        "garak.generators.openai.httpx.get",
+        return_value=httpx.Response(404),
+    )
+
+    generator._validate_uri_connectivity()
+
+    get.assert_called_once_with(
+        generator.uri, timeout=OpenAICompatible.URI_CONNECT_TIMEOUT
+    )
+
+
+@pytest.mark.uri_connectivity
+def test_openai_compatible_unreachable_uri_fails_during_init(monkeypatch, mocker):
+    monkeypatch.setenv(OpenAICompatible.ENV_VAR, "test-fake-key")
+    mocker.patch(
+        "garak.generators.openai.httpx.get",
+        side_effect=httpx.ConnectError("connection refused"),
+    )
+
+    with pytest.raises(
+        garak.exception.BadGeneratorException,
+        match="target URI is not reachable",
+    ):
+        OpenAICompatible(name=MODEL_NAME)
 
 
 # helper method to pass mock config
@@ -251,3 +285,92 @@ def test_conversation_to_list_image_turn_uses_chat_completions_format():
     assert header == "data:image/gif;base64"
     assert separator == ","
     assert base64.b64decode(payload) == IMAGE_ASSET.read_bytes()
+
+
+# ---------------------------------------------------------------------------
+# OpenAICompatible transient-error retry tests
+# (these tests cover base-class behaviour shared by NIM and all other
+#  OpenAICompatible subclasses)
+# ---------------------------------------------------------------------------
+
+
+def _make_api_status_error(
+    status_code: int, url: str = "http://localhost/v1/chat/completions"
+) -> openai.APIStatusError:
+    """Build an openai.APIStatusError with a real httpx.Response for a given HTTP status."""
+    request = httpx.Request("POST", url)
+    response = httpx.Response(status_code, request=request)
+    return openai.APIStatusError(f"HTTP {status_code}", response=response, body=None)
+
+
+def _make_prompt() -> Conversation:
+    return Conversation([Turn(role="user", content=Message("test prompt"))])
+
+
+@pytest.fixture
+def openai_compatible_generator(monkeypatch):
+    """OpenAICompatible generator with mocked client; no real API key required."""
+    monkeypatch.setenv(OpenAIGenerator.ENV_VAR, "test-fake-key-for-unit-tests")
+    mock_client = MagicMock()
+    mock_client.chat.completions = MagicMock()
+    with patch("openai.OpenAI", return_value=mock_client):
+        g = OpenAIGenerator(name="gpt-3.5-turbo")
+    return g
+
+
+def test_transient_retry_codes_override(openai_compatible_generator):
+    """transient_retry_codes override suppresses retry for removed code."""
+    codes = OpenAICompatible.DEFAULT_PARAMS["transient_retry_codes"]
+
+    prompt = _make_prompt()
+    openai_compatible_generator.generator = MagicMock()
+    openai_compatible_generator.transient_retry_codes = [codes[1:]]
+    openai_compatible_generator.generator.create.side_effect = _make_api_status_error(
+        codes[0]
+    )
+
+    results = openai_compatible_generator._call_model(prompt)
+    assert results == [None]
+
+
+@pytest.mark.parametrize(
+    "code", OpenAICompatible.DEFAULT_PARAMS["transient_retry_codes"]
+)
+def test_transient_http_error_raises_backoff_trigger(openai_compatible_generator, code):
+    """A transient status code should cause _call_model to raise GeneratorBackoffTrigger
+    so that the backoff decorator can schedule a retry."""
+    prompt = _make_prompt()
+    openai_compatible_generator.generator = MagicMock()
+    openai_compatible_generator.generator.create.side_effect = _make_api_status_error(
+        code
+    )
+
+    # Call the underlying function without the backoff decorator so the test does not
+    # need to wait for retry delays or exhaust the fibonacci sequence.
+    unwrapped = OpenAICompatible._call_model.__wrapped__
+    with pytest.raises(garak.exception.GeneratorBackoffTrigger):
+        unwrapped(openai_compatible_generator, prompt)
+
+
+@pytest.mark.parametrize(
+    "code",
+    [
+        code
+        for code in httpx.codes
+        if code >= 400
+        and code < 600
+        and code not in OpenAICompatible.DEFAULT_PARAMS["transient_retry_codes"]
+    ],
+)
+def test_terminal_http_error_returns_none(openai_compatible_generator, code):
+    """A terminal (non-transient) status code should cause _call_model to return [None]
+    so that the current attempt is skipped and the probe run continues."""
+    prompt = _make_prompt()
+    openai_compatible_generator.generator = MagicMock()
+    openai_compatible_generator.generator.create.side_effect = _make_api_status_error(
+        code
+    )
+
+    unwrapped = OpenAICompatible._call_model.__wrapped__
+    result = unwrapped(openai_compatible_generator, prompt)
+    assert result == [None], f"Expected [None] for HTTP {code}, got {result!r}"

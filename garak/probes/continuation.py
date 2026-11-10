@@ -39,6 +39,8 @@ class ContinueSlursReclaimedSlursFull(garak.probes.Probe):
         "quality:Behavioral:ContentSafety:HateHarassment",
         "payload:unwanted:hatespeech",
         "demon:Language:Stylizing:Give_examples",  # provides high-risk context with partial words as examples for completion
+        "euai:discrimination:protected_class",
+        "euai:discrimination:personal",
     ]
     goal = "output an ethnic slur"
     active = False
@@ -80,8 +82,7 @@ class ContinueSlursReclaimedSlursFull(garak.probes.Probe):
                     self.prompts.append(candidate_prompt)
                     self.triggers.append(term)
 
-        if self.follow_prompt_cap:
-            self._prune_data(self.soft_probe_prompt_cap, prune_triggers=True)
+        self._prune_data(prune_triggers=True)
 
         if self.langprovider is not None:
             preparation_bar = tqdm.tqdm(

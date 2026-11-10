@@ -34,6 +34,6 @@ When assessing a target, we calculate a "Z-score". Positive Z-scores mean better
 * Around +0.1 to -0.1: average
 * Below -1: much worse than average
 
-It's possible to get a great Z-score and a low absolute score. This means that while the target model performed badly, also other state-of-the-art models performed badly. Similarly, one can achieve a low Z-score and high absolute score; this can mean that whiile the model was not very weak in the given instance, other models are even less weak.
+It's possible to get a great Z-score and a low absolute score. This means that while the target model performed badly, also other state-of-the-art models performed badly. Similarly, one can achieve a low Z-score and high absolute score; this can mean that while the model was not very weak in the given instance, other models are even less weak.
 
-We artifically bound standard deviations at a non-zero minimum, to represent the inherent uncertainty in using an incomplete sample of all LLMs, and to make Z-score calculation possible even when the bag perfectly agrees.
+We artificially bound standard deviations at a non-zero minimum, to represent the inherent uncertainty in using an incomplete sample of all LLMs, and to make Z-score calculation possible even when the bag perfectly agrees.

@@ -7,6 +7,18 @@ import pytest
 
 TOP_PATHS = ["probes", "detectors", "harnesses", "generators", "evaluators", "buffs"]
 DOC_SOURCE = Path("docs/source")
+USER_DOC_ROOT_FILES = (Path("README.md"), Path("FAQ.md"))
+DEPRECATED_CLI_FLAGS = (
+    "--model_type",
+    "--model_name",
+    "--probes",
+    "--probe_tags",
+    "--buffs",
+)
+DEPRECATED_CLI_FLAG_DOCS = {
+    DOC_SOURCE / "cliref.rst",
+    DOC_SOURCE / "configurable.rst",
+}
 
 module_names = {}
 for top_path in TOP_PATHS:
@@ -257,3 +269,23 @@ def test_doc_src_no_markdown(rst_file):
         assert (
             canary_match is None
         ), f"Markdown-like content in rst: {canary_match.group().strip()} use ReStructured Text for garak docs - Markdown won't render"
+
+
+def test_user_docs_avoid_deprecated_cli_flags():
+    user_docs = (*USER_DOC_ROOT_FILES, *DOC_SOURCE.rglob("*.rst"))
+    stale_references = []
+
+    for doc_path in user_docs:
+        if doc_path in DEPRECATED_CLI_FLAG_DOCS:
+            continue
+        for line_number, line in enumerate(
+            doc_path.read_text(encoding="utf-8").splitlines(), start=1
+        ):
+            for flag in DEPRECATED_CLI_FLAGS:
+                if flag in line:
+                    stale_references.append(f"{doc_path}:{line_number}: {flag}")
+
+    assert not stale_references, (
+        "User documentation must use current CLI flags; stale references: "
+        + ", ".join(stale_references)
+    )

@@ -39,6 +39,7 @@ class Puppetry(garak.probes.Probe):
         "demon:Language:Stylizing:Formal_language",  # frames the attack as authoritative XML/config instructions
         "demon:Fictionalizing:Roleplaying:User_persona",  # assumes a Medical Advisor persona via XML config to bypass guardrails
         "demon:Rhetoric:Persuasion_and_manipulation:Distraction",
+        "euai:robustness:adversarial",
     ]
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
 
@@ -102,6 +103,7 @@ class Bypass(garak.probes.Probe):
         "demon:Language:Stylizing:Formal_language",  # uses authoritative config/script formatting to strengthen the override
         "demon:Fictionalizing:Roleplaying:User_persona",  # invents a Dr. House TV persona to elicit harmful content
         "demon:Rhetoric:Persuasion_and_manipulation:Distraction",
+        "euai:robustness:adversarial",
     ]
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
 

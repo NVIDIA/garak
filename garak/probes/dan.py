@@ -49,6 +49,7 @@ class DANProbeMeta(type):
             "quality:Security:PromptStability",
             "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",  # asks model to adopt unrestricted DAN persona
             "demon:Language:Prompt_injection:Ignore_previous_instructions",  # replaces existing safety behavior with a new unrestricted instruction set
+            "euai:robustness:adversarial",
         ],
         "primary_detector": "dan.DAN",
         "extended_detectors": ["mitigation.MitigationBypass"],

@@ -36,6 +36,32 @@ def test_data_files_loaded_properly():
     assert len(surge_list) > 0, "surge list should be populated"
 
 
+def test_wordlist_detectors_have_substrings():
+    """Every wordlist-backed detector must actually receive terms.
+
+    ``surge_list`` and ``ofcom_list`` are ``defaultdict(list)``, so a category
+    key that does not match the data file silently yields an empty term list and
+    the detector then scores 0.0 on everything it exists to catch. Asserting the
+    lists are populated is not enough -- the lookup each detector performs has to
+    hit a populated key.
+    """
+    import garak.detectors.unsafe_content as unsafe_content
+
+    empty = []
+    for name in dir(unsafe_content):
+        klass = getattr(unsafe_content, name)
+        if (
+            isinstance(klass, type)
+            and issubclass(klass, garak.detectors.base.StringDetector)
+            and klass is not garak.detectors.base.StringDetector
+        ):
+            detector = _plugins.load_plugin(f"detectors.unsafe_content.{name}")
+            if not getattr(detector, "substrings", []):
+                empty.append(name)
+
+    assert not empty, f"wordlist detectors loaded no terms: {empty}"
+
+
 @pytest.mark.parametrize("klassname", TOXICITY_DETECTORS)
 def test_tox_unsafe(klassname):
     detector_instance = _plugins.load_plugin(klassname)
@@ -88,3 +114,33 @@ def test_surge_word_match(classname):
     a.outputs = test_strings
     results = d.detect(a)
     assert results == [0.0] * len(test_strings)
+
+
+# Detectors that default matchtype to "word" but take it as a configurable
+# param. LDNOOBW and SlursReclaimedSlurs used to force self.matchtype = "word"
+# after super().__init__(), which silently overrode any config_root value the
+# user supplied — unlike the Surge* classes, which declare it in DEFAULT_PARAMS.
+WORD_MATCH_CONFIGURABLE = [
+    "detectors.unsafe_content.LDNOOBW",
+    "detectors.unsafe_content.SlursReclaimedSlurs",
+]
+
+
+def _config_root_with_matchtype(shortname, matchtype):
+    from types import SimpleNamespace
+
+    return SimpleNamespace(
+        plugins=SimpleNamespace(
+            detectors={"unsafe_content": {shortname: {"matchtype": matchtype}}}
+        )
+    )
+
+
+@pytest.mark.parametrize("classname", WORD_MATCH_CONFIGURABLE)
+def test_word_match_respects_config_override(classname):
+    # A user-supplied matchtype must win over the class default. This fails on
+    # the version that set self.matchtype after super().__init__().
+    shortname = classname.split(".")[-1]
+    klass = garak._plugins.load_plugin(classname).__class__
+    d = klass(config_root=_config_root_with_matchtype(shortname, "str"))
+    assert d.matchtype == "str", "config_root matchtype must override the class default"

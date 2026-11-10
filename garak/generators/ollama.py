@@ -117,7 +117,9 @@ class OllamaGenerator(Generator):
         giveup=_give_up,
     )
     @backoff.on_predicate(
-        backoff.fibo, lambda ans: ans == [None] or len(ans) == 0, max_tries=3
+        backoff.fibo,
+        lambda ans: not ans or ans[0] is None or not ans[0].text,
+        max_tries=3,
     )  # Ollama sometimes returns empty responses. Only 3 retries to not delay generations expecting empty responses too much
     def _call_model(
         self, prompt: Conversation, generations_this_call: int = 1
@@ -161,7 +163,9 @@ class OllamaGeneratorChat(OllamaGenerator):
         giveup=_give_up,
     )
     @backoff.on_predicate(
-        backoff.fibo, lambda ans: ans == [None] or len(ans) == 0, max_tries=3
+        backoff.fibo,
+        lambda ans: not ans or ans[0] is None or not ans[0].text,
+        max_tries=3,
     )  # Ollama sometimes returns empty responses. Only 3 retries to not delay generations expecting empty responses too much
     def _call_model(
         self, prompt: Conversation, generations_this_call: int = 1

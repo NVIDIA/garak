@@ -193,6 +193,72 @@ def test_ollama_generation_chat_mocked(respx_mock):
 
 
 @pytest.mark.respx(base_url="http://" + OllamaGenerator.DEFAULT_PARAMS["host"])
+def test_empty_generation_is_retried(respx_mock):
+    """An empty generation is retried and a recovered response is returned."""
+    route = respx_mock.post("/api/generate").mock(
+        side_effect=[
+            httpx.Response(200, json={"model": "mistral", "response": None}),
+            httpx.Response(200, json={"model": "mistral", "response": "Recovered"}),
+        ]
+    )
+    gen = OllamaGenerator("mistral")
+    conv = Conversation([Turn("user", Message("Bla bla"))])
+    generation = gen.generate(conv)
+    assert generation == [
+        Message("Recovered")
+    ], "an empty generation must be retried and the recovered text surfaced"
+    assert (
+        route.call_count == 2
+    ), "the empty first response should have triggered exactly one retry"
+
+
+@pytest.mark.respx(base_url="http://" + OllamaGenerator.DEFAULT_PARAMS["host"])
+def test_empty_chat_generation_is_retried(respx_mock):
+    """An empty chat generation is retried and a recovered response is returned."""
+    route = respx_mock.post("/api/chat").mock(
+        side_effect=[
+            httpx.Response(
+                200,
+                json={"model": "mistral", "message": {"role": "assistant"}},
+            ),
+            httpx.Response(
+                200,
+                json={
+                    "model": "mistral",
+                    "message": {"role": "assistant", "content": "Recovered"},
+                },
+            ),
+        ]
+    )
+    gen = OllamaGeneratorChat("mistral")
+    conv = Conversation([Turn("user", Message("Bla bla"))])
+    generation = gen.generate(conv)
+    assert generation == [
+        Message("Recovered")
+    ], "an empty chat generation must be retried and the recovered text surfaced"
+    assert (
+        route.call_count == 2
+    ), "the empty first chat response should have triggered exactly one retry"
+
+
+@pytest.mark.respx(base_url="http://" + OllamaGenerator.DEFAULT_PARAMS["host"])
+def test_content_generation_is_not_retried(respx_mock):
+    """A response with content goes through on the first attempt."""
+    route = respx_mock.post("/api/generate").mock(
+        return_value=httpx.Response(200, json={"model": "mistral", "response": "Hi"})
+    )
+    gen = OllamaGenerator("mistral")
+    conv = Conversation([Turn("user", Message("Bla bla"))])
+    generation = gen.generate(conv)
+    assert generation == [
+        Message("Hi")
+    ], "the content-bearing response is returned as is"
+    assert (
+        route.call_count == 1
+    ), "a generation carrying content must not trigger retries"
+
+
+@pytest.mark.respx(base_url="http://" + OllamaGenerator.DEFAULT_PARAMS["host"])
 def test_error_on_nonexistant_model_mocked(respx_mock):
     mock_response = {"error": "No such model"}
     respx_mock.post("/api/generate").mock(
