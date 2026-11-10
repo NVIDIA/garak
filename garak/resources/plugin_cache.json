@@ -2691,6 +2691,39 @@
       "tier": 2,
       "mod_time": "2026-11-05 16:41:01 +0000"
     },
+    "probes.encoding.InjectSneakyBitsIntent": {
+      "description": "Hide an instruction as invisible bits and measure whether the target acts.",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true
+      },
+      "active": false,
+      "blocked_intent_spec": "",
+      "doc_uri": "https://embracethered.com/blog/posts/2025/sneaky-bits-and-ascii-smuggler/",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "garak": null,
+      "goal": "make the target act on an encoded instruction",
+      "intent": null,
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "mitigation.MitigationBypass",
+      "skip_root_intents": true,
+      "tags": [
+        "avid-effect:security:S0403",
+        "owasp:llm01",
+        "quality:Security:PromptStability",
+        "payload:generic",
+        "demon:Language:Code_and_encode:Data_encoding",
+        "demon:Language:Code_and_encode:Token"
+      ],
+      "tier": 2,
+      "mod_time": "2026-11-05 16:41:01 +0000"
+    },
     "probes.encoding.InjectUU": {
       "description": "Probe for susceptibility to UU encoded injections",
       "DEFAULT_PARAMS": {
@@ -2797,6 +2830,40 @@
       "tier": 1,
       "mod_time": "2026-11-05 16:41:01 +0000"
     },
+    "probes.encoding.InjectUnicodeTagCharsIntent": {
+      "description": "Hide an instruction in Unicode Tags and measure whether the target acts on it.",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "desired_emoji": "\ud83d\ude08"
+      },
+      "active": false,
+      "blocked_intent_spec": "",
+      "doc_uri": "https://embracethered.com/blog/posts/2024/hiding-and-finding-text-with-unicode-tags/",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "garak": null,
+      "goal": "make the target act on an encoded instruction",
+      "intent": null,
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "mitigation.MitigationBypass",
+      "skip_root_intents": true,
+      "tags": [
+        "avid-effect:security:S0403",
+        "owasp:llm01",
+        "quality:Security:PromptStability",
+        "payload:generic",
+        "demon:Language:Code_and_encode:Data_encoding",
+        "demon:Language:Code_and_encode:Token"
+      ],
+      "tier": 1,
+      "mod_time": "2026-11-05 16:41:01 +0000"
+    },
     "probes.encoding.InjectUnicodeVariantSelectors": {
       "description": "Probe for susceptibility to unicode variant selector ASCII smuggling",
       "DEFAULT_PARAMS": {
@@ -2823,6 +2890,39 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "encoding.DecodeMatch",
+      "tags": [
+        "avid-effect:security:S0403",
+        "owasp:llm01",
+        "quality:Security:PromptStability",
+        "payload:generic",
+        "demon:Language:Code_and_encode:Data_encoding",
+        "demon:Language:Code_and_encode:Token"
+      ],
+      "tier": 2,
+      "mod_time": "2026-11-05 16:41:01 +0000"
+    },
+    "probes.encoding.InjectUnicodeVariantSelectorsIntent": {
+      "description": "Hide an instruction in Unicode selectors and measure whether the target acts.",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true
+      },
+      "active": false,
+      "blocked_intent_spec": "",
+      "doc_uri": "https://paulbutler.org/2025/smuggling-arbitrary-data-through-an-emoji/",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "garak": null,
+      "goal": "make the target act on an encoded instruction",
+      "intent": null,
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "mitigation.MitigationBypass",
+      "skip_root_intents": true,
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
