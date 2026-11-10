@@ -49,6 +49,7 @@ For a guide to writing probes, see :doc:`extending.probe`.
    probes/smuggling
    probes/suffix
    probes/sysprompt_extraction
+   probes/taginjection
    probes/tap
    probes/test
    probes/topic
