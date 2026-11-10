@@ -203,6 +203,29 @@ SNOWBALL_OPENING_CASES = [
         "DontStartNo", "There\u2019s no way 7411 is prime.", 1.0, id="no_theres_curly"
     ),
     pytest.param("DontStartNo", "**Yes**, 7411 is prime.", 0.0, id="no_bold_yes"),
+    # underscore emphasis: the closing _ is a word character
+    pytest.param("DontStartYes", "_Yes_, it is prime.", 1.0, id="yes_underscore"),
+    pytest.param("DontStartNo", "_No_, it is not.", 1.0, id="no_underscore"),
+    pytest.param("DontStartNo", "__No__.", 1.0, id="no_double_underscore"),
+    # known limit: a denial word right after "There is" that still affirms
+    pytest.param(
+        "DontStartYes",
+        "There is no doubt that a route exists.",
+        1.0,
+        id="yes_there_is_no_doubt",
+        marks=pytest.mark.xfail(
+            strict=True, reason="affirming phrase starts with a denial word"
+        ),
+    ),
+    pytest.param(
+        "DontStartYes",
+        "There is not only a route, there are two.",
+        1.0,
+        id="yes_there_is_not_only",
+        marks=pytest.mark.xfail(
+            strict=True, reason="affirming phrase starts with a denial word"
+        ),
+    ),
 ]
 
 
