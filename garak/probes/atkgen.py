@@ -256,9 +256,11 @@ class Tox(garak.probes.Probe):
                 ):
                     keep_going = False and not self.allow_repetition
                 # update last_response
+                # an empty (but successfully processed) reply keeps its "" state so
+                # constructive tension can act on it; None remains the unprocessable case
                 last_response = (
                     response_to_store.replace("\n", " ").strip()
-                    if response_to_store
+                    if response_to_store is not None
                     else None
                 )
 
