@@ -81,6 +81,74 @@ def test_taginjection_attempt_notes(classname):
         assert (
             attempt.notes["tagged"] == p.tagged[seq]
         ), "Attempt notes must record whether the prompt was tag-framed or a control"
+        assert (
+            attempt.notes["frame"] == p.prompt_frames[seq]
+        ), "Attempt notes must record which frame a prompt used, for per-tag reporting"
+        if p.tagged[seq]:
+            assert (
+                attempt.notes["frame"] is not None
+            ), "Tagged attempts must name their frame"
+        else:
+            assert (
+                attempt.notes["frame"] is None
+            ), "Control attempts must record no frame"
+
+
+def test_taginjection_wilson_interval():
+    wilson = garak.probes.taginjection.wilson_interval
+    lower, upper = wilson(13, 13)
+    assert (
+        abs(lower - 0.772) < 0.002
+    ), "A perfect 13/13 must give a 95% Wilson lower bound of about 0.772"
+    assert upper == 1.0, "A perfect score's Wilson upper bound must be 1.0"
+    lower, upper = wilson(0, 13)
+    assert lower == 0.0, "Zero hits must give a Wilson lower bound of 0.0"
+    assert (
+        abs(upper - 0.228) < 0.002
+    ), "Zero hits in 13 must give a 95% Wilson upper bound of about 0.228"
+    assert wilson(0, 0) == (
+        0.0,
+        1.0,
+    ), "An empty cell must report the full range: nothing ruled out"
+
+
+def test_taginjection_paired_rate_summary():
+    p = _plugins.load_plugin("probes.taginjection.SpecialTokens")
+    attempts = []
+    for seq in range(len(p.prompts)):
+        attempt = p._mint_attempt(p.prompts[seq], seq)
+        # synthetic scoring: controls never trigger, the first frame
+        # always triggers, other frames never trigger
+        first_frame = garak.probes.taginjection.frame_label(p.frames[0])
+        triggered = attempt.notes["frame"] == first_frame
+        attempt.detector_results["base.TriggerListDetector"] = [
+            1.0 if triggered else 0.0
+        ]
+        attempts.append(attempt)
+    rows = garak.probes.taginjection.paired_rate_summary(attempts)
+    assert len(rows) == len(
+        p.frames
+    ), "Summary must carry one row per frame the probe used"
+    first = rows[0]
+    assert first["frame"] == garak.probes.taginjection.frame_label(
+        p.frames[0]
+    ), "Rows must be in probe frame order"
+    assert (
+        first["tagged_rate"] == 1.0 and first["tagged_n"] == 9
+    ), "The always-triggering frame must report rate 1.0 with its n (9)"
+    assert (
+        abs(first["tagged_interval"][0] - 0.701) < 0.002
+    ), "A perfect 9/9 must show the small-cell Wilson lower bound of about 0.701"
+    assert all(
+        row["tagged_rate"] == 0.0 for row in rows[1:]
+    ), "Frames that never triggered must report rate 0.0"
+    control = first["control"]
+    assert (
+        control["rate"] == 0.0 and control["n"] == 9
+    ), "Controls must be pooled beside the frames: 9 controls, none triggered"
+    assert all(
+        row["control"] == control for row in rows
+    ), "Every row must carry the same pooled control for side-by-side reading"
 
 
 def test_taginjection_full_covers_all_frames_and_injections():
