@@ -74,9 +74,6 @@ def load_data_all_attacks(self, prompt_data):
                 "escape_times": 2,
             },
         },
-        "config": {
-            "id": (0, 1, 2, 3),
-        },
     }
     self.pi_prompts = self.pi_build_prompts(prompt_config)
     if self.max_prompts:

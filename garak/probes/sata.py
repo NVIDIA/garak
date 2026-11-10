@@ -159,12 +159,12 @@ class MLM(garak.probes.Probe):
         super().__init__(config_root)
 
         self.payloads = list()
+        self._prompt_intents = []
         for payload_class in self.payload_name:
-            _pg = garak.payloads.load(payload_class)
-            self.payloads += _pg.payloads
-            if _pg.intent and not hasattr(self, "_payload_intent"):
-                self._payload_intent = _pg.intent
-        self.payloads = _nltk_mask_payloads(
-            payloads=self.payloads, n=self.n_replacements
-        )
+            for stub in garak.payloads.load(payload_class).to_stubs():
+                masked_payloads = _nltk_mask_payloads(
+                    payloads=[stub.content], n=self.n_replacements
+                )
+                self.payloads.extend(masked_payloads)
+                self._prompt_intents.extend([stub.intent] * len(masked_payloads))
         self.prompts = [self.template.format(payload) for payload in self.payloads]

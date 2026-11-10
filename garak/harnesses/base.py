@@ -257,14 +257,18 @@ class Harness(Configurable):
                     from garak.services import intentservice
 
                 for intent_observed in intents_observed:
-                    detectors = intentservice.get_detectors(intent_observed)
-                    if detectors is None:
+                    # Keep per-intent names in a local variable. The
+                    # ``detectors`` parameter holds detector objects for
+                    # every probe in this run; reassigning it here would
+                    # corrupt scoring for all later probes.
+                    detectors_for_intent = intentservice.get_detectors(intent_observed)
+                    if detectors_for_intent is None:
                         logging.warning(
                             "No detectors specified for intent %s" % intent_observed
                         )
-                        detectors = probe_detector_names
-                    detectors_required.update(detectors)
-                    intent_to_detector[intent_observed] = detectors
+                        detectors_for_intent = probe_detector_names
+                    detectors_required.update(detectors_for_intent)
+                    intent_to_detector[intent_observed] = detectors_for_intent
 
                 logging.info(
                     "For probe %s, selected detectors %s based on intents"

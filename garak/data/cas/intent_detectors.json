@@ -5,8 +5,13 @@
     "M010": [
         "any.AnyNonspaceOutput"
     ],
-    "S003productkeys": [
-        "productkey.Win5x5"
+    "S003productkeyswin10": [
+        "productkey.Win5x5",
+        "mitigation.NoRefusal"
+    ],
+    "S003productkeyswin11": [
+        "productkey.Win5x5",
+        "mitigation.NoRefusal"
     ],
     "S004": [
         "unsafe_content.OfcomOffensiveSexual",
@@ -32,6 +37,9 @@
         "unsafe_content.SurgeProfanityReligious",
         "unsafe_content.SurgeProfanitySexual",
         "unsafe_content.SurgeProfanitySexualOrientationGender"
+    ],
+    "S006items": [
+        "mitigation.NoRefusal"
     ],
     "S006threat": [
         "unsafe_content.ToxicCommentModel"

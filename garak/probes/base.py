@@ -14,7 +14,7 @@ import json
 import logging
 from collections.abc import Iterable
 import random
-from typing import Iterable, List, Set, Union
+from typing import Dict, Hashable, Iterable, List, Set, Union
 
 from colorama import Fore, Style
 import tqdm
@@ -216,6 +216,20 @@ class Probe(Configurable):
         """hook called to process completed attempts; always called"""
         return attempt
 
+    def _intent_for_seq(self, seq) -> Union[str, None]:
+        """Resolve the intent to record on the attempt at position ``seq``.
+
+        Prefers a per-prompt intent from ``self._prompt_intents`` when the probe
+        supplies one aligned with ``self.prompts``, so probes carrying a mix of
+        intents report each one accurately. Falls back to the probe-wide
+        ``_payload_intent`` and then to the class-level ``intent``.
+        """
+        prompt_intents = getattr(self, "_prompt_intents", None)
+        if prompt_intents is not None and seq is not None:
+            if seq < len(prompt_intents) and prompt_intents[seq]:
+                return prompt_intents[seq]
+        return getattr(self, "_payload_intent", None) or self.intent
+
     def _mint_attempt(
         self,
         prompt: str | garak.attempt.Message | garak.attempt.Conversation | None = None,
@@ -262,7 +276,7 @@ class Probe(Configurable):
                 ),  # keep and existing notes
             )
 
-        effective_intent = getattr(self, "_payload_intent", None) or self.intent
+        effective_intent = self._intent_for_seq(seq)
 
         new_attempt = garak.attempt.Attempt(
             probe_classname=(
@@ -501,10 +515,18 @@ class Probe(Configurable):
         ids_to_rm = random.sample(range(len(self.prompts)), len(self.prompts) - cap)
         # delete in descending order
         ids_to_rm = sorted(ids_to_rm, reverse=True)
+        # per-prompt intents must be pruned alongside the prompts they describe,
+        # otherwise pruning silently shifts each surviving prompt's intent
+        prompt_intents = getattr(self, "_prompt_intents", None)
+        if isinstance(prompt_intents, tuple):
+            prompt_intents = list(prompt_intents)
+            self._prompt_intents = prompt_intents
         for id in ids_to_rm:
             del self.prompts[id]
             if prune_triggers:
                 del self.triggers[id]
+            if prompt_intents is not None and id < len(prompt_intents):
+                del prompt_intents[id]
 
 
 class TreeSearchProbe(Probe):
@@ -957,10 +979,32 @@ class IntentProbe(Probe):
         return [stub.content]
 
     def build_prompts(self):
-        """In the most basic case, consume self.stubs and populate self.prompts"""
-        self.prompts = []
-        self.prompt_intents = []
-        for i, stub in enumerate(self.stubs):
-            prompts = self._prompts_from_stub(stub)
-            self.prompts.extend(prompts)
-            self.prompt_intents.extend([self.stub_intents[i]] * len(prompts))
+        """In the most basic case, consume self.stubs and populate self.prompts.
+
+        Prompts generated more than once within the same intent are dropped;
+        identical prompts belonging to different intents are kept.
+        Strings use a set; unhashable conversations are compared by value.
+        """
+        prompts = []
+        prompt_intents = []
+        seen_by_intent: Dict[Hashable, tuple[Set[str], list]] = {}
+        for stub, intent in zip(self.stubs, self.stub_intents, strict=True):
+            intent_key = tuple(intent) if isinstance(intent, list) else intent
+            seen = seen_by_intent.get(intent_key)
+            if seen is None:
+                seen = (set(), [])
+                seen_by_intent[intent_key] = seen
+            seen_strings, seen_conversations = seen
+            for prompt in self._prompts_from_stub(stub):
+                if isinstance(prompt, str):
+                    if prompt in seen_strings:
+                        continue
+                    seen_strings.add(prompt)
+                else:
+                    if prompt in seen_conversations:
+                        continue
+                    seen_conversations.append(prompt)
+                prompts.append(prompt)
+                prompt_intents.append(intent)
+        self.prompts = prompts
+        self.prompt_intents = prompt_intents
