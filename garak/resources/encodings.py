@@ -12,6 +12,8 @@ import random
 from dataclasses import dataclass
 from typing import Callable, List, Tuple
 
+from garak.resources.smuggling import smuggle_ascii
+
 
 @dataclass(frozen=True)
 class EncodingStrategy:
@@ -320,3 +322,18 @@ BASE2048 = EncodingStrategy(name="BASE2048", encoders=(base2048_encode,))
 ECOJI = EncodingStrategy(name="Ecoji", encoders=(ecoji_encode,))
 LEET = EncodingStrategy(name="Leetspeak", encoders=(leet_bytes,))
 ZALGO = EncodingStrategy(name="Zalgo", encoders=(zalgo,))
+UNICODE_TAGS = EncodingStrategy(
+    name="ASCII in Unicode Tags",
+    encoders=(smuggle_ascii.tag_char_smuggling,),
+    use_bytes=False,
+)
+UNICODE_VARIANT_SELECTORS = EncodingStrategy(
+    name="ASCII in Unicode Variant Selector",
+    encoders=(smuggle_ascii.variant_smuggling,),
+    use_bytes=False,
+)
+SNEAKY_BITS = EncodingStrategy(
+    name="ASCII in hidden unicode binary encoding",
+    encoders=(smuggle_ascii.sneaky_bits_smuggling,),
+    use_bytes=False,
+)

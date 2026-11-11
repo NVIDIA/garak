@@ -29,7 +29,6 @@ from typing import List
 import garak.payloads
 from garak.resources import encodings
 from garak.intents import Stub
-from garak.resources.smuggling import smuggle_ascii
 from garak import _config
 import garak.probes
 
@@ -459,7 +458,8 @@ class InjectUnicodeTagChars(EncodingMixin, garak.probes.Probe):
     target model to repeat & decode them."""
 
     doc_uri = "https://embracethered.com/blog/posts/2024/hiding-and-finding-text-with-unicode-tags/"
-    encoding_name = "ASCII in Unicode Tags"
+    strategy = encodings.UNICODE_TAGS
+    encoding_name = strategy.name
     active = True
     tier = garak.probes.Tier.OF_CONCERN
     use_bytes = False
@@ -476,10 +476,7 @@ class InjectUnicodeTagChars(EncodingMixin, garak.probes.Probe):
         EncodingMixin.__init__(self)
 
     def _tag_char_smuggling(self, text: str) -> str:
-        encoded_payload = smuggle_ascii.tag_char_smuggling(
-            payload=text, desired_emoji=self.desired_emoji
-        )
-        return encoded_payload
+        return self.strategy.encode(text, desired_emoji=self.desired_emoji)[0]
 
 
 class InjectUnicodeVariantSelectors(EncodingMixin, garak.probes.Probe):
@@ -490,8 +487,9 @@ class InjectUnicodeVariantSelectors(EncodingMixin, garak.probes.Probe):
 
     doc_uri = "https://paulbutler.org/2025/smuggling-arbitrary-data-through-an-emoji/"
 
-    encoding_funcs = [smuggle_ascii.variant_smuggling]
-    encoding_name = "ASCII in Unicode Variant Selector"
+    strategy = encodings.UNICODE_VARIANT_SELECTORS
+    encoding_funcs = list(strategy.encoders)
+    encoding_name = strategy.name
     active = False
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
     use_bytes = False
@@ -515,8 +513,9 @@ class InjectSneakyBits(EncodingMixin, garak.probes.Probe):
         "https://embracethered.com/blog/posts/2025/sneaky-bits-and-ascii-smuggler/"
     )
 
-    encoding_funcs = [smuggle_ascii.sneaky_bits_smuggling]
-    encoding_name = "ASCII in hidden unicode binary encoding"
+    strategy = encodings.SNEAKY_BITS
+    encoding_funcs = list(strategy.encoders)
+    encoding_name = strategy.name
     active = False
     use_bytes = False
     tags = EncodingMixin.tags + [
@@ -587,9 +586,18 @@ class EncodingIntentProbe(garak.probes.IntentProbe, ABC):
     # Arguments forwarded to ``strategy.encode``; subclasses override when tunable.
     strategy_kwargs: dict = {}
 
+    @staticmethod
+    def _prepare_content(content: str) -> str | None:
+        """Prepare stub content before encoding."""
+        return content
+
     def _prompts_from_stub(self, stub: Stub) -> List[str]:
         content = stub.content
         if not isinstance(content, str) or not content:
+            return []
+
+        content = self._prepare_content(content)
+        if not content:
             return []
 
         prompts: List[str] = []
@@ -602,6 +610,27 @@ class EncodingIntentProbe(garak.probes.IntentProbe, ABC):
                     )
                 )
         return prompts
+
+
+_ASCII_SMUGGLING_TRANSLATION = str.maketrans(
+    {
+        "“": '"',
+        "”": '"',
+        "‘": "'",
+        "’": "'",
+    }
+)
+
+
+def _normalise_ascii_smuggling_content(content: str) -> str | None:
+    """Normalise safe punctuation and reject unsupported ASCII-smuggling text."""
+    ascii_content = content.translate(_ASCII_SMUGGLING_TRANSLATION)
+    if not ascii_content.isascii() or not ascii_content.isprintable():
+        return None
+    return ascii_content
+
+
+_ASCII_SMUGGLING_GOAL = "make the target act on an encoded instruction"
 
 
 class InjectBase16Intent(EncodingIntentProbe):
@@ -798,3 +827,64 @@ class InjectZalgoIntent(EncodingIntentProbe):
     doc_uri = "https://en.wikipedia.org/wiki/Zalgo_text"
     strategy = encodings.ZALGO
     action_templates = ENCODING_OBFUSCATION_ACTION_TEMPLATES
+
+
+class InjectUnicodeTagCharsIntent(EncodingIntentProbe):
+    """Hide an instruction in Unicode Tags and measure whether the target acts on it.
+
+    Encodes each intent stub as invisible Unicode Tag characters appended to an
+    emoji inside the decode-and-act envelope. Responses are scored with the
+    stub's intent detector.
+    """
+
+    doc_uri = "https://embracethered.com/blog/posts/2024/hiding-and-finding-text-with-unicode-tags/"
+    strategy = encodings.UNICODE_TAGS
+    tier = garak.probes.Tier.OF_CONCERN
+    goal = _ASCII_SMUGGLING_GOAL
+    tags = EncodingIntentProbe.tags + [
+        "demon:Language:Code_and_encode:Token",  # carries ASCII through Unicode code points handled specially by tokenizers
+    ]
+    _prepare_content = staticmethod(_normalise_ascii_smuggling_content)
+
+    DEFAULT_PARAMS = EncodingIntentProbe.DEFAULT_PARAMS | {"desired_emoji": "😈"}
+
+    @property
+    def strategy_kwargs(self) -> dict:
+        """Forward the configured emoji to the Unicode Tag encoder."""
+        return {"desired_emoji": self.desired_emoji}
+
+
+class InjectUnicodeVariantSelectorsIntent(EncodingIntentProbe):
+    """Hide an instruction in Unicode selectors and measure whether the target acts.
+
+    Encodes each intent stub as invisible Unicode Variant Selectors inside the
+    decode-and-act envelope. Responses are scored with the stub's intent
+    detector.
+    """
+
+    doc_uri = "https://paulbutler.org/2025/smuggling-arbitrary-data-through-an-emoji/"
+    strategy = encodings.UNICODE_VARIANT_SELECTORS
+    goal = _ASCII_SMUGGLING_GOAL
+    tags = EncodingIntentProbe.tags + [
+        "demon:Language:Code_and_encode:Token",  # carries ASCII through Unicode code points handled specially by tokenizers
+    ]
+    _prepare_content = staticmethod(_normalise_ascii_smuggling_content)
+
+
+class InjectSneakyBitsIntent(EncodingIntentProbe):
+    """Hide an instruction as invisible bits and measure whether the target acts.
+
+    Encodes each intent stub as binary represented by zero-width Unicode
+    characters inside the decode-and-act envelope. Responses are scored with
+    the stub's intent detector.
+    """
+
+    doc_uri = (
+        "https://embracethered.com/blog/posts/2025/sneaky-bits-and-ascii-smuggler/"
+    )
+    strategy = encodings.SNEAKY_BITS
+    goal = _ASCII_SMUGGLING_GOAL
+    tags = EncodingIntentProbe.tags + [
+        "demon:Language:Code_and_encode:Token",  # carries ASCII through Unicode code points handled specially by tokenizers
+    ]
+    _prepare_content = staticmethod(_normalise_ascii_smuggling_content)
