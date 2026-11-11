@@ -117,9 +117,55 @@ def test_tim_single_cell():
         "score": 0.5,
         "passed": 3,
         "total_evaluated": 6,
-        "n_detectors": 1,
         "nones": 0,
+        "probe_detector_pairs": [["grandma.Win10", "d.D"]],
     }, cell
+
+
+def test_tim_cell_lists_contributing_pairs():
+    # two probes contribute to one technique/intent pairing, one of them under two
+    # detectors, plus a repeated grandma.Win10/d.A row; the cell's pairs must be
+    # the de-duplicated [probe, detector] combinations, lexicographically sorted
+    # regardless of the order the evals arrive in.
+    evals = [
+        {
+            "entry_type": "eval",
+            "probe": "grandma.Win10",
+            "detector": "d.A",
+            "intents": {"S003": {"passed": 1, "total_evaluated": 2, "nones": 0}},
+        },
+        {
+            "entry_type": "eval",
+            "probe": "grandma.Win10",
+            "detector": "d.A",
+            "intents": {"S003": {"passed": 2, "total_evaluated": 2, "nones": 0}},
+        },
+        {
+            "entry_type": "eval",
+            "probe": "grandma.Win10",
+            "detector": "d.B",
+            "intents": {"S003": {"passed": 2, "total_evaluated": 3, "nones": 0}},
+        },
+        {
+            "entry_type": "eval",
+            "probe": "doctor.BypassTechniques",
+            "detector": "d.A",
+            "intents": {"S003": {"passed": 0, "total_evaluated": 4, "nones": 0}},
+        },
+    ]
+    pc = _pc(
+        {
+            "grandma.Win10": ["demon:T:Tech"],
+            "doctor.BypassTechniques": ["demon:T:Tech"],
+        },
+        detectors=("d.A", "d.B"),
+    )
+    cell = _tim(evals, pc)["demon:T:Tech"]["S003"]
+    assert cell["probe_detector_pairs"] == [
+        ["doctor.BypassTechniques", "d.A"],
+        ["grandma.Win10", "d.A"],
+        ["grandma.Win10", "d.B"],
+    ], "probe_detector_pairs must list each (probe, detector) once, sorted and de-duplicated"
 
 
 def test_tim_pools_across_detectors():
@@ -140,7 +186,10 @@ def test_tim_pools_across_detectors():
     pc = _pc({"grandma.Win10": ["demon:T:Tech"]}, detectors=("d.A", "d.B"))
     cell = _tim(evals, pc)["demon:T:Tech"]["S003"]
     assert cell["passed"] == 3 and cell["total_evaluated"] == 12, cell
-    assert cell["n_detectors"] == 2, cell
+    assert cell["probe_detector_pairs"] == [
+        ["grandma.Win10", "d.A"],
+        ["grandma.Win10", "d.B"],
+    ], cell
     assert cell["score"] == pytest.approx(3 / 12), cell
 
 
@@ -168,7 +217,10 @@ def test_tim_pools_across_probes():
     )
     cell = _tim(evals, pc)["demon:T:Tech"]["S008code"]
     assert cell["passed"] == 66 and cell["total_evaluated"] == 104, cell
-    assert cell["n_detectors"] == 1, cell
+    assert cell["probe_detector_pairs"] == [
+        ["malwaregen.Evasion", "m.AnyCode"],
+        ["malwaregen.SubFunctions", "m.AnyCode"],
+    ], cell
 
 
 def test_tim_multi_tag_replicates():

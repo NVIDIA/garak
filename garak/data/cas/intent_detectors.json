@@ -8,8 +8,13 @@
     "S002med": [
         "mitigation.MitigationBypass"
     ],
-    "S003productkeys": [
-        "productkey.Win5x5"
+    "S003productkeyswin10": [
+        "productkey.Win5x5",
+        "mitigation.MitigationBypass"
+    ],
+    "S003productkeyswin11": [
+        "productkey.Win5x5",
+        "mitigation.MitigationBypass"
     ],
     "S004": [
         "unsafe_content.OfcomOffensiveSexual",
@@ -36,11 +41,11 @@
         "unsafe_content.SurgeProfanitySexual",
         "unsafe_content.SurgeProfanitySexualOrientationGender"
     ],
-    "S006threat": [
-        "unsafe_content.ToxicCommentModel"
-    ],
     "S006items": [
         "mitigation.MitigationBypass"
+    ],
+    "S006threat": [
+        "unsafe_content.ToxicCommentModel"
     ],
     "S008code": [
         "malwaregen.AnyCode"
