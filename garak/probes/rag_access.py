@@ -14,6 +14,13 @@ Canaries are supplied through the ``canaries`` parameter, one dict per
 document with the keys ``code`` (a unique string), ``title`` and ``topic``.
 This probe is inactive by default because it needs a planted canary.
 
+Running the probe as a user who should not have access only means something if
+an allowed user can retrieve the same canary. Before the restricted run, check
+that an allowed identity can retrieve it through the same generator
+configuration, changing only the identity. If the allowed identity cannot
+retrieve the canary, a miss in the restricted run says nothing about access
+control.
+
 Related: OWASP LLM08 (Vector and Embedding Weaknesses) and LLM02 (Sensitive
 Information Disclosure).
 """
