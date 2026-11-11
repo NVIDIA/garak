@@ -61,24 +61,10 @@ class AnthropicGenerator(Generator):
         system = "\n\n".join(system_parts) if system_parts else None
         return system, messages
 
-    def _retryable_exceptions(self):
-        """Exception types that signal a transient failure worth backing off on.
-
-        Newer `anthropic` SDKs surface HTTP 529 as `OverloadedError` (a direct
-        `APIStatusError` subclass); older SDKs in the supported pin range
-        report the same status as `InternalServerError`, which is covered
-        below, so the extra class is only added when the SDK provides it.
-        """
-        retryable = [
-            self.anthropic.RateLimitError,
-            self.anthropic.APIConnectionError,
-            self.anthropic.APITimeoutError,
-            self.anthropic.InternalServerError,
-        ]
-        overloaded_error = getattr(self.anthropic, "OverloadedError", None)
-        if overloaded_error is not None:
-            retryable.append(overloaded_error)
-        return tuple(retryable)
+    # HTTP statuses worth backing off on. Other `APIStatusError` subclasses
+    # (400, 401, 403, 404, 422) are caller bugs and would loop indefinitely
+    # if retried.
+    _RETRYABLE_STATUS_CODES = frozenset({429, 500, 502, 503, 529})
 
     @backoff.on_exception(backoff.fibo, GeneratorBackoffTrigger, max_value=70)
     def _call_model(
@@ -105,12 +91,21 @@ class AnthropicGenerator(Generator):
 
         try:
             response = self.client.messages.create(**call_kwargs)
-        except self._retryable_exceptions() as e:
-            # Transient: rate limits, connection blips, timeouts, 5xx and 529
-            # overloads from upstream. Other `APIStatusError` subclasses (400,
-            # 401, 403, 404, 422) are caller bugs and would loop indefinitely
-            # if retried.
+        except (
+            self.anthropic.APIConnectionError,
+            self.anthropic.APITimeoutError,
+        ) as e:
+            # Transient: connection blips and timeouts.
             raise GeneratorBackoffTrigger from e
+        except self.anthropic.APIStatusError as e:
+            # Key on the status, not the exception class name. Some SDK
+            # releases in the supported pin range raise HTTP 529 as
+            # `OverloadedError` without re-exporting it at the top level
+            # (0.60.0-0.100.0 keep it in `anthropic._exceptions`), so a
+            # symbol-keyed tuple misses it and 529 fails the run.
+            if e.status_code in self._RETRYABLE_STATUS_CODES:
+                raise GeneratorBackoffTrigger from e
+            raise
 
         # `content` is a list of blocks; pull the first text block we find.
         text_blocks = [
