@@ -83,6 +83,8 @@ export type ProbesChartProps = {
   selectedProbe: Probe | null;
   /** Callback to update probe selection */
   setSelectedProbe: (probe: Probe | null) => void;
+  /** Focus the selected probe after navigating from another report section. */
+  focusSelectedProbe?: boolean;
 };
 
 /**

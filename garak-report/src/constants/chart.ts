@@ -82,3 +82,6 @@ export const CHART_OPACITY = {
   full: 1,
   dimmed: 0.3,
 } as const;
+
+/** Low-count fallback for older reports, matching garak's minimum sample count. */
+export const HEATMAP_MIN_EVALUATIONS = 30;

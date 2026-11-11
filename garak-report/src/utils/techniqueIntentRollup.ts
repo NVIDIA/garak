@@ -11,6 +11,7 @@
 
 import type {
   IntentTypology,
+  ProbeDetectorPair,
   TechniqueIntentCell,
   TechniqueIntentMatrix,
 } from "../types/ReportEntry";
@@ -38,8 +39,9 @@ interface MatrixEntry {
   passed: number;
   /** Undetermined evaluations (detector returned no verdict). */
   nones: number;
-  /** Detectors that scored this pairing (a count; the digest carries no names). */
+  /** Detectors that scored this pairing. */
   nDetectors: number;
+  probeDetectorPairs?: ProbeDetectorPair[];
 }
 
 /** A single technique × intent matrix cell. */
@@ -58,6 +60,8 @@ export interface MatrixCell {
   nones: number;
   /** Detectors that scored the pairing. */
   nDetectors: number;
+  /** Contributing probe/detector combinations on newer reports. */
+  probeDetectorPairs?: ProbeDetectorPair[];
 }
 
 /** A fully built, renderable matrix. */
@@ -95,14 +99,17 @@ const flatten = (matrix: TechniqueIntentMatrix): MatrixEntry[] => {
         nAttempts: cell.n_attempts ?? 0,
         passed: cell.passed,
         nones: cell.nones,
-        nDetectors: cell.n_detectors,
+        nDetectors: cell.probe_detector_pairs
+          ? new Set(cell.probe_detector_pairs.map(([, detector]) => detector)).size
+          : (cell.n_detectors ?? 0),
+        probeDetectorPairs: cell.probe_detector_pairs,
       });
     }
   }
   return entries;
 };
 
-/** Which taxonomy axis a list is organised by (the other axis nests inside). */
+/** Technique and intent axes. */
 export type TaxonomyAxis = "technique" | "intent";
 
 /** One nested (cross-axis) entry under an {@link AxisGroup}. */
@@ -116,7 +123,7 @@ export interface AxisCell {
 }
 
 /**
- * A primary-axis entry for the accordion lists: a technique (with its intents)
+ * A primary-axis summary: a technique (with its intents)
  * or an intent (with its techniques). Scored conservatively — the group score
  * is its worst child cell — to stay consistent with the heatmap.
  */
@@ -125,7 +132,7 @@ export interface AxisGroup {
   key: string;
   /** Display label for the primary key. */
   label: string;
-  /** Taxonomy description for the primary key (technique axis only, when known). */
+  /** Taxonomy description for the primary key, when known. */
   description?: string;
   /** Worst (minimum) child-cell score — the conservative summary. */
   score: number;
@@ -139,7 +146,7 @@ export interface AxisGroup {
 
 /**
  * Reshapes a {@link MatrixView} into worst-first {@link AxisGroup}s for the
- * accordion lists. With `axis="technique"` each group is a technique row and its
+ * axis summaries. With `axis="technique"` each group is a technique row and its
  * cells are the intents it was probed against; with `axis="intent"` the roles
  * swap. The primary order follows the view's own worst-first axis ordering, and
  * each group's cells are sorted worst-first, so the most-vulnerable items surface
@@ -178,88 +185,6 @@ export function buildAxisGroups(view: MatrixView, axis: TaxonomyAxis): AxisGroup
     });
   }
   return groups;
-}
-
-/** A technique×intent pairing that fails far worse than either axis usually does. */
-export interface NotablePairing {
-  /** Row (technique) key. */
-  rowKey: string;
-  /** Column (intent) key. */
-  colKey: string;
-  /** Display label for the technique. */
-  rowLabel: string;
-  /** Display label for the intent. */
-  colLabel: string;
-  /** This pairing's pass rate (0-1). */
-  score: number;
-  /** Evaluations behind the pairing. */
-  nEvaluations: number;
-  /** Best pass rate the technique reaches against any intent. */
-  rowBest: number;
-  /** Best pass rate the intent reaches against any technique. */
-  colBest: number;
-  /** How far below `min(rowBest, colBest)` this pairing sits (the "surprise"). */
-  gap: number;
-}
-
-/**
- * Finds **interaction** pairings: cells that score far worse than either their
- * technique or their intent manages elsewhere. These are the only thing a 2D
- * matrix reveals that the two 1D lists can't — a combination that's uniquely
- * dangerous even though the technique is usually fine and the intent is usually
- * resisted. When the matrix is separable (the common case, where the intent
- * drives the score and techniques behave alike), this returns nothing.
- *
- * A pairing is notable when `min(rowBest, colBest) - score >= margin`, i.e. both
- * its row and its column reach a much safer score somewhere else. Single-cell
- * rows/columns can never qualify (there's no "elsewhere" to compare against).
- *
- * @param view - A built matrix view
- * @param opts - `margin` (default 0.5) and `limit` (default 5, worst-surprise first)
- */
-export function findNotablePairings(
-  view: MatrixView,
-  opts?: { margin?: number; limit?: number }
-): NotablePairing[] {
-  const margin = opts?.margin ?? 0.5;
-  const limit = opts?.limit ?? 5;
-
-  const cells: MatrixCell[] = [];
-  for (const row of view.rows) {
-    for (const col of view.cols) {
-      const cell = view.cell(row, col);
-      if (cell) cells.push(cell);
-    }
-  }
-
-  const rowBest = new Map<string, number>();
-  const colBest = new Map<string, number>();
-  for (const cell of cells) {
-    rowBest.set(cell.row, Math.max(rowBest.get(cell.row) ?? 0, cell.score));
-    colBest.set(cell.col, Math.max(colBest.get(cell.col) ?? 0, cell.score));
-  }
-
-  const notable: NotablePairing[] = [];
-  for (const cell of cells) {
-    const rb = rowBest.get(cell.row) ?? 0;
-    const cb = colBest.get(cell.col) ?? 0;
-    const gap = Math.min(rb, cb) - cell.score;
-    if (gap >= margin) {
-      notable.push({
-        rowKey: cell.row,
-        colKey: cell.col,
-        rowLabel: view.rowLabel(cell.row),
-        colLabel: view.colLabel(cell.col),
-        score: cell.score,
-        nEvaluations: cell.nEvaluations,
-        rowBest: rb,
-        colBest: cb,
-        gap,
-      });
-    }
-  }
-  notable.sort((a, b) => b.gap - a.gap);
-  return notable.slice(0, limit);
 }
 
 /**
@@ -307,6 +232,7 @@ export function buildMatrixView(
       passed: entry.passed,
       nones: entry.nones,
       nDetectors: entry.nDetectors,
+      probeDetectorPairs: entry.probeDetectorPairs,
     });
   }
 
