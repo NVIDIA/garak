@@ -43,4 +43,5 @@ For detailed information on detector metrics and evaluation, see :doc:`../detect
    detectors/sysprompt_extraction
    detectors/unsafe_content
    detectors/visual_jailbreak
+   detectors/rag_access
    detectors/web_injection
