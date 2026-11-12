@@ -164,6 +164,10 @@ class HFDetector(Detector, HFCompatible):
         non_none_offsets = [
             k for k, v in enumerate(all_outputs) if v is not None and v.text is not None
         ]  # we'll want this when outputs+scores need to align
+        if not non_none_outputs:
+            # nothing to classify, e.g. every generation failed; the pipeline
+            # raises IndexError on an empty batch, so don't call it
+            return [None] * len(all_outputs)
         try:
             detector_raw_results = self.detector(
                 non_none_outputs, **self.tokenizer_kwargs
