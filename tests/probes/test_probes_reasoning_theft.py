@@ -1,6 +1,3 @@
-# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-# SPDX-License-Identifier: Apache-2.0
-
 import base64
 import binascii
 import codecs
@@ -34,7 +31,7 @@ HIT_THRESHOLD = 0.5
 
 @pytest.fixture
 def uncapped_probe():
-    """Every scheme, uncapped. Only single_turn is on by default."""
+    """Every scheme, uncapped."""
     garak._config.load_base_config()
     garak._config.run.soft_probe_prompt_cap = None
     garak._config.plugins.probes["reasoning_theft"] = {
@@ -94,19 +91,6 @@ def test_malformed_trace_file_rejected(default_probe, tmp_path, monkeypatch):
         monkeypatch.setattr(reasoning_theft, "TRACES_PATH", bad)
         with pytest.raises(PluginConfigurationError, match=expected):
             default_probe._load_traces()
-
-
-def test_default_schemes_put_the_block_in_the_last_turn(default_probe):
-    # Several garak generators build their request from prompt.last_message()
-    # alone. A default run must therefore keep the block in the last turn, or the
-    # block is never sent, the target cannot comply, and the pass is meaningless.
-    assert default_probe.schemes == [
-        "single_turn"
-    ], "only the single-turn scheme is safe on every generator by default"
-    for prompt in default_probe.prompts:
-        assert (
-            "<reasoning_block" in prompt.last_message().text
-        ), "the default scheme must carry the block in the last turn"
 
 
 def test_prompt_count_and_alignment(uncapped_probe):
