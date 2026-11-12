@@ -24,7 +24,9 @@ def test_gcgcached_instances_do_not_share_pruned_prompts():
     try:
         from garak.probes.suffix import GCGCached
 
-        full_count = len(GCGCached.prompts)
+        # two prompts per cached suffix; read from the suffixes, since an
+        # earlier pruned instance may already have shrunk the class prompt list
+        full_count = 2 * len(GCGCached.suffixes)
         _config.run.soft_probe_prompt_cap = 10
         capped = GCGCached()
         _config.run.soft_probe_prompt_cap = None
