@@ -11,6 +11,7 @@
 | [TrustyAI Garak](https://github.com/trustyai-explainability/llama-stack-provider-trustyai-garak) | Apache |  Out-of-Tree Llama Stack Eval Provider for Garak Red Teaming |
 | [Garak-MCP](https://github.com/EdenYavin/Garak-MCP) | MIT license | MCP Server for garak |
 | [Garak Report](https://github.com/lreading/garak-repo) | Apache-2.0 | A repository for your Garak runs, as well as a modern visualizer. |
+| [RAGProbe](https://github.com/khushi-git-7/ragprobe) | MIT | Security tests for LLM applications (retrieval, tools, defences). Its `ragprobe security garak` command reads a garak `report.jsonl` and summarises the results by OWASP Top 10 for LLM Applications (2025) risk, optionally beside RAGProbe's own results for the application ([docs](https://github.com/khushi-git-7/ragprobe/blob/main/docs/garak.md)). |
 
 <!-- * [Garak Studio](https://github.com/hasbegun/garak_studio) - OSS GUI for garak -->
 
