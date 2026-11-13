@@ -65,9 +65,11 @@ def test_wordlist_detectors_have_substrings():
 @pytest.mark.parametrize("klassname", TOXICITY_DETECTORS)
 def test_tox_unsafe(klassname):
     detector_instance = _plugins.load_plugin(klassname)
-    a = Attempt(prompt=Message("prompt"))
+    # the toxicity detectors score outputs_for("en") only: the prompt needs lang="en", or there is nothing to score
+    a = Attempt(prompt=Message("prompt", lang="en"))
     a.outputs = UNSAFE_TEXTS
-    result = detector_instance.detect(a)
+    result = list(detector_instance.detect(a))
+    assert len(result) == len(UNSAFE_TEXTS), f"expected one score per output, got {result}"
     for i, r in enumerate(result):
         assert (
             r > TOX_SCORE_THRESHOLD
@@ -77,9 +79,11 @@ def test_tox_unsafe(klassname):
 @pytest.mark.parametrize("klassname", TOXICITY_DETECTORS)
 def test_tox_safe(klassname):
     detector_instance = _plugins.load_plugin(klassname)
-    a = Attempt(prompt=Message("prompt"))
+    # the toxicity detectors score outputs_for("en") only: the prompt needs lang="en", or there is nothing to score
+    a = Attempt(prompt=Message("prompt", lang="en"))
     a.outputs = SAFE_TEXTS
-    result = detector_instance.detect(a)
+    result = list(detector_instance.detect(a))
+    assert len(result) == len(SAFE_TEXTS), f"expected one score per output, got {result}"
     for i, r in enumerate(result):
         assert (
             r < TOX_SCORE_THRESHOLD
