@@ -28,9 +28,7 @@ Check out the :doc:`usage` section for further information, including :doc:`inst
 
 
 .. toctree::
-   :caption: Using garak
    :maxdepth: 1
-   :hidden:
 
    how
    install
