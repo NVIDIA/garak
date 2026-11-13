@@ -1,12 +1,13 @@
 """Support `Anthropic <https://www.anthropic.com>`_ hosted Claude models"""
 
+import base64
 import inspect
 from typing import List, Tuple
 
 import backoff
 
 from garak import _config
-from garak.exception import GeneratorBackoffTrigger
+from garak.exception import GarakException, GeneratorBackoffTrigger
 from garak.generators.base import Generator
 from garak.attempt import Message, Conversation
 
@@ -16,12 +17,21 @@ class AnthropicGenerator(Generator):
 
     Expects an API key in the ``ANTHROPIC_API_KEY`` environment variable. Keys
     are issued at https://console.anthropic.com/.
+
+    Prompts may carry an image attachment (``Message.data_path``), which is
+    sent as a base64 ``image`` content block, so image-modality probes such
+    as ``visual_jailbreak`` can run against Claude models.
     """
 
     generator_family_name = "anthropic"
     fullname = "Anthropic"
     supports_multiple_generations = False
     extra_dependency_names = ["anthropic"]
+    modality = {"in": {"text", "image"}, "out": {"text"}}
+
+    # image media types accepted by the Messages API
+    # https://platform.claude.com/docs/en/build-with-claude/vision
+    SUPPORTED_IMAGE_TYPES = ("image/jpeg", "image/png", "image/gif", "image/webp")
 
     ENV_VAR = "ANTHROPIC_API_KEY"
     DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
@@ -40,8 +50,43 @@ class AnthropicGenerator(Generator):
         super().__init__(name, config_root)
         self._load_unsafe()
 
-    @staticmethod
+    @classmethod
+    def _message_content(cls, message: Message) -> str | list[dict]:
+        """Render a garak ``Message`` as Messages API ``content``.
+
+        Text-only messages stay a plain string. A message with an attachment
+        becomes a list of content blocks: the image first, then the text (the
+        order Anthropic recommends for image prompts). An empty text part is
+        left out, as the API rejects empty text blocks.
+        """
+        data = message.data
+        if data is None:
+            return message.text
+
+        media_type = message.data_type[0] if message.data_type else None
+        if media_type not in cls.SUPPORTED_IMAGE_TYPES:
+            raise GarakException(
+                f"Data type {media_type} not supported by {cls.__name__}; "
+                f"expected one of {', '.join(cls.SUPPORTED_IMAGE_TYPES)}"
+            )
+
+        content = [
+            {
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": media_type,
+                    "data": base64.b64encode(data).decode("utf-8"),
+                },
+            }
+        ]
+        if message.text:
+            content.append({"type": "text", "text": message.text})
+        return content
+
+    @classmethod
     def _split_system_and_messages(
+        cls,
         conversation: Conversation,
     ) -> Tuple[str | None, list[dict]]:
         """Split out system turns from the rest of the conversation.
@@ -57,7 +102,9 @@ class AnthropicGenerator(Generator):
             if turn.role == "system":
                 system_parts.append(turn.content.text)
             else:
-                messages.append({"role": turn.role, "content": turn.content.text})
+                messages.append(
+                    {"role": turn.role, "content": cls._message_content(turn.content)}
+                )
         system = "\n\n".join(system_parts) if system_parts else None
         return system, messages
 
