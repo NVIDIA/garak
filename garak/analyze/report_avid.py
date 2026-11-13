@@ -34,8 +34,8 @@ def convert_to_avid(report_location: str) -> str:
         mod = importlib.import_module(f"garak.probes.{module_name}")
 
         evals[i]["probe"] = f"{module_name}.{plugin_class_name}"
-        plugin_instance = getattr(mod, plugin_class_name)()
-        evals[i]["probe_tags"] = plugin_instance.tags
+        # class tags: building a probe needs a run (intent service, datasets)
+        evals[i]["probe_tags"] = getattr(mod, plugin_class_name).tags
 
     evals_df = pd.DataFrame.from_dict(evals)
     evals_df = evals_df.assign(
