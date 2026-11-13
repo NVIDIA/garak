@@ -200,6 +200,88 @@ def test_capability_membership_check(generator):
     assert "function" not in generator.list_capabilities()
 
 
+# ── injections ────────────────────────────────────────────────────────────────
+
+
+def _make_descriptor(**overrides):
+    descriptor = {
+        "capability": "mcp",
+        "server_label": "klarna",
+        "server_url": "http://127.0.0.1:8000/mcp",
+        "authorization": "tok-123",
+    }
+    descriptor.update(overrides)
+    return descriptor
+
+
+def test_generate_merges_injection_into_tools(generator):
+    generator.client.responses.create.return_value = _make_response("ok")
+    prompt = Conversation([Turn(role="user", content=Message("hi"))])
+
+    generator.generate(prompt, injections=[_make_descriptor()])
+
+    kwargs = generator.client.responses.create.call_args[1]
+    assert kwargs["tools"] == [
+        {
+            "type": "mcp",
+            "server_label": "klarna",
+            "server_url": "http://127.0.0.1:8000/mcp",
+            "authorization": "tok-123",
+            "require_approval": "never",
+        }
+    ], "the armed descriptor must become the mcp tool block"
+
+
+def test_generate_injection_replaces_matching_server_label(generator):
+    generator.tools = [
+        {
+            "type": "mcp",
+            "server_label": "klarna",
+            "server_url": "http://127.0.0.1:9101/mcp",
+        },
+        {"type": "web_search"},
+    ]
+    generator.client.responses.create.return_value = _make_response("ok")
+    prompt = Conversation([Turn(role="user", content=Message("hi"))])
+
+    generator.generate(prompt, injections=[_make_descriptor()])
+
+    kwargs = generator.client.responses.create.call_args[1]
+    assert kwargs["tools"] == [
+        {"type": "web_search"},
+        {
+            "type": "mcp",
+            "server_label": "klarna",
+            "server_url": "http://127.0.0.1:8000/mcp",
+            "authorization": "tok-123",
+            "require_approval": "never",
+        },
+    ], "an armed descriptor replaces the configured block with its server_label"
+
+
+def test_generate_ignores_injections_for_other_capabilities(generator):
+    generator.tools = [{"type": "web_search"}]
+    generator.client.responses.create.return_value = _make_response("ok")
+    prompt = Conversation([Turn(role="user", content=Message("hi"))])
+
+    generator.generate(
+        prompt,
+        injections=[{"capability": "file", "path": "/tmp/evil"}, "not a dict"],
+    )
+
+    kwargs = generator.client.responses.create.call_args[1]
+    assert kwargs["tools"] == [{"type": "web_search"}]
+
+
+def test_generate_clears_injections_after_the_call(generator):
+    generator.client.responses.create.return_value = _make_response("ok")
+    prompt = Conversation([Turn(role="user", content=Message("hi"))])
+
+    generator.generate(prompt, injections=[_make_descriptor()])
+
+    assert generator._injections is None, "injections must not outlive the call"
+
+
 # ── _call_model ────────────────────────────────────────────────────────────────
 
 

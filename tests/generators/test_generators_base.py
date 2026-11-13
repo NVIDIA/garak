@@ -122,3 +122,36 @@ def test_base_generator_has_no_capabilities():
     """A plain text target offers no interaction surface for injectors."""
     generator = Generator(name="capabilities test")
     assert generator.list_capabilities() == set()
+
+
+def test_active_injections_filters_by_capability():
+    """Only well-formed descriptors naming the capability come back."""
+    generator = Generator(name="injections test")
+    generator._injections = [
+        {"capability": "mcp", "server_url": "http://127.0.0.1:8000/mcp"},
+        {"capability": "file"},
+        "not a dict",
+    ]
+    assert generator._active_injections("mcp") == [
+        {"capability": "mcp", "server_url": "http://127.0.0.1:8000/mcp"}
+    ]
+    assert generator._active_injections("file") == [{"capability": "file"}]
+
+
+def test_generate_exposes_injections_during_the_call_only():
+    """_call_model sees the descriptors; they are cleared afterwards."""
+    generator = Generator(name="injections test")
+    seen = []
+
+    def recording_call_model(prompt, generations_this_call=1):
+        seen.append(list(generator._active_injections("mcp")))
+        return [Message(text="ok")]
+
+    generator._call_model = recording_call_model
+    outputs = generator.generate(
+        Conversation([Turn("user", Message("hi"))]),
+        injections=[{"capability": "mcp"}],
+    )
+    assert [output.text for output in outputs] == ["ok"]
+    assert seen == [[{"capability": "mcp"}]]
+    assert generator._injections is None, "generate() must clear the descriptors"

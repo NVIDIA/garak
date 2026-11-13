@@ -553,6 +553,35 @@ class OpenAIResponsesGenerator(OpenAICompatible):
             capabilities.add(capability)
         return capabilities
 
+    def _merge_mcp_injections(self, tools) -> list[dict]:
+        """Merge armed mcp injection descriptors into the configured tools.
+
+        Each descriptor becomes an mcp tool block pointing at the armed
+        surface and replaces any configured block carrying the same
+        ``server_label``. The bare token passes through as ``authorization``;
+        endpoints that add the ``Bearer`` prefix themselves expect this.
+        """
+        tools = list(tools or [])
+        for injection in self._active_injections(Capability.MCP):
+            server_label = injection.get("server_label")
+            tools = [
+                tool
+                for tool in tools
+                if not (
+                    isinstance(tool, dict) and tool.get("server_label") == server_label
+                )
+            ]
+            tools.append(
+                {
+                    "type": "mcp",
+                    "server_label": server_label,
+                    "server_url": injection.get("server_url"),
+                    "authorization": injection.get("authorization"),
+                    "require_approval": "never",
+                }
+            )
+        return tools
+
     def _load_unsafe(self):
         kwargs = {"api_key": getattr(self, "api_key", None)}
         if getattr(self, "uri", None):
@@ -604,8 +633,9 @@ class OpenAIResponsesGenerator(OpenAICompatible):
         }
         if instructions:
             create_args["instructions"] = instructions
-        if self.tools:
-            create_args["tools"] = self.tools
+        tools = self._merge_mcp_injections(self.tools)
+        if tools:
+            create_args["tools"] = tools
         for k, v in self.extra_params.items():
             create_args[k] = v
 

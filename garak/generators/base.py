@@ -48,6 +48,10 @@ class Generator(Configurable):
         False  # can more than one generation be extracted per request?
     )
 
+    # armed injection descriptors for the current generate() call, if any;
+    # managed by generate() and read through _active_injections()
+    _injections = None
+
     def __init__(self, name="", config_root=_config):
         self._load_config(config_root)
         if "description" not in dir(self):
@@ -96,6 +100,21 @@ class Generator(Configurable):
         starts with adding a member to ``garak.capabilities``.
         """
         return set()
+
+    def _active_injections(self, capability) -> List[dict]:
+        """Return the armed injection descriptors naming one capability.
+
+        ``_call_model`` implementations call this to pick up the descriptors
+        they can use; descriptors for other capabilities, and malformed
+        entries, are ignored.
+        """
+        if not self._injections:
+            return []
+        return [
+            injection
+            for injection in self._injections
+            if isinstance(injection, dict) and injection.get("capability") == capability
+        ]
 
     def _pre_generate_hook(self):
         pass
@@ -150,7 +169,11 @@ class Generator(Configurable):
         return outputs
 
     def generate(
-        self, prompt: Conversation, generations_this_call: int = 1, typecheck=True
+        self,
+        prompt: Conversation,
+        generations_this_call: int = 1,
+        typecheck=True,
+        injections: List[dict] | None = None,
     ) -> List[Union[Message, None]]:
         """Manages the process of getting generations out from a prompt
 
@@ -158,6 +181,13 @@ class Generator(Configurable):
         from the model via a _call_* function, and returning the output
 
         Avoid overriding this - try to override _call_model or _call_api
+
+        :param injections: optional descriptors of armed interaction surfaces,
+          as returned by ``Injector.arm()``. Each descriptor names a
+          ``capability``; generators supporting that capability consume it in
+          ``_call_model`` (see ``_active_injections``) and the rest ignore it.
+          The base class exposes the descriptors for the duration of this
+          call only.
         """
 
         if typecheck:
@@ -169,6 +199,17 @@ class Generator(Configurable):
             self._rng.seed(self.seed)
 
         self._pre_generate_hook()
+
+        self._injections = injections
+        try:
+            return self._generate(prompt, generations_this_call)
+        finally:
+            self._injections = None
+
+    def _generate(
+        self, prompt: Conversation, generations_this_call: int = 1
+    ) -> List[Union[Message, None]]:
+        """Dispatch generations to ``_call_model``; ``generate`` wraps this"""
 
         outputs = []
 
