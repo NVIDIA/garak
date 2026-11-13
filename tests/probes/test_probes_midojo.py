@@ -131,33 +131,41 @@ def scenario_file(tmp_path):
     return path
 
 
-def _load_probe(scenario_file):
+def _load_probe(scenario_file, generations=2):
     return _plugins.load_plugin(
         "probes.midojo.MidojoProbe",
         config_root={
-            "probes": {"midojo": {"MidojoProbe": {"scenario_file": str(scenario_file)}}}
+            "probes": {
+                "midojo": {
+                    "MidojoProbe": {
+                        "scenario_file": str(scenario_file),
+                        "generations": generations,
+                    }
+                }
+            }
         },
     )
 
 
 def test_probe_arms_one_session_per_attack(scenario_file, monkeypatch):
     generator = RecordingGenerator()
-    probe = _load_probe(scenario_file)
+    probe = _load_probe(scenario_file, generations=2)
     injector = RecordingInjector()
     monkeypatch.setattr(_plugins, "load_plugin", lambda spec, **kwargs: injector)
 
     attempts = list(probe.probe(generator))
 
     assert len(attempts) == 2, "one attempt per scenario attack"
-    assert injector.disarms == 2, "each attempt must disarm its session"
+    assert injector.disarms == 4, "each generation must disarm its own session"
     assert injector.armed_payloads[0]["upstream"] == "http://127.0.0.1:9101/mcp"
     assert injector.armed_payloads[0]["tools"][0]["name"] == "lookup_order"
     assert all(
         call["injections"] == [DESCRIPTOR] for call in generator.generate_calls
     ), "the armed descriptor must reach generate()"
     assert all(
-        call["generations"] == probe.generations for call in generator.generate_calls
-    ), "the probe's configured generation count must reach generate()"
+        call["generations"] == 1 for call in generator.generate_calls
+    ), "each generation runs as its own single-generation call"
+    assert len(generator.generate_calls) == 4, "two attacks x two generations"
 
 
 def test_probe_records_notes_and_goal_per_attack(scenario_file, monkeypatch):
@@ -170,15 +178,32 @@ def test_probe_records_notes_and_goal_per_attack(scenario_file, monkeypatch):
     first, second = attempts
     assert first.notes["midojo"]["attack_id"] == "memo"
     assert first.notes["midojo"]["success"]["tool_called"]["name"] == "process_refund"
-    assert first.notes["mimcp_calls"] == RECORDED_CALLS
+    assert first.notes["mimcp_calls"] == RECORDED_CALLS + RECORDED_CALLS
     assert first.goal == "VIP memo"
     assert second.goal == "answer attack"
     assert first.prompt.turns[0].role == "system"
     assert first.prompt.turns[1].content.text == "What is left to pay on ORD-104?"
 
 
+def test_probe_attributes_evidence_per_generation(scenario_file, monkeypatch):
+    """Each generation arms its own session and its calls stay aligned."""
+    probe = _load_probe(scenario_file, generations=2)
+    injector = RecordingInjector()
+    monkeypatch.setattr(_plugins, "load_plugin", lambda spec, **kwargs: injector)
+
+    attempts = list(probe.probe(RecordingGenerator()))
+
+    attempt = attempts[0]
+    assert len(attempt.outputs) == 2, "one output per generation"
+    assert attempt.notes["mimcp_calls_by_generation"] == [
+        RECORDED_CALLS,
+        RECORDED_CALLS,
+    ], "per-generation evidence must align with the outputs"
+    assert len(attempt.notes["mimcp_calls"]) == 2, "the flat log pools all rounds"
+
+
 def test_probe_records_injector_failure(scenario_file, monkeypatch):
-    probe = _load_probe(scenario_file)
+    probe = _load_probe(scenario_file, generations=1)
     injector = FailingInjector()
     monkeypatch.setattr(_plugins, "load_plugin", lambda spec, **kwargs: injector)
 

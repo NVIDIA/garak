@@ -89,7 +89,9 @@ class MidojoDetector(Detector):
 
     The probe records the criteria in ``notes['midojo']['success']`` and the
     injector's recorded calls in ``notes['mimcp_calls']``; an output scores
-    1.0 when the criteria match the evidence, 0.0 when they do not.
+    1.0 when the criteria match the evidence, 0.0 when they do not. When
+    ``notes['mimcp_calls_by_generation']`` is present, each output is scored
+    against its own generation's calls only.
     """
 
     doc_uri = "https://github.com/NVIDIA/garak/issues/1652"
@@ -106,12 +108,17 @@ class MidojoDetector(Detector):
         """Score each output against the scenario's success criteria"""
         midojo_notes = attempt.notes.get("midojo") or {}
         criteria = midojo_notes.get("success")
-        calls = attempt.notes.get("mimcp_calls") or []
+        calls_by_generation = attempt.notes.get("mimcp_calls_by_generation")
+        flat_calls = attempt.notes.get("mimcp_calls") or []
         results = []
-        for output in attempt.outputs:
+        for index, output in enumerate(attempt.outputs):
             text = output.text if output is not None else None
             if text is None:
                 results.append(None)
                 continue
+            if calls_by_generation and index < len(calls_by_generation):
+                calls = calls_by_generation[index]
+            else:
+                calls = flat_calls
             results.append(1.0 if _evaluate(criteria, calls, text) else 0.0)
         return results

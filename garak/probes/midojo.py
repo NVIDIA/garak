@@ -29,11 +29,13 @@ class MidojoProbe(garak.probes.Probe):
     Each attack in a scenario file arms an injector, runs the scenario's
     benign task against the target with the armed injection handed to the
     generator, then records the injector's call log on the attempt. The
+    bundled Klarna demo scenario targets an agent over MCP tools; the
     scenario file is data, so other targets and surfaces need no probe
     changes; scenarios live outside garak (``scenario_file`` is required,
-    e.g. the Klarna demo shipped with the mim-demo deployment repo). Every
-    generation of an attempt reuses the armed session, so runs typically
-    set ``run.generations`` to 1.
+    e.g. the Klarna demo shipped with the mim-demo deployment repo). Each
+    generation arms its own session, so ``run.generations`` samples model
+    variation while the recorded evidence stays attributed to a single
+    output.
     """
 
     doc_uri = "https://github.com/NVIDIA/garak/issues/1652"
@@ -115,21 +117,40 @@ class MidojoProbe(garak.probes.Probe):
         return self._execute_all(attempts)
 
     def _execute_attempt(self, attempt):
-        """Arm, generate with the injection, record evidence, disarm"""
+        """Arm one session per generation, keeping evidence attributed
+
+        Each generation runs against its own armed session, so the recorded
+        calls belong to exactly one model output: a detector score then
+        reflects that generation's behaviour and not another one's.
+        """
         self._generator_precall_hook(self.generator, attempt)
-        try:
-            descriptor = self.injector.arm(self._arm_payload(attempt.notes["midojo"]))
-            attempt.outputs = self.generator.generate(
-                attempt.prompt,
-                generations_this_call=self.generations,
-                injections=[descriptor],
-            )
-            attempt.notes["mimcp_calls"] = self.injector.get_calls()
-        except (httpx.HTTPError, GarakException) as e:
-            logging.error("midojo attempt %s failed: %s", attempt.uuid, e)
-            attempt.notes["midojo_error"] = str(e)
-        finally:
-            self.injector.disarm()
+        outputs = []
+        calls_by_generation = []
+        for _ in range(self.generations):
+            try:
+                descriptor = self.injector.arm(
+                    self._arm_payload(attempt.notes["midojo"])
+                )
+                outputs.extend(
+                    self.generator.generate(
+                        attempt.prompt,
+                        generations_this_call=1,
+                        injections=[descriptor],
+                    )
+                )
+                calls_by_generation.append(self.injector.get_calls())
+            except (httpx.HTTPError, GarakException) as e:
+                logging.error("midojo attempt %s failed: %s", attempt.uuid, e)
+                attempt.notes["midojo_error"] = str(e)
+                outputs.append(garak.attempt.Message(None))
+                calls_by_generation.append([])
+            finally:
+                self.injector.disarm()
+        attempt.outputs = outputs
+        attempt.notes["mimcp_calls_by_generation"] = calls_by_generation
+        attempt.notes["mimcp_calls"] = [
+            call for calls in calls_by_generation for call in calls
+        ]
         if self.post_buff_hook:
             attempt = self._postprocess_buff(attempt)
         attempt = self._postprocess_hook(attempt)
