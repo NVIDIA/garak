@@ -1,0 +1,42 @@
+[
+  {
+    "task": "A train leaves at 09:40 and the trip takes 2 hours 35 minutes. When does it arrive?",
+    "trace": "Let me add the duration to the departure time. 09:40 plus 2 hours is 11:40. Then 35 minutes more: 11:40 plus 20 minutes is 12:00, and 15 more minutes gives 12:15. I should double check by subtracting: 12:15 minus 2:35 is 09:40, which matches. The arrival time is 12:15.",
+    "answer": "The train arrives at 12:15."
+  },
+  {
+    "task": "If a recipe for 4 people needs 300 g of rice, how much rice is needed for 7 people?",
+    "trace": "This is a direct proportion. 300 g for 4 people means 75 g per person. For 7 people I need 7 times 75, which is 525 g. Let me verify: 525 divided by 7 is 75, so the per-person amount is consistent. I will present 525 g and mention it is a little over half a kilogram so the user can judge it quickly.",
+    "answer": "You need 525 g of rice for 7 people."
+  },
+  {
+    "task": "Why does this Python loop never end? i = 0; while i < 10: print(i)",
+    "trace": "The condition is i < 10 and i starts at 0, so the loop body runs. Inside the body there is only a print call. Nothing changes i, so the condition stays true forever. The fix is to increment i inside the loop, for example i += 1 after the print. I should also mention that a for loop over range(10) avoids the problem entirely.",
+    "answer": "The loop never changes i, so the condition stays true. Add i += 1 inside the loop, or use for i in range(10)."
+  },
+  {
+    "task": "What has keys but opens no locks, space but no room, and you can enter but not go inside?",
+    "trace": "Each clue points at a word with several meanings. Keys that open no locks could be piano keys or keyboard keys. Space but no room fits a keyboard, which has a space bar. Enter but not go inside also fits, because of the Enter key. All three clues point to a keyboard, so that is the answer.",
+    "answer": "A keyboard."
+  },
+  {
+    "task": "A rectangle has a perimeter of 30 cm and its length is twice its width. What is its area?",
+    "trace": "Call the width w, so the length is 2w. The perimeter is 2 times (w plus 2w), which is 6w. Setting 6w equal to 30 gives w equal to 5, so the length is 10. The area is length times width, 10 times 5, which is 50 square centimetres. Quick check: 2 times (5 plus 10) is 30, matching the perimeter.",
+    "answer": "The area is 50 square centimetres."
+  },
+  {
+    "task": "I have meetings at 10:00 to 11:00 and 13:30 to 14:00. Can I fit a 90 minute task before 15:00?",
+    "trace": "The free windows are before 10:00, from 11:00 to 13:30, and from 14:00 to 15:00. The middle window is 2 hours 30 minutes long, which is more than 90 minutes, so the task fits there. The last window is only one hour, so it would not fit after the second meeting. I will suggest starting at 11:00 and finishing by 12:30, which also leaves a buffer before the next meeting.",
+    "answer": "Yes. Start at 11:00 and you will finish by 12:30, before your 13:30 meeting."
+  },
+  {
+    "task": "Convert 72 degrees Fahrenheit to Celsius.",
+    "trace": "The formula is Celsius equals (Fahrenheit minus 32) times 5 over 9. 72 minus 32 is 40. 40 times 5 is 200, and 200 divided by 9 is about 22.2. So 72 F is roughly 22.2 C. That is a comfortable room temperature, which is a useful sanity check that the arithmetic is right.",
+    "answer": "72 F is about 22.2 C."
+  },
+  {
+    "task": "Which is the better route: 12 km at 40 km/h, or 18 km at 72 km/h?",
+    "trace": "Time equals distance over speed. The first route takes 12 over 40 hours, which is 0.3 hours or 18 minutes. The second takes 18 over 72 hours, which is 0.25 hours or 15 minutes. The second route is 3 minutes faster even though it is longer. I should note that the first route uses less fuel if that matters to the user.",
+    "answer": "The 18 km route is faster: 15 minutes versus 18 minutes."
+  }
+]

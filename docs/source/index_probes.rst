@@ -44,6 +44,7 @@ For a guide to writing probes, see :doc:`extending.probe`.
    probes/promptinject
    probes/propile
    probes/realtoxicityprompts
+   probes/reasoning_theft
    probes/sata
    probes/snowball
    probes/smuggling
