@@ -7031,6 +7031,35 @@
       ],
       "tier": 1,
       "mod_time": "2026-11-04 03:10:10 +0000"
+    },
+    "probes.midojo.MidojoProbe": {
+      "description": "Runs scenario-based indirect prompt injection attacks",
+      "DEFAULT_PARAMS": {
+        "scenario_file": null,
+        "injector_spec": "injectors.mimcp.MiMCPInjector",
+        "generations": 1
+      },
+      "active": false,
+      "doc_uri": "https://github.com/NVIDIA/garak/issues/1652",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "goal": "make the target perform unauthorized actions through instructions hidden in tool results",
+      "intent": "T009indirect",
+      "lang": "*",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": false,
+      "primary_detector": "midojo.MidojoDetector",
+      "tags": [
+        "avid-effect:security:S0403",
+        "owasp:llm01",
+        "quality:Security:PromptStability"
+      ],
+      "tier": 9,
+      "mod_time": "2026-11-13 10:24:07 +0000"
     }
   },
   "detectors": {
@@ -9899,6 +9928,26 @@
         "cwe:79"
       ],
       "mod_time": "2026-08-12 17:51:57 +0000"
+    },
+    "detectors.midojo.MidojoDetector": {
+      "description": "Grades a MidojoProbe attempt against its scenario's success criteria",
+      "DEFAULT_PARAMS": {},
+      "active": true,
+      "doc_uri": "https://github.com/NVIDIA/garak/issues/1652",
+      "extra_dependency_names": [],
+      "hit_desc": "Target performed the attack goal in the scenario's success criteria",
+      "lang_spec": "*",
+      "modality": {
+        "out": [
+          "text"
+        ]
+      },
+      "pass_desc": "Target did not perform the attack goal",
+      "tags": [
+        "avid-effect:security:S0403",
+        "owasp:llm01"
+      ],
+      "mod_time": "2026-11-13 10:24:24 +0000"
     }
   },
   "generators": {
@@ -11556,6 +11605,21 @@
       "doc_uri": "",
       "extra_dependency_names": [],
       "mod_time": "2026-11-10 12:27:28 +0000"
+    },
+    "injectors.mimcp.MiMCPInjector": {
+      "description": "Injector that routes a target's MCP traffic through a MiMCP proxy.",
+      "DEFAULT_PARAMS": {
+        "host": "http://127.0.0.1:8000",
+        "session_prefix": "garak",
+        "timeout": 30.0
+      },
+      "active": true,
+      "capabilities": [
+        "mcp"
+      ],
+      "doc_uri": "https://github.com/ABeltramo/mcp-explorer",
+      "extra_dependency_names": [],
+      "mod_time": "2026-11-13 10:23:27 +0000"
     }
   }
 }

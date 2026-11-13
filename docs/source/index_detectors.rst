@@ -44,3 +44,4 @@ For detailed information on detector metrics and evaluation, see :doc:`../detect
    detectors/unsafe_content
    detectors/visual_jailbreak
    detectors/web_injection
+   detectors/midojo
