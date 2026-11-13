@@ -519,6 +519,9 @@ class OpenAIResponsesGenerator(OpenAICompatible):
         "uri": None,
         "instructions": None,
         "tools": [],
+        # the Responses API runs the agent loop server-side, so tool calls
+        # spend output tokens too; a chat-sized cap truncates mid-loop
+        "max_tokens": 1024,
         "suppressed_params": {
             "n",
             "temperature",
@@ -648,6 +651,11 @@ class OpenAIResponsesGenerator(OpenAICompatible):
         except json.decoder.JSONDecodeError as e:
             logging.exception(e)
             raise garak.exception.GeneratorBackoffTrigger from e
+        if getattr(response, "status", None) == "incomplete":
+            logging.warning(
+                "response incomplete (likely the max_tokens cap): %s",
+                getattr(response, "incomplete_details", None),
+            )
 
         text_parts = []
         reasoning_parts = []

@@ -89,7 +89,8 @@ def test_defaults(set_fake_env, mock_openai_client):
     assert gen.name == "my-model"
     assert gen.tools == []
     assert gen.instructions is None
-    assert gen.max_tokens == 150
+    # 150 would truncate the server-side agent loop mid-conversation
+    assert gen.max_tokens == 1024
     assert gen.uri is None
     assert gen.extra_params == {}
 
