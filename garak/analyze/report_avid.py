@@ -11,6 +11,7 @@ from datetime import date
 from avidtools.datamodels.report import Report
 from avidtools.datamodels.components import *
 import garak
+from garak.report import avid_report_location
 
 
 def convert_to_avid(report_location: str) -> str:
@@ -108,7 +109,7 @@ def convert_to_avid(report_location: str) -> str:
         all_reports.append(report)
 
     # save final output
-    write_location = report_location.replace(".report", ".avid")
+    write_location = avid_report_location(report_location)
     with open(write_location, "w", encoding="utf-8") as f:
         f.writelines(r.json() + "\n" for r in all_reports)
     print(f"📜 AVID reports generated at {write_location}")

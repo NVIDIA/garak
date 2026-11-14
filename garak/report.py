@@ -6,9 +6,19 @@ import numpy as np
 import pandas as pd
 
 from datetime import date
+from pathlib import Path
 import avidtools.datamodels.report as ar
 import avidtools.datamodels.components as ac
 import avidtools.datamodels.enums as ae
+
+
+def avid_report_location(report_location: str) -> str:
+    """AVID export path beside a garak report, never the report itself"""
+    report_path = Path(report_location)
+    avid_name = report_path.name.replace(".report", ".avid")
+    if avid_name == report_path.name:
+        avid_name = f"{report_path.stem}.avid{report_path.suffix}"
+    return str(report_path.with_name(avid_name))
 
 
 # load up a .jsonl output file, take in eval and config rows
@@ -167,7 +177,7 @@ class Report:
             all_reports.append(report)
 
         # save final output
-        self.write_location = self.report_location.replace(".report", ".avid")
+        self.write_location = avid_report_location(self.report_location)
         with open(self.write_location, "w", encoding="utf-8") as f:
             f.writelines(
                 r.model_dump_json() + "\n" for r in all_reports

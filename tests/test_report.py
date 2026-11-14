@@ -1,5 +1,7 @@
 import json
 import os
+import shutil
+from pathlib import Path
 import pytest
 import pandas as pd
 
@@ -261,6 +263,43 @@ def test_export_includes_vuln_id_in_avid_taxonomy(exported_avid_report):
         assert isinstance(report["impact"]["avid"]["lifecycle_view"], list)
 
         assert "taxonomy_version" in report["impact"]["avid"]
+
+
+def _export_with_report(report_location):
+    r = Report(report_location=report_location).load().get_evaluations()
+    r.export()
+    return r.write_location
+
+
+def _export_with_report_avid(report_location):
+    from garak.analyze.report_avid import convert_to_avid
+
+    return convert_to_avid(report_location)
+
+
+@pytest.mark.parametrize(
+    "exporter", [_export_with_report, _export_with_report_avid], ids=["cli", "analyze"]
+)
+@pytest.mark.parametrize(
+    "report_name", ["rebuilt.jsonl", "run.reports/garak.run.report.jsonl"]
+)
+def test_export_writes_beside_source_report(
+    sample_report, tmp_path, exporter, report_name
+):
+    """AVID output goes next to the source report and never replaces it"""
+    report_file = tmp_path / report_name
+    report_file.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy(sample_report, report_file)
+    source_content = report_file.read_bytes()
+
+    avid_file = Path(exporter(str(report_file)))
+
+    assert avid_file != report_file, "AVID output must not overwrite the source report"
+    assert avid_file.parent == report_file.parent, "AVID output goes beside the source"
+    assert report_file.read_bytes() == source_content, "source report must be unchanged"
+    with open(avid_file, "r", encoding="utf-8") as f:
+        for line in f:
+            validate_avid_report_structure(json.loads(line))
 
 
 def test_export_works_without_metadata(sample_report_without_metadata):
