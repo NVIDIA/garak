@@ -52,6 +52,7 @@ For a guide to writing probes, see :doc:`extending.probe`.
    probes/tap
    probes/test
    probes/topic
+   probes/turkishinjection
    probes/visual_jailbreak
    probes/web_injection
    probes/_tier
