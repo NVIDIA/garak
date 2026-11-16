@@ -5,12 +5,12 @@ from collections import Counter
 
 import pytest
 
-import garak.attempt
 import garak.services.intentservice
 from garak import _config, _plugins
 from garak.intents import TextStub
 from garak.probes.badchars import (
     ASCII_PRINTABLE,
+    BadCharactersIntent,
     PERTURBATION_PARAMS,
     _BadCharacterPerturbation,
 )
@@ -63,27 +63,18 @@ def test_intent_adapter_perturbs_full_stub():
     probe = _load_badcharacters_intent(
         "S009cred", serve_detectorless=False, probe_config=_SMALL_PERTURBATION
     )
-    conversations = probe._prompts_from_stub(TextStub("S009cred", content))
-    produced_texts = sorted(c.turns[0].content.text for c in conversations)
+    prompts = probe._prompts_from_stub(TextStub("S009cred", content))
 
     assert (
-        produced_texts == expected_texts
+        sorted(prompts) == expected_texts
     ), "adapter must perturb the full stub, matching the renderer"
-    notes = conversations[0].notes
-    assert notes["bad_character_category"] in {
-        "invisible",
-        "homoglyph",
-        "reordering",
-        "deletion",
-    }
-    assert isinstance(notes["operations"], dict)
+    assert all(type(prompt) is str for prompt in prompts), "adapter must return strings"
 
 
-def _category_conv(category: str) -> garak.attempt.Conversation:
-    return garak.attempt.Conversation(
-        [garak.attempt.Turn("user", garak.attempt.Message(text=category, lang="en"))],
-        notes={"bad_character_category": category},
-    )
+def _category_prompt(probe: BadCharactersIntent, category: str) -> str:
+    prompt = f"{category}-{len(probe._prompt_categories)}"
+    probe._prompt_categories[prompt] = category
+    return prompt
 
 
 def test_prune_restores_per_category_floor():
@@ -96,19 +87,19 @@ def test_prune_restores_per_category_floor():
         "S009cred", serve_detectorless=False, probe_config=_SMALL_PERTURBATION
     )
     probe.prompts = [
-        _category_conv("deletion"),
-        _category_conv("deletion"),
-        _category_conv("deletion"),
-        _category_conv("deletion"),
-        _category_conv("deletion"),
-        _category_conv("deletion"),
-        _category_conv("homoglyph"),
+        _category_prompt(probe, "deletion"),
+        _category_prompt(probe, "deletion"),
+        _category_prompt(probe, "deletion"),
+        _category_prompt(probe, "deletion"),
+        _category_prompt(probe, "deletion"),
+        _category_prompt(probe, "deletion"),
+        _category_prompt(probe, "homoglyph"),
     ]
     probe.prompt_intents = ["I0", "I0", "I1", "I1", "I2", "I2", "I3"]
 
     probe._prune_data(cap=3)
 
-    categories = [conv.notes["bad_character_category"] for conv in probe.prompts]
+    categories = [probe._prompt_categories[prompt] for prompt in probe.prompts]
     assert len(probe.prompts) == 3, "floor must not exceed the cap"
     assert "homoglyph" in categories, "dropped category must be restored by the floor"
     assert "deletion" in categories, "donor family must still survive the reclaim"
@@ -119,7 +110,7 @@ def test_prune_zero_cap_returns_empty() -> None:
     probe = _load_badcharacters_intent(
         "S009cred", serve_detectorless=False, probe_config=_SMALL_PERTURBATION
     )
-    probe.prompts = [_category_conv("deletion")]
+    probe.prompts = [_category_prompt(probe, "deletion")]
     probe.prompt_intents = ["I0"]
 
     probe._prune_data(cap=0)
@@ -138,7 +129,9 @@ def test_prune_keeps_intents_balanced_when_restoring_categories(
     intents = ("I0", "I1", "I2", "I3")
     categories = ("deletion", "invisible", "homoglyph", "reordering")
     probe.prompts = [
-        _category_conv(category) for intent in intents for category in categories
+        _category_prompt(probe, category)
+        for intent in intents
+        for category in categories
     ]
     probe.prompt_intents = [intent for intent in intents for _category in categories]
     monkeypatch.setattr(
@@ -152,6 +145,6 @@ def test_prune_keeps_intents_balanced_when_restoring_categories(
     assert Counter(probe.prompt_intents) == Counter(
         {intent: 1 for intent in intents}
     ), "category restoration must preserve the base per-intent allocation"
-    assert {conv.notes["bad_character_category"] for conv in probe.prompts} == set(
+    assert {probe._prompt_categories[prompt] for prompt in probe.prompts} == set(
         categories
     ), "all perturbation categories must survive when the cap allows"

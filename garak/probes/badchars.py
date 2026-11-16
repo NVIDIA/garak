@@ -526,6 +526,10 @@ class BadCharactersIntent(garak.probes.IntentProbe):
 
     DEFAULT_PARAMS = garak.probes.IntentProbe.DEFAULT_PARAMS | PERTURBATION_PARAMS
 
+    def __init__(self, config_root=_config) -> None:
+        self._prompt_categories: dict[str, str] = {}
+        super().__init__(config_root=config_root)
+
     @cached_property
     def _perturbation(self) -> _BadCharacterPerturbation:
         # Built lazily: IntentProbe.__init__ runs the stub hooks before the
@@ -538,22 +542,16 @@ class BadCharactersIntent(garak.probes.IntentProbe):
             max_ascii_variants=self.max_ascii_variants,
         )
 
-    def _prompts_from_stub(self, stub: Stub) -> List[garak.attempt.Conversation]:
+    def _prompts_from_stub(self, stub: Stub) -> List[str]:
         content = getattr(stub, "content", None)
         if not isinstance(content, str) or not content:
             logging.warning("BadCharactersIntent skipping unsupported stub %r", stub)
             return []
-        return [
-            garak.attempt.Conversation(
-                [
-                    garak.attempt.Turn(
-                        "user", garak.attempt.Message(text=text, lang=self.lang)
-                    )
-                ],
-                notes=metadata,
-            )
-            for text, metadata in self._perturbation.variants(content)
-        ]
+        prompts: List[str] = []
+        for text, metadata in self._perturbation.variants(content):
+            self._prompt_categories[text] = metadata["bad_character_category"]
+            prompts.append(text)
+        return prompts
 
     def _prune_data(self, cap=None, prune_triggers=False):
         """Prune per intent, then restore the legacy floor of one per category.
@@ -569,18 +567,19 @@ class BadCharactersIntent(garak.probes.IntentProbe):
         if resolved_cap is None or resolved_cap >= len(self.prompts):
             return
 
-        representatives: dict[str, dict[str, garak.attempt.Conversation]] = {}
-        for conv, intent in zip(self.prompts, self.prompt_intents):
-            category = conv.notes.get("bad_character_category")
+        representatives: dict[str, dict[str, str]] = {}
+        for prompt, intent in zip(self.prompts, self.prompt_intents):
+            category = self._prompt_categories.get(prompt)
             if category is not None:
-                representatives.setdefault(category, {}).setdefault(intent, conv)
+                representatives.setdefault(category, {}).setdefault(intent, prompt)
 
         super()._prune_data(cap=cap, prune_triggers=prune_triggers)
         if not self.prompts:
+            self._prompt_categories.clear()
             return
 
         surviving = Counter(
-            conv.notes.get("bad_character_category") for conv in self.prompts
+            self._prompt_categories.get(prompt) for prompt in self.prompts
         )
         intent_counts = Counter(self.prompt_intents)
 
@@ -589,10 +588,10 @@ class BadCharactersIntent(garak.probes.IntentProbe):
                 continue
 
             replacement = None
-            for donor_idx, (existing, donor_intent) in enumerate(
+            for donor_idx, (prompt, donor_intent) in enumerate(
                 zip(self.prompts, self.prompt_intents)
             ):
-                donor = existing.notes.get("bad_character_category")
+                donor = self._prompt_categories.get(prompt)
                 if surviving[donor] > 1 and donor_intent in category_representatives:
                     replacement = (
                         donor_idx,
@@ -607,10 +606,10 @@ class BadCharactersIntent(garak.probes.IntentProbe):
                     category_representatives,
                     key=intent_counts.__getitem__,
                 )
-                for donor_idx, (existing, donor_intent) in enumerate(
+                for donor_idx, (prompt, donor_intent) in enumerate(
                     zip(self.prompts, self.prompt_intents)
                 ):
-                    donor = existing.notes.get("bad_character_category")
+                    donor = self._prompt_categories.get(prompt)
                     if (
                         surviving[donor] > 1
                         and intent_counts[donor_intent]
@@ -635,3 +634,7 @@ class BadCharactersIntent(garak.probes.IntentProbe):
             if replacement_intent != donor_intent:
                 intent_counts[donor_intent] -= 1
                 intent_counts[replacement_intent] += 1
+
+        self._prompt_categories = {
+            prompt: self._prompt_categories[prompt] for prompt in self.prompts
+        }
