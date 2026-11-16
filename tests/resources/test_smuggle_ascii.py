@@ -1,7 +1,10 @@
 # SPDX-FileCopyrightText: Portions Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-from garak.resources.smuggling.smuggle_ascii import sneaky_bits_smuggling
+from garak.resources.smuggling.smuggle_ascii import (
+    sneaky_bits_smuggling,
+    variant_smuggling,
+)
 
 ZERO, ONE = chr(0x2062), chr(0x2064)
 
@@ -36,4 +39,33 @@ def test_sneaky_bits_round_trip():
     payload = "Trust No AI - 42 café"
     assert (
         _sneaky_bits_decode(sneaky_bits_smuggling(payload)) == payload
+    ), "encoded payload should decode back to the original text"
+
+
+def _variant_selector_decode(encoded: str) -> str:
+    decoded = []
+    for ch in encoded:
+        cp = ord(ch)
+        if 0xFE00 <= cp <= 0xFE0F:
+            decoded.append(cp - 0xFE00)
+        elif 0xE0100 <= cp <= 0xE01EF:
+            decoded.append(cp - 0xE0100 + 16)
+        else:
+            raise AssertionError(f"U+{cp:04X} is not a variation selector")
+    return bytes(decoded).decode("utf-8")
+
+
+def test_variant_smuggling_reference_mapping():
+    assert variant_smuggling("A") == chr(
+        0xE0131
+    ), "bytes from 16 up should map to U+E0100 + (byte - 16)"
+    assert variant_smuggling("\t") == chr(
+        0xFE09
+    ), "bytes below 16 should map to U+FE00 + byte"
+
+
+def test_variant_smuggling_round_trip():
+    payload = "Hello\tcafé €"
+    assert (
+        _variant_selector_decode(variant_smuggling(payload)) == payload
     ), "encoded payload should decode back to the original text"

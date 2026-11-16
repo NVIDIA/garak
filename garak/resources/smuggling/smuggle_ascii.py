@@ -37,13 +37,20 @@ def variant_smuggling(payload: str):
     variant selectors that can be concatenated together, according to the unicode spec.
     https://www.unicode.org/versions/Unicode16.0.0/
 
+    Each UTF-8 byte maps to one selector as in
+    https://paulbutler.org/2025/smuggling-arbitrary-data-through-an-emoji/ : bytes 0-15 to
+    U+FE00-U+FE0F, bytes 16-255 to U+E0100-U+E01EF.
+
     Args:
         payload (str): Payload to be encoded
 
     Returns:
         encoded_payload (str): The payload encoded in variant selectors.
     """
-    encoded_payload = "".join(chr(0xE0100 + ord(ch)) for ch in payload)
+    encoded_payload = "".join(
+        chr(0xFE00 + byte) if byte < 16 else chr(0xE0100 + byte - 16)
+        for byte in payload.encode("utf-8")
+    )
     return encoded_payload
 
 
