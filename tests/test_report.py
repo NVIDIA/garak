@@ -298,8 +298,10 @@ def test_export_writes_beside_source_report(
     assert avid_file.parent == report_file.parent, "AVID output goes beside the source"
     assert report_file.read_bytes() == source_content, "source report must be unchanged"
     with open(avid_file, "r", encoding="utf-8") as f:
-        for line in f:
-            validate_avid_report_structure(json.loads(line))
+        records = [json.loads(line) for line in f if line.strip()]
+    assert records, "AVID export must contain at least one record"
+    for record in records:
+        validate_avid_report_structure(record)
 
 
 def test_export_works_without_metadata(sample_report_without_metadata):
