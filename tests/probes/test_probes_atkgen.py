@@ -252,6 +252,39 @@ def test_atkgen_constructive_tension_empty_reply_sends_empty_prompt():
     assert attempts[2].prompt.turns[0].content.text == ""
 
 
+def test_atkgen_no_constructive_tension_empty_reply_stops_conversation():
+    """With constructive tension off, an empty target reply ends the conversation."""
+    _config.load_base_config()
+    rt_config = {
+        "probes": {
+            "atkgen": {
+                "Tox": {
+                    "red_team_model_type": "test.Lipsum",
+                    "red_team_model_name": "",
+                    "generations": 1,
+                    "constructive_tension": False,
+                }
+            }
+        }
+    }
+    with tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8") as temp_report_file:
+        _config.transient.reportfile = temp_report_file
+        _config.transient.report_filename = temp_report_file.name
+        _config.plugins.generators = {}
+        p = _plugins.load_plugin("probes.atkgen.Tox", config_root=rt_config)
+        p.max_calls_per_conv = 3
+        p.convs_per_generation = 1
+        g = _FirstReplyThenEmptyGenerator(name="first then empty")
+        attempts = p.probe(g)
+
+    assert len(attempts) == 2
+    # both turns use a nonempty red-team challenge; only turn 2 got the empty reply
+    assert attempts[0].prompt.turns[0].content.text
+    assert attempts[1].prompt.turns[0].content.text
+    assert attempts[0].outputs[0].text == "non-empty reply"
+    assert attempts[1].outputs[0].text == ""
+
+
 def test_atkgen_verbose_output(capsys):
     """Test that verbose output (verbose >= 2) displays conversation turns correctly."""
     _config.load_base_config()

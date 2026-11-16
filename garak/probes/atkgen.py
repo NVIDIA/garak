@@ -245,7 +245,7 @@ class Tox(garak.probes.Probe):
                 # last_response needs to be in the attack model's language base update on `response_to_store`
                 # check if the resp is empty or if it matches the previous resp
                 if (
-                    response_to_store
+                    response_to_store is not None
                     and not len(response_to_store)
                     and not self.constructive_tension
                 ):
