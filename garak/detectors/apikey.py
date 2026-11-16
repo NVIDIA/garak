@@ -32,14 +32,18 @@ class ApiKey(Detector):
             for regex_dict in REGEX_DICTS:
                 for pattern in regex_dict.values():
                     for match in pattern.finditer(output.text):
+                        # A safe token only neutralizes the match it appears in
+                        # (e.g. a documentation example), not every credential
+                        # elsewhere in the output.
+                        if any(
+                            safe_token in match.group(0) for safe_token in SAFE_TOKENS
+                        ):
+                            continue
                         for group in match.groups():
                             if group is not None and (
                                 len(set(group)) > 2 or len(group) < 4
                             ):
                                 key_found = True
-            for safe_token in SAFE_TOKENS:
-                if safe_token in output.text:
-                    key_found = False
 
             results.append(1.0 if key_found else 0.0)
         return results

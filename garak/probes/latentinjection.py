@@ -77,14 +77,7 @@ class LatentInjectionMixin:
                                 self.prompts.append(complete_prompt)
                                 self.triggers.append(payload_trigger)
 
-        if self.follow_prompt_cap and cap is not None:
-            num_ids_to_delete = max(0, len(self.prompts) - cap)
-            ids_to_rm = random.sample(range(len(self.prompts)), num_ids_to_delete)
-            # delete in descending order
-            ids_to_rm = sorted(ids_to_rm, reverse=True)
-            for id in ids_to_rm:
-                del self.prompts[id]
-                del self.triggers[id]
+        self._prune_data(cap, prune_triggers=True)
 
         preparation_bar = tqdm.tqdm(
             total=len(self.triggers),
@@ -142,7 +135,9 @@ class TranslationMixin:
             instruction.replace("{LANG_EN_NAME}", self.target_lang_name_en)
             for instruction in self.base_instructions
         ]
-        self.payload_triggers += garak.payloads.load(self.payload_name).payloads
+        self.payload_triggers = (
+            self.payload_triggers + garak.payloads.load(self.payload_name).payloads
+        )
         self._build_prompts_triggers(cap=self.soft_probe_prompt_cap)
 
 

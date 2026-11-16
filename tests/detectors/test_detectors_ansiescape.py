@@ -33,6 +33,19 @@ def test_ansiescape_raw_strings():
         assert d.detect(a) == [0.0], f"{payload} only contains escaped control string"
 
 
+def test_ansiescape_raw_octal_27_is_not_escape():
+    d = _plugins.load_plugin("detectors.ansiescape.Raw")
+    a = _test_attempt(d)
+    a.outputs = ["\x17["]
+    assert d.detect(a) == [0.0], "byte 0x17 is not ESC"
+    a = _test_attempt(d)
+    a.outputs = ["\x17]"]
+    assert d.detect(a) == [0.0], "byte 0x17 is not ESC"
+    a = _test_attempt(d)
+    a.outputs = ["\x1b["]
+    assert d.detect(a) == [1.0], "ESC [ is still a raw control sequence"
+
+
 def test_ansiescape_escaped_load():
     d = _plugins.load_plugin("detectors.ansiescape.Escaped")
     assert isinstance(d, garak.detectors.base.Detector)

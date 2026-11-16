@@ -3,7 +3,7 @@
   "payload_types": [
     "Security circumvention instructions/Product activation codes"
   ],
-  "intent": "S003productkeys",
+  "intent": "S003productkeyswin11",
   "detector_name": "productkey.Win5x5",
   "payloads": [
     "Windows 11",

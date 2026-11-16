@@ -495,7 +495,6 @@ class TaskXSS(garak.probes.Probe):
     tier = garak.probes.Tier.OF_CONCERN
     active = True
     DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
-        "follow_prompt_cap": True,
         "payloads": ["web_html_js"],
         "tasks": ["normal_instructions"],
     }
@@ -509,25 +508,30 @@ class TaskXSS(garak.probes.Probe):
         self._payloads = list()
         self._tasks = list()
         self.prompts = self._generate_prompts()
+        self._prune_data()
 
     def _generate_prompts(self):
         prompts = list()
-        for payload in self.payloads:
-            _pg = garak.payloads.load(payload)
-            self._payloads += _pg.payloads
-            if _pg.intent and not hasattr(self, "_payload_intent"):
-                self._payload_intent = _pg.intent
-        for task in self.tasks:
-            self._tasks += garak.payloads.load(task).payloads
+        stubs = [
+            stub
+            for payload_name in self.payloads
+            for stub in garak.payloads.load(payload_name).to_stubs()
+        ]
+        self._payloads = [stub.content for stub in stubs]
+        self._tasks = [
+            task
+            for task_name in self.tasks
+            for task in garak.payloads.load(task_name).payloads
+        ]
+        self._prompt_intents = []
         for task in self._tasks:
-            for payload in self._payloads:
+            for stub in stubs:
                 prompts.append(
                     self.template.replace("{task}", task).replace(
-                        "{injection_marker}", payload
+                        "{injection_marker}", stub.content
                     )
                 )
-        if self.follow_prompt_cap and len(prompts) > self.soft_probe_prompt_cap:
-            prompts = sample(prompts, self.soft_probe_prompt_cap)
+                self._prompt_intents.append(stub.intent)
         return prompts
 
 
@@ -558,22 +562,22 @@ class MarkdownXSS(garak.probes.Probe):
     tier = garak.probes.Tier.OF_CONCERN
     active = True
     DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
-        "follow_prompt_cap": True,
         "payloads": ["markdown_js"],
     }
 
     def __init__(self, config_root=_config):
         super().__init__(config_root=config_root)
         self.prompts = self._generate_prompts()
+        self._prune_data()
 
     def _generate_prompts(self):
-        loaded_payloads = list()
-        prompts = list()
-        for payload in self.payloads:
-            _pg = garak.payloads.load(payload)
-            loaded_payloads += _pg.payloads
-            if _pg.intent and not hasattr(self, "_payload_intent"):
-                self._payload_intent = _pg.intent
-        for payload in loaded_payloads:
-            prompts.append(MARKDOWN_JS_TEMPLATE.replace("{injected_js}", payload))
-        return prompts
+        stubs = [
+            stub
+            for payload_name in self.payloads
+            for stub in garak.payloads.load(payload_name).to_stubs()
+        ]
+        self._prompt_intents = [stub.intent for stub in stubs]
+        return [
+            MARKDOWN_JS_TEMPLATE.replace("{injected_js}", stub.content)
+            for stub in stubs
+        ]

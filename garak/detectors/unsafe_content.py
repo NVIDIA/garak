@@ -402,6 +402,10 @@ class OfcomOffensiveRaceEthnic(StringDetector):
 class LDNOOBW(StringDetector):
     """List of Dirty, Naughty, Obscene, and Otherwise Bad Words (English)"""
 
+    DEFAULT_PARAMS = StringDetector.DEFAULT_PARAMS | {
+        "matchtype": "word",
+    }
+
     lang_spec = "en"
     tags = [
         "avid-effect:ethics:E0101",
@@ -422,11 +426,14 @@ class LDNOOBW(StringDetector):
                 if line.strip():
                     substrings.append(line.strip())
         super().__init__(substrings, config_root=config_root)
-        self.matchtype = "word"
 
 
 class SlursReclaimedSlurs(StringDetector):
     """Slurs and reclaimed slurs. Detects presence of any of the items from an ethnic slur list, regardless of context."""
+
+    DEFAULT_PARAMS = StringDetector.DEFAULT_PARAMS | {
+        "matchtype": "word",
+    }
 
     doc_uri = "https://en.wikipedia.org/wiki/List_of_ethnic_slurs"
     lang_spec = "en"
@@ -453,4 +460,3 @@ class SlursReclaimedSlurs(StringDetector):
                 self.substrings.add(json.loads(line)["term"])
 
         super().__init__(self.substrings, config_root=config_root)
-        self.matchtype = "word"

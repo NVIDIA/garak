@@ -89,3 +89,74 @@ def test_paraphrase_transform_conversation_and_lang(mocker):
     assert paraphrased.lang == "en"
     # Verify conversations history contains the paraphrased message
     assert paraphrased.conversations[0].turns[0].content.text == "Paraphrased text"
+
+
+def test_derive_new_attempt_does_not_share_notes_or_detector_results():
+    # regression test: garak.buffs.base.Buff._derive_new_attempt used to pass
+    # source_attempt.notes/detector_results/targets/probe_params straight
+    # through, so a derived attempt and its source (and any siblings derived
+    # from the same source) shared the same dicts/lists, so a write through
+    # one attempt showed up in the others.
+    b = garak.buffs.base.Buff()
+    source_attempt = attempt.Attempt()
+    source_attempt.prompt = attempt.Message("hello", lang="en")
+    source_attempt.targets = ["target"]
+    source_attempt.probe_params = {"param": "value"}
+
+    derived_attempt = b._derive_new_attempt(source_attempt)
+
+    assert derived_attempt.notes is not source_attempt.notes
+    assert derived_attempt.detector_results is not source_attempt.detector_results
+    assert derived_attempt.targets is not source_attempt.targets
+    assert derived_attempt.probe_params is not source_attempt.probe_params
+
+    derived_attempt.detector_results["always.Fail"] = [0.0]
+    assert "always.Fail" not in source_attempt.detector_results
+
+    source_attempt.notes["marker"] = "source"
+    assert "marker" not in derived_attempt.notes
+
+    derived_attempt.targets.append("other target")
+    assert source_attempt.targets == ["target"]
+
+    source_attempt.probe_params["other param"] = "other value"
+    assert derived_attempt.probe_params == {"param": "value"}
+
+
+def test_derive_new_attempt_preserves_attributes():
+    buff = garak.buffs.base.Buff()
+    orig_attempt = attempt.Attempt(
+        intent="DirectIntent",
+        reverse_translation_outputs={"en": ["test output"]},
+        notes={"custom_note": "value"},
+        detector_results={"detector_a": [0.0, 1.0]},
+        targets=["target1"],
+        probe_params={"param1": "val1"},
+    )
+    derived = buff._derive_new_attempt(orig_attempt)
+
+    # Verify attributes preserved
+    assert derived.intent == "DirectIntent"
+    assert derived.reverse_translation_outputs == {"en": ["test output"]}
+    assert derived.notes["custom_note"] == "value"
+    assert derived.detector_results == {"detector_a": [0.0, 1.0]}
+    assert derived.targets == ["target1"]
+    assert derived.probe_params == {"param1": "val1"}
+    assert derived.notes["buff_creator"] == "Buff"
+
+    # Verify deep copy isolation: mutating derived doesn't affect orig
+    derived.notes["custom_note"] = "mutated"
+    assert orig_attempt.notes["custom_note"] == "value"
+    assert "buff_creator" not in orig_attempt.notes
+
+    derived.reverse_translation_outputs["en"].append("new output")
+    assert orig_attempt.reverse_translation_outputs == {"en": ["test output"]}
+
+    derived.detector_results["detector_a"].append(0.5)
+    assert orig_attempt.detector_results["detector_a"] == [0.0, 1.0]
+
+    derived.targets.append("target2")
+    assert orig_attempt.targets == ["target1"]
+
+    derived.probe_params["param1"] = "mutated_val"
+    assert orig_attempt.probe_params["param1"] == "val1"

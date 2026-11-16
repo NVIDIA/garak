@@ -7,7 +7,8 @@ import re
 
 from garak.data import path as data_path
 
-POLICY_POINT_CODE_RX = r"^[A-Z]([0-9]{3}([a-z]+)?)?$"
+# Leaf starts with a lowercase letter and may contain digits, e.g. S003productkeyswin10.
+POLICY_POINT_CODE_RX = r"^[A-Z]([0-9]{3}([a-z][a-z0-9]*)?)?$"
 
 
 class Policy:

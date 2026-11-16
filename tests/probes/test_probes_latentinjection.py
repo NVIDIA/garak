@@ -83,6 +83,18 @@ def test_translation_mixin_requires_target_lang():
     ), "error must not describe the inverse of the guarded condition"
 
 
+def test_translation_probes_do_not_share_payload_triggers():
+    french = garak.payloads.load("rude_french").payloads
+    _plugins.load_plugin("probes.latentinjection.LatentInjectionTranslationEnFr")
+    p = _plugins.load_plugin("probes.latentinjection.LatentInjectionTranslationEnZh")
+    assert not any(
+        trigger in p.payload_triggers for trigger in french
+    ), "loading the French probe must not add its payloads to the Chinese probe"
+    assert len(set(p.payload_triggers)) == len(
+        p.payload_triggers
+    ), "payload triggers must not repeat across probe loads"
+
+
 class TestFactSnippet(
     garak.probes.latentinjection.FactSnippetMixin, garak.probes.Probe
 ):

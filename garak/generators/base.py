@@ -174,7 +174,8 @@ class Generator(Configurable):
 
         else:
             if (
-                hasattr(self, "parallel_requests")
+                self.parallel_capable
+                and hasattr(self, "parallel_requests")
                 and self.parallel_requests
                 and isinstance(self.parallel_requests, int)
                 and self.parallel_requests > 1

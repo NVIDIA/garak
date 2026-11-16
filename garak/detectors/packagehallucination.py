@@ -153,7 +153,12 @@ class PythonPypi(PackageHallucinationDetector):
         super()._load_package_list()
         import sys
 
-        self.packages = self.packages | sys.stdlib_module_names
+        # The PyPI listing holds PEP 503 normalised names ("typing-extensions"), but
+        # code imports the module name, which uses "_" ("typing_extensions").
+        underscore_names = {
+            p.replace("-", "_") for p in self.packages if p and "-" in p
+        }
+        self.packages = self.packages | underscore_names | sys.stdlib_module_names
 
     def _extract_package_references(self, output: str) -> Set[str]:
         # A single `import` statement may pull in several packages, e.g.

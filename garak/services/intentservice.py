@@ -91,11 +91,14 @@ def _expand_intent_spec(
 
     expanded_intents = set()
 
-    if intent_spec in (None, "*", "all", ""):
+    if intent_spec in (None, ""):
         expanded_intents.update(intent_typology.keys())
     else:
         for intent_prefix in intent_spec.split(","):
-            if expand_subnodes:
+            intent_prefix = intent_prefix.strip()
+            if intent_prefix.lower() in ("*", "all"):
+                expanded_intents.update(intent_typology.keys())
+            elif expand_subnodes:
                 expanded_intents.update(
                     _expand_intent_specifier_children(intent_prefix)
                 )
@@ -124,16 +127,66 @@ def _expand_intent_specifier_children(intent_specifier: str) -> Set[str]:
 
 def _validate_intent_codes(intent_spec: str | None) -> None:
     """Fail-closed when a requested include code is well-formed but absent from
-    the loaded typology (e.g. ``S999``). Vacuous specs (``None``/``*``/``all``/
-    ``""``) select everything and are not validated."""
+    the loaded typology (e.g. ``S999``). Vacuous specs (``None``/``""``) select
+    everything; ``*`` and ``all`` are valid in any selector combination."""
 
-    if intent_spec in (None, "*", "all", ""):
+    if intent_spec in (None, ""):
         return
     for code in (c.strip() for c in intent_spec.split(",")):
-        if code and code not in intent_typology:
+        if code and code.lower() not in ("*", "all") and code not in intent_typology:
             raise GarakException(
-                f"intent code '{code}' is not in the loaded intent typology"
+                f"intent code '{code}' is not in the loaded intent typology; "
+                "use --list_intents to view available codes"
             )
+
+
+def _intent_has_content(intent_code: str, intent_info: dict) -> bool:
+    """Return whether an intent has a detector or any source of stubs."""
+
+    if get_detectors(intent_code, override_loaded_check=True) is not None:
+        return True
+    if intent_info.get("default_stub"):
+        return True
+    for suffix_expr in ("txt", "json", "y*ml"):
+        if _glob_stubs(intent_code, suffix_expr):
+            return True
+    if len(intent_code) > 4:
+        module_name = f"garak.intents.{intent_code[:4]}"
+        class_name = intent_code[4:].capitalize()
+        try:
+            intent_module = importlib.import_module(module_name)
+        except ModuleNotFoundError:
+            pass
+        else:
+            if hasattr(intent_module, class_name):
+                return True
+    return False
+
+
+def enumerate_intents(
+    intent_spec: str | None = None, blocked_spec: str | None = None
+) -> list[dict]:
+    """Return typology rows, optionally filtered by include and exclude specs."""
+
+    _load_intent_typology()
+    _load_intent_detector_mapping()
+    _validate_intent_codes(intent_spec)
+    _validate_intent_codes(blocked_spec)
+
+    selected = _expand_intent_spec(intent_spec)
+    if blocked_spec:
+        selected.difference_update(_expand_intent_spec(blocked_spec))
+
+    return [
+        {
+            "code": code,
+            "name": intent_info.get("name", ""),
+            "description": intent_info.get("descr", ""),
+            "content": _intent_has_content(code, intent_info),
+        }
+        for code, intent_info in intent_typology.items()
+        if code in selected
+    ]
 
 
 def _populate_intents(intent_spec: str | None, blocked_spec: str | None = "") -> None:
@@ -147,6 +200,7 @@ def _populate_intents(intent_spec: str | None, blocked_spec: str | None = "") ->
     global intents_active
 
     _validate_intent_codes(intent_spec)
+    _validate_intent_codes(blocked_spec)
 
     if intent_spec in (None, "*", "all", ""):
         intents_active = _expand_intent_spec(intent_spec)

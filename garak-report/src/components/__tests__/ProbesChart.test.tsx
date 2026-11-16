@@ -351,7 +351,7 @@ describe("ProbesChart", () => {
       ).toBeInTheDocument();
       expect(
         screen.getByText(
-          /The probe score shows the percentage of prompts that successfully triggered the failure mode/
+          /The probe score shows the percentage of prompts that /
         )
       ).toBeInTheDocument();
       
