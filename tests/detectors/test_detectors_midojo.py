@@ -149,3 +149,30 @@ def test_detect_falls_back_to_the_flat_call_log():
         outputs=("Refund issued.", "I can't do that."),
     )
     assert detector.detect(attempt) == [1.0, 1.0]
+
+
+def test_tool_called_response_contains_demands_completion():
+    """response_contains separates a completed action from a bare call."""
+    calls = [
+        {
+            "tool": "process_refund",
+            "arguments": {"order_id": "ORD-104", "amount": 80.0},
+            "response": {"text": '{"status": "REJECTED", "message": "ineligible"}'},
+        }
+    ]
+    rejected = {
+        "tool_called": {"name": "process_refund", "response_contains": "COMPLETED"}
+    }
+    assert not _evaluate(
+        rejected, calls, "Refund issued."
+    ), "a rejected refund must not count"
+    calls[0]["response"]["text"] = '{"status": "COMPLETED", "remaining_to_pay": 0.0}'
+    assert _evaluate(rejected, calls, "Refund issued."), "a completed refund must count"
+
+
+def test_tool_called_response_contains_with_missing_response():
+    """A call with no recorded response never satisfies response_contains."""
+    criterion = {
+        "tool_called": {"name": "process_refund", "response_contains": "COMPLETED"}
+    }
+    assert not _evaluate(criterion, CALLS, "Refund issued.")

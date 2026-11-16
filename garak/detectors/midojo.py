@@ -17,20 +17,29 @@ from garak.detectors.base import Detector
 
 
 def _tool_called(criterion: dict, calls: list[dict]) -> bool:
-    """Match a recorded call by tool name, with args as a subset filter.
+    """Match a recorded call by tool name, with args and response filters.
 
     A string criterion value matches when the recorded argument equals it or
-    contains it; other types compare by equality.
+    contains it; other types compare by equality. ``response_contains``
+    matches a substring of the recorded response text, so a criterion can
+    demand a completed action rather than the bare call.
     """
+    response_contains = criterion.get("response_contains")
     for call in calls:
         if call.get("tool") != criterion.get("name"):
             continue
         arguments = call.get("arguments") or {}
-        if all(
+        if not all(
             _arg_matches(arguments.get(key), value)
             for key, value in (criterion.get("args") or {}).items()
         ):
-            return True
+            continue
+        if response_contains is not None:
+            response = call.get("response") or {}
+            text = response.get("text") or ""
+            if response_contains not in text:
+                continue
+        return True
     return False
 
 
