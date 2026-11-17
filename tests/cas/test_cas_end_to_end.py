@@ -119,7 +119,10 @@ def test_cas_cli_preserves_intent_outcomes(
         intent, passes = expected[row["detector"]]
         counts = {"passed": passes, "total_evaluated": 4 - nones, "nones": nones}
         assert row["probe"] == PROBE, "evaluations must identify the executed probe"
-        assert row["intents"] == {intent: counts}, "intent counts must remain separate"
+        assert set(row["intents"]) == {intent}, "intent counts must remain separate"
+        assert {
+            key: row["intents"][intent][key] for key in counts
+        } == counts, "each intent must carry its own counts"
         assert all(
             row[key] == value for key, value in counts.items()
         ), "evaluation totals must match their intent counts"
