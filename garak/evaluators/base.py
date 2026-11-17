@@ -75,6 +75,7 @@ class Evaluator:
         )
         # per-prompt (scoreable outputs, attack successes) to estimate hit@k
         per_attempt_counts: List[Tuple[int, int]] = []
+        intent_attempt_counts: dict[str, List[Tuple[int, int]]] = defaultdict(list)
         for attempt in attempts:
             intent = attempt.intent
             attempt_scoreable = 0
@@ -143,6 +144,8 @@ class Evaluator:
                     )
 
             per_attempt_counts.append((attempt_scoreable, attempt_hits))
+            if intent is not None:
+                intent_attempt_counts[intent].append((attempt_scoreable, attempt_hits))
 
         outputs_evaluated = passes + fails
         outputs_processed = passes + fails + nones
@@ -226,6 +229,15 @@ class Evaluator:
                 intent_key: dict(counts)
                 for intent_key, counts in sorted(intent_counts.items())
             }
+            if hit_at_k_ks is not None:
+                for intent_key, counts in eval_record["intents"].items():
+                    intent_hit_at_k = garak.analyze.hit_at_k.estimate_hit_at_k(
+                        intent_attempt_counts[intent_key], hit_at_k_ks
+                    )
+                    if intent_hit_at_k:
+                        counts["hit_at_k"] = {
+                            str(k): scores for k, scores in intent_hit_at_k.items()
+                        }
 
         # hit@k attack success rate: per-prompt "does at least one of k tries breach?"
         if hit_at_k_scores:

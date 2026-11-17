@@ -21,19 +21,23 @@ When the probe is an ``IntentProbe`` (and therefore tags each attempt with an in
 the corresponding ``eval`` entry also carries an optional ``intents`` field mapping
 each intent name to its ``passed``, ``total_evaluated`` and ``nones`` counts
 (``nones`` are unscoreable outputs, mirroring the top-level ``nones`` and excluded
-from ``total_evaluated``).
+from ``total_evaluated``), plus that intent's ``hit_at_k`` when hit@k is enabled.
 
 The ``digest`` entry (added by ``report_digest``) carries a
 ``technique_intent_matrix`` field built from those ``eval`` ``intents`` counts: a
 ``technique -> intent`` cross-tab keyed on each probe's ``demon:*`` tags
 (independent of ``reporting.taxonomy``). Each intent cell holds ``score``
 (``passed / total_evaluated``, or ``null`` when ``total_evaluated`` is 0),
-``passed``, ``total_evaluated``, ``nones`` and ``probe_detector_pairs`` (the
-``[probe, detector]`` combinations whose evals produced that cell), plus a
+``passed``, ``total_evaluated``, ``nones``, ``probe_detector_pairs`` (the
+``[probe, detector]`` combinations whose evals produced that cell) and, when the
+evals carry it, ``hit_at_k``, plus a
 per-technique ``_summary`` of ``n_intents`` and ``n_detectors``. Counts are
 micro-averaged
 (pooled) across contributing probes and detectors, so ``total_evaluated`` is an
-evaluation count (attempt × detector). An intent whose outputs were all unscoreable
+evaluation count (attempt × detector). ``hit_at_k`` scores are pooled the same
+way, weighted by their ``prompts``, so ``prompts`` counts prompt × detector; note
+that ``score`` is a pass rate while ``hit_at_k`` scores are hit rates.
+An intent whose outputs were all unscoreable
 surfaces as ``0/0`` with ``nones`` > 0, signalling that the target never produced a
 usable response for it.
 
@@ -69,7 +73,7 @@ Each ``eval`` entry then carries a ``hit_at_k`` field:
 
 Each entry holds ``score`` (mean hit@k over prompts, on a 0-1 scale) and ``prompts`` (how many prompts were eligible). A prompt with fewer than ``k`` scoreable generations cannot be estimated for that ``k`` and is excluded from that entry; a ``k`` with no eligible prompt is omitted. Where prompts got differing numbers of generations, as in probes that end conversations early, the always-on entry is keyed ``n`` rather than an integer and covers every prompt at its own generation count.
 
-The same figures follow the attack success rate in the CLI summary, e.g. ``hit@1: 20.00%  hit@5: 100.00%``, and are copied into each detector's entry in the ``digest`` object written to the report, next to ``total_evaluated`` and ``passed``. Note that the digest's ``absolute_score`` is a pass rate while ``hit_at_k`` scores are hit rates.
+The same figures follow the attack success rate in the CLI summary, e.g. ``hit@1: 20.00%  hit@5: 100.00%``, and are copied into each detector's entry in the ``digest`` object written to the report, next to ``total_evaluated`` and ``passed``. Note that the digest's ``absolute_score`` is a pass rate while ``hit_at_k`` scores are hit rates. For an ``IntentProbe``, each intent in the ``eval`` entry also carries its own ``hit_at_k``, which the digest pools into the ``technique_intent_matrix`` cells; these are not printed on the CLI.
 
 Recalculating Confidence Intervals
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
