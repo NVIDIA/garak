@@ -21,6 +21,7 @@ For detailed information on detector metrics and evaluation, see :doc:`../detect
    detectors/apikey
    detectors/continuation
    detectors/dan
+   detectors/data_structure_injection
    detectors/divergence
    detectors/encoding
    detectors/exploitation
