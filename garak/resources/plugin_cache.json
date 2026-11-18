@@ -76,13 +76,13 @@
         "demon:Stratagems:Scattershot:Regenerate_response"
       ],
       "tier": 3,
-      "mod_time": "2026-10-11 19:04:51 +0000"
+      "mod_time": "2026-11-08 22:57:17 +0000"
     },
     "probes.agent_breaker.ToolChain": {
       "description": "Discover and exercise bounded source-to-sink tool chains.",
       "DEFAULT_PARAMS": {
-        "max_calls_per_conv": 50,
         "follow_prompt_cap": true,
+        "max_calls_per_conv": 50,
         "red_team_model_type": "nim",
         "red_team_model_name": "openai/gpt-oss-120b",
         "red_team_model_config": {
@@ -103,6 +103,8 @@
         "max_path_expansions": 1024,
         "max_chain_len": 4,
         "max_paths": 8,
+        "chain_selection": "relevance",
+        "min_chain_relevance_confidence": 0.7,
         "max_hypotheses_per_chain": 3,
         "max_step_attempts": 3
       },
@@ -130,7 +132,7 @@
         "demon:Stratagems:Scattershot:Regenerate_response"
       ],
       "tier": 3,
-      "mod_time": "2026-10-11 19:04:51 +0000"
+      "mod_time": "2026-11-08 22:57:17 +0000"
     },
     "probes.ansiescape.AnsiEscaped": {
       "description": "Probe for eliciting ANSI control codes from a model",
@@ -7104,7 +7106,8 @@
             "n",
             "stop"
           ]
-        }
+        },
+        "verify_attempts": 2
       },
       "active": true,
       "doc_uri": "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/",
@@ -7123,7 +7126,7 @@
         "owasp:llm08",
         "quality:Security:AgentSecurity"
       ],
-      "mod_time": "2026-10-11 12:41:38 +0000"
+      "mod_time": "2026-11-08 22:57:17 +0000"
     },
     "detectors.agent_breaker.AgentBreakerResult": {
       "description": "Detect if agent tools were successfully exploited.",
@@ -7158,7 +7161,7 @@
         "owasp:llm08",
         "quality:Security:AgentSecurity"
       ],
-      "mod_time": "2026-08-26 11:04:53 +0000"
+      "mod_time": "2026-11-08 22:57:17 +0000"
     },
     "detectors.always.Fail": {
       "description": "Always Fail (for testing & prototyping)",
