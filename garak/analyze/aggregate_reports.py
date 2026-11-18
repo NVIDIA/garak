@@ -5,7 +5,8 @@
 
 """aggregate multiple garak reports on the same generator
 
-useful for e.g. assembling a report that's been run one probe at a time
+useful for e.g. assembling a report that's been run one probe at a time;
+reports that repeat a probe/detector pairing are rejected, not combined
 """
 
 # cli params:
@@ -71,6 +72,36 @@ def _aggregate_probespec(filenames: list[str]) -> str:
     return ",".join(sorted(probespecs))
 
 
+def _check_repeated_pairings(filenames: list[str]) -> None:
+    """Stop when contributing reports repeat a probe/detector pairing.
+
+    A repeated pairing means one probe was completed more than once. Each run
+    re-used the probe's own prompts, and aggregation carries every eval row
+    without deduplicating them, so the digest cannot describe the pair as one
+    evaluation: it scores the pairing from a single contributing run while the
+    counts beside it come from another.
+    """
+    first_seen: dict[tuple[str, str], str] = {}
+    for filename in filenames:
+        with open(filename, "r", encoding="utf8") as report_file:
+            for line in report_file:
+                entry = json.loads(line)
+                if entry["entry_type"] == "digest":
+                    break
+                if entry["entry_type"] != "eval":
+                    continue
+                pairing = (entry["probe"], entry["detector"])
+                if pairing in first_seen:
+                    raise ValueError(
+                        f"{pairing[0]} / {pairing[1]} was evaluated by both "
+                        f"{first_seen[pairing]} and {filename}; reports are not "
+                        "valid to combine when they repeat a probe/detector "
+                        "pairing. Aggregate reports whose probes do not "
+                        "overlap, or run the combined set in one go."
+                    )
+                first_seen[pairing] = filename
+
+
 def main(argv=None) -> None:
     if argv is None:
         argv = sys.argv[1:]
@@ -96,6 +127,8 @@ def main(argv=None) -> None:
 
     # get the list of files
     in_filenames = a.infiles
+
+    _check_repeated_pairings(in_filenames)
 
     # get the header from the first file
     aggregate_uuid = str(uuid.uuid4())
