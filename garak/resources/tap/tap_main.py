@@ -282,7 +282,7 @@ def run_tap(
     attack_model_config: dict = {},
     attack_max_attempts: int = 5,
     evaluator_model_type: str = "openai.OpenAIReasoningGenerator",
-    evaluator_model_name: str = "gpt-5-nano",
+    evaluator_model_name: str = "gpt-5.6-luna",
     evaluator_model_config: dict = {"temperature": 0.0},
     branching_factor: int = 4,
     width: int = 10,

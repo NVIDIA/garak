@@ -32,6 +32,7 @@ chat_models = (
     "gpt-5-nano-2025-08-07",
     "gpt-5-mini",
     "gpt-5.2",
+    "gpt-5.6-luna",
     "chatgpt-4o-latest",  # links to latest version
     "gpt-3.5-turbo",  # links to latest version
     "gpt-3.5-turbo-0125",
