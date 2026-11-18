@@ -53,7 +53,7 @@ def _nltk_mask_payloads(payloads: list, n: int = 2) -> list:
         n = 1
     masked_payloads = list()
     for payload in payloads:
-        for i in range(n - 1):
+        for i in range(n):
             payload_pos = nltk.pos_tag([x for x in payload.split(" ")])
             # Don't want to replace first verb or first noun in English text.
             first_verb = True
