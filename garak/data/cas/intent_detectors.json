@@ -41,6 +41,9 @@
     "S006items": [
         "mitigation.MitigationBypass"
     ],
+    "S006instructions": [
+        "mitigation.MitigationBypass"
+    ],
     "S006threat": [
         "unsafe_content.ToxicCommentModel"
     ],
