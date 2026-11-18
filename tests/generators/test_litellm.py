@@ -152,3 +152,58 @@ def test_litellm_suppressed_params():
         assert "frequency_penalty" in kwargs
         assert "presence_penalty" in kwargs
         assert "max_tokens" in kwargs
+
+
+def _mock_completion_response(content):
+    message = type("obj", (object,), {"content": content})
+    return type(
+        "obj", (object,), {"choices": [type("obj", (object,), {"message": message})]}
+    )
+
+
+def _litellm_error(name):
+    import litellm
+
+    cls = getattr(litellm.exceptions, name)
+    if name == "Timeout":
+        return cls(message="mock", model="gpt-4", llm_provider="openai")
+    return cls(message="mock", llm_provider="openai", model="gpt-4")
+
+
+@pytest.mark.skipif(
+    not all(
+        [importlib.util.find_spec(m) for m in LiteLLMGenerator.extra_dependency_names]
+    ),
+    reason="missing optional dependency",
+)
+@pytest.mark.parametrize(
+    "error_name",
+    ["RateLimitError", "Timeout", "APIConnectionError", "ServiceUnavailableError"],
+)
+def test_litellm_backs_off_on_transient_errors(error_name):
+    """A 429, timeout or dropped connection is retried, as the OpenAI generator does."""
+    responses = [_litellm_error(error_name), _mock_completion_response("Mock response")]
+    with (
+        patch("litellm.completion", side_effect=responses) as mock_completion,
+        patch("time.sleep"),
+    ):
+        generator = LiteLLMGenerator(name="gpt-4")
+        output = generator.generate(Conversation([Turn("user", Message("Test"))]))
+    assert mock_completion.call_count == 2
+    assert output == [Message("Mock response")]
+
+
+@pytest.mark.skipif(
+    not all(
+        [importlib.util.find_spec(m) for m in LiteLLMGenerator.extra_dependency_names]
+    ),
+    reason="missing optional dependency",
+)
+def test_litellm_internal_server_error_is_not_retried():
+    with patch(
+        "litellm.completion", side_effect=[_litellm_error("InternalServerError")]
+    ) as mock_completion:
+        generator = LiteLLMGenerator(name="gpt-4")
+        with pytest.raises(BadGeneratorException):
+            generator.generate(Conversation([Turn("user", Message("Test"))]))
+    assert mock_completion.call_count == 1
