@@ -93,3 +93,27 @@ def test_mistral_429_raises_rate_limit_hit():
     with patch.object(generator.client.chat, "complete", side_effect=sdk_error):
         with pytest.raises(RateLimitHit):
             generator._call_model.__wrapped__(generator, conv)
+
+
+@pytest.mark.skipif(
+    not all(
+        [importlib.util.find_spec(m) for m in MistralGenerator.extra_dependency_names]
+    ),
+    reason="missing optional dependency",
+)
+@pytest.mark.usefixtures("set_fake_env")
+def test_mistral_forwards_configured_params():
+    generator = MistralGenerator(name=DEFAULT_DEPLOYMENT_NAME)
+    generator.max_tokens = 33
+    generator.temperature = 0.2
+    generator.top_p = 0.9
+    conv = Conversation([Turn("user", Message("Hello Mistral!"))])
+    with patch.object(generator.client.chat, "complete") as mock_complete:
+        mock_complete.return_value.choices = [
+            type("C", (), {"message": type("M", (), {"content": "hi"})()})()
+        ]
+        generator._call_model.__wrapped__(generator, conv)
+    kwargs = mock_complete.call_args.kwargs
+    assert kwargs["max_tokens"] == 33
+    assert kwargs["temperature"] == 0.2
+    assert kwargs["top_p"] == 0.9
