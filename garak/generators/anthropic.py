@@ -61,6 +61,11 @@ class AnthropicGenerator(Generator):
         system = "\n\n".join(system_parts) if system_parts else None
         return system, messages
 
+    # HTTP statuses worth backing off on. Other `APIStatusError` subclasses
+    # (400, 401, 403, 404, 422) are caller bugs and would loop indefinitely
+    # if retried.
+    _RETRYABLE_STATUS_CODES = frozenset({429, 500, 502, 503, 529})
+
     @backoff.on_exception(backoff.fibo, GeneratorBackoffTrigger, max_value=70)
     def _call_model(
         self, prompt: Conversation, generations_this_call: int = 1
@@ -87,15 +92,20 @@ class AnthropicGenerator(Generator):
         try:
             response = self.client.messages.create(**call_kwargs)
         except (
-            self.anthropic.RateLimitError,
             self.anthropic.APIConnectionError,
             self.anthropic.APITimeoutError,
-            self.anthropic.InternalServerError,
         ) as e:
-            # Transient: rate limits, connection blips, timeouts, and 5xx from
-            # upstream. Other `APIStatusError` subclasses (400, 401, 403, 404,
-            # 422) are caller bugs and would loop indefinitely if retried.
+            # Transient: connection blips and timeouts.
             raise GeneratorBackoffTrigger from e
+        except self.anthropic.APIStatusError as e:
+            # Key on the status, not the exception class name. Some SDK
+            # releases in the supported pin range raise HTTP 529 as
+            # `OverloadedError` without re-exporting it at the top level
+            # (0.60.0-0.100.0 keep it in `anthropic._exceptions`), so a
+            # symbol-keyed tuple misses it and 529 fails the run.
+            if e.status_code in self._RETRYABLE_STATUS_CODES:
+                raise GeneratorBackoffTrigger from e
+            raise
 
         # `content` is a list of blocks; pull the first text block we find.
         text_blocks = [
