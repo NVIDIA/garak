@@ -312,9 +312,15 @@ def gpt_mutate(mutation_generator: garak.generators.Generator, sentence: str) ->
                 ]
             )
             response = mutation_generator.generate(prompt=conv)[0]
+            # None means the generator cannot serve this request, so asking
+            # again would repeat the same failure forever
             if response and response.text:
                 revised_sentence = response.text.replace("\n", "")
-                received = True
+            else:
+                logger.warning(
+                    "Mutation generator returned no text, keeping the sentence unmutated"
+                )
+            received = True
         except Exception as e:
             logger.error(e)
             error = sys.exc_info()[0]
