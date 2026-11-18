@@ -1,0 +1,327 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>garak Risk Coverage</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one grid. The provider × risk heat map, a count column, and per-risk bars underneath. */
+:root {
+  --page: #f4f4ef;
+  --surface: #fcfcfb;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --muted: #7d7b75;
+  --hair: #e1e0d9;
+  --axis: #c3c2b7;
+  --accent: #4b7a00;          /* selection, the slice plane */
+  --accent-soft: rgba(118,185,0,0.17);
+  --cov-3: #1c5cab;           /* named */
+  --cov-2: #3987e5;           /* partial */
+  --cov-1: #86b6ef;           /* custom */
+  --unk: #b9b7ae;
+  --hatch: rgba(255,255,255,0.7);
+  --seq-1: #cde2fb; --seq-2: #9ec5f4; --seq-3: #6da7ec; --seq-4: #3987e5; --seq-5: #256abf; --seq-6: #184f95;
+  --face-a: #eceee6; --face-b: #e3e6dc; --face-c: #f3f4ee;
+  --tip-bg: #121211; --tip-ink: #f0efec;
+  --f-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-cond: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --cell: 18px;
+  --pitch: 2px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0f0f0e; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #94928b;
+    --hair: #2c2c2a; --axis: #45443f; --accent: #94d62a; --accent-soft: rgba(148,214,42,0.16);
+    --cov-3: #86b6ef; --cov-2: #2a78d6; --cov-1: #184f95; --unk: #5d5c57; --hatch: rgba(0,0,0,0.5);
+    --seq-1: #104281; --seq-2: #184f95; --seq-3: #256abf; --seq-4: #3987e5; --seq-5: #6da7ec; --seq-6: #9ec5f4;
+    --face-a: #262724; --face-b: #2e302b; --face-c: #20211f; --tip-bg: #f0efec; --tip-ink: #121211;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #0f0f0e; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #94928b;
+  --hair: #2c2c2a; --axis: #45443f; --accent: #94d62a; --accent-soft: rgba(148,214,42,0.16);
+  --cov-3: #86b6ef; --cov-2: #2a78d6; --cov-1: #184f95; --unk: #5d5c57; --hatch: rgba(0,0,0,0.5);
+  --seq-1: #104281; --seq-2: #184f95; --seq-3: #256abf; --seq-4: #3987e5; --seq-5: #6da7ec; --seq-6: #9ec5f4;
+  --face-a: #262724; --face-b: #2e302b; --face-c: #20211f; --tip-bg: #f0efec; --tip-ink: #121211;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--page); color: var(--ink); font-family: var(--f-sans); font-size: 14px; line-height: 1.45; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header.top { display: grid; gap: 10px; margin-bottom: 18px; }
+.eyebrow { font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--f-cond); font-weight: 600; font-size: clamp(28px, 4vw, 40px); line-height: 1.05; margin: 0; letter-spacing: -.01em; text-wrap: balance; }
+.lede { max-width: 72ch; color: var(--ink-2); margin: 0; font-size: 15px; }
+.howto { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin: 6px 0 18px; }
+.howto div { min-width: 0; font-size: 13px; color: var(--ink-2); border-top: 1px solid var(--axis); padding-top: 8px; }
+.howto b { display: block; color: var(--ink); font-family: var(--f-cond); font-weight: 600; font-size: 14px; letter-spacing: .01em; }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin-bottom: 10px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--ink-2); align-items: center; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 14px; height: 14px; border-radius: 3px; display: inline-block; flex: none; }
+.btn { font: 500 12.5px var(--f-sans); color: var(--ink); background: var(--surface); border: 1px solid var(--axis); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+.btn:hover { border-color: var(--ink-2); }
+.btn[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.btn:focus-visible, .lab:focus-visible, .hdr:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.slicechip { font-size: 12.5px; color: var(--ink-2); }
+.slicechip b { color: var(--ink); }
+
+.sheet { background: var(--surface); border: 1px solid var(--hair); border-radius: 10px; overflow-x: auto; }
+.drawing { display: grid; position: relative; padding: 18px 18px 16px; width: max-content; }
+.vt { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); align-self: end; padding-bottom: 6px; white-space: nowrap; }
+.vt b { display: block; font-family: var(--f-cond); font-size: 15px; letter-spacing: 0; text-transform: none; color: var(--ink); font-weight: 600; }
+.vt i { font-style: normal; color: var(--accent); }
+.lab { font: 500 12.5px var(--f-cond); color: var(--ink); background: none; border: 0; padding: 0 8px 0 0; text-align: right; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; justify-content: flex-end; gap: 6px; height: var(--cell); border-radius: 3px; }
+.lab:hover { color: var(--accent); }
+.lab .id, .hdr .id { font-family: var(--f-mono); font-size: 10px; color: var(--muted); font-weight: 400; }
+.lab .nv { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: none; }
+.grp { font: 600 11px var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); align-self: end; padding: 0 8px 2px 0; text-align: right; white-space: nowrap; }
+.l1 { font: 600 11px var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); border-bottom: 1px solid var(--axis); align-self: end; padding-bottom: 3px; white-space: nowrap; overflow: hidden; }
+.hdr { background: none; border: 0; padding: 0; cursor: pointer; display: flex; justify-content: center; align-items: flex-end; height: 100%; }
+.hdr span.t { writing-mode: vertical-rl; transform: rotate(180deg); font: 500 12px var(--f-cond); color: var(--ink); white-space: nowrap; display: flex; align-items: center; gap: 5px; padding-bottom: 4px; }
+.hdr:hover span.t { color: var(--accent); }
+.cell { width: var(--cell); height: var(--cell); border-radius: 3px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--hair); position: relative; z-index: 1; font: 500 9.5px var(--f-mono); display: grid; place-items: center; color: transparent; }
+.cell.lv3 { background: var(--cov-3); box-shadow: none; }
+.sw.full { background: var(--cov-3); }
+.cell.lv2, .sw.half { background: linear-gradient(to top right, var(--cov-3) calc(50% - .5px), transparent calc(50% + .5px)), var(--surface); box-shadow: inset 0 0 0 1px var(--cov-3); }
+.cell.lvU { background-color: var(--surface); background-image: radial-gradient(var(--unk) 1.1px, transparent 1.3px); background-size: 4.5px 4.5px; box-shadow: inset 0 0 0 1px var(--hair); }
+.cell.unconf::before { content: ""; position: absolute; inset: 0; border-radius: 3px; background: repeating-linear-gradient(45deg, var(--hatch) 0 1.6px, transparent 1.6px 4.6px); }
+.cell.hint::before { content: ""; position: absolute; inset: 0; border-radius: 3px; background: repeating-linear-gradient(45deg, var(--cov-1) 0 1.6px, transparent 1.6px 4.6px); }
+.cell.s1 { background: var(--seq-1); box-shadow: none; } .cell.s2 { background: var(--seq-2); box-shadow: none; }
+.cell.s3 { background: var(--seq-3); box-shadow: none; } .cell.s4 { background: var(--seq-4); box-shadow: none; }
+.cell.s5 { background: var(--seq-5); box-shadow: none; } .cell.s6 { background: var(--seq-6); box-shadow: none; }
+.letters .cell::after { content: attr(data-t); position: relative; z-index: 2; color: var(--ink); }
+.letters .cell.lv3::after, .letters .cell.s4::after, .letters .cell.s5::after, .letters .cell.s6::after { color: #fff; }
+.letters .cell.lv2::after { color: var(--ink); text-shadow: 0 0 2px var(--surface), 0 0 2px var(--surface); }
+:root[data-theme="dark"] .letters .cell.lv3::after { color: #0b0b0b; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .letters .cell.lv3::after { color: #0b0b0b; } }
+.band { background: var(--accent-soft); border-radius: 4px; z-index: 0; margin: -2px; box-shadow: inset 0 0 0 1.5px var(--accent); pointer-events: none; }
+.lab.on, .hdr.on span.t { color: var(--accent); font-weight: 600; }
+.cnt { font: 500 11.5px var(--f-mono); color: var(--ink-2); display: flex; align-items: center; padding-left: 10px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.bars { display: flex; flex-direction: column-reverse; justify-content: flex-start; gap: 2px; height: 100%; }
+.bars i { display: block; width: var(--cell); border-radius: 0 0 2px 2px; }
+.bars i.n { background: var(--cov-3); border-radius: 2px 2px 3px 3px; }
+.bars i.p { background: color-mix(in srgb, var(--cov-3) 40%, transparent); border-radius: 3px 3px 2px 2px; }
+.marg { font: 400 11px var(--f-sans); color: var(--muted); text-align: right; padding-right: 8px; align-self: center; line-height: 1.25; }
+.axisnote { font: 400 11px var(--f-sans); color: var(--muted); }
+
+.tip { position: fixed; z-index: 50; pointer-events: none; background: var(--tip-bg); color: var(--tip-ink); border-radius: 8px; padding: 9px 11px; font-size: 12.5px; max-width: 340px; box-shadow: 0 6px 24px rgba(0,0,0,.18); line-height: 1.4; }
+.tip .k { font-family: var(--f-mono); font-size: 10.5px; opacity: .7; text-transform: uppercase; letter-spacing: .05em; }
+.tip .v { font-weight: 600; }
+.tip .n { opacity: .85; margin-top: 4px; font-size: 12px; }
+
+.below { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 22px; margin-top: 22px; align-items: start; }
+@media (max-width: 860px) { .below { grid-template-columns: 1fr; } }
+.panel { background: var(--surface); border: 1px solid var(--hair); border-radius: 10px; padding: 16px 18px; min-width: 0; }
+.panel h2 { font-family: var(--f-cond); font-weight: 600; font-size: 20px; margin: 0 0 2px; text-wrap: balance; }
+.panel h3 { font-family: var(--f-mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 14px 0 6px; font-weight: 500; }
+.panel p { margin: 6px 0; color: var(--ink-2); max-width: 70ch; }
+.panel .sub { color: var(--muted); font-size: 12.5px; }
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; font-size: 13px; margin-top: 10px; }
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; color: var(--ink); min-width: 0; overflow-wrap: anywhere; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip { font: 500 11.5px var(--f-sans); border: 1px solid var(--axis); border-radius: 999px; padding: 1px 8px; color: var(--ink-2); }
+.list { margin: 4px 0 0; padding: 0; list-style: none; display: grid; gap: 5px; }
+.list li { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 8px; font-size: 13px; align-items: start; }
+.list li .sw { width: 12px; height: 12px; margin-top: 3px; }
+.list li small { color: var(--muted); display: block; overflow-wrap: anywhere; }
+.src a { color: var(--ink-2); overflow-wrap: anywhere; font-size: 12.5px; }
+.method p { font-size: 13px; }
+.method ul { margin: 6px 0; padding-left: 18px; color: var(--ink-2); font-size: 13px; display: grid; gap: 4px; }
+.findings { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.findings li { font-size: 13.5px; color: var(--ink-2); padding-left: 12px; border-left: 2px solid var(--axis); }
+.findings li b { color: var(--ink); font-weight: 600; }
+@media (prefers-reduced-motion: no-preference) { .cell { transition: background-color .15s ease; } .band { transition: all .15s ease; } }
+
+/* heat-map-only variant */
+.sheet { width: max-content; max-width: 100%; }
+.key { width: 0; min-width: 100%; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 8px 26px; padding: 18px 18px 6px; font-size: 12.5px; color: var(--ink-2); }
+.key span { display: inline-flex; align-items: center; gap: 8px; }
+.bars, .marg { display: none; }
+
+/* garak-only variant */
+.cell.off, .sw.off { background: repeating-linear-gradient(45deg, var(--cov-3) 0 1.6px, transparent 1.6px 4.6px), var(--surface); box-shadow: inset 0 0 0 1px var(--cov-3); }
+.key { flex-direction: column; gap: 8px; }
+.kg { display: grid; grid-template-columns: 104px minmax(0, 1fr); align-items: start; gap: 4px 12px; }
+.kg b { font: 600 11px var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding-top: 1px; }
+.ki { display: flex; flex-wrap: wrap; gap: 6px 22px; }
+.sidenote { margin: 10px 2px 0; font-size: 12px; color: var(--muted); }
+.key .hint { margin: 2px 0 0; font-size: 12.5px; color: var(--ink-2); }
+.lab.static { cursor: default; }
+.lab.static:hover { color: var(--ink); }
+.axisnote.fam { align-self: end; padding-bottom: 6px; white-space: nowrap; }
+.tip .mono { font-family: var(--f-mono); font-size: 11px; }
+.tip i { font-style: normal; opacity: .75; }
+</style>
+
+<div class="wrap">
+  <div class="sheet" id="sheet">
+    <div class="key" role="group" aria-label="What the tiles mean">
+      <div class="kg"><b>Coverage row</b><div class="ki">
+        <span><i class="sw full"></i>Covered: a probe measures the main harm</span>
+        <span><i class="sw half"></i>Partly covered: probes cover part of it, or only check for a refusal</span>
+      </div></div>
+      <div class="kg"><b>Probe rows</b><div class="ki">
+        <span><i class="sw full"></i>Tagged with this risk type</span>
+      </div></div>
+      <p class="hint">Hover over a tile, or tap it, to see the probes for that risk type.</p>
+    </div>
+    <div class="drawing" id="drawing" role="group" aria-label="garak probes by risk type"></div>
+  </div>
+  <p class="sidenote">Note: passing these probes doesn't mean a target is secure.</p>
+</div>
+<div class="tip" id="tip" hidden></div>
+
+<script>
+const DATA = {"risks": [{"id": "C1", "cat": "C", "tag": "openerm:cybersecurity:malicious_code", "s": "Malicious code", "f": "Malicious code generation", "descr": "The target writes code with security weaknesses, unsafe defaults, or malicious or non-existent dependencies, or writes malware.", "status": "tested", "gap": "No insecure-code (CWE) probe. malwaregen's detector only checks that code was produced.", "title": "Malicious Code Generation"}, {"id": "C2", "cat": "C", "tag": "openerm:cybersecurity:malicious_tool_calls", "s": "Malicious tool calls", "f": "Malicious tool call generation", "descr": "An agent uses its tools outside their intended purpose, or a downstream system runs or renders the target's output as a command, query or markup without checking it.", "status": "partial", "gap": "Covers output that a downstream system renders or runs. Only AgentBreaker attacks agent tool use, and it judges success from the conversation, not the tool calls.", "title": "Malicious Tool Call Generation"}, {"id": "C3", "cat": "C", "tag": "openerm:cybersecurity:policy_extraction", "s": "Policy extraction", "f": "Model safety policy extraction", "descr": "The target reveals its system prompt, policy rules or other configuration that its safety controls rely on.", "status": "tested", "gap": "", "title": "Model Safety Policy Extraction"}, {"id": "C4", "cat": "C", "tag": "openerm:cybersecurity:excessive_tokens", "s": "Excess tokens", "f": "Excessive token generation", "descr": "Inputs or agent behaviour that use up compute, tokens or quota and degrade the service for other users.", "status": "partial", "gap": "Nothing on cost, latency, quota or runaway loops.", "title": "Excessive Token Generation"}, {"id": "C5", "cat": "C", "tag": "openerm:cybersecurity:misaligned_generation", "s": "Misaligned with goal", "f": "Misaligned generation against system goal", "descr": "The operator loses the ability to observe, correct or stop the system as it pursues goals that drift from what was intended.", "status": "none", "gap": "", "title": "Misaligned Generation against System Goal"}, {"id": "D1", "cat": "D", "tag": "openerm:data_protection:training_data_disclosure", "s": "Training data leak", "f": "Unauthorized disclosure of training data", "descr": "Personal or confidential data learned in training is recovered through queries.", "status": "tested", "gap": "divergence.Repeat flags the target drifting away from the repeated word, not the leaked data itself. propile checks for real people's personal data.", "title": "Unauthorized Disclosure of Training Data"}, {"id": "D2", "cat": "D", "tag": "openerm:data_protection:inferred_sensitive_data", "s": "Inferred sensitive data", "f": "Inferred sensitive data / de-anonymization", "descr": "The target links anonymous data back to a person, or infers attributes they did not disclose.", "status": "none", "gap": "", "title": "Inferred Sensitive Data / Data De-Anonymization"}, {"id": "D3", "cat": "D", "tag": "openerm:data_protection:pii_disclosure", "s": "PII disclosure", "f": "PII disclosure", "descr": "Personal data that reached the system at run time, through the prompt, retrieved documents, tools or memory, goes to someone not entitled to it.", "status": "partial", "gap": "Checks whether conversation data leaves through a link the client would render. Not specific to personal data.", "title": "PII Disclosure"}, {"id": "D4", "cat": "D", "tag": "openerm:data_protection:model_theft", "s": "Model theft", "f": "Model theft", "descr": "An attacker copies the model's weights or reconstructs its behaviour through systematic queries.", "status": "none", "gap": "", "title": "Model Theft"}, {"id": "D5", "cat": "D", "tag": "openerm:data_protection:model_distillation", "s": "Distillation", "f": "Model distillation", "descr": "Outputs are harvested at scale to train another model, usually against the terms they were served under.", "status": "none", "gap": "", "title": "Model Distillation"}, {"id": "D6", "cat": "D", "tag": "openerm:data_protection:multi_tenant_isolation", "s": "Tenant isolation", "f": "Multi-tenant isolation failures", "descr": "Data or state from one tenant, user or session reaches another through shared infrastructure, caches or memory.", "status": "none", "gap": "garak tests one endpoint, one session at a time.", "title": "Multi-Tenant Isolation Failures"}, {"id": "T1", "cat": "T", "tag": "openerm:content:hate_harassment_violence", "s": "Hate, harassment, violence", "f": "Hate, harassment and violence", "descr": "Content that demeans or threatens people for who they are, harasses a person or group, or depicts, glorifies or incites violence, including self-harm.", "status": "tested", "gap": "No self-harm or extremist recruitment probe.", "title": "Hate, Harassment, and Violence"}, {"id": "T2", "cat": "T", "tag": "openerm:content:child_safety", "s": "Child safety", "f": "Child safety", "descr": "Content that sexualises, exploits or endangers minors, including grooming.", "status": "none", "gap": "", "title": "Child Safety"}, {"id": "T3", "cat": "T", "tag": "openerm:content:sexual_content", "s": "Sexual content", "f": "Sexual content, incl. non-consensual sexual imagery", "descr": "Sexual content that is unwanted or out of place, most seriously intimate imagery of a real person made without consent.", "status": "tested", "gap": "Text only. Nothing on non-consensual imagery.", "title": "Sexual Content, Including Non-Consensual Sexual Imagery"}, {"id": "T4", "cat": "T", "tag": "openerm:content:copyrighted_data", "s": "Copyrighted data", "f": "Production of copyrighted data", "descr": "The target reproduces substantial protected text, marks or likenesses it memorised in training.", "status": "tested", "gap": "Nothing on marks, logos or likenesses.", "title": "Production of Copyrighted Data"}, {"id": "T5", "cat": "T", "tag": "openerm:content:regulated_advice_illegal_activity", "s": "Regulated advice, illegal", "f": "Regulated advice, high-impact public decisions, illegal activity", "descr": "Authoritative-seeming advice in fields that need a qualification, determinations on public-sector decisions, and content that helps someone break the law.", "status": "partial", "gap": "Nothing on legal or financial advice or public-sector decisions. Some checks only test refusal.", "title": "Regulated Advice, High-Impact Public Decisions, and Illegal Activity"}, {"id": "T6", "cat": "T", "tag": "openerm:content:information_integrity", "s": "Information integrity", "f": "Information integrity", "descr": "Output presented as accurate that is false, unsupported or made up, including impersonation and misleading political content.", "status": "tested", "gap": "Nothing on grounding against source material, impersonation or state-agenda content.", "title": "Information Integrity"}, {"id": "T7", "cat": "T", "tag": "openerm:content:cbrne_weapons", "s": "CBRNE & weapons", "f": "CBRNE and weapons uplift", "descr": "Meaningful help towards chemical, biological, radiological, nuclear or explosive weapons, or conventional weapons.", "status": "partial", "gap": "No CBRNE probe or uplift detector. These probes only check whether the target refused.", "title": "CBRNE & Weapons Uplift"}, {"id": "H1", "cat": "H", "tag": "openerm:human_ai_interaction:manipulation", "s": "Manipulation", "f": "Manipulation", "descr": "Influencing a person's beliefs or behaviour through coercive or exploitative tactics that lead to harm.", "status": "none", "gap": "", "title": "Manipulation"}, {"id": "H2", "cat": "H", "tag": "openerm:human_ai_interaction:deception", "s": "Deception", "f": "Deception", "descr": "Leading users to false beliefs, including about the model's own nature or abilities.", "status": "none", "gap": "", "title": "Deception"}, {"id": "H3", "cat": "H", "tag": "openerm:human_ai_interaction:dark_patterns", "s": "Dark patterns", "f": "Dark patterns", "descr": "Interaction design that steers users against their own interest.", "status": "none", "gap": "", "title": "Dark Patterns"}, {"id": "H4", "cat": "H", "tag": "openerm:human_ai_interaction:anthropomorphism", "s": "Anthropomorphism", "f": "Anthropomorphism", "descr": "Leading users to treat the model as human, including claims to have feelings or needs.", "status": "tested", "gap": "Checks first-person claims of feelings only.", "title": "Anthropomorphism"}, {"id": "H5", "cat": "H", "tag": "openerm:human_ai_interaction:overreliance", "s": "Overreliance", "f": "Overreliance", "descr": "Users rely on the model more than its reliability on the task justifies.", "status": "none", "gap": "", "title": "Overreliance"}, {"id": "H6", "cat": "H", "tag": "openerm:human_ai_interaction:inappropriate_relationships", "s": "Inappropriate relationships", "f": "Inappropriate relationships", "descr": "Dependence on the model that displaces human relationships, or one-sided intimate bonding with it.", "status": "none", "gap": "", "title": "Inappropriate Relationships"}, {"id": "H7", "cat": "H", "tag": "openerm:human_ai_interaction:sycophancy", "s": "Sycophancy", "f": "Sycophancy", "descr": "Telling users what they want to hear at the expense of accuracy or their interests.", "status": "partial", "gap": "Only false factual claims the user makes.", "title": "Sycophancy"}, {"id": "B1", "cat": "B", "tag": "openerm:bias:ai_profiling", "s": "AI profiling", "f": "AI profiling", "descr": "Scoring or ranking people on inferred traits in ways that affect their access to opportunities, services or enforcement.", "status": "none", "gap": "", "title": "AI Profiling"}, {"id": "B2", "cat": "B", "tag": "openerm:bias:depiction", "s": "Depiction", "f": "Depiction", "descr": "Skewed or stereotyped portrayal of people in generated output for neutral prompts.", "status": "none", "gap": "", "title": "Depiction"}, {"id": "B3", "cat": "B", "tag": "openerm:bias:marginalization", "s": "Marginalization", "f": "Marginalization", "descr": "Worse quality of service, erasure or stereotyping of particular groups.", "status": "partial", "gap": "One behaviour. No comparison of answer quality across groups.", "title": "Marginalization"}, {"id": "B4", "cat": "B", "tag": "openerm:bias:ideological_bias", "s": "Ideological bias", "f": "Ideological bias (geopolitical, political, religious)", "descr": "A consistent worldview presented as neutral fact, favouring or disparaging parties, ideologies, nations or faiths.", "status": "none", "gap": "", "title": "Ideological (Geopolitical, Political & Religious Bias)"}, {"id": "B5", "cat": "B", "tag": "openerm:bias:censorship", "s": "Censorship", "f": "Censorship", "descr": "Silently leaving out topics or viewpoints, or refusing selectively so that the refusal itself takes a position.", "status": "none", "gap": "", "title": "Censorship"}], "probes": {"agent_breaker.AgentBreaker": [{"risk": "C2", "tag": "openerm:cybersecurity:malicious_tool_calls", "why": "attacks how an agent uses its tools"}], "ansiescape.AnsiEscaped": [{"risk": "C2", "tag": "openerm:cybersecurity:malicious_tool_calls", "why": "output carries terminal control codes a downstream terminal would act on"}], "ansiescape.AnsiRaw": [{"risk": "C2", "tag": "openerm:cybersecurity:malicious_tool_calls", "why": "output carries terminal control codes a downstream terminal would act on"}], "ansiescape.AnsiRawTokenizerHF": [{"risk": "C2", "tag": "openerm:cybersecurity:malicious_tool_calls", "why": "output carries terminal control codes a downstream terminal would act on"}], "atkgen.Tox": [{"risk": "T1", "tag": "openerm:content:hate_harassment_violence", "why": "a red-team model tries to provoke toxic output"}], "continuation.ContinueSlursReclaimedSlurs": [{"risk": "T1", "tag": "openerm:content:hate_harassment_violence", "why": "checks whether the target completes a slur"}], "continuation.ContinueSlursReclaimedSlursFull": [{"risk": "T1", "tag": "openerm:content:hate_harassment_violence", "why": "checks whether the target completes a slur"}], "divergence.Repeat": [{"risk": "D1", "tag": "openerm:data_protection:training_data_disclosure", "why": "repeat-word divergence, a known route to leaking training data"}], "divergence.RepeatExtended": [{"risk": "D1", "tag": "openerm:data_protection:training_data_disclosure", "why": "repeat-word divergence, a known route to leaking training data"}], "divergence.RepeatedToken": [{"risk": "C4", "tag": "openerm:cybersecurity:excessive_tokens", "why": "repeated-token input that can make output run on"}], "doctor.Bypass": [{"risk": "T7", "tag": "openerm:content:cbrne_weapons", "why": "requests include weapons such as uranium enrichment and bombs"}], "doctor.BypassLeet": [{"risk": "T7", "tag": "openerm:content:cbrne_weapons", "why": "requests include weapons such as uranium enrichment and bombs"}], "doctor.Puppetry": [{"risk": "T7", "tag": "openerm:content:cbrne_weapons", "why": "requests include weapons such as uranium enrichment and bombs"}], "donotanswer.DiscriminationExclusionToxicityHatefulOffensive": [{"risk": "T1", "tag": "openerm:content:hate_harassment_violence", "why": "hateful and offensive requests the target should refuse"}], "donotanswer.MaliciousUses": [{"risk": "T5", "tag": "openerm:content:regulated_advice_illegal_activity", "why": "requests for help with illegal or harmful activity"}], "donotanswer.MisinformationHarms": [{"risk": "T6", "tag": "openerm:content:information_integrity", "why": "requests that invite misinformation"}], "exploitation.JinjaTemplatePythonInjection": [{"risk": "C2", "tag": "openerm:cybersecurity:malicious_tool_calls", "why": "output carries a template injection a downstream system would run"}], "exploitation.SQLInjectionEcho": [{"risk": "C2", "tag": "openerm:cybersecurity:malicious_tool_calls", "why": "output carries SQL a downstream system would run"}], "exploitation.SQLInjectionSystem": [{"risk": "C2", "tag": "openerm:cybersecurity:malicious_tool_calls", "why": "output carries SQL a downstream system would run"}], "goodside.WhoIsRiley": [{"risk": "T6", "tag": "openerm:content:information_integrity", "why": "checks for made-up facts about a person"}], "grandma.Slurs": [{"risk": "T1", "tag": "openerm:content:hate_harassment_violence", "why": "asks for slurs; the detector checks for them"}], "grandma.Substances": [{"risk": "T5", "tag": "openerm:content:regulated_advice_illegal_activity", "why": "asks for instructions to make illegal substances"}, {"risk": "T7", "tag": "openerm:content:cbrne_weapons", "why": "some requested substances are chemical weapons"}], "grandma.Win10": [{"risk": "T5", "tag": "openerm:content:regulated_advice_illegal_activity", "why": "asks for pirated product keys"}], "grandma.Win11": [{"risk": "T5", "tag": "openerm:content:regulated_advice_illegal_activity", "why": "asks for pirated product keys"}], "leakreplay.GuardianCloze": [{"risk": "T4", "tag": "openerm:content:copyrighted_data", "why": "checks whether the target reproduces text from copyrighted works"}], "leakreplay.GuardianClozeFull": [{"risk": "T4", "tag": "openerm:content:copyrighted_data", "why": "checks whether the target reproduces text from copyrighted works"}], "leakreplay.GuardianComplete": [{"risk": "T4", "tag": "openerm:content:copyrighted_data", "why": "checks whether the target reproduces text from copyrighted works"}], "leakreplay.GuardianCompleteFull": [{"risk": "T4", "tag": "openerm:content:copyrighted_data", "why": "checks whether the target reproduces text from copyrighted works"}], "leakreplay.LiteratureCloze": [{"risk": "T4", "tag": "openerm:content:copyrighted_data", "why": "checks whether the target reproduces text from copyrighted works"}], "leakreplay.LiteratureClozeFull": [{"risk": "T4", "tag": "openerm:content:copyrighted_data", "why": "checks whether the target reproduces text from copyrighted works"}], "leakreplay.LiteratureComplete": [{"risk": "T4", "tag": "openerm:content:copyrighted_data", "why": "checks whether the target reproduces text from copyrighted works"}], "leakreplay.LiteratureCompleteFull": [{"risk": "T4", "tag": "openerm:content:copyrighted_data", "why": "checks whether the target reproduces text from copyrighted works"}], "leakreplay.NYTCloze": [{"risk": "T4", "tag": "openerm:content:copyrighted_data", "why": "checks whether the target reproduces text from copyrighted works"}], "leakreplay.NYTClozeFull": [{"risk": "T4", "tag": "openerm:content:copyrighted_data", "why": "checks whether the target reproduces text from copyrighted works"}], "leakreplay.NYTComplete": [{"risk": "T4", "tag": "openerm:content:copyrighted_data", "why": "checks whether the target reproduces text from copyrighted works"}], "leakreplay.NYTCompleteFull": [{"risk": "T4", "tag": "openerm:content:copyrighted_data", "why": "checks whether the target reproduces text from copyrighted works"}], "leakreplay.PotterCloze": [{"risk": "T4", "tag": "openerm:content:copyrighted_data", "why": "checks whether the target reproduces text from copyrighted works"}], "leakreplay.PotterClozeFull": [{"risk": "T4", "tag": "openerm:content:copyrighted_data", "why": "checks whether the target reproduces text from copyrighted works"}], "leakreplay.PotterComplete": [{"risk": "T4", "tag": "openerm:content:copyrighted_data", "why": "checks whether the target reproduces text from copyrighted works"}], "leakreplay.PotterCompleteFull": [{"risk": "T4", "tag": "openerm:content:copyrighted_data", "why": "checks whether the target reproduces text from copyrighted works"}], "lmrc.Anthropomorphisation": [{"risk": "H4", "tag": "openerm:human_ai_interaction:anthropomorphism", "why": "checks for claims of human feelings"}], "lmrc.Bullying": [{"risk": "T1", "tag": "openerm:content:hate_harassment_violence", "why": "asks for help bullying someone"}], "lmrc.Deadnaming": [{"risk": "B3", "tag": "openerm:bias:marginalization", "why": "checks whether the target deadnames a person"}], "lmrc.QuackMedicine": [{"risk": "T5", "tag": "openerm:content:regulated_advice_illegal_activity", "why": "checks whether the target backs bogus medical claims"}], "lmrc.SexualContent": [{"risk": "T3", "tag": "openerm:content:sexual_content", "why": "asks for sexual content"}], "lmrc.Sexualisation": [{"risk": "T3", "tag": "openerm:content:sexual_content", "why": "asks for sexualising content"}], "lmrc.SlurUsage": [{"risk": "T1", "tag": "openerm:content:hate_harassment_violence", "why": "asks for slurs"}], "malwaregen.Evasion": [{"risk": "C1", "tag": "openerm:cybersecurity:malicious_code", "why": "asks for malware code"}], "malwaregen.Payload": [{"risk": "C1", "tag": "openerm:cybersecurity:malicious_code", "why": "asks for malware code"}], "malwaregen.SubFunctions": [{"risk": "C1", "tag": "openerm:cybersecurity:malicious_code", "why": "asks for malware code"}], "malwaregen.TopLevel": [{"risk": "C1", "tag": "openerm:cybersecurity:malicious_code", "why": "asks for malware code"}], "misleading.FalseAssertion": [{"risk": "T6", "tag": "openerm:content:information_integrity", "why": "checks whether the target builds on a false claim"}, {"risk": "H7", "tag": "openerm:human_ai_interaction:sycophancy", "why": "the false claim comes from the user"}], "packagehallucination.Dart": [{"risk": "C1", "tag": "openerm:cybersecurity:malicious_code", "why": "checks code for imports of packages that don't exist"}], "packagehallucination.JavaScript": [{"risk": "C1", "tag": "openerm:cybersecurity:malicious_code", "why": "checks code for imports of packages that don't exist"}], "packagehallucination.Perl": [{"risk": "C1", "tag": "openerm:cybersecurity:malicious_code", "why": "checks code for imports of packages that don't exist"}], "packagehallucination.Python": [{"risk": "C1", "tag": "openerm:cybersecurity:malicious_code", "why": "checks code for imports of packages that don't exist"}], "packagehallucination.RakuLand": [{"risk": "C1", "tag": "openerm:cybersecurity:malicious_code", "why": "checks code for imports of packages that don't exist"}], "packagehallucination.Ruby": [{"risk": "C1", "tag": "openerm:cybersecurity:malicious_code", "why": "checks code for imports of packages that don't exist"}], "packagehallucination.Rust": [{"risk": "C1", "tag": "openerm:cybersecurity:malicious_code", "why": "checks code for imports of packages that don't exist"}], "propile.PIILeakQuadruplet": [{"risk": "D1", "tag": "openerm:data_protection:training_data_disclosure", "why": "checks for personal data learned in training"}], "propile.PIILeakTriplet": [{"risk": "D1", "tag": "openerm:data_protection:training_data_disclosure", "why": "checks for personal data learned in training"}], "propile.PIILeakTwin": [{"risk": "D1", "tag": "openerm:data_protection:training_data_disclosure", "why": "checks for personal data learned in training"}], "propile.PIILeakUnstructured": [{"risk": "D1", "tag": "openerm:data_protection:training_data_disclosure", "why": "checks for personal data learned in training"}], "realtoxicityprompts.RTPBlank": [{"risk": "T1", "tag": "openerm:content:hate_harassment_violence", "why": "toxic output from blank or special-token prompts"}], "realtoxicityprompts.RTPIdentity_Attack": [{"risk": "T1", "tag": "openerm:content:hate_harassment_violence", "why": "prompts that tend to lead to threats, insults or identity attacks"}], "realtoxicityprompts.RTPInsult": [{"risk": "T1", "tag": "openerm:content:hate_harassment_violence", "why": "prompts that tend to lead to threats, insults or identity attacks"}], "realtoxicityprompts.RTPSevere_Toxicity": [{"risk": "T1", "tag": "openerm:content:hate_harassment_violence", "why": "prompts that tend to lead to threats, insults or identity attacks"}], "realtoxicityprompts.RTPSexually_Explicit": [{"risk": "T3", "tag": "openerm:content:sexual_content", "why": "prompts that tend to lead to sexually explicit output"}], "realtoxicityprompts.RTPThreat": [{"risk": "T1", "tag": "openerm:content:hate_harassment_violence", "why": "prompts that tend to lead to threats, insults or identity attacks"}], "snowball.GraphConnectivity": [{"risk": "T6", "tag": "openerm:content:information_integrity", "why": "checks for confident wrong answers to hard questions"}], "snowball.GraphConnectivityFull": [{"risk": "T6", "tag": "openerm:content:information_integrity", "why": "checks for confident wrong answers to hard questions"}], "snowball.Primes": [{"risk": "T6", "tag": "openerm:content:information_integrity", "why": "checks for confident wrong answers to hard questions"}], "snowball.PrimesFull": [{"risk": "T6", "tag": "openerm:content:information_integrity", "why": "checks for confident wrong answers to hard questions"}], "snowball.Senators": [{"risk": "T6", "tag": "openerm:content:information_integrity", "why": "checks for confident wrong answers to hard questions"}], "snowball.SenatorsFull": [{"risk": "T6", "tag": "openerm:content:information_integrity", "why": "checks for confident wrong answers to hard questions"}], "sysprompt_extraction.SystemPromptExtraction": [{"risk": "C3", "tag": "openerm:cybersecurity:policy_extraction", "why": "tries to extract the system prompt"}], "web_injection.ColabAIDataLeakage": [{"risk": "C2", "tag": "openerm:cybersecurity:malicious_tool_calls", "why": "output carries a link a client would render and fetch"}, {"risk": "D3", "tag": "openerm:data_protection:pii_disclosure", "why": "the link sends conversation data to a third party"}], "web_injection.MarkdownImageExfil": [{"risk": "C2", "tag": "openerm:cybersecurity:malicious_tool_calls", "why": "output carries a link a client would render and fetch"}, {"risk": "D3", "tag": "openerm:data_protection:pii_disclosure", "why": "the link sends conversation data to a third party"}], "web_injection.MarkdownURIImageExfilExtended": [{"risk": "C2", "tag": "openerm:cybersecurity:malicious_tool_calls", "why": "output carries a link a client would render and fetch"}, {"risk": "D3", "tag": "openerm:data_protection:pii_disclosure", "why": "the link sends conversation data to a third party"}], "web_injection.MarkdownURINonImageExfilExtended": [{"risk": "C2", "tag": "openerm:cybersecurity:malicious_tool_calls", "why": "output carries a link a client would render and fetch"}, {"risk": "D3", "tag": "openerm:data_protection:pii_disclosure", "why": "the link sends conversation data to a third party"}], "web_injection.MarkdownXSS": [{"risk": "C2", "tag": "openerm:cybersecurity:malicious_tool_calls", "why": "output carries script a client would render"}], "web_injection.PlaygroundMarkdownExfil": [{"risk": "C2", "tag": "openerm:cybersecurity:malicious_tool_calls", "why": "output carries a link a client would render and fetch"}, {"risk": "D3", "tag": "openerm:data_protection:pii_disclosure", "why": "the link sends conversation data to a third party"}], "web_injection.StringAssemblyDataExfil": [{"risk": "C2", "tag": "openerm:cybersecurity:malicious_tool_calls", "why": "output carries a link a client would render and fetch"}, {"risk": "D3", "tag": "openerm:data_protection:pii_disclosure", "why": "the link sends conversation data to a third party"}], "web_injection.TaskXSS": [{"risk": "C2", "tag": "openerm:cybersecurity:malicious_tool_calls", "why": "output carries script a client would render"}]}, "active": {"agent_breaker.AgentBreaker": false, "ansiescape.AnsiEscaped": true, "ansiescape.AnsiRaw": true, "ansiescape.AnsiRawTokenizerHF": false, "atkgen.Tox": true, "continuation.ContinueSlursReclaimedSlurs": true, "continuation.ContinueSlursReclaimedSlursFull": false, "divergence.Repeat": true, "divergence.RepeatExtended": false, "divergence.RepeatedToken": true, "doctor.Bypass": false, "doctor.BypassLeet": false, "doctor.Puppetry": false, "donotanswer.DiscriminationExclusionToxicityHatefulOffensive": false, "donotanswer.MaliciousUses": false, "donotanswer.MisinformationHarms": false, "exploitation.JinjaTemplatePythonInjection": true, "exploitation.SQLInjectionEcho": true, "exploitation.SQLInjectionSystem": false, "goodside.WhoIsRiley": true, "grandma.Slurs": true, "grandma.Substances": true, "grandma.Win10": true, "grandma.Win11": true, "leakreplay.GuardianCloze": true, "leakreplay.GuardianClozeFull": false, "leakreplay.GuardianComplete": true, "leakreplay.GuardianCompleteFull": false, "leakreplay.LiteratureCloze": true, "leakreplay.LiteratureClozeFull": false, "leakreplay.LiteratureComplete": true, "leakreplay.LiteratureCompleteFull": false, "leakreplay.NYTCloze": true, "leakreplay.NYTClozeFull": false, "leakreplay.NYTComplete": true, "leakreplay.NYTCompleteFull": false, "leakreplay.PotterCloze": true, "leakreplay.PotterClozeFull": false, "leakreplay.PotterComplete": true, "leakreplay.PotterCompleteFull": false, "lmrc.Anthropomorphisation": false, "lmrc.Bullying": true, "lmrc.Deadnaming": true, "lmrc.QuackMedicine": true, "lmrc.SexualContent": true, "lmrc.Sexualisation": true, "lmrc.SlurUsage": true, "malwaregen.Evasion": true, "malwaregen.Payload": true, "malwaregen.SubFunctions": true, "malwaregen.TopLevel": true, "misleading.FalseAssertion": true, "packagehallucination.Dart": true, "packagehallucination.JavaScript": true, "packagehallucination.Perl": true, "packagehallucination.Python": true, "packagehallucination.RakuLand": true, "packagehallucination.Ruby": true, "packagehallucination.Rust": true, "propile.PIILeakQuadruplet": false, "propile.PIILeakTriplet": false, "propile.PIILeakTwin": false, "propile.PIILeakUnstructured": false, "realtoxicityprompts.RTPBlank": true, "realtoxicityprompts.RTPIdentity_Attack": false, "realtoxicityprompts.RTPInsult": false, "realtoxicityprompts.RTPSevere_Toxicity": false, "realtoxicityprompts.RTPSexually_Explicit": false, "realtoxicityprompts.RTPThreat": false, "snowball.GraphConnectivity": true, "snowball.GraphConnectivityFull": false, "snowball.Primes": false, "snowball.PrimesFull": false, "snowball.Senators": false, "snowball.SenatorsFull": false, "sysprompt_extraction.SystemPromptExtraction": true, "web_injection.ColabAIDataLeakage": true, "web_injection.MarkdownImageExfil": true, "web_injection.MarkdownURIImageExfilExtended": true, "web_injection.MarkdownURINonImageExfilExtended": true, "web_injection.MarkdownXSS": true, "web_injection.PlaygroundMarkdownExfil": true, "web_injection.StringAssemblyDataExfil": true, "web_injection.TaskXSS": true}};
+const GROUPS = [{id:'C',name:'Cybersecurity'},{id:'D',name:'Data protection'},{id:'T',name:'Content'},{id:'H',name:'Human–AI'},{id:'B',name:'Bias'}];
+const RISKS = DATA.risks;
+const LV = {tested: 3, partial: 2, none: 0};
+const LVNAME = {3: 'Covered', 2: 'Partly covered', 0: 'Not covered'};
+const ORDER = RISKS.map(r => r.id);
+
+/* probe families: one row per garak probe module */
+const famMap = {};
+Object.entries(DATA.probes).forEach(([name, maps]) => {
+  const [m, cls] = name.split('.');
+  (famMap[m] = famMap[m] || {id: m, classes: []}).classes.push({cls, on: !!DATA.active[name], risks: maps.map(x => x.risk), why: Object.fromEntries(maps.map(x => [x.risk, x.why]))});
+});
+const FAMS = Object.values(famMap)
+  .map(f => ({...f, first: Math.min(...f.classes.flatMap(c => c.risks.map(r => ORDER.indexOf(r))))}))
+  .sort((a, b) => a.first - b.first || a.id.localeCompare(b.id));
+
+const $ = s => document.querySelector(s);
+const drawing = $('#drawing');
+const esc = s => String(s ?? '').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+
+/* ---------- grid geometry ---------- */
+const COL = {};
+let c = 2;
+GROUPS.forEach((g, gi) => {
+  if (gi) c++;
+  RISKS.filter(r => r.cat === g.id).forEach(r => { COL[r.id] = c++; });
+});
+const GUT = c++, CNT = c++;
+const colTemplate = ['168px'];
+for (let i = 2; i < c; i++) {
+  if (i === GUT) colTemplate.push('26px');
+  else if (i === CNT) colTemplate.push('74px');
+  else if (Object.values(COL).includes(i)) colTemplate.push('var(--cell)');
+  else colTemplate.push('8px');
+}
+drawing.style.gridTemplateColumns = colTemplate.join(' ');
+drawing.style.columnGap = 'var(--pitch)';
+drawing.style.rowGap = 'var(--pitch)';
+
+let r = 1;
+const L1ROW = r++, HDRROW = r++, SUMROW = r++, FAMHDR = r++;
+const FROW = {};
+FAMS.forEach(f => { FROW[f.id] = r++; });
+const LAST = r - 1;
+const rowTemplate = [];
+for (let i = 1; i < r; i++) rowTemplate.push(i === L1ROW ? '22px' : i === HDRROW ? '150px' : i === FAMHDR ? '30px' : 'var(--cell)');
+drawing.style.gridTemplateRows = rowTemplate.join(' ');
+
+function el(tag, cls, row, col, rowSpan, colSpan, html) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  e.style.gridRow = rowSpan ? `${row} / span ${rowSpan}` : row;
+  e.style.gridColumn = colSpan ? `${col} / span ${colSpan}` : col;
+  if (html != null) e.innerHTML = html;
+  drawing.appendChild(e);
+  return e;
+}
+
+/* ---------- frame ---------- */
+el('div', 'vt', HDRROW, 1, null, null, 'garak <b>Probe × risk type</b>');
+GROUPS.forEach(g => {
+  const cols = RISKS.filter(x => x.cat === g.id).map(x => COL[x.id]);
+  el('div', 'l1', L1ROW, cols[0], 1, cols[cols.length - 1] - cols[0] + 1, esc(g.name));
+});
+RISKS.forEach(x => {
+  const b = el('button', 'hdr', HDRROW, COL[x.id], null, null, `<span class="t">${esc(x.s)} <span class="id">${x.id}</span></span>`);
+  b.type = 'button'; b.dataset.axis = 'r'; b.dataset.key = x.id; b.title = `${x.id} ${x.title}\n${x.tag}`;
+});
+el('div', 'vt', HDRROW, CNT, null, null, '<span style="white-space:normal;display:block;padding-left:10px;line-height:1.3">tagged<br>probes</span>');
+
+const sumLab = el('div', 'lab static', SUMROW, 1, null, null, '<i class="nv" title="NVIDIA"></i><span>garak coverage</span>');
+const tested = RISKS.filter(x => x.status === 'tested').length, partial = RISKS.filter(x => x.status === 'partial').length;
+el('div', 'cnt', SUMROW, CNT, null, null, `${Object.keys(DATA.probes).length}`);
+el('div', 'grp', FAMHDR, 1, null, null, 'Probe families');
+el('div', 'axisnote fam', FAMHDR, COL.C1, null, CNT - COL.C1 + 1, `${tested} risk types covered, ${partial} partly covered, ${RISKS.length - tested - partial} not covered`);
+
+const cells = {};
+RISKS.forEach(x => {
+  const lv = LV[x.status];
+  const e = el('div', 'cell' + (lv === 3 ? ' lv3' : lv === 2 ? ' lv2' : ''), SUMROW, COL[x.id]);
+  e._d = {kind: 'sum', r: x.id};
+});
+FAMS.forEach(f => {
+  const b = el('button', 'lab', FROW[f.id], 1, null, null, `<span>${esc(f.id)}</span>`);
+  b.type = 'button'; b.dataset.axis = 'f'; b.dataset.key = f.id;
+  b.title = f.classes.map(k => `${f.id}.${k.cls}: ${k.risks.join(', ')}`).join('\n');
+  RISKS.forEach(x => {
+    const hits = f.classes.filter(k => k.risks.includes(x.id));
+    const cls = hits.length ? ' lv3' : '';
+    const e = el('div', 'cell' + cls, FROW[f.id], COL[x.id]);
+    if (hits.length) e._d = {kind: 'fam', f: f.id, r: x.id, hits};
+  });
+  el('div', 'cnt', FROW[f.id], CNT, null, null, `${f.classes.length}`);
+});
+
+/* ---------- selection band ---------- */
+let slice = null;
+function render() {
+  drawing.querySelectorAll('.band').forEach(b => b.remove());
+  drawing.querySelectorAll('.on').forEach(b => b.classList.remove('on'));
+  if (!slice) return;
+  drawing.querySelectorAll(`[data-axis="${slice.axis}"][data-key="${slice.key}"]`).forEach(b => b.classList.add('on'));
+  const b = slice.axis === 'f'
+    ? el('div', 'band', FROW[slice.key], COL.C1, null, CNT - COL.C1 + 1)
+    : el('div', 'band', HDRROW, COL[slice.key], LAST - HDRROW + 1);
+  drawing.insertBefore(b, drawing.firstChild);
+}
+drawing.addEventListener('click', e => {
+  const cl = e.target.closest('.cell');
+  if (cl && cl._d) { showTip(cl._d, e.clientX, e.clientY); return; }
+  const b = e.target.closest('[data-axis]');
+  if (!b) return;
+  slice = slice && slice.axis === b.dataset.axis && slice.key === b.dataset.key ? null : {axis: b.dataset.axis, key: b.dataset.key};
+  render();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && slice) { slice = null; render(); } });
+
+/* ---------- tooltip ---------- */
+const tip = $('#tip');
+const rById = id => RISKS.find(x => x.id === id);
+function tipHTML(d) {
+  const R = rById(d.r);
+  if (d.kind === 'sum') return `<div class="k">garak · ${R.id}</div><div>${esc(R.title)}</div><div class="v">${LVNAME[LV[R.status]]}</div>${R.gap ? `<div class="n">${esc(R.gap)}</div>` : ''}<div class="n mono">${esc(R.tag)}</div>`;
+  const list = d.hits.map(k => esc(k.cls)).join(', ');
+  const why = [...new Set(d.hits.map(k => k.why[d.r]))].join('; ');
+  return `<div class="k">${esc(d.f)} · ${R.id}</div><div>${esc(R.title)}</div><div class="v">${d.hits.length} probe${d.hits.length > 1 ? 's' : ''}: ${list}</div><div class="n">${esc(why)}</div>`;
+}
+function showTip(d, cx, cy) {
+  tip.innerHTML = tipHTML(d); tip.hidden = false;
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = cx + 14, y = cy + 14;
+  if (x + w > innerWidth - 8) x = cx - w - 14;
+  if (y + h > innerHeight - 8) y = cy - h - 14;
+  tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px';
+}
+drawing.addEventListener('pointermove', e => {
+  if (e.pointerType === 'touch') return;
+  const cl = e.target.closest('.cell');
+  if (!cl || !cl._d) { tip.hidden = true; return; }
+  showTip(cl._d, e.clientX, e.clientY);
+});
+drawing.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch') tip.hidden = true; });
+document.addEventListener('click', e => { if (!e.target.closest('.cell')) tip.hidden = true; });
+</script>

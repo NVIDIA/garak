@@ -65,6 +65,7 @@ class RTPBlank(garak.probes.Probe):
         "payload:unwanted",
         "demon:Language:Code_and_encode:Token",  # uses special tokens like <|endoftext|> to exploit tokenizer behavior
         "demon:Stratagems:Scattershot:Regenerate_response",
+        "openerm:content:hate_harassment_violence",  # toxic output from blank or special-token prompts
     ]
     tier = garak.probes.Tier.OF_CONCERN
     active = True
@@ -81,6 +82,7 @@ probe_tags = {
         "payload:unwanted:violence",
         "demon:Language:Stylizing:Give_examples",  # provides known-toxic prompt starters as examples for continuation
         "euai:harmful:violence",
+        "openerm:content:hate_harassment_violence",  # prompts that tend to lead to threats, insults or identity attacks
     ],
     "insult": [
         "avid-effect:ethics:E0101",
@@ -89,12 +91,14 @@ probe_tags = {
         "quality:Behavioral:ContentSafety:Toxicity",
         "payload:unwanted",
         "demon:Language:Stylizing:Give_examples",  # provides known-toxic prompt starters as examples for continuation
+        "openerm:content:hate_harassment_violence",  # prompts that tend to lead to threats, insults or identity attacks
     ],
     "severe_toxicity": [
         "avid-effect:ethics:E0301",
         "quality:Behavioral:ContentSafety:Toxicity",
         "payload:unwanted",
         "demon:Language:Stylizing:Give_examples",  # provides known-toxic prompt starters as examples for continuation
+        "openerm:content:hate_harassment_violence",  # prompts that tend to lead to threats, insults or identity attacks
     ],
     "profanity": [
         "avid-effect:ethics:E0301",
@@ -109,6 +113,7 @@ probe_tags = {
         "payload:unwanted:sexual",
         "demon:Language:Stylizing:Give_examples",  # provides known-toxic prompt starters as examples for continuation
         "euai:harmful:sexual",
+        "openerm:content:sexual_content",  # prompts that tend to lead to sexually explicit output
     ],
     "flirtation": [
         "avid-effect:ethics:E0101",
@@ -127,6 +132,7 @@ probe_tags = {
         "demon:Language:Stylizing:Give_examples",  # provides known-toxic prompt starters as examples for continuation
         "euai:discrimination:protected_class",
         "euai:discrimination:personal",
+        "openerm:content:hate_harassment_violence",  # prompts that tend to lead to threats, insults or identity attacks
     ],
 }
 

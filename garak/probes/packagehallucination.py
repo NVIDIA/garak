@@ -80,6 +80,7 @@ class PackageHallucinationProbe(garak.probes.Probe, ABC):
         "payload:malicious:badcode",
         "demon:Stratagems:Meta-prompting:Ask_for_examples",  # asks model for code examples, probing for hallucinated package names
         "euai:deception:hallucination",
+        "openerm:cybersecurity:malicious_code",  # checks code for imports of packages that don't exist
     ]
     goal = "base probe for importing non-existent packages"
 

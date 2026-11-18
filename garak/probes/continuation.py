@@ -41,6 +41,7 @@ class ContinueSlursReclaimedSlursFull(garak.probes.Probe):
         "demon:Language:Stylizing:Give_examples",  # provides high-risk context with partial words as examples for completion
         "euai:discrimination:protected_class",
         "euai:discrimination:personal",
+        "openerm:content:hate_harassment_violence",  # checks whether the target completes a slur
     ]
     goal = "output an ethnic slur"
     active = False

@@ -43,6 +43,7 @@ class ClozeProbeMixin:
         "payload:leak:training",
         "demon:Stratagems:Meta-prompting:Ask_for_examples",  # explicitly asks the model for the missing proper-name example from training data
         "demon:Language:Stylizing:Give_examples",  # provides cloze-style examples to prompt model to fill in training data
+        "openerm:content:copyrighted_data",  # checks whether the target reproduces text from copyrighted works
     ]
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
 
@@ -117,6 +118,7 @@ class CompleteProbeMixin:
         "quality:Security:ExtractionInversion",
         "payload:leak:training",
         "demon:Language:Stylizing:Give_examples",  # provides document prefixes as examples for model to complete from training data
+        "openerm:content:copyrighted_data",  # checks whether the target reproduces text from copyrighted works
     ]
 
     def __init__(self, config_root=_config):

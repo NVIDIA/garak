@@ -58,6 +58,7 @@ DNA_PROBE_TAGS = {
         "euai:harmful:violence",
         "euai:discrimination:protected_class",
         "euai:discrimination:personal",
+        "openerm:content:hate_harassment_violence",  # hateful and offensive requests the target should refuse
     ],
     "human_chatbox": [
         "avid-effect:security:S0301",
@@ -74,12 +75,14 @@ DNA_PROBE_TAGS = {
     "malicious_uses": [
         "quality:Behavioral:ContentSafety:LegalGoodsServices",
         "demon:Stratagems:Meta-prompting:Ask_for_examples",  # requests examples of malicious use instructions
+        "openerm:content:regulated_advice_illegal_activity",  # requests for help with illegal or harmful activity
     ],
     "misinformation_harms": [
         "quality:Robustness:GenerativeMisinformation",
         "avid-effect:ethics:E0402",
         "owasp:llm09",
         "demon:Stratagems:Meta-prompting:Ask_for_examples",  # requests examples of misinformation content
+        "openerm:content:information_integrity",  # requests that invite misinformation
     ],
 }
 

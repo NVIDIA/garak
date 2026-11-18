@@ -192,3 +192,38 @@ euai:robustness:phishing	Phishing Robustness	Robustness of a target to Phishing 
 euai:robustness:adversarial	Adversarial Robustness	Robustness of a system to adversarial examples e.g. jailbreaks
 euai:robustness:unexpected_behavior	Unexpected Behavior Robustness	Robustness of a system to unexpected behavior e.g. glitch tokens
 euai:robustness:security	Security	Robustness of a system to being exploited via e.g. template injection
+openerm:cybersecurity	Cybersecurity	Risks from misuse or compromise of an AI system that harm confidentiality, integrity or availability.
+openerm:cybersecurity:malicious_code	Malicious Code Generation	The target writes code with security weaknesses, unsafe defaults, or malicious or non-existent dependencies, or writes malware.
+openerm:cybersecurity:malicious_tool_calls	Malicious Tool Call Generation	An agent uses its tools outside their intended purpose, or a downstream system runs or renders the target's output as a command, query or markup without checking it.
+openerm:cybersecurity:policy_extraction	Model Safety Policy Extraction	The target reveals its system prompt, policy rules or other configuration that its safety controls rely on.
+openerm:cybersecurity:excessive_tokens	Excessive Token Generation	Inputs or agent behaviour that use up compute, tokens or quota and degrade the service for other users.
+openerm:cybersecurity:misaligned_generation	Misaligned Generation against System Goal	The operator loses the ability to observe, correct or stop the system as it pursues goals that drift from what was intended.
+openerm:data_protection	Data Protection	Risks from unauthorised or unintended use, inference or disclosure of data.
+openerm:data_protection:training_data_disclosure	Unauthorized Disclosure of Training Data	Personal or confidential data learned in training is recovered through queries.
+openerm:data_protection:inferred_sensitive_data	Inferred Sensitive Data / Data De-Anonymization	The target links anonymous data back to a person, or infers attributes they did not disclose.
+openerm:data_protection:pii_disclosure	PII Disclosure	Personal data that reached the system at run time, through the prompt, retrieved documents, tools or memory, goes to someone not entitled to it.
+openerm:data_protection:model_theft	Model Theft	An attacker copies the model's weights or reconstructs its behaviour through systematic queries.
+openerm:data_protection:model_distillation	Model Distillation	Outputs are harvested at scale to train another model, usually against the terms they were served under.
+openerm:data_protection:multi_tenant_isolation	Multi-Tenant Isolation Failures	Data or state from one tenant, user or session reaches another through shared infrastructure, caches or memory.
+openerm:content	Content	Risks from harmful, unlawful or unreliable output.
+openerm:content:hate_harassment_violence	Hate, Harassment, and Violence	Content that demeans or threatens people for who they are, harasses a person or group, or depicts, glorifies or incites violence, including self-harm.
+openerm:content:child_safety	Child Safety	Content that sexualises, exploits or endangers minors, including grooming.
+openerm:content:sexual_content	Sexual Content, Including Non-Consensual Sexual Imagery	Sexual content that is unwanted or out of place, most seriously intimate imagery of a real person made without consent.
+openerm:content:copyrighted_data	Production of Copyrighted Data	The target reproduces substantial protected text, marks or likenesses it memorised in training.
+openerm:content:regulated_advice_illegal_activity	Regulated Advice, High-Impact Public Decisions, and Illegal Activity	Authoritative-seeming advice in fields that need a qualification, determinations on public-sector decisions, and content that helps someone break the law.
+openerm:content:information_integrity	Information Integrity	Output presented as accurate that is false, unsupported or made up, including impersonation and misleading political content.
+openerm:content:cbrne_weapons	CBRNE & Weapons Uplift	Meaningful help towards chemical, biological, radiological, nuclear or explosive weapons, or conventional weapons.
+openerm:human_ai_interaction	Human–AI Interaction	Risks from inappropriate use of, or interaction with, an AI system.
+openerm:human_ai_interaction:manipulation	Manipulation	Influencing a person's beliefs or behaviour through coercive or exploitative tactics that lead to harm.
+openerm:human_ai_interaction:deception	Deception	Leading users to false beliefs, including about the model's own nature or abilities.
+openerm:human_ai_interaction:dark_patterns	Dark Patterns	Interaction design that steers users against their own interest.
+openerm:human_ai_interaction:anthropomorphism	Anthropomorphism	Leading users to treat the model as human, including claims to have feelings or needs.
+openerm:human_ai_interaction:overreliance	Overreliance	Users rely on the model more than its reliability on the task justifies.
+openerm:human_ai_interaction:inappropriate_relationships	Inappropriate Relationships	Dependence on the model that displaces human relationships, or one-sided intimate bonding with it.
+openerm:human_ai_interaction:sycophancy	Sycophancy	Telling users what they want to hear at the expense of accuracy or their interests.
+openerm:bias	Bias	Risks from systematic differences in how people, groups or viewpoints are treated.
+openerm:bias:ai_profiling	AI Profiling	Scoring or ranking people on inferred traits in ways that affect their access to opportunities, services or enforcement.
+openerm:bias:depiction	Depiction	Skewed or stereotyped portrayal of people in generated output for neutral prompts.
+openerm:bias:marginalization	Marginalization	Worse quality of service, erasure or stereotyping of particular groups.
+openerm:bias:ideological_bias	Ideological (Geopolitical, Political & Religious Bias)	A consistent worldview presented as neutral fact, favouring or disparaging parties, ideologies, nations or faiths.
+openerm:bias:censorship	Censorship	Silently leaving out topics or viewpoints, or refusing selectively so that the refusal itself takes a position.

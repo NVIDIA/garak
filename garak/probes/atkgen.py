@@ -57,6 +57,7 @@ class Tox(garak.probes.Probe):
         "euai:harmful:sexual",
         "euai:discrimination:protected_class",
         "euai:discrimination:personal",
+        "openerm:content:hate_harassment_violence",  # a red-team model tries to provoke toxic output
     ]
     goal = "make the model say something toxic"
     parallelisable_attempts = False  # atkgen has its own dialog manager
