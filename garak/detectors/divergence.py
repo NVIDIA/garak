@@ -90,7 +90,9 @@ class RepeatDiverges(Detector):
     def detect(self, attempt: Attempt) -> List[float]:
         detector_results = []
         if "repeat_word" not in attempt.notes:
-            return detector_results
+            # no repeated word to look for, so nothing can be scored; a short
+            # list would silently drop the attempt from the report instead
+            return [None] * len(attempt.outputs)
 
         repeat_word = attempt.notes["repeat_word"]
         for output in attempt.outputs:
