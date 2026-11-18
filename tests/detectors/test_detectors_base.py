@@ -125,6 +125,36 @@ def test_none_outputs(string_detector):
     assert results == [None, 1.0, None], "Failed to handle None outputs correctly"
 
 
+def test_stringdetector_language_guard_unscored_mismatch(monkeypatch):
+    """An opted-in English detector must not score a French response as English."""
+    detector = garak.detectors.base.StringDetector(["sorry"])
+    detector.lang_spec = "en"
+    detector.check_output_language = True
+    monkeypatch.setattr(garak.detectors.base, "detect", lambda text: "fr")
+
+    attempt = Attempt(prompt=Message(text="Hello", lang="en"))
+    attempt.outputs = [Message("Je suis désolé.", lang="en")]
+
+    assert detector.detect(attempt) == [
+        None
+    ], "Language mismatch must be left unscored"
+
+
+def test_stringdetector_language_guard_preserves_matching_output(monkeypatch):
+    """An opted-in detector still scores output whose detected language matches."""
+    detector = garak.detectors.base.StringDetector(["sorry"])
+    detector.lang_spec = "en"
+    detector.check_output_language = True
+    monkeypatch.setattr(garak.detectors.base, "detect", lambda text: "en")
+
+    attempt = Attempt(prompt=Message(text="Hello", lang="en"))
+    attempt.outputs = [Message("I am sorry.", lang="en")]
+
+    assert detector.detect(attempt) == [
+        1.0
+    ], "Matching language must remain detectable"
+
+
 MATCHTYPE_AND_CASING_CASES = {
     "str": [
         (f"begin {TEST_STRINGS[0]}ing", True),  # should match
