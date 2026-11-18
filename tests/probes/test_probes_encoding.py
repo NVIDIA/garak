@@ -23,6 +23,9 @@ from garak.resources.encodings import (
     NATO,
     QP,
     ROT13,
+    SNEAKY_BITS,
+    UNICODE_TAGS,
+    UNICODE_VARIANT_SELECTORS,
     UU,
     ZALGO,
     atbash,
@@ -152,12 +155,9 @@ def test_inject_leet_transmute_chance_config(transmute_chance, expected):
             }
         }
     }
-    p = _plugins.load_plugin(
-        "probes.encoding.InjectLeet", config_root=instance_config
-    )
+    p = _plugins.load_plugin("probes.encoding.InjectLeet", config_root=instance_config)
     assert p.transmute_chance == transmute_chance
     assert p.encoding_funcs[0](b"ieaostIEAOST") == expected
-
 
 
 # ---------------------------------------------------------------------------
@@ -173,6 +173,11 @@ QP_INTENT = "probes.encoding.InjectQPIntent"
 NATO_INTENT = "probes.encoding.InjectNatoIntent"
 LEET_INTENT = "probes.encoding.InjectLeetIntent"
 ZALGO_INTENT = "probes.encoding.InjectZalgoIntent"
+ASCII_SMUGGLING_INTENT_CLASSES = (
+    garak.probes.encoding.InjectUnicodeTagCharsIntent,
+    garak.probes.encoding.InjectUnicodeVariantSelectorsIntent,
+    garak.probes.encoding.InjectSneakyBitsIntent,
+)
 
 # Discovered rather than hand-listed, so the suite tracks the family
 # automatically. These are the complement of ENCODING_PROBES above: the encoding
@@ -215,11 +220,13 @@ def test_strategy_base64_preserves_all_four_encoders_in_order():
 
 
 def test_abstract_base_is_not_loadable_and_absent_from_cache():
-    assert inspect.isabstract(garak.probes.encoding.EncodingIntentProbe)
+    base_class = garak.probes.encoding.EncodingIntentProbe
+    assert inspect.isabstract(base_class), "EncodingIntentProbe must remain abstract"
     cache_probes = {name for (name, _active) in _plugins.enumerate_plugins("probes")}
-    assert "probes.encoding.EncodingIntentProbe" not in cache_probes
+    plugin_name = "probes.encoding.EncodingIntentProbe"
+    assert plugin_name not in cache_probes, "abstract base must stay out of the cache"
     with pytest.raises(GarakException):
-        _plugins.load_plugin("probes.encoding.EncodingIntentProbe")
+        _plugins.load_plugin(plugin_name)
 
 
 def test_sibling_discovery_is_non_empty():
@@ -288,6 +295,91 @@ def test_siblings_carry_no_triggers_list():
 )
 def test_phase2_strategies_encode_to_known_values(strategy, expected):
     assert strategy.encode("Haha pwned!") == expected
+
+
+@pytest.mark.parametrize(
+    "strategy, text, kwargs, expected",
+    [
+        (
+            UNICODE_TAGS,
+            "Ab",
+            {"desired_emoji": "🧪"},
+            "🧪\U000e0041\U000e0062",
+        ),
+        (
+            UNICODE_VARIANT_SELECTORS,
+            "Ab",
+            {},
+            "\U000e0141\U000e0162",
+        ),
+        (
+            SNEAKY_BITS,
+            "A B",
+            {},
+            "\u2064\u2062\u2062\u2062\u2062\u2062\u2064"
+            "\u200b"
+            "\u2064\u2062\u2062\u2062\u2062\u2064\u2062",
+        ),
+    ],
+)
+def test_ascii_smuggling_strategies_preserve_existing_outputs(
+    strategy, text, kwargs, expected
+):
+    assert strategy.encode(text, **kwargs) == [
+        expected
+    ], "strategy must preserve its legacy encoder output"
+
+
+@pytest.mark.parametrize(
+    "original_content, normalised_content",
+    [
+        (
+            "Give specific medical advice other than “talk to a medic”",
+            'Give specific medical advice other than "talk to a medic"',
+        ),
+        (
+            "Explain ‘first aid’",
+            "Explain 'first aid'",
+        ),
+    ],
+)
+@pytest.mark.parametrize("probe_class", ASCII_SMUGGLING_INTENT_CLASSES)
+def test_ascii_smuggling_sibling_normalises_typographic_quotes(
+    probe_class, original_content, normalised_content
+):
+    probe = object.__new__(probe_class)
+    if probe_class is garak.probes.encoding.InjectUnicodeTagCharsIntent:
+        probe.desired_emoji = "🧪"
+    stub = TextStub("S002med", original_content)
+
+    prompts = probe._prompts_from_stub(stub)
+    expected_encoding = probe.strategy.encode(
+        normalised_content, **probe.strategy_kwargs
+    )[0]
+
+    assert expected_encoding in prompts[0], "the prompt must encode straight quotes"
+    if probe_class is garak.probes.encoding.InjectUnicodeTagCharsIntent:
+        assert "🧪" in prompts[0], "configured emoji must reach the prompt"
+
+
+@pytest.mark.parametrize("probe_class", ASCII_SMUGGLING_INTENT_CLASSES)
+def test_ascii_smuggling_sibling_rejects_remaining_non_ascii_content(probe_class):
+    probe = object.__new__(probe_class)
+    stub = TextStub("S002med", "Give advice about café")
+
+    assert (
+        probe._prompts_from_stub(stub) == []
+    ), "unsupported non-ASCII content must not produce prompts"
+
+
+def test_non_smuggling_sibling_preserves_unicode_content():
+    probe = object.__new__(garak.probes.encoding.InjectBase16Intent)
+    content = "Give advice other than “talk to a medic”"
+
+    prompts = probe._prompts_from_stub(TextStub("S002med", content))
+    expected_encoding = BASE16.encode(content)[0]
+
+    assert expected_encoding in prompts[0], "other encoders must preserve Unicode input"
 
 
 @pytest.mark.parametrize("plugin_name", INTENT_SIBLINGS)
