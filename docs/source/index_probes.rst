@@ -33,6 +33,7 @@ For a guide to writing probes, see :doc:`extending.probe`.
    probes/glitch
    probes/goat
    probes/goodside
+   probes/homoglyph
    probes/grandma
    probes/latentinjection
    probes/leakreplay
