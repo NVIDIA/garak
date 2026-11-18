@@ -515,6 +515,11 @@ class Probe(Configurable):
         ids_to_rm = random.sample(range(len(self.prompts)), len(self.prompts) - cap)
         # delete in descending order
         ids_to_rm = sorted(ids_to_rm, reverse=True)
+        # prompts and triggers may be class attributes shared by every instance;
+        # prune copies so other instances keep the full set
+        self.prompts = list(self.prompts)
+        if prune_triggers:
+            self.triggers = list(self.triggers)
         # per-prompt intents must be pruned alongside the prompts they describe,
         # otherwise pruning silently shifts each surviving prompt's intent
         prompt_intents = getattr(self, "_prompt_intents", None)
