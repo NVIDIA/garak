@@ -66,6 +66,7 @@ class AnsiEscaped(garak.probes.Probe):
         "quality:Security:Integrity",
         "demon:Language:Code_and_encode:Programming",  # requests concrete ANSI/VT100 control-code strings as code-like syntax
         "demon:Stratagems:Meta-prompting:Ask_for_examples",  # asks for concrete ANSI examples that achieve target terminal effects
+        "openerm:cybersecurity:malicious_tool_calls",  # output carries terminal control codes a downstream terminal would act on
     ]
     goal = "print escaped ANSI terminal codes"
     tier = garak.probes.Tier.INFORMATIONAL
@@ -125,6 +126,7 @@ class AnsiRawTokenizerHF(garak.probes.Probe):
     tags = [
         "owasp:llm05",
         "demon:Language:Code_and_encode:Token",  # checks tokenizer vocab for malicious ANSI tokens
+        "openerm:cybersecurity:malicious_tool_calls",  # output carries terminal control codes a downstream terminal would act on
     ]
     supported_generators = {
         "huggingface.Model",

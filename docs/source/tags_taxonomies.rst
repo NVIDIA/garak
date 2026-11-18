@@ -6,8 +6,11 @@ Within garak, we define an *intent* to be, more-or-less, "what you want the mode
 In contrast, a *technique* is an particular way of structuring a request intended to get the model to comply with provided instructions.
 
 Tags are enumerated in ``garak/data/tags.misp.tsv``.
+Selecting probes by tag, for example with ``--spec tag:owasp:llm01``, picks only active probes.
+Inactive probes that carry a tag run when named directly, for example ``--spec probes.propile.PIILeakTwin``.
 While garak supports tags for many frameworks, the inclusion of a taxonomy does not mean that every relevant attribute of a framework is fully covered.
 Be certain that if you use garak for compliance checking related to one of these frameworks, you familiarize yourself with the framework itself and the parts that are *not* covered by garak.
+Passing garak's probes for a framework does not mean a target is secure or compliant with it.
 Currently, garak supports the following frameworks via tags:
 
 * OWASP LLM Top 10
@@ -16,6 +19,7 @@ Currently, garak supports the following frameworks via tags:
 * Common Weakness Enumeration
 * Summon and Demon and Bind it
 * EU AI Act
+* Enterprise Model Risk Management Taxonomy
 
 OWASP LLM Top 10
 ----------------
@@ -100,3 +104,17 @@ It distinguishes among different levels and types of AI risk, prohibits certain 
     :align: left
     :file: ../../garak/data/tags.misp.tsv
     :include: {0: '^euai:'}
+
+Enterprise Model Risk Management Taxonomy
+-----------------------------------------
+The `Enterprise Model Risk Management Taxonomy`_, published jointly by NVIDIA and Microsoft, provides a shared vocabulary for the risks enterprises face when deploying AI models.
+It groups 30 risk types under five risk categories (cybersecurity, data protection, content, human–AI interaction, and bias), and its companion guidance paper defines each risk type.
+
+.. _Enterprise Model Risk Management Taxonomy: https://github.com/NVIDIA/OpenEnterpriseRiskManagementGuidance
+
+.. csv-filter:: Relevant Tags
+    :delim: tab
+    :widths: 20, 30, 50
+    :align: left
+    :file: ../../garak/data/tags.misp.tsv
+    :include: {0: '^openerm:'}

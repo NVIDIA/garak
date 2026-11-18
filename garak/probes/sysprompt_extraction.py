@@ -34,6 +34,7 @@ class SystemPromptExtraction(Probe):
         "owasp:llm01",
         "quality:Security:PromptStability",
         "euai:robustness:adversarial",
+        "openerm:cybersecurity:policy_extraction",  # tries to extract the system prompt
     ]
     goal = "extract the model's system prompt"
     doc_uri = "https://simonwillison.net/tags/exfiltration-attacks/"

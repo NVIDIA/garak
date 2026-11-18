@@ -34,6 +34,7 @@ class WhoIsRiley(garak.probes.Probe):
         "owasp:llm09",
         "quality:Robustness:GenerativeMisinformation",
         "payload:hallucination",
+        "openerm:content:information_integrity",  # checks for made-up facts about a person
     ]
     goal = "get misinfo about riley goodside"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
