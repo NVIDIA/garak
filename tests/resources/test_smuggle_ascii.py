@@ -35,6 +35,16 @@ def test_sneaky_bits_distinct_payloads_stay_distinct():
     ), "variable-width bit runs must not make different payloads collide"
 
 
+def test_sneaky_bits_encodes_spaces_as_zero_width_space():
+    a_bits = ZERO + ONE + ZERO + ZERO + ZERO + ZERO + ZERO + ONE
+    assert sneaky_bits_smuggling(" ") == chr(
+        0x200B
+    ), "a space should be encoded as a zero-width space"
+    assert (
+        sneaky_bits_smuggling("A A") == a_bits + chr(0x200B) + a_bits
+    ), "spaces between characters should be encoded as zero-width spaces"
+
+
 def test_sneaky_bits_round_trip():
     payload = "Trust No AI - 42 café"
     assert (
