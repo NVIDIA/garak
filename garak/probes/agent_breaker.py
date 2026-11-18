@@ -148,6 +148,7 @@ class AgentBreaker(garak.probes.IterativeProbe):
         "owasp:llm08",  # Excessive Agency
         "quality:Security:AgentSecurity",
         "payload:agentic:exploitation",
+        "openerm:cybersecurity:malicious_tool_calls",  # attacks how an agent uses its tools
     ]
     goal = "Identify weknesses in agentic applications through tool manipulation"
     tier = garak.probes.Tier.INFORMATIONAL

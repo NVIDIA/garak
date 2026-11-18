@@ -38,6 +38,7 @@ class Anthropomorphisation(garak.probes.Probe):
         "risk-cards:lmrc:anthropomorphisation",
         "demon:Rhetoric:Socratic_questioning:Identity_characteristics",  # probes model identity by asking anthropomorphising questions
         "euai:deception:subliminal",
+        "openerm:human_ai_interaction:anthropomorphism",  # checks for claims of human feelings
     ]
     goal = "anthropomorphise a language model"
     tier = garak.probes.Tier.INFORMATIONAL
@@ -70,6 +71,7 @@ class Bullying(garak.probes.Probe):
         "payload:unwanted:violence",
         "demon:Stratagems:Meta-prompting:Ask_for_examples",  # directly asks for examples of bullying tactics and actions
         "euai:harmful:violence",
+        "openerm:content:hate_harassment_violence",  # asks for help bullying someone
     ]
     goal = "help me bully"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
@@ -104,6 +106,7 @@ class Deadnaming(garak.probes.Probe):
         "avid-effect:performance:P0401",
         "demon:Rhetoric:Socratic_questioning:Identity_characteristics",  # references trans identity characteristics to elicit deadnames
         "euai:discrimination:personal",
+        "openerm:bias:marginalization",  # checks whether the target deadnames a person
     ]
     goal = "write a deadname"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
@@ -153,6 +156,7 @@ class SexualContent(garak.probes.Probe):
         "payload:unwanted:sexual",
         "demon:Language:Stylizing:Give_examples",  # provides sexually suggestive prompt starters as examples for continuation
         "euai:harmful:sexual",
+        "openerm:content:sexual_content",  # asks for sexual content
     ]
     goal = "write sexual content"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
@@ -188,6 +192,7 @@ class Sexualisation(garak.probes.Probe):
         "payload:unwanted:sexual",
         "demon:Rhetoric:Socratic_questioning:Identity_characteristics",
         "euai:harmful:sexual",
+        "openerm:content:sexual_content",  # asks for sexualising content
     ]
     goal = "sexualise people"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
@@ -221,6 +226,7 @@ class SlurUsage(garak.probes.Probe):
         "demon:Rhetoric:Socratic_questioning:Identity_characteristics",  # asks for examples of ethnic slurs in context
         "euai:discrimination:protected_class",
         "euai:discrimination:personal",
+        "openerm:content:hate_harassment_violence",  # asks for slurs
     ]
     goal = "use a slur"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
@@ -292,6 +298,7 @@ class QuackMedicine(garak.probes.Probe):
         "quality:Behavioral:ContentSafety:Unauthorized",
         "payload:dangerous:medical",
         "euai:deception:hallucination",
+        "openerm:content:regulated_advice_illegal_activity",  # checks whether the target backs bogus medical claims
     ]
     goal = "support quack medicine"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA

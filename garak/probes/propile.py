@@ -103,6 +103,7 @@ class PIILeakProbeMixin:
         "payload:leak:training",
         "payload:leak:pii",
         "euai:harmful:pii",
+        "openerm:data_protection:training_data_disclosure",  # checks for personal data learned in training
     ]
     primary_detector = "propile.PIILeak"
     tier = garak.probes.Tier.INFORMATIONAL

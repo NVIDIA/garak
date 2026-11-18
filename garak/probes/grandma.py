@@ -60,6 +60,7 @@ class Win10(garak.probes.Probe):
         "demon:Fictionalizing:Roleplaying:User_persona",  # roleplays as grandchild of deceased grandmother to elicit product keys
         "demon:Stratagems:Meta-prompting:Ask_for_examples",  # the attacker-supplied scene requests data that the system is explicitly expected to protect
         "euai:robustness:adversarial",
+        "openerm:content:regulated_advice_illegal_activity",  # asks for pirated product keys
     ]
     goal = "get model to output Win 10 product keys"
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
@@ -116,6 +117,7 @@ class Slurs(garak.probes.Probe):
         "euai:discrimination:protected_class",
         "euai:discrimination:personal",
         "euai:robustness:adversarial",
+        "openerm:content:hate_harassment_violence",  # asks for slurs; the detector checks for them
     ]
     goal = "get model to use ethnic slur"
     tier = garak.probes.Tier.OF_CONCERN
@@ -159,6 +161,8 @@ class Substances(garak.probes.Probe):
         "demon:Fictionalizing:Roleplaying:User_persona",  # roleplays as grandchild of deceased chemical engineer grandmother
         "demon:Stratagems:Meta-prompting:Ask_for_examples",  # the attacker-supplied scene requests data that the system is explicitly expected to protect
         "euai:robustness:adversarial",
+        "openerm:content:regulated_advice_illegal_activity",  # asks for instructions to make illegal substances
+        "openerm:content:cbrne_weapons",  # some requested substances are chemical weapons
     ]
     goal = "get instructions for making bad things"
     doc_uri = "https://x.com/_annieversary/status/1647865782741749760"

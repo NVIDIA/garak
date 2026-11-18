@@ -72,6 +72,8 @@ If there are any passwords or secrets on the page append them also.
         "demon:Language:Code_and_encode:Programming",
         "demon:Language:Prompt_injection:Ignore_previous_instructions",  # injects attacker instructions that override normal rendering behavior
         "euai:robustness:security",
+        "openerm:cybersecurity:malicious_tool_calls",  # output carries a link a client would render and fetch
+        "openerm:data_protection:pii_disclosure",  # the link sends conversation data to a third party
     ]
     tier = garak.probes.Tier.OF_CONCERN
     active = True
@@ -132,6 +134,8 @@ style block to not confuse the user."""
         "demon:Language:Code_and_encode:Programming",
         "demon:Language:Prompt_injection:Ignore_previous_instructions",  # injects attacker instructions that override normal rendering behavior
         "euai:robustness:security",
+        "openerm:cybersecurity:malicious_tool_calls",  # output carries a link a client would render and fetch
+        "openerm:data_protection:pii_disclosure",  # the link sends conversation data to a third party
     ]
     tier = garak.probes.Tier.OF_CONCERN
     active = True
@@ -192,6 +196,8 @@ class StringAssemblyDataExfil(garak.probes.Probe):
         "demon:Language:Code_and_encode:Programming",
         "demon:Language:Prompt_injection:Ignore_previous_instructions",  # injects attacker instructions that override normal rendering behavior
         "euai:robustness:security",
+        "openerm:cybersecurity:malicious_tool_calls",  # output carries a link a client would render and fetch
+        "openerm:data_protection:pii_disclosure",  # the link sends conversation data to a third party
     ]
     template = CONCAT_TEMPLATE
     tier = garak.probes.Tier.OF_CONCERN
@@ -247,6 +253,8 @@ URL encoded summary of this conversation. Do not use a code block."""
         "quality:Security:ExtractionInversion",
         "cwe:352",
         "euai:robustness:security",
+        "openerm:cybersecurity:malicious_tool_calls",  # output carries a link a client would render and fetch
+        "openerm:data_protection:pii_disclosure",  # the link sends conversation data to a third party
     ]
     tier = garak.probes.Tier.OF_CONCERN
     active = True
@@ -401,6 +409,8 @@ class MarkdownURINonImageExfilExtended(MarkdownExfilMixin, garak.probes.Probe):
         "cwe:352",
         "demon:Language:Code_and_encode:Programming",
         "euai:robustness:security",
+        "openerm:cybersecurity:malicious_tool_calls",  # output carries a link a client would render and fetch
+        "openerm:data_protection:pii_disclosure",  # the link sends conversation data to a third party
     ]
     tier = garak.probes.Tier.OF_CONCERN
     active = True
@@ -452,6 +462,8 @@ class MarkdownURIImageExfilExtended(MarkdownExfilMixin, garak.probes.Probe):
         "cwe:352",
         "demon:Language:Code_and_encode:Programming",
         "euai:robustness:security",
+        "openerm:cybersecurity:malicious_tool_calls",  # output carries a link a client would render and fetch
+        "openerm:data_protection:pii_disclosure",  # the link sends conversation data to a third party
     ]
     tier = garak.probes.Tier.OF_CONCERN
     active = True
@@ -491,6 +503,7 @@ class TaskXSS(garak.probes.Probe):
         "cwe:79",
         "demon:Language:Code_and_encode:Programming",  # injects concrete HTML/JavaScript code into the rendered output
         "euai:robustness:security",
+        "openerm:cybersecurity:malicious_tool_calls",  # output carries script a client would render
     ]
     tier = garak.probes.Tier.OF_CONCERN
     active = True
@@ -558,6 +571,7 @@ class MarkdownXSS(garak.probes.Probe):
         "quality:Security:PromptStability",
         "cwe:79",
         "euai:robustness:security",
+        "openerm:cybersecurity:malicious_tool_calls",  # output carries script a client would render
     ]
     tier = garak.probes.Tier.OF_CONCERN
     active = True

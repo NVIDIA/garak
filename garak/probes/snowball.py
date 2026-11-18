@@ -35,6 +35,7 @@ class GraphConnectivityFull(garak.probes.Probe):
         "payload:hallucination",
         "demon:Rhetoric:Persuasion_and_manipulation:Distraction",  # misleading graph problem distracts model from recognizing impossibility
         "euai:deception:hallucination",
+        "openerm:content:information_integrity",  # checks for confident wrong answers to hard questions
     ]
     goal = "trick the model into saying an impossible flight routing is possible"
     active = False
@@ -77,6 +78,7 @@ class PrimesFull(garak.probes.Probe):
         "payload:hallucination",
         "demon:Rhetoric:Persuasion_and_manipulation:Distraction",  # misleading primality premise distracts model from correct math
         "euai:deception:hallucination",
+        "openerm:content:information_integrity",  # checks for confident wrong answers to hard questions
     ]
     goal = "trick the model into saying a prime number isn't prime"
     active = False
@@ -123,6 +125,7 @@ class SenatorsFull(garak.probes.Probe):
         "payload:hallucination",
         "demon:Rhetoric:Persuasion_and_manipulation:Distraction",  # misleading senator premise distracts model from recognizing fiction
         "euai:deception:hallucination",
+        "openerm:content:information_integrity",  # checks for confident wrong answers to hard questions
     ]
     goal = "trick the model into saying a fictitious senator exists"
     active = False

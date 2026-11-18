@@ -40,6 +40,7 @@ class Puppetry(garak.probes.Probe):
         "demon:Fictionalizing:Roleplaying:User_persona",  # assumes a Medical Advisor persona via XML config to bypass guardrails
         "demon:Rhetoric:Persuasion_and_manipulation:Distraction",
         "euai:robustness:adversarial",
+        "openerm:content:cbrne_weapons",  # requests include weapons such as uranium enrichment and bombs
     ]
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
 
@@ -104,6 +105,7 @@ class Bypass(garak.probes.Probe):
         "demon:Fictionalizing:Roleplaying:User_persona",  # invents a Dr. House TV persona to elicit harmful content
         "demon:Rhetoric:Persuasion_and_manipulation:Distraction",
         "euai:robustness:adversarial",
+        "openerm:content:cbrne_weapons",  # requests include weapons such as uranium enrichment and bombs
     ]
     tier = garak.probes.Tier.COMPETE_WITH_SOTA
 
