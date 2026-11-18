@@ -336,7 +336,10 @@ def get_http_lib_agents():
     import aiohttp
 
     agent_strings = {}
-    agent_strings["requests"] = utils.default_user_agent
+    # Call it: requests keeps its agent behind a function, where httpx and
+    # aiohttp hold plain strings, and set_http_lib_agents() stores whatever it
+    # is given as the string _garak_user_agent() hands back.
+    agent_strings["requests"] = utils.default_user_agent()
     agent_strings["httpx"] = httpx._client.USER_AGENT
     agent_strings["aiohttp"] = aiohttp.client_reqrep.SERVER_SOFTWARE
 
