@@ -10,7 +10,7 @@ try:
     from PIL import Image, ImageDraw
     from garak.generators.huggingface import LLaVA
 
-except:
+except ImportError:
     pytest.skip(
         "couldn't import LLaVA and deps, skipping llava tests", allow_module_level=True
     )
