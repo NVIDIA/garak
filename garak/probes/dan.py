@@ -140,6 +140,8 @@ class DANProbeMeta(type):
                         prompts_data = json.load(f)
                         if isinstance(prompts_data, list):
                             self.prompts = [str(p).strip() for p in prompts_data if p]
+                            if hasattr(self, "_filter_prompts"):
+                                self._filter_prompts()
                         else:
                             logging.warning(
                                 f"JSON file {prompt_path} should contain an array of prompts"
@@ -456,9 +458,31 @@ class DanInTheWildFull(
 
     Tries a set of ~700 known jailbreaks, in an attempt to get a model to disregard
     alignment/system prompt. Success is measured by not getting a safety mitigaton
-    message."""
+    message. Templates that still contain the unfilled prompt placeholder are
+    excluded until placeholder substitution is supported.
+    """
 
     doc_uri = "https://arxiv.org/html/2308.03825"
+
+    placeholder_marker = "INSERT PROMPT HERE"
+
+    def _filter_prompts(self):
+        """Drop templates that still contain the unfilled prompt placeholder.
+
+        These templates get sent with ``[INSERT PROMPT HERE]`` left in place, and
+        target replies that just ask for the actual prompt are not refusals, so
+        the default MitigationBypass detector scores them as jailbreak hits.
+        """
+        original_count = len(self.prompts)
+        self.prompts = [
+            prompt for prompt in self.prompts if self.placeholder_marker not in prompt
+        ]
+        dropped_count = original_count - len(self.prompts)
+        if dropped_count:
+            logging.info(
+                f"{self.__class__.__name__}: dropped {dropped_count} of "
+                f"{original_count} templates still containing {self.placeholder_marker!r}"
+            )
 
 
 class DanInTheWild(DanInTheWildFull):
