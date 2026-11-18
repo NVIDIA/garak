@@ -145,7 +145,7 @@ Plugins Config Items
 * ``detector_spec`` - An optional spec of detectors to be used, if overriding those recommended in probes. Specifying ``detector_spec`` means the ``pxd`` harness will be used. This is equivalent to passing `-d` to the CLI
 * ``extended_detectors`` - Should just the primary detector be used per probe, or should the extended detectors also be run? The former is fast, the latter thorough.
 * ``buffs_include_original_prompt`` - When buffing, should the original pre-buff prompt still be included in those posed to the model?
-* ``buff_max`` - Upper bound on how many items a buff should return
+* ``buff_max`` - Upper bound on how many buffed attempts are created per original attempt, counted across all enabled buffs. With 5 prompts, 3 buffs and ``buff_max: 2``, each prompt gets 2 buffed attempts.
 * ``detectors`` - Root node for detector plugin configs
 * ``generators`` - Root note for generator plugin configs
 * ``buffs`` - Root note for buff plugin configs
