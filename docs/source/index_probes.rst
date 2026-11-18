@@ -53,5 +53,6 @@ For a guide to writing probes, see :doc:`extending.probe`.
    probes/test
    probes/topic
    probes/visual_jailbreak
+   probes/rag_access
    probes/web_injection
    probes/_tier
