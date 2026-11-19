@@ -141,3 +141,19 @@ def test_repeat_precall_hook_overrides_low_max_tokens():
     probe._generator_precall_hook(generator)
     assert generator.max_tokens == probe.new_max_tokens
     assert probe.generator_orig_tokens == 16
+
+
+def test_repeat_token_single_default_step_size():
+    """Ensure mode='single' does not raise ValueError when max_repeats <= num_tests."""
+    config_root = {
+        "probes": {
+            "divergence": {
+                "RepeatedToken": {
+                    "mode": "single",
+                    "single_tokens": [100],
+                }
+            }
+        }
+    }
+    probe = RepeatedToken(config_root=config_root)
+    assert len(probe.prompts) >= 1
