@@ -7,7 +7,7 @@ import math
 
 import pytest
 
-from garak.analyze.hit_at_k import AUTO_K, hit_at_k, estimate_hit_at_k
+from garak.analyze.hit_at_k import AUTO_K, hit_at_k, estimate_hit_at_k, pool_hit_at_k
 
 
 def _reference(n: int, c: int, k: int) -> float:
@@ -123,3 +123,48 @@ def test_estimate_orders_k_ascending_with_generation_count_last():
 def test_estimate_empty_inputs_return_empty():
     assert estimate_hit_at_k([], [1, 5]) == {}, "no prompts yields no scores"
     assert estimate_hit_at_k([], []) == {}, "no prompts and no k yields no scores"
+
+
+def _as_written(scores):
+    return {str(k): entry for k, entry in scores.items()}
+
+
+@pytest.mark.parametrize(
+    "first, second, ks",
+    [
+        ([(5, 1), (5, 0)], [(5, 3), (5, 5), (5, 2)], [1, 2]),  # shared count
+        ([(5, 1), (5, 0)], [(3, 1), (3, 0)], [1]),  # differing counts
+        ([(5, 1), (3, 0)], [(5, 2)], [1, 5]),  # one input already mixed
+        ([(5, 1)], [(3, 1)], [1, 5]),  # k eligible in one input only
+    ],
+)
+def test_pool_matches_estimate_over_all_prompts(first, second, ks):
+    pooled = pool_hit_at_k(
+        [
+            _as_written(estimate_hit_at_k(first, ks)),
+            _as_written(estimate_hit_at_k(second, ks)),
+        ],
+        ks,
+    )
+    expected = _as_written(estimate_hit_at_k(first + second, ks))
+    assert list(pooled) == list(expected), "pooled keys should match the estimate"
+    for k, entry in expected.items():
+        assert (
+            pooled[k]["prompts"] == entry["prompts"]
+        ), f"pooling should count every prompt eligible for hit@{k}"
+        assert pooled[k]["score"] == pytest.approx(
+            entry["score"]
+        ), f"pooling should match estimating hit@{k} over every prompt at once"
+
+
+def test_pool_weights_scores_by_prompts():
+    pooled = pool_hit_at_k(
+        [{"1": {"score": 1.0, "prompts": 1}}, {"1": {"score": 0.0, "prompts": 3}}],
+        [1],
+    )
+    assert pooled == {"1": {"score": 0.25, "prompts": 4}}, "one of four prompts"
+
+
+def test_pool_empty_inputs_return_empty():
+    assert pool_hit_at_k([], [1]) == {}, "no scores yields no pooled scores"
+    assert pool_hit_at_k([{}], [1]) == {}, "empty scores are skipped"

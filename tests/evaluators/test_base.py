@@ -63,6 +63,7 @@ def _config_loaded():
     garak._config.load_base_config()
     garak._config.transient.hitlogfile = None
     garak._config.plugins.probes["test"]["generations"] = 1
+    garak._config.reporting.hit_at_k = None
 
 
 @contextmanager
@@ -182,3 +183,26 @@ def test_eval_row_intents_scoped_per_detector(tmp_path):
     }
     assert "manipulation" not in rows["d.D2"]["intents"]
     assert rows["d.D2"]["total_evaluated"] == 2
+
+
+def test_eval_row_intents_carry_hit_at_k(tmp_path):
+    garak._config.reporting.hit_at_k = [1]
+    reportfile = tmp_path / "report.report.jsonl"
+    with _capture_report(reportfile):
+        evaluator = ThresholdEvaluator()
+        attempts = [
+            _attempt_with(intent="deception", detector_scores={"d.D": [0.9, 0.2]}),
+            _attempt_with(intent="deception", detector_scores={"d.D": [0.9, 0.9]}),
+            _attempt_with(intent="manipulation", detector_scores={"d.D": [0.1, 0.1]}),
+        ]
+        evaluator.evaluate(attempts)
+
+    intents = _eval_rows(reportfile)[0]["intents"]
+    assert intents["deception"]["hit_at_k"] == {
+        "1": {"score": 0.25, "prompts": 2},
+        "2": {"score": 0.5, "prompts": 2},
+    }, "hit@k should be estimated over the intent's own prompts"
+    assert intents["manipulation"]["hit_at_k"] == {
+        "1": {"score": 1.0, "prompts": 1},
+        "2": {"score": 1.0, "prompts": 1},
+    }, "hit@k should be estimated over the intent's own prompts"

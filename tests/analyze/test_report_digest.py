@@ -10,7 +10,7 @@ import garak.analyze.report_digest
 from garak.exception import ReportIncompatibleError
 
 
-def _write_report_with_eval(tmp_path, eval_entry):
+def _write_report_with_eval(tmp_path, eval_entry, setup=None):
     report_path = tmp_path / "unknown_plugin.report.jsonl"
     with open(
         "tests/_assets/analyze/test.report.jsonl",
@@ -18,6 +18,10 @@ def _write_report_with_eval(tmp_path, eval_entry):
     ) as f:
         setup_line = f.readline()
         init_line = f.readline()
+    if setup is not None:
+        setup_line = (
+            json.dumps({**json.loads(setup_line), **setup}, ensure_ascii=False) + "\n"
+        )
     with open(report_path, "w", encoding="utf-8") as out:
         out.write(setup_line)
         out.write(init_line)
@@ -90,6 +94,44 @@ def test_build_digest_carries_hit_at_k_to_detector(tmp_path) -> None:
     ), "hit@k scores should reach the detector entry as reported"
 
 
+def test_build_digest_carries_hit_at_k_to_technique_intent_matrix(tmp_path) -> None:
+    _config.load_base_config()
+    _config.reporting.taxonomy = None
+    intent_hit_at_k = {
+        "1": {"score": 0.2, "prompts": 5},
+        "5": {"score": 1.0, "prompts": 5},
+    }
+    eval_entry = {
+        "entry_type": "eval",
+        "probe": "probes.grandma.Win10",
+        "detector": "always.Fail",
+        "passed": 20,
+        "total_evaluated": 25,
+        "fails": 5,
+        "nones": 0,
+        "total_processed": 25,
+        "intents": {
+            "S003": {
+                "passed": 20,
+                "total_evaluated": 25,
+                "nones": 0,
+                "hit_at_k": intent_hit_at_k,
+            }
+        },
+    }
+    report_path = _write_report_with_eval(
+        tmp_path, eval_entry, setup={"reporting.hit_at_k": [1]}
+    )
+
+    digest = garak.analyze.report_digest.build_digest(report_path)
+
+    assert digest["technique_intent_matrix"], "grandma.Win10 carries demon:* tags"
+    for technique in digest["technique_intent_matrix"].values():
+        assert (
+            technique["S003"]["hit_at_k"] == intent_hit_at_k
+        ), "a single eval's per-intent hit@k should reach the cell unchanged"
+
+
 def _pc(probe_tags, detectors=("d.D",)):
     """Minimal report_plugin_cache: probes carry tags; detectors carry a description."""
     return {
@@ -98,8 +140,10 @@ def _pc(probe_tags, detectors=("d.D",)):
     }
 
 
-def _tim(evals, pc):
-    return garak.analyze.report_digest._compute_technique_intent_matrix(evals, pc)
+def _tim(evals, pc, hit_at_k_ks=None):
+    return garak.analyze.report_digest._compute_technique_intent_matrix(
+        evals, pc, hit_at_k_ks
+    )
 
 
 def test_tim_single_cell():
@@ -369,6 +413,152 @@ def test_tim_cell_includes_nones():
     assert cell["nones"] == 4, cell  # pooled across detectors
     assert cell["passed"] == 3 and cell["total_evaluated"] == 6, cell
     assert cell["score"] == pytest.approx(3 / 6), cell
+
+
+def test_tim_pools_hit_at_k_across_detectors():
+    evals = [
+        {
+            "entry_type": "eval",
+            "probe": "grandma.Win10",
+            "detector": "d.A",
+            "intents": {
+                "S003": {
+                    "passed": 5,
+                    "total_evaluated": 10,
+                    "nones": 0,
+                    "hit_at_k": {
+                        "1": {"score": 0.5, "prompts": 2},
+                        "5": {"score": 1.0, "prompts": 2},
+                    },
+                }
+            },
+        },
+        {
+            "entry_type": "eval",
+            "probe": "grandma.Win10",
+            "detector": "d.B",
+            "intents": {
+                "S003": {
+                    "passed": 10,
+                    "total_evaluated": 10,
+                    "nones": 0,
+                    "hit_at_k": {
+                        "1": {"score": 0.0, "prompts": 2},
+                        "5": {"score": 0.0, "prompts": 2},
+                    },
+                }
+            },
+        },
+    ]
+    pc = _pc({"grandma.Win10": ["demon:T:Tech"]}, detectors=("d.A", "d.B"))
+    cell = _tim(evals, pc, [1])["demon:T:Tech"]["S003"]
+    assert cell["hit_at_k"] == {
+        "1": {"score": 0.25, "prompts": 4},
+        "5": {"score": 0.5, "prompts": 4},
+    }, "hit@k should be weighted by prompts across detectors"
+
+
+def test_tim_hit_at_k_keys_mixed_generation_counts_by_n():
+    evals = [
+        {
+            "entry_type": "eval",
+            "probe": "grandma.Win10",
+            "detector": "d.D",
+            "intents": {
+                "S003": {
+                    "passed": 4,
+                    "total_evaluated": 5,
+                    "nones": 0,
+                    "hit_at_k": {
+                        "1": {"score": 0.2, "prompts": 1},
+                        "5": {"score": 1.0, "prompts": 1},
+                    },
+                }
+            },
+        },
+        {
+            "entry_type": "eval",
+            "probe": "doctor.BypassTechniques",
+            "detector": "d.D",
+            "intents": {
+                "S003": {
+                    "passed": 3,
+                    "total_evaluated": 3,
+                    "nones": 0,
+                    "hit_at_k": {
+                        "1": {"score": 0.0, "prompts": 1},
+                        "3": {"score": 0.0, "prompts": 1},
+                    },
+                }
+            },
+        },
+    ]
+    pc = _pc(
+        {
+            "grandma.Win10": ["demon:T:Tech"],
+            "doctor.BypassTechniques": ["demon:T:Tech"],
+        }
+    )
+    cell = _tim(evals, pc, [1])["demon:T:Tech"]["S003"]
+    assert cell["hit_at_k"] == {
+        "1": {"score": 0.1, "prompts": 2},
+        "n": {"score": 0.5, "prompts": 2},
+    }, "prompts with unequal generation counts should share the n entry"
+
+
+@pytest.mark.parametrize(
+    "hit_at_k_ks, intent_counts",
+    [
+        (
+            None,
+            {
+                "passed": 1,
+                "total_evaluated": 2,
+                "nones": 0,
+                "hit_at_k": {"2": {"score": 1.0, "prompts": 1}},
+            },
+        ),
+        ([1], {"passed": 1, "total_evaluated": 2, "nones": 0}),
+    ],
+)
+def test_tim_omits_hit_at_k(hit_at_k_ks, intent_counts):
+    evals = [
+        {
+            "entry_type": "eval",
+            "probe": "grandma.Win10",
+            "detector": "d.D",
+            "intents": {"S003": intent_counts},
+        }
+    ]
+    pc = _pc({"grandma.Win10": ["demon:T:Tech"]})
+    cell = _tim(evals, pc, hit_at_k_ks)["demon:T:Tech"]["S003"]
+    assert (
+        "hit_at_k" not in cell
+    ), "hit@k needs both configured k values and per-intent scores"
+
+
+@pytest.mark.parametrize(
+    "intent_hit_at_k",
+    [{"1": {"score": 0.5}}, {"1": {"score": 0.5, "prompts": 0}}],
+)
+def test_tim_malformed_hit_at_k_raises(intent_hit_at_k):
+    evals = [
+        {
+            "entry_type": "eval",
+            "probe": "grandma.Win10",
+            "detector": "d.D",
+            "intents": {
+                "S003": {
+                    "passed": 1,
+                    "total_evaluated": 2,
+                    "nones": 0,
+                    "hit_at_k": intent_hit_at_k,
+                }
+            },
+        }
+    ]
+    with pytest.raises(ReportIncompatibleError):
+        _tim(evals, _pc({"grandma.Win10": ["demon:T:Tech"]}), [1])
 
 
 def test_tim_missing_nones_raises():
