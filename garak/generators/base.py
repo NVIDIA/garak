@@ -4,6 +4,7 @@ All `garak` generators must inherit from this.
 """
 
 import logging
+import multiprocessing
 import random
 import re
 from typing import List, Union
@@ -173,12 +174,16 @@ class Generator(Configurable):
             outputs = self._call_model(prompt, generations_this_call)
 
         else:
+            # attempt pool workers (e.g. parallel_attempts) are daemonic and
+            # cannot start a pool of their own, so send requests serially there
+            in_pool_worker = multiprocessing.current_process().daemon
             if (
                 self.parallel_capable
                 and hasattr(self, "parallel_requests")
                 and self.parallel_requests
                 and isinstance(self.parallel_requests, int)
                 and self.parallel_requests > 1
+                and not in_pool_worker
             ):
                 from multiprocessing import Pool
 
