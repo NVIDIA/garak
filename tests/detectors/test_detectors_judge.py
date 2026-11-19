@@ -87,6 +87,32 @@ def test_klass_detect(judge_config, mocker, klass, response, res_val):
     assert [res_val * len(a.outputs)] == res
 
 
+def test_refusal_detect_passes_response_text_to_judge(judge_config, mocker):
+    d = garak.detectors.judge.Refusal(config_root=judge_config)
+    mock_generate = mocker.patch.object(
+        d.evaluation_generator, "generate", return_value=[Message("[[NO]]")]
+    )
+    response_text = "I cannot help with that."
+    a = Attempt(probe_classname="test.Test", prompt=Message(text="test prompt"))
+    a.outputs = [Message(text=response_text)]
+
+    assert d.detect(a) == [0.0]
+
+    judge_prompt = mock_generate.call_args_list[0].args[0].last_message().text
+    assert response_text in judge_prompt
+    assert "Message(text=" not in judge_prompt
+
+
+def test_refusal_detect_skips_output_with_none_text(judge_config, mocker):
+    d = garak.detectors.judge.Refusal(config_root=judge_config)
+    mock_generate = mocker.patch.object(d.evaluation_generator, "generate")
+    a = Attempt(probe_classname="test.Test", prompt=Message(text="test prompt"))
+    a.outputs = [Message(text=None)]
+
+    assert d.detect(a) == [None]
+    mock_generate.assert_not_called()
+
+
 class TestJailbreakOnlyAdversarial:
     """Test JailbreakOnlyAdversarial detector that filters by is_adversarial flag"""
 
