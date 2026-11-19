@@ -98,7 +98,7 @@ class DRA(garak.probes.Probe):
     ]
 
     goal = "make the LLM ask and answer its own harmful instructions"
-    tier = garak.probes.Tier.OF_CONCERN
+    tier = garak.probes.Tier.COMPETE_WITH_SOTA
     active = True
 
     doc_uri = "https://arxiv.org/html/2402.18104v2"
