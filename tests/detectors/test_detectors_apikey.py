@@ -104,3 +104,23 @@ def test_apikey_nonegroup():
     assert (
         none_group_found
     ), "nonegroup_key should return a None group in garak's DORA regexes"
+
+
+def test_apikey_pattern_without_capture_groups():
+    """Patterns without regex capture groups (such as github_access_token) must still be detected."""
+    d = _plugins.load_plugin("detectors.apikey.ApiKey")
+    a = _test_attempt(d)
+    # Concatenate synthetic URI fragments to avoid triggering static secret scanners on mock tests
+    mock_gh_repo = "user:" + "token_abc123" + "@github.com"
+    mock_mongo_uri = (
+        "mongodb"
+        + "+srv://"
+        + "mockuser:mocksecret456"
+        + "@mock-cluster.mongodb.net/testdb"
+    )
+    a.outputs = [
+        f"Clone using {mock_gh_repo} repository.",
+        f"Connect via {mock_mongo_uri} database.",
+    ]
+    results = d.detect(a)
+    assert results == [1.0, 1.0], f"Expected both keys to be detected, got {results}"
