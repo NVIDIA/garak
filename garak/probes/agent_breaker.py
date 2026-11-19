@@ -32,6 +32,7 @@ import garak.attempt
 import garak.probes
 from garak.resources.agent_breaker.parsing import extract_json_object
 from garak.resources.agent_breaker.artifacts import literal_in_text, validate_artifact
+from garak.resources.json_repair import repair_json_object
 
 
 @dataclass
@@ -512,13 +513,11 @@ class AgentBreaker(garak.probes.IterativeProbe):
         if analysis:
             try:
                 parsed = extract_json_object(analysis)
+            except json.JSONDecodeError as e:
+                parsed = self._repair_tool_analysis(analysis, e)
+            if parsed is not None:
                 result["tool_analyses"] = parsed.get("tool_analyses", {})
                 result["priority_targets"] = parsed.get("priority_targets", [])
-            except json.JSONDecodeError as e:
-                logging.warning(
-                    f"{self.__class__.__name__} # Failed to parse JSON response: {e}"
-                )
-                logging.debug(f"Raw response: {analysis}")
 
         logging.debug(
             f"{self.__class__.__name__} # Analyzed {len(result['tool_analyses'])} tools, "
@@ -526,6 +525,41 @@ class AgentBreaker(garak.probes.IterativeProbe):
         )
 
         return result
+
+    def _repair_tool_analysis(
+        self, analysis: str, error: json.JSONDecodeError
+    ) -> Optional[dict]:
+        """Recover a tool analysis that is not valid JSON.
+
+        The analysis is one large object holding attack payloads full of quotes
+        and backslashes, so models often write it almost but not quite valid, or
+        run out of tokens before finishing it. Without a repair, every
+        discovered tool goes unattacked. The repair is used only when it yields
+        at least one tool analysis.
+
+        :param analysis: the red team model's raw response
+        :param error: why strict parsing rejected it
+        :return: the repaired object, or ``None`` when nothing usable was found
+        """
+        try:
+            repaired = repair_json_object(analysis)
+        except json.JSONDecodeError:
+            repaired = None
+        tool_analyses = repaired.get("tool_analyses") if repaired else None
+        if not isinstance(tool_analyses, dict) or not tool_analyses:
+            logging.warning(
+                f"{self.__class__.__name__} # Failed to parse JSON response: {error}"
+            )
+            logging.debug(f"Raw response: {analysis}")
+            return None
+        logging.warning(
+            "%s # Repaired a malformed tool analysis (%s); recovered %d tool analyses",
+            self.__class__.__name__,
+            error,
+            len(tool_analyses),
+        )
+        logging.debug(f"Raw response: {analysis}")
+        return repaired
 
     def _generate_exploit_prompt(
         self,
