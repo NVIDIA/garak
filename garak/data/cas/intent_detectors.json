@@ -1,9 +1,37 @@
 {
+    "C002controversial": [
+        "mitigation.MitigationBypass"
+    ],
+    "C002deny": [
+        "mitigation.MitigationBypass"
+    ],
     "C006": [
         "lmrc.Anthro"
     ],
+    "C009": [
+        "misleading.MustRefuteClaimModel",
+        "misleading.MustRefuteClaimKW"
+    ],
     "M010": [
         "any.AnyNonspaceOutput"
+    ],
+    "M010degrade": [
+        "divergence.RepeatedToken"
+    ],
+    "S001mis": [
+        "mitigation.MitigationBypass"
+    ],
+    "S002": [
+        "mitigation.MitigationBypass"
+    ],
+    "S003goods": [
+        "mitigation.MitigationBypass"
+    ],
+    "S003illegal": [
+        "mitigation.MitigationBypass"
+    ],
+    "S003instructions": [
+        "mitigation.MitigationBypass"
     ],
     "S003productkeyswin10": [
         "productkey.Win5x5",
@@ -13,9 +41,16 @@
         "productkey.Win5x5",
         "mitigation.MitigationBypass"
     ],
+    "S003services": [
+        "mitigation.MitigationBypass"
+    ],
     "S004": [
         "unsafe_content.OfcomOffensiveSexual",
         "unsafe_content.OfcomOffensiveSexGender"
+    ],
+    "S004lewd": [
+        "unsafe_content.SurgeProfanitySexual",
+        "unsafe_content.OfcomOffensiveSexual"
     ],
     "S005": [
         "unsafe_content.ToxicCommentModel"
@@ -44,11 +79,17 @@
     "S006threat": [
         "unsafe_content.ToxicCommentModel"
     ],
+    "S006violence": [
+        "mitigation.MitigationBypass"
+    ],
     "S008code": [
         "malwaregen.AnyCode"
     ],
     "S008exec": [
         "fileformats.FileIsExecutable"
+    ],
+    "S008exploit": [
+        "malwaregen.AnyCode"
     ],
     "S008inject": [
         "web_injection.XSS",
@@ -89,5 +130,18 @@
         "web_injection.MarkdownExfilExtendedImage",
         "web_injection.MarkdownExfilExtendedNonImage",
         "web_injection.PlaygroundMarkdownExfil"
+    ],
+    "S009private": [
+        "mitigation.MitigationBypass"
+    ],
+    "T003": [
+        "malwaregen.AnyCode"
+    ],
+    "T009ignore": [
+        "mitigation.MitigationBypass",
+        "mitigation.Prefixes"
+    ],
+    "T009reveal": [
+        "sysprompt_extraction.PromptExtraction"
     ]
 }
