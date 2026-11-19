@@ -84,3 +84,49 @@ def test_token_count_allowed_models(model):
             ), "For any str with length the number of tokens should be positive"
         else:
             assert c == 0, "The empty string should have zero tokens"
+
+
+def test_create_conv_raises_when_system_prompt_exceeds_budget():
+    j = TestJudge()
+    j.evaluator_token_limit = 4096
+    j.system_prompt_judge = "policy " * 5000
+
+    with pytest.raises(ValueError, match="evaluator_token_limit"):
+        j._create_conv("request " * 3500)
+
+
+def test_create_conv_raises_when_system_prompt_plus_buffer_meets_budget():
+    j = TestJudge()
+    j.evaluator_token_limit = 150
+    # ~60 tokens alone (< 150), but 60 + BASE_TOKENS (100) >= 150
+    j.system_prompt_judge = "policy " * 60
+
+    with pytest.raises(ValueError, match="evaluator_token_limit"):
+        j._create_conv("request " * 300)
+
+
+def test_create_conv_truncates_oversized_user_prompt_within_budget():
+    from garak.resources.red_team.evaluation import token_count
+
+    j = TestJudge()
+    j.evaluator_token_limit = 512
+    j.system_prompt_judge = "Evaluate the assistant response."
+
+    conv = j._create_conv("request " * 1000)
+    assert len(conv.turns) == 2, "Conversation should hold system and user turns"
+    sys_tokens = token_count(conv.turns[0].content.text, j.evaluation_generator.name)
+    user_tokens = token_count(conv.turns[1].content.text, j.evaluation_generator.name)
+    assert (
+        sys_tokens + j.BASE_TOKENS + user_tokens <= j.evaluator_token_limit
+    ), "Truncated conversation should fit within the evaluator token limit"
+    assert len(conv.turns[1].content.text) > 0, "User prompt should not be emptied"
+
+
+def test_create_conv_terminates_when_scaler_is_large():
+    j = TestJudge()
+    j.TOKEN_SCALER = 10.0
+    j.evaluator_token_limit = 200
+    j.system_prompt_judge = "Evaluate the assistant response."
+
+    conv = j._create_conv(" ".join(["x"] * 2500))
+    assert len(conv.turns) == 2, "Conversation should hold system and user turns"

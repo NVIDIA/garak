@@ -89,6 +89,15 @@ class EvaluationJudge:
             judge_system_prompt_tokens = token_count(
                 system_prompt, self.evaluation_generator.name
             )
+            if (
+                judge_system_prompt_tokens + self.BASE_TOKENS
+                >= self.evaluator_token_limit
+            ):
+                raise ValueError(
+                    f"Judge system prompt ({judge_system_prompt_tokens} tokens) plus "
+                    f"reserved buffer ({self.BASE_TOKENS} tokens) reaches or exceeds "
+                    f"evaluator_token_limit ({self.evaluator_token_limit})."
+                )
             prompt_tokens = self.BASE_TOKENS + token_count(
                 full_prompt, self.evaluation_generator.name
             )
@@ -102,9 +111,12 @@ class EvaluationJudge:
                     - self.evaluator_token_limit
                 )
                 if excess_tokens > 0:
-                    # Truncate excess text
-                    excess_words = int(excess_tokens / self.TOKEN_SCALER)
-                    full_prompt = full_prompt[excess_words:]
+                    # Truncate excess text; guarantee forward progress on each pass
+                    excess_words = max(1, int(excess_tokens / self.TOKEN_SCALER))
+                    truncated_prompt = full_prompt[excess_words:]
+                    if len(truncated_prompt) == len(full_prompt):
+                        break
+                    full_prompt = truncated_prompt
                     prompt_tokens = self.BASE_TOKENS + token_count(
                         full_prompt, self.evaluation_generator.name
                     )
