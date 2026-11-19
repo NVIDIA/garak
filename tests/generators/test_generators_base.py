@@ -24,6 +24,23 @@ class SerialGenerator(Generator):
         return [Message(text=prompt.last_message().text)]
 
 
+def test_supported_formats_returns_copy():
+    """Generator format declarations are exposed without mutable aliasing."""
+
+    generator = SerialGenerator(name="format test")
+    generator.audio_formats = {"wav"}
+
+    supported = generator.supported_formats("audio")
+    supported.add("mp3")
+
+    assert generator.supported_formats("audio") == {
+        "wav"
+    }, "callers must not mutate the generator format declaration"
+    assert (
+        generator.supported_formats("unknown") == set()
+    ), "unknown modalities must report no formats"
+
+
 @pytest.mark.parametrize("previously_used", [False, True])
 def test_serial_generator_ignores_parallel_requests(previously_used):
     """Serial generators must not enter the pool path, even after first use."""
