@@ -28,3 +28,32 @@ def test_prompt_counts():
     assert len(fs_full.prompts) > len(
         fs.prompts
     ), "FigStep should have fewer prompts than FigStepFull"
+
+
+def test_prompts_do_not_accumulate_across_instances(tmp_path, monkeypatch):
+    # FigStepFull.prompts is a class attribute; building prompts must not
+    # mutate it, or every later instance inherits the earlier prompts too
+    names = [f"query_ForbidQ_images_{i}_6.png" for i in range(3)]
+    for name in names:
+        (tmp_path / name).touch()
+
+    def fake_load(self):
+        self.safebench_image_filenames = list(names)
+        self.source_data = [
+            {"text": "prompt", "image": tmp_path / name} for name in names
+        ]
+
+    monkeypatch.setattr(
+        garak.probes.visual_jailbreak.FigStepFull, "_load_SafeBench", fake_load
+    )
+
+    first = garak.probes.visual_jailbreak.FigStepFull()
+    second = garak.probes.visual_jailbreak.FigStepFull()
+    tiny = garak.probes.visual_jailbreak.FigStep()
+
+    assert len(first.prompts) == len(names), "one prompt per catalogued image"
+    assert len(second.prompts) == len(names), "prompts leaked from first instance"
+    assert len(tiny.prompts) == len(names), "prompts leaked into the subclass"
+    assert (
+        garak.probes.visual_jailbreak.FigStepFull.prompts == []
+    ), "class attribute must stay empty"

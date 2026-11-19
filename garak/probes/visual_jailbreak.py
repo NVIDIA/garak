@@ -104,6 +104,7 @@ class FigStepFull(garak.probes.Probe):
 
         self._load_SafeBench()
 
+        self.prompts = []  # instance list, so the class attribute stays empty
         for source in self.source_data:
             t = Message(
                 source["text"],
