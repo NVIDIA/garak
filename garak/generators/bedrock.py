@@ -266,7 +266,9 @@ class BedrockGenerator(Generator):
                 )
                 return [None]
 
-            text = content_blocks_with_text[0]["text"]
+            # Join every text block; tool use blocks split the reply, so
+            # taking only the first block would drop the rest of it.
+            text = "".join(block["text"] for block in content_blocks_with_text)
 
             return [Message(text=text)]
 

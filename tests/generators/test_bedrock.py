@@ -408,3 +408,34 @@ def test_warn_on_unknown_suppressed_key(mock_boto3, caplog):
     assert any(
         any(k in r.message for k in BedrockGenerator._PARAM_MAP) for r in matching
     ), "expected WARNING to list valid keys"
+
+
+@pytest.mark.usefixtures("set_aws_env", "mock_boto3")
+def test_bedrock_returns_all_text_blocks(mock_boto3):
+    """Text split across blocks by a tool use is joined, not truncated."""
+    from garak.generators.bedrock import BedrockGenerator
+
+    mock_boto3.converse.return_value = {
+        "output": {
+            "message": {
+                "role": "assistant",
+                "content": [
+                    {"text": "FIRST PART "},
+                    {
+                        "toolUse": {
+                            "toolUseId": "t1",
+                            "name": "get_time",
+                            "input": {},
+                        }
+                    },
+                    {"text": "SECOND PART"},
+                ],
+            }
+        },
+        "stopReason": "end_turn",
+    }
+    generator = BedrockGenerator(name="claude-4-5-sonnet")
+    conv = Conversation([Turn(role="user", content=Message("Hello Bedrock!"))])
+    output = generator.generate(conv, generations_this_call=1)
+    assert len(output) == 1
+    assert output[0].text == "FIRST PART SECOND PART"
