@@ -359,6 +359,112 @@ class TestWebSocketGenerator:
         assert result["options"][0] == input_value
         assert result["options"][1] == static_value
 
+    @pytest.mark.parametrize("use_json_object", [False, True])
+    def test_format_message_single_pass_placeholder_expansion(self, use_json_object):
+        """Placeholders inside prompt or credential values must not be re-expanded."""
+        opts = {
+            "uri": "ws://localhost:3000",
+            "api_key": "secret_$INPUT_token",
+            "conversation_id": "conv_$KEY_id",
+        }
+        if use_json_object:
+            opts["req_template_json_object"] = {
+                "message": "$INPUT",
+                "api_key": "$KEY",
+                "conversation_id": "$CONVERSATION_ID",
+            }
+        else:
+            opts["req_template"] = "msg=$INPUT|key=$KEY|conv=$CONVERSATION_ID"
+
+        gen = WebSocketGenerator(
+            config_root={"generators": {"websocket": {"WebSocketGenerator": opts}}}
+        )
+        prompt = "echo $KEY and $CONVERSATION_ID"
+        formatted = gen._format_message(prompt)
+
+        if use_json_object:
+            data = json.loads(formatted)
+            assert (
+                data["message"] == prompt
+            ), "prompt text must not have $KEY or $CONVERSATION_ID expanded"
+            assert (
+                data["api_key"] == "secret_$INPUT_token"
+            ), "api_key value must not have $INPUT expanded"
+            assert (
+                data["conversation_id"] == "conv_$KEY_id"
+            ), "conversation_id value must not have $KEY expanded"
+        else:
+            assert (
+                formatted == f"msg={prompt}|key=secret_$INPUT_token|conv=conv_$KEY_id"
+            ), "string template placeholders must expand in a single pass"
+
+    @pytest.mark.asyncio
+    async def test_connect_websocket_expands_key_in_headers(self):
+        """$KEY placeholders in custom headers must be expanded on connect."""
+        caller_headers = {
+            "X-API-Key": "$KEY",
+            "Authorization": "Token $KEY",
+            "X-Static": "ok",
+        }
+        instance_config = {
+            "generators": {
+                "websocket": {
+                    "WebSocketGenerator": {
+                        "uri": "ws://localhost:3000",
+                        "auth_type": "custom",
+                        "api_key": "secret_token",
+                        "headers": caller_headers,
+                    }
+                }
+            }
+        }
+        gen = WebSocketGenerator(config_root=instance_config)
+
+        mock_websocket = AsyncMock()
+        mock_connect = AsyncMock(return_value=mock_websocket)
+        gen.websockets = MagicMock()
+        gen.websockets.connect = mock_connect
+
+        await gen._connect_websocket()
+        _, kwargs = mock_connect.call_args
+        assert kwargs["additional_headers"] == {
+            "X-API-Key": "secret_token",
+            "Authorization": "Token secret_token",
+            "X-Static": "ok",
+        }, "$KEY in custom headers must expand to api_key on connect"
+        assert (
+            gen.headers["X-API-Key"] == "$KEY"
+        ), "stored header template must remain unmutated"
+
+    @pytest.mark.asyncio
+    async def test_connect_websocket_does_not_reexpand_auth_header(self):
+        """An api_key containing literal $KEY must not be re-expanded in Authorization."""
+        instance_config = {
+            "generators": {
+                "websocket": {
+                    "WebSocketGenerator": {
+                        "uri": "ws://localhost:3000",
+                        "auth_type": "bearer",
+                        "api_key": "tok_$KEY_end",
+                        "headers": {"X-Custom": "$KEY"},
+                    }
+                }
+            }
+        }
+        gen = WebSocketGenerator(config_root=instance_config)
+
+        mock_websocket = AsyncMock()
+        mock_connect = AsyncMock(return_value=mock_websocket)
+        gen.websockets = MagicMock()
+        gen.websockets.connect = mock_connect
+
+        await gen._connect_websocket()
+        _, kwargs = mock_connect.call_args
+        assert kwargs["additional_headers"] == {
+            "Authorization": "Bearer tok_$KEY_end",
+            "X-Custom": "tok_$KEY_end",
+        }, "Authorization built from api_key must not be re-expanded while custom headers expand $KEY"
+
     def test_default_params_coverage(self):
         """Test that all default parameters are properly set"""
         gen = WebSocketGenerator(uri="ws://localhost:3000")
