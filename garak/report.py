@@ -1,14 +1,41 @@
 """Defines the Report class and associated functions to process and export a native garak report"""
 
-import importlib
 import json
 import numpy as np
 import pandas as pd
 
 from datetime import date
+import garak._plugins
 import avidtools.datamodels.report as ar
 import avidtools.datamodels.components as ac
 import avidtools.datamodels.enums as ae
+
+
+def merge_plugin_cache_records(records):
+    """Combine the `plugin_cache` records of a report into one category -> classpath -> metadata dict"""
+    merged = {}
+    for record in records:
+        if record.get("entry_type") != "plugin_cache":
+            continue
+        for category, entries in record.get("plugin_cache", {}).items():
+            if category == "version":
+                continue
+            merged.setdefault(category, {}).update(entries)
+    return merged
+
+
+def probe_tags(plugin_cache, probe):
+    """Tags of a `module.Class` probe as recorded in the report.
+
+    Reports written before plugin metadata was recorded have no entry; for those
+    the current plugin metadata is used, which reads class attributes without
+    constructing the probe.
+    """
+    classpath = f"probes.{probe}"
+    meta = plugin_cache.get("probes", {}).get(classpath)
+    if meta is None:
+        meta = garak._plugins.plugin_info(classpath)
+    return meta["tags"]
 
 
 # load up a .jsonl output file, take in eval and config rows
@@ -57,6 +84,7 @@ class Report:
     def get_evaluations(self):
         """Extracts evaluation information from a garak report."""
         evals = []
+        plugin_cache = merge_plugin_cache_records(self.records)
 
         for record in self.records:
             if record["entry_type"] == "eval":
@@ -68,12 +96,7 @@ class Report:
 
         # preprocess
         for i in range(len(evals)):
-            module_name, plugin_class_name = evals[i]["probe"].split(".")
-            mod = importlib.import_module(f"garak.probes.{module_name}")
-
-            evals[i]["probe"] = f"{module_name}.{plugin_class_name}"
-            # class tags: building a probe needs a run (intent service, datasets)
-            evals[i]["probe_tags"] = getattr(mod, plugin_class_name).tags
+            evals[i]["probe_tags"] = probe_tags(plugin_cache, evals[i]["probe"])
 
         self.evaluations = pd.DataFrame.from_dict(evals)
         self.evaluations["score"] = np.where(

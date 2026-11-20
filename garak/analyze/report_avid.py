@@ -2,7 +2,6 @@
 
 """Prints an AVID report given a garak report in jsonl"""
 
-import importlib
 import sys
 import json
 import pandas as pd
@@ -11,16 +10,19 @@ from datetime import date
 from avidtools.datamodels.report import Report
 from avidtools.datamodels.components import *
 import garak
+from garak.report import merge_plugin_cache_records, probe_tags
 
 
 def convert_to_avid(report_location: str) -> str:
     evals = []
+    records = []
     meta = None
 
     print(f"📜 Converting garak reports {report_location}")
     with open(report_location, "r", encoding="utf-8") as reportfile:
         for line in reportfile:
             record = json.loads(line.strip())
+            records.append(record)
             if record["entry_type"] == "eval":
                 evals.append(record)
             elif record["entry_type"] == "config":
@@ -29,13 +31,9 @@ def convert_to_avid(report_location: str) -> str:
         raise ValueError("No evaluations to report 🤷")
 
     # preprocess
+    plugin_cache = merge_plugin_cache_records(records)
     for i in range(len(evals)):
-        module_name, plugin_class_name = evals[i]["probe"].split(".")
-        mod = importlib.import_module(f"garak.probes.{module_name}")
-
-        evals[i]["probe"] = f"{module_name}.{plugin_class_name}"
-        # class tags: building a probe needs a run (intent service, datasets)
-        evals[i]["probe_tags"] = getattr(mod, plugin_class_name).tags
+        evals[i]["probe_tags"] = probe_tags(plugin_cache, evals[i]["probe"])
 
     evals_df = pd.DataFrame.from_dict(evals)
     evals_df = evals_df.assign(

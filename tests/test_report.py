@@ -72,7 +72,7 @@ def exported_avid_report(sample_report, request):
 def probe_report(tmp_path):
     """Factory for a minimal report with one eval entry for the named probe"""
 
-    def _write(probe_name):
+    def _write(probe_name, plugin_cache=None):
         report_file = tmp_path / "probe_tags.report.jsonl"
         lines = [
             {
@@ -88,6 +88,14 @@ def probe_report(tmp_path):
                 "total_evaluated": 10,
             },
         ]
+        if plugin_cache is not None:
+            lines.insert(
+                1,
+                {
+                    "entry_type": "plugin_cache",
+                    "plugin_cache": plugin_cache,
+                },
+            )
         with open(report_file, "w") as f:
             for line in lines:
                 f.write(json.dumps(line, ensure_ascii=False) + "\n")
@@ -174,6 +182,56 @@ def test_get_evaluations_intent_probe_without_intentservice(probe_report, monkey
     assert (
         r.evaluations["probe_tags"][0] == garak.probes.grandma.GrandmaIntent.tags
     ), "tags of the intent probe should come from its class"
+
+
+def test_get_evaluations_uses_tags_from_report_plugin_cache(probe_report):
+    """Tags are the ones recorded in the report, not the current class tags"""
+    recorded = ["avid-effect:security:S0100", "recorded:only"]
+    cache = {
+        "version": "0.0.0",
+        "probes": {"probes.test.Test": {"tags": recorded}},
+    }
+    r = (
+        Report(report_location=probe_report("test.Test", plugin_cache=cache))
+        .load()
+        .get_evaluations()
+    )
+    assert r.evaluations["probe_tags"][0] == recorded
+    assert recorded != garak.probes.test.Test.tags
+
+
+def test_get_evaluations_merges_plugin_cache_records(probe_report, tmp_path):
+    """The harness writes one plugin_cache record per probe; all of them are used"""
+    path = probe_report(
+        "test.Test",
+        plugin_cache={
+            "version": "0.0.0",
+            "probes": {"probes.other.Other": {"tags": []}},
+        },
+    )
+    with open(path, "a") as f:
+        f.write(
+            json.dumps(
+                {
+                    "entry_type": "plugin_cache",
+                    "plugin_cache": {
+                        "version": "0.0.0",
+                        "probes": {"probes.test.Test": {"tags": ["from:second"]}},
+                    },
+                }
+            )
+            + "\n"
+        )
+    r = Report(report_location=path).load().get_evaluations()
+    assert r.evaluations["probe_tags"][0] == ["from:second"]
+
+
+def test_get_evaluations_without_plugin_cache_falls_back_to_current_tags(
+    probe_report,
+):
+    """Reports written before plugin_cache records existed still load"""
+    r = Report(report_location=probe_report("test.Test")).load().get_evaluations()
+    assert r.evaluations["probe_tags"][0] == garak.probes.test.Test.tags
 
 
 def test_get_evaluations_does_not_construct_probe(probe_report, monkeypatch):
