@@ -24,6 +24,7 @@ class MistralGenerator(Generator):
     ENV_VAR = "MISTRAL_API_KEY"
     DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
         "name": "mistral-large-latest",
+        "suppressed_params": set(),
     }
 
     _unsafe_attributes = ["client"]
@@ -45,7 +46,8 @@ class MistralGenerator(Generator):
         request_params = {
             param: getattr(self, param)
             for param in ("max_tokens", "temperature", "top_p")
-            if getattr(self, param, None) is not None
+            if param not in self.suppressed_params
+            and getattr(self, param, None) is not None
         }
         try:
             chat_response = self.client.chat.complete(

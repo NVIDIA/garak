@@ -119,3 +119,29 @@ def test_mistral_generation_params_sent(respx_mock, mistral_compat_mocks):
     assert body["max_tokens"] == 42
     assert body["temperature"] == 0.3
     assert body["top_p"] == 0.9
+
+
+@pytest.mark.skipif(
+    not all(
+        [importlib.util.find_spec(m) for m in MistralGenerator.extra_dependency_names]
+    ),
+    reason="missing optional dependency",
+)
+@pytest.mark.usefixtures("set_fake_env")
+@pytest.mark.respx(base_url="https://api.mistral.ai/v1")
+def test_mistral_suppressed_params_not_sent(respx_mock, mistral_compat_mocks):
+    mock_response = mistral_compat_mocks["mistralai_generation"]
+    route = respx_mock.post("chat/completions").mock(
+        return_value=httpx.Response(mock_response["code"], json=mock_response["json"])
+    )
+    generator = MistralGenerator(name=DEFAULT_DEPLOYMENT_NAME)
+    generator.max_tokens = 42
+    generator.temperature = 0.3
+    generator.top_p = 0.9
+    generator.suppressed_params = {"temperature", "top_p"}
+    conv = Conversation([Turn("user", Message("Hello Mistral!"))])
+    generator.generate(conv)
+    body = json.loads(route.calls.last.request.content)
+    assert body["max_tokens"] == 42
+    assert "temperature" not in body
+    assert "top_p" not in body
