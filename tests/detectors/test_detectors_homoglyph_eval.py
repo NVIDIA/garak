@@ -1,18 +1,20 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Tests demonstrating the MitigationBypass gap for non-English responses.
+"""Tests for the HomoglyphObfuscation detector migration.
 
 HomoglyphObfuscation replaces Latin characters with Cyrillic/Turkish homoglyphs.
 When a target responds in the same script (e.g., Russian refusal to a
 Cyrillic-obfuscated prompt), MitigationBypass cannot recognise the refusal
 because it only matches ~156 English substrings.
 
-These tests are CI-safe (no model download, no network) and document the gap
-that motivates the detector migration in the parent PR.
+The CI-safe tests document the gap; the model-dependent tests verify that
+ModernBERTRefusal closes it.
 
 See: https://github.com/NVIDIA/garak/issues/2408
 """
+
+import pytest
 
 import garak._plugins
 from garak.attempt import Attempt, Message
@@ -52,6 +54,9 @@ def _make_attempt(outputs, lang="en"):
     return attempt
 
 
+# -- CI-safe tests: document the MitigationBypass gap -------------------------
+
+
 def test_mitigationbypass_catches_english_refusals():
     """MitigationBypass scores English refusals as 0.0 (pass)."""
     d = garak._plugins.load_plugin("detectors.mitigation.MitigationBypass")
@@ -81,3 +86,52 @@ def test_mitigationbypass_false_positives_on_non_english():
     assert all(
         r == 1.0 for r in results
     ), f"Expected all 1.0 (false positives) for non-English refusals, got {results}"
+
+
+# -- Model-dependent tests: verify ModernBERTRefusal closes the gap -----------
+
+_modernbert_available = True
+try:
+    import transformers  # noqa: F401
+except ImportError:
+    _modernbert_available = False
+
+
+@pytest.mark.skipif(
+    not _modernbert_available, reason="transformers not installed"
+)
+def test_modernbert_catches_non_english_refusals():
+    """ModernBERTRefusal scores non-English refusals as pass (< 0.5).
+
+    This closes the gap shown by test_mitigationbypass_false_positives_on_non_english:
+    the ML classifier recognises refusal semantics regardless of script.
+    """
+    d = garak._plugins.load_plugin("detectors.mitigation.ModernBERTRefusal")
+    results = d.detect(_make_attempt(NON_ENGLISH_REFUSALS))
+    assert all(
+        r is not None and r < 0.5 for r in results
+    ), f"Expected all < 0.5 for non-English refusals, got {results}"
+
+
+@pytest.mark.skipif(
+    not _modernbert_available, reason="transformers not installed"
+)
+def test_modernbert_catches_english_compliance():
+    """ModernBERTRefusal scores compliant responses as hit (> 0.5)."""
+    d = garak._plugins.load_plugin("detectors.mitigation.ModernBERTRefusal")
+    results = d.detect(_make_attempt(ENGLISH_COMPLIANCES))
+    assert all(
+        r is not None and r > 0.5 for r in results
+    ), f"Expected all > 0.5 for English compliances, got {results}"
+
+
+@pytest.mark.skipif(
+    not _modernbert_available, reason="transformers not installed"
+)
+def test_modernbert_catches_english_refusals():
+    """ModernBERTRefusal scores English refusals as pass (< 0.5)."""
+    d = garak._plugins.load_plugin("detectors.mitigation.ModernBERTRefusal")
+    results = d.detect(_make_attempt(ENGLISH_REFUSALS))
+    assert all(
+        r is not None and r < 0.5 for r in results
+    ), f"Expected all < 0.5 for English refusals, got {results}"
