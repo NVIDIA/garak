@@ -3,6 +3,9 @@ import os
 import pytest
 import pandas as pd
 
+import garak.probes.grandma
+import garak.probes.test
+import garak.services.intentservice
 from garak.report import Report
 
 # Helper functions
@@ -63,6 +66,42 @@ def exported_avid_report(sample_report, request):
     Report(report_location=sample_report).load().get_evaluations().export()
 
     return avid_file
+
+
+@pytest.fixture
+def probe_report(tmp_path):
+    """Factory for a minimal report with one eval entry for the named probe"""
+
+    def _write(probe_name, plugin_cache=None):
+        report_file = tmp_path / "probe_tags.report.jsonl"
+        lines = [
+            {
+                "entry_type": "start_run setup",
+                "plugins.target_type": "test",
+                "plugins.target_name": "Blank",
+            },
+            {
+                "entry_type": "eval",
+                "probe": probe_name,
+                "detector": "always.Pass",
+                "passed": 5,
+                "total_evaluated": 10,
+            },
+        ]
+        if plugin_cache is not None:
+            lines.insert(
+                1,
+                {
+                    "entry_type": "plugin_cache",
+                    "plugin_cache": plugin_cache,
+                },
+            )
+        with open(report_file, "w") as f:
+            for line in lines:
+                f.write(json.dumps(line, ensure_ascii=False) + "\n")
+        return str(report_file)
+
+    return _write
 
 
 # Test __init__()
@@ -130,6 +169,82 @@ def test_get_evaluations_extracts_evaluations_and_scores(sample_report):
     assert r.scores.empty is False
     assert r.scores.index.name == "probe"
     assert r.scores.index.tolist() == r.evaluations["probe"].unique().tolist()
+
+
+def test_get_evaluations_intent_probe_without_intentservice(probe_report, monkeypatch):
+    """IntentProbe subclasses can't be built outside a run; reports of runs that used them must load"""
+    monkeypatch.setattr(garak.services.intentservice, "is_loaded", False)
+    r = (
+        Report(report_location=probe_report("grandma.GrandmaIntent"))
+        .load()
+        .get_evaluations()
+    )
+    assert (
+        r.evaluations["probe_tags"][0] == garak.probes.grandma.GrandmaIntent.tags
+    ), "tags of the intent probe should come from its class"
+
+
+def test_get_evaluations_uses_tags_from_report_plugin_cache(probe_report):
+    """Tags are the ones recorded in the report, not the current class tags"""
+    recorded = ["avid-effect:security:S0100", "recorded:only"]
+    cache = {
+        "version": "0.0.0",
+        "probes": {"probes.test.Test": {"tags": recorded}},
+    }
+    r = (
+        Report(report_location=probe_report("test.Test", plugin_cache=cache))
+        .load()
+        .get_evaluations()
+    )
+    assert r.evaluations["probe_tags"][0] == recorded
+    assert recorded != garak.probes.test.Test.tags
+
+
+def test_get_evaluations_merges_plugin_cache_records(probe_report, tmp_path):
+    """The harness writes one plugin_cache record per probe; all of them are used"""
+    path = probe_report(
+        "test.Test",
+        plugin_cache={
+            "version": "0.0.0",
+            "probes": {"probes.other.Other": {"tags": []}},
+        },
+    )
+    with open(path, "a") as f:
+        f.write(
+            json.dumps(
+                {
+                    "entry_type": "plugin_cache",
+                    "plugin_cache": {
+                        "version": "0.0.0",
+                        "probes": {"probes.test.Test": {"tags": ["from:second"]}},
+                    },
+                }
+            )
+            + "\n"
+        )
+    r = Report(report_location=path).load().get_evaluations()
+    assert r.evaluations["probe_tags"][0] == ["from:second"]
+
+
+def test_get_evaluations_without_plugin_cache_falls_back_to_current_tags(
+    probe_report,
+):
+    """Reports written before plugin_cache records existed still load"""
+    r = Report(report_location=probe_report("test.Test")).load().get_evaluations()
+    assert r.evaluations["probe_tags"][0] == garak.probes.test.Test.tags
+
+
+def test_get_evaluations_does_not_construct_probe(probe_report, monkeypatch):
+    """Probe constructors can load datasets or models; reading a report should not run them"""
+
+    def fail_init(self, *args, **kwargs):
+        raise RuntimeError("probe constructed while reading a report")
+
+    monkeypatch.setattr(garak.probes.test.Test, "__init__", fail_init)
+    r = Report(report_location=probe_report("test.Test")).load().get_evaluations()
+    assert (
+        r.evaluations["probe_tags"][0] == garak.probes.test.Test.tags
+    ), "probe_tags should be the class tags"
 
 
 def test_get_evaluations_raises_error_when_no_evals(tmp_path):
