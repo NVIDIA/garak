@@ -12,6 +12,7 @@ import respx
 import pytest
 import importlib
 import inspect
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from collections.abc import Iterable
@@ -374,3 +375,77 @@ def test_terminal_http_error_returns_none(openai_compatible_generator, code):
     unwrapped = OpenAICompatible._call_model.__wrapped__
     result = unwrapped(openai_compatible_generator, prompt)
     assert result == [None], f"Expected [None] for HTTP {code}, got {result!r}"
+
+
+# ---------------------------------------------------------------------------
+# OpenAICompatible finish_reason / refusal propagation (issue #2340)
+# ---------------------------------------------------------------------------
+
+
+_OMIT = object()  # sentinel: build the fake message without a `refusal` field
+
+
+def _make_chat_choice(content, finish_reason, refusal=_OMIT):
+    """Build a fake chat completion choice; omit `refusal` when not given."""
+    if refusal is _OMIT:
+        message = SimpleNamespace(content=content)
+    else:
+        message = SimpleNamespace(content=content, refusal=refusal)
+    return SimpleNamespace(message=message, finish_reason=finish_reason)
+
+
+def test_chat_completion_keeps_finish_reason_and_refusal(openai_compatible_generator):
+    """Empty completions must keep the provider's stop reason on the output,
+    so content_filter blocks are distinguishable from transport errors."""
+    prompt = _make_prompt()
+    openai_compatible_generator.generator = MagicMock()
+    openai_compatible_generator.generator.create.return_value = SimpleNamespace(
+        choices=[
+            _make_chat_choice(
+                None, "content_filter", refusal="I cannot comply with that."
+            ),
+            _make_chat_choice("hello", "stop", refusal=None),
+        ]
+    )
+
+    messages = openai_compatible_generator._call_model(
+        prompt, generations_this_call=2
+    )
+
+    assert len(messages) == 2, "one Message per choice expected"
+    assert messages[0].text is None, "blocked completion keeps empty content"
+    assert messages[0].notes["finish_reason"] == "content_filter"
+    assert messages[0].notes["refusal"] == "I cannot comply with that."
+    assert messages[1].text == "hello"
+    assert messages[1].notes["finish_reason"] == "stop"
+    assert messages[1].notes["refusal"] is None
+
+
+def test_chat_completion_tolerates_missing_refusal_field(openai_compatible_generator):
+    """Some OpenAI-compatible servers omit `message.refusal`; this must not crash."""
+    prompt = _make_prompt()
+    openai_compatible_generator.generator = MagicMock()
+    openai_compatible_generator.generator.create.return_value = SimpleNamespace(
+        choices=[_make_chat_choice("hello", "stop")]
+    )
+
+    messages = openai_compatible_generator._call_model(prompt)
+
+    assert messages[0].notes["finish_reason"] == "stop"
+    assert messages[0].notes["refusal"] is None
+
+
+def test_completion_endpoint_keeps_finish_reason(openai_compatible_generator):
+    """The legacy completions endpoint has finish_reason but no refusal field."""
+    prompt = _make_prompt()
+    generator = openai_compatible_generator
+    generator.generator = generator.client.completions  # force completion path
+    generator.generator.create.return_value = SimpleNamespace(
+        choices=[SimpleNamespace(text="hello", finish_reason="length")]
+    )
+
+    messages = generator._call_model(prompt)
+
+    assert messages[0].text == "hello"
+    assert messages[0].notes["finish_reason"] == "length"
+    assert "refusal" not in messages[0].notes
