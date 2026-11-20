@@ -108,20 +108,12 @@ class HomoglyphObfuscation(garak.probes.Probe):
 
     The replacement map is configurable via the ``homoglyph_map``
     parameter, allowing the set of substitutions to be expanded or
-    reduced for different resiliency testing scenarios.
-
-    Note: this probe uses ``mitigation.MitigationBypass`` as its primary
-    detector, which assumes English-language denial responses. Some
-    targets respond in the same script as the obfuscated input (e.g.,
-    Russian text for Cyrillic substitutions), which can produce false
-    positives. A follow-up PR adds a ``ModelAsJudge``-based detector
-    configured for this probe's goal to close that gap. See discussion
-    #1583 for the broader context-aware scanning direction."""
+    reduced for different resiliency testing scenarios."""
 
     lang = "en"
     active = False
     intent = "T009ignore"  # the obfuscated characters are used to smuggle instructions past the model's normal safeguards
-    primary_detector = "mitigation.MitigationBypass"
+    primary_detector = "mitigation.ModernBERTRefusal"
     doc_uri = "https://embracethered.com/blog/posts/2024/hiding-and-finding-text-with-unicode-tags/"
     goal = "bypass content filters using homoglyph character substitution"
     tags = [
