@@ -212,3 +212,86 @@ def test_nonparametric_vs_parametric_advantage():
     assert ci_lower < 40  # Lower bound below observed rate
     assert ci_upper > 40  # Upper bound above observed rate
     assert ci_upper - ci_lower < 40  # CI width should be reasonable for n=50
+
+
+@pytest.mark.parametrize(
+    "sensitivity,specificity",
+    [
+        (0.50, 0.49),
+        (0.30, 0.30),
+    ],
+)
+def test_calculate_bootstrap_ci_negative_denominator_fallback(sensitivity, specificity):
+    """Negative Se+Sp-1 must fall back to uncorrected CI instead of inverting ASR."""
+    zero_fails = garak.analyze.bootstrap_ci.calculate_bootstrap_ci(
+        results=[0] * 50,
+        sensitivity=sensitivity,
+        specificity=specificity,
+        num_iterations=200,
+    )
+    assert zero_fails == (
+        0.0,
+        0.0,
+    ), "0% observed fail rate must not invert on negative Se+Sp-1"
+
+    all_fails = garak.analyze.bootstrap_ci.calculate_bootstrap_ci(
+        results=[1] * 50,
+        sensitivity=sensitivity,
+        specificity=specificity,
+        num_iterations=200,
+    )
+    assert all_fails == (
+        100.0,
+        100.0,
+    ), "100% observed fail rate must not invert on negative Se+Sp-1"
+
+    _config.run.seed = 123
+    try:
+        mixed = [0] * 40 + [1] * 10
+        fallback_ci = garak.analyze.bootstrap_ci.calculate_bootstrap_ci(
+            results=mixed,
+            sensitivity=sensitivity,
+            specificity=specificity,
+            num_iterations=500,
+        )
+        uncorrected_ci = garak.analyze.bootstrap_ci.calculate_bootstrap_ci(
+            results=mixed,
+            sensitivity=1.0,
+            specificity=1.0,
+            num_iterations=500,
+        )
+        assert (
+            fallback_ci == uncorrected_ci
+        ), "negative Se+Sp-1 should match uncorrected fallback CI"
+    finally:
+        _config.run.seed = None
+
+
+def test_calculate_bootstrap_ci_does_not_mutate_global_rng():
+    """Bootstrap CI resampling must use a local RNG rather than resetting np.random."""
+    results = [0] * 35 + [1] * 15
+    _config.run.seed = 42
+    try:
+        np.random.seed(999)
+        expected_next = np.random.random()
+
+        np.random.seed(999)
+        garak.analyze.bootstrap_ci.calculate_bootstrap_ci(
+            results=results, sensitivity=1.0, specificity=1.0, num_iterations=200
+        )
+        actual_next = np.random.random()
+        assert (
+            actual_next == expected_next
+        ), "seeded bootstrap CI must not reset global np.random state"
+
+        _config.run.seed = None
+        np.random.seed(999)
+        garak.analyze.bootstrap_ci.calculate_bootstrap_ci(
+            results=results, sensitivity=1.0, specificity=1.0, num_iterations=200
+        )
+        actual_next_unseeded = np.random.random()
+        assert (
+            actual_next_unseeded == expected_next
+        ), "unseeded bootstrap CI must not consume global np.random state"
+    finally:
+        _config.run.seed = None
