@@ -502,6 +502,8 @@ class AgentBreakerChainResult(Detector):
         ):
             return None
 
+        if parsed["verdict"] == "UNKNOWN":
+            return None
         return 1.0 if parsed["verdict"] == "YES" else 0.0
 
     def _judge(
