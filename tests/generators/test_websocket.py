@@ -1,5 +1,6 @@
 """Tests for WebSocket generator"""
 
+import asyncio
 import pytest
 import json
 import uuid
@@ -279,14 +280,59 @@ class TestWebSocketGenerator:
 
         mock_websocket = AsyncMock()
         mock_websocket.send = AsyncMock()
-        # Simulate typing indicator followed by actual response
-        mock_websocket.recv = AsyncMock(side_effect=["typing", "Hello response"])
+        # Simulate typing indicator followed by actual response, then the
+        # stream going idle (a receive timeout ends the answer)
+        mock_websocket.recv = AsyncMock(
+            side_effect=["typing", "Hello response", asyncio.TimeoutError()]
+        )
         gen.websocket = mock_websocket
 
         result = await gen._send_and_receive("Hello")
 
         assert result == "Hello response"
-        assert mock_websocket.recv.call_count == 2
+        assert mock_websocket.recv.call_count == 3
+
+    @pytest.mark.asyncio
+    async def test_send_and_receive_keeps_frames_after_typing(self):
+        """A multi-frame answer streamed after a typing indicator must be
+        collected in full, not cut off after the first frame (issue #2495)."""
+        import asyncio
+
+        instance_config = {
+            "generators": {
+                "websocket": {
+                    "WebSocketGenerator": {
+                        "uri": "ws://localhost:3000",
+                        "response_after_typing": True,
+                        "typing_indicator": "typing",
+                    }
+                }
+            }
+        }
+        gen = WebSocketGenerator(config_root=instance_config)
+
+        class FakeWebSocket:
+            """Feeds canned frames, then times out like an idle stream."""
+
+            def __init__(self, frames):
+                self._frames = list(frames)
+
+            async def send(self, message):
+                return None
+
+            async def recv(self):
+                if self._frames:
+                    return self._frames.pop(0)
+                await asyncio.sleep(0)
+                raise asyncio.TimeoutError()
+
+        gen.websocket = FakeWebSocket(["typing...", "Hello ", "world!", " Goodbye."])
+
+        result = await gen._send_and_receive("Hello")
+
+        assert (
+            result == "Hello world! Goodbye."
+        ), "frames streamed after the typing indicator must all be kept"
 
     def test_call_model_integration(self):
         """Test full model call integration"""
