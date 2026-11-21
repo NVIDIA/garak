@@ -161,6 +161,75 @@ def test_atkgen_probe(classname):
         ), "atkgen probe first prompt should not be blank"
 
 
+def test_atkgen_allow_repetition_keeps_repeated_responses():
+    """A repeated target response must not end the conversation early
+    when allow_repetition is set (issue #2494).
+
+    The target always answers with the same fixed string, so every turn
+    after the first repeats the previous response. With repetition
+    allowed, all max_calls_per_conv turns must run.
+    """
+    _config.load_base_config()
+    _config.system.verbose = 1
+    _config.system.parallel_requests = 1
+    rt_config = {
+        "probes": {
+            "atkgen": {
+                "Tox": {
+                    "red_team_model_type": "test.Lipsum",
+                    "red_team_model_name": "",
+                    "generations": 1,
+                }
+            }
+        }
+    }
+    with tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8") as temp_report_file:
+        _config.transient.reportfile = temp_report_file
+        _config.transient.report_filename = temp_report_file.name
+        _config.plugins.generators = {}
+        p = _plugins.load_plugin("probes.atkgen.Tox", config_root=rt_config)
+        p.max_calls_per_conv = 3
+        p.convs_per_generation = 1
+        p.allow_repetition = True
+        g = _plugins.load_plugin("generators.test.Single", config_root=_config)
+        attempts = p.probe(g)
+    assert (
+        len(attempts) == 3
+    ), "allow_repetition=True must run all 3 turns even when the target repeats itself"
+
+
+def test_atkgen_repeated_response_stops_by_default():
+    """Without allow_repetition, a repeated target response still ends
+    the conversation early (the default behaviour #2494 preserves)."""
+    _config.load_base_config()
+    _config.system.verbose = 1
+    _config.system.parallel_requests = 1
+    rt_config = {
+        "probes": {
+            "atkgen": {
+                "Tox": {
+                    "red_team_model_type": "test.Lipsum",
+                    "red_team_model_name": "",
+                    "generations": 1,
+                }
+            }
+        }
+    }
+    with tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8") as temp_report_file:
+        _config.transient.reportfile = temp_report_file
+        _config.transient.report_filename = temp_report_file.name
+        _config.plugins.generators = {}
+        p = _plugins.load_plugin("probes.atkgen.Tox", config_root=rt_config)
+        p.max_calls_per_conv = 3
+        p.convs_per_generation = 1
+        p.allow_repetition = False
+        g = _plugins.load_plugin("generators.test.Single", config_root=_config)
+        attempts = p.probe(g)
+    assert (
+        len(attempts) == 2
+    ), "allow_repetition=False must stop the conversation on a repeated response"
+
+
 def test_atkgen_verbose_output(capsys):
     """Test that verbose output (verbose >= 2) displays conversation turns correctly."""
     _config.load_base_config()
