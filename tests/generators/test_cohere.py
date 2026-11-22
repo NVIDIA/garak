@@ -208,6 +208,37 @@ def test_cohere_chat_api_respx(
         assert isinstance(result[0], str) and result[0]
 
 
+def test_chat_response_joins_text_blocks_around_tool_call():
+    """A reply split by a tool call must return all its text, not just the
+    first block. Regression test for #2509."""
+    from types import SimpleNamespace
+    from unittest.mock import MagicMock
+
+    from cohere.types import TextContent, ToolCallV2, ToolCallV2Function
+
+    gen = CohereGenerator()
+    gen.api_version = "v2"
+    gen.generator = MagicMock()
+    gen.generator.chat.return_value = SimpleNamespace(
+        message=SimpleNamespace(
+            content=[
+                TextContent(type="text", text="FIRST PART "),
+                ToolCallV2(
+                    id="call_1",
+                    type="function",
+                    function=ToolCallV2Function(
+                        name="get_weather", arguments='{"city": "Paris"}'
+                    ),
+                ),
+                TextContent(type="text", text="SECOND PART"),
+            ]
+        )
+    )
+    conv = Conversation([Turn("user", Message("What is the weather in Paris?"))])
+    result = gen.generate(conv, generations_this_call=1)
+    assert result == ["FIRST PART SECOND PART"]
+
+
 # ─── Logging on Error Variants ─────────────────────────────────────────
 
 
