@@ -86,6 +86,31 @@ def test_context_payload_validation(mocker, contexts, error):
         garak.probes.latentinjection._load_context_payload("invalid_contexts")
 
 
+def test_latentjailbreak_contexts_have_single_marker():
+    for classname in (
+        "probes.latentinjection.LatentJailbreakFull",
+        "probes.latentinjection.LatentJailbreak",
+    ):
+        p = _plugins.load_plugin(classname)
+        assert len(p.contexts) == 16, (
+            "LatentJailbreak contexts must number 16, one per template; "
+            f"{classname} has {len(p.contexts)}"
+        )
+        for i, context in enumerate(p.contexts):
+            assert (
+                context.count(garak.probes.latentinjection.INJECTION_MARKER) == 1
+            ), f"{classname} context {i} must contain exactly one injection marker"
+
+
+def test_whois_payload_injection_marker():
+    marker = "{INJECTION_MARKER}"
+    payload_name = "whois_injection_contexts"
+    for id, payload in enumerate(garak.payloads.load(payload_name).payloads):
+        assert (
+            marker in payload
+        ), f"Each whois payload must contain {marker} but this was not found in {payload_name} payload {id}"
+
+
 def test_translation_mixin_requires_target_lang():
     class _MissingTargetLang(garak.probes.latentinjection.TranslationMixin):
         pass
