@@ -194,6 +194,79 @@ def test_bedrock_conversation_to_message_format(mock_boto3):
 
 
 @pytest.mark.usefixtures("set_aws_env", "mock_boto3")
+def test_bedrock_system_turn_passed_as_system_param(mock_boto3):
+    """System turns go in the Converse system parameter, not in messages."""
+    from garak.generators.bedrock import BedrockGenerator
+
+    generator = BedrockGenerator(name="claude-4-5-sonnet")
+    conv = Conversation(
+        [
+            Turn(role="system", content=Message("You are a helpful assistant.")),
+            Turn(role="user", content=Message("Hello Bedrock!")),
+        ]
+    )
+
+    output = generator.generate(conv, generations_this_call=1)
+
+    assert len(output) == 1
+    assert output[0].text == "This is a test response from Bedrock."
+
+    mock_boto3.converse.assert_called_once()
+    call_kwargs = mock_boto3.converse.call_args[1]
+
+    assert call_kwargs["system"] == [{"text": "You are a helpful assistant."}]
+    messages = call_kwargs["messages"]
+    assert len(messages) == 1
+    assert messages[0]["role"] == "user"
+    assert messages[0]["content"][0]["text"] == "Hello Bedrock!"
+    assert all(
+        m["role"] != "system" for m in messages
+    ), "Converse messages must not contain system turns"
+
+
+@pytest.mark.usefixtures("set_aws_env", "mock_boto3")
+def test_bedrock_multiple_system_turns_keep_order(mock_boto3):
+    """Each system turn becomes one system block, in conversation order."""
+    from garak.generators.bedrock import BedrockGenerator
+
+    generator = BedrockGenerator(name="claude-4-5-sonnet")
+    conv = Conversation(
+        [
+            Turn(role="system", content=Message("First instruction.")),
+            Turn(role="user", content=Message("Hello")),
+            Turn(role="system", content=Message("Second instruction.")),
+            Turn(role="user", content=Message("How are you?")),
+        ]
+    )
+
+    generator.generate(conv, generations_this_call=1)
+
+    mock_boto3.converse.assert_called_once()
+    call_kwargs = mock_boto3.converse.call_args[1]
+
+    assert call_kwargs["system"] == [
+        {"text": "First instruction."},
+        {"text": "Second instruction."},
+    ]
+    assert [m["role"] for m in call_kwargs["messages"]] == ["user", "user"]
+
+
+@pytest.mark.usefixtures("set_aws_env", "mock_boto3")
+def test_bedrock_no_system_param_without_system_turn(mock_boto3):
+    """A user-only conversation passes no system parameter."""
+    from garak.generators.bedrock import BedrockGenerator
+
+    generator = BedrockGenerator(name="claude-4-5-sonnet")
+    conv = Conversation([Turn(role="user", content=Message("Hello Bedrock!"))])
+
+    generator.generate(conv, generations_this_call=1)
+
+    mock_boto3.converse.assert_called_once()
+    call_kwargs = mock_boto3.converse.call_args[1]
+    assert "system" not in call_kwargs
+
+
+@pytest.mark.usefixtures("set_aws_env", "mock_boto3")
 def test_bedrock_malformed_response_handling(mock_boto3):
     """Test malformed response handling."""
     from garak.generators.bedrock import BedrockGenerator
