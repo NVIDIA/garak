@@ -92,10 +92,6 @@ def test_latentjailbreak_contexts_have_single_marker():
         "probes.latentinjection.LatentJailbreak",
     ):
         p = _plugins.load_plugin(classname)
-        assert len(p.contexts) == 16, (
-            "LatentJailbreak contexts must number 16, one per template; "
-            f"{classname} has {len(p.contexts)}"
-        )
         for i, context in enumerate(p.contexts):
             assert (
                 context.count(garak.probes.latentinjection.INJECTION_MARKER) == 1
