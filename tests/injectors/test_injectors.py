@@ -19,80 +19,6 @@ from garak.injection import (
 from garak.injectors.base import Injector
 
 
-class RecordingInjector(Injector):
-    """Concrete injector capturing arm and disarm state."""
-
-    capabilities = ["test_channel"]
-    DEFAULT_PARAMS = {"host": None}
-
-    def arm(self, payload):
-        self.armed_payload = payload
-        return {"capability": "test_channel", "host": self.host}
-
-    def disarm(self):
-        self.armed_payload = None
-
-
-def test_injectors_are_a_plugin_category():
-    # enumerate_plugins raises ValueError for unknown categories
-    plugins = garak._plugins.enumerate_plugins("injectors")
-    assert isinstance(plugins, list)
-    # the base class is not offered as a loadable plugin
-    assert ("injectors.base.Injector", True) not in plugins
-
-
-def test_base_injector_has_plugin_info():
-    info = garak._plugins.plugin_info("injectors.base.Injector")
-    assert isinstance(info, dict)
-    assert info.get("description"), "base injector must carry a description"
-
-
-def test_base_injector_is_loadable():
-    injector = garak._plugins.load_plugin("injectors.base.Injector")
-    assert isinstance(injector, Injector)
-
-
-def test_arm_disarm_lifecycle():
-    injector = RecordingInjector()
-    descriptor = injector.arm("payload text")
-    assert injector.armed_payload == "payload text"
-    assert descriptor == {"capability": "test_channel", "host": None}
-    injector.disarm()
-    assert injector.armed_payload is None
-
-
-def test_base_arm_and_disarm_are_not_implemented():
-    injector = Injector()
-    with pytest.raises(NotImplementedError):
-        injector.arm("payload")
-    with pytest.raises(NotImplementedError):
-        injector.disarm()
-
-
-def test_injector_config_root_node():
-    # the plugins config tree carries an injectors root node like other plugin types
-    assert hasattr(_config.plugins, "injectors")
-
-
-def test_load_plugin_caches_injector_instances():
-    """The plugin provider hands out one instance per spec and config.
-
-    Injectors are cached like every other plugin, so any per-execution state
-    they keep is shared between the probes that load them.
-    """
-    config_root = {"injectors": {"mimcp": {"MiMCPInjector": {"host": None}}}}
-    first = garak._plugins.load_plugin(
-        "injectors.mimcp.MiMCPInjector", config_root=config_root
-    )
-    second = garak._plugins.load_plugin(
-        "injectors.mimcp.MiMCPInjector", config_root=config_root
-    )
-    assert first is second, "load_plugin must return the cached injector instance"
-
-
-# ── binding lifecycle ──────────────────────────────────────────────────────────
-
-
 class FakeBinding(InjectionBinding):
     """Test binding owning one session per execution."""
 
@@ -122,6 +48,49 @@ class BindingInjector(Injector):
 
     def bind(self, plan, surface, execution_id):
         return FakeBinding(execution_id)
+
+
+def test_injectors_are_a_plugin_category():
+    # enumerate_plugins raises ValueError for unknown categories
+    plugins = garak._plugins.enumerate_plugins("injectors")
+    assert isinstance(plugins, list)
+    # the base class is not offered as a loadable plugin
+    assert ("injectors.base.Injector", True) not in plugins
+
+
+def test_base_injector_has_plugin_info():
+    info = garak._plugins.plugin_info("injectors.base.Injector")
+    assert isinstance(info, dict)
+    assert info.get("description"), "base injector must carry a description"
+
+
+def test_base_injector_is_loadable():
+    injector = garak._plugins.load_plugin("injectors.base.Injector")
+    assert isinstance(injector, Injector)
+
+
+def test_injector_config_root_node():
+    # the plugins config tree carries an injectors root node like other plugin types
+    assert hasattr(_config.plugins, "injectors")
+
+
+def test_load_plugin_caches_injector_instances():
+    """The plugin provider hands out one instance per spec and config.
+
+    Injectors are cached like every other plugin, so any per-execution state
+    they keep is shared between the probes that load them.
+    """
+    config_root = {"injectors": {"mimcp": {"MiMCPInjector": {"host": None}}}}
+    first = garak._plugins.load_plugin(
+        "injectors.mimcp.MiMCPInjector", config_root=config_root
+    )
+    second = garak._plugins.load_plugin(
+        "injectors.mimcp.MiMCPInjector", config_root=config_root
+    )
+    assert first is second, "load_plugin must return the cached injector instance"
+
+
+# ── binding lifecycle ──────────────────────────────────────────────────────────
 
 
 def _plan(name="surf"):
@@ -194,3 +163,8 @@ def test_second_close_does_nothing():
 def test_base_binding_collect_evidence_is_not_implemented():
     with pytest.raises(NotImplementedError):
         InjectionBinding().collect_evidence()
+
+
+def test_base_bind_is_not_implemented():
+    with pytest.raises(NotImplementedError):
+        Injector().bind(_plan(), _surface(), "exec-1")

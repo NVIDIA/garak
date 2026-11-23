@@ -8,12 +8,10 @@ payloads through it, enabling indirect prompt injection testing.
 """
 
 import logging
-from typing import Union
 
 from colorama import Fore, Style
 
 from garak import _config
-from garak.capabilities import Capability
 from garak.configurable import Configurable
 from garak.exception import InvalidInjectionPlanError
 from garak.injection import (
@@ -42,9 +40,6 @@ class Injector(Configurable):
     # surface kinds this injector can occupy, matched against
     # Generator.injectable_surfaces()
     surface_kinds: frozenset[str] = frozenset()
-    # capability members naming the surfaces this injector can occupy;
-    # legacy of the arm/disarm path, pending probe migration
-    capabilities: list[Capability] = []
 
     DEFAULT_PARAMS = {}
 
@@ -80,38 +75,3 @@ class Injector(Configurable):
     ) -> InjectionBinding:
         """Occupy the surface for one execution and return its binding."""
         raise NotImplementedError
-
-    def arm(self, payload: Union[str, dict]) -> dict:
-        """Prime the injector with an attack payload and return an injection
-        descriptor.
-
-        Legacy of the pre-binding flow: the payload reaches the target
-        through the injector, and the returned descriptor tells a
-        generator how to route its traffic through the armed surface.
-        Subclasses must implement this and must not mutate the payload.
-        """
-        raise NotImplementedError
-
-    def disarm(self) -> None:
-        """Return the injector to its unarmed state between attempts.
-
-        Legacy of the pre-binding flow: probes call this once a generation
-        is complete so that later attempts do not inherit earlier payloads.
-        """
-        raise NotImplementedError
-
-    def get_calls(self) -> list[dict]:
-        """Return the calls recorded on the armed surface.
-
-        Legacy of the pre-binding flow: bindings collect their own
-        evidence through ``collect_evidence()``.
-        """
-        return []
-
-    def get_status(self) -> dict:
-        """Return the armed surface's status view, or an empty dict.
-
-        Probes read this after a generation to record delivery coverage.
-        Injectors without a status concept return nothing.
-        """
-        return {}

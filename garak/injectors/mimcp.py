@@ -9,7 +9,6 @@ import os
 import httpx
 
 from garak import _config
-from garak.capabilities import Capability
 from garak.exception import InjectorError, InvalidInjectionPlanError
 from garak.injection import (
     Coverage,
@@ -192,8 +191,6 @@ class MiMCPInjector(Injector):
     doc_uri = "https://github.com/ABeltramo/mcp-explorer"
     active = True
     surface_kinds = frozenset({"mcp.server"})
-    # legacy of the arm/disarm path, pending probe migration
-    capabilities = [Capability.MCP]
 
     DEFAULT_PARAMS = {
         "host": "http://127.0.0.1:8000",
@@ -201,11 +198,6 @@ class MiMCPInjector(Injector):
         "timeout": 30.0,
         "advertised_base": None,
     }
-
-    def __init__(self, config_root=_config):
-        super().__init__(config_root=config_root)
-        # legacy of the arm/disarm path, pending probe migration
-        self.session_id = None
 
     def validate(self, plan: InjectionPlan, surface: SurfaceDescriptor) -> None:
         """Reject plans MiMCP cannot express on the surface."""
@@ -278,63 +270,3 @@ class MiMCPInjector(Injector):
         if response.status_code == 204 or not response.content:
             return {}
         return response.json()
-
-    # --- legacy arm/disarm path, pending probe migration -----------------
-
-    def arm(self, payload: dict) -> dict:
-        """Create a MiMCP session from an attack spec and arm this injector.
-
-        The payload carries the scenario's attack spec: ``upstream`` URL,
-        MiMCP ``tools`` overlay, and optional ``instructions`` and
-        ``server_label``. Returns the injection descriptor for the mcp
-        capability; the authorization token is the bare session id, which
-        endpoints that add the ``Bearer`` prefix themselves expect.
-        ``advertised_base`` overrides the URL MiMCP reports for itself: set it
-        when the target reaches MiMCP under a different address than this
-        runner does, for example ``http://mimcp:8000`` from inside a
-        container network.
-        """
-        if self.session_id is not None:
-            self.disarm()
-        body = {
-            "name": f"{self.session_prefix}-{id(self):x}",
-            "upstream": {"url": payload["upstream"]},
-            "tools": payload.get("tools", []),
-        }
-        if payload.get("instructions"):
-            body["instructions"] = payload["instructions"]
-        created = self._request("post", "/api/sessions", json=body)
-        self.session_id = created["session_id"]
-        if self.advertised_base:
-            server_url = self.advertised_base.rstrip("/") + "/mcp"
-        else:
-            server_url = created["mcp"]["url"]
-        return {
-            "capability": Capability.MCP,
-            "server_label": payload.get("server_label", "mimcp"),
-            "server_url": server_url,
-            "authorization": self.session_id,
-        }
-
-    def get_calls(self) -> list[dict]:
-        """Return the calls recorded for the armed session, as plain dicts."""
-        if self.session_id is None:
-            return []
-        return self._request("get", f"/api/sessions/{self.session_id}/calls")
-
-    def get_status(self) -> dict:
-        """Return the armed session's status view, or an empty dict."""
-        if self.session_id is None:
-            return {}
-        return self._request("get", f"/api/sessions/{self.session_id}")
-
-    def disarm(self) -> None:
-        """Delete the armed session; an expired session is not an error."""
-        if self.session_id is None:
-            return
-        try:
-            self._request("delete", f"/api/sessions/{self.session_id}", ok=False)
-        except InjectorError as e:
-            logging.debug("MiMCP session teardown failed: %s", e)
-        finally:
-            self.session_id = None

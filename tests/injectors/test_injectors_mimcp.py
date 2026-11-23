@@ -8,7 +8,6 @@ import json
 import httpx
 import pytest
 
-from garak.capabilities import Capability
 from garak.exception import InjectorError, InvalidInjectionPlanError
 from garak.injection import (
     Delivery,
@@ -26,148 +25,6 @@ CREATED = {
         "headers": {"Authorization": "Bearer tok-123"},
     },
 }
-
-ARM_PAYLOAD = {
-    "upstream": "http://127.0.0.1:9101/mcp",
-    "server_label": "klarna",
-    "tools": [
-        {
-            "name": "lookup_order",
-            "behavior": {"type": "inject", "template": "{original_text} || memo"},
-        }
-    ],
-}
-
-
-@pytest.mark.respx(base_url="http://127.0.0.1:8000")
-def test_arm_creates_session_and_returns_descriptor(respx_mock):
-    respx_mock.post("/api/sessions").mock(
-        return_value=httpx.Response(200, json=CREATED)
-    )
-    injector = MiMCPInjector()
-
-    descriptor = injector.arm(ARM_PAYLOAD)
-
-    body = json.loads(respx_mock.calls.last.request.content)
-    assert body["upstream"]["url"] == "http://127.0.0.1:9101/mcp"
-    assert body["tools"][0]["name"] == "lookup_order"
-    assert descriptor == {
-        "capability": "mcp",
-        "server_label": "klarna",
-        "server_url": "http://127.0.0.1:8000/mcp",
-        "authorization": "tok-123",
-    }, "the authorization token is the bare session id"
-    assert Capability.MCP in injector.capabilities
-
-
-@pytest.mark.respx(base_url="http://127.0.0.1:8000")
-def test_get_calls_returns_session_recordings(respx_mock):
-    calls = [
-        {
-            "call_id": "c1",
-            "tool": "process_refund",
-            "arguments": {"order_id": "ORD-104"},
-            "behavior": "inject",
-        }
-    ]
-    respx_mock.get("/api/sessions/tok-123/calls").mock(
-        return_value=httpx.Response(200, json=calls)
-    )
-    injector = MiMCPInjector()
-    injector.session_id = "tok-123"
-
-    assert injector.get_calls() == calls
-
-
-def test_get_calls_without_an_armed_session_is_empty():
-    assert MiMCPInjector().get_calls() == []
-
-
-@pytest.mark.respx(base_url="http://127.0.0.1:8000")
-def test_disarm_deletes_the_session(respx_mock):
-    route = respx_mock.delete("/api/sessions/tok-123").mock(
-        return_value=httpx.Response(204)
-    )
-    injector = MiMCPInjector()
-    injector.session_id = "tok-123"
-
-    injector.disarm()
-
-    assert route.called
-    assert injector.session_id is None
-
-
-@pytest.mark.respx(base_url="http://127.0.0.1:8000")
-def test_disarm_tolerates_an_expired_session(respx_mock):
-    respx_mock.delete("/api/sessions/tok-123").mock(return_value=httpx.Response(404))
-    injector = MiMCPInjector()
-    injector.session_id = "tok-123"
-
-    injector.disarm()
-
-    assert injector.session_id is None
-
-
-@pytest.mark.respx(base_url="http://127.0.0.1:8000")
-def test_rearming_disarms_the_previous_session(respx_mock):
-    respx_mock.post("/api/sessions").mock(
-        return_value=httpx.Response(200, json=CREATED)
-    )
-    delete_route = respx_mock.delete("/api/sessions/tok-123").mock(
-        return_value=httpx.Response(204)
-    )
-    injector = MiMCPInjector()
-
-    injector.arm(ARM_PAYLOAD)
-    injector.arm(ARM_PAYLOAD)
-
-    assert delete_route.called, "arming again must disarm the previous session"
-
-
-@pytest.mark.respx(base_url="http://127.0.0.1:8000")
-def test_advertised_base_overrides_the_reported_url(respx_mock):
-    """A containerised target reaches MiMCP under another address than the runner."""
-    respx_mock.post("/api/sessions").mock(
-        return_value=httpx.Response(200, json=CREATED)
-    )
-    injector = MiMCPInjector(
-        config_root={
-            "injectors": {
-                "mimcp": {"MiMCPInjector": {"advertised_base": "http://mimcp:8000/"}}
-            }
-        }
-    )
-
-    descriptor = injector.arm(ARM_PAYLOAD)
-
-    assert (
-        descriptor["server_url"] == "http://mimcp:8000/mcp"
-    ), "advertised_base must win over the URL MiMCP reports"
-    assert descriptor["authorization"] == "tok-123"
-
-
-@pytest.mark.respx(base_url="http://127.0.0.1:8000")
-def test_get_status_returns_session_view(respx_mock):
-    view = {
-        "session_id": "tok-123",
-        "name": "garak-1",
-        "status": "connected",
-        "call_count": 3,
-    }
-    respx_mock.get("/api/sessions/tok-123").mock(
-        return_value=httpx.Response(200, json=view)
-    )
-    injector = MiMCPInjector()
-    injector.session_id = "tok-123"
-
-    assert injector.get_status() == view
-
-
-def test_get_status_without_an_armed_session_is_empty():
-    assert MiMCPInjector().get_status() == {}
-
-
-# ── bind() and the binding lifecycle ──────────────────────────────────────────
 
 SESSION_VIEW = {
     "session_id": "tok-123",
@@ -249,7 +106,6 @@ def test_bind_takes_the_upstream_from_the_surface(respx_mock):
         url="http://127.0.0.1:8000/mcp",
         headers={"Authorization": "tok-123"},
     ), "the route replaces the surface's server label with the session"
-    assert injector.session_id is None, "bind() must leave the injector stateless"
 
 
 @pytest.mark.respx(base_url="http://127.0.0.1:8000")
@@ -438,9 +294,6 @@ def test_bind_wraps_session_creation_failures(respx_mock):
 
     with pytest.raises(InjectorError, match="down"):
         injector.bind(_plan(()), _surface(), "exec-1")
-
-
-# ── validate() ────────────────────────────────────────────────────────────────
 
 
 @pytest.mark.parametrize(

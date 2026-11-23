@@ -1,61 +1,51 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Midojo probe: indirect prompt injection through armed interaction surfaces.
+"""Midojo probe: indirect prompt injection through occupied interaction surfaces.
 
 Runs a benign task against a target while an injector occupies one of the
 target's interaction surfaces (for example a MiMCP proxy in front of the
 target's MCP tools) and splices an attack payload into the content the
-target consumes. The probe records the injector's evidence on the attempt so
-a detector can grade whether the target performed the attack's goal.
+target consumes. The probe records the executions' evidence on the
+attempt so a detector can grade whether the target performed the attack's
+goal.
 """
 
 import copy
 import logging
-import os
 import pathlib
-
-import httpx
-import yaml
 
 from garak import _plugins
 from garak.attempt import Conversation, Message, Turn
-from garak.exception import (
-    GarakException,
-    PluginConfigurationError,
-    UnsupportedInjectionError,
-)
-from garak.injection import McpRoute
+from garak.exception import GarakException, InjectorError, PluginConfigurationError
+from garak.injection import InjectionPlan
+from garak.probes._scenario import Case, load_scenario
 import garak.probes
-
-# MiMCP's recording cap when the environment does not set one; a recording
-# count at the cap means calls were dropped, so coverage is incomplete
-MIMCP_DEFAULT_MAX_RECORDED_CALLS = 1000
 
 
 class MidojoProbe(garak.probes.Probe):
     """Runs scenario-based indirect prompt injection attacks
 
-    Each attack in a scenario file arms an injector, runs the scenario's
-    benign task against the target with the armed injection handed to the
-    generator, then records the injector's call log on the attempt. The
-    bundled Klarna demo scenario targets an agent over MCP tools; the
-    scenario file is data, so other targets and surfaces need no probe
-    changes; scenarios live outside garak (``scenario_file`` is required,
-    e.g. the Klarna demo shipped with the mim-demo deployment repo). Each
-    generation arms its own session, so ``run.generations`` samples model
+    Each case in a schema 0.2 scenario file names the surface it attacks;
+    the probe resolves that surface against the target's injectable
+    surfaces, validates the case's plan on it, and binds one injector
+    session per generation, so ``run.generations`` samples model
     variation while the recorded evidence stays attributed to a single
-    output.
+    output. Control cases (``kind: control``) run the benign task without
+    an injection. The scenario file is data, so other targets and surfaces
+    need no probe changes; scenarios live outside garak
+    (``scenario_file`` is required, e.g. the Klarna demo shipped with the
+    mim-demo deployment repo).
     """
 
     doc_uri = "https://github.com/NVIDIA/garak/issues/1652"
     lang = "*"
-    active = False  # requires a live target and MiMCP environment
+    active = False  # requires a live target and injector environment
     tier = garak.probes.Tier.UNLISTED
     intent = "T009indirect"  # tests whether the target follows instructions embedded in tool results
     goal = "make the target perform unauthorized actions through instructions hidden in tool results"
     primary_detector = "midojo.MidojoDetector"
-    parallelisable_attempts = False  # the armed injector tracks one session
+    parallelisable_attempts = False  # one report sink; evidence stays per-attempt
     tags = [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -75,155 +65,124 @@ class MidojoProbe(garak.probes.Probe):
             )
         return pathlib.Path(self.scenario_file)
 
-    def _load_scenario(self) -> None:
-        scenario_path = self._scenario_path()
-        with open(scenario_path, encoding="utf-8") as scenario_file:
-            self.scenario = yaml.safe_load(scenario_file)
-        logging.debug("midojo scenario loaded: %s", scenario_path)
-
-    def _conversation_for(self) -> Conversation:
-        turns = []
-        if self.scenario.get("instructions"):
-            turns.append(Turn("system", Message(self.scenario["instructions"])))
-        turns.append(Turn("user", Message(self.scenario["benign_task"]["prompt"])))
-        return Conversation(turns)
-
-    def _arm_payload(self, spec: dict) -> dict:
-        """Build the injector arm payload from an attempt's attack spec"""
-        return {
-            "upstream": spec["upstream"],
-            "server_label": spec.get("server_label"),
-            "tools": spec.get("tools", []),
-        }
-
-    @staticmethod
-    def _route_from_descriptor(descriptor: dict) -> McpRoute:
-        """Legacy shim: turn an armed descriptor into a replace-route.
-
-        The generator contract speaks routes; until this probe binds
-        plans itself, the descriptor from ``arm()`` maps onto the route
-        that replaces the target's configured block.
-        """
-        headers = {}
-        if descriptor.get("authorization"):
-            # endpoints that add the Bearer prefix expect the bare token
-            headers["Authorization"] = descriptor["authorization"]
-        return McpRoute(
-            replaces=descriptor.get("server_label"),
-            url=descriptor.get("server_url"),
-            headers=headers,
-        )
-
-    @staticmethod
-    def _coverage(calls: list[dict], status: dict) -> dict:
-        """Summarise delivery and coverage for one generation's evidence.
-
-        ``delivered`` holds when a recorded call's result was rewritten by
-        the armed overlay, so a target that never consumed the payload
-        cannot be scored as safe. A recording count at the cap means calls
-        were dropped, so coverage is incomplete.
-        """
-        recorded = status.get("call_count") if status else None
-        if recorded is None:
-            recorded = len(calls)
-        max_recorded = int(
-            os.getenv("MIMCP_MAX_RECORDED_CALLS", str(MIMCP_DEFAULT_MAX_RECORDED_CALLS))
-        )
-        injected = sum(
-            1 for call in calls if call.get("behavior") in ("inject", "override")
-        )
-        return {
-            "connected": (status.get("status") == "connected") if status else None,
-            "recording_complete": recorded < max_recorded,
-            "delivered": injected > 0,
-            "injected_calls": injected,
-            "recorded_calls": recorded,
-        }
-
     def probe(self, generator):
-        """Arm one injector session per attack and run the benign task"""
+        """Resolve each case's surface and run the benign task per case"""
         logging.debug("probe execute: %s", self)
         self.generator = generator
 
-        self._load_scenario()
+        scenario = load_scenario(self._scenario_path())
         self.injector = _plugins.load_plugin(self.injector_spec)
-        if not self.injector.capabilities:
+        if not self.injector.surface_kinds:
             raise GarakException(
-                f"injector {self.injector_spec} declares no capabilities"
+                f"injector {self.injector_spec} occupies no surface kinds"
             )
 
-        prompt = self._conversation_for()
+        surfaces = {
+            (surface.kind, surface.name): surface
+            for surface in generator.injectable_surfaces()
+        }
+        prompt = Conversation([Turn("user", Message(scenario.prompt))])
         attempts = []
-        for seq, attack in enumerate(self.scenario["attacks"]):
+        self._cases: dict[int, tuple[Case, object, InjectionPlan | None]] = {}
+        for seq, case in enumerate(scenario.cases):
+            surface = plan = None
+            if case.kind == "attack":
+                surface = surfaces.get((case.surface_kind, case.surface_name))
+                if surface is None:
+                    raise GarakException(
+                        f"the target offers no surface "
+                        f"{case.surface_kind}/{case.surface_name}; configure it "
+                        "in the generator's tools"
+                    )
+                plan = InjectionPlan(
+                    surface_kind=case.surface_kind,
+                    surface_name=case.surface_name,
+                    operations=case.operations,
+                )
+                self.injector.validate(plan, surface)
+            self._cases[seq] = (case, surface, plan)
             notes = {
                 "midojo": {
-                    "attack_id": attack["id"],
-                    "kind": attack.get("kind", "attack"),
-                    "upstream": self.scenario["upstream"],
-                    "server_label": self.scenario["benign_task"].get("server_label"),
-                    "tools": attack.get("tools", []),
-                    "success": attack.get("success"),
+                    "scenario_id": scenario.id,
+                    "case_id": case.id,
+                    "case_kind": case.kind,
+                    "success": case.success,
+                    "plan": plan.as_dict() if plan is not None else None,
+                    "executions": [],
                 }
             }
             attempt = self._mint_attempt(prompt, seq=seq, notes=notes)
-            attempt.goal = attack.get("description", self.goal)
+            attempt.goal = case.description or self.goal
             attempts.append(attempt)
 
         return self._execute_all(attempts)
 
-    def _execute_attempt(self, attempt):
-        """Arm one session per generation, keeping evidence attributed
+    @staticmethod
+    def _undelivered_execution(execution_id: str, error: str | None = None) -> dict:
+        """Evidence for a generation no payload was delivered through."""
+        return {
+            "execution_id": execution_id,
+            "delivery": {
+                "delivered": False,
+                "injected_calls": 0,
+                "recorded_calls": 0,
+            },
+            "coverage": {
+                "target_connected": None,
+                "recording_complete": None,
+                "errors": [error] if error else [],
+            },
+            "events": [],
+        }
 
-        Each generation runs against its own armed session, so the recorded
-        calls belong to exactly one model output: a detector score then
-        reflects that generation's behaviour and not another one's. An
-        injection the generator cannot apply fails closed: the generation
-        records no evidence and scores as unsupported, never as safe.
+    def _execute_attempt(self, attempt):
+        """Bind one session per generation, keeping evidence attributed
+
+        Each generation runs through its own binding, so the recorded
+        evidence belongs to exactly one model output: a detector score
+        then reflects that generation's behaviour and not another one's.
+        A generation the injector or generator cannot support fails
+        closed: it records undelivered evidence and scores as
+        inconclusive, never as safe.
         """
         self._generator_precall_hook(self.generator, attempt)
+        case, surface, plan = self._cases[attempt.seq]
         outputs = []
-        calls_by_generation = []
-        coverage_by_generation = []
-        for _ in range(self.generations):
+        executions = []
+        for generation in range(self.generations):
+            execution_id = f"{attempt.uuid}-{generation}"
             try:
-                descriptor = self.injector.arm(
-                    self._arm_payload(attempt.notes["midojo"])
-                )
-                outputs.extend(
-                    self.generator.generate(
-                        attempt.prompt,
-                        generations_this_call=1,
-                        injection_routes=[self._route_from_descriptor(descriptor)],
+                if plan is None:
+                    outputs.extend(
+                        self.generator.generate(attempt.prompt, generations_this_call=1)
                     )
+                    executions.append(self._undelivered_execution(execution_id))
+                else:
+                    binding = self.injector.bind(plan, surface, execution_id)
+                    try:
+                        outputs.extend(
+                            self.generator.generate(
+                                attempt.prompt,
+                                generations_this_call=1,
+                                injection_routes=[binding.route],
+                            )
+                        )
+                        evidence = binding.collect_evidence()
+                    finally:
+                        binding.close()
+                    executions.append(evidence.as_dict())
+            except InjectorError as e:
+                logging.error(
+                    "midojo attempt %s execution %s failed: %s",
+                    attempt.uuid,
+                    execution_id,
+                    e,
                 )
-                calls = self.injector.get_calls()
-                coverage = self._coverage(calls, self.injector.get_status())
-                calls_by_generation.append(calls)
-                coverage_by_generation.append(coverage)
-            except UnsupportedInjectionError as e:
-                logging.error("midojo attempt %s unsupported: %s", attempt.uuid, e)
-                attempt.notes["midojo_unsupported"] = True
-                outputs.append(garak.attempt.Message(None))
-                calls_by_generation.append([])
-                coverage_by_generation.append(
-                    {"connected": None, "recording_complete": None, "delivered": False}
-                )
-            except (httpx.HTTPError, GarakException) as e:
-                logging.error("midojo attempt %s failed: %s", attempt.uuid, e)
                 attempt.notes["midojo_error"] = str(e)
                 outputs.append(garak.attempt.Message(None))
-                calls_by_generation.append([])
-                coverage_by_generation.append(
-                    {"connected": None, "recording_complete": None, "delivered": False}
-                )
-            finally:
-                self.injector.disarm()
+                executions.append(self._undelivered_execution(execution_id, str(e)))
         attempt.outputs = outputs
-        attempt.notes["mimcp_calls_by_generation"] = calls_by_generation
-        attempt.notes["mimcp_coverage_by_generation"] = coverage_by_generation
-        attempt.notes["mimcp_calls"] = [
-            call for calls in calls_by_generation for call in calls
-        ]
+        attempt.notes["midojo"]["executions"] = executions
         if self.post_buff_hook:
             attempt = self._postprocess_buff(attempt)
         attempt = self._postprocess_hook(attempt)
