@@ -144,7 +144,9 @@ class Configurable:
                 ):
                     continue
                 if isinstance(v, dict):  # if value is an existing dictionary merge
-                    v = getattr(self, k) | v
+                    current_val = getattr(self, k)
+                    if isinstance(current_val, dict):
+                        v = current_val | v
             setattr(self, k, v)  # This will set attribute to the full dictionary value
 
     def _apply_run_defaults(self):
@@ -163,8 +165,12 @@ class Configurable:
                 if not hasattr(self, k):
                     setattr(self, k, v)
                 elif isinstance(v, dict):
-                    v = v | getattr(self, k)
-                    setattr(self, k, v)
+                    current_val = getattr(self, k)
+                    if isinstance(current_val, dict):
+                        v = v | current_val
+                        setattr(self, k, v)
+                    elif current_val is None:
+                        setattr(self, k, v)
 
     def _validate_env_var(self):
         if hasattr(self, "key_env_var") and self.key_env_var:
