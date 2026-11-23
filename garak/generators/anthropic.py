@@ -97,13 +97,15 @@ class AnthropicGenerator(Generator):
             # 422) are caller bugs and would loop indefinitely if retried.
             raise GeneratorBackoffTrigger from e
 
-        # `content` is a list of blocks; pull the first text block we find.
+        # `content` is a list of blocks; join every text block. Tool use
+        # blocks split the reply, so taking only the first text block would
+        # drop the rest of the response.
         text_blocks = [
             block.text for block in response.content if hasattr(block, "text")
         ]
         if not text_blocks:
             return [None]
-        return [Message(text_blocks[0])]
+        return [Message("".join(text_blocks))]
 
 
 DEFAULT_CLASS = "AnthropicGenerator"

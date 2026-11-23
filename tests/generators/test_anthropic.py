@@ -101,3 +101,28 @@ def test_anthropic_chat():
     conv = Conversation([Turn("user", Message("Hello, Claude!"))])
     output = generator.generate(conv)
     assert len(output) == 1
+
+
+@pytest.mark.skipif(
+    not all(
+        [importlib.util.find_spec(m) for m in AnthropicGenerator.extra_dependency_names]
+    ),
+    reason="missing optional dependency",
+)
+@pytest.mark.usefixtures("set_fake_env")
+def test_anthropic_returns_all_text_blocks(monkeypatch):
+    from types import SimpleNamespace
+
+    generator = AnthropicGenerator(name=DEFAULT_MODEL_NAME)
+    response = SimpleNamespace(
+        content=[
+            SimpleNamespace(text="FIRST PART "),
+            SimpleNamespace(type="tool_use", id="toolu_1", name="get_time", input={}),
+            SimpleNamespace(text="SECOND PART"),
+        ]
+    )
+    monkeypatch.setattr(generator.client.messages, "create", lambda **kwargs: response)
+    conv = Conversation([Turn("user", Message("Hello, Claude!"))])
+    output = generator.generate(conv)
+    assert len(output) == 1
+    assert output[0].text == "FIRST PART SECOND PART"
