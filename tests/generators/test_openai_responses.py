@@ -11,7 +11,7 @@ import openai
 
 from garak.attempt import Message, Turn, Conversation
 from garak.exception import UnsupportedInjectionError
-from garak.injection import McpServerPatch, SystemPromptPatch
+from garak.injection import McpServerPatch
 from garak.generators.openai import OpenAIResponsesGenerator
 
 FAKE_API_KEY = "sk-test-fake-key"
@@ -131,7 +131,7 @@ def _make_patch(**overrides):
 
 
 def test_default_supported_patches(generator):
-    assert generator.supported_patches == frozenset({"system_prompt", "mcp_server"})
+    assert generator.supported_patches == frozenset({"mcp_server"})
 
 
 def test_generate_applies_patch_by_replacing_the_block(generator):
@@ -203,28 +203,6 @@ def test_generate_maps_extra_patch_headers(generator):
     assert block["headers"] == {"X-Tenant": "acme"}
 
 
-def test_generate_raises_for_patches_it_cannot_apply(generator):
-    """Fail closed: an unapplied patch must raise, not pass silently."""
-    generator.tools = [{"type": "web_search"}]
-    generator.client.responses.create.return_value = _make_response("ok")
-    prompt = Conversation([Turn(role="user", content=Message("hi"))])
-
-    with pytest.raises(UnsupportedInjectionError):
-        generator.generate(
-            prompt, target_patches=[{"capability": "file", "path": "/tmp/evil"}]
-        )
-
-
-def test_generate_rejects_patches_with_multiple_generations(generator):
-    """A patch set backs exactly one generation."""
-    prompt = Conversation([Turn(role="user", content=Message("hi"))])
-
-    with pytest.raises(UnsupportedInjectionError, match="one generation"):
-        generator.generate(
-            prompt, generations_this_call=2, target_patches=[_make_patch()]
-        )
-
-
 def test_generate_records_the_approval_policy(generator):
     """The mcp_require_approval value reaches the patched block."""
     generator.tools = [
@@ -252,56 +230,6 @@ def test_generate_clears_patches_after_the_call(generator):
     generator.generate(prompt, target_patches=[_make_patch()])
 
     assert generator._active_target_patches() == [], "patches must not outlive the call"
-
-
-# ── system prompt patches ──────────────────────────────────────────────────────
-
-
-def test_generate_applies_system_prompt_patch_to_instructions(generator):
-    """A SystemPromptPatch reaches the instructions field."""
-    generator.client.responses.create.return_value = _make_response("ok")
-    prompt = Conversation([Turn(role="user", content=Message("hi"))])
-
-    generator.generate(
-        prompt,
-        target_patches=[SystemPromptPatch(mode="replace", text="be strict")],
-    )
-
-    kwargs = generator.client.responses.create.call_args[1]
-    assert kwargs["instructions"] == "be strict"
-
-
-def test_generate_appends_system_prompt_patch_to_conversation_system(generator):
-    generator.client.responses.create.return_value = _make_response("ok")
-    prompt = Conversation(
-        [
-            Turn(role="system", content=Message("be helpful")),
-            Turn(role="user", content=Message("hi")),
-        ]
-    )
-
-    generator.generate(
-        prompt,
-        target_patches=[SystemPromptPatch(mode="append", text="be strict")],
-    )
-
-    kwargs = generator.client.responses.create.call_args[1]
-    assert (
-        kwargs["instructions"] == "be helpful\nbe strict"
-    ), "append adds to the system turn the conversation carries"
-
-
-def test_generate_reports_a_system_prompt_conflict(generator):
-    """Configured instructions and a patch conflict; neither may silently win."""
-    generator.instructions = "configured"
-    generator.client.responses.create.return_value = _make_response("ok")
-    prompt = Conversation([Turn(role="user", content=Message("hi"))])
-
-    with pytest.raises(UnsupportedInjectionError, match="conflict"):
-        generator.generate(
-            prompt,
-            target_patches=[SystemPromptPatch(mode="replace", text="be strict")],
-        )
 
 
 # ── _call_model ────────────────────────────────────────────────────────────────

@@ -96,4 +96,3 @@ Backends
 
    injectors/base
    injectors/mimcp
-   injectors/prompt

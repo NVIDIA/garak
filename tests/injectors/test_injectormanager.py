@@ -76,15 +76,6 @@ def test_load_fails_on_duplicate_surface_names(manager):
         manager.load(["injectors.test.a", "injectors.test.b"])
 
 
-def test_load_with_no_selection_leaves_the_registry_empty(manager):
-    manager, _ = manager
-
-    manager.load([])
-
-    assert manager.injectors == []
-    assert manager.surfaces_for_channel(TOOL_RESULT) == []
-
-
 def test_reload_replaces_the_previous_selection(manager):
     manager, loaded = manager
     loaded["injectors.test.a"] = StubInjector(

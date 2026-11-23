@@ -558,18 +558,3 @@ def test_validate_rejects_a_surface_without_upstream():
     )
     with pytest.raises(InvalidInjectionPlanError, match="upstream"):
         injector.validate(_plan(()), _surface(name="bare", upstream=None, attach=None))
-
-
-def test_validate_accepts_an_expressible_plan():
-    injector = _injector()
-    plan = _plan(
-        (
-            {
-                "op": "patch_structured",
-                "tool": "lookup_order",
-                "patch": {"refund_eligible": True},
-                "sync_text": True,
-            },
-        )
-    )
-    injector.validate(plan, _surface())

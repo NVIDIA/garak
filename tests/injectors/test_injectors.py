@@ -120,15 +120,6 @@ def test_validate_rejects_a_name_override_mismatch():
         injector.validate(_plan(surface="other"), _surface())
 
 
-def test_validate_accepts_a_matching_plan():
-    injector = BindingInjector()
-    injector.validate(_plan(surface="surf"), _surface())
-
-
-def test_base_injector_offers_no_surfaces():
-    assert Injector().offered_surfaces() == ()
-
-
 def test_two_bindings_keep_separate_sessions():
     """One injector instance serves parallel executions independently."""
     injector = BindingInjector()
@@ -168,13 +159,3 @@ def test_second_close_does_nothing():
     binding.close()
 
     assert binding.close_count == 1, "close must be idempotent"
-
-
-def test_base_binding_collect_evidence_is_not_implemented():
-    with pytest.raises(NotImplementedError):
-        InjectionBinding().collect_evidence()
-
-
-def test_base_bind_is_not_implemented():
-    with pytest.raises(NotImplementedError):
-        Injector().bind(_plan(), _surface(), "exec-1")

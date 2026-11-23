@@ -3206,7 +3206,7 @@
         "euai:robustness:unexpected_behavior"
       ],
       "tier": 3,
-      "mod_time": "2026-10-26 08:21:10 +0000"
+      "mod_time": "2026-11-23 12:09:35 +0000"
     },
     "probes.glitch.GlitchFull": {
       "description": "Probe model for glitch tokens that provoke unusual behavior",
@@ -3238,7 +3238,7 @@
         "euai:robustness:unexpected_behavior"
       ],
       "tier": 3,
-      "mod_time": "2026-10-26 08:21:10 +0000"
+      "mod_time": "2026-11-23 12:09:35 +0000"
     },
     "probes.goat.GOATAttack": {
       "description": "Generative Offensive Agent Tester",
@@ -5126,7 +5126,7 @@
         "quality:Security:PromptStability"
       ],
       "tier": 9,
-      "mod_time": "2026-11-23 11:47:05 +0000"
+      "mod_time": "2026-11-23 11:53:49 +0000"
     },
     "probes.misleading.FalseAssertion": {
       "description": "Does the model reject [questions based on] false claims?",
@@ -6222,7 +6222,7 @@
         "euai:robustness:unexpected_behavior"
       ],
       "tier": 3,
-      "mod_time": "2026-10-26 08:21:10 +0000"
+      "mod_time": "2026-11-23 12:09:35 +0000"
     },
     "probes.smuggling.HomoglyphObfuscation": {
       "description": "Does homoglyph character substitution bypass content filters?",
@@ -6257,7 +6257,7 @@
         "euai:robustness:unexpected_behavior"
       ],
       "tier": 3,
-      "mod_time": "2026-10-26 08:21:10 +0000"
+      "mod_time": "2026-11-23 12:09:35 +0000"
     },
     "probes.smuggling.HypotheticalResponse": {
       "description": "HypotheticalResponse probe",
@@ -6288,7 +6288,7 @@
         "euai:robustness:unexpected_behavior"
       ],
       "tier": 3,
-      "mod_time": "2026-10-26 08:21:10 +0000"
+      "mod_time": "2026-11-23 12:09:35 +0000"
     },
     "probes.snowball.GraphConnectivity": {
       "description": "Probe asking for impossible flight routings",
@@ -8153,7 +8153,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2026-11-17 15:33:43 +0000"
+      "mod_time": "2026-11-23 12:09:35 +0000"
     },
     "detectors.judge.JailbreakOnlyAdversarial": {
       "description": "Uses the configured model to detect if responses contain harmful content achieving the adversarial goal (JailbreakBench methodology)",
@@ -8176,7 +8176,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2026-11-17 15:33:43 +0000"
+      "mod_time": "2026-11-23 12:09:35 +0000"
     },
     "detectors.judge.ModelAsJudge": {
       "description": "Uses the configured model to detect responses that attained the probe goal",
@@ -8200,7 +8200,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2026-11-17 15:33:43 +0000"
+      "mod_time": "2026-11-23 12:09:35 +0000"
     },
     "detectors.judge.Refusal": {
       "description": "Uses the configured model to detect if the responses is a refusal to answer",
@@ -8222,7 +8222,7 @@
       },
       "pass_desc": "Response refuses to answer",
       "tags": [],
-      "mod_time": "2026-11-17 15:33:43 +0000"
+      "mod_time": "2026-11-23 12:09:35 +0000"
     },
     "detectors.judge.RefusalOnlyAdversarial": {
       "description": "Uses the configured model to detect if the responses is a refusal to answer",
@@ -8244,7 +8244,7 @@
       },
       "pass_desc": "Response refuses adversarial prompt - safety boundaries maintained",
       "tags": [],
-      "mod_time": "2026-11-17 15:33:43 +0000"
+      "mod_time": "2026-11-23 12:09:35 +0000"
     },
     "detectors.knownbadsignatures.EICAR": {
       "description": "Is the EICAR test string present?",
@@ -8556,7 +8556,7 @@
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204"
       ],
-      "mod_time": "2026-11-17 15:33:43 +0000",
+      "mod_time": "2026-11-23 12:09:35 +0000",
       "hit_precision": 0.5998546247501363,
       "hit_recall": 0.921295004186436,
       "hit_f1": 0.7266123706801674
@@ -8591,7 +8591,7 @@
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204"
       ],
-      "mod_time": "2026-11-17 15:33:43 +0000"
+      "mod_time": "2026-11-23 12:09:35 +0000"
     },
     "detectors.mitigation.Prefixes": {
       "description": "Detect failure prefixes",
@@ -8613,7 +8613,7 @@
       },
       "pass_desc": "Response starts with common refusal/failure prefix",
       "tags": [],
-      "mod_time": "2026-11-17 15:33:43 +0000"
+      "mod_time": "2026-11-23 12:09:35 +0000"
     },
     "detectors.packagehallucination.Dart": {
       "description": "Check if the output tries to use a Dart package not listed on pub.dev (2025-08-11 snapshot)",
@@ -10221,7 +10221,7 @@
       "parallel_capable": true,
       "supported_patches": [],
       "supports_multiple_generations": false,
-      "mod_time": "2026-11-23 11:24:54 +0000"
+      "mod_time": "2026-11-23 12:09:35 +0000"
     },
     "generators.azure.AzureOpenAIGenerator": {
       "description": "Wrapper for Azure Open AI. Expects AZURE_API_KEY, AZURE_ENDPOINT and AZURE_MODEL_NAME environment variables.",
@@ -10265,9 +10265,7 @@
         ]
       },
       "parallel_capable": true,
-      "supported_patches": [
-        "system_prompt"
-      ],
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-03-16 15:38:45 +0000"
     },
@@ -10295,11 +10293,11 @@
       "parallel_capable": true,
       "supported_patches": [],
       "supports_multiple_generations": false,
-      "mod_time": "2026-11-23 11:24:54 +0000"
+      "mod_time": "2026-11-23 11:54:15 +0000"
     },
     "generators.base._PatchState": {
       "description": "Patches handed to one generate() call and which were applied.",
-      "mod_time": "2026-11-23 11:24:54 +0000"
+      "mod_time": "2026-11-23 11:54:15 +0000"
     },
     "generators.bedrock.BedrockGenerator": {
       "description": "Interface for AWS Bedrock foundation models using Converse API.",
@@ -10498,9 +10496,7 @@
         ]
       },
       "parallel_capable": true,
-      "supported_patches": [
-        "system_prompt"
-      ],
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-07-07 12:06:56 +0000"
     },
@@ -10574,9 +10570,7 @@
         ]
       },
       "parallel_capable": true,
-      "supported_patches": [
-        "system_prompt"
-      ],
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-10-26 08:21:10 +0000"
     },
@@ -10947,9 +10941,7 @@
         ]
       },
       "parallel_capable": true,
-      "supported_patches": [
-        "system_prompt"
-      ],
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-10-26 08:21:10 +0000"
     },
@@ -11001,9 +10993,7 @@
         ]
       },
       "parallel_capable": true,
-      "supported_patches": [
-        "system_prompt"
-      ],
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-10-26 08:21:10 +0000"
     },
@@ -11055,9 +11045,7 @@
         ]
       },
       "parallel_capable": true,
-      "supported_patches": [
-        "system_prompt"
-      ],
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-10-26 08:21:10 +0000"
     },
@@ -11112,9 +11100,7 @@
         ]
       },
       "parallel_capable": true,
-      "supported_patches": [
-        "system_prompt"
-      ],
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-10-26 08:21:10 +0000"
     },
@@ -11295,11 +11281,9 @@
         ]
       },
       "parallel_capable": true,
-      "supported_patches": [
-        "system_prompt"
-      ],
+      "supported_patches": [],
       "supports_multiple_generations": false,
-      "mod_time": "2026-11-23 11:27:59 +0000"
+      "mod_time": "2026-11-23 12:07:46 +0000"
     },
     "generators.openai.OpenAIGenerator": {
       "description": "Generator wrapper for OpenAI text2text models. Expects API key in the OPENAI_API_KEY environment variable",
@@ -11341,11 +11325,9 @@
         ]
       },
       "parallel_capable": true,
-      "supported_patches": [
-        "system_prompt"
-      ],
+      "supported_patches": [],
       "supports_multiple_generations": true,
-      "mod_time": "2026-11-23 11:27:59 +0000"
+      "mod_time": "2026-11-23 12:07:46 +0000"
     },
     "generators.openai.OpenAIReasoningGenerator": {
       "description": "Generator wrapper for OpenAI reasoning models, e.g. `o1` family.",
@@ -11385,11 +11367,9 @@
         ]
       },
       "parallel_capable": true,
-      "supported_patches": [
-        "system_prompt"
-      ],
+      "supported_patches": [],
       "supports_multiple_generations": false,
-      "mod_time": "2026-11-23 11:27:59 +0000"
+      "mod_time": "2026-11-23 12:07:46 +0000"
     },
     "generators.openai.OpenAIResponsesGenerator": {
       "description": "Generator using the OpenAI Responses API with server-side tool orchestration.",
@@ -11444,11 +11424,10 @@
       },
       "parallel_capable": true,
       "supported_patches": [
-        "mcp_server",
-        "system_prompt"
+        "mcp_server"
       ],
       "supports_multiple_generations": false,
-      "mod_time": "2026-11-23 11:27:59 +0000"
+      "mod_time": "2026-11-23 12:07:46 +0000"
     },
     "generators.rasa.RasaRestGenerator": {
       "description": "API interface for RASA models",
@@ -11593,7 +11572,7 @@
       "parallel_capable": true,
       "supported_patches": [],
       "supports_multiple_generations": false,
-      "mod_time": "2026-11-23 11:24:54 +0000"
+      "mod_time": "2026-11-23 12:09:35 +0000"
     },
     "generators.test.Blank": {
       "description": "This generator always returns the empty string.",
@@ -11992,19 +11971,6 @@
       "doc_uri": "https://github.com/ABeltramo/mcp-explorer",
       "extra_dependency_names": [],
       "mod_time": "2026-11-23 11:40:00 +0000"
-    },
-    "injectors.prompt.SystemPrompt": {
-      "description": "Injector that delivers payloads through the system prompt channel.",
-      "DEFAULT_PARAMS": {
-        "surfaces": {}
-      },
-      "active": true,
-      "channels": [
-        "system_prompt"
-      ],
-      "doc_uri": "https://github.com/NVIDIA/garak/issues/1652",
-      "extra_dependency_names": [],
-      "mod_time": "2026-11-23 11:42:41 +0000"
     }
   }
 }

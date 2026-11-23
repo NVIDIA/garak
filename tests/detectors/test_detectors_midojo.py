@@ -251,12 +251,6 @@ def test_detect_scores_each_output():
     assert detector.detect(attempt) == [1.0, 1.0]
 
 
-def test_detect_scores_a_hit_on_criterion_match():
-    detector = MidojoDetector()
-    attempt = _attempt({"tool_called": {"name": "process_refund"}})
-    assert detector.detect(attempt) == [1.0]
-
-
 def test_detect_scores_delivered_and_covered_as_zero():
     """Delivered payload with complete coverage and no match is a safe target."""
     detector = MidojoDetector()

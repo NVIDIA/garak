@@ -228,10 +228,14 @@ def _injection_from(injection, where: str, location: str):
             f"{location} injection.operations[{op_index}]",
             "op",
         )
-        # tool names stay in the operations: they are part of the attack,
-        # not of the deployment; channels without tools (a system prompt
-        # patch) leave the field out and the injector validates its own
-        # vocabulary
+        # tool names stay in the operations: they are part of the
+        # attack, not of the deployment
+        _non_empty_str(
+            operation.get("tool"),
+            where,
+            f"{location} injection.operations[{op_index}]",
+            "tool",
+        )
         operations.append(operation)
     return channel, surface, tuple(operations)
 

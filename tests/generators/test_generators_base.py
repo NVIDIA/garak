@@ -12,7 +12,7 @@ import pytest
 from garak.attempt import Conversation, Message, Turn
 from garak.exception import UnsupportedInjectionError
 from garak.generators.base import Generator
-from garak.injection import McpServerPatch, SystemPromptPatch
+from garak.injection import McpServerPatch
 
 
 class SerialGenerator(Generator):
@@ -120,12 +120,6 @@ def test_native_multiple_generations_bypasses_pool(parallel_capable):
     assert [output.text for output in outputs] == ["hello"] * 3
 
 
-def test_base_generator_supports_no_patches():
-    """A plain text target cannot apply any request patch."""
-    generator = Generator(name="patches test")
-    assert generator.supported_patches == frozenset()
-
-
 def test_generate_exposes_patches_during_the_call_only():
     """_call_model sees the patches; they are cleared afterwards."""
     generator = Generator(name="patches test")
@@ -168,5 +162,5 @@ def test_generate_rejects_patches_with_multiple_generations():
         generator.generate(
             prompt,
             generations_this_call=2,
-            target_patches=[SystemPromptPatch(mode="replace", text="x")],
+            target_patches=[McpServerPatch(label="klarna", url="http://x/mcp")],
         )

@@ -22,13 +22,9 @@ import openai
 import backoff
 
 from garak import _config
-from garak.attempt import Message, Conversation, Turn
+from garak.attempt import Message, Conversation
 from garak.exception import UnsupportedInjectionError
-from garak.injection import (
-    McpServerPatch,
-    SystemPromptPatch,
-    apply_system_prompt_patch,
-)
+from garak.injection import McpServerPatch
 import garak.channels
 import garak.exception
 from garak.generators.base import Generator
@@ -147,9 +143,6 @@ class OpenAICompatible(Generator):
     active = True
     supports_multiple_generations = False
     generator_family_name = "OpenAICompatible"  # Placeholder override when extending
-
-    # chat requests carry a system message this generator can patch
-    supported_patches = frozenset({garak.channels.PATCH_SYSTEM_PROMPT})
 
     # template defaults optionally override when extending
     DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
@@ -290,24 +283,6 @@ class OpenAICompatible(Generator):
 
         return turn_list
 
-    def _apply_system_prompt_patches(self, prompt: Conversation) -> Conversation:
-        """Apply handed SystemPromptPatches to the conversation's system turn."""
-        applied = False
-        system_text = "\n".join(
-            turn.content.text for turn in prompt.turns if turn.role == "system"
-        )
-        for patch in self._active_target_patches():
-            if not isinstance(patch, SystemPromptPatch):
-                continue
-            system_text = apply_system_prompt_patch(system_text or None, patch)
-            self._consume_target_patch(patch)
-            applied = True
-        if not applied:
-            return prompt
-        turns = [Turn("system", Message(system_text))]
-        turns += [turn for turn in prompt.turns if turn.role != "system"]
-        return Conversation(turns)
-
     # noinspection PyArgumentList
     @backoff.on_exception(
         backoff.fibo,
@@ -363,9 +338,7 @@ class OpenAICompatible(Generator):
 
         else:  # is chat
             if isinstance(prompt, Conversation):
-                messages = self._conversation_to_list(
-                    self._apply_system_prompt_patches(prompt)
-                )
+                messages = self._conversation_to_list(prompt)
             elif isinstance(prompt, list):
                 # should this still be supported?
                 messages = prompt
@@ -533,10 +506,8 @@ class OpenAIResponsesGenerator(OpenAICompatible):
     generator_family_name = "OpenAIResponses"
     supports_multiple_generations = False
 
-    # the request carries an instructions field and mcp tool blocks
-    supported_patches = frozenset(
-        {garak.channels.PATCH_SYSTEM_PROMPT, garak.channels.PATCH_MCP_SERVER}
-    )
+    # the request carries mcp tool blocks a patch can replace or add
+    supported_patches = frozenset({garak.channels.PATCH_MCP_SERVER})
 
     DEFAULT_PARAMS = OpenAICompatible.DEFAULT_PARAMS | {
         "uri": None,
@@ -603,26 +574,6 @@ class OpenAIResponsesGenerator(OpenAICompatible):
             self._consume_target_patch(patch)
         return tools
 
-    def _effective_instructions(self, prompt: Conversation) -> Union[str, None]:
-        """Build the instructions field, applying handed SystemPromptPatches.
-
-        A configured ``instructions`` value and a system prompt patch
-        conflict: neither may silently win, so the generation fails
-        closed instead.
-        """
-        instructions = self.instructions or self._extract_system_prompt(prompt)
-        for patch in self._active_target_patches():
-            if not isinstance(patch, SystemPromptPatch):
-                continue
-            if self.instructions:
-                raise UnsupportedInjectionError(
-                    f"{self.fullname} has instructions configured and was handed "
-                    "a system prompt patch; resolve the conflict in the config"
-                )
-            instructions = apply_system_prompt_patch(instructions, patch)
-            self._consume_target_patch(patch)
-        return instructions
-
     def _load_unsafe(self):
         kwargs = {"api_key": getattr(self, "api_key", None)}
         if getattr(self, "uri", None):
@@ -666,7 +617,7 @@ class OpenAIResponsesGenerator(OpenAICompatible):
         if self.client is None:
             self._load_unsafe()
 
-        instructions = self._effective_instructions(prompt)
+        instructions = self.instructions or self._extract_system_prompt(prompt)
         create_args = {
             "model": self.name,
             "input": self._build_input(prompt),

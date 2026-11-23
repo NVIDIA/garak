@@ -111,40 +111,6 @@ class McpServerPatch(TargetPatch, _ContractType):
 
 
 @dataclass(frozen=True)
-class SystemPromptPatch(TargetPatch, _ContractType):
-    """Change the target's system prompt.
-
-    ``replace`` swaps the prompt for ``text``; ``append`` adds ``text``
-    to it; ``insert_at_marker`` splices ``text`` in at the first
-    ``marker`` occurrence.
-    """
-
-    mode: str
-    text: str
-    marker: str | None = None
-    patch_kind = "system_prompt"
-
-
-SYSTEM_PROMPT_MODES = frozenset({"replace", "append", "insert_at_marker"})
-
-
-def apply_system_prompt_patch(current: str | None, patch: SystemPromptPatch) -> str:
-    """Apply one system prompt patch to the current prompt text."""
-    if patch.mode == "replace":
-        return patch.text
-    if patch.mode == "append":
-        return f"{current}\n{patch.text}" if current else patch.text
-    if patch.mode == "insert_at_marker":
-        if not current or not patch.marker or patch.marker not in current:
-            raise ValueError(
-                f"cannot insert at marker {patch.marker!r}: the marker is not "
-                "in the current system prompt"
-            )
-        return current.replace(patch.marker, patch.text + patch.marker, 1)
-    raise ValueError(f"unknown system prompt patch mode {patch.mode!r}")
-
-
-@dataclass(frozen=True)
 class ToolCallEvent(_ContractType):
     """One tool call observed on an injected surface.
 

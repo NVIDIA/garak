@@ -56,9 +56,7 @@ optionally overrides surface resolution with an internal surface name,
 for deployments with two matching surfaces. Control cases may carry a
 ``channel`` to route through a surface with no operations. Tool names
 stay in the operations: they are part of the attack, not of the
-deployment. A case can also deliver through a patch with no external
-backend, for example ``channel: system_prompt`` with a ``replace_text``
-operation handled by ``injectors.prompt.SystemPrompt``.
+deployment.
 
 Operations are injector vocabulary: the injector rejects a plan
 carrying operations it cannot express. The MiMCP injector speaks

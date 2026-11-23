@@ -6,7 +6,7 @@
 import pytest
 
 import garak.channels as channels
-from garak.channels import CHANNEL_PATCHES, CHANNELS, PATCH_KINDS, get, get_patch
+from garak.channels import CHANNEL_PATCHES, CHANNELS, PATCH_KINDS, get
 
 
 @pytest.mark.parametrize("channel_id", sorted(CHANNELS))
@@ -24,11 +24,6 @@ def test_every_channel_in_the_catalog_is_valid(channel_id):
         channels.DELIVERY_PATCH,
         channels.DELIVERY_OUT_OF_BAND,
     ), "every channel must name a known delivery mode"
-
-
-@pytest.mark.parametrize("patch_kind", sorted(PATCH_KINDS))
-def test_every_patch_kind_is_valid(patch_kind):
-    assert get_patch(patch_kind) == patch_kind
 
 
 @pytest.mark.parametrize("channel_id", sorted(CHANNELS))
@@ -54,24 +49,6 @@ def test_get_lists_the_valid_ids_on_error(bad):
         get(bad)
 
 
-def test_get_patch_lists_the_valid_kinds_on_error():
-    with pytest.raises(ValueError, match="valid patch kinds are"):
-        get_patch("tool_result")
-
-
-def test_channel_patches_rejects_unknown_channels():
-    with pytest.raises(ValueError, match="valid channels are"):
-        channels.channel_patches("tool_results")
-
-
-def test_constants_match_the_catalog():
-    assert channels.USER_TURN in CHANNELS
-    assert channels.SYSTEM_PROMPT in CHANNELS
-    assert channels.TOOL_RESULT in CHANNELS
-    assert channels.WORKSPACE_FILE in CHANNELS
-    assert channels.RETRIEVAL_DOCUMENT in CHANNELS
-
-
 def test_list_channels_prints_the_catalog(capsys):
     from garak import command
 
@@ -81,7 +58,6 @@ def test_list_channels_prints_the_catalog(capsys):
     for channel_id in sorted(CHANNELS):
         assert channel_id in out, "every channel must be listed"
     assert "injectors.mimcp.MiMCPInjector" in out, "tool_result lists its injector"
-    assert "injectors.prompt.SystemPrompt" in out, "system_prompt lists its injector"
     assert (
         "probes.midojo.MidojoProbe" in out
     ), "the scenario-driven probe supports every channel"

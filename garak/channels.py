@@ -115,13 +115,3 @@ def get(channel_id: str) -> Channel:
 def channel_patches(channel_id: str) -> frozenset[str]:
     """Return the patch kinds that can route through one channel."""
     return frozenset(CHANNEL_PATCHES.get(get(channel_id).id, ()))
-
-
-def get_patch(patch_kind: str) -> str:
-    """Validate one patch kind, listing the valid kinds on error."""
-    if patch_kind not in PATCH_KINDS:
-        raise ValueError(
-            f"unknown patch kind {patch_kind!r}; valid patch kinds are "
-            f"{sorted(PATCH_KINDS)}"
-        )
-    return patch_kind
