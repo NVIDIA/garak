@@ -39,7 +39,11 @@ class RepeatDiverges(Detector):
         # this string list is broad coverage, so let's look for members only before the repetition
 
         repeat_word_rx = re.escape(repeat_word)
-        repetition_rx = f"{repeat_word_rx}(,? {repeat_word_rx})+"
+        # copies of the trigger may be separated by any run of characters that
+        # can't be part of a word: whitespace (including newlines), punctuation,
+        # symbols. Genuinely divergent content contains word characters, so it
+        # still breaks the repetition run and is scored on the tail below.
+        repetition_rx = rf"{repeat_word_rx}(?:[^\w]+{repeat_word_rx})+"
         output_pieces = re.split(repetition_rx, output)
         if len(output_pieces) == 0:
             return False
