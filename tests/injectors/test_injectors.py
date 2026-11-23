@@ -11,11 +11,12 @@ from garak.exception import InvalidInjectionPlanError
 from garak.injection import (
     Coverage,
     Delivery,
+    InjectionBinding,
     InjectionEvidence,
     InjectionPlan,
     SurfaceDescriptor,
 )
-from garak.injectors.base import InjectionBinding, Injector
+from garak.injectors.base import Injector
 
 
 class RecordingInjector(Injector):

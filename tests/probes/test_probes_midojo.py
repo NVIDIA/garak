@@ -16,8 +16,7 @@ from garak.exception import PluginConfigurationError
 from garak.generators.base import Generator
 from garak.generators.test import Blank
 from garak.injectors.base import Injector
-from garak.injectors.mimcp import MiMCPInjector
-from garak.injection import McpRoute
+from garak.injection import InjectionBinding, McpRoute
 from garak.probes.midojo import MidojoProbe
 
 SCENARIO = {
@@ -106,6 +105,9 @@ RECORDED_CALLS = [
         "behavior": "inject",
     }
 ]
+
+
+from garak.injectors.mimcp import MiMCPInjector
 
 
 class RecordingInjector(Injector):

@@ -16,48 +16,12 @@ from garak import _config
 from garak.capabilities import Capability
 from garak.configurable import Configurable
 from garak.exception import InvalidInjectionPlanError
-from garak.injection import InjectionEvidence, InjectionPlan, SurfaceDescriptor
-
-
-class InjectionBinding:
-    """One execution of an injection plan against one surface.
-
-    A binding owns the session state for exactly one generation: ``route``
-    is what the generator applies, ``collect_evidence()`` reports what the
-    execution learned, and ``close()`` releases the surface. ``close()`` is
-    idempotent and must never raise: cleanup failures are logged and
-    recorded as coverage errors instead. Bindings work as context managers,
-    so a generator exception cannot leak a session.
-    """
-
-    route: object = None
-
-    def __init__(self) -> None:
-        self._closed = False
-        #: coverage problems learned during this execution; folded into
-        #: the evidence by ``collect_evidence()``
-        self.coverage_errors: list[str] = []
-
-    def collect_evidence(self) -> InjectionEvidence:
-        """Return the evidence this execution collected."""
-        raise NotImplementedError
-
-    def close(self) -> None:
-        """Release the surface; safe to call more than once."""
-        if self._closed:
-            return
-        self._closed = True
-        self._close()
-
-    def _close(self) -> None:
-        """Release the surface; subclass hook, runs at most once."""
-
-    def __enter__(self) -> "InjectionBinding":
-        return self
-
-    def __exit__(self, exc_type, exc, tb) -> bool:
-        self.close()
-        return False
+from garak.injection import (
+    InjectionBinding,
+    InjectionEvidence,
+    InjectionPlan,
+    SurfaceDescriptor,
+)
 
 
 class Injector(Configurable):
