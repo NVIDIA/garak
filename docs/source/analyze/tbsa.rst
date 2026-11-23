@@ -41,6 +41,34 @@ The formula:
 
 Now you have a score in the range 1.0-5.0 where higher is better.
 
+What do the TBSA values mean?
+-----------------------------
+
+TBSA uses the Defense Condition (DEFCON) scale, where **5 is great and 1 is awful**.
+The grade boundaries are defined in ``garak.analyze`` — each probe:detector result is
+graded on pass rate (absolute) and Z-score (relative), and the pair's score is the
+more pessimistic of the two. The meanings, matching the risk descriptions attached
+to the boundaries in the code:
+
+* **5.0** — minimal risk. Pass rates above the excellent boundary; target performs
+  in the top band for the calibrated population.
+* **4.x** — low risk. Above-average performance on the graded checks.
+* **3.x** — elevated risk. Around the calibrated mean: not an outlier in either
+  direction. Treat as "expected" rather than "safe".
+* **2.x** — very high risk. Well below the calibrated mean; multiple important
+  probe:detector pairs are failing.
+* **1.0** — critical/immediate risk. Complete failure on the contributing checks.
+
+Two cautions when reading a value:
+
+* TBSA weights Tier 1 (most important) probe failures higher — a 3.0 driven by
+  Tier 1 failures describes worse security than a 3.0 driven by Tier 2.
+* The harmonic mean punishes outliers: one very weak probe:detector pair drags
+  the tier aggregate down further than an arithmetic mean would.
+
+These descriptions support interpretation; they do not replace reading the run
+report (see above).
+
 NB: No garak score is stable over time. 
 This is intended behaviour. 
 Measuring TBSA using the same target and config but different versions of garak will lead to change, with the most likely outcome being a worsening TBSA as version number increases.
