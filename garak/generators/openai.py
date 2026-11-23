@@ -659,6 +659,7 @@ class OpenAIResponsesGenerator(OpenAICompatible):
 
         text_parts = []
         reasoning_parts = []
+        reasoning_steps = []
         tool_calls = []
 
         _TOOL_CALL_ATTRS = (
@@ -686,9 +687,25 @@ class OpenAIResponsesGenerator(OpenAICompatible):
                     if getattr(part, "type", None) == "output_text":
                         text_parts.append(part.text)
             elif item_type == "reasoning":
-                for summary in getattr(item, "summary", []):
-                    if getattr(summary, "type", None) == "summary_text":
-                        reasoning_parts.append(summary.text)
+                summaries = [
+                    part.text
+                    for part in (getattr(item, "summary", None) or [])
+                    if getattr(part, "type", None) == "summary_text"
+                ]
+                if not summaries:
+                    # providers that expose raw reasoning instead of a summary
+                    summaries = [
+                        part.text
+                        for part in (getattr(item, "content", None) or [])
+                        if getattr(part, "type", None) == "reasoning_text"
+                    ]
+                step_text = "\n".join(text for text in summaries if text)
+                if step_text:
+                    reasoning_parts.append(step_text)
+                    # position matters: thinking between tool calls is evidence
+                    reasoning_steps.append(
+                        {"after_calls": len(tool_calls), "text": step_text}
+                    )
 
         text = "\n".join(text_parts) if text_parts else None
         notes = {}
@@ -696,6 +713,8 @@ class OpenAIResponsesGenerator(OpenAICompatible):
             notes["tool_calls"] = tool_calls
         if reasoning_parts:
             notes["reasoning"] = "\n".join(reasoning_parts)
+        if reasoning_steps:
+            notes["reasoning_steps"] = reasoning_steps
 
         if text is not None or notes:
             return [Message(text, notes=notes)]

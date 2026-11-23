@@ -564,3 +564,57 @@ def test_tool_calls_only_returns_message_not_none(generator):
     assert isinstance(result[0], Message)
     assert result[0].text is None
     assert result[0].notes["tool_calls"][0]["name"] == "get_balance"
+
+
+def test_reasoning_content_parts_stored_when_no_summary(generator):
+    """Providers that return raw reasoning content populate the same notes key."""
+    part = MagicMock()
+    part.type = "reasoning_text"
+    part.text = "raw chain of thought"
+    item = MagicMock()
+    item.type = "reasoning"
+    item.summary = []
+    item.content = [part]
+    response = _make_response_with_reasoning("Answer", "unused")
+    response.output = [item, response.output[1]]
+    generator.client.responses.create.return_value = response
+
+    result = generator._call_model(
+        Conversation([Turn(role="user", content=Message("Think hard"))])
+    )
+
+    assert result[0].notes["reasoning"] == "raw chain of thought"
+
+
+def test_reasoning_steps_record_position_between_calls(generator):
+    """Each reasoning block records how many tool calls preceded it."""
+    first = MagicMock()
+    first.type = "reasoning"
+    first.summary = []
+    first.content = [MagicMock(type="reasoning_text", text="before any call")]
+
+    call = MagicMock()
+    call.type = "mcp_call"
+    call.name = "lookup_order"
+    call.arguments = {"order_id": "ORD-104"}
+    for attr in ("call_id", "input", "output", "error", "status", "server_label"):
+        setattr(call, attr, None)
+
+    second = MagicMock()
+    second.type = "reasoning"
+    second.summary = []
+    second.content = [MagicMock(type="reasoning_text", text="after the call")]
+
+    response = _make_response_with_reasoning("Answer", "unused")
+    response.output = [first, call, second, response.output[1]]
+    generator.client.responses.create.return_value = response
+
+    result = generator._call_model(
+        Conversation([Turn(role="user", content=Message("Think hard"))])
+    )
+
+    steps = result[0].notes["reasoning_steps"]
+    assert [(s["after_calls"], s["text"]) for s in steps] == [
+        (0, "before any call"),
+        (1, "after the call"),
+    ], "reasoning blocks must keep their position relative to the tool calls"
