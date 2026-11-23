@@ -3,11 +3,10 @@
 
 """Loader for indirect prompt injection scenarios, schema 0.3.
 
-A scenario is data: a benign task and the cases run against it. Cases
-reach the target through a channel from the catalog
-(``garak.channels``); attack cases carry operations against that
-channel, control cases run the benign task untouched (optionally through
-a surface, so their traffic is still recorded). Endpoints and the system
+A scenario is data: a benign task and the attack cases run against
+it. Each case reaches the target through a channel from the catalog
+(``garak.channels``) and carries operations against that channel.
+Endpoints and the system
 prompt belong to the target and injector config, never to the scenario,
 so a scenario carries no hostnames and no backend fields. Validation
 happens here, at load time, so a malformed scenario fails the run
@@ -31,8 +30,6 @@ MOVED_FIELDS = {
     "instructions": "the target config owns the system prompt; set the generator's instructions",
 }
 
-CASE_KINDS = ("attack", "control")
-
 _CRITERIA_KEYS = {
     "tool_called",
     "output_contains",
@@ -51,17 +48,16 @@ class ScenarioError(GarakException):
 
 @dataclass(frozen=True)
 class Case:
-    """One case of a scenario.
+    """One attack case of a scenario.
 
-    ``kind`` separates attack cases from control cases; ``channel`` is
-    the catalog id the case reaches the target through, ``surface``
-    optionally overrides surface resolution with an internal surface
-    name, ``operations`` are the injector vocabulary for the attack, and
-    ``success`` holds the criteria a detector grades the case by.
+    ``channel`` is the catalog id the case reaches the target through,
+    ``surface`` optionally overrides surface resolution with an internal
+    surface name, ``operations`` are the injector vocabulary for the
+    attack, and ``success`` holds the criteria a detector grades the
+    case by.
     """
 
     id: str
-    kind: str
     description: str | None
     channel: str | None
     surface: str | None
@@ -77,16 +73,6 @@ class Scenario:
     description: str | None
     prompt: str
     cases: tuple[Case, ...]
-
-    @property
-    def attacks(self) -> tuple[Case, ...]:
-        """The attack cases of the scenario."""
-        return tuple(case for case in self.cases if case.kind == "attack")
-
-    @property
-    def controls(self) -> tuple[Case, ...]:
-        """The control cases of the scenario."""
-        return tuple(case for case in self.cases if case.kind == "control")
 
 
 def load_scenario(path) -> Scenario:
@@ -151,37 +137,19 @@ def _case_from(index: int, raw_case, where: str) -> Case:
     location = f"case {case_id!r}"
     _reject_unknown(
         raw_case,
-        {"id", "kind", "description", "channel", "injection", "success"},
+        {"id", "description", "injection", "success"},
         where,
         location,
     )
 
-    kind = raw_case.get("kind", "attack")
-    if kind not in CASE_KINDS:
-        raise ScenarioError(
-            f"{where}: {location}: kind must be one of {list(CASE_KINDS)}, got {kind!r}"
-        )
     description = raw_case.get("description")
     if description is not None and not isinstance(description, str):
         raise ScenarioError(f"{where}: {location}: description must be a string")
 
     injection = raw_case.get("injection")
-    if kind == "control" and injection is not None:
-        raise ScenarioError(
-            f"{where}: {location}: a control case runs without an injection"
-        )
-    if kind == "attack" and injection is None:
+    if injection is None:
         raise ScenarioError(f"{where}: {location}: an attack case needs an injection")
-
-    channel = None
-    surface = None
-    operations: tuple[dict, ...] = ()
-    if injection is not None:
-        channel, surface, operations = _injection_from(injection, where, location)
-    elif raw_case.get("channel") is not None:
-        # a control case may route through a surface, so its traffic is
-        # still recorded
-        channel = _channel_id(raw_case.get("channel"), where, location, "channel")
+    channel, surface, operations = _injection_from(injection, where, location)
 
     success = raw_case.get("success")
     if success is None:
@@ -190,7 +158,6 @@ def _case_from(index: int, raw_case, where: str) -> Case:
 
     return Case(
         id=case_id,
-        kind=kind,
         description=description,
         channel=channel,
         surface=surface,

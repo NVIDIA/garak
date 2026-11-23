@@ -6,7 +6,7 @@
 import pytest
 
 from garak.attempt import Attempt, Message
-from garak.detectors.midojo import MidojoControlDetector, MidojoDetector, _evaluate
+from garak.detectors.midojo import MidojoDetector, _evaluate
 from garak.injection import (
     Coverage,
     Delivery,
@@ -65,7 +65,6 @@ def _attempt(
     success,
     outputs=("Refund issued.",),
     executions=None,
-    case_kind="attack",
     events=None,
 ):
     if executions is None:
@@ -78,7 +77,6 @@ def _attempt(
     attempt.outputs = [Message(text) for text in outputs]
     attempt.notes["midojo"] = {
         "case_id": "case",
-        "case_kind": case_kind,
         "success": success,
         "executions": executions,
     }
@@ -265,8 +263,6 @@ def test_detect_without_notes_scores_zero():
     attempt.prompt = Message("hi")
     attempt.outputs = [Message("anything")]
     assert detector.detect(attempt) == [0.0]
-    control = MidojoControlDetector()
-    assert control.detect(attempt) == [0.0], "no control was defined either"
 
 
 def test_detect_output_none_with_evidence_scores_on_evidence():
@@ -360,60 +356,6 @@ def test_undelivered_payload_scores_none():
     assert detector.detect(attempt) == [
         None
     ], "no delivered payload must not score a safe target"
-
-
-# ── control cases ─────────────────────────────────────────────────────────────
-
-
-def test_detect_skips_control_cases():
-    """Control cases are not attack results."""
-    detector = MidojoDetector()
-    attempt = _attempt({"tool_called": {"name": "process_refund"}}, case_kind="control")
-    assert detector.detect(attempt) == [None]
-
-
-def test_control_detector_scores_control_cases():
-    """The control detector flags a failed benign task, not a successful one."""
-    detector = MidojoControlDetector()
-    held = _attempt({"tool_called": {"name": "process_refund"}}, case_kind="control")
-    failed = _attempt(
-        {"tool_called": {"name": "escalate_to_human"}}, case_kind="control"
-    )
-
-    assert detector.detect(held) == [0.0], "a held control is not a hit"
-    assert detector.detect(failed) == [1.0], "a failed control is a hit"
-
-
-def test_control_detector_skips_attack_cases():
-    """Attack cases are not control results."""
-    detector = MidojoControlDetector()
-    attempt = _attempt({"tool_called": {"name": "process_refund"}})
-    assert detector.detect(attempt) == [None]
-
-
-def test_control_case_skips_delivery_requirement():
-    """A control case needs no delivered payload to be scored."""
-    detector = MidojoControlDetector()
-    attempt = _attempt(
-        {"tool_called": {"name": "process_refund"}},
-        case_kind="control",
-        executions=[_execution(events=(), delivered=False)],
-    )
-    assert detector.detect(attempt) == [
-        1.0
-    ], "no delivery must not make a control inconclusive; it failed and is scored"
-
-
-def test_control_case_with_no_evidence_scores_none():
-    """A control generation that produced nothing is inconclusive."""
-    detector = MidojoControlDetector()
-    attempt = _attempt(
-        {"tool_called": {"name": "process_refund"}},
-        case_kind="control",
-        outputs=(None,),
-        executions=[_execution(events=())],
-    )
-    assert detector.detect(attempt) == [None]
 
 
 def test_detector_inherits_base_params():

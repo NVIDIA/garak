@@ -3206,7 +3206,7 @@
         "euai:robustness:unexpected_behavior"
       ],
       "tier": 3,
-      "mod_time": "2026-11-23 12:09:35 +0000"
+      "mod_time": "2026-11-23 13:21:46 +0000"
     },
     "probes.glitch.GlitchFull": {
       "description": "Probe model for glitch tokens that provoke unusual behavior",
@@ -3238,7 +3238,7 @@
         "euai:robustness:unexpected_behavior"
       ],
       "tier": 3,
-      "mod_time": "2026-11-23 12:09:35 +0000"
+      "mod_time": "2026-11-23 13:21:46 +0000"
     },
     "probes.goat.GOATAttack": {
       "description": "Generative Offensive Agent Tester",
@@ -5126,7 +5126,7 @@
         "quality:Security:PromptStability"
       ],
       "tier": 9,
-      "mod_time": "2026-11-23 11:53:49 +0000"
+      "mod_time": "2026-11-23 13:20:23 +0000"
     },
     "probes.misleading.FalseAssertion": {
       "description": "Does the model reject [questions based on] false claims?",
@@ -6222,7 +6222,7 @@
         "euai:robustness:unexpected_behavior"
       ],
       "tier": 3,
-      "mod_time": "2026-11-23 12:09:35 +0000"
+      "mod_time": "2026-11-23 13:21:46 +0000"
     },
     "probes.smuggling.HomoglyphObfuscation": {
       "description": "Does homoglyph character substitution bypass content filters?",
@@ -6257,7 +6257,7 @@
         "euai:robustness:unexpected_behavior"
       ],
       "tier": 3,
-      "mod_time": "2026-11-23 12:09:35 +0000"
+      "mod_time": "2026-11-23 13:21:46 +0000"
     },
     "probes.smuggling.HypotheticalResponse": {
       "description": "HypotheticalResponse probe",
@@ -6288,7 +6288,7 @@
         "euai:robustness:unexpected_behavior"
       ],
       "tier": 3,
-      "mod_time": "2026-11-23 12:09:35 +0000"
+      "mod_time": "2026-11-23 13:21:46 +0000"
     },
     "probes.snowball.GraphConnectivity": {
       "description": "Probe asking for impossible flight routings",
@@ -8153,7 +8153,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2026-11-23 12:09:35 +0000"
+      "mod_time": "2026-11-23 13:21:46 +0000"
     },
     "detectors.judge.JailbreakOnlyAdversarial": {
       "description": "Uses the configured model to detect if responses contain harmful content achieving the adversarial goal (JailbreakBench methodology)",
@@ -8176,7 +8176,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2026-11-23 12:09:35 +0000"
+      "mod_time": "2026-11-23 13:21:46 +0000"
     },
     "detectors.judge.ModelAsJudge": {
       "description": "Uses the configured model to detect responses that attained the probe goal",
@@ -8200,7 +8200,7 @@
       },
       "pass_desc": "Detector found no issue",
       "tags": [],
-      "mod_time": "2026-11-23 12:09:35 +0000"
+      "mod_time": "2026-11-23 13:21:46 +0000"
     },
     "detectors.judge.Refusal": {
       "description": "Uses the configured model to detect if the responses is a refusal to answer",
@@ -8222,7 +8222,7 @@
       },
       "pass_desc": "Response refuses to answer",
       "tags": [],
-      "mod_time": "2026-11-23 12:09:35 +0000"
+      "mod_time": "2026-11-23 13:21:46 +0000"
     },
     "detectors.judge.RefusalOnlyAdversarial": {
       "description": "Uses the configured model to detect if the responses is a refusal to answer",
@@ -8244,7 +8244,7 @@
       },
       "pass_desc": "Response refuses adversarial prompt - safety boundaries maintained",
       "tags": [],
-      "mod_time": "2026-11-23 12:09:35 +0000"
+      "mod_time": "2026-11-23 13:21:46 +0000"
     },
     "detectors.knownbadsignatures.EICAR": {
       "description": "Is the EICAR test string present?",
@@ -8409,28 +8409,6 @@
       "hit_recall": 0.0,
       "hit_f1": 0.0
     },
-    "detectors.midojo.MidojoControlDetector": {
-      "description": "Grades the control cases of a MidojoProbe scenario",
-      "DEFAULT_PARAMS": {
-        "skip": false
-      },
-      "active": true,
-      "doc_uri": "https://github.com/NVIDIA/garak/issues/1652",
-      "extra_dependency_names": [],
-      "hit_desc": "Target failed the benign control task",
-      "lang_spec": "*",
-      "modality": {
-        "out": [
-          "text"
-        ]
-      },
-      "pass_desc": "Target completed the benign control task",
-      "tags": [
-        "avid-effect:security:S0403",
-        "owasp:llm01"
-      ],
-      "mod_time": "2026-11-23 10:55:58 +0000"
-    },
     "detectors.midojo.MidojoDetector": {
       "description": "Grades a MidojoProbe attempt against its scenario's success criteria",
       "DEFAULT_PARAMS": {
@@ -8451,7 +8429,7 @@
         "avid-effect:security:S0403",
         "owasp:llm01"
       ],
-      "mod_time": "2026-11-23 10:55:58 +0000"
+      "mod_time": "2026-11-23 13:19:15 +0000"
     },
     "detectors.misleading.MustContradictNLI": {
       "description": "This detector is looking for the model to contradict a claim.",
@@ -8556,7 +8534,7 @@
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204"
       ],
-      "mod_time": "2026-11-23 12:09:35 +0000",
+      "mod_time": "2026-11-23 13:21:46 +0000",
       "hit_precision": 0.5998546247501363,
       "hit_recall": 0.921295004186436,
       "hit_f1": 0.7266123706801674
@@ -8591,7 +8569,7 @@
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204"
       ],
-      "mod_time": "2026-11-23 12:09:35 +0000"
+      "mod_time": "2026-11-23 13:21:46 +0000"
     },
     "detectors.mitigation.Prefixes": {
       "description": "Detect failure prefixes",
@@ -8613,7 +8591,7 @@
       },
       "pass_desc": "Response starts with common refusal/failure prefix",
       "tags": [],
-      "mod_time": "2026-11-23 12:09:35 +0000"
+      "mod_time": "2026-11-23 13:21:46 +0000"
     },
     "detectors.packagehallucination.Dart": {
       "description": "Check if the output tries to use a Dart package not listed on pub.dev (2025-08-11 snapshot)",
@@ -10221,7 +10199,7 @@
       "parallel_capable": true,
       "supported_patches": [],
       "supports_multiple_generations": false,
-      "mod_time": "2026-11-23 12:09:35 +0000"
+      "mod_time": "2026-11-23 13:21:46 +0000"
     },
     "generators.azure.AzureOpenAIGenerator": {
       "description": "Wrapper for Azure Open AI. Expects AZURE_API_KEY, AZURE_ENDPOINT and AZURE_MODEL_NAME environment variables.",
@@ -11572,7 +11550,7 @@
       "parallel_capable": true,
       "supported_patches": [],
       "supports_multiple_generations": false,
-      "mod_time": "2026-11-23 12:09:35 +0000"
+      "mod_time": "2026-11-23 13:21:46 +0000"
     },
     "generators.test.Blank": {
       "description": "This generator always returns the empty string.",

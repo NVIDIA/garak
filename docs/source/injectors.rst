@@ -33,8 +33,7 @@ A binding carries the ``target_patch`` a generator applies for its
 generation (None for pure out-of-band surfaces), collects
 ``InjectionEvidence`` through ``collect_evidence()``, and releases the
 surface through ``close()``, which is idempotent and never raises. A
-binding with no operations relays traffic unchanged and records
-evidence for control cases.
+binding with no operations relays traffic unchanged.
 
 Generators declare the patch kinds they can apply through
 ``supported_patches`` and apply each handed patch or fail closed with

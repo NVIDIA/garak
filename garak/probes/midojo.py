@@ -33,11 +33,9 @@ class MidojoProbe(garak.probes.Probe):
     buffs), validates the case's plan on the surface, checks the target
     can apply the patch the surface needs, and binds one injector session
     per generation, so ``run.generations`` samples model variation while
-    the recorded evidence stays attributed to a single output. Control
-    cases (``kind: control``) run the benign task without an injection,
-    optionally through a surface so their traffic is still recorded. A
-    case whose channel no loaded surface offers, or whose patch the
-    target cannot apply, is unsupported and scores None, never safe. The
+    the recorded evidence stays attributed to a single output. A case
+    whose channel no loaded surface offers, or whose patch the target
+    cannot apply, is unsupported and scores None, never safe. The
     scenario file is data, so other targets and surfaces need no probe
     changes; scenarios live outside garak (``scenario_file`` is required,
     e.g. the Klarna demo shipped with the mim-demo deployment repo).
@@ -79,9 +77,6 @@ class MidojoProbe(garak.probes.Probe):
         channel several surfaces offer, or a plan the injector rejects,
         aborts the run as a configuration error.
         """
-        if case.channel is None:
-            # a control case without a channel needs no surface at all
-            return None, None, None, None
         candidates = _config.injectormanager.surfaces_for_channel(case.channel)
         if case.surface is not None:
             candidates = [pair for pair in candidates if pair[1].name == case.surface]
@@ -152,7 +147,6 @@ class MidojoProbe(garak.probes.Probe):
                 "midojo": {
                     "scenario_id": scenario.id,
                     "case_id": case.id,
-                    "case_kind": case.kind,
                     "channel": case.channel,
                     "trust": trust,
                     "surface": surface.name if surface is not None else None,
@@ -214,30 +208,24 @@ class MidojoProbe(garak.probes.Probe):
                 executions.append(self._undelivered_execution(execution_id))
                 continue
             try:
-                if injector is None:
-                    outputs.extend(
-                        self.generator.generate(attempt.prompt, generations_this_call=1)
+                binding = injector.bind(plan, surface, execution_id)
+                try:
+                    patches = (
+                        [binding.target_patch]
+                        if binding.target_patch is not None
+                        else None
                     )
-                    executions.append(self._undelivered_execution(execution_id))
-                else:
-                    binding = injector.bind(plan, surface, execution_id)
-                    try:
-                        patches = (
-                            [binding.target_patch]
-                            if binding.target_patch is not None
-                            else None
+                    outputs.extend(
+                        self.generator.generate(
+                            attempt.prompt,
+                            generations_this_call=1,
+                            target_patches=patches,
                         )
-                        outputs.extend(
-                            self.generator.generate(
-                                attempt.prompt,
-                                generations_this_call=1,
-                                target_patches=patches,
-                            )
-                        )
-                        evidence = binding.collect_evidence()
-                    finally:
-                        binding.close()
-                    executions.append(evidence.as_dict())
+                    )
+                    evidence = binding.collect_evidence()
+                finally:
+                    binding.close()
+                executions.append(evidence.as_dict())
             except InjectorError as e:
                 logging.error(
                     "midojo attempt %s execution %s failed: %s",
