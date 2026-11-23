@@ -77,6 +77,45 @@ def test_tbsa_value_t2_OK():
     assert tbsa == 2.3, "weighted avg (1,2) of 1 and 5 is 2.3333, truncated to 2.3"
 
 
+def _single_tier_digest(tier, defcons):
+    eval_groups = {}
+    for idx, defcon in enumerate(defcons):
+        eval_groups[f"g{idx}"] = {
+            f"g{idx}.P{idx}": {
+                "_summary": {"probe_tier": tier},
+                f"g{idx}.P{idx}": {
+                    "detector_name": "d.D",
+                    "absolute_score": 0.0,
+                    "absolute_defcon": defcon,
+                    "relative_score": 0.0,
+                    "relative_defcon": defcon,
+                },
+            }
+        }
+    return {"meta": {"garak_version": "0.17.2"}, "eval": eval_groups}
+
+
+@pytest.mark.parametrize("tier", [1, 2])
+def test_tbsa_single_tier_rounded(tier):
+    # harmonic mean of 3 and 4 is 3.4285..., final TBSA must be one decimal place
+    tbsa, _, pd_count = garak.analyze.tbsa.digest_to_tbsa(
+        _single_tier_digest(tier, [3, 4]), quiet=True
+    )
+    assert pd_count == 2, "both probe/detector pairs should contribute"
+    assert tbsa == 3.4, "single-tier TBSA must pass through round_final_tbsa"
+
+
+@pytest.mark.parametrize("tier", [1, 2])
+def test_tbsa_single_tier_rounded_distinguishes_truncation(tier):
+    # harmonic mean of 4, 3, 3 is 3.2727: rounding gives 3.3, truncation gives 3.2
+    tbsa, _, pd_count = garak.analyze.tbsa.digest_to_tbsa(
+        _single_tier_digest(tier, [4, 3, 3]), quiet=True
+    )
+    assert pd_count == 3, "all three probe/detector pairs should contribute"
+    assert tbsa == 3.3, "single-tier TBSA must round, not truncate"
+    assert tbsa != 3.2, "truncated value must not be returned"
+
+
 def test_hash_varies():
     _, base_hash, __ = garak.analyze.tbsa.digest_to_tbsa(BASE_DIGEST)
     altered_version_digest = BASE_DIGEST
