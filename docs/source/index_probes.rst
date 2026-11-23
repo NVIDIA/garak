@@ -56,3 +56,4 @@ For a guide to writing probes, see :doc:`extending.probe`.
    probes/web_injection
    probes/_tier
    probes/midojo
+   probes/_scenario

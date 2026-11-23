@@ -41,6 +41,7 @@ class _ContractType:
     """Mixin giving contract types a JSON-safe dict view."""
 
     def as_dict(self) -> dict:
+        """Return this value as plain JSON-compatible data."""
         return as_dict(self)
 
 

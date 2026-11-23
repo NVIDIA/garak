@@ -76,10 +76,12 @@ class Scenario:
 
     @property
     def attacks(self) -> tuple[Case, ...]:
+        """The attack cases of the scenario."""
         return tuple(case for case in self.cases if case.kind == "attack")
 
     @property
     def controls(self) -> tuple[Case, ...]:
+        """The control cases of the scenario."""
         return tuple(case for case in self.cases if case.kind == "control")
 
 

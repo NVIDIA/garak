@@ -14,12 +14,7 @@ from colorama import Fore, Style
 from garak import _config
 from garak.configurable import Configurable
 from garak.exception import InvalidInjectionPlanError
-from garak.injection import (
-    InjectionBinding,
-    InjectionEvidence,
-    InjectionPlan,
-    SurfaceDescriptor,
-)
+from garak.injection import InjectionBinding, InjectionPlan, SurfaceDescriptor
 
 
 class Injector(Configurable):

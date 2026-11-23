@@ -8,7 +8,6 @@ import os
 
 import httpx
 
-from garak import _config
 from garak.exception import InjectorError, InvalidInjectionPlanError
 from garak.injection import (
     Coverage,

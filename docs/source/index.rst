@@ -54,6 +54,7 @@ Check out the :doc:`usage` section for further information, including :doc:`inst
    index_generators
    index_harnesses
    index_probes
+   injectors
 
 .. toctree::
    :caption: Code reference
@@ -63,7 +64,7 @@ Check out the :doc:`usage` section for further information, including :doc:`inst
    basic
    index_analyze
    attempt
-   capabilities
+   injection
    cli
    command
    _config
