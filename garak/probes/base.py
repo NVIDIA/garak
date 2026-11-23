@@ -55,6 +55,9 @@ class Probe(Configurable):
     extended_detectors: Iterable[str] = []
     # can attempts from this probe be parallelised?
     parallelisable_attempts: bool = True
+    # channel ids from garak.channels this probe can drive attacks over;
+    # recorded for discovery (--list_channels)
+    supported_channels: frozenset[str] = frozenset()
     # Keeps state of whether a buff is loaded that requires a call to untransform model outputs
     post_buff_hook: bool = False
     # support mainstream any-to-any large models

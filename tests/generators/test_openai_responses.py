@@ -11,7 +11,7 @@ import openai
 
 from garak.attempt import Message, Turn, Conversation
 from garak.exception import UnsupportedInjectionError
-from garak.injection import McpRoute
+from garak.injection import McpServerPatch, SystemPromptPatch
 from garak.generators.openai import OpenAIResponsesGenerator
 
 FAKE_API_KEY = "sk-test-fake-key"
@@ -118,103 +118,23 @@ def test_custom_uri_and_tools(set_fake_env, mock_openai_client):
     assert kwargs.get("base_url") == "http://localhost:8321/v1/"
 
 
-# ── surfaces ──────────────────────────────────────────────────────────────
+# ── target patches ─────────────────────────────────────────────────────────────
 
 
-def test_default_surfaces_are_empty(generator):
-    assert generator.injectable_surfaces() == []
-
-
-def test_surfaces_derived_from_mcp_blocks(set_fake_env, mock_openai_client):
-    gen = OpenAIResponsesGenerator(
-        name="my-model",
-        config_root={
-            "generators": {
-                "openai": {
-                    "OpenAIResponsesGenerator": {
-                        "tools": [
-                            {
-                                "type": "mcp",
-                                "server_label": "klarna",
-                                "server_url": "http://localhost:8888/mcp",
-                            },
-                            {"type": "web_search"},
-                        ],
-                    }
-                }
-            }
-        },
-    )
-    surfaces = gen.injectable_surfaces()
-    assert len(surfaces) == 1, "only mcp blocks are injectable surfaces"
-    surface = surfaces[0]
-    assert surface.kind == "mcp.server"
-    assert surface.name == "klarna"
-    assert surface.controls == frozenset({"replace_route"})
-    assert surface.upstream == {
-        "server_url": "http://localhost:8888/mcp",
-        "headers": {},
-    }, "the configured endpoint data rides on the surface"
-
-
-def test_non_mcp_tool_types_carry_no_surface(set_fake_env, mock_openai_client):
-    gen = OpenAIResponsesGenerator(
-        name="my-model",
-        config_root={
-            "generators": {
-                "openai": {
-                    "OpenAIResponsesGenerator": {
-                        "tools": [
-                            {"type": "image_generation"},
-                            {"type": "file_search"},
-                            {"type": "mcp", "server_url": "no label"},
-                        ],
-                    }
-                }
-            }
-        },
-    )
-    assert (
-        gen.injectable_surfaces() == []
-    ), "tool types and unlabelled blocks garak cannot address carry no surface"
-
-
-def test_surface_upstream_carries_configured_headers(set_fake_env, mock_openai_client):
-    gen = OpenAIResponsesGenerator(
-        name="my-model",
-        config_root={
-            "generators": {
-                "openai": {
-                    "OpenAIResponsesGenerator": {
-                        "tools": [
-                            {
-                                "type": "mcp",
-                                "server_label": "klarna",
-                                "server_url": "http://localhost:8888/mcp",
-                                "headers": {"X-Tenant": "acme"},
-                            }
-                        ],
-                    }
-                }
-            }
-        },
-    )
-    assert gen.injectable_surfaces()[0].upstream["headers"] == {"X-Tenant": "acme"}
-
-
-# ── injection routes ──────────────────────────────────────────────────────────
-
-
-def _make_route(**overrides):
-    route = McpRoute(
-        replaces="klarna",
+def _make_patch(**overrides):
+    patch = McpServerPatch(
+        label="klarna",
         url="http://127.0.0.1:8000/mcp",
         headers={"Authorization": "tok-123"},
     )
-    return replace(route, **overrides) if overrides else route
+    return replace(patch, **overrides) if overrides else patch
 
 
-def test_generate_applies_route_by_replacing_the_block(generator):
+def test_default_supported_patches(generator):
+    assert generator.supported_patches == frozenset({"system_prompt", "mcp_server"})
+
+
+def test_generate_applies_patch_by_replacing_the_block(generator):
     generator.tools = [
         {
             "type": "mcp",
@@ -226,7 +146,7 @@ def test_generate_applies_route_by_replacing_the_block(generator):
     generator.client.responses.create.return_value = _make_response("ok")
     prompt = Conversation([Turn(role="user", content=Message("hi"))])
 
-    generator.generate(prompt, injection_routes=[_make_route()])
+    generator.generate(prompt, target_patches=[_make_patch()])
 
     kwargs = generator.client.responses.create.call_args[1]
     assert kwargs["tools"] == [
@@ -238,10 +158,31 @@ def test_generate_applies_route_by_replacing_the_block(generator):
             "require_approval": "never",
             "authorization": "tok-123",
         },
-    ], "the route replaces the configured block with its server_label"
+    ], "the patch replaces the configured block with its label"
 
 
-def test_generate_maps_extra_route_headers(generator):
+def test_generate_applies_patch_by_adding_a_block(generator):
+    """The injector config owns the surface; the tools need not declare it."""
+    generator.tools = [{"type": "web_search"}]
+    generator.client.responses.create.return_value = _make_response("ok")
+    prompt = Conversation([Turn(role="user", content=Message("hi"))])
+
+    generator.generate(prompt, target_patches=[_make_patch()])
+
+    kwargs = generator.client.responses.create.call_args[1]
+    assert kwargs["tools"] == [
+        {"type": "web_search"},
+        {
+            "type": "mcp",
+            "server_label": "klarna",
+            "server_url": "http://127.0.0.1:8000/mcp",
+            "require_approval": "never",
+            "authorization": "tok-123",
+        },
+    ], "a patch naming no configured block adds one"
+
+
+def test_generate_maps_extra_patch_headers(generator):
     """Headers beyond Authorization pass through as the block's headers."""
     generator.tools = [
         {"type": "mcp", "server_label": "klarna", "server_url": "http://up/mcp"}
@@ -251,8 +192,8 @@ def test_generate_maps_extra_route_headers(generator):
 
     generator.generate(
         prompt,
-        injection_routes=[
-            _make_route(headers={"Authorization": "tok", "X-Tenant": "acme"})
+        target_patches=[
+            _make_patch(headers={"Authorization": "tok", "X-Tenant": "acme"})
         ],
     )
 
@@ -262,40 +203,30 @@ def test_generate_maps_extra_route_headers(generator):
     assert block["headers"] == {"X-Tenant": "acme"}
 
 
-def test_generate_raises_for_an_unmatched_route(generator):
-    """A route naming no configured block must not append a server."""
-    generator.tools = [{"type": "web_search"}]
-    generator.client.responses.create.return_value = _make_response("ok")
-    prompt = Conversation([Turn(role="user", content=Message("hi"))])
-
-    with pytest.raises(UnsupportedInjectionError, match="klarna"):
-        generator.generate(prompt, injection_routes=[_make_route()])
-
-
-def test_generate_raises_for_routes_it_cannot_apply(generator):
-    """Fail closed: an unapplied route must raise, not pass silently."""
+def test_generate_raises_for_patches_it_cannot_apply(generator):
+    """Fail closed: an unapplied patch must raise, not pass silently."""
     generator.tools = [{"type": "web_search"}]
     generator.client.responses.create.return_value = _make_response("ok")
     prompt = Conversation([Turn(role="user", content=Message("hi"))])
 
     with pytest.raises(UnsupportedInjectionError):
         generator.generate(
-            prompt, injection_routes=[{"capability": "file", "path": "/tmp/evil"}]
+            prompt, target_patches=[{"capability": "file", "path": "/tmp/evil"}]
         )
 
 
-def test_generate_rejects_routes_with_multiple_generations(generator):
-    """A route set backs exactly one generation."""
+def test_generate_rejects_patches_with_multiple_generations(generator):
+    """A patch set backs exactly one generation."""
     prompt = Conversation([Turn(role="user", content=Message("hi"))])
 
     with pytest.raises(UnsupportedInjectionError, match="one generation"):
         generator.generate(
-            prompt, generations_this_call=2, injection_routes=[_make_route()]
+            prompt, generations_this_call=2, target_patches=[_make_patch()]
         )
 
 
 def test_generate_records_the_approval_policy(generator):
-    """The mcp_require_approval value reaches the replaced block."""
+    """The mcp_require_approval value reaches the patched block."""
     generator.tools = [
         {"type": "mcp", "server_label": "klarna", "server_url": "http://up/mcp"}
     ]
@@ -303,7 +234,7 @@ def test_generate_records_the_approval_policy(generator):
     generator.client.responses.create.return_value = _make_response("ok")
     prompt = Conversation([Turn(role="user", content=Message("hi"))])
 
-    generator.generate(prompt, injection_routes=[_make_route()])
+    generator.generate(prompt, target_patches=[_make_patch()])
 
     kwargs = generator.client.responses.create.call_args[1]
     assert (
@@ -311,18 +242,66 @@ def test_generate_records_the_approval_policy(generator):
     ), "the configured approval policy must reach the request"
 
 
-def test_generate_clears_routes_after_the_call(generator):
+def test_generate_clears_patches_after_the_call(generator):
     generator.tools = [
         {"type": "mcp", "server_label": "klarna", "server_url": "http://up/mcp"}
     ]
     generator.client.responses.create.return_value = _make_response("ok")
     prompt = Conversation([Turn(role="user", content=Message("hi"))])
 
-    generator.generate(prompt, injection_routes=[_make_route()])
+    generator.generate(prompt, target_patches=[_make_patch()])
 
+    assert generator._active_target_patches() == [], "patches must not outlive the call"
+
+
+# ── system prompt patches ──────────────────────────────────────────────────────
+
+
+def test_generate_applies_system_prompt_patch_to_instructions(generator):
+    """A SystemPromptPatch reaches the instructions field."""
+    generator.client.responses.create.return_value = _make_response("ok")
+    prompt = Conversation([Turn(role="user", content=Message("hi"))])
+
+    generator.generate(
+        prompt,
+        target_patches=[SystemPromptPatch(mode="replace", text="be strict")],
+    )
+
+    kwargs = generator.client.responses.create.call_args[1]
+    assert kwargs["instructions"] == "be strict"
+
+
+def test_generate_appends_system_prompt_patch_to_conversation_system(generator):
+    generator.client.responses.create.return_value = _make_response("ok")
+    prompt = Conversation(
+        [
+            Turn(role="system", content=Message("be helpful")),
+            Turn(role="user", content=Message("hi")),
+        ]
+    )
+
+    generator.generate(
+        prompt,
+        target_patches=[SystemPromptPatch(mode="append", text="be strict")],
+    )
+
+    kwargs = generator.client.responses.create.call_args[1]
     assert (
-        generator._active_injection_routes() == []
-    ), "routes must not outlive the call"
+        kwargs["instructions"] == "be helpful\nbe strict"
+    ), "append adds to the system turn the conversation carries"
+
+
+def test_generate_reports_a_system_prompt_conflict(generator):
+    """Configured instructions and a patch conflict; neither may silently win."""
+    generator.instructions = "configured"
+    generator.client.responses.create.return_value = _make_response("ok")
+    prompt = Conversation([Turn(role="user", content=Message("hi"))])
+
+    with pytest.raises(UnsupportedInjectionError, match="conflict"):
+        generator.generate(
+            prompt,
+            target_patches=[SystemPromptPatch(mode="replace", text="be strict")],
+        )
 
 
 # ── _call_model ────────────────────────────────────────────────────────────────

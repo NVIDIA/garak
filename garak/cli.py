@@ -3,7 +3,7 @@
 
 """Flow for invoking garak from the command line"""
 
-command_options = "list_detectors list_probes list_intents list_generators list_buffs list_config plugin_info interactive report version fix".split()
+command_options = "list_detectors list_probes list_intents list_generators list_buffs list_channels list_config plugin_info interactive report version fix".split()
 
 
 def parse_cli_plugin_config(plugin_type, args):
@@ -292,6 +292,11 @@ def main(arguments=None) -> None:
         "--list_buffs",
         action="store_true",
         help="list available buffs/fuzzes",
+    )
+    parser.add_argument(
+        "--list_channels",
+        action="store_true",
+        help="list each injection channel and the probes, generators, and injectors that support it",
     )
     parser.add_argument(
         "--list_config",
@@ -624,6 +629,9 @@ def main(arguments=None) -> None:
                 ).buffs
             command.print_buffs(selected_buffs)
 
+        elif args.list_channels:
+            command.print_channels()
+
         elif args.list_generators:
             command.print_generators()
 
@@ -784,7 +792,13 @@ def main(arguments=None) -> None:
                 "probe": resolved.probes,
                 "detector": detector_names,
                 "buff": resolved.buffs,
+                "injector": resolved.injectors,
             }
+
+            if parsed_specs["injector"]:
+                # run.spec includes load injectors into the run-wide registry;
+                # a config block alone does not load an injector
+                _config.injectormanager.load(parsed_specs["injector"])
 
             evaluator = garak.evaluators.ThresholdEvaluator(_config.run.eval_threshold)
 

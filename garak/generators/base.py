@@ -21,15 +21,14 @@ from garak.exception import (
     GarakException,
     UnsupportedInjectionError,
 )
-from garak.injection import SurfaceDescriptor
 import garak.resources.theme
 
 
 @dataclass
-class _InjectionState:
-    """Routes handed to one generate() call and which were applied."""
+class _PatchState:
+    """Patches handed to one generate() call and which were applied."""
 
-    routes: list = field(default_factory=list)
+    patches: list = field(default_factory=list)
     consumed: set = field(default_factory=set)
 
 
@@ -63,12 +62,14 @@ class Generator(Configurable):
     )
 
     # routes handed to the current generate() call, if any; managed by
-    # generate() and read through _active_injection_routes(). A ContextVar
+    # generate() and read through _active_target_patches(). A ContextVar
     # keeps the state out of the instance, so parallel generate() calls on
-    # one cached generator cannot see each other's routes.
-    _injection_state: ContextVar = ContextVar(
-        "garak_generator_injection_state", default=None
-    )
+    # one cached generator cannot see each other's patches.
+    _patch_state: ContextVar = ContextVar("garak_generator_patch_state", default=None)
+
+    # patch kinds (garak.channels) this generator can apply to its own
+    # request; a handed patch of another kind fails closed
+    supported_patches: frozenset[str] = frozenset()
 
     def __init__(self, name="", config_root=_config):
         self._load_config(config_root)
@@ -106,36 +107,25 @@ class Generator(Configurable):
         Can return None if no response was elicited"""
         raise NotImplementedError
 
-    def injectable_surfaces(self) -> List[SurfaceDescriptor]:
-        """Return the interaction surfaces of this target garak can occupy.
+    def _active_target_patches(self) -> list:
+        """Return the target patches handed to this generate() call.
 
-        Each surface names one channel the target draws untrusted content
-        from during a generation, for example an MCP server configured in
-        the target's tools. Probes resolve a case's surface reference
-        against this list before binding an injector to it; a plain text
-        target offers no surface.
+        ``_call_model`` implementations apply every patch they can and
+        mark each applied patch through ``_consume_target_patch()``;
+        patches left unconsumed make generate() fail closed.
         """
-        return []
-
-    def _active_injection_routes(self) -> list:
-        """Return the injection routes handed to this generate() call.
-
-        ``_call_model`` implementations apply every route they can and
-        mark each applied route through ``_consume_injection_route()``;
-        routes left unconsumed make generate() fail closed.
-        """
-        state = self._injection_state.get()
+        state = self._patch_state.get()
         if state is None:
             return []
-        return list(state.routes)
+        return list(state.patches)
 
-    def _consume_injection_route(self, route) -> None:
-        """Mark one route as applied by this generate() call."""
-        state = self._injection_state.get()
+    def _consume_target_patch(self, patch) -> None:
+        """Mark one patch as applied by this generate() call."""
+        state = self._patch_state.get()
         if state is None:
             return
-        for index, active in enumerate(state.routes):
-            if active is route:
+        for index, active in enumerate(state.patches):
+            if active is patch:
                 state.consumed.add(index)
 
     def _pre_generate_hook(self):
@@ -196,7 +186,7 @@ class Generator(Configurable):
         generations_this_call: int = 1,
         typecheck=True,
         *,
-        injection_routes: List | None = None,
+        target_patches: List | None = None,
     ) -> List[Union[Message, None]]:
         """Manages the process of getting generations out from a prompt
 
@@ -205,14 +195,14 @@ class Generator(Configurable):
 
         Avoid overriding this - try to override _call_model or _call_api
 
-        :param injection_routes: optional routes from injection bindings,
-          as returned by ``Injector.bind()``. Each generation runs against
-          exactly one route set, so passing routes with more than one
+        :param target_patches: optional patches from injection bindings, as
+          returned by ``Injector.bind()``. Each generation runs against
+          exactly one patch set, so passing patches with more than one
           generation per call is rejected. ``_call_model`` implementations
-          apply every route through ``_active_injection_routes()`` and mark
-          each through ``_consume_injection_route()``; generate() raises
-          ``UnsupportedInjectionError`` when a handed route was not
-          consumed: an unapplied route is an unsupported attempt, never a
+          apply every patch through ``_active_target_patches()`` and mark
+          each through ``_consume_target_patch()``; generate() raises
+          ``UnsupportedInjectionError`` when a handed patch was not
+          consumed: an unapplied patch is an unsupported attempt, never a
           silently safe one.
         """
 
@@ -221,9 +211,9 @@ class Generator(Configurable):
                 prompt, Conversation
             ), "generate() must take a Conversation object"
 
-        if injection_routes and generations_this_call > 1:
+        if target_patches and generations_this_call > 1:
             raise UnsupportedInjectionError(
-                "injection_routes backs exactly one generation; call generate() "
+                "target_patches back exactly one generation; call generate() "
                 "once per generation instead of passing "
                 f"generations_this_call={generations_this_call}"
             )
@@ -233,22 +223,22 @@ class Generator(Configurable):
 
         self._pre_generate_hook()
 
-        state = _InjectionState(routes=list(injection_routes or []))
-        token = self._injection_state.set(state)
+        state = _PatchState(patches=list(target_patches or []))
+        token = self._patch_state.set(state)
         try:
             outputs = self._generate(prompt, generations_this_call)
             unconsumed = [
-                route
-                for index, route in enumerate(state.routes)
+                patch
+                for index, patch in enumerate(state.patches)
                 if index not in state.consumed
             ]
             if unconsumed:
                 raise UnsupportedInjectionError(
-                    f"{self.fullname} cannot apply injection route(s): {unconsumed!r}"
+                    f"{self.fullname} cannot apply target patch(es): {unconsumed!r}"
                 )
             return outputs
         finally:
-            self._injection_state.reset(token)
+            self._patch_state.reset(token)
 
     def _generate(
         self, prompt: Conversation, generations_this_call: int = 1

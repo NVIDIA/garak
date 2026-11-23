@@ -19,6 +19,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -67,6 +68,7 @@
       },
       "parallelisable_attempts": false,
       "primary_detector": "agent_breaker.AgentBreakerResult",
+      "supported_channels": [],
       "tags": [
         "owasp:llm01",
         "owasp:llm07",
@@ -96,6 +98,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "ansiescape.Escaped",
+      "supported_channels": [],
       "tags": [
         "owasp:llm01",
         "owasp:llm02",
@@ -128,6 +131,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "ansiescape.Raw",
+      "supported_channels": [],
       "tags": [
         "owasp:llm01",
         "owasp:llm02",
@@ -160,6 +164,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "ansiescape.Raw",
+      "supported_channels": [],
       "tags": [
         "owasp:llm05",
         "demon:Language:Code_and_encode:Token"
@@ -186,6 +191,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "apikey.ApiKey",
+      "supported_channels": [],
       "tags": [
         "quality:Behavioral:ContentSafety:LegalGoodsServices",
         "demon:Possible_worlds:World_building:Scenarios",
@@ -213,6 +219,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "apikey.ApiKey",
+      "supported_channels": [],
       "tags": [
         "quality:Behavioral:ContentSafety:LegalGoodsServices",
         "demon:Stratagems:Meta-prompting:Ask_for_examples"
@@ -254,6 +261,7 @@
       },
       "parallelisable_attempts": false,
       "primary_detector": "unsafe_content.ToxicCommentModel",
+      "supported_channels": [],
       "tags": [
         "avid-effect:ethics:E0301",
         "quality:Behavioral:ContentSafety:Toxicity",
@@ -292,6 +300,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -320,6 +329,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "knownbadsignatures.EICAR",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "avid-effect:security:S0403",
@@ -351,6 +361,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "knownbadsignatures.GTUBE",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "avid-effect:security:S0403",
@@ -382,6 +393,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "knownbadsignatures.GTphish",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "avid-effect:security:S0403",
@@ -423,6 +435,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "quality:Security:PromptStability",
@@ -455,9 +468,10 @@
       "parallelisable_attempts": true,
       "primary_detector": null,
       "skip_root_intents": true,
+      "supported_channels": [],
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-11-17 15:33:43 +0000"
+      "mod_time": "2026-11-23 11:36:43 +0000"
     },
     "probes.base.IterativeProbe": {
       "description": "",
@@ -479,9 +493,10 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": null,
+      "supported_channels": [],
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-11-17 15:33:43 +0000"
+      "mod_time": "2026-11-23 11:36:43 +0000"
     },
     "probes.base.Probe": {
       "description": "Base class for objects that define and execute LLM evaluations",
@@ -502,9 +517,10 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": null,
+      "supported_channels": [],
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-11-17 15:33:43 +0000"
+      "mod_time": "2026-11-23 11:36:43 +0000"
     },
     "probes.base.TreeSearchProbe": {
       "DEFAULT_PARAMS": {
@@ -529,9 +545,10 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": null,
+      "supported_channels": [],
       "tags": [],
       "tier": 9,
-      "mod_time": "2026-11-17 15:33:43 +0000"
+      "mod_time": "2026-11-23 11:36:43 +0000"
     },
     "probes.continuation.ContinueSlursReclaimedSlurs": {
       "description": "Continue partial word with slur or reclaimed slur.",
@@ -552,6 +569,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "continuation.Continuation",
+      "supported_channels": [],
       "tags": [
         "avid-effect:ethics:E0101",
         "avid-effect:ethics:E0301",
@@ -586,6 +604,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "continuation.Continuation",
+      "supported_channels": [],
       "tags": [
         "avid-effect:ethics:E0101",
         "avid-effect:ethics:E0301",
@@ -622,6 +641,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "dan.DAN",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -656,6 +676,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "dan.AntiDAN",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -702,6 +723,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "dan.DAN",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -735,6 +757,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "dan.DAN",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -768,6 +791,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "dan.DevMode",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -801,6 +825,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "dan.DevMode",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -834,6 +859,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "dan.MarkdownLink",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -867,6 +893,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "dan.DANJailbreak",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -900,6 +927,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "dan.DUDE",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -931,6 +959,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -962,6 +991,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -995,6 +1025,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "dan.DAN",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -1028,6 +1059,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "dan.DAN",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -1062,6 +1094,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "dan.DAN",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -1095,6 +1128,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "dan.DAN",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -1128,6 +1162,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "dan.DAN",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -1161,6 +1196,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "dan.DAN",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -1194,6 +1230,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "dan.DAN",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -1227,6 +1264,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "dan.STAN",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -1260,6 +1298,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "divergence.RepeatDiverges",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
@@ -1295,6 +1334,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "divergence.RepeatDiverges",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
@@ -1336,6 +1376,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "divergence.RepeatedToken",
+      "supported_channels": [],
       "tags": [
         "avid-effect:performance:P0403",
         "owasp:llm04",
@@ -1367,6 +1408,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "owasp:llm01",
         "avid-effect:security:S0301",
@@ -1400,6 +1442,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "owasp:llm01",
         "avid-effect:security:S0301",
@@ -1434,6 +1477,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "owasp:llm01",
         "avid-effect:security:S0301",
@@ -1467,6 +1511,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "avid-effect:ethics:E0301",
         "quality:Behavioral:ContentSafety:Toxicity",
@@ -1500,6 +1545,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "quality:Behavioral:ContentSafety:Unauthorized",
@@ -1527,6 +1573,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "owasp:llm06",
         "avid-effect:security:S0301",
@@ -1556,6 +1603,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "quality:Behavioral:ContentSafety:LegalGoodsServices",
         "demon:Stratagems:Meta-prompting:Ask_for_examples"
@@ -1582,6 +1630,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "quality:Robustness:GenerativeMisinformation",
         "avid-effect:ethics:E0402",
@@ -1616,6 +1665,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -1653,6 +1703,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -1690,6 +1741,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "encoding.DecodeMatch",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -1722,6 +1774,7 @@
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
       "skip_root_intents": true,
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -1758,6 +1811,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "encoding.DecodeMatch",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -1790,6 +1844,7 @@
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
       "skip_root_intents": true,
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -1826,6 +1881,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "encoding.DecodeMatch",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -1858,6 +1914,7 @@
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
       "skip_root_intents": true,
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -1894,6 +1951,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "encoding.DecodeMatch",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -1926,6 +1984,7 @@
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
       "skip_root_intents": true,
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -1962,6 +2021,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "encoding.DecodeMatch",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -1994,6 +2054,7 @@
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
       "skip_root_intents": true,
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2030,6 +2091,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "encoding.DecodeMatch",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2062,6 +2124,7 @@
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
       "skip_root_intents": true,
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2098,6 +2161,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "encoding.DecodeMatch",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2130,6 +2194,7 @@
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
       "skip_root_intents": true,
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2166,6 +2231,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "encoding.DecodeMatch",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2198,6 +2264,7 @@
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
       "skip_root_intents": true,
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2234,6 +2301,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "encoding.DecodeMatch",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2266,6 +2334,7 @@
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
       "skip_root_intents": true,
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2303,6 +2372,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "encoding.DecodeMatch",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2336,6 +2406,7 @@
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
       "skip_root_intents": true,
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2372,6 +2443,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "encoding.DecodeMatch",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2408,6 +2480,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "encoding.DecodeMatch",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2440,6 +2513,7 @@
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
       "skip_root_intents": true,
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2476,6 +2550,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "encoding.DecodeMatch",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2508,6 +2583,7 @@
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
       "skip_root_intents": true,
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2544,6 +2620,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "encoding.DecodeMatch",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2576,6 +2653,7 @@
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
       "skip_root_intents": true,
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2612,6 +2690,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "encoding.DecodeMatch",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2644,6 +2723,7 @@
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
       "skip_root_intents": true,
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2680,6 +2760,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "encoding.DecodeMatch",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2717,6 +2798,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "encoding.DecodeMatch",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2749,6 +2831,7 @@
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
       "skip_root_intents": true,
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2786,6 +2869,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "encoding.DecodeMatch",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2823,6 +2907,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "encoding.DecodeMatch",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2860,6 +2945,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "encoding.DecodeMatch",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2892,6 +2978,7 @@
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
       "skip_root_intents": true,
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -2924,6 +3011,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "exploitation.JinjaTemplateInjectionDetector",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "avid-effect:security:S0403",
@@ -2962,6 +3050,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "exploitation.SQLiEcho",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "avid-effect:security:S0403",
@@ -2999,6 +3088,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "exploitation.SQLiSuccess",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "avid-effect:security:S0403",
@@ -3038,6 +3128,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "fileformats.FileIsPickled",
+      "supported_channels": [],
       "tags": [
         "owasp:llm05",
         "euai:robustness:security"
@@ -3074,6 +3165,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "judge.RefusalOnlyAdversarial",
+      "supported_channels": [],
       "tags": [
         "owasp:llm01",
         "owasp:llm02",
@@ -3103,6 +3195,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "goodside.Glitch",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0201",
         "avid-effect:performance:P0201",
@@ -3134,6 +3227,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "goodside.Glitch",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0201",
         "avid-effect:performance:P0201",
@@ -3187,6 +3281,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "judge.JailbreakOnlyAdversarial",
+      "supported_channels": [],
       "tags": [
         "owasp:llm01",
         "owasp:llm09",
@@ -3223,6 +3318,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "goodside.Glitch",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -3253,6 +3349,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "base.TriggerListDetector",
+      "supported_channels": [],
       "tags": [
         "owasp:llm01",
         "payload:generic",
@@ -3286,6 +3383,7 @@
       "parallelisable_attempts": true,
       "primary_detector": null,
       "skip_root_intents": true,
+      "supported_channels": [],
       "tags": [
         "demon:Language:Prompt_injection:Strong_arm_attack",
         "demon:Possible_worlds:World_building:Scenarios",
@@ -3313,6 +3411,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "goodside.PlainJSON",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0201",
@@ -3342,6 +3441,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "goodside.RileyIsnt",
+      "supported_channels": [],
       "tags": [
         "avid-effect:ethics:E0402",
         "avid-effect:performance:P0204",
@@ -3374,6 +3474,7 @@
       "parallelisable_attempts": true,
       "primary_detector": null,
       "skip_root_intents": true,
+      "supported_channels": [],
       "tags": [
         "demon:Fictionalizing:Roleplaying:User_persona",
         "demon:Stratagems:Meta-prompting:Ask_for_examples",
@@ -3408,6 +3509,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "unsafe_content.SlursReclaimedSlurs",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0300",
         "demon:Fictionalizing:Roleplaying:User_persona",
@@ -3444,6 +3546,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "risk-cards:lmrc:providing_illegal_info",
         "quality:Behavioral:ContentSafety:LegalGoodsServices",
@@ -3475,6 +3578,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "productkey.Win5x5",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0300",
         "owasp:llm06",
@@ -3508,6 +3612,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "productkey.Win5x5",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0300",
         "owasp:llm06",
@@ -3543,6 +3648,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "base.TriggerListDetector",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -3578,6 +3684,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "base.TriggerListDetector",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -3613,6 +3720,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "base.TriggerListDetector",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -3648,6 +3756,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "base.TriggerListDetector",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -3680,6 +3789,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "base.TriggerListDetector",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -3712,6 +3822,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "base.TriggerListDetector",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -3743,6 +3854,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "base.TriggerListDetector",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -3774,6 +3886,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "base.TriggerListDetector",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -3806,6 +3919,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "base.TriggerListDetector",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -3838,6 +3952,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "base.TriggerListDetector",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -3870,6 +3985,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "base.TriggerListDetector",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -3902,6 +4018,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "base.TriggerListDetector",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -3935,6 +4052,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "unsafe_content.ToxicCommentModel",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -3968,6 +4086,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "unsafe_content.ToxicCommentModel",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -3999,6 +4118,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "base.TriggerListDetector",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -4034,6 +4154,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "base.TriggerListDetector",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -4069,6 +4190,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "base.TriggerListDetector",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -4100,6 +4222,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "base.TriggerListDetector",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
@@ -4131,6 +4254,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "base.TriggerListDetector",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
@@ -4162,6 +4286,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "leakreplay.StartsWith",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
@@ -4192,6 +4317,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "leakreplay.StartsWith",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
@@ -4222,6 +4348,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "base.TriggerListDetector",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
@@ -4253,6 +4380,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "base.TriggerListDetector",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
@@ -4284,6 +4412,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "leakreplay.StartsWith",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
@@ -4314,6 +4443,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "leakreplay.StartsWith",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
@@ -4344,6 +4474,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "base.TriggerListDetector",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
@@ -4375,6 +4506,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "base.TriggerListDetector",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
@@ -4406,6 +4538,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "leakreplay.StartsWith",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
@@ -4436,6 +4569,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "leakreplay.StartsWith",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
@@ -4466,6 +4600,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "base.TriggerListDetector",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
@@ -4497,6 +4632,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "base.TriggerListDetector",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
@@ -4528,6 +4664,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "leakreplay.StartsWith",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
@@ -4558,6 +4695,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "leakreplay.StartsWith",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
@@ -4588,6 +4726,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "lmrc.Anthro",
+      "supported_channels": [],
       "tags": [
         "risk-cards:lmrc:anthropomorphisation",
         "demon:Rhetoric:Socratic_questioning:Identity_characteristics",
@@ -4615,6 +4754,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "unsafe_content.ToxicCommentModel",
+      "supported_channels": [],
       "tags": [
         "risk-cards:lmrc:bullying",
         "avid-effect:ethics:E0301",
@@ -4645,6 +4785,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "base.TriggerListDetector",
+      "supported_channels": [],
       "tags": [
         "risk-cards:lmrc:deadnaming",
         "avid-effect:ethics:E0302",
@@ -4684,6 +4825,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "unsafe_content.SurgeProfanityAnimalReferences",
+      "supported_channels": [],
       "tags": [
         "risk-cards:lmrc:profanity",
         "avid-effect:ethics:E0101",
@@ -4714,6 +4856,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "lmrc.QuackMedicine",
+      "supported_channels": [],
       "tags": [
         "risk-cards:lmrc:quack_medicine",
         "avid-effect:ethics:E0402",
@@ -4747,6 +4890,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "unsafe_content.SurgeProfanitySexual",
+      "supported_channels": [],
       "tags": [
         "risk-cards:lmrc:sexual_content",
         "avid-effect:performance:P0401",
@@ -4780,6 +4924,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "unsafe_content.SurgeProfanitySexual",
+      "supported_channels": [],
       "tags": [
         "risk-cards:lmrc:sexualisation",
         "avid-effect:ethics:E0101",
@@ -4814,6 +4959,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "unsafe_content.SurgeProfanityRacialEthnic",
+      "supported_channels": [],
       "tags": [
         "risk-cards:lmrc:slur_usage",
         "avid-effect:ethics:E0101",
@@ -4847,6 +4993,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "malwaregen.AnyCode",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "payload:malicious:badcode",
@@ -4876,6 +5023,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "malwaregen.AnyCode",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "quality:Behavioral:ContentSafety:LegalGoodsServices",
@@ -4904,6 +5052,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "malwaregen.AnyCode",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "payload:malicious:badcode",
@@ -4933,6 +5082,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "malwaregen.AnyCode",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "payload:malicious:badcode",
@@ -4947,8 +5097,7 @@
       "description": "Runs scenario-based indirect prompt injection attacks",
       "DEFAULT_PARAMS": {
         "follow_prompt_cap": true,
-        "scenario_file": null,
-        "injector_spec": "injectors.mimcp.MiMCPInjector"
+        "scenario_file": null
       },
       "active": false,
       "doc_uri": "https://github.com/NVIDIA/garak/issues/1652",
@@ -4964,13 +5113,20 @@
       },
       "parallelisable_attempts": false,
       "primary_detector": "midojo.MidojoDetector",
+      "supported_channels": [
+        "retrieval_document",
+        "system_prompt",
+        "tool_result",
+        "user_turn",
+        "workspace_file"
+      ],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
         "quality:Security:PromptStability"
       ],
       "tier": 9,
-      "mod_time": "2026-11-23 10:55:08 +0000"
+      "mod_time": "2026-11-23 11:47:05 +0000"
     },
     "probes.misleading.FalseAssertion": {
       "description": "Does the model reject [questions based on] false claims?",
@@ -4995,6 +5151,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "misleading.MustRefuteClaimModel",
+      "supported_channels": [],
       "tags": [
         "avid-effect:performance:P0204",
         "owasp:llm09",
@@ -5025,6 +5182,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "packagehallucination.Dart",
+      "supported_channels": [],
       "tags": [
         "owasp:llm09",
         "owasp:llm02",
@@ -5055,6 +5213,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "packagehallucination.JavaScriptNpm",
+      "supported_channels": [],
       "tags": [
         "owasp:llm09",
         "owasp:llm02",
@@ -5085,6 +5244,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "packagehallucination.Perl",
+      "supported_channels": [],
       "tags": [
         "owasp:llm09",
         "owasp:llm02",
@@ -5115,6 +5275,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "packagehallucination.PythonPypi",
+      "supported_channels": [],
       "tags": [
         "owasp:llm09",
         "owasp:llm02",
@@ -5145,6 +5306,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "packagehallucination.RakuLand",
+      "supported_channels": [],
       "tags": [
         "owasp:llm09",
         "owasp:llm02",
@@ -5175,6 +5337,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "packagehallucination.RubyGems",
+      "supported_channels": [],
       "tags": [
         "owasp:llm09",
         "owasp:llm02",
@@ -5205,6 +5368,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "packagehallucination.RustCrates",
+      "supported_channels": [],
       "tags": [
         "owasp:llm09",
         "owasp:llm02",
@@ -5235,6 +5399,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.Prefixes",
+      "supported_channels": [],
       "tags": [
         "owasp:llm01",
         "quality:Security:PromptStability",
@@ -5264,6 +5429,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.Prefixes",
+      "supported_channels": [],
       "tags": [
         "owasp:llm01",
         "quality:Security:PromptStability",
@@ -5293,6 +5459,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.Prefixes",
+      "supported_channels": [],
       "tags": [
         "owasp:llm01",
         "quality:Security:PromptStability",
@@ -5322,6 +5489,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.Prefixes",
+      "supported_channels": [],
       "tags": [
         "owasp:llm01",
         "quality:Security:PromptStability",
@@ -5358,6 +5526,7 @@
       },
       "parallelisable_attempts": false,
       "primary_detector": "promptinject.AttackRogueString",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -5400,6 +5569,7 @@
       },
       "parallelisable_attempts": false,
       "primary_detector": "promptinject.AttackRogueString",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -5441,6 +5611,7 @@
       },
       "parallelisable_attempts": false,
       "primary_detector": "promptinject.AttackRogueString",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -5483,6 +5654,7 @@
       },
       "parallelisable_attempts": false,
       "primary_detector": "promptinject.AttackRogueString",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -5524,6 +5696,7 @@
       },
       "parallelisable_attempts": false,
       "primary_detector": "promptinject.AttackRogueString",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -5566,6 +5739,7 @@
       },
       "parallelisable_attempts": false,
       "primary_detector": "promptinject.AttackRogueString",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -5601,6 +5775,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "propile.PIILeak",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm06",
@@ -5632,6 +5807,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "propile.PIILeak",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm06",
@@ -5663,6 +5839,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "propile.PIILeak",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm06",
@@ -5705,6 +5882,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "propile.PIILeak",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm06",
@@ -5737,6 +5915,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "unsafe_content.ToxicCommentModel",
+      "supported_channels": [],
       "tags": [
         "avid-effect:ethics:E0301",
         "quality:Behavioral:ContentSafety:Toxicity",
@@ -5768,6 +5947,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "unsafe_content.ToxicCommentModel",
+      "supported_channels": [],
       "tags": [
         "avid-effect:ethics:E0101",
         "avid-effect:ethics:E0301",
@@ -5799,6 +5979,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "unsafe_content.ToxicCommentModel",
+      "supported_channels": [],
       "tags": [
         "avid-effect:ethics:E0101",
         "avid-effect:ethics:E0301",
@@ -5834,6 +6015,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "unsafe_content.ToxicCommentModel",
+      "supported_channels": [],
       "tags": [
         "avid-effect:ethics:E0101",
         "avid-effect:ethics:E0301",
@@ -5866,6 +6048,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "unsafe_content.ToxicCommentModel",
+      "supported_channels": [],
       "tags": [
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401",
@@ -5897,6 +6080,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "unsafe_content.ToxicCommentModel",
+      "supported_channels": [],
       "tags": [
         "avid-effect:ethics:E0301",
         "quality:Behavioral:ContentSafety:Toxicity",
@@ -5927,6 +6111,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "unsafe_content.ToxicCommentModel",
+      "supported_channels": [],
       "tags": [
         "avid-effect:ethics:E0301",
         "quality:Behavioral:ContentSafety:Sexual",
@@ -5958,6 +6143,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "unsafe_content.ToxicCommentModel",
+      "supported_channels": [],
       "tags": [
         "avid-effect:ethics:E0101",
         "avid-effect:ethics:E0301",
@@ -5993,6 +6179,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -6024,6 +6211,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "quality:Security:PromptStability",
@@ -6059,6 +6247,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -6089,6 +6278,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "quality:Security:PromptStability",
@@ -6119,6 +6309,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "snowball.DontStartYes",
+      "supported_channels": [],
       "tags": [
         "avid-effect:performance:P0204",
         "owasp:llm09",
@@ -6149,6 +6340,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "snowball.DontStartYes",
+      "supported_channels": [],
       "tags": [
         "avid-effect:performance:P0204",
         "owasp:llm09",
@@ -6179,6 +6371,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "snowball.DontStartNo",
+      "supported_channels": [],
       "tags": [
         "avid-effect:performance:P0204",
         "owasp:llm09",
@@ -6209,6 +6402,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "snowball.DontStartNo",
+      "supported_channels": [],
       "tags": [
         "avid-effect:performance:P0204",
         "owasp:llm09",
@@ -6239,6 +6433,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "snowball.DontStartYes",
+      "supported_channels": [],
       "tags": [
         "avid-effect:performance:P0204",
         "owasp:llm09",
@@ -6269,6 +6464,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "snowball.DontStartYes",
+      "supported_channels": [],
       "tags": [
         "avid-effect:performance:P0204",
         "owasp:llm09",
@@ -6299,6 +6495,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -6340,6 +6537,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -6371,6 +6569,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -6407,6 +6606,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "sysprompt_extraction.PromptExtraction",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm01",
@@ -6454,6 +6654,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -6504,6 +6705,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -6536,6 +6738,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
@@ -6568,6 +6771,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "any.AnyOutput",
+      "supported_channels": [],
       "tags": [],
       "tier": 9,
       "mod_time": "2026-09-11 08:38:38 +0000"
@@ -6591,6 +6795,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "always.Pass",
+      "supported_channels": [],
       "tags": [],
       "tier": 9,
       "mod_time": "2026-09-11 08:38:38 +0000"
@@ -6623,6 +6828,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
@@ -6659,6 +6865,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
@@ -6702,6 +6909,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "owasp:llm10",
@@ -6730,6 +6938,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "visual_jailbreak.FigStep",
+      "supported_channels": [],
       "tags": [
         "owasp:llm01",
         "quality:Security:PromptStability",
@@ -6760,6 +6969,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "visual_jailbreak.FigStep",
+      "supported_channels": [],
       "tags": [
         "owasp:llm01",
         "quality:Security:PromptStability",
@@ -6790,6 +7000,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "web_injection.MarkdownExfilContent",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "avid-effect:security:S0403",
@@ -6829,6 +7040,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "web_injection.MarkdownExfilBasic",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "avid-effect:security:S0403",
@@ -6865,6 +7077,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "web_injection.MarkdownExfilExtendedImage",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "avid-effect:security:S0403",
@@ -6900,6 +7113,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "web_injection.MarkdownExfilExtendedNonImage",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "avid-effect:security:S0403",
@@ -6938,6 +7152,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "web_injection.XSS",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "avid-effect:security:S0403",
@@ -6971,6 +7186,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "web_injection.PlaygroundMarkdownExfil",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "avid-effect:security:S0403",
@@ -7005,6 +7221,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "web_injection.MarkdownExfilBasic",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "avid-effect:security:S0403",
@@ -7047,6 +7264,7 @@
       },
       "parallelisable_attempts": true,
       "primary_detector": "web_injection.XSS",
+      "supported_channels": [],
       "tags": [
         "avid-effect:security:S0301",
         "avid-effect:security:S0403",
@@ -10001,8 +10219,9 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": false,
-      "mod_time": "2026-10-26 08:21:10 +0000"
+      "mod_time": "2026-11-23 11:24:54 +0000"
     },
     "generators.azure.AzureOpenAIGenerator": {
       "description": "Wrapper for Azure Open AI. Expects AZURE_API_KEY, AZURE_ENDPOINT and AZURE_MODEL_NAME environment variables.",
@@ -10046,6 +10265,9 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [
+        "system_prompt"
+      ],
       "supports_multiple_generations": false,
       "mod_time": "2026-03-16 15:38:45 +0000"
     },
@@ -10071,12 +10293,13 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": false,
-      "mod_time": "2026-11-23 10:05:15 +0000"
+      "mod_time": "2026-11-23 11:24:54 +0000"
     },
-    "generators.base._InjectionState": {
-      "description": "Routes handed to one generate() call and which were applied.",
-      "mod_time": "2026-11-23 10:05:15 +0000"
+    "generators.base._PatchState": {
+      "description": "Patches handed to one generate() call and which were applied.",
+      "mod_time": "2026-11-23 11:24:54 +0000"
     },
     "generators.bedrock.BedrockGenerator": {
       "description": "Interface for AWS Bedrock foundation models using Converse API.",
@@ -10107,6 +10330,7 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-10-26 08:21:10 +0000"
     },
@@ -10141,6 +10365,7 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-07-07 12:06:56 +0000"
     },
@@ -10161,6 +10386,7 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": true,
       "mod_time": "2026-01-15 09:13:06 +0000"
     },
@@ -10181,6 +10407,7 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-01-15 09:13:06 +0000"
     },
@@ -10217,6 +10444,7 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-07-07 12:06:56 +0000"
     },
@@ -10270,6 +10498,9 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [
+        "system_prompt"
+      ],
       "supports_multiple_generations": false,
       "mod_time": "2026-07-07 12:06:56 +0000"
     },
@@ -10297,6 +10528,7 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-10-26 08:21:10 +0000"
     },
@@ -10342,6 +10574,9 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [
+        "system_prompt"
+      ],
       "supports_multiple_generations": false,
       "mod_time": "2026-10-26 08:21:10 +0000"
     },
@@ -10370,6 +10605,7 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": true,
       "mod_time": "2026-11-17 09:51:15 +0000"
     },
@@ -10398,6 +10634,7 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-11-17 09:51:15 +0000"
     },
@@ -10431,6 +10668,7 @@
         ]
       },
       "parallel_capable": false,
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-11-17 09:51:15 +0000"
     },
@@ -10461,6 +10699,7 @@
         ]
       },
       "parallel_capable": false,
+      "supported_patches": [],
       "supports_multiple_generations": true,
       "mod_time": "2026-11-17 09:51:15 +0000"
     },
@@ -10491,6 +10730,7 @@
         ]
       },
       "parallel_capable": false,
+      "supported_patches": [],
       "supports_multiple_generations": true,
       "mod_time": "2026-11-17 09:51:15 +0000"
     },
@@ -10526,6 +10766,7 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-07-07 12:06:56 +0000"
     },
@@ -10552,6 +10793,7 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-10-26 08:21:10 +0000"
     },
@@ -10588,6 +10830,7 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": true,
       "mod_time": "2026-09-11 08:38:38 +0000"
     },
@@ -10619,6 +10862,7 @@
         ]
       },
       "parallel_capable": false,
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-09-11 08:38:38 +0000"
     },
@@ -10647,6 +10891,7 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-10-26 08:21:10 +0000"
     },
@@ -10702,6 +10947,9 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [
+        "system_prompt"
+      ],
       "supports_multiple_generations": false,
       "mod_time": "2026-10-26 08:21:10 +0000"
     },
@@ -10753,6 +11001,9 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [
+        "system_prompt"
+      ],
       "supports_multiple_generations": false,
       "mod_time": "2026-10-26 08:21:10 +0000"
     },
@@ -10804,6 +11055,9 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [
+        "system_prompt"
+      ],
       "supports_multiple_generations": false,
       "mod_time": "2026-10-26 08:21:10 +0000"
     },
@@ -10858,6 +11112,9 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [
+        "system_prompt"
+      ],
       "supports_multiple_generations": false,
       "mod_time": "2026-10-26 08:21:10 +0000"
     },
@@ -10892,6 +11149,7 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-10-26 08:21:10 +0000"
     },
@@ -10926,6 +11184,7 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-10-26 08:21:10 +0000"
     },
@@ -10958,6 +11217,7 @@
         ]
       },
       "parallel_capable": false,
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-10-26 08:21:10 +0000"
     },
@@ -10990,6 +11250,7 @@
         ]
       },
       "parallel_capable": false,
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-10-26 08:21:10 +0000"
     },
@@ -11034,8 +11295,11 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [
+        "system_prompt"
+      ],
       "supports_multiple_generations": false,
-      "mod_time": "2026-11-23 10:09:29 +0000"
+      "mod_time": "2026-11-23 11:27:59 +0000"
     },
     "generators.openai.OpenAIGenerator": {
       "description": "Generator wrapper for OpenAI text2text models. Expects API key in the OPENAI_API_KEY environment variable",
@@ -11077,8 +11341,11 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [
+        "system_prompt"
+      ],
       "supports_multiple_generations": true,
-      "mod_time": "2026-11-23 10:09:29 +0000"
+      "mod_time": "2026-11-23 11:27:59 +0000"
     },
     "generators.openai.OpenAIReasoningGenerator": {
       "description": "Generator wrapper for OpenAI reasoning models, e.g. `o1` family.",
@@ -11118,8 +11385,11 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [
+        "system_prompt"
+      ],
       "supports_multiple_generations": false,
-      "mod_time": "2026-11-23 10:09:29 +0000"
+      "mod_time": "2026-11-23 11:27:59 +0000"
     },
     "generators.openai.OpenAIResponsesGenerator": {
       "description": "Generator using the OpenAI Responses API with server-side tool orchestration.",
@@ -11173,8 +11443,12 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [
+        "mcp_server",
+        "system_prompt"
+      ],
       "supports_multiple_generations": false,
-      "mod_time": "2026-11-23 10:09:29 +0000"
+      "mod_time": "2026-11-23 11:27:59 +0000"
     },
     "generators.rasa.RasaRestGenerator": {
       "description": "API interface for RASA models",
@@ -11216,6 +11490,7 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-01-15 09:13:06 +0000"
     },
@@ -11245,6 +11520,7 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-03-16 15:38:45 +0000"
     },
@@ -11274,6 +11550,7 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-03-16 15:38:45 +0000"
     },
@@ -11314,8 +11591,9 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": false,
-      "mod_time": "2026-10-26 08:21:10 +0000"
+      "mod_time": "2026-11-23 11:24:54 +0000"
     },
     "generators.test.Blank": {
       "description": "This generator always returns the empty string.",
@@ -11339,6 +11617,7 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": true,
       "mod_time": "2026-07-07 12:06:56 +0000"
     },
@@ -11365,6 +11644,7 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": true,
       "mod_time": "2026-07-07 12:06:56 +0000"
     },
@@ -11392,6 +11672,7 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-07-07 12:06:56 +0000"
     },
@@ -11417,6 +11698,7 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": true,
       "mod_time": "2026-07-07 12:06:56 +0000"
     },
@@ -11448,6 +11730,7 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-07-07 12:06:56 +0000"
     },
@@ -11473,6 +11756,7 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": true,
       "mod_time": "2026-07-07 12:06:56 +0000"
     },
@@ -11498,6 +11782,7 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-07-07 12:06:56 +0000"
     },
@@ -11529,6 +11814,7 @@
         ]
       },
       "parallel_capable": true,
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-07-07 12:06:56 +0000"
     },
@@ -11567,6 +11853,7 @@
         ]
       },
       "parallel_capable": false,
+      "supported_patches": [],
       "supports_multiple_generations": false,
       "mod_time": "2026-11-17 09:51:15 +0000"
     }
@@ -11684,10 +11971,10 @@
       "description": "Base class for an injector.",
       "DEFAULT_PARAMS": {},
       "active": true,
+      "channels": [],
       "doc_uri": "",
       "extra_dependency_names": [],
-      "surface_kinds": [],
-      "mod_time": "2026-11-23 10:55:08 +0000"
+      "mod_time": "2026-11-23 11:40:00 +0000"
     },
     "injectors.mimcp.MiMCPInjector": {
       "description": "Injector that routes a target's MCP traffic through a MiMCP proxy.",
@@ -11695,15 +11982,29 @@
         "host": "http://127.0.0.1:8000",
         "session_prefix": "garak",
         "timeout": 30.0,
-        "advertised_base": null
+        "advertised_base": null,
+        "surfaces": {}
       },
       "active": true,
+      "channels": [
+        "tool_result"
+      ],
       "doc_uri": "https://github.com/ABeltramo/mcp-explorer",
       "extra_dependency_names": [],
-      "surface_kinds": [
-        "mcp.server"
+      "mod_time": "2026-11-23 11:40:00 +0000"
+    },
+    "injectors.prompt.SystemPrompt": {
+      "description": "Injector that delivers payloads through the system prompt channel.",
+      "DEFAULT_PARAMS": {
+        "surfaces": {}
+      },
+      "active": true,
+      "channels": [
+        "system_prompt"
       ],
-      "mod_time": "2026-11-23 10:55:08 +0000"
+      "doc_uri": "https://github.com/NVIDIA/garak/issues/1652",
+      "extra_dependency_names": [],
+      "mod_time": "2026-11-23 11:42:41 +0000"
     }
   }
 }

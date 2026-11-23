@@ -7,6 +7,7 @@ import pytest
 
 import garak._plugins
 from garak import _config
+from garak.channels import TOOL_RESULT
 from garak.exception import InvalidInjectionPlanError
 from garak.injection import (
     Coverage,
@@ -14,7 +15,7 @@ from garak.injection import (
     InjectionBinding,
     InjectionEvidence,
     InjectionPlan,
-    SurfaceDescriptor,
+    Surface,
 )
 from garak.injectors.base import Injector
 
@@ -43,7 +44,7 @@ class FakeBinding(InjectionBinding):
 class BindingInjector(Injector):
     """Test injector handing out independent bindings."""
 
-    surface_kinds = frozenset({"test.surface"})
+    channels = frozenset({TOOL_RESULT})
     DEFAULT_PARAMS = {"host": None}
 
     def bind(self, plan, surface, execution_id):
@@ -93,30 +94,39 @@ def test_load_plugin_caches_injector_instances():
 # ── binding lifecycle ──────────────────────────────────────────────────────────
 
 
-def _plan(name="surf"):
-    return InjectionPlan(surface_kind="test.surface", surface_name=name)
+def _plan(channel=TOOL_RESULT, surface=None, operations=()):
+    return InjectionPlan(channel=channel, operations=operations, surface=surface)
 
 
-def _surface(name="surf"):
-    return SurfaceDescriptor(kind="test.surface", name=name)
+def _surface(name="surf", channel=TOOL_RESULT):
+    return Surface(name=name, channel=channel)
 
 
-def test_validate_rejects_foreign_surface_kinds():
+def test_validate_rejects_foreign_channels():
     injector = BindingInjector()
-    plan = InjectionPlan(surface_kind="other.surface", surface_name="surf")
-    with pytest.raises(InvalidInjectionPlanError, match="other.surface"):
-        injector.validate(plan, _surface())
+    with pytest.raises(InvalidInjectionPlanError, match="user_turn"):
+        injector.validate(_plan(channel="user_turn"), _surface())
 
 
 def test_validate_rejects_mismatched_surfaces():
     injector = BindingInjector()
-    with pytest.raises(InvalidInjectionPlanError, match="targets"):
-        injector.validate(_plan("surf"), _surface("other"))
+    with pytest.raises(InvalidInjectionPlanError, match="channel but the surface"):
+        injector.validate(_plan(), _surface(channel="system_prompt"))
+
+
+def test_validate_rejects_a_name_override_mismatch():
+    injector = BindingInjector()
+    with pytest.raises(InvalidInjectionPlanError, match="names surface"):
+        injector.validate(_plan(surface="other"), _surface())
 
 
 def test_validate_accepts_a_matching_plan():
     injector = BindingInjector()
-    injector.validate(_plan(), _surface())
+    injector.validate(_plan(surface="surf"), _surface())
+
+
+def test_base_injector_offers_no_surfaces():
+    assert Injector().offered_surfaces() == ()
 
 
 def test_two_bindings_keep_separate_sessions():

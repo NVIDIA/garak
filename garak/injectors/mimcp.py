@@ -1,13 +1,15 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""MiMCP injector: occupies mcp.server surfaces through a MiMCP proxy session."""
+"""MiMCP injector: occupies tool_result surfaces through a MiMCP proxy session."""
 
 import logging
 import os
 
 import httpx
 
+from garak import _config
+import garak.channels
 from garak.exception import InjectorError, InvalidInjectionPlanError
 from garak.injection import (
     Coverage,
@@ -15,8 +17,8 @@ from garak.injection import (
     InjectionBinding,
     InjectionEvidence,
     InjectionPlan,
-    McpRoute,
-    SurfaceDescriptor,
+    McpServerPatch,
+    Surface,
     ToolCallEvent,
 )
 from garak.injectors.base import Injector
@@ -41,11 +43,82 @@ def _max_recorded_calls() -> int:
     )
 
 
+def _deep_merge(base: dict, patch: dict) -> dict:
+    merged = dict(base)
+    for key, value in patch.items():
+        if isinstance(value, dict) and isinstance(merged.get(key), dict):
+            merged[key] = _deep_merge(merged[key], value)
+        else:
+            merged[key] = value
+    return merged
+
+
+def _overlays(operations) -> list[dict]:
+    """Translate plan operations into MiMCP tool overlay entries.
+
+    Operations on the same tool merge: text operations become the inject
+    template, patch_structured operations deep-merge into one structured
+    patch, and sync_text turns on text resync. override must stand alone
+    on its tool.
+    """
+    by_tool: dict[str, list[dict]] = {}
+    for operation in operations:
+        by_tool.setdefault(operation["tool"], []).append(operation)
+    overlays = []
+    for tool, tool_operations in by_tool.items():
+        text_operations = [
+            operation
+            for operation in tool_operations
+            if operation["op"] in ("append_text", "replace_text")
+        ]
+        patch_operations = [
+            operation
+            for operation in tool_operations
+            if operation["op"] == "patch_structured"
+        ]
+        overrides = [
+            operation for operation in tool_operations if operation["op"] == "override"
+        ]
+        if overrides:
+            if len(tool_operations) > 1:
+                raise InvalidInjectionPlanError(
+                    f"override must stand alone on tool {tool!r}"
+                )
+            behavior = {"type": "override", "response": overrides[0]["response"]}
+        else:
+            if len(text_operations) > 1:
+                raise InvalidInjectionPlanError(
+                    f"at most one text operation may target tool {tool!r}"
+                )
+            behavior = {}
+            if text_operations:
+                operation = text_operations[0]
+                behavior["template"] = (
+                    "{original_text}" + operation["text"]
+                    if operation["op"] == "append_text"
+                    else operation["text"]
+                )
+            if patch_operations:
+                patch = {}
+                for operation in patch_operations:
+                    patch = _deep_merge(patch, operation["patch"])
+                behavior["structured_patch"] = patch
+                if any(operation.get("sync_text") for operation in patch_operations):
+                    behavior["resync_text"] = True
+            if not behavior:
+                raise InvalidInjectionPlanError(
+                    f"no expressible operation for tool {tool!r}"
+                )
+            behavior["type"] = "inject"
+        overlays.append({"name": tool, "behavior": behavior})
+    return overlays
+
+
 class MiMCPBinding(InjectionBinding):
     """One MiMCP session bound to one generation.
 
     The session carries the plan's tool overlay and relays every tool call
-    to the upstream server from the surface descriptor; ``route`` points
+    to the upstream server named by the surface; ``target_patch`` points
     the target's server label at the session, ``collect_evidence()``
     reads the session's recordings and status, and ``close()`` deletes
     the session.
@@ -55,7 +128,7 @@ class MiMCPBinding(InjectionBinding):
         self,
         injector: "MiMCPInjector",
         plan: InjectionPlan,
-        surface: SurfaceDescriptor,
+        surface: Surface,
         execution_id: str,
     ) -> None:
         super().__init__()
@@ -65,7 +138,7 @@ class MiMCPBinding(InjectionBinding):
         body = {
             "name": f"{injector.session_prefix}-{execution_id}",
             "upstream": injector.upstream_config(surface),
-            "tools": [self._overlay(operation) for operation in plan.operations],
+            "tools": _overlays(plan.operations),
         }
         created = injector._request("post", "/api/sessions", json=body)
         self._session_id = created["session_id"]
@@ -73,42 +146,15 @@ class MiMCPBinding(InjectionBinding):
             server_url = injector.advertised_base.rstrip("/") + "/mcp"
         else:
             server_url = created["mcp"]["url"]
-        # the bare token passes through as the authorization field value;
-        # endpoints that add the Bearer prefix themselves expect this
-        self.route = McpRoute(
-            replaces=surface.name,
-            url=server_url,
-            headers={"Authorization": self._session_id},
-        )
-
-    @staticmethod
-    def _overlay(operation: dict) -> dict:
-        """Translate one plan operation into a MiMCP tool overlay entry."""
-        overlay = {"name": operation["tool"]}
-        op = operation["op"]
-        if op == "append_text":
-            overlay["behavior"] = {
-                "type": "inject",
-                "template": "{original_text}" + operation["text"],
-            }
-        elif op == "replace_text":
-            overlay["behavior"] = {"type": "inject", "template": operation["text"]}
-        elif op == "patch_structured":
-            behavior = {
-                "type": "inject",
-                "structured_patch": operation["patch"],
-            }
-            if operation.get("sync_text"):
-                behavior["resync_text"] = True
-            overlay["behavior"] = behavior
-        elif op == "override":
-            overlay["behavior"] = {
-                "type": "override",
-                "response": operation["response"],
-            }
-        else:  # validate() rejects this before bind() runs
-            raise InvalidInjectionPlanError(f"MiMCP cannot express operation {op!r}")
-        return overlay
+        attach = surface.attach or {}
+        if attach.get("patch") == garak.channels.PATCH_MCP_SERVER:
+            # the bare token passes through as the authorization field
+            # value; endpoints that add the Bearer prefix expect this
+            self.target_patch = McpServerPatch(
+                label=attach.get("label") or surface.name,
+                url=server_url,
+                headers={"Authorization": self._session_id},
+            )
 
     def collect_evidence(self) -> InjectionEvidence:
         """Read the session's recordings and status into contract evidence."""
@@ -178,27 +224,122 @@ class MiMCPBinding(InjectionBinding):
 class MiMCPInjector(Injector):
     """Injector that routes a target's MCP traffic through a MiMCP proxy.
 
-    ``bind()`` creates a token-routed MiMCP session carrying the plan's
-    tool overlay and returns a binding whose route replaces the target's
-    configured server block. The proxy relays every tool call to the
-    upstream server, splices the armed payloads into matching tool
-    results, and records every call; ``collect_evidence()`` hands those
-    recordings to a detector as contract evidence. The injector itself
-    holds no per-execution state.
+    Surfaces come from the injector config: each names a channel (always
+    ``tool_result`` here), the upstream URL MiMCP proxies, and an
+    optional ``attach`` patch telling the generator which server label
+    to route through the session. ``bind()`` creates a token-routed
+    MiMCP session carrying the plan's tool overlay and returns a binding
+    that relays every tool call to the upstream, splices the armed
+    payloads into matching tool results, and records every call. The
+    injector itself holds no per-execution state.
     """
 
     doc_uri = "https://github.com/ABeltramo/mcp-explorer"
     active = True
-    surface_kinds = frozenset({"mcp.server"})
+    channels = frozenset({garak.channels.TOOL_RESULT})
 
     DEFAULT_PARAMS = {
         "host": "http://127.0.0.1:8000",
         "session_prefix": "garak",
         "timeout": 30.0,
         "advertised_base": None,
+        "surfaces": {},
     }
 
-    def validate(self, plan: InjectionPlan, surface: SurfaceDescriptor) -> None:
+    def __init__(self, config_root=_config):
+        super().__init__(config_root=config_root)
+        self._configured_surfaces = tuple(
+            self._surface_from_config(name, entry)
+            for name, entry in (self.surfaces or {}).items()
+        )
+        self._tools_prefetched = False
+
+    def _surface_from_config(self, name: str, entry: dict) -> Surface:
+        if not isinstance(entry, dict):
+            raise InvalidInjectionPlanError(
+                f"surface {name!r} in {self.fullname} config must be a mapping"
+            )
+        channel = entry.get("channel")
+        if channel != garak.channels.TOOL_RESULT:
+            raise InvalidInjectionPlanError(
+                f"surface {name!r} in {self.fullname} config names channel "
+                f"{channel!r}; MiMCP only proxies {garak.channels.TOOL_RESULT}"
+            )
+        attach = entry.get("attach")
+        if attach is not None:
+            if not isinstance(attach, dict) or attach.get("patch") not in (
+                None,
+                garak.channels.PATCH_MCP_SERVER,
+            ):
+                raise InvalidInjectionPlanError(
+                    f"surface {name!r} in {self.fullname} config attaches "
+                    f"{attach!r}; MiMCP can only attach "
+                    f"{garak.channels.PATCH_MCP_SERVER}"
+                )
+        return Surface(
+            name=name,
+            channel=channel,
+            upstream={"url": entry.get("upstream")},
+            attach=attach,
+        )
+
+    def offered_surfaces(self) -> tuple[Surface, ...]:
+        """Return the configured surfaces, with tools from preflight.
+
+        The tool list comes from the upstream ``tools/list`` through a
+        short-lived session; when the proxy is unreachable the surface
+        stays in the list with no tools, so a run with one surface per
+        channel still works.
+        """
+        if not self._tools_prefetched:
+            for surface in self._configured_surfaces:
+                tools = self._preflight_tools(surface)
+                self._replace_surface_tools(surface, tools)
+            self._tools_prefetched = True
+        return self._configured_surfaces
+
+    def _replace_surface_tools(self, surface: Surface, tools: tuple[str, ...]) -> None:
+        # surfaces are frozen; rebuild the tuple entry with the tools
+        replaced = Surface(
+            name=surface.name,
+            channel=surface.channel,
+            tools=tools,
+            upstream=surface.upstream,
+            attach=surface.attach,
+        )
+        self._configured_surfaces = tuple(
+            replaced if entry.name == surface.name else entry
+            for entry in self._configured_surfaces
+        )
+
+    def _preflight_tools(self, surface: Surface) -> tuple[str, ...]:
+        """List the upstream tools through a short-lived proxy session."""
+        try:
+            self.upstream_config(surface)
+            created = self._request(
+                "post",
+                "/api/sessions",
+                json={
+                    "name": f"{self.session_prefix}-preflight-{surface.name}",
+                    "upstream": self.upstream_config(surface),
+                    "tools": [],
+                },
+            )
+            session_id = created["session_id"]
+            try:
+                tools = self._request("get", f"/api/sessions/{session_id}/tools")
+            finally:
+                self._request("delete", f"/api/sessions/{session_id}", ok=False)
+            return tuple(tool.get("name", "") for tool in tools)
+        except InjectorError as e:
+            logging.debug(
+                "MiMCP preflight could not list tools for surface %s: %s",
+                surface.name,
+                e,
+            )
+            return ()
+
+    def validate(self, plan: InjectionPlan, surface: Surface) -> None:
         """Reject plans MiMCP cannot express on the surface."""
         super().validate(plan, surface)
         self.upstream_config(surface)
@@ -234,24 +375,22 @@ class MiMCPInjector(Injector):
                 raise InvalidInjectionPlanError(
                     f"operation {index} ({op}) is missing its {required}"
                 )
+        # merging rules: reject combinations the overlay cannot express
+        _overlays(plan.operations)
 
     @staticmethod
-    def upstream_config(surface: SurfaceDescriptor) -> dict:
+    def upstream_config(surface: Surface) -> dict:
         """Build the MiMCP upstream config from the surface's endpoint data."""
         upstream = surface.upstream or {}
-        if not upstream.get("server_url"):
+        if not upstream.get("url"):
             raise InvalidInjectionPlanError(
-                f"surface {surface.kind}/{surface.name} carries no upstream "
-                "server_url for MiMCP to proxy"
+                f"surface {surface.name!r} carries no upstream URL for MiMCP "
+                "to proxy; set it in the injector config"
             )
-        config = {"url": upstream["server_url"]}
-        headers = upstream.get("headers") or {}
-        if headers:
-            config["headers"] = headers
-        return config
+        return {"url": upstream["url"]}
 
     def bind(
-        self, plan: InjectionPlan, surface: SurfaceDescriptor, execution_id: str
+        self, plan: InjectionPlan, surface: Surface, execution_id: str
     ) -> MiMCPBinding:
         """Occupy the surface for one execution and return its binding."""
         return MiMCPBinding(self, plan, surface, execution_id)

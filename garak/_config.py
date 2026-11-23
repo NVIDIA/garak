@@ -61,6 +61,57 @@ class BuffManager:
     buffs = []
 
 
+class InjectorManager:
+    """Run-wide registry of the loaded injectors and their surfaces.
+
+    Injectors are selected with run.spec includes, like buffs; a config
+    block alone does not load an injector. Probes query the registry by
+    channel and never name injector classes.
+    """
+
+    def __init__(self) -> None:
+        self.injectors = []
+        self._surfaces = {}
+
+    def load(self, plugin_names) -> None:
+        """Load the selected injectors and index their surfaces.
+
+        Fails when two loaded surfaces share an internal name.
+        """
+        import logging
+
+        from garak import _plugins
+        from garak.exception import GarakException
+
+        self.injectors = []
+        self._surfaces = {}
+        for plugin_name in plugin_names:
+            injector = _plugins.load_plugin(plugin_name)
+            for surface in injector.offered_surfaces():
+                existing = self._surfaces.get(surface.name)
+                if existing is not None:
+                    raise GarakException(
+                        f"surfaces {existing[1].name!r} from "
+                        f"{existing[0].fullname} and {surface.name!r} from "
+                        f"{injector.fullname} share an internal name; rename "
+                        "one in the injector config"
+                    )
+                self._surfaces[surface.name] = (injector, surface)
+            self.injectors.append(injector)
+        channels = sorted({surface.channel for _, surface in self._surfaces.values()})
+        if channels:
+            logging.info("loaded injectors expose channels: %s", channels)
+            print(f"💉 loaded injectors expose channels: {', '.join(channels)}")
+
+    def surfaces_for_channel(self, channel: str) -> list:
+        """Return (injector, surface) pairs offering one channel."""
+        return [
+            (injector, surface)
+            for injector, surface in self._surfaces.values()
+            if surface.channel == channel
+        ]
+
+
 @dataclass
 class TransientConfig(GarakSubConfig):
     """Object to hold transient global config items not set externally"""
@@ -127,6 +178,8 @@ plugins.injectors = nested_dict()
 reporting.taxonomy = None  # set here to enable report_digest to be called directly
 
 buffmanager = BuffManager()
+
+injectormanager = InjectorManager()
 
 config_files = []
 

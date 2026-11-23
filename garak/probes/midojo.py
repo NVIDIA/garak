@@ -15,10 +15,11 @@ import copy
 import logging
 import pathlib
 
-from garak import _plugins
+import garak.channels
+from garak import _config
 from garak.attempt import Conversation, Message, Turn
 from garak.exception import GarakException, InjectorError, PluginConfigurationError
-from garak.injection import InjectionPlan
+from garak.injection import InjectionPlan, Surface
 from garak.probes._scenario import Case, load_scenario
 import garak.probes
 
@@ -26,16 +27,20 @@ import garak.probes
 class MidojoProbe(garak.probes.Probe):
     """Runs scenario-based indirect prompt injection attacks
 
-    Each case in a schema 0.2 scenario file names the surface it attacks;
-    the probe resolves that surface against the target's injectable
-    surfaces, validates the case's plan on it, and binds one injector
-    session per generation, so ``run.generations`` samples model
-    variation while the recorded evidence stays attributed to a single
-    output. Control cases (``kind: control``) run the benign task without
-    an injection. The scenario file is data, so other targets and surfaces
-    need no probe changes; scenarios live outside garak
-    (``scenario_file`` is required, e.g. the Klarna demo shipped with the
-    mim-demo deployment repo).
+    Each case in a schema 0.3 scenario file names the channel it reaches
+    the target through; the probe resolves that channel against the
+    surfaces the loaded injectors offer (selected with run.spec, like
+    buffs), validates the case's plan on the surface, checks the target
+    can apply the patch the surface needs, and binds one injector session
+    per generation, so ``run.generations`` samples model variation while
+    the recorded evidence stays attributed to a single output. Control
+    cases (``kind: control``) run the benign task without an injection,
+    optionally through a surface so their traffic is still recorded. A
+    case whose channel no loaded surface offers, or whose patch the
+    target cannot apply, is unsupported and scores None, never safe. The
+    scenario file is data, so other targets and surfaces need no probe
+    changes; scenarios live outside garak (``scenario_file`` is required,
+    e.g. the Klarna demo shipped with the mim-demo deployment repo).
     """
 
     doc_uri = "https://github.com/NVIDIA/garak/issues/1652"
@@ -46,6 +51,8 @@ class MidojoProbe(garak.probes.Probe):
     goal = "make the target perform unauthorized actions through instructions hidden in tool results"
     primary_detector = "midojo.MidojoDetector"
     parallelisable_attempts = False  # one report sink; evidence stays per-attempt
+    # scenario-driven: any channel a loaded injector offers
+    supported_channels = frozenset(garak.channels.CHANNELS)
     tags = [
         "avid-effect:security:S0403",
         "owasp:llm01",
@@ -54,7 +61,6 @@ class MidojoProbe(garak.probes.Probe):
 
     DEFAULT_PARAMS = garak.probes.Probe.DEFAULT_PARAMS | {
         "scenario_file": None,
-        "injector_spec": "injectors.mimcp.MiMCPInjector",
     }
 
     def _scenario_path(self) -> pathlib.Path:
@@ -65,52 +71,104 @@ class MidojoProbe(garak.probes.Probe):
             )
         return pathlib.Path(self.scenario_file)
 
+    def _resolve_case(self, case: Case, generator):
+        """Preflight one case against the loaded surfaces.
+
+        Returns (injector, surface, plan, unsupported_reason). A missing
+        surface or an inapplicable patch marks the case unsupported; a
+        channel several surfaces offer, or a plan the injector rejects,
+        aborts the run as a configuration error.
+        """
+        if case.channel is None:
+            # a control case without a channel needs no surface at all
+            return None, None, None, None
+        candidates = _config.injectormanager.surfaces_for_channel(case.channel)
+        if case.surface is not None:
+            candidates = [pair for pair in candidates if pair[1].name == case.surface]
+            if not candidates:
+                raise GarakException(
+                    f"case {case.id!r} names surface {case.surface!r}, which no "
+                    f"loaded injector offers on the {case.channel} channel"
+                )
+        if len(candidates) > 1:
+            needed = {
+                operation["tool"]
+                for operation in case.operations
+                if operation.get("tool")
+            }
+            if needed:
+                candidates = [
+                    pair for pair in candidates if needed <= set(pair[1].tools)
+                ]
+        if not candidates:
+            return (
+                None,
+                None,
+                None,
+                (f"no loaded surface offers the {case.channel} channel"),
+            )
+        if len(candidates) > 1:
+            names = ", ".join(sorted(pair[1].name for pair in candidates))
+            raise GarakException(
+                f"case {case.id!r}: several surfaces offer the {case.channel} "
+                f"channel ({names}); name one through injection.surface"
+            )
+        injector, surface = candidates[0]
+        plan = InjectionPlan(
+            channel=case.channel,
+            operations=case.operations,
+            surface=case.surface,
+        )
+        injector.validate(plan, surface)
+        patch_kind = (surface.attach or {}).get("patch")
+        if patch_kind and patch_kind not in generator.supported_patches:
+            return (
+                injector,
+                surface,
+                plan,
+                (
+                    f"the target cannot apply the {patch_kind} patch the surface "
+                    f"{surface.name!r} needs"
+                ),
+            )
+        return injector, surface, plan, None
+
     def probe(self, generator):
         """Resolve each case's surface and run the benign task per case"""
         logging.debug("probe execute: %s", self)
         self.generator = generator
 
         scenario = load_scenario(self._scenario_path())
-        self.injector = _plugins.load_plugin(self.injector_spec)
-        if not self.injector.surface_kinds:
-            raise GarakException(
-                f"injector {self.injector_spec} occupies no surface kinds"
-            )
-
-        surfaces = {
-            (surface.kind, surface.name): surface
-            for surface in generator.injectable_surfaces()
-        }
         prompt = Conversation([Turn("user", Message(scenario.prompt))])
         attempts = []
-        self._cases: dict[int, tuple[Case, object, InjectionPlan | None]] = {}
+        self._cases: dict[
+            int, tuple[Case, object, Surface | None, InjectionPlan | None, str | None]
+        ] = {}
         for seq, case in enumerate(scenario.cases):
-            surface = plan = None
-            if case.kind == "attack":
-                surface = surfaces.get((case.surface_kind, case.surface_name))
-                if surface is None:
-                    raise GarakException(
-                        f"the target offers no surface "
-                        f"{case.surface_kind}/{case.surface_name}; configure it "
-                        "in the generator's tools"
-                    )
-                plan = InjectionPlan(
-                    surface_kind=case.surface_kind,
-                    surface_name=case.surface_name,
-                    operations=case.operations,
-                )
-                self.injector.validate(plan, surface)
-            self._cases[seq] = (case, surface, plan)
+            injector, surface, plan, unsupported = self._resolve_case(case, generator)
+            self._cases[seq] = (case, injector, surface, plan, unsupported)
+            trust = garak.channels.get(case.channel).trust if case.channel else None
             notes = {
                 "midojo": {
                     "scenario_id": scenario.id,
                     "case_id": case.id,
                     "case_kind": case.kind,
+                    "channel": case.channel,
+                    "trust": trust,
+                    "surface": surface.name if surface is not None else None,
                     "success": case.success,
                     "plan": plan.as_dict() if plan is not None else None,
+                    "mcp_require_approval": getattr(
+                        generator, "mcp_require_approval", None
+                    ),
                     "executions": [],
                 }
             }
+            if unsupported:
+                notes["midojo"]["unsupported"] = unsupported
+                logging.warning(
+                    "midojo case %s is unsupported: %s", case.id, unsupported
+                )
             attempt = self._mint_attempt(prompt, seq=seq, notes=notes)
             attempt.goal = case.description or self.goal
             attempts.append(attempt)
@@ -146,25 +204,34 @@ class MidojoProbe(garak.probes.Probe):
         inconclusive, never as safe.
         """
         self._generator_precall_hook(self.generator, attempt)
-        case, surface, plan = self._cases[attempt.seq]
+        case, injector, surface, plan, unsupported = self._cases[attempt.seq]
         outputs = []
         executions = []
         for generation in range(self.generations):
             execution_id = f"{attempt.uuid}-{generation}"
+            if unsupported:
+                outputs.append(garak.attempt.Message(None))
+                executions.append(self._undelivered_execution(execution_id))
+                continue
             try:
-                if plan is None:
+                if injector is None:
                     outputs.extend(
                         self.generator.generate(attempt.prompt, generations_this_call=1)
                     )
                     executions.append(self._undelivered_execution(execution_id))
                 else:
-                    binding = self.injector.bind(plan, surface, execution_id)
+                    binding = injector.bind(plan, surface, execution_id)
                     try:
+                        patches = (
+                            [binding.target_patch]
+                            if binding.target_patch is not None
+                            else None
+                        )
                         outputs.extend(
                             self.generator.generate(
                                 attempt.prompt,
                                 generations_this_call=1,
-                                injection_routes=[binding.route],
+                                target_patches=patches,
                             )
                         )
                         evidence = binding.collect_evidence()

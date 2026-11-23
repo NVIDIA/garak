@@ -22,9 +22,14 @@ import openai
 import backoff
 
 from garak import _config
-from garak.attempt import Message, Conversation
+from garak.attempt import Message, Conversation, Turn
 from garak.exception import UnsupportedInjectionError
-from garak.injection import McpRoute, SurfaceDescriptor
+from garak.injection import (
+    McpServerPatch,
+    SystemPromptPatch,
+    apply_system_prompt_patch,
+)
+import garak.channels
 import garak.exception
 from garak.generators.base import Generator
 
@@ -142,6 +147,9 @@ class OpenAICompatible(Generator):
     active = True
     supports_multiple_generations = False
     generator_family_name = "OpenAICompatible"  # Placeholder override when extending
+
+    # chat requests carry a system message this generator can patch
+    supported_patches = frozenset({garak.channels.PATCH_SYSTEM_PROMPT})
 
     # template defaults optionally override when extending
     DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
@@ -282,6 +290,24 @@ class OpenAICompatible(Generator):
 
         return turn_list
 
+    def _apply_system_prompt_patches(self, prompt: Conversation) -> Conversation:
+        """Apply handed SystemPromptPatches to the conversation's system turn."""
+        applied = False
+        system_text = "\n".join(
+            turn.content.text for turn in prompt.turns if turn.role == "system"
+        )
+        for patch in self._active_target_patches():
+            if not isinstance(patch, SystemPromptPatch):
+                continue
+            system_text = apply_system_prompt_patch(system_text or None, patch)
+            self._consume_target_patch(patch)
+            applied = True
+        if not applied:
+            return prompt
+        turns = [Turn("system", Message(system_text))]
+        turns += [turn for turn in prompt.turns if turn.role != "system"]
+        return Conversation(turns)
+
     # noinspection PyArgumentList
     @backoff.on_exception(
         backoff.fibo,
@@ -337,7 +363,9 @@ class OpenAICompatible(Generator):
 
         else:  # is chat
             if isinstance(prompt, Conversation):
-                messages = self._conversation_to_list(prompt)
+                messages = self._conversation_to_list(
+                    self._apply_system_prompt_patches(prompt)
+                )
             elif isinstance(prompt, list):
                 # should this still be supported?
                 messages = prompt
@@ -505,6 +533,11 @@ class OpenAIResponsesGenerator(OpenAICompatible):
     generator_family_name = "OpenAIResponses"
     supports_multiple_generations = False
 
+    # the request carries an instructions field and mcp tool blocks
+    supported_patches = frozenset(
+        {garak.channels.PATCH_SYSTEM_PROMPT, garak.channels.PATCH_MCP_SERVER}
+    )
+
     DEFAULT_PARAMS = OpenAICompatible.DEFAULT_PARAMS | {
         "uri": None,
         "instructions": None,
@@ -529,58 +562,27 @@ class OpenAIResponsesGenerator(OpenAICompatible):
     def _generator_is_valid(self) -> bool:
         return self.generator == self.client.responses
 
-    def injectable_surfaces(self) -> list[SurfaceDescriptor]:
-        """Configured ``mcp`` tool blocks are this target's surfaces.
+    def _apply_mcp_server_patches(self, tools) -> list[dict]:
+        """Apply McpServerPatches to the configured mcp tool blocks.
 
-        The Responses API runs the tool loop on the server, so each
-        configured MCP server is a channel the target pulls untrusted
-        content from. Each block becomes an ``mcp.server`` surface named
-        by its ``server_label``, carrying the configured endpoint data as
-        ``upstream``; other tool types offer no surface garak can occupy
-        here.
-        """
-        surfaces = []
-        for tool in self.tools or []:
-            if not isinstance(tool, dict) or tool.get("type") != "mcp":
-                continue
-            server_label = tool.get("server_label")
-            if not server_label:
-                logging.debug("mcp tool block without server_label: %r", tool)
-                continue
-            surfaces.append(
-                SurfaceDescriptor(
-                    kind="mcp.server",
-                    name=server_label,
-                    controls=frozenset({"replace_route"}),
-                    upstream={
-                        "server_url": tool.get("server_url"),
-                        "headers": tool.get("headers") or {},
-                    },
-                )
-            )
-        return surfaces
-
-    def _merge_mcp_routes(self, tools) -> list[dict]:
-        """Apply injection routes by replacing configured mcp tool blocks.
-
-        Each route replaces the block whose ``server_label`` equals the
-        route's ``replaces`` label; a route naming no configured block
-        raises, because appending a server the target was not configured
-        with would test a different target. A route header named
-        ``Authorization`` becomes the Responses ``authorization`` field;
-        the rest pass through as ``headers``.
+        Each patch replaces the block whose ``server_label`` equals the
+        patch's ``label``, or adds one when the target configures none:
+        the injector config owns the surface, so the generator's tools
+        need not declare it. A patch header named ``Authorization``
+        becomes the Responses ``authorization`` field; the rest pass
+        through as ``headers``.
         """
         tools = list(tools or [])
-        for route in self._active_injection_routes():
-            if not isinstance(route, McpRoute):
+        for patch in self._active_target_patches():
+            if not isinstance(patch, McpServerPatch):
                 continue  # left unconsumed, so generate() fails closed
             replacement = {
                 "type": "mcp",
-                "server_label": route.replaces,
-                "server_url": route.url,
+                "server_label": patch.label,
+                "server_url": patch.url,
                 "require_approval": self.mcp_require_approval,
             }
-            headers = dict(route.headers or {})
+            headers = dict(patch.headers or {})
             authorization = headers.pop("Authorization", None)
             if authorization is None:
                 authorization = headers.pop("authorization", None)
@@ -588,32 +590,38 @@ class OpenAIResponsesGenerator(OpenAICompatible):
                 replacement["authorization"] = authorization
             if headers:
                 replacement["headers"] = headers
-            tools, matched = self._replace_mcp_block(tools, route.replaces, replacement)
-            if not matched:
-                raise UnsupportedInjectionError(
-                    f"{self.fullname} has no configured mcp block labeled "
-                    f"{route.replaces!r} for the route to replace"
+            tools = [
+                tool
+                for tool in tools
+                if not (
+                    isinstance(tool, dict)
+                    and tool.get("type") == "mcp"
+                    and tool.get("server_label") == patch.label
                 )
-            self._consume_injection_route(route)
+            ]
+            tools.append(replacement)
+            self._consume_target_patch(patch)
         return tools
 
-    @staticmethod
-    def _replace_mcp_block(tools, server_label, replacement):
-        """Swap the mcp block carrying server_label for replacement."""
-        merged = []
-        matched = False
-        for tool in tools:
-            if (
-                isinstance(tool, dict)
-                and tool.get("type") == "mcp"
-                and tool.get("server_label") == server_label
-            ):
-                matched = True
+    def _effective_instructions(self, prompt: Conversation) -> Union[str, None]:
+        """Build the instructions field, applying handed SystemPromptPatches.
+
+        A configured ``instructions`` value and a system prompt patch
+        conflict: neither may silently win, so the generation fails
+        closed instead.
+        """
+        instructions = self.instructions or self._extract_system_prompt(prompt)
+        for patch in self._active_target_patches():
+            if not isinstance(patch, SystemPromptPatch):
                 continue
-            merged.append(tool)
-        if matched:
-            merged.append(replacement)
-        return merged, matched
+            if self.instructions:
+                raise UnsupportedInjectionError(
+                    f"{self.fullname} has instructions configured and was handed "
+                    "a system prompt patch; resolve the conflict in the config"
+                )
+            instructions = apply_system_prompt_patch(instructions, patch)
+            self._consume_target_patch(patch)
+        return instructions
 
     def _load_unsafe(self):
         kwargs = {"api_key": getattr(self, "api_key", None)}
@@ -658,7 +666,7 @@ class OpenAIResponsesGenerator(OpenAICompatible):
         if self.client is None:
             self._load_unsafe()
 
-        instructions = self.instructions or self._extract_system_prompt(prompt)
+        instructions = self._effective_instructions(prompt)
         create_args = {
             "model": self.name,
             "input": self._build_input(prompt),
@@ -666,7 +674,7 @@ class OpenAIResponsesGenerator(OpenAICompatible):
         }
         if instructions:
             create_args["instructions"] = instructions
-        tools = self._merge_mcp_routes(self.tools)
+        tools = self._apply_mcp_server_patches(self.tools)
         if tools:
             create_args["tools"] = tools
         for k, v in self.extra_params.items():

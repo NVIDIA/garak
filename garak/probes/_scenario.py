@@ -1,15 +1,17 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Loader for indirect prompt injection scenarios, schema 0.2.
+"""Loader for indirect prompt injection scenarios, schema 0.3.
 
-A scenario is data: a benign task and the cases run against it. Attack
-cases tamper with a surface the target config declares; control cases
-run the benign task untouched. Endpoints and the system prompt belong to
-the target config, never to the scenario, so a scenario carries no
-hostnames and no backend fields. Validation happens here, at load time,
-so a malformed scenario fails the run instead of silently never
-matching.
+A scenario is data: a benign task and the cases run against it. Cases
+reach the target through a channel from the catalog
+(``garak.channels``); attack cases carry operations against that
+channel, control cases run the benign task untouched (optionally through
+a surface, so their traffic is still recorded). Endpoints and the system
+prompt belong to the target and injector config, never to the scenario,
+so a scenario carries no hostnames and no backend fields. Validation
+happens here, at load time, so a malformed scenario fails the run
+instead of silently never matching.
 """
 
 import pathlib
@@ -17,14 +19,15 @@ from dataclasses import dataclass
 
 import yaml
 
+import garak.channels
 from garak.exception import GarakException
 
-SCHEMA_VERSION = "0.2"
+SCHEMA_VERSION = "0.3"
 
-# fields v0.1 carried that moved into the target config, with the hint
-# that keeps the migration one step
+# fields earlier schemas carried that moved into the target or injector
+# config, with the hint that keeps the migration one step
 MOVED_FIELDS = {
-    "upstream": "the target config owns upstream endpoints; declare the server in the generator's tools",
+    "upstream": "the injector config owns upstream endpoints; declare them on the injector's surfaces",
     "instructions": "the target config owns the system prompt; set the generator's instructions",
 }
 
@@ -50,17 +53,18 @@ class ScenarioError(GarakException):
 class Case:
     """One case of a scenario.
 
-    ``kind`` separates attack cases from control cases; the surface
-    reference and operations describe what an injector must do to the
-    surface, and ``success`` holds the criteria a detector grades the
-    case by.
+    ``kind`` separates attack cases from control cases; ``channel`` is
+    the catalog id the case reaches the target through, ``surface``
+    optionally overrides surface resolution with an internal surface
+    name, ``operations`` are the injector vocabulary for the attack, and
+    ``success`` holds the criteria a detector grades the case by.
     """
 
     id: str
     kind: str
     description: str | None
-    surface_kind: str | None
-    surface_name: str | None
+    channel: str | None
+    surface: str | None
     operations: tuple[dict, ...]
     success: dict | list
 
@@ -107,10 +111,10 @@ def _scenario_from(document, path) -> Scenario:
             f"{where}: unsupported schema_version {version!r}; "
             f"this garak speaks scenario schema {SCHEMA_VERSION}"
         )
-    for field in MOVED_FIELDS:
-        if field in document:
+    for moved in MOVED_FIELDS:
+        if moved in document:
             raise ScenarioError(
-                f"{where}: unknown field {field!r}: {MOVED_FIELDS[field]}"
+                f"{where}: unknown field {moved!r}: {MOVED_FIELDS[moved]}"
             )
     _reject_unknown(
         document,
@@ -146,7 +150,10 @@ def _case_from(index: int, raw_case, where: str) -> Case:
     case_id = _non_empty_str(raw_case.get("id"), where, location, "id")
     location = f"case {case_id!r}"
     _reject_unknown(
-        raw_case, {"id", "kind", "description", "injection", "success"}, where, location
+        raw_case,
+        {"id", "kind", "description", "channel", "injection", "success"},
+        where,
+        location,
     )
 
     kind = raw_case.get("kind", "attack")
@@ -165,12 +172,16 @@ def _case_from(index: int, raw_case, where: str) -> Case:
         )
     if kind == "attack" and injection is None:
         raise ScenarioError(f"{where}: {location}: an attack case needs an injection")
-    surface_kind = surface_name = None
+
+    channel = None
+    surface = None
     operations: tuple[dict, ...] = ()
     if injection is not None:
-        surface_kind, surface_name, operations = _injection_from(
-            injection, where, location
-        )
+        channel, surface, operations = _injection_from(injection, where, location)
+    elif raw_case.get("channel") is not None:
+        # a control case may route through a surface, so its traffic is
+        # still recorded
+        channel = _channel_id(raw_case.get("channel"), where, location, "channel")
 
     success = raw_case.get("success")
     if success is None:
@@ -181,8 +192,8 @@ def _case_from(index: int, raw_case, where: str) -> Case:
         id=case_id,
         kind=kind,
         description=description,
-        surface_kind=surface_kind,
-        surface_name=surface_name,
+        channel=channel,
+        surface=surface,
         operations=operations,
         success=success,
     )
@@ -192,18 +203,16 @@ def _injection_from(injection, where: str, location: str):
     if not isinstance(injection, dict):
         raise ScenarioError(f"{where}: {location}: injection must be a mapping")
     _reject_unknown(
-        injection, {"surface", "operations"}, where, f"{location} injection"
+        injection, {"channel", "surface", "operations"}, where, f"{location} injection"
+    )
+    if injection.get("channel") is None:
+        raise ScenarioError(f"{where}: {location}: injection.channel is required")
+    channel = _channel_id(
+        injection.get("channel"), where, location, "injection.channel"
     )
     surface = injection.get("surface")
-    if not isinstance(surface, dict):
-        raise ScenarioError(f"{where}: {location}: injection.surface is required")
-    _reject_unknown(surface, {"kind", "name"}, where, f"{location} injection.surface")
-    surface_kind = _non_empty_str(
-        surface.get("kind"), where, f"{location} injection.surface", "kind"
-    )
-    surface_name = _non_empty_str(
-        surface.get("name"), where, f"{location} injection.surface", "name"
-    )
+    if surface is not None:
+        surface = _non_empty_str(surface, where, location, "injection.surface")
     raw_operations = injection.get("operations", [])
     if not isinstance(raw_operations, list):
         raise ScenarioError(f"{where}: {location}: injection.operations must be a list")
@@ -219,14 +228,19 @@ def _injection_from(injection, where: str, location: str):
             f"{location} injection.operations[{op_index}]",
             "op",
         )
-        _non_empty_str(
-            operation.get("tool"),
-            where,
-            f"{location} injection.operations[{op_index}]",
-            "tool",
-        )
+        # tool names stay in the operations: they are part of the attack,
+        # not of the deployment; channels without tools (a system prompt
+        # patch) leave the field out and the injector validates its own
+        # vocabulary
         operations.append(operation)
-    return surface_kind, surface_name, tuple(operations)
+    return channel, surface, tuple(operations)
+
+
+def _channel_id(value, where: str, location: str, field: str) -> str:
+    try:
+        return garak.channels.get(value).id
+    except ValueError as e:
+        raise ScenarioError(f"{where}: {location}: {field}: {e}") from None
 
 
 def _validate_success(success, where: str, location: str) -> None:
@@ -279,9 +293,10 @@ def _validate_success(success, where: str, location: str) -> None:
                 raise ScenarioError(
                     f"{where}: {location}: success.tool_called.result_field needs an equals value"
                 )
-    for key in ("output_contains",):
-        if key in success and not isinstance(success[key], str):
-            raise ScenarioError(f"{where}: {location}: success.{key} must be a string")
+    if "output_contains" in success and not isinstance(success["output_contains"], str):
+        raise ScenarioError(
+            f"{where}: {location}: success.output_contains must be a string"
+        )
     for key in ("output_contains_all", "output_contains_any", "any_of", "all_of"):
         if key in success and not isinstance(success[key], list):
             raise ScenarioError(f"{where}: {location}: success.{key} must be a list")

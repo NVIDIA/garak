@@ -148,6 +148,25 @@ def resolve_spec(spec: _spec.Spec, skip_unknown: bool = False) -> _spec.Resoluti
     else:
         buffs = set()
 
+    # Injectors: union of injectors.* includes (no implicit default); loaded
+    # into the run-wide registry, never instantiated by a config block alone
+    injector_includes = [
+        s for s in spec.include if s.kind == "plugin_path" and s.category == "injectors"
+    ]
+    if injector_includes:
+        injectors, inj_rej, inj_inact = _resolve_plugin_paths(
+            injector_includes, "injectors"
+        )
+        rejected += inj_rej
+        inactive_modules += inj_inact
+    else:
+        injectors = set()
+    for selector in spec.exclude:
+        if selector.kind == "plugin_path" and selector.category == "injectors":
+            removed, rej, _ = _resolve_plugin_paths([selector], "injectors")
+            rejected += rej
+            injectors -= removed
+
     # Excludes applied last (exclude wins)
     for selector in spec.exclude:
         if selector.kind == "plugin_path" and selector.category == "probes":
@@ -206,7 +225,11 @@ def resolve_spec(spec: _spec.Spec, skip_unknown: bool = False) -> _spec.Resoluti
     else:
         empty_reason = _empty_reason(spec)
     return _spec.Resolution(
-        selected={"probes": sorted(candidate), "buffs": sorted(buffs)},
+        selected={
+            "probes": sorted(candidate),
+            "buffs": sorted(buffs),
+            "injectors": sorted(injectors),
+        },
         rejected=rejected,
         inactive=inactive_modules,
         empty_reason=empty_reason,

@@ -24,7 +24,7 @@ from typing import Dict, List, Optional
 
 # Plugin categories selectable via run.spec. Detectors are not selectable here
 # yet; they keep their own legacy spec surface (parse_plugin_spec).
-_CATEGORIES = ("probes", "buffs")
+_CATEGORIES = ("probes", "buffs", "injectors")
 
 # Default intent scope (Safety branch), injected when run.spec has no intent:
 DEFAULT_INTENT_SCOPE = "S"
@@ -36,8 +36,7 @@ def validate_intent_specifier(intent_specifier: str) -> bool:
     A leaf starts with a lowercase letter and may contain digits, e.g.
     ``S003productkeyswin10``."""
     return (
-        re.fullmatch("[CTMS]([0-9]{3}([a-z][a-z0-9]*)?)?", intent_specifier)
-        is not None
+        re.fullmatch("[CTMS]([0-9]{3}([a-z][a-z0-9]*)?)?", intent_specifier) is not None
     )
 
 
@@ -116,6 +115,10 @@ class Resolution:
     @property
     def buffs(self) -> List[str]:
         return self.selected.get("buffs", [])
+
+    @property
+    def injectors(self) -> List[str]:
+        return self.selected.get("injectors", [])
 
 
 def parse_spec_string(spec: str) -> Spec:
@@ -262,7 +265,9 @@ def _legacy_path_selectors(spec: Optional[str], category: str) -> List[Selector]
                 f"prefix; legacy keys take unprefixed values (e.g. 'encoding.CharCode'), "
                 f"not unified run.spec tokens"
             )
-        selectors.append(Selector("plugin_path", f"{category}.{clause}", True, category))
+        selectors.append(
+            Selector("plugin_path", f"{category}.{clause}", True, category)
+        )
     return selectors
 
 

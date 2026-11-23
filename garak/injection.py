@@ -3,15 +3,14 @@
 
 """Shared types for the agent injection contract.
 
-These types are backend-neutral: they name the surfaces a target draws
-untrusted content from, the plans that describe what an injector does to
-those surfaces, the routes a generator applies, and the evidence an
-injection execution produces. Transport details belong to the injectors
-and generators, never to these definitions.
+These types are backend-neutral: they name the channels a payload can
+reach a target through, the surfaces injectors occupy, the plans that
+describe what an injector does to those surfaces, the patches a
+generator applies to its own request, and the evidence an injection
+execution produces. Transport details belong to the injectors and
+generators, never to these definitions.
 
-A surface kind (for example ``mcp.server``) is a namespaced string. Each
-kind defines what its plans, routes, and operations mean; validators on
-the injector side reject anything a kind cannot express.
+Channel and patch ids come from the catalog in ``garak.channels``.
 """
 
 from dataclasses import dataclass, field, fields, is_dataclass
@@ -46,50 +45,103 @@ class _ContractType:
 
 
 @dataclass(frozen=True)
-class SurfaceDescriptor(_ContractType):
-    """One interaction surface of a target that garak can occupy.
+class Surface(_ContractType):
+    """One surface an injector occupies, from the injector's config.
 
-    ``kind`` is a namespaced string naming the surface kind, for example
-    ``mcp.server``; ``name`` identifies the concrete surface within the
-    target, for example a configured server label. ``controls`` names the
-    operations the target supports on this surface, and ``upstream``
-    carries target-owned endpoint data an injector needs to occupy it.
+    ``name`` is the internal key from the injector config, for logs and
+    evidence; scenarios never refer to it. ``channel`` is a catalog id,
+    ``tools`` the tool names the surface offers (used to pick between
+    several surfaces on one channel), ``upstream`` carries backend-owned
+    endpoint data, and ``attach`` describes the patch a generator must
+    apply to route traffic through the surface, as
+    ``{"patch": <kind>, "label": <label>}`` or None for pure out-of-band
+    surfaces.
     """
 
-    kind: str
     name: str
-    controls: frozenset[str] = frozenset()
+    channel: str
+    tools: tuple[str, ...] = ()
     upstream: dict | None = None
+    attach: dict | None = None
 
 
 @dataclass(frozen=True)
 class InjectionPlan(_ContractType):
-    """What an injector must do to one surface for one case.
+    """What an injector must do to one channel for one case.
 
-    ``operations`` are plain dicts whose schema the surface kind defines;
+    ``operations`` are plain dicts whose schema the injector defines;
     each names one transformation, for example a structured patch on a
-    tool result. Injectors reject plans whose surface kind or operations
-    they cannot express.
+    tool result. ``surface`` optionally overrides surface resolution
+    with an internal surface name, for deployments with two matching
+    surfaces; leave it out normally. Injectors reject plans whose
+    channel or operations they cannot express.
     """
 
-    surface_kind: str
-    surface_name: str
+    channel: str
     operations: tuple[dict, ...] = ()
+    surface: str | None = None
+
+
+class TargetPatch:
+    """A change a generator applies to its own request.
+
+    One patch kind names one shape of request change; generators declare
+    the kinds they support through ``supported_patches`` and apply each
+    handed patch or fail closed. ``patch_kind`` is a plain class
+    attribute, not a dataclass field.
+    """
+
+    patch_kind = ""
 
 
 @dataclass(frozen=True)
-class McpRoute(_ContractType):
-    """How a generator routes one MCP server through an injector.
+class McpServerPatch(TargetPatch, _ContractType):
+    """Point one MCP server label at an injector's session.
 
-    ``replaces`` is the server label in the target's own tool
-    configuration; a generator swaps the configured block carrying that
-    label for this route instead of appending a new server.
+    ``label`` names the server block in the target's tool
+    configuration; a generator replaces the block carrying that label,
+    or adds one when the target configures none.
     """
 
-    replaces: str
+    label: str
     url: str
     headers: dict[str, str] = field(default_factory=dict)
     transport: str = "streamable_http"
+    patch_kind = "mcp_server"
+
+
+@dataclass(frozen=True)
+class SystemPromptPatch(TargetPatch, _ContractType):
+    """Change the target's system prompt.
+
+    ``replace`` swaps the prompt for ``text``; ``append`` adds ``text``
+    to it; ``insert_at_marker`` splices ``text`` in at the first
+    ``marker`` occurrence.
+    """
+
+    mode: str
+    text: str
+    marker: str | None = None
+    patch_kind = "system_prompt"
+
+
+SYSTEM_PROMPT_MODES = frozenset({"replace", "append", "insert_at_marker"})
+
+
+def apply_system_prompt_patch(current: str | None, patch: SystemPromptPatch) -> str:
+    """Apply one system prompt patch to the current prompt text."""
+    if patch.mode == "replace":
+        return patch.text
+    if patch.mode == "append":
+        return f"{current}\n{patch.text}" if current else patch.text
+    if patch.mode == "insert_at_marker":
+        if not current or not patch.marker or patch.marker not in current:
+            raise ValueError(
+                f"cannot insert at marker {patch.marker!r}: the marker is not "
+                "in the current system prompt"
+            )
+        return current.replace(patch.marker, patch.text + patch.marker, 1)
+    raise ValueError(f"unknown system prompt patch mode {patch.mode!r}")
 
 
 @dataclass(frozen=True)
@@ -140,7 +192,7 @@ class InjectionEvidence(_ContractType):
     """Everything one injection execution learned.
 
     One execution backs one generation: the probe binds a plan to a
-    surface, runs one generation through the route, and collects this
+    surface, runs one generation through the patch, and collects this
     evidence from the binding.
     """
 
@@ -153,10 +205,11 @@ class InjectionEvidence(_ContractType):
 class InjectionBinding:
     """One execution of an injection plan against one surface.
 
-    A binding owns the session state for exactly one generation: ``route``
-    is what the generator applies, ``collect_evidence()`` reports what the
-    execution learned, and ``close()`` releases the surface. ``close()`` is
-    idempotent and must never raise: cleanup failures are logged and
+    A binding owns the session state for exactly one generation:
+    ``target_patch`` is what the generator applies (None for pure
+    out-of-band surfaces), ``collect_evidence()`` reports what the
+    execution learned, and ``close()`` releases the surface. ``close()``
+    is idempotent and must never raise: cleanup failures are logged and
     recorded as coverage errors instead. Bindings work as context
     managers, so a generator exception cannot leak a session.
 
@@ -164,7 +217,7 @@ class InjectionBinding:
     plugin cache treats every class in a plugin directory as a plugin.
     """
 
-    route: object = None
+    target_patch: TargetPatch | None = None
 
     def __init__(self) -> None:
         self._closed = False

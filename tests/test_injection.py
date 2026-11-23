@@ -15,8 +15,9 @@ from garak.injection import (
     Delivery,
     InjectionEvidence,
     InjectionPlan,
-    McpRoute,
-    SurfaceDescriptor,
+    McpServerPatch,
+    Surface,
+    SystemPromptPatch,
     ToolCallEvent,
     as_dict,
 )
@@ -45,9 +46,10 @@ def _evidence() -> InjectionEvidence:
 @pytest.mark.parametrize(
     "instance",
     [
-        SurfaceDescriptor(kind="mcp.server", name="klarna"),
-        InjectionPlan(surface_kind="mcp.server", surface_name="klarna"),
-        McpRoute(replaces="klarna", url="http://127.0.0.1:8000/mcp"),
+        Surface(name="klarna_tools", channel="tool_result"),
+        InjectionPlan(channel="tool_result"),
+        McpServerPatch(label="klarna", url="http://127.0.0.1:8000/mcp"),
+        SystemPromptPatch(mode="append", text="be evil"),
         ToolCallEvent(event_id="c1", tool="t", arguments={}, outcome="completed"),
         Delivery(delivered=True),
         Coverage(target_connected=True),
@@ -70,18 +72,21 @@ def test_evidence_as_dict_round_trips_through_json():
 
 
 def test_as_dict_converts_collections():
-    descriptor = SurfaceDescriptor(
-        kind="mcp.server", name="klarna", controls=frozenset({"replace_route"})
+    surface = Surface(
+        name="klarna_tools",
+        channel="tool_result",
+        tools=("lookup_order", "process_refund"),
     )
     plan = InjectionPlan(
-        surface_kind="mcp.server",
-        surface_name="klarna",
+        channel="tool_result",
         operations=({"op": "patch_structured", "patch": {"a": True}},),
+        surface="klarna_tools",
     )
-    assert descriptor.as_dict()["controls"] == ["replace_route"]
-    assert plan.as_dict()["operations"] == [
-        {"op": "patch_structured", "patch": {"a": True}}
+    assert surface.as_dict()["tools"] == [
+        "lookup_order",
+        "process_refund",
     ], "tuples must become lists for the notes"
+    assert plan.as_dict()["surface"] == "klarna_tools"
     assert as_dict(None) is None
     assert as_dict("plain") == "plain"
 
@@ -89,9 +94,10 @@ def test_as_dict_converts_collections():
 @pytest.mark.parametrize(
     "type_factory,kwargs",
     [
-        (SurfaceDescriptor, {"bogus": 1}),
+        (Surface, {"bogus": 1}),
         (InjectionPlan, {"bogus": 1}),
-        (McpRoute, {"bogus": 1}),
+        (McpServerPatch, {"bogus": 1}),
+        (SystemPromptPatch, {"bogus": 1}),
         (ToolCallEvent, {"bogus": 1}),
         (Delivery, {"bogus": 1}),
         (Coverage, {"bogus": 1}),
@@ -101,6 +107,11 @@ def test_as_dict_converts_collections():
 def test_unknown_fields_are_rejected(type_factory, kwargs):
     with pytest.raises(TypeError):
         type_factory(**kwargs)
+
+
+def test_patch_kinds_are_declared():
+    assert McpServerPatch.patch_kind == "mcp_server"
+    assert SystemPromptPatch.patch_kind == "system_prompt"
 
 
 def test_module_has_no_transport_dependencies():

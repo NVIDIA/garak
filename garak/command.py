@@ -49,7 +49,7 @@ def start_run():
 
     logging.info("run started at %s", _config.transient.starttime_iso)
     # print("ASSIGN UUID", args)
-    if _config.system.lite and "probes" not in _config.transient.cli_args and _config.transient.cli_args.list_probes is None and not _config.transient.cli_args.list_detectors and not _config.transient.cli_args.list_generators and not _config.transient.cli_args.list_buffs and not _config.transient.cli_args.list_config and not _config.transient.cli_args.plugin_info and not _config.run.interactive:  # type: ignore
+    if _config.system.lite and "probes" not in _config.transient.cli_args and _config.transient.cli_args.list_probes is None and not _config.transient.cli_args.list_detectors and not _config.transient.cli_args.list_generators and not _config.transient.cli_args.list_buffs and not _config.transient.cli_args.list_channels and not _config.transient.cli_args.list_config and not _config.transient.cli_args.plugin_info and not _config.run.interactive:  # type: ignore
         hint(
             "The current/default config is optimised for speed rather than thoroughness. Try e.g. --config full for a stronger test, or specify some probes.",
             logging=logging,
@@ -489,3 +489,42 @@ def write_report_digest(report_filename, html_report_filename):
     html_report = report_digest.build_html(digest)
     with open(html_report_filename, "w", encoding="utf-8") as htmlfile:
         htmlfile.write(html_report)
+
+
+def print_channels():
+    """List each channel and the probes, generators, and injectors that support it."""
+    from colorama import Fore, Style
+    import garak.channels
+    from garak._plugins import PluginCache
+
+    cache = PluginCache.instance()
+
+    def _by_key(category: str, key: str) -> dict:
+        grouped = {}
+        for name, meta in cache.get(category, {}).items():
+            for value in meta.get(key) or []:
+                grouped.setdefault(value, []).append(name)
+        return grouped
+
+    injectors_by_channel = _by_key("injectors", "channels")
+    probes_by_channel = _by_key("probes", "supported_channels")
+    generators_by_patch = _by_key("generators", "supported_patches")
+
+    for channel_id in sorted(garak.channels.CHANNELS):
+        channel = garak.channels.CHANNELS[channel_id]
+        print(
+            f"{Style.BRIGHT}{Fore.LIGHTBLUE_EX}{channel.id}{Style.RESET_ALL} - "
+            f"{channel.description} (trust: {channel.trust}, "
+            f"delivery: {channel.delivery})"
+        )
+        injectors = injectors_by_channel.get(channel_id, [])
+        probes = probes_by_channel.get(channel_id, [])
+        print(f"  injectors: {', '.join(injectors) if injectors else '-'}")
+        print(f"  probes:    {', '.join(probes) if probes else '-'}")
+        for patch_kind in sorted(garak.channels.CHANNEL_PATCHES[channel_id]):
+            generators = generators_by_patch.get(patch_kind, [])
+            print(
+                f"  {patch_kind} patch generators: "
+                f"{', '.join(generators) if generators else '-'}"
+            )
+        print()
