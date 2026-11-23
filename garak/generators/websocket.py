@@ -319,10 +319,12 @@ class WebSocketGenerator(Generator):
                         typing_detected = True
                         continue
 
-                    # If we were waiting for typing to finish and got a non-typing message
+                    # If we were waiting for typing to finish and got a non-typing message,
+                    # it starts the answer: keep collecting further frames until the
+                    # stream ends or times out, as in the no-typing path, instead of
+                    # stopping after the first frame and dropping the tail.
                     if typing_detected and self.typing_indicator not in response:
-                        response_parts.append(response)
-                        break
+                        typing_detected = False
 
                     # Collect response parts
                     response_parts.append(response)
