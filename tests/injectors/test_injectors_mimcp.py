@@ -136,3 +136,24 @@ def test_advertised_base_overrides_the_reported_url(respx_mock):
         descriptor["server_url"] == "http://mimcp:8000/mcp"
     ), "advertised_base must win over the URL MiMCP reports"
     assert descriptor["authorization"] == "tok-123"
+
+
+@pytest.mark.respx(base_url="http://127.0.0.1:8000")
+def test_get_status_returns_session_view(respx_mock):
+    view = {
+        "session_id": "tok-123",
+        "name": "garak-1",
+        "status": "connected",
+        "call_count": 3,
+    }
+    respx_mock.get("/api/sessions/tok-123").mock(
+        return_value=httpx.Response(200, json=view)
+    )
+    injector = MiMCPInjector()
+    injector.session_id = "tok-123"
+
+    assert injector.get_status() == view
+
+
+def test_get_status_without_an_armed_session_is_empty():
+    assert MiMCPInjector().get_status() == {}

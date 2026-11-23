@@ -89,6 +89,16 @@ class MiMCPInjector(Injector):
         response.raise_for_status()
         return response.json()
 
+    def get_status(self) -> dict:
+        """Return the armed session's status view, or an empty dict."""
+        if self.session_id is None:
+            return {}
+        response = httpx.get(
+            f"{self.host}/api/sessions/{self.session_id}", timeout=self.timeout
+        )
+        response.raise_for_status()
+        return response.json()
+
     def disarm(self) -> None:
         """Delete the armed session; an expired session is not an error."""
         if self.session_id is None:

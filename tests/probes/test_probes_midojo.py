@@ -17,6 +17,7 @@ from garak.generators.base import Generator
 from garak.generators.test import Blank
 from garak.injectors.base import Injector
 from garak.injectors.mimcp import MiMCPInjector
+from garak.probes.midojo import MidojoProbe
 
 SCENARIO = {
     "schema_version": "0.1",
@@ -167,6 +168,8 @@ class InterleavingGenerator(Generator):
         self.during_call = during_call
 
     def _call_model(self, prompt, generations_this_call=1):
+        # consumes mcp injections the way an MCP-capable target does
+        self._active_injections("mcp")
         self.during_call()
         return [Message(text="Refund issued.")]
 
@@ -179,6 +182,8 @@ class RecordingGenerator(Generator):
         self.generate_calls = []
 
     def _call_model(self, prompt, generations_this_call=1):
+        # consumes mcp injections the way an MCP-capable target does
+        self._active_injections("mcp")
         return [Message(text="Refund issued.")]
 
     def generate(
@@ -345,9 +350,9 @@ def test_control_case_does_not_count_as_an_attack_hit(control_file, monkeypatch)
     assert (
         control.notes["midojo"].get("kind") == "control"
     ), "the case kind must be recorded on the attempt"
-    assert (
-        MidojoDetector().detect(control) == [None]
-    ), "control cases must not count as attack hits"
+    assert MidojoDetector().detect(control) == [
+        None
+    ], "control cases must not count as attack hits"
 
 
 def test_two_probes_do_not_share_an_injector_session(tmp_path, monkeypatch):
@@ -386,3 +391,50 @@ def test_two_probes_do_not_share_an_injector_session(tmp_path, monkeypatch):
     assert all(
         call["session"] == "s1" for call in calls
     ), "a probe sharing the cached injector instance must not lose its session evidence"
+
+
+def test_probe_records_coverage_per_generation(scenario_file, monkeypatch):
+    """Each generation's delivery coverage aligns with its own calls."""
+    probe = _load_probe(scenario_file, generations=2)
+    injector = RecordingInjector()
+    monkeypatch.setattr(_plugins, "load_plugin", lambda spec, **kwargs: injector)
+
+    attempts = list(probe.probe(RecordingGenerator()))
+
+    coverage = attempts[0].notes["mimcp_coverage_by_generation"]
+    assert len(coverage) == 2, "one coverage entry per generation"
+    assert all(
+        entry["delivered"] for entry in coverage
+    ), "RECORDED_CALLS carry an injected behavior, so the payload was delivered"
+    assert all(entry["injected_calls"] == 1 for entry in coverage)
+
+
+def test_probe_records_unsupported_injections(scenario_file, monkeypatch):
+    """A generation the generator could not inject is marked unsupported."""
+    probe = _load_probe(scenario_file, generations=1)
+    injector = RecordingInjector()
+    monkeypatch.setattr(_plugins, "load_plugin", lambda spec, **kwargs: injector)
+
+    attempts = list(probe.probe(Blank()))
+
+    assert all(
+        attempt.notes.get("midojo_unsupported") is True for attempt in attempts
+    ), "the unsupported generation must be recorded on the attempt"
+
+
+def test_coverage_treats_recording_cap_as_incomplete(monkeypatch):
+    """A recording count at the cap means calls were dropped."""
+    monkeypatch.setenv("MIMCP_MAX_RECORDED_CALLS", "100")
+    calls = [{"tool": "lookup_order", "behavior": "inject"}]
+    status = {"status": "connected", "call_count": 100}
+
+    at_cap = MidojoProbe._coverage(calls, status)
+    below_cap = MidojoProbe._coverage(calls, {"status": "connected", "call_count": 3})
+    no_status = MidojoProbe._coverage(calls, {})
+
+    assert at_cap["recording_complete"] is False, "a capped recording is incomplete"
+    assert below_cap["recording_complete"] is True
+    assert below_cap["connected"] is True
+    assert below_cap["delivered"] is True
+    assert no_status["connected"] is None, "no status view leaves connection unknown"
+    assert no_status["recorded_calls"] == len(calls), "calls stand in for the count"

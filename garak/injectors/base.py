@@ -67,3 +67,11 @@ class Injector(Configurable):
         do not inherit earlier payloads.
         """
         raise NotImplementedError
+
+    def get_status(self) -> dict:
+        """Return the armed surface's status view, or an empty dict.
+
+        Probes read this after a generation to record delivery coverage.
+        Injectors without a status concept return nothing.
+        """
+        return {}

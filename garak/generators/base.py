@@ -15,7 +15,11 @@ from garak import _config
 from garak.attempt import Message, Conversation
 from garak.capabilities import Capability
 from garak.configurable import Configurable
-from garak.exception import BadGeneratorException, GarakException
+from garak.exception import (
+    BadGeneratorException,
+    GarakException,
+    UnsupportedInjectionError,
+)
 import garak.resources.theme
 
 
@@ -51,6 +55,8 @@ class Generator(Configurable):
     # armed injection descriptors for the current generate() call, if any;
     # managed by generate() and read through _active_injections()
     _injections = None
+    # indexes into _injections that a _call_model implementation consumed
+    _consumed_injections = None
 
     def __init__(self, name="", config_root=_config):
         self._load_config(config_root)
@@ -106,15 +112,22 @@ class Generator(Configurable):
 
         ``_call_model`` implementations call this to pick up the descriptors
         they can use; descriptors for other capabilities, and malformed
-        entries, are ignored.
+        entries, are ignored. Every descriptor returned here is marked
+        consumed, so ``generate()`` can fail closed when a handed injection
+        was never applied.
         """
         if not self._injections:
             return []
-        return [
-            injection
-            for injection in self._injections
-            if isinstance(injection, dict) and injection.get("capability") == capability
-        ]
+        matched = []
+        for index, injection in enumerate(self._injections):
+            if (
+                isinstance(injection, dict)
+                and injection.get("capability") == capability
+            ):
+                matched.append(injection)
+                if self._consumed_injections is not None:
+                    self._consumed_injections.add(index)
+        return matched
 
     def _pre_generate_hook(self):
         pass
@@ -187,7 +200,9 @@ class Generator(Configurable):
           ``capability``; generators supporting that capability consume it in
           ``_call_model`` (see ``_active_injections``) and the rest ignore it.
           The base class exposes the descriptors for the duration of this
-          call only.
+          call only, and raises ``UnsupportedInjectionError`` when a handed
+          descriptor was not consumed: an unapplied injection is an
+          unsupported attempt, never a silently safe one.
         """
 
         if typecheck:
@@ -201,10 +216,22 @@ class Generator(Configurable):
         self._pre_generate_hook()
 
         self._injections = injections
+        self._consumed_injections = set()
         try:
-            return self._generate(prompt, generations_this_call)
+            outputs = self._generate(prompt, generations_this_call)
+            unconsumed = [
+                injection
+                for index, injection in enumerate(self._injections or [])
+                if index not in self._consumed_injections
+            ]
+            if unconsumed:
+                raise UnsupportedInjectionError(
+                    f"{self.fullname} cannot apply injection(s): {unconsumed!r}"
+                )
+            return outputs
         finally:
             self._injections = None
+            self._consumed_injections = None
 
     def _generate(
         self, prompt: Conversation, generations_this_call: int = 1

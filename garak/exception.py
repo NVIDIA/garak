@@ -40,3 +40,7 @@ class PayloadFailure(GarakException):
 
 class ReportIncompatibleError(GarakException):
     """Report references plugins unknown to the current garak install; the report is not compatible with this version"""
+
+
+class UnsupportedInjectionError(GarakException):
+    """A generator was handed an injection it cannot apply"""

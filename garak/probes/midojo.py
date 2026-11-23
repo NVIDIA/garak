@@ -12,6 +12,7 @@ a detector can grade whether the target performed the attack's goal.
 
 import copy
 import logging
+import os
 import pathlib
 
 import httpx
@@ -19,8 +20,16 @@ import yaml
 
 from garak import _plugins
 from garak.attempt import Conversation, Message, Turn
-from garak.exception import GarakException, PluginConfigurationError
+from garak.exception import (
+    GarakException,
+    PluginConfigurationError,
+    UnsupportedInjectionError,
+)
 import garak.probes
+
+# MiMCP's recording cap when the environment does not set one; a recording
+# count at the cap means calls were dropped, so coverage is incomplete
+MIMCP_DEFAULT_MAX_RECORDED_CALLS = 1000
 
 
 class MidojoProbe(garak.probes.Probe):
@@ -86,6 +95,32 @@ class MidojoProbe(garak.probes.Probe):
             "tools": spec.get("tools", []),
         }
 
+    @staticmethod
+    def _coverage(calls: list[dict], status: dict) -> dict:
+        """Summarise delivery and coverage for one generation's evidence.
+
+        ``delivered`` holds when a recorded call's result was rewritten by
+        the armed overlay, so a target that never consumed the payload
+        cannot be scored as safe. A recording count at the cap means calls
+        were dropped, so coverage is incomplete.
+        """
+        recorded = status.get("call_count") if status else None
+        if recorded is None:
+            recorded = len(calls)
+        max_recorded = int(
+            os.getenv("MIMCP_MAX_RECORDED_CALLS", str(MIMCP_DEFAULT_MAX_RECORDED_CALLS))
+        )
+        injected = sum(
+            1 for call in calls if call.get("behavior") in ("inject", "override")
+        )
+        return {
+            "connected": (status.get("status") == "connected") if status else None,
+            "recording_complete": recorded < max_recorded,
+            "delivered": injected > 0,
+            "injected_calls": injected,
+            "recorded_calls": recorded,
+        }
+
     def probe(self, generator):
         """Arm one injector session per attack and run the benign task"""
         logging.debug("probe execute: %s", self)
@@ -104,6 +139,7 @@ class MidojoProbe(garak.probes.Probe):
             notes = {
                 "midojo": {
                     "attack_id": attack["id"],
+                    "kind": attack.get("kind", "attack"),
                     "upstream": self.scenario["upstream"],
                     "server_label": self.scenario["benign_task"].get("server_label"),
                     "tools": attack.get("tools", []),
@@ -121,11 +157,14 @@ class MidojoProbe(garak.probes.Probe):
 
         Each generation runs against its own armed session, so the recorded
         calls belong to exactly one model output: a detector score then
-        reflects that generation's behaviour and not another one's.
+        reflects that generation's behaviour and not another one's. An
+        injection the generator cannot apply fails closed: the generation
+        records no evidence and scores as unsupported, never as safe.
         """
         self._generator_precall_hook(self.generator, attempt)
         outputs = []
         calls_by_generation = []
+        coverage_by_generation = []
         for _ in range(self.generations):
             try:
                 descriptor = self.injector.arm(
@@ -138,16 +177,31 @@ class MidojoProbe(garak.probes.Probe):
                         injections=[descriptor],
                     )
                 )
-                calls_by_generation.append(self.injector.get_calls())
+                calls = self.injector.get_calls()
+                coverage = self._coverage(calls, self.injector.get_status())
+                calls_by_generation.append(calls)
+                coverage_by_generation.append(coverage)
+            except UnsupportedInjectionError as e:
+                logging.error("midojo attempt %s unsupported: %s", attempt.uuid, e)
+                attempt.notes["midojo_unsupported"] = True
+                outputs.append(garak.attempt.Message(None))
+                calls_by_generation.append([])
+                coverage_by_generation.append(
+                    {"connected": None, "recording_complete": None, "delivered": False}
+                )
             except (httpx.HTTPError, GarakException) as e:
                 logging.error("midojo attempt %s failed: %s", attempt.uuid, e)
                 attempt.notes["midojo_error"] = str(e)
                 outputs.append(garak.attempt.Message(None))
                 calls_by_generation.append([])
+                coverage_by_generation.append(
+                    {"connected": None, "recording_complete": None, "delivered": False}
+                )
             finally:
                 self.injector.disarm()
         attempt.outputs = outputs
         attempt.notes["mimcp_calls_by_generation"] = calls_by_generation
+        attempt.notes["mimcp_coverage_by_generation"] = coverage_by_generation
         attempt.notes["mimcp_calls"] = [
             call for calls in calls_by_generation for call in calls
         ]

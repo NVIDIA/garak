@@ -11,6 +11,7 @@ import openai
 
 from garak.attempt import Message, Turn, Conversation
 from garak.capabilities import Capability
+from garak.exception import UnsupportedInjectionError
 from garak.generators.openai import OpenAIResponsesGenerator
 
 FAKE_API_KEY = "sk-test-fake-key"
@@ -260,18 +261,17 @@ def test_generate_injection_replaces_matching_server_label(generator):
     ], "an armed descriptor replaces the configured block with its server_label"
 
 
-def test_generate_ignores_injections_for_other_capabilities(generator):
+def test_generate_raises_for_injections_it_cannot_apply(generator):
+    """Fail closed: an unapplied injection must raise, not pass silently."""
     generator.tools = [{"type": "web_search"}]
     generator.client.responses.create.return_value = _make_response("ok")
     prompt = Conversation([Turn(role="user", content=Message("hi"))])
 
-    generator.generate(
-        prompt,
-        injections=[{"capability": "file", "path": "/tmp/evil"}, "not a dict"],
-    )
-
-    kwargs = generator.client.responses.create.call_args[1]
-    assert kwargs["tools"] == [{"type": "web_search"}]
+    with pytest.raises(UnsupportedInjectionError):
+        generator.generate(
+            prompt,
+            injections=[{"capability": "file", "path": "/tmp/evil"}, "not a dict"],
+        )
 
 
 def test_generate_clears_injections_after_the_call(generator):
