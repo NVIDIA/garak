@@ -63,3 +63,19 @@ def test_base_arm_and_disarm_are_not_implemented():
 def test_injector_config_root_node():
     # the plugins config tree carries an injectors root node like other plugin types
     assert hasattr(_config.plugins, "injectors")
+
+
+def test_load_plugin_caches_injector_instances():
+    """The plugin provider hands out one instance per spec and config.
+
+    Injectors are cached like every other plugin, so any per-execution state
+    they keep is shared between the probes that load them.
+    """
+    config_root = {"injectors": {"mimcp": {"MiMCPInjector": {"host": None}}}}
+    first = garak._plugins.load_plugin(
+        "injectors.mimcp.MiMCPInjector", config_root=config_root
+    )
+    second = garak._plugins.load_plugin(
+        "injectors.mimcp.MiMCPInjector", config_root=config_root
+    )
+    assert first is second, "load_plugin must return the cached injector instance"
