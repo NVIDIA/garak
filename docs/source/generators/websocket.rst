@@ -20,7 +20,7 @@ Uses the following options from ``_config.plugins.generators["websocket"]["WebSo
 * ``response_json`` - is the response in JSON format? Set to ``True`` if the WebSocket returns JSON responses that need parsing (bool, default: ``False``)
 * ``response_json_field`` - which field in the JSON response contains the actual text to extract? Supports simple field names like ``"text"`` or JSONPath notation like ``"$.data.message"`` for nested fields (str, default: ``"text"``)
 * ``response_after_typing`` - wait for typing indicators to complete before returning response? Set to ``True`` for services that send typing notifications, ``False`` to return the first message immediately (bool, default: ``True``)
-* ``typing_indicator`` - substring to detect in messages that indicates the service is still typing; messages containing this string are filtered out when ``response_after_typing`` is ``True`` (str, default: ``"typing"``)
+* ``typing_indicator`` - status frame that indicates the service is still typing; only frames that carry no answer text are filtered out when ``response_after_typing`` is ``True``: the whole frame equal to this string (allowing trailing punctuation such as ``typing...``), or a JSON frame whose ``type`` or ``status`` field equals it. Messages that merely contain this string are kept (str, default: ``"typing"``)
 * ``request_timeout`` - seconds to wait for response; default 20
 * ``connection_timeout`` - seconds to wait for connection; default 10
 * ``max_response_length`` - maximum response length; default 10000
