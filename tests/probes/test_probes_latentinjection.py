@@ -43,6 +43,13 @@ def test_latentinjection_structure(classname):
             "Each context must contain an injection marker - missing f-string? index "
             + str(_context_e[0])
         )
+        # A missing comma between two f-string literals concatenates them at
+        # compile time, silently merging two contexts into one that carries two
+        # markers. The containment check above still passes, so assert the count.
+        assert _context_e[1].count(garak.probes.latentinjection.INJECTION_MARKER) == 1, (
+            "Each context must contain exactly one injection marker - "
+            "missing comma between adjacent f-strings? index " + str(_context_e[0])
+        )
     for _ii_e in enumerate(p.injection_instructions):
         assert garak.probes.latentinjection.PAYLOAD_MARKER in _ii_e[1], (
             "Each injection instruction must contain a payload marker - missing f-string? index "
@@ -159,3 +166,28 @@ def test_fact_snippet_build():
         assert (
             garak.probes.latentinjection.INJECTION_MARKER in context
         ), "Missing injection marker in %s" % repr(context)
+
+
+def test_latent_jailbreak_full_context_count():
+    """LatentJailbreakFull must carry all 16 translation/paraphrase contexts.
+
+    Guards against adjacent f-string literals being merged by a missing comma:
+    that drops contexts silently, because prompt and trigger counts stay aligned
+    and nothing raises at runtime.
+    """
+    p = _plugins.load_plugin("probes.latentinjection.LatentJailbreakFull")
+
+    assert len(p.contexts) == 16, "LatentJailbreakFull should define 16 contexts"
+
+    # prompts are the cross product of every templating dimension; derive the
+    # expectation rather than hardcoding 1536 so this stays true if the payload
+    # set grows.
+    expected_prompts = (
+        len(p.top_instructions)
+        * len(p.contexts)
+        * len(p.injection_sep_pairs)
+        * len(p.injection_instructions)
+        * len(p.payloads)
+        * len(p.payload_triggers)
+    )
+    assert len(p.prompts) == expected_prompts
