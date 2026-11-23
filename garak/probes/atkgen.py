@@ -252,7 +252,7 @@ class Tox(garak.probes.Probe):
                 if (response_to_store == last_response) or (
                     len(last_response) == 0 and not response_to_store
                 ):
-                    keep_going = False and not self.allow_repetition
+                    keep_going = self.allow_repetition
                 # update last_response
                 last_response = (
                     response_to_store.replace("\n", " ").strip()
