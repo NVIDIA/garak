@@ -72,8 +72,9 @@ class NvcfChat(Generator):
             "stream": False,
         }
 
-        for k, v in self.extra_params.items():
-            payload[k] = v
+        if getattr(self, "extra_params", None) is not None:
+            for k, v in self.extra_params.items():
+                payload[k] = v
 
         return payload
 
@@ -182,8 +183,9 @@ class NvcfCompletion(NvcfChat):
             "stream": False,
         }
 
-        for k, v in self.extra_params.items():
-            payload[k] = v
+        if getattr(self, "extra_params", None) is not None:
+            for k, v in self.extra_params.items():
+                payload[k] = v
 
         return payload
 

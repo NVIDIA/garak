@@ -190,3 +190,37 @@ def test_call_model_permission_denied_raises_garak_exception(mocker):
         generator.generate(prompt)
     error_text = str(exc_info.value)
     assert "403" in error_text or OpenAIGenerator.ENV_VAR in error_text
+
+
+@pytest.mark.usefixtures("set_fake_env")
+def test_openai_extra_params_none_does_not_raise(mocker):
+    generator = OpenAIGenerator(name="gpt-3.5-turbo")
+    generator.extra_params = None
+    mock_resp = mocker.MagicMock()
+    mock_resp.choices = [
+        mocker.MagicMock(message=mocker.MagicMock(content="test response"))
+    ]
+    mock_create = mocker.patch.object(
+        generator.generator, "create", return_value=mock_resp
+    )
+    prompt = Conversation([Turn(role="user", content=Message("hello"))])
+    res = generator.generate(prompt)
+    assert len(res) == 1
+    assert "extra_params" not in mock_create.call_args.kwargs
+
+
+@pytest.mark.usefixtures("set_fake_env")
+def test_openai_extra_params_applied(mocker):
+    generator = OpenAIGenerator(name="gpt-3.5-turbo")
+    generator.extra_params = {"seed": 42}
+    mock_resp = mocker.MagicMock()
+    mock_resp.choices = [
+        mocker.MagicMock(message=mocker.MagicMock(content="test response"))
+    ]
+    mock_create = mocker.patch.object(
+        generator.generator, "create", return_value=mock_resp
+    )
+    prompt = Conversation([Turn(role="user", content=Message("hello"))])
+    res = generator.generate(prompt)
+    assert len(res) == 1
+    assert mock_create.call_args.kwargs.get("seed") == 42
