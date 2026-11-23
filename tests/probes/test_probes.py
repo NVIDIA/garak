@@ -309,6 +309,20 @@ def test_prune_data_defaults_to_configured_cap():
     assert len(p.prompts) == 6, "_prune_data with no cap must use soft_probe_prompt_cap"
 
 
+def test_prune_data_does_not_edit_class_level_lists():
+    class ClassListProbe(garak.probes.Probe):
+        prompts = [f"prompt {i}" for i in range(50)]
+        triggers = [f"trigger {i}" for i in range(50)]
+
+    p = ClassListProbe()
+    p.follow_prompt_cap = True
+    p._prune_data(5, prune_triggers=True)
+    assert len(p.prompts) == 5, "prompts pruned to the cap"
+    assert len(p.triggers) == 5, "triggers pruned alongside prompts"
+    assert len(ClassListProbe.prompts) == 50, "pruning must not shrink the class list"
+    assert len(ClassListProbe.triggers) == 50, "pruning must not shrink the class list"
+
+
 PROMPT_EXAMPLES = [
     "test example",
     Message(text="test example"),
