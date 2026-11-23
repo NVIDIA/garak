@@ -16,6 +16,7 @@ import datetime
 import json
 import uuid
 import sys
+from pathlib import Path
 
 
 def _process_file_body(in_file, out_file, aggregate_uuid) -> dict | None:
@@ -96,6 +97,16 @@ def main(argv=None) -> None:
 
     # get the list of files
     in_filenames = a.infiles
+
+    output_path = Path(a.output_path)
+    for filename in in_filenames:
+        input_path = Path(filename)
+        if output_path.resolve() == input_path.resolve() or (
+            output_path.exists()
+            and input_path.exists()
+            and output_path.samefile(input_path)
+        ):
+            p.error(f"Output path must not refer to an input report: {filename}")
 
     # get the header from the first file
     aggregate_uuid = str(uuid.uuid4())
