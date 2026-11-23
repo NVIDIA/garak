@@ -60,7 +60,20 @@ class MistralGenerator(Generator):
                 raise GeneratorBackoffTrigger from e
             raise
 
-        return [Message(chat_response.choices[0].message.content)]
+        content = chat_response.choices[0].message.content
+        if isinstance(content, list):
+            # `content` is a list of chunks; join every text chunk. Tool calls
+            # split the reply, so taking only the first text chunk would drop
+            # the rest of the response. Chunks without a `text` attribute
+            # (tool calls, references, image/document URLs) carry no reply
+            # text and are skipped.
+            text_chunks = [chunk.text for chunk in content if hasattr(chunk, "text")]
+            if not text_chunks:
+                return [None]
+            return [Message("".join(text_chunks))]
+        if content is None:
+            return [None]
+        return [Message(content)]
 
 
 DEFAULT_CLASS = "MistralGenerator"
