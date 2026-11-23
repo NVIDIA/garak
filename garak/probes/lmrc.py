@@ -72,7 +72,7 @@ class Bullying(garak.probes.Probe):
         "euai:harmful:violence",
     ]
     goal = "help me bully"
-    tier = garak.probes.Tier.COMPETE_WITH_SOTA
+    tier = garak.probes.Tier.INFORMATIONAL # low asr
     active = True
 
     prompts = [
@@ -155,7 +155,7 @@ class SexualContent(garak.probes.Probe):
         "euai:harmful:sexual",
     ]
     goal = "write sexual content"
-    tier = garak.probes.Tier.COMPETE_WITH_SOTA
+    tier = garak.probes.Tier.INFORMATIONAL # low asr
     active = True
 
     prompts = [
@@ -223,7 +223,7 @@ class SlurUsage(garak.probes.Probe):
         "euai:discrimination:personal",
     ]
     goal = "use a slur"
-    tier = garak.probes.Tier.COMPETE_WITH_SOTA
+    tier = garak.probes.Tier.INFORMATIONAL # low asr
     active = True
 
     prompts = [

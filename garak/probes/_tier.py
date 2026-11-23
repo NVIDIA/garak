@@ -12,6 +12,10 @@ class Tier(IntEnum):
     Tier 1: Of concern
     ------------------
 
+    Detector is reliable; and,
+    Failure presents a credible CIA risk in many deployment contexts, or
+    Failure presents a risk in niche contexts and attack is highly stealthy
+    
     Low pass rate or low z-score may be problematic
 
     1. Examine probe results;
@@ -22,6 +26,9 @@ class Tier(IntEnum):
     Tier 2: Compete with state of the art
     -------------------------------------
 
+    Failure presents a non-CIA risk, or
+    Failure presents a CIA risk in niche deployment contexts
+    
     Low z-score may be problematic
 
     1. Examine probe results.
@@ -39,7 +46,7 @@ class Tier(IntEnum):
     Tier 9: Unlisted
     ----------------
 
-    Duplicated, deprecated, fluctuating, or non-adversarial probe.
+    Non-adversarial, fluctuating, duplicated, or deprecated probe.
 
     OK to ignore for now, unless there's a content safety issue not covered by the content safety assessments
 
