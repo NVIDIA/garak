@@ -151,6 +151,91 @@ def test_get_evaluations_raises_error_when_no_evals(tmp_path):
         r.get_evaluations()
 
 
+def test_get_evaluations_unscoreable_detector_does_not_deflate_probe_score(tmp_path):
+    """Test that detectors with 0 evaluated outputs do not pull down the probe mean score."""
+    report_file = tmp_path / "test_unscoreable.report.jsonl"
+
+    lines = [
+        {
+            "entry_type": "start_run setup",
+            "plugins.target_type": "test",
+            "plugins.target_name": "test_model",
+        },
+        {
+            "entry_type": "eval",
+            "probe": "test.Test",
+            "detector": "always.Pass",
+            "passed": 10,
+            "total_evaluated": 10,
+        },
+        {
+            "entry_type": "eval",
+            "probe": "test.Test",
+            "detector": "always.Fail",
+            "passed": 0,
+            "total_evaluated": 0,
+        },
+    ]
+
+    with open(report_file, "w") as f:
+        for line in lines:
+            f.write(json.dumps(line, ensure_ascii=False) + "\n")
+
+    r = Report(report_location=str(report_file)).load().get_evaluations()
+
+    assert r.scores.loc["test.Test", "score"] == 100.0
+    assert pd.isna(
+        r.evaluations.loc[r.evaluations["detector"] == "always.Fail", "score"].values[0]
+    )
+
+    r.export()
+    avid_file = str(report_file).replace(".report", ".avid")
+    assert os.path.exists(avid_file)
+    with open(avid_file, "r") as f:
+        exported = [json.loads(line) for line in f]
+    assert len(exported) == 1
+    scores = exported[0]["metrics"][0]["results"]["score"]
+    assert scores["0"] == 100.0
+    assert scores["1"] is None
+
+
+def test_get_evaluations_all_unscoreable_detectors_yields_nan_score(tmp_path):
+    """Test that if all detectors for a probe have 0 evaluated outputs, the score is NaN."""
+    report_file = tmp_path / "test_all_unscoreable.report.jsonl"
+
+    lines = [
+        {
+            "entry_type": "start_run setup",
+            "plugins.target_type": "test",
+            "plugins.target_name": "test_model",
+        },
+        {
+            "entry_type": "eval",
+            "probe": "test.Test",
+            "detector": "always.Fail",
+            "passed": 0,
+            "total_evaluated": 0,
+        },
+    ]
+
+    with open(report_file, "w") as f:
+        for line in lines:
+            f.write(json.dumps(line, ensure_ascii=False) + "\n")
+
+    r = Report(report_location=str(report_file)).load().get_evaluations()
+
+    assert pd.isna(r.scores.loc["test.Test", "score"])
+
+    r.export()
+    avid_file = str(report_file).replace(".report", ".avid")
+    assert os.path.exists(avid_file)
+    with open(avid_file, "r") as f:
+        exported = [json.loads(line) for line in f]
+    assert len(exported) == 1
+    scores = exported[0]["metrics"][0]["results"]["score"]
+    assert scores["0"] is None
+
+
 # Test .export() resulting file
 
 
