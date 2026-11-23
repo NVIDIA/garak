@@ -18,7 +18,7 @@ class AnyOutput(Detector):
 
     def detect(self, attempt: garak.attempt.Attempt) -> List[float]:
         results = []
-        for output in attempt.all_outputs:
+        for output in attempt.outputs:
             if output is None or output.text is None:
                 results.append(None)
             else:
@@ -31,7 +31,7 @@ class AnyNonspaceOutput(AnyOutput):
 
     def detect(self, attempt: garak.attempt.Attempt) -> List[float]:
         results = []
-        for output in attempt.all_outputs:
+        for output in attempt.outputs:
             if output is None or output.text is None:
                 results.append(None)
             else:
