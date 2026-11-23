@@ -7,7 +7,15 @@ import pytest
 
 import garak._plugins
 from garak import _config
-from garak.injectors.base import Injector
+from garak.exception import InvalidInjectionPlanError
+from garak.injection import (
+    Coverage,
+    Delivery,
+    InjectionEvidence,
+    InjectionPlan,
+    SurfaceDescriptor,
+)
+from garak.injectors.base import InjectionBinding, Injector
 
 
 class RecordingInjector(Injector):
@@ -79,3 +87,109 @@ def test_load_plugin_caches_injector_instances():
         "injectors.mimcp.MiMCPInjector", config_root=config_root
     )
     assert first is second, "load_plugin must return the cached injector instance"
+
+
+# ── binding lifecycle ──────────────────────────────────────────────────────────
+
+
+class FakeBinding(InjectionBinding):
+    """Test binding owning one session per execution."""
+
+    def __init__(self, execution_id):
+        super().__init__()
+        self.execution_id = execution_id
+        self.session = f"session-{execution_id}"
+        self.close_count = 0
+
+    def collect_evidence(self):
+        return InjectionEvidence(
+            execution_id=self.execution_id,
+            delivery=Delivery(delivered=True),
+            coverage=Coverage(errors=tuple(self.coverage_errors)),
+        )
+
+    def _close(self):
+        self.close_count += 1
+        self.session = None
+
+
+class BindingInjector(Injector):
+    """Test injector handing out independent bindings."""
+
+    surface_kinds = frozenset({"test.surface"})
+    DEFAULT_PARAMS = {"host": None}
+
+    def bind(self, plan, surface, execution_id):
+        return FakeBinding(execution_id)
+
+
+def _plan(name="surf"):
+    return InjectionPlan(surface_kind="test.surface", surface_name=name)
+
+
+def _surface(name="surf"):
+    return SurfaceDescriptor(kind="test.surface", name=name)
+
+
+def test_validate_rejects_foreign_surface_kinds():
+    injector = BindingInjector()
+    plan = InjectionPlan(surface_kind="other.surface", surface_name="surf")
+    with pytest.raises(InvalidInjectionPlanError, match="other.surface"):
+        injector.validate(plan, _surface())
+
+
+def test_validate_rejects_mismatched_surfaces():
+    injector = BindingInjector()
+    with pytest.raises(InvalidInjectionPlanError, match="targets"):
+        injector.validate(_plan("surf"), _surface("other"))
+
+
+def test_validate_accepts_a_matching_plan():
+    injector = BindingInjector()
+    injector.validate(_plan(), _surface())
+
+
+def test_two_bindings_keep_separate_sessions():
+    """One injector instance serves parallel executions independently."""
+    injector = BindingInjector()
+    first = injector.bind(_plan(), _surface(), "exec-1")
+    second = injector.bind(_plan(), _surface(), "exec-2")
+
+    assert first.session == "session-exec-1"
+    assert second.session == "session-exec-2"
+
+    first.close()
+    assert (
+        second.session == "session-exec-2"
+    ), "closing one binding must not touch another"
+    assert (
+        first.collect_evidence().execution_id == "exec-1"
+    ), "a closed binding still reports its own evidence"
+
+
+def test_close_runs_after_a_generator_exception():
+    """The context manager releases the surface even when the body raises."""
+    injector = BindingInjector()
+    binding = injector.bind(_plan(), _surface(), "exec-1")
+
+    with pytest.raises(RuntimeError):
+        with binding:
+            raise RuntimeError("generator blew up")
+
+    assert binding.close_count == 1
+    assert binding.session is None
+
+
+def test_second_close_does_nothing():
+    injector = BindingInjector()
+    binding = injector.bind(_plan(), _surface(), "exec-1")
+
+    binding.close()
+    binding.close()
+
+    assert binding.close_count == 1, "close must be idempotent"
+
+
+def test_base_binding_collect_evidence_is_not_implemented():
+    with pytest.raises(NotImplementedError):
+        InjectionBinding().collect_evidence()
