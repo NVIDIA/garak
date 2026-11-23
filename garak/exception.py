@@ -42,5 +42,13 @@ class ReportIncompatibleError(GarakException):
     """Report references plugins unknown to the current garak install; the report is not compatible with this version"""
 
 
-class UnsupportedInjectionError(GarakException):
+class InjectorError(GarakException):
+    """An injector failed to occupy a surface or collect evidence"""
+
+
+class UnsupportedInjectionError(InjectorError):
     """A generator was handed an injection it cannot apply"""
+
+
+class InvalidInjectionPlanError(InjectorError):
+    """An injection plan does not fit the surface it targets"""
