@@ -488,7 +488,7 @@
         "euai:robustness:unexpected_behavior"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-16 19:22:46 +0000"
     },
     "probes.badchars.BadCharactersIntent": {
       "description": "Imperceptible character perturbations applied across intents.",
@@ -530,7 +530,7 @@
         "euai:robustness:unexpected_behavior"
       ],
       "tier": 2,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-11-16 19:22:46 +0000"
     },
     "probes.base.IntentProbe": {
       "description": "Probe implementing a technique that tests over a range of intents",
@@ -3331,7 +3331,7 @@
         "demon:Language:Code_and_encode:Token"
       ],
       "tier": 3,
-      "mod_time": "2026-11-04 06:25:15 +0000"
+      "mod_time": "2026-11-23 20:03:50 +0000"
     },
     "probes.goodside.Tag": {
       "description": "Exploit UTF tag page encoding for user-invisible prompt injection",
@@ -3361,37 +3361,7 @@
         "demon:Language:Code_and_encode:Token"
       ],
       "tier": 1,
-      "mod_time": "2026-11-04 06:25:15 +0000"
-    },
-    "probes.goodside.ThreatenIntent": {
-      "description": "Threaten harm to force exact compliance with an instruction",
-      "DEFAULT_PARAMS": {
-        "follow_prompt_cap": true
-      },
-      "active": false,
-      "blocked_intent_spec": "",
-      "doc_uri": "https://twitter.com/goodside/status/1657396491676164096",
-      "extended_detectors": [],
-      "extra_dependency_names": [],
-      "garak": null,
-      "goal": "",
-      "intent": null,
-      "lang": "en",
-      "modality": {
-        "in": [
-          "text"
-        ]
-      },
-      "parallelisable_attempts": true,
-      "primary_detector": null,
-      "skip_root_intents": true,
-      "tags": [
-        "demon:Language:Prompt_injection:Strong_arm_attack",
-        "demon:Possible_worlds:World_building:Scenarios",
-        "euai:robustness:adversarial"
-      ],
-      "tier": 9,
-      "mod_time": "2026-11-04 06:25:15 +0000"
+      "mod_time": "2026-11-23 20:03:50 +0000"
     },
     "probes.goodside.TagIntent": {
       "description": "Hide intent-service instructions in invisible Unicode Tag characters.",
@@ -3424,7 +3394,37 @@
         "demon:Language:Code_and_encode:Token"
       ],
       "tier": 1,
-      "mod_time": "2026-05-27 20:51:42 +0000"
+      "mod_time": "2026-11-23 20:03:50 +0000"
+    },
+    "probes.goodside.ThreatenIntent": {
+      "description": "Threaten harm to force exact compliance with an instruction",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true
+      },
+      "active": false,
+      "blocked_intent_spec": "",
+      "doc_uri": "https://twitter.com/goodside/status/1657396491676164096",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "garak": null,
+      "goal": "",
+      "intent": null,
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": null,
+      "skip_root_intents": true,
+      "tags": [
+        "demon:Language:Prompt_injection:Strong_arm_attack",
+        "demon:Possible_worlds:World_building:Scenarios",
+        "euai:robustness:adversarial"
+      ],
+      "tier": 9,
+      "mod_time": "2026-11-23 20:03:50 +0000"
     },
     "probes.goodside.ThreatenJSON": {
       "description": "Will model strip preamble and give JSON?",
@@ -3453,7 +3453,7 @@
         "demon:Language:Prompt_injection:Strong_arm_attack"
       ],
       "tier": 2,
-      "mod_time": "2026-11-04 06:25:15 +0000"
+      "mod_time": "2026-11-23 20:03:50 +0000"
     },
     "probes.goodside.WhoIsRiley": {
       "description": "Probe for misinfo about Riley Goodside",
@@ -3482,7 +3482,7 @@
         "payload:hallucination"
       ],
       "tier": 2,
-      "mod_time": "2026-11-04 06:25:15 +0000"
+      "mod_time": "2026-11-23 20:03:50 +0000"
     },
     "probes.grandma.GrandmaIntent": {
       "description": "Roleplaying attack asking for imitation of a grandmother",
@@ -3685,7 +3685,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-09 19:33:18 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetEiffelFull": {
       "description": "String-based latent prompt injections in fact snippets on the Eiffel Tower",
@@ -3720,7 +3720,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-09 19:33:18 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetLegal": {
       "description": "String-based latent prompt injections in legal snippets",
@@ -3755,7 +3755,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-09 19:33:18 +0000"
     },
     "probes.latentinjection.LatentInjectionFactSnippetLegalFull": {
       "description": "String-based latent prompt injections in legal snippets",
@@ -3790,7 +3790,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-09 19:33:18 +0000"
     },
     "probes.latentinjection.LatentInjectionReport": {
       "description": "String-based latent prompt injections via a report",
@@ -3822,7 +3822,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-09 19:33:18 +0000"
     },
     "probes.latentinjection.LatentInjectionReportFull": {
       "description": "String-based latent prompt injections via a report",
@@ -3854,7 +3854,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-09 19:33:18 +0000"
     },
     "probes.latentinjection.LatentInjectionResume": {
       "description": "String-based latent prompt injections via a resume",
@@ -3885,7 +3885,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-09 19:33:18 +0000"
     },
     "probes.latentinjection.LatentInjectionResumeFull": {
       "description": "String-based latent prompt injections via a resume",
@@ -3916,7 +3916,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-09 19:33:18 +0000"
     },
     "probes.latentinjection.LatentInjectionResumeIntent": {
       "description": "Latent prompt injection via a resume, across intents",
@@ -3950,7 +3950,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-28 18:04:45 +0000"
+      "mod_time": "2026-11-09 19:33:18 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnFr": {
       "description": "String-based latent prompt injections via translation",
@@ -3982,7 +3982,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-09 19:33:18 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnFrFull": {
       "description": "String-based latent prompt injections via translation",
@@ -4014,7 +4014,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-09 19:33:18 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnZh": {
       "description": "Latent prompt injection in Chinese context (\u7b80\u4f53\u5b57)",
@@ -4046,7 +4046,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-09 19:33:18 +0000"
     },
     "probes.latentinjection.LatentInjectionTranslationEnZhFull": {
       "description": "Latent prompt injection in Chinese context (\u7b80\u4f53\u5b57)",
@@ -4078,7 +4078,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-09 19:33:18 +0000"
     },
     "probes.latentinjection.LatentInjectionWhoisIntent": {
       "description": "Latent prompt injection via a WHOIS report, across intents",
@@ -4112,7 +4112,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-28 18:04:45 +0000"
+      "mod_time": "2026-11-09 19:33:18 +0000"
     },
     "probes.latentinjection.LatentInjectionWhoisSnippetIntent": {
       "description": "Latent prompt injection via multiple WHOIS snippets, across intents",
@@ -4149,7 +4149,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-28 18:04:45 +0000"
+      "mod_time": "2026-11-09 19:33:18 +0000"
     },
     "probes.latentinjection.LatentJailbreak": {
       "description": "Implementation of Latent Jailbreak, using latent prompt injection-",
@@ -4182,7 +4182,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-09 19:33:18 +0000"
     },
     "probes.latentinjection.LatentJailbreakFull": {
       "description": "Implementation of Latent Jailbreak, using latent prompt injection-",
@@ -4215,7 +4215,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-09 19:33:18 +0000"
     },
     "probes.latentinjection.LatentWhois": {
       "description": "Latent prompt injections in whois probe reports",
@@ -4246,7 +4246,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-09 19:33:18 +0000"
     },
     "probes.latentinjection.LatentWhoisSnippet": {
       "description": "String-based latent prompt injections in whois reports",
@@ -4281,7 +4281,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-09 19:33:18 +0000"
     },
     "probes.latentinjection.LatentWhoisSnippetFull": {
       "description": "String-based latent prompt injections in whois reports",
@@ -4316,7 +4316,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-10-17 15:07:25 +0000"
+      "mod_time": "2026-11-09 19:33:18 +0000"
     },
     "probes.leakreplay.GuardianCloze": {
       "description": "Lightweight version of Guardian cloze test for data leakage.",
@@ -6211,7 +6211,7 @@
         "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 2,
-      "mod_time": "2026-11-04 03:10:10 +0000"
+      "mod_time": "2026-11-19 15:32:00 +0000"
     },
     "probes.sata.MLMIntent": {
       "description": "Simple Assistive Task Linkage over intent-service stubs",
@@ -6246,7 +6246,7 @@
         "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
       ],
       "tier": 2,
-      "mod_time": "2026-05-27 20:51:42 +0000"
+      "mod_time": "2026-11-19 15:32:00 +0000"
     },
     "probes.smuggling.FunctionMasking": {
       "description": "FunctionMasking probe",
