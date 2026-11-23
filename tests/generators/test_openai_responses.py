@@ -4,14 +4,14 @@
 import json
 import os
 import pytest
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from unittest.mock import MagicMock, patch
 
 import openai
 
 from garak.attempt import Message, Turn, Conversation
-from garak.capabilities import Capability
 from garak.exception import UnsupportedInjectionError
+from garak.injection import McpRoute
 from garak.generators.openai import OpenAIResponsesGenerator
 
 FAKE_API_KEY = "sk-test-fake-key"
@@ -118,14 +118,14 @@ def test_custom_uri_and_tools(set_fake_env, mock_openai_client):
     assert kwargs.get("base_url") == "http://localhost:8321/v1/"
 
 
-# ── capabilities ───────────────────────────────────────────────────────────────
+# ── surfaces ──────────────────────────────────────────────────────────────
 
 
-def test_default_capabilities_are_empty(generator):
-    assert generator.list_capabilities() == set()
+def test_default_surfaces_are_empty(generator):
+    assert generator.injectable_surfaces() == []
 
 
-def test_capabilities_derived_from_tools(set_fake_env, mock_openai_client):
+def test_surfaces_derived_from_mcp_blocks(set_fake_env, mock_openai_client):
     gen = OpenAIResponsesGenerator(
         name="my-model",
         config_root={
@@ -133,7 +133,11 @@ def test_capabilities_derived_from_tools(set_fake_env, mock_openai_client):
                 "openai": {
                     "OpenAIResponsesGenerator": {
                         "tools": [
-                            {"type": "mcp", "server_url": "http://localhost:8888/sse"},
+                            {
+                                "type": "mcp",
+                                "server_label": "klarna",
+                                "server_url": "http://localhost:8888/mcp",
+                            },
                             {"type": "web_search"},
                         ],
                     }
@@ -141,34 +145,19 @@ def test_capabilities_derived_from_tools(set_fake_env, mock_openai_client):
             }
         },
     )
-    caps = gen.list_capabilities()
-    assert caps == {"mcp", "web_search"}, "equality with raw names must hold"
-    assert Capability.MCP in caps, "known tool types must map to enum members"
-    assert all(
-        isinstance(c, Capability) for c in caps
-    ), "every capability must be an enum member"
+    surfaces = gen.injectable_surfaces()
+    assert len(surfaces) == 1, "only mcp blocks are injectable surfaces"
+    surface = surfaces[0]
+    assert surface.kind == "mcp.server"
+    assert surface.name == "klarna"
+    assert surface.controls == frozenset({"replace_route"})
+    assert surface.upstream == {
+        "server_url": "http://localhost:8888/mcp",
+        "headers": {},
+    }, "the configured endpoint data rides on the surface"
 
 
-def test_unmapped_tool_types_are_dropped(set_fake_env, mock_openai_client):
-    gen = OpenAIResponsesGenerator(
-        name="my-model",
-        config_root={
-            "generators": {
-                "openai": {
-                    "OpenAIResponsesGenerator": {
-                        "tools": [{"type": "image_generation"}],
-                    }
-                }
-            }
-        },
-    )
-    assert (
-        gen.list_capabilities() == set()
-    ), "a tool type garak cannot name carries no capability"
-
-
-def test_tool_type_aliases_map_to_capabilities(set_fake_env, mock_openai_client):
-    """Upstream tool types naming a known surface map onto its member."""
+def test_non_mcp_tool_types_carry_no_surface(set_fake_env, mock_openai_client):
     gen = OpenAIResponsesGenerator(
         name="my-model",
         config_root={
@@ -176,65 +165,56 @@ def test_tool_type_aliases_map_to_capabilities(set_fake_env, mock_openai_client)
                 "openai": {
                     "OpenAIResponsesGenerator": {
                         "tools": [
+                            {"type": "image_generation"},
                             {"type": "file_search"},
-                            {"type": "code_interpreter"},
-                            {"type": "local_shell"},
+                            {"type": "mcp", "server_url": "no label"},
                         ],
                     }
                 }
             }
         },
     )
-    caps = gen.list_capabilities()
-    assert caps == {
-        Capability.FILE,
-        Capability.CODE,
-        Capability.SHELL,
-    }, "aliases must map onto the members for the surfaces they describe"
-    assert all(
-        isinstance(c, Capability) for c in caps
-    ), "every capability must be an enum member"
+    assert (
+        gen.injectable_surfaces() == []
+    ), "tool types and unlabelled blocks garak cannot address carry no surface"
 
 
-def test_capability_membership_check(generator):
-    generator.tools = [{"type": "mcp", "server_url": "http://localhost:8888/sse"}]
-    assert Capability.MCP in generator.list_capabilities()
-    assert "function" not in generator.list_capabilities()
+def test_surface_upstream_carries_configured_headers(set_fake_env, mock_openai_client):
+    gen = OpenAIResponsesGenerator(
+        name="my-model",
+        config_root={
+            "generators": {
+                "openai": {
+                    "OpenAIResponsesGenerator": {
+                        "tools": [
+                            {
+                                "type": "mcp",
+                                "server_label": "klarna",
+                                "server_url": "http://localhost:8888/mcp",
+                                "headers": {"X-Tenant": "acme"},
+                            }
+                        ],
+                    }
+                }
+            }
+        },
+    )
+    assert gen.injectable_surfaces()[0].upstream["headers"] == {"X-Tenant": "acme"}
 
 
-# ── injections ────────────────────────────────────────────────────────────────
+# ── injection routes ──────────────────────────────────────────────────────────
 
 
-def _make_descriptor(**overrides):
-    descriptor = {
-        "capability": "mcp",
-        "server_label": "klarna",
-        "server_url": "http://127.0.0.1:8000/mcp",
-        "authorization": "tok-123",
-    }
-    descriptor.update(overrides)
-    return descriptor
+def _make_route(**overrides):
+    route = McpRoute(
+        replaces="klarna",
+        url="http://127.0.0.1:8000/mcp",
+        headers={"Authorization": "tok-123"},
+    )
+    return replace(route, **overrides) if overrides else route
 
 
-def test_generate_merges_injection_into_tools(generator):
-    generator.client.responses.create.return_value = _make_response("ok")
-    prompt = Conversation([Turn(role="user", content=Message("hi"))])
-
-    generator.generate(prompt, injections=[_make_descriptor()])
-
-    kwargs = generator.client.responses.create.call_args[1]
-    assert kwargs["tools"] == [
-        {
-            "type": "mcp",
-            "server_label": "klarna",
-            "server_url": "http://127.0.0.1:8000/mcp",
-            "authorization": "tok-123",
-            "require_approval": "never",
-        }
-    ], "the armed descriptor must become the mcp tool block"
-
-
-def test_generate_injection_replaces_matching_server_label(generator):
+def test_generate_applies_route_by_replacing_the_block(generator):
     generator.tools = [
         {
             "type": "mcp",
@@ -246,7 +226,7 @@ def test_generate_injection_replaces_matching_server_label(generator):
     generator.client.responses.create.return_value = _make_response("ok")
     prompt = Conversation([Turn(role="user", content=Message("hi"))])
 
-    generator.generate(prompt, injections=[_make_descriptor()])
+    generator.generate(prompt, injection_routes=[_make_route()])
 
     kwargs = generator.client.responses.create.call_args[1]
     assert kwargs["tools"] == [
@@ -255,32 +235,94 @@ def test_generate_injection_replaces_matching_server_label(generator):
             "type": "mcp",
             "server_label": "klarna",
             "server_url": "http://127.0.0.1:8000/mcp",
-            "authorization": "tok-123",
             "require_approval": "never",
+            "authorization": "tok-123",
         },
-    ], "an armed descriptor replaces the configured block with its server_label"
+    ], "the route replaces the configured block with its server_label"
 
 
-def test_generate_raises_for_injections_it_cannot_apply(generator):
-    """Fail closed: an unapplied injection must raise, not pass silently."""
+def test_generate_maps_extra_route_headers(generator):
+    """Headers beyond Authorization pass through as the block's headers."""
+    generator.tools = [
+        {"type": "mcp", "server_label": "klarna", "server_url": "http://up/mcp"}
+    ]
+    generator.client.responses.create.return_value = _make_response("ok")
+    prompt = Conversation([Turn(role="user", content=Message("hi"))])
+
+    generator.generate(
+        prompt,
+        injection_routes=[
+            _make_route(headers={"Authorization": "tok", "X-Tenant": "acme"})
+        ],
+    )
+
+    kwargs = generator.client.responses.create.call_args[1]
+    block = kwargs["tools"][0]
+    assert block["authorization"] == "tok"
+    assert block["headers"] == {"X-Tenant": "acme"}
+
+
+def test_generate_raises_for_an_unmatched_route(generator):
+    """A route naming no configured block must not append a server."""
+    generator.tools = [{"type": "web_search"}]
+    generator.client.responses.create.return_value = _make_response("ok")
+    prompt = Conversation([Turn(role="user", content=Message("hi"))])
+
+    with pytest.raises(UnsupportedInjectionError, match="klarna"):
+        generator.generate(prompt, injection_routes=[_make_route()])
+
+
+def test_generate_raises_for_routes_it_cannot_apply(generator):
+    """Fail closed: an unapplied route must raise, not pass silently."""
     generator.tools = [{"type": "web_search"}]
     generator.client.responses.create.return_value = _make_response("ok")
     prompt = Conversation([Turn(role="user", content=Message("hi"))])
 
     with pytest.raises(UnsupportedInjectionError):
         generator.generate(
-            prompt,
-            injections=[{"capability": "file", "path": "/tmp/evil"}, "not a dict"],
+            prompt, injection_routes=[{"capability": "file", "path": "/tmp/evil"}]
         )
 
 
-def test_generate_clears_injections_after_the_call(generator):
+def test_generate_rejects_routes_with_multiple_generations(generator):
+    """A route set backs exactly one generation."""
+    prompt = Conversation([Turn(role="user", content=Message("hi"))])
+
+    with pytest.raises(UnsupportedInjectionError, match="one generation"):
+        generator.generate(
+            prompt, generations_this_call=2, injection_routes=[_make_route()]
+        )
+
+
+def test_generate_records_the_approval_policy(generator):
+    """The mcp_require_approval value reaches the replaced block."""
+    generator.tools = [
+        {"type": "mcp", "server_label": "klarna", "server_url": "http://up/mcp"}
+    ]
+    generator.mcp_require_approval = "always"
     generator.client.responses.create.return_value = _make_response("ok")
     prompt = Conversation([Turn(role="user", content=Message("hi"))])
 
-    generator.generate(prompt, injections=[_make_descriptor()])
+    generator.generate(prompt, injection_routes=[_make_route()])
 
-    assert generator._injections is None, "injections must not outlive the call"
+    kwargs = generator.client.responses.create.call_args[1]
+    assert (
+        kwargs["tools"][0]["require_approval"] == "always"
+    ), "the configured approval policy must reach the request"
+
+
+def test_generate_clears_routes_after_the_call(generator):
+    generator.tools = [
+        {"type": "mcp", "server_label": "klarna", "server_url": "http://up/mcp"}
+    ]
+    generator.client.responses.create.return_value = _make_response("ok")
+    prompt = Conversation([Turn(role="user", content=Message("hi"))])
+
+    generator.generate(prompt, injection_routes=[_make_route()])
+
+    assert (
+        generator._active_injection_routes() == []
+    ), "routes must not outlive the call"
 
 
 # ── _call_model ────────────────────────────────────────────────────────────────

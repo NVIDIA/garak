@@ -25,6 +25,7 @@ from garak.exception import (
     PluginConfigurationError,
     UnsupportedInjectionError,
 )
+from garak.injection import McpRoute
 import garak.probes
 
 # MiMCP's recording cap when the environment does not set one; a recording
@@ -94,6 +95,24 @@ class MidojoProbe(garak.probes.Probe):
             "server_label": spec.get("server_label"),
             "tools": spec.get("tools", []),
         }
+
+    @staticmethod
+    def _route_from_descriptor(descriptor: dict) -> McpRoute:
+        """Legacy shim: turn an armed descriptor into a replace-route.
+
+        The generator contract speaks routes; until this probe binds
+        plans itself, the descriptor from ``arm()`` maps onto the route
+        that replaces the target's configured block.
+        """
+        headers = {}
+        if descriptor.get("authorization"):
+            # endpoints that add the Bearer prefix expect the bare token
+            headers["Authorization"] = descriptor["authorization"]
+        return McpRoute(
+            replaces=descriptor.get("server_label"),
+            url=descriptor.get("server_url"),
+            headers=headers,
+        )
 
     @staticmethod
     def _coverage(calls: list[dict], status: dict) -> dict:
@@ -174,7 +193,7 @@ class MidojoProbe(garak.probes.Probe):
                     self.generator.generate(
                         attempt.prompt,
                         generations_this_call=1,
-                        injections=[descriptor],
+                        injection_routes=[self._route_from_descriptor(descriptor)],
                     )
                 )
                 calls = self.injector.get_calls()

@@ -17,6 +17,7 @@ from garak.generators.base import Generator
 from garak.generators.test import Blank
 from garak.injectors.base import Injector
 from garak.injectors.mimcp import MiMCPInjector
+from garak.injection import McpRoute
 from garak.probes.midojo import MidojoProbe
 
 SCENARIO = {
@@ -90,6 +91,12 @@ DESCRIPTOR = {
     "server_url": "http://127.0.0.1:8000/mcp",
     "authorization": "tok-123",
 }
+
+DESCRIPTOR_ROUTE = McpRoute(
+    replaces="klarna",
+    url="http://127.0.0.1:8000/mcp",
+    headers={"Authorization": "tok-123"},
+)
 
 RECORDED_CALLS = [
     {
@@ -168,31 +175,40 @@ class InterleavingGenerator(Generator):
         self.during_call = during_call
 
     def _call_model(self, prompt, generations_this_call=1):
-        # consumes mcp injections the way an MCP-capable target does
-        self._active_injections("mcp")
+        # applies every handed route the way an MCP-capable target does
+        for route in self._active_injection_routes():
+            self._consume_injection_route(route)
         self.during_call()
         return [Message(text="Refund issued.")]
 
 
 class RecordingGenerator(Generator):
-    """Test double recording the injections it was handed."""
+    """Test double recording the injection routes it was handed."""
 
     def __init__(self):
         super().__init__(name="midojo test")
         self.generate_calls = []
 
     def _call_model(self, prompt, generations_this_call=1):
-        # consumes mcp injections the way an MCP-capable target does
-        self._active_injections("mcp")
+        # applies every handed route the way an MCP-capable target does
+        for route in self._active_injection_routes():
+            self._consume_injection_route(route)
         return [Message(text="Refund issued.")]
 
     def generate(
-        self, prompt, generations_this_call=1, typecheck=True, injections=None
+        self,
+        prompt,
+        generations_this_call=1,
+        typecheck=True,
+        *,
+        injection_routes=None,
     ):
         self.generate_calls.append(
-            {"injections": injections, "generations": generations_this_call}
+            {"injection_routes": injection_routes, "generations": generations_this_call}
         )
-        return super().generate(prompt, generations_this_call, typecheck, injections)
+        return super().generate(
+            prompt, generations_this_call, typecheck, injection_routes=injection_routes
+        )
 
 
 @pytest.fixture(autouse=True)
@@ -248,8 +264,9 @@ def test_probe_arms_one_session_per_attack(scenario_file, monkeypatch):
     assert injector.armed_payloads[0]["upstream"] == "http://127.0.0.1:9101/mcp"
     assert injector.armed_payloads[0]["tools"][0]["name"] == "lookup_order"
     assert all(
-        call["injections"] == [DESCRIPTOR] for call in generator.generate_calls
-    ), "the armed descriptor must reach generate()"
+        call["injection_routes"] == [DESCRIPTOR_ROUTE]
+        for call in generator.generate_calls
+    ), "the armed route must reach generate()"
     assert all(
         call["generations"] == 1 for call in generator.generate_calls
     ), "each generation runs as its own single-generation call"

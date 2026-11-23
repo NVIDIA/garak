@@ -23,7 +23,8 @@ import backoff
 
 from garak import _config
 from garak.attempt import Message, Conversation
-from garak.capabilities import Capability
+from garak.exception import UnsupportedInjectionError
+from garak.injection import McpRoute, SurfaceDescriptor
 import garak.exception
 from garak.generators.base import Generator
 
@@ -490,17 +491,6 @@ class OpenAIReasoningGenerator(OpenAIGenerator):
     }
 
 
-# Responses API tool types mapped onto garak capabilities; tool types absent
-# here carry no capability and are dropped
-RESPONSES_TOOL_CAPABILITIES = {
-    "mcp": Capability.MCP,
-    "web_search": Capability.WEB_SEARCH,
-    "file_search": Capability.FILE,
-    "code_interpreter": Capability.CODE,
-    "local_shell": Capability.SHELL,
-}
-
-
 class OpenAIResponsesGenerator(OpenAICompatible):
     """Generator using the OpenAI Responses API with server-side tool orchestration.
 
@@ -519,6 +509,9 @@ class OpenAIResponsesGenerator(OpenAICompatible):
         "uri": None,
         "instructions": None,
         "tools": [],
+        # the approval policy for mcp servers this generator injects routes
+        # into; recorded so the target's tool-approval behaviour is explicit
+        "mcp_require_approval": "never",
         # the Responses API runs the agent loop server-side, so tool calls
         # spend output tokens too; a chat-sized cap truncates mid-loop
         "max_tokens": 1024,
@@ -536,54 +529,91 @@ class OpenAIResponsesGenerator(OpenAICompatible):
     def _generator_is_valid(self) -> bool:
         return self.generator == self.client.responses
 
-    def list_capabilities(self) -> set[Capability]:
-        """Server-side tool types in ``tools`` are this target's capabilities.
+    def injectable_surfaces(self) -> list[SurfaceDescriptor]:
+        """Configured ``mcp`` tool blocks are this target's surfaces.
 
-        The Responses API runs the tool loop on the server, so each configured
-        tool type is a channel the target pulls untrusted content from. Tool
-        types are mapped onto ``Capability`` through
-        ``RESPONSES_TOOL_CAPABILITIES``; unmapped types are dropped, because
-        no injector can occupy a surface garak does not name.
+        The Responses API runs the tool loop on the server, so each
+        configured MCP server is a channel the target pulls untrusted
+        content from. Each block becomes an ``mcp.server`` surface named
+        by its ``server_label``, carrying the configured endpoint data as
+        ``upstream``; other tool types offer no surface garak can occupy
+        here.
         """
-        capabilities = set()
+        surfaces = []
         for tool in self.tools or []:
-            if not isinstance(tool, dict) or "type" not in tool:
+            if not isinstance(tool, dict) or tool.get("type") != "mcp":
                 continue
-            capability = RESPONSES_TOOL_CAPABILITIES.get(tool["type"])
-            if capability is None:
-                logging.debug("tool type %r maps to no capability", tool["type"])
+            server_label = tool.get("server_label")
+            if not server_label:
+                logging.debug("mcp tool block without server_label: %r", tool)
                 continue
-            capabilities.add(capability)
-        return capabilities
+            surfaces.append(
+                SurfaceDescriptor(
+                    kind="mcp.server",
+                    name=server_label,
+                    controls=frozenset({"replace_route"}),
+                    upstream={
+                        "server_url": tool.get("server_url"),
+                        "headers": tool.get("headers") or {},
+                    },
+                )
+            )
+        return surfaces
 
-    def _merge_mcp_injections(self, tools) -> list[dict]:
-        """Merge armed mcp injection descriptors into the configured tools.
+    def _merge_mcp_routes(self, tools) -> list[dict]:
+        """Apply injection routes by replacing configured mcp tool blocks.
 
-        Each descriptor becomes an mcp tool block pointing at the armed
-        surface and replaces any configured block carrying the same
-        ``server_label``. The bare token passes through as ``authorization``;
-        endpoints that add the ``Bearer`` prefix themselves expect this.
+        Each route replaces the block whose ``server_label`` equals the
+        route's ``replaces`` label; a route naming no configured block
+        raises, because appending a server the target was not configured
+        with would test a different target. A route header named
+        ``Authorization`` becomes the Responses ``authorization`` field;
+        the rest pass through as ``headers``.
         """
         tools = list(tools or [])
-        for injection in self._active_injections(Capability.MCP):
-            server_label = injection.get("server_label")
-            tools = [
-                tool
-                for tool in tools
-                if not (
-                    isinstance(tool, dict) and tool.get("server_label") == server_label
+        for route in self._active_injection_routes():
+            if not isinstance(route, McpRoute):
+                continue  # left unconsumed, so generate() fails closed
+            replacement = {
+                "type": "mcp",
+                "server_label": route.replaces,
+                "server_url": route.url,
+                "require_approval": self.mcp_require_approval,
+            }
+            headers = dict(route.headers or {})
+            authorization = headers.pop("Authorization", None)
+            if authorization is None:
+                authorization = headers.pop("authorization", None)
+            if authorization is not None:
+                replacement["authorization"] = authorization
+            if headers:
+                replacement["headers"] = headers
+            tools, matched = self._replace_mcp_block(tools, route.replaces, replacement)
+            if not matched:
+                raise UnsupportedInjectionError(
+                    f"{self.fullname} has no configured mcp block labeled "
+                    f"{route.replaces!r} for the route to replace"
                 )
-            ]
-            tools.append(
-                {
-                    "type": "mcp",
-                    "server_label": server_label,
-                    "server_url": injection.get("server_url"),
-                    "authorization": injection.get("authorization"),
-                    "require_approval": "never",
-                }
-            )
+            self._consume_injection_route(route)
         return tools
+
+    @staticmethod
+    def _replace_mcp_block(tools, server_label, replacement):
+        """Swap the mcp block carrying server_label for replacement."""
+        merged = []
+        matched = False
+        for tool in tools:
+            if (
+                isinstance(tool, dict)
+                and tool.get("type") == "mcp"
+                and tool.get("server_label") == server_label
+            ):
+                matched = True
+                continue
+            merged.append(tool)
+        if matched:
+            merged.append(replacement)
+        return merged, matched
 
     def _load_unsafe(self):
         kwargs = {"api_key": getattr(self, "api_key", None)}
@@ -636,7 +666,7 @@ class OpenAIResponsesGenerator(OpenAICompatible):
         }
         if instructions:
             create_args["instructions"] = instructions
-        tools = self._merge_mcp_injections(self.tools)
+        tools = self._merge_mcp_routes(self.tools)
         if tools:
             create_args["tools"] = tools
         for k, v in self.extra_params.items():

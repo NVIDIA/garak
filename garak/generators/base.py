@@ -6,6 +6,8 @@ All `garak` generators must inherit from this.
 import logging
 import random
 import re
+from contextvars import ContextVar
+from dataclasses import dataclass, field
 from typing import List, Union
 
 from colorama import Fore, Style
@@ -13,14 +15,22 @@ import tqdm
 
 from garak import _config
 from garak.attempt import Message, Conversation
-from garak.capabilities import Capability
 from garak.configurable import Configurable
 from garak.exception import (
     BadGeneratorException,
     GarakException,
     UnsupportedInjectionError,
 )
+from garak.injection import SurfaceDescriptor
 import garak.resources.theme
+
+
+@dataclass
+class _InjectionState:
+    """Routes handed to one generate() call and which were applied."""
+
+    routes: list = field(default_factory=list)
+    consumed: set = field(default_factory=set)
 
 
 class Generator(Configurable):
@@ -52,11 +62,13 @@ class Generator(Configurable):
         False  # can more than one generation be extracted per request?
     )
 
-    # armed injection descriptors for the current generate() call, if any;
-    # managed by generate() and read through _active_injections()
-    _injections = None
-    # indexes into _injections that a _call_model implementation consumed
-    _consumed_injections = None
+    # routes handed to the current generate() call, if any; managed by
+    # generate() and read through _active_injection_routes(). A ContextVar
+    # keeps the state out of the instance, so parallel generate() calls on
+    # one cached generator cannot see each other's routes.
+    _injection_state: ContextVar = ContextVar(
+        "garak_generator_injection_state", default=None
+    )
 
     def __init__(self, name="", config_root=_config):
         self._load_config(config_root)
@@ -94,40 +106,37 @@ class Generator(Configurable):
         Can return None if no response was elicited"""
         raise NotImplementedError
 
-    def list_capabilities(self) -> set[Capability]:
-        """Return the interaction surfaces this target draws content from.
+    def injectable_surfaces(self) -> List[SurfaceDescriptor]:
+        """Return the interaction surfaces of this target garak can occupy.
 
-        Capability names describe the channels through which a target can
-        receive untrusted content during a generation, for example
-        ``Capability.MCP`` for a target that queries external MCP servers.
-        Probes match these names against injector ``capabilities`` to find a
-        surface they can occupy; a plain text target offers no such channel.
-        Every name is a ``Capability`` member; support for a new surface
-        starts with adding a member to ``garak.capabilities``.
+        Each surface names one channel the target draws untrusted content
+        from during a generation, for example an MCP server configured in
+        the target's tools. Probes resolve a case's surface reference
+        against this list before binding an injector to it; a plain text
+        target offers no surface.
         """
-        return set()
+        return []
 
-    def _active_injections(self, capability) -> List[dict]:
-        """Return the armed injection descriptors naming one capability.
+    def _active_injection_routes(self) -> list:
+        """Return the injection routes handed to this generate() call.
 
-        ``_call_model`` implementations call this to pick up the descriptors
-        they can use; descriptors for other capabilities, and malformed
-        entries, are ignored. Every descriptor returned here is marked
-        consumed, so ``generate()`` can fail closed when a handed injection
-        was never applied.
+        ``_call_model`` implementations apply every route they can and
+        mark each applied route through ``_consume_injection_route()``;
+        routes left unconsumed make generate() fail closed.
         """
-        if not self._injections:
+        state = self._injection_state.get()
+        if state is None:
             return []
-        matched = []
-        for index, injection in enumerate(self._injections):
-            if (
-                isinstance(injection, dict)
-                and injection.get("capability") == capability
-            ):
-                matched.append(injection)
-                if self._consumed_injections is not None:
-                    self._consumed_injections.add(index)
-        return matched
+        return list(state.routes)
+
+    def _consume_injection_route(self, route) -> None:
+        """Mark one route as applied by this generate() call."""
+        state = self._injection_state.get()
+        if state is None:
+            return
+        for index, active in enumerate(state.routes):
+            if active is route:
+                state.consumed.add(index)
 
     def _pre_generate_hook(self):
         pass
@@ -186,7 +195,8 @@ class Generator(Configurable):
         prompt: Conversation,
         generations_this_call: int = 1,
         typecheck=True,
-        injections: List[dict] | None = None,
+        *,
+        injection_routes: List | None = None,
     ) -> List[Union[Message, None]]:
         """Manages the process of getting generations out from a prompt
 
@@ -195,14 +205,15 @@ class Generator(Configurable):
 
         Avoid overriding this - try to override _call_model or _call_api
 
-        :param injections: optional descriptors of armed interaction surfaces,
-          as returned by ``Injector.arm()``. Each descriptor names a
-          ``capability``; generators supporting that capability consume it in
-          ``_call_model`` (see ``_active_injections``) and the rest ignore it.
-          The base class exposes the descriptors for the duration of this
-          call only, and raises ``UnsupportedInjectionError`` when a handed
-          descriptor was not consumed: an unapplied injection is an
-          unsupported attempt, never a silently safe one.
+        :param injection_routes: optional routes from injection bindings,
+          as returned by ``Injector.bind()``. Each generation runs against
+          exactly one route set, so passing routes with more than one
+          generation per call is rejected. ``_call_model`` implementations
+          apply every route through ``_active_injection_routes()`` and mark
+          each through ``_consume_injection_route()``; generate() raises
+          ``UnsupportedInjectionError`` when a handed route was not
+          consumed: an unapplied route is an unsupported attempt, never a
+          silently safe one.
         """
 
         if typecheck:
@@ -210,28 +221,34 @@ class Generator(Configurable):
                 prompt, Conversation
             ), "generate() must take a Conversation object"
 
+        if injection_routes and generations_this_call > 1:
+            raise UnsupportedInjectionError(
+                "injection_routes backs exactly one generation; call generate() "
+                "once per generation instead of passing "
+                f"generations_this_call={generations_this_call}"
+            )
+
         if self.seed is not None:
             self._rng.seed(self.seed)
 
         self._pre_generate_hook()
 
-        self._injections = injections
-        self._consumed_injections = set()
+        state = _InjectionState(routes=list(injection_routes or []))
+        token = self._injection_state.set(state)
         try:
             outputs = self._generate(prompt, generations_this_call)
             unconsumed = [
-                injection
-                for index, injection in enumerate(self._injections or [])
-                if index not in self._consumed_injections
+                route
+                for index, route in enumerate(state.routes)
+                if index not in state.consumed
             ]
             if unconsumed:
                 raise UnsupportedInjectionError(
-                    f"{self.fullname} cannot apply injection(s): {unconsumed!r}"
+                    f"{self.fullname} cannot apply injection route(s): {unconsumed!r}"
                 )
             return outputs
         finally:
-            self._injections = None
-            self._consumed_injections = None
+            self._injection_state.reset(token)
 
     def _generate(
         self, prompt: Conversation, generations_this_call: int = 1

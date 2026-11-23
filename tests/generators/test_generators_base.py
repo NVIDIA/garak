@@ -10,7 +10,9 @@ from unittest.mock import patch
 import pytest
 
 from garak.attempt import Conversation, Message, Turn
+from garak.exception import UnsupportedInjectionError
 from garak.generators.base import Generator
+from garak.injection import McpRoute
 
 
 class SerialGenerator(Generator):
@@ -118,40 +120,55 @@ def test_native_multiple_generations_bypasses_pool(parallel_capable):
     assert [output.text for output in outputs] == ["hello"] * 3
 
 
-def test_base_generator_has_no_capabilities():
+def test_base_generator_has_no_injectable_surfaces():
     """A plain text target offers no interaction surface for injectors."""
-    generator = Generator(name="capabilities test")
-    assert generator.list_capabilities() == set()
+    generator = Generator(name="surfaces test")
+    assert generator.injectable_surfaces() == []
 
 
-def test_active_injections_filters_by_capability():
-    """Only well-formed descriptors naming the capability come back."""
-    generator = Generator(name="injections test")
-    generator._injections = [
-        {"capability": "mcp", "server_url": "http://127.0.0.1:8000/mcp"},
-        {"capability": "file"},
-        "not a dict",
-    ]
-    assert generator._active_injections("mcp") == [
-        {"capability": "mcp", "server_url": "http://127.0.0.1:8000/mcp"}
-    ]
-    assert generator._active_injections("file") == [{"capability": "file"}]
-
-
-def test_generate_exposes_injections_during_the_call_only():
-    """_call_model sees the descriptors; they are cleared afterwards."""
-    generator = Generator(name="injections test")
+def test_generate_exposes_routes_during_the_call_only():
+    """_call_model sees the routes; they are cleared afterwards."""
+    generator = Generator(name="routes test")
+    route = McpRoute(replaces="klarna", url="http://127.0.0.1:8000/mcp")
     seen = []
 
     def recording_call_model(prompt, generations_this_call=1):
-        seen.append(list(generator._active_injections("mcp")))
+        seen.append(list(generator._active_injection_routes()))
+        generator._consume_injection_route(route)
         return [Message(text="ok")]
 
     generator._call_model = recording_call_model
     outputs = generator.generate(
         Conversation([Turn("user", Message("hi"))]),
-        injections=[{"capability": "mcp"}],
+        injection_routes=[route],
     )
     assert [output.text for output in outputs] == ["ok"]
-    assert seen == [[{"capability": "mcp"}]]
-    assert generator._injections is None, "generate() must clear the descriptors"
+    assert seen == [[route]]
+    assert (
+        generator._active_injection_routes() == []
+    ), "generate() must clear the routes"
+
+
+def test_generate_fails_closed_on_unconsumed_routes():
+    """A route the _call_model never applied must raise, not pass silently."""
+    generator = Generator(name="routes test")
+    generator._call_model = lambda prompt, generations_this_call=1: [Message("ok")]
+
+    with pytest.raises(UnsupportedInjectionError, match="cannot apply"):
+        generator.generate(
+            Conversation([Turn("user", Message("hi"))]),
+            injection_routes=[McpRoute(replaces="klarna", url="http://x/mcp")],
+        )
+
+
+def test_generate_rejects_routes_with_multiple_generations():
+    """A route set backs exactly one generation."""
+    generator = Generator(name="routes test")
+    prompt = Conversation([Turn("user", Message("hi"))])
+
+    with pytest.raises(UnsupportedInjectionError, match="one generation"):
+        generator.generate(
+            prompt,
+            generations_this_call=2,
+            injection_routes=[McpRoute(replaces="klarna", url="http://x/mcp")],
+        )
