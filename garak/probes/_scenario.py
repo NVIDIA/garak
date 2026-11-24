@@ -104,7 +104,7 @@ def _scenario_from(document, path) -> Scenario:
             )
     _reject_unknown(
         document,
-        {"schema_version", "id", "description", "benign_task", "cases"},
+        {"schema_version", "id", "description", "conversation", "cases"},
         where,
         "the scenario",
     )
@@ -114,11 +114,11 @@ def _scenario_from(document, path) -> Scenario:
     if description is not None and not isinstance(description, str):
         raise ScenarioError(f"{where}: description must be a string")
 
-    benign_task = document.get("benign_task")
-    if not isinstance(benign_task, dict):
-        raise ScenarioError(f"{where}: benign_task must be a mapping")
-    _reject_unknown(benign_task, {"prompt"}, where, "benign_task")
-    prompt = _non_empty_str(benign_task.get("prompt"), where, "benign_task", "prompt")
+    conversation = document.get("conversation")
+    if not isinstance(conversation, dict):
+        raise ScenarioError(f"{where}: conversation must be a mapping")
+    _reject_unknown(conversation, {"prompt"}, where, "conversation")
+    prompt = _non_empty_str(conversation.get("prompt"), where, "conversation", "prompt")
 
     raw_cases = document.get("cases")
     if not isinstance(raw_cases, list) or not raw_cases:

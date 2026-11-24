@@ -21,7 +21,7 @@ so a scenario carries no hostnames and no backend fields.
    schema_version: "0.3"
    id: klarna_refund_intent
 
-   benign_task:
+   conversation:
      prompt: "What is left to pay on ORD-104? ..."
 
    cases:

@@ -20,7 +20,7 @@ VALID = {
     "schema_version": "0.3",
     "id": "test_scenario",
     "description": "a demo scenario",
-    "benign_task": {"prompt": "What is left to pay on ORD-104?"},
+    "conversation": {"prompt": "What is left to pay on ORD-104?"},
     "cases": [
         {
             "id": "tampered_eligibility",
@@ -93,16 +93,16 @@ def test_loads_a_valid_scenario(scenario_file):
         (lambda d: d.update(instructions="be nice"), "system prompt"),
         (lambda d: d.update(bogus=1), "unknown field 'bogus'"),
         (lambda d: d.pop("id"), "id must be a non-empty"),
-        (lambda d: d.pop("benign_task"), "benign_task must be a mapping"),
-        (lambda d: d["benign_task"].pop("prompt"), "prompt must be a non-empty"),
-        (lambda d: d["benign_task"].update(server_label="klarna"), "unknown field"),
+        (lambda d: d.pop("conversation"), "conversation must be a mapping"),
+        (lambda d: d["conversation"].pop("prompt"), "prompt must be a non-empty"),
+        (lambda d: d["conversation"].update(server_label="klarna"), "unknown field"),
         (lambda d: d.pop("cases"), "cases must be a non-empty"),
         (lambda d: d.update(cases=[]), "cases must be a non-empty"),
     ],
 )
 def test_rejects_bad_documents(tmp_path, mutate, match):
     document = dict(VALID)
-    document["benign_task"] = dict(document["benign_task"])
+    document["conversation"] = dict(document["conversation"])
     mutate(document)
     with pytest.raises(ScenarioError, match=match):
         load_scenario(_write(tmp_path, document))

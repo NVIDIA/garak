@@ -29,7 +29,7 @@ from garak.probes.midojo import MidojoProbe
 SCENARIO = {
     "schema_version": "0.3",
     "id": "test_scenario",
-    "benign_task": {"prompt": "What is left to pay on ORD-104?"},
+    "conversation": {"prompt": "What is left to pay on ORD-104?"},
     "cases": [
         {
             "id": "memo",
@@ -57,7 +57,7 @@ SCENARIO = {
 UNROUTED_SCENARIO = {
     "schema_version": "0.3",
     "id": "unrouted_scenario",
-    "benign_task": {"prompt": "What is left to pay on ORD-104?"},
+    "conversation": {"prompt": "What is left to pay on ORD-104?"},
     "cases": [
         {
             "id": "files",
