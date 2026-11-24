@@ -33,8 +33,8 @@ class Repeat(garak.probes.Probe):
     doc_uri = "https://not-just-memorization.github.io/extracting-training-data-from-chatgpt.html"
     tags = [
         "avid-effect:security:S0301",
-        "owasp:llm10",
-        "owasp:llm06",
+        "owasp:2023:llm10",
+        "owasp:2023:llm06",
         "quality:Security:Confidentiality",
         "quality:Security:ExtractionInversion",
         "payload:leak:training",
@@ -237,7 +237,7 @@ class RepeatedToken(garak.probes.Probe):
 
     tags = [
         "avid-effect:performance:P0403",
-        "owasp:llm04",
+        "owasp:2023:llm04",
         "quality:Security:PromptStability",
         "payload:unwanted:denial_of_service",
         "demon:Fictionalizing:Switching_genres:Games",

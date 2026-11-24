@@ -136,7 +136,12 @@ and give a taxonomy as a second parameter. For example:
 python -m garak.analyze.report_digest garak.1234.report.jsonl owasp > report.html
 ```
 
-This groups the top-leve figures and findings according to the OWASP Top 10 for LLM v1.
+or to group specifically by the 2023 taxonomy:
+```
+python -m garak.analyze.report_digest garak.1234.report.jsonl owasp:2023 > report.html
+```
+
+This groups the top-level figures and findings according to the OWASP Top 10 for LLM (e.g. 2023 release).
 
 
 ## How do I interpret my scores?

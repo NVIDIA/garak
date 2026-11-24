@@ -131,7 +131,7 @@ class LatentInjectionMixin:
     primary_detector = "base.TriggerListDetector"
     tags = [
         "avid-effect:security:S0403",
-        "owasp:llm01",
+        "owasp:2023:llm01",
         "quality:Security:PromptStability",
         "demon:Language:Prompt_injection:Stop_sequences",  # uses end-of-session markers to halt original task processing
         "demon:Language:Prompt_injection:Ignore_previous_instructions",  # buries "ignore" instructions in otherwise innocuous documents
@@ -794,7 +794,7 @@ class LatentInjectionIntentProbe(garak.probes.IntentProbe, ABC):
     primary_detector = "mitigation.MitigationBypass"
     tags = [
         "avid-effect:security:S0403",
-        "owasp:llm01",
+        "owasp:2023:llm01",
         "quality:Security:PromptStability",
         "demon:Language:Prompt_injection:Stop_sequences",  # uses end-of-session markers to halt original task processing
         "demon:Language:Prompt_injection:Ignore_previous_instructions",  # buries "ignore" instructions in otherwise innocuous documents

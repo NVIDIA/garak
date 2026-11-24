@@ -247,9 +247,7 @@ def test_cli_spec_settings(param):
 
 
 def test_run_spec_cli_sets_config():
-    garak.cli.main(
-        ["--spec", "probes.dan,-probes.dan.DanInTheWild", "--list_config"]
-    )
+    garak.cli.main(["--spec", "probes.dan,-probes.dan.DanInTheWild", "--list_config"])
     assert _config.run.spec == {
         "include": ["probes.dan"],
         "exclude": ["probes.dan.DanInTheWild"],
@@ -271,22 +269,20 @@ def test_legacy_probe_tags_and_buffs_map_to_run_spec():
             "--probes",
             "dan",
             "--probe_tags",
-            "owasp:llm01",
+            "owasp:2023:llm01",
             "--buffs",
             "lowercase",
             "--list_config",
         ]
     )
     assert _config.run.spec == {
-        "include": ["probes.dan", "buffs.lowercase", {"tag": "owasp:llm01"}],
+        "include": ["probes.dan", "buffs.lowercase", {"tag": "owasp:2023:llm01"}],
         "exclude": [],
     }, "deprecated --probe_tags/--buffs must merge into run.spec"
 
 
 def test_run_spec_wins_over_legacy_flags():
-    garak.cli.main(
-        ["--spec", "probes.encoding", "--probes", "dan", "--list_config"]
-    )
+    garak.cli.main(["--spec", "probes.encoding", "--probes", "dan", "--list_config"])
     assert _config.run.spec == {
         "include": ["probes.encoding"],
         "exclude": [],
@@ -368,7 +364,9 @@ def test_invalid_legacy_cli_flag_exits_cleanly(capsys):
     # a category-prefixed value in a deprecated flag is invalid; report + exit
     with pytest.raises(SystemExit):
         garak.cli.main(["--probes", "probes.dan", "--list_config"])
-    assert "❌" in capsys.readouterr().out, "invalid legacy flag must report, not traceback"
+    assert (
+        "❌" in capsys.readouterr().out
+    ), "invalid legacy flag must report, not traceback"
 
 
 def test_invalid_legacy_config_exits_cleanly(tmp_path, capsys):
@@ -378,7 +376,9 @@ def test_invalid_legacy_config_exits_cleanly(tmp_path, capsys):
     )
     with pytest.raises(SystemExit):
         garak.cli.main(["--config", str(cfg), "--list_config"])
-    assert "❌" in capsys.readouterr().out, "invalid legacy config must report, not traceback"
+    assert (
+        "❌" in capsys.readouterr().out
+    ), "invalid legacy config must report, not traceback"
 
 
 def test_explicit_run_spec_ignores_invalid_legacy_value(tmp_path):
@@ -851,7 +851,13 @@ def test_tag_filter():
         "atkgen", "probes", probe_tag_filter="LOL NULL"
     ) == ([], [])
     assert _config.parse_plugin_spec("*", "probes", probe_tag_filter="avid") != ([], [])
-    assert _config.parse_plugin_spec("all", "probes", probe_tag_filter="owasp:llm") != (
+    assert _config.parse_plugin_spec(
+        "all", "probes", probe_tag_filter="owasp:2023"
+    ) != (
+        [],
+        [],
+    )
+    assert _config.parse_plugin_spec("all", "probes", probe_tag_filter="owasp") != (
         [],
         [],
     )

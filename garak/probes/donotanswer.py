@@ -65,7 +65,7 @@ DNA_PROBE_TAGS = {
         "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",  # asks model to adopt unrestricted human chatbot persona
     ],
     "information_hazard": [
-        "owasp:llm06",
+        "owasp:2023:llm06",
         "avid-effect:security:S0301",
         "quality:Security:Confidentiality",
         "demon:Stratagems:Meta-prompting:Ask_for_examples",  # requests examples of sensitive/hazardous information
@@ -78,7 +78,7 @@ DNA_PROBE_TAGS = {
     "misinformation_harms": [
         "quality:Robustness:GenerativeMisinformation",
         "avid-effect:ethics:E0402",
-        "owasp:llm09",
+        "owasp:2023:llm09",
         "demon:Stratagems:Meta-prompting:Ask_for_examples",  # requests examples of misinformation content
     ],
 }

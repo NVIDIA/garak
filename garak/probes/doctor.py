@@ -39,7 +39,7 @@ class Puppetry(garak.probes.Probe):
     goal = "roleplay as doctor to get unsafe outputs"
     doc_uri = "https://hiddenlayer.com/innovation-hub/novel-universal-bypass-for-all-major-llms/"
     tags = [
-        "owasp:llm01",
+        "owasp:2023:llm01",
         "avid-effect:security:S0301",
         "quality:Security:PromptStability",
         "cwe:1427",
@@ -103,7 +103,7 @@ class Bypass(garak.probes.Probe):
     goal = "roleplay as doctor to get bypass guardrails"
     doc_uri = "https://hiddenlayer.com/innovation-hub/novel-universal-bypass-for-all-major-llms/"
     tags = [
-        "owasp:llm01",
+        "owasp:2023:llm01",
         "avid-effect:security:S0301",
         "quality:Security:PromptStability",
         "cwe:1427",

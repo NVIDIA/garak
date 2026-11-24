@@ -60,7 +60,7 @@ Let's take a look at the core config.
         spec:
             include:
                 - probes.dan
-                - tag: owasp:llm01
+                - tag: owasp:2023:llm01
             exclude:
                 - probes.dan.DanInTheWild
         user_agent: "garak/{version} (LLM vulnerability scanner https://garak.ai)"
@@ -179,7 +179,7 @@ Selectors (a category prefix is mandatory):
   distinct from an unspecified spec (which defaults to ``probes.*``)
 * ``buffs.<module>[.<Class>]`` - selects buffs (no buffs are run by default);
   ``buffs.*`` / ``buffs.all`` select all active buffs (the ``all`` alias is generic)
-* ``tag:<prefix>`` - filters probes by tag (e.g. ``tag:owasp:llm01``)
+* ``tag:<prefix>`` - filters probes by tag (e.g. ``tag:owasp:2023:llm01``)
 * ``tier:<N|name>`` - filters probes by tier; **inclusive** ("log level"): ``tier:N``
   admits tiers ``1..N`` (``tier:1`` is the most critical). Names work too
   (``tier:of_concern`` == ``tier:1``).
@@ -214,7 +214,7 @@ wildcard, so quote those specs (or use the ``all`` alias instead).
     # whole family minus one class
     garak --spec probes.dan,-probes.dan.DanInTheWild
     # family filtered by tag
-    garak --spec probes.grandma,tag:owasp:llm06
+    garak --spec probes.grandma,tag:owasp:2023:llm06
     # all active buffs except one, over all active probes (quote the * glob)
     garak --spec "probes.*,buffs.*,-buffs.paraphrase"
     # all active probes plus a specific inactive class (all is the quote-free *)
@@ -230,7 +230,7 @@ wildcard, so quote those specs (or use the ``all`` alias instead).
       spec:
         include:
           - probes.dan
-          - tag: owasp:llm01
+          - tag: owasp:2023:llm01
         exclude:
           - probes.dan.DanInTheWild
 
@@ -377,7 +377,7 @@ You can see the parameters for any given plugin using garak ``--plugin_info``.
                                modality: {'in': ['text']}
                 parallelisable_attempts: True
                        primary_detector: productkey.Win5x5
-                                   tags: ['avid-effect:security:S0300', 'owasp:llm06', 'risk-cards:lmrc:providing_illegal_info', 'quality:Behavioral:ContentSafety:LegalGoodsServices']
+                                   tags: ['avid-effect:security:S0300', 'owasp:2023:llm06', 'risk-cards:lmrc:providing_illegal_info', 'quality:Behavioral:ContentSafety:LegalGoodsServices']
                                mod_time: 2024-07-01 04:16:40 +0000
 
 Here, we see a list of the descriptive parameters of the plugin. We can see

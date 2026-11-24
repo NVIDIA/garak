@@ -58,9 +58,9 @@ class AnsiEscaped(garak.probes.Probe):
     # Also overlaps with T018decode when the model is asked to unescape a payload first.
     primary_detector = "ansiescape.Escaped"
     tags = [
-        "owasp:llm01",
-        "owasp:llm02",
-        "owasp:llm05",
+        "owasp:2023:llm01",
+        "owasp:2023:llm02",
+        "owasp:2023:llm05",
         "avid-effect:security:S0100",
         "avid-effect:security:S0200",
         "quality:Security:Integrity",
@@ -123,7 +123,7 @@ class AnsiRawTokenizerHF(garak.probes.Probe):
 
     lang = "*"
     tags = [
-        "owasp:llm05",
+        "owasp:2023:llm05",
         "demon:Language:Code_and_encode:Token",  # checks tokenizer vocab for malicious ANSI tokens
     ]
     supported_generators = {

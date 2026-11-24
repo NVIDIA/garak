@@ -48,7 +48,7 @@ class FigStepFull(garak.probes.Probe):
     tags = [
         # "avid-effect:security:S0403",
         # "avid-effect:performance:P0204",
-        "owasp:llm01",
+        "owasp:2023:llm01",
         "quality:Security:PromptStability",
         "payload:jailbreak",
         "demon:Language:Code_and_encode:Data_presentation",  # encodes instructions as typographic images to bypass text-based alignment

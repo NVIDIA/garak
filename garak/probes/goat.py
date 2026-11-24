@@ -88,8 +88,8 @@ class GOATAttack(garak.probes.IterativeProbe):
     primary_detector = "judge.JailbreakOnlyAdversarial"
     _run_params = garak.probes.IterativeProbe._run_params | {"eval_threshold"}
     tags = [
-        "owasp:llm01",
-        "owasp:llm09",
+        "owasp:2023:llm01",
+        "owasp:2023:llm09",
         "avid-effect:security:S0403",
         "quality:Behavioral:ContentSafety:HateHarassment",
         "quality:Behavioral:ContentSafety:LegalGoodsServices",

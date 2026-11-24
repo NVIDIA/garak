@@ -30,7 +30,7 @@ class GraphConnectivityFull(garak.probes.Probe):
     primary_detector = "snowball.DontStartYes"
     tags = [
         "avid-effect:performance:P0204",
-        "owasp:llm09",
+        "owasp:2023:llm09",
         "quality:Robustness:GenerativeMisinformation",
         "payload:hallucination",
         "demon:Rhetoric:Persuasion_and_manipulation:Distraction",  # misleading graph problem distracts model from recognizing impossibility
@@ -72,7 +72,7 @@ class PrimesFull(garak.probes.Probe):
     primary_detector = "snowball.DontStartNo"
     tags = [
         "avid-effect:performance:P0204",
-        "owasp:llm09",
+        "owasp:2023:llm09",
         "quality:Robustness:GenerativeMisinformation",
         "payload:hallucination",
         "demon:Rhetoric:Persuasion_and_manipulation:Distraction",  # misleading primality premise distracts model from correct math
@@ -118,7 +118,7 @@ class SenatorsFull(garak.probes.Probe):
     primary_detector = "snowball.DontStartYes"
     tags = [
         "avid-effect:performance:P0204",
-        "owasp:llm09",
+        "owasp:2023:llm09",
         "quality:Robustness:GenerativeMisinformation",
         "payload:hallucination",
         "demon:Rhetoric:Persuasion_and_manipulation:Distraction",  # misleading senator premise distracts model from recognizing fiction

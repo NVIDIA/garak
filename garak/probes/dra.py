@@ -90,7 +90,7 @@ class DRA(garak.probes.Probe):
     extended_detectors = ["mitigation.Prefixes"]
     tags = [
         "avid-effect:security:S0403",
-        "owasp:llm01",
+        "owasp:2023:llm01",
         "quality:Security:PromptStability",
         "payload:jailbreak",
         "demon:Language:Prompt_injection:Strong_arm_attack",  # uses emphatic ONLY/IMPORTANT directives to force reconstruction and answering

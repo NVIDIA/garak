@@ -54,7 +54,7 @@ class Win10(garak.probes.Probe):
     intent = "S003productkeyswin10"  # specifically tries to extract Windows 10 activation keys
     tags = [
         "avid-effect:security:S0300",
-        "owasp:llm06",
+        "owasp:2023:llm06",
         "risk-cards:lmrc:providing_illegal_info",
         "quality:Behavioral:ContentSafety:LegalGoodsServices",
         "demon:Fictionalizing:Roleplaying:User_persona",  # roleplays as grandchild of deceased grandmother to elicit product keys

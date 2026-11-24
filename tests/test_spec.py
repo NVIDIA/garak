@@ -108,7 +108,9 @@ def test_inactive_only_module_flagged_alongside_active(capsys):
     # surfaced via Resolution.inactive, not silently dropped
     res = resolve("probes.dan,probes.test", skip_unknown=True)
     assert res.probes, "the active family must still resolve"
-    assert "probes.test" in res.inactive, "all-inactive module must be flagged as inactive"
+    assert (
+        "probes.test" in res.inactive
+    ), "all-inactive module must be flagged as inactive"
     assert "probes.test" not in res.rejected, "inactive module is known, not unknown"
 
 
@@ -122,12 +124,16 @@ def test_negative_all_removes_all_probes():
 def test_negative_buffs_all_equals_star():
     minus_all = resolve("probes.lmrc.Bullying,buffs.all,-buffs.all")
     minus_star = resolve("probes.lmrc.Bullying,buffs.*,-buffs.*")
-    assert minus_all.buffs == [] == minus_star.buffs, "-buffs.all must clear all buffs like -buffs.*"
+    assert (
+        minus_all.buffs == [] == minus_star.buffs
+    ), "-buffs.all must clear all buffs like -buffs.*"
 
 
 def test_all_as_class_segment_is_literal_not_glob():
     res = resolve("probes.all.Something", skip_unknown=True)
-    assert res.probes == [], "probes.all.Something is a literal unknown class, not a glob"
+    assert (
+        res.probes == []
+    ), "probes.all.Something is a literal unknown class, not a glob"
     assert (
         "probes.all.Something" in res.rejected
     ), "an unknown literal class must be rejected, not silently globbed"
@@ -151,7 +157,9 @@ def test_all_via_file_transport():
 
 def test_buffs_selected_and_no_default():
     res = resolve("probes.dan,buffs.lowercase")
-    assert "buffs.lowercase.Lowercase" in res.buffs, "buffs.lowercase must select the buff"
+    assert (
+        "buffs.lowercase.Lowercase" in res.buffs
+    ), "buffs.lowercase must select the buff"
     assert resolve("probes.dan").buffs == [], "no buffs by default"
 
 
@@ -159,20 +167,20 @@ def test_buffs_selected_and_no_default():
 
 
 def test_tag_is_filter_intersection():
-    res = set(resolve("probes.grandma,tag:owasp:llm06").probes)
+    res = set(resolve("probes.grandma,tag:owasp:2023:llm06").probes)
     family = set(resolve("probes.grandma").probes)
     assert res <= family, "tag: must narrow, not expand the family"
-    assert res, "grandma should have probes tagged owasp:llm06"
+    assert res, "grandma should have probes tagged owasp:2023:llm06"
     assert all(
-        any(t.startswith("owasp:llm06") for t in plugin_info(p).get("tags", []))
+        any(t.startswith("owasp:2023:llm06") for t in plugin_info(p).get("tags", []))
         for p in res
-    ), "every surviving probe must carry the owasp:llm06 tag"
+    ), "every surviving probe must carry the owasp:2023:llm06 tag"
 
 
 def test_tag_multiple_is_or():
-    a = set(resolve("probes.grandma,tag:owasp:llm06").probes)
+    a = set(resolve("probes.grandma,tag:owasp:2023:llm06").probes)
     b = set(resolve("probes.grandma,tag:risk-cards").probes)
-    both = set(resolve("probes.grandma,tag:owasp:llm06,tag:risk-cards").probes)
+    both = set(resolve("probes.grandma,tag:owasp:2023:llm06,tag:risk-cards").probes)
     assert both == (a | b), "multiple tags must combine as OR"
 
 
@@ -218,7 +226,9 @@ def test_tier_contradiction_empty_with_reason():
     # ansiescape.AnsiEscaped is an active tier-3 probe; tier:1 admits only tier 1
     res = resolve("probes.ansiescape.AnsiEscaped,tier:1")
     assert res.probes == [], "tier:1 must drop a tier-3 explicit class"
-    assert res.empty_reason and "tier" in res.empty_reason, "reason must name the tier conflict"
+    assert (
+        res.empty_reason and "tier" in res.empty_reason
+    ), "reason must name the tier conflict"
 
 
 def test_fully_excluded_include_empty_with_reason():
@@ -236,9 +246,9 @@ def test_none_selects_no_probes():
 
 
 def test_bare_none_is_probes_none():
-    assert resolve("none").probes == resolve("probes.none").probes == [], (
-        "bare 'none' must behave as probes.none (empty selection)"
-    )
+    assert (
+        resolve("none").probes == resolve("probes.none").probes == []
+    ), "bare 'none' must behave as probes.none (empty selection)"
 
 
 def test_none_distinct_from_unspecified():
@@ -299,26 +309,39 @@ def test_intent_round_trip():
     }, "intent selectors must serialise to single-key {intent: code} mappings"
     again = parse_spec_file(spec.to_file_dict())
     assert (again.include[0].kind, again.include[0].value) == ("intent", "S004")
-    assert (again.exclude[0].kind, again.exclude[0].value) == ("intent", "S005profanity")
+    assert (again.exclude[0].kind, again.exclude[0].value) == (
+        "intent",
+        "S005profanity",
+    )
 
 
 def test_intent_default_injected_when_absent():
     res = resolve("probes.dan")
-    assert res.intents == ["S"], "DEFAULT_INTENT_SCOPE must be injected when no intent: given"
-    assert res.intents_explicit is False, "injected default is not an explicit intent selection"
+    assert res.intents == [
+        "S"
+    ], "DEFAULT_INTENT_SCOPE must be injected when no intent: given"
+    assert (
+        res.intents_explicit is False
+    ), "injected default is not an explicit intent selection"
 
 
 def test_intent_explicit_overrides_default():
     res = resolve("probes.dan,intent:S004,-intent:S005profanity")
     assert res.intents == ["S004"], "explicit intent: replaces the injected default"
-    assert res.blocked_intents == ["S005profanity"], "-intent: codes recorded as blocked"
-    assert res.intents_explicit is True, "user-supplied intent: marks the selection explicit"
+    assert res.blocked_intents == [
+        "S005profanity"
+    ], "-intent: codes recorded as blocked"
+    assert (
+        res.intents_explicit is True
+    ), "user-supplied intent: marks the selection explicit"
 
 
 def test_intent_does_not_filter_probe_set():
     with_intent = set(resolve("probes.dan,intent:S004").probes)
     without = set(resolve("probes.dan").probes)
-    assert with_intent == without, "intent: must not add or remove probes (separate axis)"
+    assert (
+        with_intent == without
+    ), "intent: must not add or remove probes (separate axis)"
 
 
 def test_intent_invalid_format_rejected():
@@ -331,7 +354,9 @@ def test_intent_invalid_format_rejected():
 @pytest.mark.parametrize("token", ["intent:*", "intent:all"])
 def test_intent_all_selector_not_rejected(token):
     res = resolve(f"probes.dan,{token}")
-    assert res.rejected == [], "intent:* / intent:all are valid (all intents), not rejected"
+    assert (
+        res.rejected == []
+    ), "intent:* / intent:all are valid (all intents), not rejected"
     assert res.intents and res.intents[0].lower() in (
         "*",
         "all",
@@ -345,9 +370,13 @@ def test_intent_comma_value_rejected():
 
 def test_intent_exclude_only_applies_to_default():
     res = resolve("probes.dan,-intent:S004")
-    assert res.intents == ["S"], "exclude-only keeps the injected default include (DEFAULT_INTENT_SCOPE)"
+    assert res.intents == [
+        "S"
+    ], "exclude-only keeps the injected default include (DEFAULT_INTENT_SCOPE)"
     assert res.blocked_intents == ["S004"], "the -intent: code is recorded as blocked"
-    assert res.intents_explicit is True, "a lone -intent: still counts as an explicit intent selection"
+    assert (
+        res.intents_explicit is True
+    ), "a lone -intent: still counts as an explicit intent selection"
 
 
 # --- T9: unknown / skip_unknown -------------------------------------------
@@ -357,7 +386,9 @@ def test_unknown_rejected_raises_unless_skipped():
     with pytest.raises(ValueError, match="unknown run.spec"):
         resolve("probes.doesnotexist")
     res = resolve("probes.dan,probes.doesnotexist", skip_unknown=True)
-    assert "probes.doesnotexist" in res.rejected, "unknown selector recorded in rejected"
+    assert (
+        "probes.doesnotexist" in res.rejected
+    ), "unknown selector recorded in rejected"
     assert res.probes, "known selectors still resolve under skip_unknown"
 
 
@@ -366,7 +397,9 @@ def test_unknown_rejected_raises_unless_skipped():
 
 def test_exclude_wins_over_explicit_include():
     res = resolve("probes.dan.AutoDANCached,-probes.dan")
-    assert "probes.dan.AutoDANCached" not in res.probes, "exclude of family wins over explicit class"
+    assert (
+        "probes.dan.AutoDANCached" not in res.probes
+    ), "exclude of family wins over explicit class"
 
 
 # --- T13: implicit default ------------------------------------------------
@@ -378,13 +411,19 @@ def test_empty_string_is_probes_star():
 
 def test_buff_only_keeps_default_probes():
     res = resolve("buffs.lowercase")
-    assert set(res.probes) == _active("probes"), "buff-only spec keeps implicit probes.*"
+    assert set(res.probes) == _active(
+        "probes"
+    ), "buff-only spec keeps implicit probes.*"
     assert "buffs.lowercase.Lowercase" in res.buffs
 
 
 def test_tag_only_filters_default_active():
-    res = set(resolve("tag:owasp:llm06").probes)
-    expected = {p for p in _active("probes") if any(t.startswith("owasp:llm06") for t in plugin_info(p).get("tags", []))}
+    res = set(resolve("tag:owasp:2023:llm06").probes)
+    expected = {
+        p
+        for p in _active("probes")
+        if any(t.startswith("owasp:2023:llm06") for t in plugin_info(p).get("tags", []))
+    }
     assert res == expected, "tag-only spec filters the default-active universe"
 
 
@@ -394,7 +433,9 @@ def test_tag_only_filters_default_active():
 def test_buff_subtractive_all_minus_one():
     res = resolve("probes.lmrc.Bullying,buffs.*,-buffs.paraphrase")
     assert res.buffs, "buffs.* selects active buffs"
-    assert not any(b.startswith("buffs.paraphrase.") for b in res.buffs), "-buffs.paraphrase removed"
+    assert not any(
+        b.startswith("buffs.paraphrase.") for b in res.buffs
+    ), "-buffs.paraphrase removed"
     assert len(res.probes) == 1, "single probe keeps attempts low"
 
 
@@ -430,7 +471,7 @@ def test_whitespace_between_selectors_rejected(spec):
 
 
 def test_tag_tier_do_not_touch_buffs():
-    res = resolve("buffs.*,tag:owasp:llm01,tier:1")
+    res = resolve("buffs.*,tag:owasp:2023:llm01,tier:1")
     assert set(res.buffs) == _active("buffs"), "tag/tier filters must not remove buffs"
 
 
@@ -444,7 +485,7 @@ def test_tag_tier_do_not_touch_buffs():
         "probes.all",
         "probes.all,-probes.dan.DanInTheWild,buffs.all",
         "probes.dan,-probes.dan.DanInTheWild,buffs.encoding.Base64",
-        "tier:2,tag:owasp:llm01",
+        "tier:2,tag:owasp:2023:llm01",
         "buffs.lowercase",
         "+probes.*,+tier:3,-tier:2",
     ],
@@ -459,9 +500,12 @@ def test_cli_file_semantic_parity(spec_str):
 
 def test_file_mapping_form():
     spec = parse_spec_file(
-        {"include": ["probes.dan", {"tag": "owasp:llm01"}], "exclude": [{"tier": 3}]}
+        {
+            "include": ["probes.dan", {"tag": "owasp:2023:llm01"}],
+            "exclude": [{"tier": 3}],
+        }
     )
-    assert any(s.kind == "tag" and s.value == "owasp:llm01" for s in spec.include)
+    assert any(s.kind == "tag" and s.value == "owasp:2023:llm01" for s in spec.include)
     assert any(s.kind == "tier" and s.value == "3" for s in spec.exclude)
 
 
@@ -471,13 +515,13 @@ def test_file_mapping_form():
         (
             "dan,lmrc",
             "lowercase",
-            "owasp:llm01",
+            "owasp:2023:llm01",
             {
                 "include": [
                     "probes.dan",
                     "probes.lmrc",
                     "buffs.lowercase",
-                    {"tag": "owasp:llm01"},
+                    {"tag": "owasp:2023:llm01"},
                 ],
                 "exclude": [],
             },
@@ -504,3 +548,13 @@ def test_legacy_selection_spec_rejects_category_prefixed_value(probe_spec, buff_
 
     with pytest.raises(ValueError, match="already carries a category prefix"):
         legacy_selection_spec(probe_spec, buff_spec, None)
+
+
+def test_tag_selection_owasp_year_qualified():
+    res_year = set(resolve("tag:owasp:2023").probes)
+    res_specific = set(resolve("tag:owasp:2023:llm01").probes)
+    assert res_year, "tag:owasp:2023 must select active probes"
+    assert res_specific, "tag:owasp:2023:llm01 must select active probes"
+    assert (
+        res_specific <= res_year
+    ), "owasp:2023:llm01 probes must be a subset of owasp:2023 probes"

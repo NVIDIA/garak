@@ -31,7 +31,7 @@ class SystemPromptExtraction(Probe):
     primary_detector = "sysprompt_extraction.PromptExtraction"
     tags = [
         "avid-effect:security:S0301",
-        "owasp:llm01",
+        "owasp:2023:llm01",
         "quality:Security:PromptStability",
         "euai:robustness:adversarial",
     ]

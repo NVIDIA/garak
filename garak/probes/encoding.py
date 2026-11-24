@@ -59,7 +59,7 @@ class EncodingMixin:
 
     tags = [
         "avid-effect:security:S0403",
-        "owasp:llm01",
+        "owasp:2023:llm01",
         "quality:Security:PromptStability",
         "payload:generic",
         "demon:Language:Code_and_encode:Data_encoding",  # encodes payloads in base64/ROT13/hex/etc. to bypass input filters
@@ -570,7 +570,7 @@ class EncodingIntentProbe(garak.probes.IntentProbe, ABC):
     primary_detector = "mitigation.MitigationBypass"
     tags = [
         "avid-effect:security:S0403",
-        "owasp:llm01",
+        "owasp:2023:llm01",
         "quality:Security:PromptStability",
         "payload:generic",
         "demon:Language:Code_and_encode:Data_encoding",

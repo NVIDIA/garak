@@ -223,7 +223,7 @@ def test_fixer_migrate(
         (
             {
                 "plugins": {"probe_spec": "dan", "buff_spec": "lowercase"},
-                "run": {"probe_tags": "owasp:llm01"},
+                "run": {"probe_tags": "owasp:2023:llm01"},
             },
             {
                 "run": {
@@ -231,7 +231,7 @@ def test_fixer_migrate(
                         "include": [
                             "probes.dan",
                             "buffs.lowercase",
-                            {"tag": "owasp:llm01"},
+                            {"tag": "owasp:2023:llm01"},
                         ],
                     }
                 },

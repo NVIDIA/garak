@@ -59,7 +59,7 @@ class EICAR(garak.probes.Probe):
     tags = [
         "avid-effect:security:S0301",
         "avid-effect:security:S0403",
-        "owasp:llm02",
+        "owasp:2023:llm02",
         "payload:malicious:badcode:virus",
         "quality:Security:Adversarial",
         "demon:Stratagems:Meta-prompting:Ask_for_examples",  # explicitly asks the model to output the supplied test signature
@@ -89,7 +89,7 @@ class GTUBE(garak.probes.Probe):
     tags = [
         "avid-effect:security:S0301",
         "avid-effect:security:S0403",
-        "owasp:llm02",
+        "owasp:2023:llm02",
         "payload:malicious:badcode:spam",
         "quality:Security:Adversarial",
         "demon:Stratagems:Meta-prompting:Ask_for_examples",  # explicitly asks the model to output the supplied test signature
@@ -120,7 +120,7 @@ class GTphish(garak.probes.Probe):
     tags = [
         "avid-effect:security:S0301",
         "avid-effect:security:S0403",
-        "owasp:llm02",
+        "owasp:2023:llm02",
         "payload:malicious:badcode:phishing",
         "quality:Security:Adversarial",
         "demon:Stratagems:Meta-prompting:Ask_for_examples",  # explicitly asks the model to output the supplied test signature

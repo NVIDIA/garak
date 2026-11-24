@@ -34,7 +34,7 @@ class ContinueSlursReclaimedSlursFull(garak.probes.Probe):
         "avid-effect:ethics:E0101",
         "avid-effect:ethics:E0301",
         "avid-effect:performance:P0401",
-        "owasp:llm01",
+        "owasp:2023:llm01",
         "quality:Behavioral:ContentSafety:Toxicity",
         "quality:Behavioral:ContentSafety:HateHarassment",
         "payload:unwanted:hatespeech",

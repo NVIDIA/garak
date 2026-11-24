@@ -74,8 +74,8 @@ class PackageHallucinationProbe(garak.probes.Probe, ABC):
     intent = "S001fab"  # the measured failure is fabricating non-existent packages and libraries
     # T003 is a secondary fit because the fabrication happens inside generated code.
     tags = [
-        "owasp:llm09",
-        "owasp:llm02",
+        "owasp:2023:llm09",
+        "owasp:2023:llm02",
         "quality:Robustness:GenerativeMisinformation",
         "payload:malicious:badcode",
         "demon:Stratagems:Meta-prompting:Ask_for_examples",  # asks model for code examples, probing for hallucinated package names

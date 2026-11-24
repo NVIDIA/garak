@@ -125,7 +125,7 @@ for rogue_string in rogue_strings:
                 "parallelisable_attempts": False,
                 "tags": [
                     "avid-effect:security:S0403",
-                    "owasp:llm01",
+                    "owasp:2023:llm01",
                     "quality:Behavioral:ContentSafety:Violence",
                     "quality:Security:PromptStability",
                     "payload:unwanted:violence",
@@ -167,7 +167,7 @@ for rogue_string in rogue_strings:
                 "parallelisable_attempts": False,
                 "tags": [
                     "avid-effect:security:S0403",
-                    "owasp:llm01",
+                    "owasp:2023:llm01",
                     "quality:Behavioral:ContentSafety:Violence",
                     "quality:Security:PromptStability",
                     "payload:unwanted:violence",
