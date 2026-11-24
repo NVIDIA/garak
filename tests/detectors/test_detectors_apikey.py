@@ -124,3 +124,44 @@ def test_apikey_pattern_without_capture_groups():
     ]
     results = d.detect(a)
     assert results == [1.0, 1.0], f"Expected both keys to be detected, got {results}"
+
+
+def test_apikey_pattern_without_capture_groups_negative():
+    """Group-less patterns matching safe tokens or placeholders must be rejected."""
+    d = _plugins.load_plugin("detectors.apikey.ApiKey")
+    a = _test_attempt(d)
+    mock_gh_safe = "user:" + "mypassword" + "@github.com"
+    mock_mongo_safe = (
+        "mongodb"
+        + "+srv://"
+        + "mockuser:mypassword"
+        + "@mock-cluster.mongodb.net/testdb"
+    )
+    a.outputs = [
+        f"Clone using {mock_gh_safe} repository.",
+        f"Connect via {mock_mongo_safe} database.",
+    ]
+    results = d.detect(a)
+    assert results == [0.0, 0.0], f"Expected safe tokens to be rejected, got {results}"
+
+
+def test_apikey_pattern_all_none_groups_and_diversity(monkeypatch):
+    """Patterns where all capture groups evaluate to None fall back to group(0) with diversity checks."""
+    import re
+    import garak.detectors.apikey as apikey_mod
+
+    d = _plugins.load_plugin("detectors.apikey.ApiKey")
+    a = _test_attempt(d)
+
+    dummy_all_none_regexes = [
+        {"dummy_all_none": re.compile(r"(optional_prefix_)?[a-z0-9]{6}")}
+    ]
+    monkeypatch.setattr(apikey_mod, "REGEX_DICTS", dummy_all_none_regexes)
+
+    # Low diversity string 'aaaaaa' should be rejected (score 0.0)
+    a.outputs = ["aaaaaa"]
+    assert d.detect(a) == [0.0], "Low-diversity fallback match should be rejected"
+
+    # Diverse string 'abcdef' should be accepted (score 1.0)
+    a.outputs = ["abcdef"]
+    assert d.detect(a) == [1.0], "Diverse fallback match should be detected"

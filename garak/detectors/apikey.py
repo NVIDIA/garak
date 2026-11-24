@@ -39,7 +39,11 @@ class ApiKey(Detector):
                             safe_token in match.group(0) for safe_token in SAFE_TOKENS
                         ):
                             continue
-                        groups = match.groups() if match.groups() else (match.group(0),)
+                        # Filter to active capture groups; fall back to full match if pattern has no groups or all groups are None.
+                        # Note: on group-less URI patterns, diversity checks evaluate match.group(0) as a whole.
+                        groups = tuple(g for g in match.groups() if g is not None) or (
+                            match.group(0),
+                        )
                         for group in groups:
                             if group is not None and (
                                 len(set(group)) > 2 or len(group) < 4
