@@ -72,9 +72,7 @@ const SummaryStatsCard = ({ modules }: SummaryStatsCardProps) => {
     return "success";
   };
 
-  const mainStatusText = hasIssues
-    ? `${summary.concerning.length}/${summary.totalModules} modules are below DC-3`
-    : `${summary.totalModules} modules evaluated - all secure`;
+  const mainStatusText = `${summary.concerning.length}/${summary.totalModules} modules are below DC-3`;
 
   return (
     <Notification
@@ -84,6 +82,7 @@ const SummaryStatsCard = ({ modules }: SummaryStatsCardProps) => {
       slotSubheading={
         <Stack gap="density-lg">
           <Text kind="title/md">{mainStatusText}</Text>
+          <Text kind="body/regular/sm">Based on module aggregate scores.</Text>
         </Stack>
       }
       slotFooter={

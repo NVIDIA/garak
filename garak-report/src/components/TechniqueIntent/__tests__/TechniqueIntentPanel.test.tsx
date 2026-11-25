@@ -1,174 +1,88 @@
 /**
- * @file TechniqueIntentPanel.test.tsx
- * @description Integration tests for the Techniques & Intents tab: the severity
- *              summary, notable-pairings callout, filter/sort controls, and
- *              the empty state for reports without a matrix.
- *
  * @copyright NVIDIA Corporation 2023-2026
  * @license Apache-2.0
  */
 
-import { render, screen, fireEvent, within } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
-import type { ReactNode } from "react";
+import { option, focusMatrix as matrix, dispatch } from "./heatmapFixtures";
+import { render, screen, within } from "@testing-library/react";
+import { describe, it, expect } from "vitest";
 import TechniqueIntentPanel from "../TechniqueIntentPanel";
-import type { TechniqueIntentMatrix } from "../../../types/ReportEntry";
-import type {
-  MockAccordionProps,
-  MockBadgeProps,
-  MockButtonProps,
-  MockFlexProps,
-  MockGridProps,
-  MockGroupProps,
-  MockNotificationProps,
-  MockPanelProps,
-  MockSegmentedControlProps,
-  MockStackProps,
-  MockStatusMessageProps,
-  MockTabsProps,
-  MockTextProps,
-  MockTooltipProps,
-} from "../../../test-utils/mockTypes";
-
-interface MockCardProps extends MockFlexProps {
-  slotHeader?: ReactNode;
-}
-
-vi.mock("@kui/react", () => ({
-  Accordion: ({ items }: MockAccordionProps) => (
-    <div data-testid="accordion">
-      {items.map(item => (
-        <div key={item.value} data-testid="accordion-item">
-          {item.slotTrigger}
-          {item.slotContent}
-        </div>
-      ))}
-    </div>
-  ),
-  Badge: ({ children }: MockBadgeProps) => <span>{children}</span>,
-  Button: ({ children, onClick }: MockButtonProps) => <button onClick={onClick}>{children}</button>,
-  Card: ({ slotHeader, children }: MockCardProps) => (
-    <div data-testid="card">
-      <div>{slotHeader}</div>
-      {children}
-    </div>
-  ),
-  Divider: () => <hr />,
-  Flex: ({ children }: MockFlexProps) => <div>{children}</div>,
-  Grid: ({ children }: MockGridProps) => <div>{children}</div>,
-  Group: ({ children }: MockGroupProps) => <div>{children}</div>,
-  Notification: ({ slotHeading, slotSubheading }: MockNotificationProps) => (
-    <div data-testid="notification">
-      <div data-testid="notification-heading">{slotHeading}</div>
-      <div>{slotSubheading}</div>
-    </div>
-  ),
-  Panel: ({ children }: MockPanelProps) => <div>{children}</div>,
-  Stack: ({ children }: MockStackProps) => <div>{children}</div>,
-  SegmentedControl: ({ items, onValueChange }: MockSegmentedControlProps) => (
-    <div>
-      {items.map(item => (
-        <button
-          key={item.value}
-          data-testid={`seg-${item.value}`}
-          onClick={() => onValueChange?.(item.value)}
-        >
-          {item.children}
-        </button>
-      ))}
-    </div>
-  ),
-  StatusMessage: ({ slotHeading, slotSubheading }: MockStatusMessageProps) => (
-    <div data-testid="status-message">
-      <div data-testid="status-heading">{slotHeading}</div>
-      <div>{slotSubheading}</div>
-    </div>
-  ),
-  Tabs: ({ items, onValueChange }: MockTabsProps) => (
-    <div data-testid="tabs">
-      {items.map(item => (
-        <div key={item.value}>
-          <button data-testid={`tab-${item.value}`} onClick={() => onValueChange?.(item.value)}>
-            {item.children}
-          </button>
-          <div data-testid={`tabpanel-${item.value}`}>{item.slotContent}</div>
-        </div>
-      ))}
-    </div>
-  ),
-  Text: ({ children }: MockTextProps) => <span>{children}</span>,
-  Tooltip: ({ children, slotContent }: MockTooltipProps) => (
-    <div>
-      {children}
-      {slotContent}
-    </div>
-  ),
-}));
-
-vi.mock("echarts-for-react", () => ({
-  __esModule: true,
-  default: () => <div data-testid="echarts" />,
-}));
-
-const score = (s: number) => ({
-  score: s,
-  passed: Math.round(s * 100),
-  total_evaluated: 100,
-  nones: 0,
-  n_attempts: 100,
-  n_detectors: 1,
-});
-
-// An interaction pairing: (one × i1) fails at 0 while both its row and column
-// reach 1.0 elsewhere, so findNotablePairings surfaces it.
-const matrix: TechniqueIntentMatrix = {
-  "demon:T:Sub:one": { i1: score(0), i2: score(1) },
-  "demon:T:Sub:two": { i1: score(1) },
-};
-
 describe("TechniqueIntentPanel", () => {
-  it("shows an empty state when the report has no taxonomy data", () => {
+  it("shows an empty state for reports without taxonomy data", () => {
     render(<TechniqueIntentPanel />);
-    expect(screen.getByTestId("status-heading")).toHaveTextContent(
-      "No technique/intent data in this report"
-    );
+    expect(
+      screen.getByText("No technique/intent data in this report"),
+      "older reports retain their empty state"
+    ).toBeVisible();
   });
 
-  it("renders the tabs and notable pairings for a matrix", () => {
+  it("uses a single heatmap and inline details without duplicate taxonomy lists", () => {
     render(<TechniqueIntentPanel techniqueIntent={matrix} />);
-    expect(screen.getByTestId("tab-technique"), "technique tab present").toBeInTheDocument();
-    expect(screen.getByTestId("tab-intent"), "intent tab present").toBeInTheDocument();
     expect(
-      screen.getByTestId("notification-heading"),
-      "interaction callout renders"
-    ).toHaveTextContent("Notable pairings");
+      screen.getByRole("grid", { name: "Technique by intent pass rates" }),
+      "the matrix is the main view"
+    ).toBeVisible();
+    expect(screen.queryByText("By technique"), "the technique list is removed").toBeNull();
+    expect(screen.queryByText("By intent"), "the intent list is removed").toBeNull();
+    dispatch("click", { componentType: "yAxis", value: "t1" });
+    expect(
+      screen.getByText("Pass rate by intent. Click a bar for the pass/fail breakdown."),
+      "row breakdown remains available"
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "Open in list" }),
+      "there is no redundant navigation action"
+    ).toBeNull();
   });
 
-  it("jumps to the pairing detail when a notable pairing is clicked", () => {
+  it("opens pairing details directly after the matrix without a recommendations banner", () => {
     render(<TechniqueIntentPanel techniqueIntent={matrix} />);
-    // The callout lists each interaction as a single clickable shortcut.
-    const callout = screen.getByTestId("notification");
-    const shortcut = within(callout).getByRole("button");
-    fireEvent.click(shortcut);
     expect(
-      screen.getByTestId("tabs"),
-      "panel stays mounted after jumping to a pairing"
-    ).toBeInTheDocument();
+      screen.queryByText("Notable pairings"),
+      "no heuristic recommendations interrupt exploration"
+    ).toBeNull();
+    const pairing = {
+      componentType: "series",
+      data: { rowKey: "t1", colKey: "i1", value: [0, 0, 0] },
+    };
+    dispatch("click", pairing);
+    expect(screen.getByText("Passed"), "pairing counts still open inline").toBeVisible();
+    expect(option.graphic.elements[0].ignore, "the selected cell remains outlined").toBe(false);
+    dispatch("click", pairing);
+    expect(
+      screen.queryByRole("button", { name: "Clear selection" }),
+      "direct cell selection still toggles off"
+    ).toBeNull();
   });
 
-  it("drives the filter, sort and tab controls", () => {
-    render(<TechniqueIntentPanel techniqueIntent={matrix} isDark />);
-
-    // Sort alphabetically.
-    fireEvent.click(screen.getByTestId("seg-alphabetical"));
-    // Toggle a DEFCON level off in the shared filter bar.
-    fireEvent.click(screen.getByTitle(/DEFCON 1\./));
-    // Switch to the intent tab.
-    fireEvent.click(screen.getByTestId("tab-intent"));
-
+  it("shows one numeric legend and retains risk-first ordering without focus controls", () => {
+    render(<TechniqueIntentPanel techniqueIntent={matrix} />);
+    const legend = within(screen.getByRole("group", { name: "Pass rate legend" }));
+    expect(legend.getByText("0%"), "the legend shows the lowest pass rate").toBeVisible();
+    expect(legend.getByText("100%"), "the legend shows the highest pass rate").toBeVisible();
+    expect(legend.getByText("Not evaluated"), "missing data has a separate key").toBeVisible();
     expect(
-      screen.getByTestId("tabs"),
-      "panel stays mounted through interactions"
-    ).toBeInTheDocument();
+      legend.getByText("Lower means more failures"),
+      "score direction is explicit"
+    ).toBeVisible();
+    expect(screen.getAllByText("Pass rate"), "the metric is explained once").toHaveLength(1);
+    expect(
+      screen.queryByRole("button", { name: /^DC-/ }),
+      "risk focus has been removed"
+    ).toBeNull();
+    expect(option.yAxis.data, "the matrix retains its default risk-first order").toEqual([
+      "t1",
+      "t2",
+    ]);
+    const colours = option.series[0].data.map(point => point.itemStyle.color);
+    dispatch("click", {
+      componentType: "series",
+      data: { rowKey: "t1", colKey: "i1", value: [0, 0, 0] },
+    });
+    expect(
+      option.series[0].data.map(point => point.itemStyle.color),
+      "selection preserves score colours"
+    ).toEqual(colours);
+    expect(screen.getByText("DC-1"), "DEFCON remains available in details").toBeVisible();
   });
 });
