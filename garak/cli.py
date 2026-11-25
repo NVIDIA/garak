@@ -802,6 +802,7 @@ def main(arguments=None) -> None:
             print(f"📜 reporting to {_config.transient.report_filename}")
 
             command.warn_unconsumed_intents(parsed_specs["probe"])
+            command.warn_unsent_system_prompt(generator)
 
             if parsed_specs["detector"] == []:
                 command.probewise_run(
