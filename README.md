@@ -1,4 +1,4 @@
-# garak, vulnerability scanner for LLM-backed applications
+# garak, LLM vulnerability scanner
 
 *Generative AI Red-teaming & Assessment Kit*
 
@@ -27,7 +27,7 @@
 ### > Discord: [discord.gg/uVch4puUCs](https://discord.gg/uVch4puUCs)
 ### > Project links & home: [garak.ai](https://garak.ai/)
 ### > Twitter: [@garak_llm](https://twitter.com/garak_llm)
-### > DEF CON talk: [slides](https://garak.ai/garak_aiv_slides.pdf)
+### > DEF CON talk: [slides](https://reference.garak.ai/en/latest/_static/garak_aiv_slides.pdf)
 
 <hr>
 
