@@ -582,7 +582,9 @@ def test_attempt_sticky_params(capsys):
         if record.get("entry_type") == "attempt"
         and record.get("status") == garak.attempt.ATTEMPT_COMPLETE
     ]
-    complete_with_notes = next(record for record in completed_attempts if record["notes"])
+    complete_with_notes = next(
+        record for record in completed_attempts if record["notes"]
+    )
     complete_without_notes = next(
         record for record in completed_attempts if not record["notes"]
     )
@@ -637,6 +639,21 @@ def test_outputs_for():
     assert all_output_a.outputs_for(None) == tlh_outputs
     assert all_output_a.outputs_for("*") == tlh_outputs
     assert all_output_a.outputs_for("en") == reverse_outputs
+
+
+def test_outputs_for_falls_back_when_reverse_translation_is_unavailable():
+    prompt = garak.attempt.Message("eNa'bRaN tayn", lang="tlh")
+    outputs = [
+        garak.attempt.Message("DajlI' QInvam", lang="tlh"),
+        garak.attempt.Message("nuqneH", lang="tlh"),
+    ]
+
+    attempt = garak.attempt.Attempt(prompt=prompt)
+    attempt.outputs = outputs
+
+    assert (
+        attempt.outputs_for("en") == outputs
+    ), "missing translation must preserve output alignment"
 
 
 LANG_SPEC_MATCHES = [
