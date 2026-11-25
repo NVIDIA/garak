@@ -50,13 +50,20 @@ def variant_smuggling(payload: str):
     variant selectors that can be concatenated together, according to the unicode spec.
     https://www.unicode.org/versions/Unicode16.0.0/
 
+    Each UTF-8 byte maps to one selector as in
+    https://paulbutler.org/2025/smuggling-arbitrary-data-through-an-emoji/ : bytes 0-15 to
+    U+FE00-U+FE0F, bytes 16-255 to U+E0100-U+E01EF.
+
     Args:
         payload (str): Payload to be encoded
 
     Returns:
         encoded_payload (str): The payload encoded in variant selectors.
     """
-    encoded_payload = "".join(chr(0xE0100 + ord(ch)) for ch in payload)
+    encoded_payload = "".join(
+        chr(0xFE00 + byte) if byte < 16 else chr(0xE0100 + byte - 16)
+        for byte in payload.encode("utf-8")
+    )
     return encoded_payload
 
 
@@ -65,6 +72,7 @@ def sneaky_bits_smuggling(payload: str):
     Use Sneaky Bits as described by Johann Rehberger in
     https://embracethered.com/blog/posts/2025/sneaky-bits-and-ascii-smuggler/ to encode
     ASCII characters using invisible times (U+2062) and invisible plus (U+2064) to encode 0 and 1.
+    Each UTF-8 byte is written as eight bits, so the output can be split back into bytes.
 
     We replace spaces with zero-width space (U+200B).
 
@@ -80,6 +88,7 @@ def sneaky_bits_smuggling(payload: str):
         if ord(ch) == 0x20:
             encoded_payload.append(chr(0x200B))
         else:
-            for rep in bin(ord(ch)).removeprefix("0b"):
-                encoded_payload.append(char_map[rep])
+            for byte in ch.encode("utf-8"):
+                for rep in f"{byte:08b}":
+                    encoded_payload.append(char_map[rep])
     return "".join(encoded_payload)
