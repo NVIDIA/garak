@@ -16,6 +16,8 @@ class MistralGenerator(Generator):
     Expects API key in MISTRAL_API_TOKEN environment variable.
     """
 
+    supports_system_prompt = True
+
     generator_family_name = "mistral"
     fullname = "Mistral AI"
     supports_multiple_generations = False

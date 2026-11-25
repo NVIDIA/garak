@@ -29,6 +29,8 @@ class LangChainLLMGenerator(Generator):
     * There's no support for chains, just the langchain LLM interface.
     """
 
+    supports_system_prompt = True
+
     DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
         "temperature": 0.750,
         "k": 0,

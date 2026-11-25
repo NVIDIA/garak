@@ -111,6 +111,7 @@ class Pipeline(Generator, HFCompatible):
                 hasattr(self.generator.tokenizer, "chat_template")
                 and self.generator.tokenizer.chat_template is not None
             )
+        self.supports_system_prompt = self.use_chat
         if not hasattr(self, "deprefix_prompt"):
             self.deprefix_prompt = self.name in models_to_deprefix
         if _config.is_loaded:
@@ -186,6 +187,8 @@ class Pipeline(Generator, HFCompatible):
 
 class InferenceAPI(Generator):
     """Get text generations from Hugging Face Inference API"""
+
+    supports_system_prompt = True
 
     generator_family_name = "Hugging Face 🤗 Inference API"
     supports_multiple_generations = True
@@ -431,6 +434,7 @@ class Model(Pipeline, HFCompatible):
                 hasattr(self.tokenizer, "chat_template")
                 and self.tokenizer.chat_template is not None
             )
+        self.supports_system_prompt = self.use_chat
 
         self.generation_config = transformers.GenerationConfig.from_pretrained(
             self.name

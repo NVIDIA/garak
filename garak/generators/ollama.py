@@ -156,6 +156,8 @@ class OllamaGeneratorChat(OllamaGenerator):
     Model names can be passed in short form like "llama2" or specific versions or sizes like "gemma:7b" or "llama2:latest"
     """
 
+    supports_system_prompt = True
+
     @backoff.on_exception(
         backoff.fibo,
         GeneratorBackoffTrigger,

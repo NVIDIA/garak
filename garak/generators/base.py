@@ -47,6 +47,9 @@ class Generator(Configurable):
         False  # can more than one generation be extracted per request?
     )
 
+    # does the request sent to the target carry the conversation's system turn?
+    supports_system_prompt = False
+
     def __init__(self, name="", config_root=_config):
         self._load_config(config_root)
         if "description" not in dir(self):
