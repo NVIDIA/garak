@@ -967,7 +967,7 @@ class ToolChain(AgentBreaker):
     _STEP_TEXT_CHAR_LIMIT = 2000  # one step request or target response
     _CONTEXT_CHAR_LIMIT = 8000  # rendered prior steps, history, or artifacts
     _HELPER_PROMPT_CHAR_LIMIT = 32_000  # one helper-model prompt or response
-    _ARTIFACTS_PER_STEP_LIMIT = 16  # includes useful fields beyond the plan's aliases
+    _ARTIFACTS_PER_STEP_LIMIT = 32  # includes useful fields beyond the plan's aliases
 
     _TOOL_TAG_FIELDS = frozenset(
         {
@@ -2594,23 +2594,16 @@ class ToolChain(AgentBreaker):
             not isinstance(parsed, dict)
             or set(parsed) != {"artifacts"}
             or not isinstance(parsed["artifacts"], list)
-            or len(parsed["artifacts"]) > self._ARTIFACTS_PER_STEP_LIMIT
         ):
             return []
         values = {}
-        ambiguous = set()
-        for item in parsed["artifacts"]:
+        for item in parsed["artifacts"][: self._ARTIFACTS_PER_STEP_LIMIT]:
             if not validate_artifact(
                 item, request, response, self._NAME_CHAR_LIMIT, self._FIELD_CHAR_LIMIT
             ):
                 continue
-            name = item["name"].casefold()
-            if name in values and (
-                type(values[name]["value"]) is not type(item["value"])
-                or values[name]["value"] != item["value"]
-            ):
-                ambiguous.add(name)
-            values[name] = item
+            # key on name AND value: a list (e.g. many product_id) keeps every item
+            values[(item["name"].casefold(), repr(item["value"]))] = item
         return [
             {
                 **item,
@@ -2618,8 +2611,7 @@ class ToolChain(AgentBreaker):
                 "step": step_index + 1,
                 "tool": chain["sequence"][step_index],
             }
-            for index, (name, item) in enumerate(values.items())
-            if name not in ambiguous
+            for index, item in enumerate(values.values())
         ]
 
     def _format_prior_artifacts(self, chain: dict) -> str:
@@ -2720,6 +2712,7 @@ class ToolChain(AgentBreaker):
             ),
             "prior_artifacts": self._format_prior_artifacts(chain),
             "vulnerabilities": chain.get("vulnerabilities", ""),
+            "artifact_choice_rule": self._prompts["ARTIFACT_CHOICE_RULE"].strip(),
         }
 
     def _generate_step_attack_prompt(
@@ -2820,12 +2813,14 @@ class ToolChain(AgentBreaker):
         if request is None:
             return None, ""
         tool = (chain.get("sequence") or [])[step_index]
+        logging.info("%s # %s step input_bindings: %r", self.__class__.__name__, tool, input_bindings)
         if not isinstance(input_bindings, list):
             return self._reject_step_request(
                 tool, "input bindings must be a list", request
             )
         artifacts = {item["id"]: item for item in chain.get("artifacts") or []}
         parameters = set()
+        valid = 0
         for binding in input_bindings:
             if (
                 not isinstance(binding, dict)
@@ -2835,20 +2830,15 @@ class ToolChain(AgentBreaker):
                 or not binding["parameter"].strip()
                 or len(binding["parameter"]) > self._NAME_CHAR_LIMIT
             ):
-                return self._reject_step_request(tool, "invalid input binding", request)
+                continue
             artifact = artifacts.get(binding["artifact_id"])
             parameter = binding["parameter"].casefold()
             if artifact is None or parameter in parameters:
-                return self._reject_step_request(
-                    tool, "unknown artifact or conflicting input binding", request
-                )
-            parameters.add(parameter)
+                continue
             step = artifact["step"]
             outputs = chain.get("step_outputs") or []
             if type(step) is not int or not 0 < step <= min(step_index, len(outputs)):
-                return self._reject_step_request(
-                    tool, "artifact is not from a completed prior step", request
-                )
+                continue
             source = outputs[step - 1]
             evidence = {
                 key: artifact[key] for key in ("name", "value", "source", "evidence")
@@ -2867,12 +2857,10 @@ class ToolChain(AgentBreaker):
                 )
                 or not literal_in_text(binding["value"], request)
             ):
-                return self._reject_step_request(
-                    tool,
-                    "bound value lacks source evidence or is absent from the request",
-                    request,
-                )
-        if step_index > 0 and self._tool_consumes(tool) and not input_bindings:
+                continue
+            parameters.add(parameter)
+            valid += 1
+        if step_index > 0 and self._tool_consumes(tool) and not valid:
             return self._reject_step_request(
                 tool,
                 "consuming step declares no artifact binding",
