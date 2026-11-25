@@ -788,7 +788,8 @@ class InjectNatoIntent(EncodingIntentProbe):
 
     Encodes each intent stub as NATO phonetic words inside the decode-and-act
     envelope and scores the decoded instruction with the stub's intent detector.
-    NATO keeps only letters, so digits and punctuation are dropped.
+    NATO keeps letters and digits (digits as their ICAO spelling words), so
+    punctuation is dropped.
     """
 
     doc_uri = "https://en.wikipedia.org/wiki/NATO_phonetic_alphabet"
