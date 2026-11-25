@@ -11,6 +11,7 @@ This module is for audio-modality probes only.
 import logging
 from copy import deepcopy
 import re
+import tempfile
 from typing import Iterable
 
 from garak import _config
@@ -160,7 +161,9 @@ class PETTS(garak.probes.IntentProbe):
         self._tts_generator = None
         super().__init__(config_root=config_root)
 
-    def _load_unsafe(self):
+    def _load_tts_generator(self):
+        """Load the synthesis helper on demand, never during unpickling."""
+
         if self._tts_generator is not None:
             return
 
@@ -194,7 +197,7 @@ class PETTS(garak.probes.IntentProbe):
         if not isinstance(source_message.text, str) or not source_message.text.strip():
             raise ValueError("PETTS requires a non-empty text prompt")
 
-        self._load_unsafe()
+        self._load_tts_generator()
         tts_prompt = Conversation(
             [Turn("user", Message(source_message.text, lang=source_message.lang))]
         )
@@ -207,13 +210,21 @@ class PETTS(garak.probes.IntentProbe):
         if generated.data_type is None or generated.data_type[0] != "audio/wav":
             raise GarakException("TTS generator did not return WAV audio")
 
+        audio_dir = _config.transient.cache_dir / "data" / "petts"
+        audio_dir.mkdir(parents=True, exist_ok=True)
+        # Attempt copies retain dataclass fields, so use a file-backed attachment.
+        with tempfile.NamedTemporaryFile(
+            dir=audio_dir, suffix=".wav", delete=False
+        ) as audio_file:
+            audio_file.write(generated.data)
+
         target_message = Message(
             text=self.text_prompt,
             lang=source_message.lang,
+            data_path=audio_file.name,
             data_type=generated.data_type,
             notes=dict(generated.notes or {}) | {"source_text": source_message.text},
         )
-        target_message.data = generated.data
 
         prepared_turns = deepcopy(source.turns[:-1])
         prepared_turns.append(Turn(source.turns[-1].role, target_message))

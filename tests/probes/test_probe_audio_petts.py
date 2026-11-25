@@ -1,6 +1,8 @@
 """Tests for prompt extraction with text-to-speech."""
 
 import pickle
+from dataclasses import asdict
+from pathlib import Path
 
 import pytest
 
@@ -43,6 +45,13 @@ def _probe(mocker, loaded_intent_service):
     )
     probe = PETTS()
     return probe, tts_generator, loader
+
+
+@pytest.fixture(autouse=True)
+def petts_cache(mocker, tmp_path):
+    """Keep generated audio inside each test's temporary directory."""
+
+    mocker.patch.object(_config.transient, "cache_dir", tmp_path)
 
 
 def test_petts_prepares_new_audio_conversation(mocker, loaded_intent_service):
@@ -157,6 +166,46 @@ def test_petts_runs_end_to_end(mocker, loaded_intent_service, tmp_path):
         "audio/wav",
         None,
     ), "the assessed target must receive WAV audio"
+    assert (
+        target.last_prompt.last_message().data == b"RIFFtest audio"
+    ), "the assessed target must receive the synthesised bytes"
+    assert (
+        attempts[0].conversations[0].last_message("user").data == b"RIFFtest audio"
+    ), "the attempt history must retain the synthesised bytes"
+
+
+def test_petts_audio_survives_report_round_trip(mocker, loaded_intent_service):
+    """The stored attachment can be loaded after dataclass serialisation."""
+
+    probe, _, _ = _probe(mocker, loaded_intent_service)
+    attempt = probe._mint_attempt("source request", seq=0)
+
+    restored = Conversation.from_dict(asdict(attempt.prompt))
+
+    assert (
+        restored.last_message().data == b"RIFFtest audio"
+    ), "serialised prompts must retain access to the generated audio"
+    assert Path(restored.last_message().data_path).is_file(), "audio must be cached"
+
+
+def test_petts_worker_executes_without_loading_tts(mocker, loaded_intent_service):
+    """A serialised worker sends prepared audio without reloading synthesis."""
+
+    probe, _, loader = _probe(mocker, loaded_intent_service)
+    attempt = probe._mint_attempt("source request", seq=0)
+    probe.generator = FakeAudioTarget(name="worker target")
+    worker, worker_attempt = pickle.loads(pickle.dumps((probe, attempt)))
+    loader.reset_mock()
+
+    completed = worker._execute_attempt(worker_attempt)
+
+    loader.assert_not_called()
+    assert (
+        worker.generator.last_prompt.last_message().data == b"RIFFtest audio"
+    ), "the worker's target must receive the synthesised audio"
+    assert (
+        completed.outputs[0].text == "target response"
+    ), "the worker must complete the prepared attempt"
 
 
 def test_petts_skips_incompatible_target(mocker, loaded_intent_service):
@@ -181,15 +230,27 @@ def test_petts_skips_target_without_wav_support(mocker, loaded_intent_service):
     loader.assert_not_called()
 
 
-def test_petts_reloads_helper_after_serialisation(mocker, loaded_intent_service):
-    """The model helper is excluded from probe worker state and reloaded."""
+@pytest.mark.parametrize("initialise_helper", [False, True])
+def test_petts_loads_helper_lazily_after_serialisation(
+    mocker, loaded_intent_service, initialise_helper
+):
+    """Unpickling skips TTS loading until synthesis is actually needed."""
 
     probe, _, loader = _probe(mocker, loaded_intent_service)
-    probe._load_unsafe()
+    if initialise_helper:
+        probe._prepare_prompt("initial request")
+    initial_loads = loader.call_count
 
     restored = pickle.loads(pickle.dumps(probe))
 
     assert (
-        restored._tts_generator is not None
-    ), "deserialised probes must restore the configured helper generator"
-    assert loader.call_count == 2, "helper loading must occur once per process state"
+        restored._tts_generator is None
+    ), "deserialised probes must leave the helper unloaded"
+    assert loader.call_count == initial_loads, "unpickling must not load TTS"
+
+    restored._prepare_prompt("first request")
+    restored._prepare_prompt("second request")
+
+    assert (
+        loader.call_count == initial_loads + 1
+    ), "synthesis must load the helper once and reuse it"
