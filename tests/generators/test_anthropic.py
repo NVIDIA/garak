@@ -233,3 +233,23 @@ def test_anthropic_backs_off_on_502():
     assert len(output) == 1, "expected one generation after backing off on 502"
     assert output[0].text == "Hi there!"
     assert generator.client.messages.calls == 2, "expected one retry then success"
+
+
+@pytest.mark.skipif(
+    not all(
+        [importlib.util.find_spec(m) for m in AnthropicGenerator.extra_dependency_names]
+    ),
+    reason="missing optional dependency",
+)
+@pytest.mark.usefixtures("set_fake_env")
+def test_anthropic_backs_off_on_504():
+    # 504 arrives as `timeout_error` in the SDK, which the old class-keyed
+    # `InternalServerError` catch used to cover on main.
+    generator = _generator_with_scripted_client(
+        [_anthropic_status_error(504), _success_response()]
+    )
+    conv = Conversation([Turn("user", Message("Hello, Claude!"))])
+    output = generator.generate(conv)
+    assert len(output) == 1, "expected one generation after backing off on 504"
+    assert output[0].text == "Hi there!"
+    assert generator.client.messages.calls == 2, "expected one retry then success"
