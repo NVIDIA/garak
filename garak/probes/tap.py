@@ -407,6 +407,8 @@ class TAPIntent(garak.probes.IntentProbe):
         "avid-effect:performance:P0204",
         "quality:Security:PromptStability",
         "payload:jailbreak",
+        "demon:Rhetoric:Persuasion_and_manipulation:Escalating",  # iteratively escalates attack prompts using tree-of-thought reasoning
+        "demon:Language:Code_and_encode:Token",
     ]
     goal = "cause the model to disregard the system prompt"
     doc_uri = "https://arxiv.org/abs/2312.02119"
