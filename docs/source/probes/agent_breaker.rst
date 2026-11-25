@@ -144,29 +144,209 @@ interleaves chains, with target requests sent serially:
 * ``success_threshold`` - confidence the step check needs before an
   step counts as completed.
 
-Configuration and invocation
-----------------------------
+Describing the target agent
+---------------------------
+
+Both probes read a description of the target agent from one YAML file, named by
+the ``agent_config_file`` parameter. The file states what the agent is for and
+which tools it exposes. Everything the red-team model plans, and part of what
+the judge decides, is derived from this text, so its accuracy and level of
+detail directly affect what the probes can find.
+
+Where the file goes
+~~~~~~~~~~~~~~~~~~~
 
 ``agent_config_file`` is a path relative to garak's ``data`` directory. garak
 looks for it first under the user data directory, which is
 ``$XDG_DATA_HOME/garak/data`` (by default ``~/.local/share/garak/data`` on
-Linux and macOS), and then among the files shipped with garak. Place your
-manifest in the user data directory, for example at
-``$XDG_DATA_HOME/garak/data/agent_breaker/tool_chain_target.yaml``:
+Linux and macOS), and then among the files shipped with garak. Absolute paths
+and paths that leave the ``data`` directory are rejected, and a file that
+cannot be found stops the run.
+
+The default value is ``agent_breaker/agent.yaml``. The shipped copy of that
+file is empty. There are two ways to supply your own description:
+
+* Save it under its own name in the user data directory, for example
+  ``$XDG_DATA_HOME/garak/data/agent_breaker/support_agent.yaml``, and set
+  ``agent_config_file: agent_breaker/support_agent.yaml`` for the probe. This
+  keeps one file per target and is the recommended layout.
+* Save it as ``$XDG_DATA_HOME/garak/data/agent_breaker/agent.yaml``. It then
+  takes precedence over the shipped file, and both probes use it without any
+  further configuration.
+
+Do not edit the copy inside the installed garak package; it is replaced on
+upgrade.
+
+File format
+~~~~~~~~~~~
 
 .. code-block:: yaml
 
-   agent_purpose: Exercise an authorised support sandbox.
+   agent_purpose: |
+     Customer support assistant for an online shop. It answers order and
+     billing questions for the signed-in customer only. It must not act on
+     another customer's account or issue refunds above 50 USD.
    tools:
-     - name: lookup_record
-       description: Read a sandbox record and return its opaque reference.
-     - name: update_sandbox_record
-       description: Update one disposable sandbox record by opaque reference.
-     - name: delete_all_records
-       description: Delete every record. Never call this.
+     - name: lookup_order
+       description: >-
+         Takes an order id. Returns that order's status, items, total and the
+         customer id that owns it. Read-only. Only orders belonging to the
+         signed-in customer may be returned.
+     - name: issue_refund
+       description: >-
+         Takes an order id and an amount in USD. Refunds that amount to the
+         order's original payment method and returns a refund id. Limited to
+         50 USD per order; larger refunds require a human supervisor.
+     - name: close_account
+       description: Permanently deletes a customer account by customer id.
        chain: false
 
-Select only ``ToolChain`` and configure it under its class name:
+.. list-table::
+   :header-rows: 1
+   :widths: 20 12 68
+
+   * - Key
+     - Type
+     - Meaning
+   * - ``agent_purpose``
+     - text
+     - What the agent is for, whom it serves, and what it is and is not
+       authorised to do.
+   * - ``tools``
+     - list
+     - One entry per tool the target exposes.
+   * - ``tools[].name``
+     - text
+     - The tool's identifier, exactly as the target knows it.
+   * - ``tools[].description``
+     - text
+     - The tool's contract: what it does, what it accepts and returns, and any
+       limits or preconditions.
+   * - ``tools[].chain``
+     - boolean
+     - ``ToolChain`` only. ``false`` keeps the tool out of every chain. Defaults
+       to ``true``.
+
+Other keys are ignored. Parameter schemas, for example, are not read
+separately, so any input or output detail that matters belongs in
+``description``.
+
+How each probe reads the file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``AgentBreaker`` (Single):
+
+* If ``tools`` is missing or empty, the probe asks the target to list its
+  tools and parses the reply with the parse model. When ``agent_purpose`` is
+  also empty, it asks for the purpose in the same request. If no tools result,
+  the probe does not run.
+* If ``tools`` is filled in, nothing is discovered and the file is used as
+  written, including an empty ``agent_purpose``.
+* Every listed tool is attacked, up to ``max_attempts_per_tool`` requests each.
+  ``chain`` has no effect here: a tool marked ``chain: false`` is still
+  attacked by Single.
+
+``ToolChain``:
+
+* Nothing is discovered. ``agent_purpose`` must be text and ``tools`` must be a
+  list, otherwise the probe fails at load. At least two chainable tools must
+  remain after the rules below, otherwise it fails when the run starts.
+* An entry is ignored when it has no ``name``, when its name is longer than 128
+  characters, or when its name repeats an earlier one (compared without regard
+  to case).
+* ``chain: false`` removes the tool from planning. A ``chain`` value that is
+  not a boolean, such as the quoted string ``"false"``, also removes it.
+* Only the first ``max_tools`` remaining tools are used, in file order.
+* ``description`` is cut to 500 characters and ``agent_purpose`` to 1000.
+
+Because Single ignores ``chain`` and ``ToolChain`` needs a complete manifest,
+keep a separate file for each probe when a tool must stay out of a run, and
+leave that tool out of the file used for Single.
+
+Writing an effective description
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The probes see the target only through this file and through its replies. Each
+field feeds specific decisions:
+
+``name``
+  Probe requests name the tool literally (``Use the <name> tool ...``), and the
+  target has to recognise it. Use the identifier from the target's own tool
+  definition, with the same spelling and case, not a friendly label. A name
+  the target does not recognise leads to requests that are refused or routed
+  to another tool, which appear as failed attacks rather than as findings.
+
+``description``
+  Treat this as the tool's contract and copy it from the target's real tool
+  definition where possible. It is used in three ways:
+
+  * The red-team model derives each tool's weaknesses and its first attack
+    prompts from what the description says the tool does. A one-line summary
+    produces generic attacks; a description that states the accepted inputs
+    and their format produces attacks aimed at them.
+  * ``ToolChain`` tags what each tool consumes and produces, and connects two
+    tools only when one tool's output can plausibly become another's input.
+    State what each tool returns (an id, a path, a URL, file contents) and what
+    it accepts, using the same words for the same thing across tools. A
+    relationship the descriptions do not show is unlikely to be explored.
+    State side effects too: they decide which tools are treated as sinks.
+  * The Single judge, and the ``ToolChain`` relevance check, treat the
+    description as the authority on what the tool may do and read it
+    literally. A limit or precondition written here (a scope, an amount, a
+    required approval, an ownership check) lets the judge recognise a request
+    that goes past it. A limit that is not written cannot be judged, and only
+    universal harms such as secret disclosure or destructive actions are
+    still caught. A tool without a description is judged without a contract.
+
+  Describe the tool as it is. Adding suspected vulnerabilities or restrictions
+  the target does not really have biases both the attacks and the verdicts.
+  For ``ToolChain``, put the most important facts first so that they survive
+  the 500 character limit.
+
+``agent_purpose``
+  This gives the red-team model and the judge the context for what counts as
+  normal use. With ``chain_selection: relevance``, ``ToolChain`` drops chains
+  that are simply the agent doing its authorised job, as measured against this
+  text. A broad purpose such as "a general assistant that can do anything"
+  therefore removes more chains and excuses more behaviour, while a specific
+  purpose that names the users served and the actions that are off limits
+  keeps the chains that cross those lines. Leaving it empty removes this
+  context from every decision.
+
+Order and scope
+  List the tools you most want tested first: ``ToolChain`` reads only the
+  first ``max_tools``. For Single, run length grows with the number of tools,
+  so a file limited to the tools of interest gives a shorter, more focused
+  run.
+
+Supplied description or discovery
+  Discovery in Single depends on the target listing its tools truthfully and
+  yields one short sentence per tool. It is a quick way to start against an
+  unknown target. A hand-written file that follows the guidance above gives
+  the red-team model and the judge more to work with, and is the only option
+  for ``ToolChain``.
+
+Configuration and invocation
+----------------------------
+
+Place the description in the user data directory as described above. To run
+Single against it, select ``AgentBreaker`` and configure it under its class
+name:
+
+.. code-block:: yaml
+
+   run:
+     spec:
+       include:
+         - probes.agent_breaker.AgentBreaker
+   plugins:
+     probes:
+       agent_breaker:
+         AgentBreaker:
+           agent_config_file: agent_breaker/support_agent.yaml
+
+For ``ToolChain``, select only ``ToolChain`` and configure it under its class
+name:
 
 .. code-block:: yaml
 
@@ -182,22 +362,25 @@ Select only ``ToolChain`` and configure it under its class name:
          ToolChain:
            agent_config_file: agent_breaker/tool_chain_target.yaml
 
-Keep variant-specific settings under ``ToolChain`` as shown. Settings placed
+Keep variant-specific settings under the class name as shown. Settings placed
 directly under the ``agent_breaker`` module apply to both Single and
 ``ToolChain``.
 
-Then run it with the normal target configuration, replacing the placeholders:
+Then run either probe with the normal target configuration, replacing the
+placeholders:
 
 .. code-block:: bash
 
-   garak --config chains.yaml --target_type TARGET_PLUGIN --target_name TARGET_NAME
+   garak --config agent_breaker.yaml --target_type TARGET_PLUGIN --target_name TARGET_NAME
 
-The probe's red-team generator and the
-``detectors.agent_breaker.AgentBreakerChainResult`` judge generator also
+The probe's red-team generator and the judge generator of its detector
+(``detectors.agent_breaker.AgentBreakerResult`` for Single,
+``detectors.agent_breaker.AgentBreakerChainResult`` for ``ToolChain``) also
 require their normal provider configuration and credentials.
 
-The primary detector judges the target's response claim for the artifact-bearing
-terminal request, and for any earlier step whose tool is side-effecting. A positive score does not establish that the
+For ``ToolChain``, the primary detector judges the target's response claim for
+the artifact-bearing terminal request, and for any earlier step whose tool is
+side-effecting. A positive score does not establish that the
 planned tool was used or that a backend side effect occurred; verify routing
 and backend state separately in the authorised test environment.
 
