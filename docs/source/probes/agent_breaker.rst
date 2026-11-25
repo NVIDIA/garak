@@ -242,8 +242,11 @@ How each probe reads the file
   the probe does not run.
 * If ``tools`` is filled in, nothing is discovered and the file is used as
   written, including an empty ``agent_purpose``.
-* Every listed tool is attacked, up to ``max_attempts_per_tool`` requests each.
-  ``chain`` has no effect here: a tool marked ``chain: false`` is still
+* The red-team model analyses all listed tools in one request. Each tool it
+  returns an analysis for is attacked, in the model's own priority order
+  rather than file order, with up to ``max_attempts_per_tool`` requests each.
+  A tool the model leaves out of its analysis is not attacked.
+* ``chain`` has no effect here: a tool marked ``chain: false`` can still be
   attacked by Single.
 
 ``ToolChain``:
