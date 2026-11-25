@@ -24,6 +24,7 @@ class MistralGenerator(Generator):
     ENV_VAR = "MISTRAL_API_KEY"
     DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
         "name": "mistral-large-latest",
+        "suppressed_params": set(),
     }
 
     _unsafe_attributes = ["client"]
@@ -42,10 +43,17 @@ class MistralGenerator(Generator):
         self, prompt: Conversation, generations_this_call=1
     ) -> List[Message | None]:
         messages = self._conversation_to_list(prompt)
+        request_params = {
+            param: getattr(self, param)
+            for param in ("max_tokens", "temperature", "top_p")
+            if param not in self.suppressed_params
+            and getattr(self, param, None) is not None
+        }
         try:
             chat_response = self.client.chat.complete(
                 model=self.name,
                 messages=messages,
+                **request_params,
             )
         except Exception as e:
             if isinstance(e, self.mistralai.models.SDKError):
