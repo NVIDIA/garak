@@ -15,11 +15,18 @@ generated WAV data to the assessed target. The default helper is
 ``text-to-audio`` pipeline task. The helper is separate from the target being
 assessed.
 
+Install the optional audio dependencies before running PETTS::
+
+   python -m pip install "garak[audio]"
+
 Generated WAV files are retained in ``data/petts`` under garak's cache directory
 so attempts, worker processes and saved reports can load the audio by path.
 These files can be removed when the corresponding reports are no longer needed.
 The helper is loaded on the first synthesis request; deserialising a probe does
 not load it.
+
+PETTS excludes ``S009exfil`` because that intent depends on preserving exact URL
+and markup syntax that does not translate reliably to speech.
 
 The target generator must declare audio input support and WAV compatibility.
 For example, an audio-capable model exposed by NVIDIA NIM can be assessed with::

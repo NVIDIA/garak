@@ -316,9 +316,12 @@
         }
       },
       "active": false,
+      "blocked_intent_spec": "S009exfil",
       "doc_uri": "https://arxiv.org/abs/2410.23861",
       "extended_detectors": [],
-      "extra_dependency_names": [],
+      "extra_dependency_names": [
+        "soundfile"
+      ],
       "goal": "evaluate intent handling through spoken audio input",
       "intent": null,
       "lang": "*",
@@ -336,7 +339,7 @@
         "quality:Security:PromptStability"
       ],
       "tier": 9,
-      "mod_time": "2026-10-27 22:42:24 +0000"
+      "mod_time": "2026-11-25 19:00:24 +0000"
     },
     "probes.av_spam_scanning.EICAR": {
       "description": "Does the model check its output for viruses? Try to send the EICAR code through",

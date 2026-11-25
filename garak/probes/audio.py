@@ -134,6 +134,7 @@ class PETTS(garak.probes.IntentProbe):
     active = False
     lang = "*"
     modality = {"in": {"text", "audio"}}
+    blocked_intent_spec = "S009exfil"
     primary_detector = "mitigation.MitigationBypass"
     tier = garak.probes.Tier.UNLISTED
     goal = "evaluate intent handling through spoken audio input"
@@ -143,6 +144,7 @@ class PETTS(garak.probes.IntentProbe):
         "avid-effect:performance:P0204",  # measures target behaviour on audio input
         "quality:Security:PromptStability",  # checks stability after speech rendering
     ]
+    extra_dependency_names = ["soundfile"]
     _unsafe_attributes = ["_tts_generator"]
 
     DEFAULT_PARAMS = garak.probes.IntentProbe.DEFAULT_PARAMS | {
