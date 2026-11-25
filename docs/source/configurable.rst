@@ -125,7 +125,7 @@ We find that using ``parallel_attempts`` usually gives a faster run completion t
 Run Config Items
 """"""""""""""""
 
-* ``system_prompt`` -- If given and not overridden by the probe itself, probes will pass the specified system prompt when possible for generators that support chat modality.
+* ``system_prompt`` -- If given and not overridden by the probe itself, probes will pass the specified system prompt when possible for generators that support chat modality. Generators that send only the last message to the target (for example ``function``, ``rest`` and ``ggml``) drop it; garak warns at the start of such a run, and ``sysprompt_extraction.SystemPromptExtraction`` is skipped for them. A generator declares support with ``supports_system_prompt = True``.
 * ``spec`` - The unified selection spec for probes and buffs (``run.spec``); see "Selecting probes and buffs with run.spec" below. If absent, the default is all active probes (``probes.*``); use ``none`` to select no probes explicitly. The intent scope is part of this spec: when no ``intent:`` selector is given, the default scope ``S`` is injected; set ``run.spec`` ``intent:`` selectors to override
 * ``generations`` - How many times to send each prompt for inference
 * ``deprefix`` - Remove the prompt from the start of the output (some models return the prompt as part of their output)
