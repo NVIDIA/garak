@@ -50,16 +50,20 @@ class HFCompatible:
                 | inspect.signature(pipeline).parameters
             )
 
+        # transformers v5 renamed `torch_dtype` to `dtype`; accept either, `dtype` wins
+        dtype = params.get("dtype", params.get("torch_dtype"))
+
         for k in params_to_process:
             if k == "model":
                 continue  # special case `model` comes from `name` in the generator
+            if k == "dtype" and dtype is not None:
+                # some model classes do not support a string dtype
+                resolved = (
+                    getattr(torch, dtype, None) if isinstance(dtype, str) else dtype
+                )
+                args[k] = resolved if isinstance(resolved, torch.dtype) else dtype
+                continue
             if k in params:
-                val = params[k]
-                if k == "torch_dtype" and hasattr(torch, val):
-                    args[k] = getattr(
-                        torch, val
-                    )  # some model type specific classes do not yet support direct string representation
-                    continue
                 if (
                     k == "device"
                     and "device_map" in params_to_process
