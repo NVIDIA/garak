@@ -30,6 +30,7 @@ For a guide to writing probes, see :doc:`extending.probe`.
    probes/exploitation
    probes/fileformats
    probes/fitd
+   probes/flipattack
    probes/glitch
    probes/goat
    probes/goodside
