@@ -2813,7 +2813,6 @@ class ToolChain(AgentBreaker):
         if request is None:
             return None, ""
         tool = (chain.get("sequence") or [])[step_index]
-        logging.info("%s # %s step input_bindings: %r", self.__class__.__name__, tool, input_bindings)
         if not isinstance(input_bindings, list):
             return self._reject_step_request(
                 tool, "input bindings must be a list", request
