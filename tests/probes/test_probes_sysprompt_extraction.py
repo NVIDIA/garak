@@ -1,8 +1,14 @@
 # SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
+import logging
+
 import pytest
+
 import garak._plugins
+import garak.generators.base
+import garak.probes.base
+from garak.attempt import Message
 from garak.probes.sysprompt_extraction import SystemPromptExtraction
 
 DATASET_SOURCES = SystemPromptExtraction.DEFAULT_PARAMS["system_prompt_sources"]
@@ -122,3 +128,26 @@ def test_sysprompt_in_conversation():
             assert len(conv.turns[0].content.text) > 0
     except ImportError as e:
         pytest.skip(f"Required dependency not available: {e}")
+
+
+class _LastMessageOnly(garak.generators.base.Generator):
+    """Sends only the last message, like the generators that drop the system turn"""
+
+    def _call_model(self, prompt, generations_this_call=1):
+        return [Message(prompt.last_message().text)]
+
+
+def test_sysprompt_probe_skips_generator_without_system_prompt(caplog):
+    p = garak._plugins.load_plugin("probes.sysprompt_extraction.SystemPromptExtraction")
+    with caplog.at_level(logging.WARNING):
+        attempts = p.probe(_LastMessageOnly(name="last-message-only"))
+    assert list(attempts) == []
+    assert "does not send a system prompt" in caplog.text
+
+
+def test_sysprompt_probe_runs_on_generator_with_system_prompt(monkeypatch):
+    p = garak._plugins.load_plugin("probes.sysprompt_extraction.SystemPromptExtraction")
+    monkeypatch.setattr(garak.probes.base.Probe, "probe", lambda self, g: ["attempt"])
+    generator = _LastMessageOnly(name="last-message-only")
+    generator.supports_system_prompt = True
+    assert p.probe(generator) == ["attempt"]
