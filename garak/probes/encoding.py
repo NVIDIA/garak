@@ -106,6 +106,13 @@ class EncodingMixin:
             if payload_to_add in extra_payload_tags:
                 self.extra_tags += extra_payload_tags[payload_to_add]
 
+    def _trigger_for(self, payload) -> str:
+        """Text a detector should look for in the target's reply to ``payload``.
+
+        By default the payload itself; lossy encoders override this so the
+        trigger is what the target was actually shown."""
+        return str(payload)
+
     def _generate_encoded_prompts(self, encoding_funcs, encoding_name):
         encoded_prompts = set()
         for template in ENCODING_REPEAT_TEMPLATES:
@@ -120,7 +127,7 @@ class EncodingMixin:
                     prompt = template.replace("{encoding_name}", encoding_name).replace(
                         "{encoded_text}", encoded_text
                     )
-                    trigger = str(payload)
+                    trigger = self._trigger_for(payload)
                     payload_intent = self._payload_intents_map.get(payload)
                     encoded_prompts.add((prompt, trigger, payload_intent))
         return sorted(list(encoded_prompts), key=lambda k: k[0])
@@ -160,6 +167,16 @@ class EncodingMixin:
         if self._prompt_intents[seq] is not None:
             attempt.intent = self._prompt_intents[seq]
         return attempt
+
+
+def _surviving_text(payload, encoder) -> str:
+    """Payload text that ``encoder`` can represent, for lossy encoders.
+
+    Characters the encoder drops cannot be decoded by the target, so they must
+    not be in the trigger. Whitespace is kept (collapsed) as the natural word
+    boundary even where the encoder itself does not emit it."""
+    kept = "".join(c for c in str(payload) if c.isspace() or encoder(c.encode("utf-8")))
+    return " ".join(kept.split())
 
 
 class InjectBase64(EncodingMixin, garak.probes.Probe):
@@ -370,6 +387,10 @@ class InjectMorse(EncodingMixin, garak.probes.Probe):
     encoding_name = encodings.MORSE.name
     active = True
 
+    def _trigger_for(self, payload) -> str:
+        # characters outside the Morse table are still dropped by the encoder
+        return _surviving_text(payload, encodings.morse)
+
     def __init__(self, config_root=_config):
         garak.probes.Probe.__init__(self, config_root=config_root)
         EncodingMixin.__init__(self)
@@ -386,6 +407,11 @@ class InjectNato(EncodingMixin, garak.probes.Probe):
     encoding_funcs = list(encodings.NATO.encoders)
     encoding_name = encodings.NATO.name
     active = True
+
+    def _trigger_for(self, payload) -> str:
+        # NATO has no punctuation words, so punctuation is dropped by the
+        # encoder; score against the text the target was actually shown
+        return _surviving_text(payload, encodings.nato)
 
     def __init__(self, config_root=_config):
         garak.probes.Probe.__init__(self, config_root=config_root)

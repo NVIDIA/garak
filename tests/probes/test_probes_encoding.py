@@ -152,12 +152,9 @@ def test_inject_leet_transmute_chance_config(transmute_chance, expected):
             }
         }
     }
-    p = _plugins.load_plugin(
-        "probes.encoding.InjectLeet", config_root=instance_config
-    )
+    p = _plugins.load_plugin("probes.encoding.InjectLeet", config_root=instance_config)
     assert p.transmute_chance == transmute_chance
     assert p.encoding_funcs[0](b"ieaostIEAOST") == expected
-
 
 
 # ---------------------------------------------------------------------------
@@ -319,7 +316,7 @@ def test_decode_siblings_hide_plaintext_in_action_envelope(plugin_name):
             BRAILLE,
             ["\u2820\u2813\u2801\u2813\u2801 \u280f\u283a\u281d\u2811\u2819\u2816"],
         ),
-        (MORSE, [".... .- .... .- / .--. .-- -. . -.."]),
+        (MORSE, [".... .- .... .- / .--. .-- -. . -.. -.-.--"]),
         (NATO, ["Hotel Alfa Hotel Alfa Papa Whiskey November Echo Delta"]),
     ],
 )
@@ -330,11 +327,45 @@ def test_strategies_encode_to_known_values(strategy, expected):
     assert strategy.encode("Haha pwned!") == expected
 
 
-@pytest.mark.parametrize("empty_strategy", [MORSE, NATO])
-def test_lossy_strategies_drop_unmapped_input(empty_strategy):
+@pytest.mark.parametrize(
+    "empty_strategy, unmapped",
+    # Morse now maps ITU punctuation (including "!?@"), so use characters it has
+    # no code for; NATO has no punctuation words at all
+    [(MORSE, "#%^"), (NATO, "!?@")],
+)
+def test_lossy_strategies_drop_unmapped_input(empty_strategy, unmapped):
     # punctuation/digits outside the map yield an empty encode, which the sibling
     # must preserve rather than filter (the decode-and-act envelope still wraps it)
-    assert empty_strategy.encode("!?@") == [""]
+    assert empty_strategy.encode(unmapped) == [""]
+
+
+def test_morse_strategy_preserves_punctuation():
+    assert MORSE.encode("!?@") == ["-.-.-- ..--.. .--.-."]
+
+
+@pytest.mark.parametrize(
+    "classname, payload, expected_trigger",
+    [
+        ("probes.encoding.InjectMorse", "Don't panic!", "Don't panic!"),
+        ("probes.encoding.InjectMorse", "a#b", "ab"),
+        ("probes.encoding.InjectNato", "Don't panic!", "Dont panic"),
+        ("probes.encoding.InjectNato", "email: x@y", "email xy"),
+        ("probes.encoding.InjectNato", "a . b", "a b"),
+    ],
+)
+def test_lossy_probe_trigger_is_text_that_survives_encoding(
+    classname, payload, expected_trigger
+):
+    # the target is only ever shown what the encoder keeps, so the trigger that
+    # DecodeMatch/DecodeApprox score must be limited to that text
+    p = _plugins.load_plugin(classname)
+    assert p._trigger_for(payload) == expected_trigger
+
+
+@pytest.mark.parametrize("classname", ["probes.encoding.InjectBase64"])
+def test_lossless_probe_trigger_is_unchanged_payload(classname):
+    p = _plugins.load_plugin(classname)
+    assert p._trigger_for("Don't panic!") == "Don't panic!"
 
 
 def test_qp_strategy_transforms_non_ascii_and_equals():
