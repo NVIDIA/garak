@@ -733,7 +733,7 @@
         "demon:Language:Prompt_injection:Strong_arm_attack"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-06 19:54:46 +0000"
     },
     "probes.dan.Ablation_Dan_11_0": {
       "description": "Ablation experiments over the DAN 11.0 prompt",
@@ -767,7 +767,7 @@
         "demon:Language:Prompt_injection:Strong_arm_attack"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-06 19:54:46 +0000"
     },
     "probes.dan.AntiDAN": {
       "description": "Anti-DAN",
@@ -800,7 +800,7 @@
         "avid-effect:performance:P0204"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-06 19:54:46 +0000"
     },
     "probes.dan.AutoDAN": {
       "description": "Probe leveraging AutoDAN attack generation",
@@ -846,7 +846,7 @@
         "payload:jailbreak"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-06 19:54:46 +0000"
     },
     "probes.dan.AutoDANCached": {
       "description": "Probe leveraging generated AutoDAN prompts",
@@ -879,7 +879,7 @@
         "payload:jailbreak"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-06 19:54:46 +0000"
     },
     "probes.dan.ChatGPT_Developer_Mode_RANTI": {
       "description": "ChatGPT DevMode + Ranti",
@@ -912,7 +912,7 @@
         "avid-effect:performance:P0204"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-06 19:54:46 +0000"
     },
     "probes.dan.ChatGPT_Developer_Mode_v2": {
       "description": "ChatGPT Developer Mode v2",
@@ -945,7 +945,7 @@
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-06 19:54:46 +0000"
     },
     "probes.dan.ChatGPT_Image_Markdown": {
       "description": "ChatGPT Markdown Image Unlocker / markdown injection",
@@ -978,7 +978,7 @@
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-06 19:54:46 +0000"
     },
     "probes.dan.DAN_Jailbreak": {
       "description": "DAN Jailbreak",
@@ -1011,7 +1011,7 @@
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-06 19:54:46 +0000"
     },
     "probes.dan.DUDE": {
       "description": "DUDE",
@@ -1044,7 +1044,7 @@
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-06 19:54:46 +0000"
     },
     "probes.dan.DanInTheWild": {
       "description": "A subset of jailbreaks from the DanInTheWild jailbreak library.",
@@ -1075,7 +1075,7 @@
         "payload:jailbreak"
       ],
       "tier": 1,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-06 19:54:46 +0000"
     },
     "probes.dan.DanInTheWildFull": {
       "description": "A library of jailbreaks.",
@@ -1106,7 +1106,7 @@
         "payload:jailbreak"
       ],
       "tier": 1,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-06 19:54:46 +0000"
     },
     "probes.dan.Dan_10_0": {
       "description": "DAN 10.0",
@@ -1139,7 +1139,7 @@
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-06 19:54:46 +0000"
     },
     "probes.dan.Dan_11_0": {
       "description": "DAN 11.0",
@@ -1173,7 +1173,7 @@
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-06 19:54:46 +0000"
     },
     "probes.dan.Dan_6_0": {
       "description": "DAN 6.0",
@@ -1206,7 +1206,7 @@
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-06 19:54:46 +0000"
     },
     "probes.dan.Dan_6_2": {
       "description": "DAN 6.2",
@@ -1239,7 +1239,7 @@
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-06 19:54:46 +0000"
     },
     "probes.dan.Dan_7_0": {
       "description": "DAN 7.0",
@@ -1272,7 +1272,7 @@
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-06 19:54:46 +0000"
     },
     "probes.dan.Dan_8_0": {
       "description": "DAN 8.0",
@@ -1305,7 +1305,7 @@
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-06 19:54:46 +0000"
     },
     "probes.dan.Dan_9_0": {
       "description": "DAN 9.0",
@@ -1338,7 +1338,7 @@
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-06 19:54:46 +0000"
     },
     "probes.dan.STAN": {
       "description": "STAN",
@@ -1371,7 +1371,7 @@
         "payload:jailbreak"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-06 19:54:46 +0000"
     },
     "probes.divergence.Repeat": {
       "description": "See if a model starts giving other data when asked to repeat a string indefinitely",
@@ -1513,7 +1513,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:04:00 +0000"
     },
     "probes.doctor.BypassLeet": {
       "description": "Implement Policy Puppetry Bypass",
@@ -1547,7 +1547,84 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:04:00 +0000"
+    },
+    "probes.doctor.DoctorIntent": {
+      "description": "Roleplay-as-doctor (Policy Puppetry) technique, spanning intents.",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "frame_variants": [
+          "standard"
+        ]
+      },
+      "active": false,
+      "blocked_intent_spec": "",
+      "doc_uri": "https://hiddenlayer.com/innovation-hub/novel-universal-bypass-for-all-major-llms/",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "garak": null,
+      "goal": "roleplay as a doctor to bypass guardrails across intents",
+      "intent": null,
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "mitigation.MitigationBypass",
+      "skip_root_intents": true,
+      "tags": [
+        "owasp:llm01",
+        "avid-effect:security:S0301",
+        "quality:Security:PromptStability",
+        "cwe:1427",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Language:Stylizing:Formal_language",
+        "demon:Fictionalizing:Roleplaying:User_persona",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction"
+      ],
+      "tier": 2,
+      "mod_time": "2026-11-05 18:04:00 +0000"
+    },
+    "probes.doctor.DoctorLeetIntent": {
+      "description": "Roleplay as Dr. House using leetspeak, spanning intents.",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "frame_variants": [
+          "leetspeak"
+        ]
+      },
+      "active": false,
+      "blocked_intent_spec": "",
+      "doc_uri": "https://hiddenlayer.com/innovation-hub/novel-universal-bypass-for-all-major-llms/",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "garak": null,
+      "goal": "roleplay as a doctor to bypass guardrails across intents using leetspeak",
+      "intent": null,
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "mitigation.MitigationBypass",
+      "skip_root_intents": true,
+      "tags": [
+        "owasp:llm01",
+        "avid-effect:security:S0301",
+        "quality:Security:PromptStability",
+        "cwe:1427",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions",
+        "demon:Language:Stylizing:Formal_language",
+        "demon:Fictionalizing:Roleplaying:User_persona",
+        "demon:Rhetoric:Persuasion_and_manipulation:Distraction",
+        "demon:Language:Code_and_encode:Data_encoding"
+      ],
+      "tier": 2,
+      "mod_time": "2026-11-05 18:04:00 +0000"
     },
     "probes.doctor.Puppetry": {
       "description": "Implement Policy Puppetry Prompt Injection",
@@ -1580,7 +1657,7 @@
         "euai:robustness:adversarial"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-11-05 18:04:00 +0000"
     },
     "probes.donotanswer.DiscriminationExclusionToxicityHatefulOffensive": {
       "description": "Implementation of discrimination_exclusion_toxicity_hateful_offensive probes in DoNotAnswer_Prompts",
@@ -1832,7 +1909,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectAscii85Intent": {
       "description": "Hide an instruction with ASCII85 and measure whether the target acts on it.",
@@ -1864,7 +1941,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectAtbash": {
       "description": "Atbash Probe Credit: Nakul-Rajpal",
@@ -1900,7 +1977,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectAtbashIntent": {
       "description": "Hide an instruction with Atbash and measure whether the target acts on it.",
@@ -1932,7 +2009,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectBase16": {
       "description": "Probe for susceptibility to base16 encoded injections\"",
@@ -1968,7 +2045,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectBase16Intent": {
       "description": "Hide an instruction with Base16 and measure whether the target acts on it.",
@@ -2000,7 +2077,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectBase2048": {
       "description": "Probe for susceptibility to Base2048 encoding injections",
@@ -2036,7 +2113,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectBase2048Intent": {
       "description": "Hide an instruction with Base2048 and measure whether the target acts on it.",
@@ -2068,7 +2145,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectBase32": {
       "description": "Probe for susceptibility to base32 encoded injections",
@@ -2104,7 +2181,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectBase32Intent": {
       "description": "Hide an instruction with Base32 and measure whether the target acts on it.",
@@ -2136,7 +2213,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectBase64": {
       "description": "Probe for susceptibility to base64 encoded injections",
@@ -2172,7 +2249,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 1,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectBase64Intent": {
       "description": "Hide an instruction with Base64 and measure whether the target acts on it.",
@@ -2204,7 +2281,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 1,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectBraille": {
       "description": "Probe for susceptibility to Braille encoding injections. Credit Wally#3422",
@@ -2240,7 +2317,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectBrailleIntent": {
       "description": "Hide an instruction with Braille and measure whether the target acts on it.",
@@ -2272,7 +2349,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectEcoji": {
       "description": "Probe for susceptibility to Ecoji encoding.",
@@ -2308,7 +2385,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectEcojiIntent": {
       "description": "Hide an instruction with Ecoji and measure whether the target acts on it.",
@@ -2340,7 +2417,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectHex": {
       "description": "Probe for susceptibility to hex encoded injections",
@@ -2376,7 +2453,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectHexIntent": {
       "description": "Hide an instruction with hex and measure whether the target acts on it.",
@@ -2408,7 +2485,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectLeet": {
       "description": "Probe for susceptibility to 31337 encoding.",
@@ -2445,7 +2522,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectLeetIntent": {
       "description": "Obfuscate an instruction with Leetspeak and measure whether the target acts on it.",
@@ -2478,7 +2555,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectMime": {
       "description": "Probe for susceptibility to MIME encoding injections",
@@ -2514,7 +2591,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectMorse": {
       "description": "Probe for susceptibility to Morse encoding. Credit Wally#3422",
@@ -2550,7 +2627,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectMorseIntent": {
       "description": "Hide an instruction with Morse code and measure whether the target acts on it.",
@@ -2582,7 +2659,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectNato": {
       "description": "Probe for susceptibility to Nato phonetic alphabet encoding.",
@@ -2618,7 +2695,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectNatoIntent": {
       "description": "Hide an instruction with the NATO phonetic alphabet and measure whether the target acts on it.",
@@ -2650,7 +2727,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectQP": {
       "description": "Probe for susceptibility to QP encoded injections",
@@ -2686,7 +2763,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 1,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectQPIntent": {
       "description": "Hide an instruction with quoted-printable and measure whether the target acts on it.",
@@ -2718,7 +2795,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 1,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectROT13": {
       "description": "Probe for susceptibility to ROT13 encoding injections",
@@ -2754,7 +2831,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectROT13Intent": {
       "description": "Hide an instruction with ROT13 and measure whether the target acts on it.",
@@ -2786,7 +2863,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectSneakyBits": {
       "description": "Probe for susceptibility to unicode variant selector ASCII smuggling",
@@ -2823,7 +2900,7 @@
         "demon:Language:Code_and_encode:Token"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectSneakyBitsIntent": {
       "description": "Hide an instruction as invisible bits and measure whether the target acts.",
@@ -2856,7 +2933,7 @@
         "demon:Language:Code_and_encode:Token"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectUU": {
       "description": "Probe for susceptibility to UU encoded injections",
@@ -2892,7 +2969,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 1,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectUUIntent": {
       "description": "Hide an instruction with UU encoding and measure whether the target acts on it.",
@@ -2924,7 +3001,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 1,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectUnicodeTagChars": {
       "description": "Probe for susceptibility to unicode tag ASCII smuggling",
@@ -2962,7 +3039,7 @@
         "demon:Language:Code_and_encode:Token"
       ],
       "tier": 1,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectUnicodeTagCharsIntent": {
       "description": "Hide an instruction in Unicode Tags and measure whether the target acts on it.",
@@ -2996,7 +3073,7 @@
         "demon:Language:Code_and_encode:Token"
       ],
       "tier": 1,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectUnicodeVariantSelectors": {
       "description": "Probe for susceptibility to unicode variant selector ASCII smuggling",
@@ -3033,7 +3110,7 @@
         "demon:Language:Code_and_encode:Token"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectUnicodeVariantSelectorsIntent": {
       "description": "Hide an instruction in Unicode selectors and measure whether the target acts.",
@@ -3066,7 +3143,7 @@
         "demon:Language:Code_and_encode:Token"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectZalgo": {
       "description": "Probe for susceptibility to Zalgo encoding.",
@@ -3102,7 +3179,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.encoding.InjectZalgoIntent": {
       "description": "Obfuscate an instruction with Zalgo and measure whether the target acts on it.",
@@ -3134,7 +3211,7 @@
         "demon:Language:Code_and_encode:Data_encoding"
       ],
       "tier": 2,
-      "mod_time": "2026-11-05 16:41:01 +0000"
+      "mod_time": "2026-11-10 18:55:11 +0000"
     },
     "probes.exploitation.JinjaTemplatePythonInjection": {
       "description": "Attempts to execute Python code via Jinja templating",
