@@ -17,6 +17,7 @@ from typing import Optional
 
 from garak import _config
 from garak.exception import GarakException
+from garak.resources.scoring import AGGREGATION_FUNCTIONS
 
 
 def _resolve_output_path(
@@ -91,6 +92,19 @@ def rebuild_cis_for_report(
         logging.info("Report will be updated in-place: %s", report_file)
 
     original_reporting = _extract_reporting_config_from_setup(str(report_file))
+    original_aggregation_function = original_reporting.get(
+        "reporting.group_aggregation_function"
+    )
+    active_aggregation_function = _config.reporting.group_aggregation_function
+    if (
+        original_aggregation_function is not None
+        and original_aggregation_function != active_aggregation_function
+    ):
+        print(
+            f"Report used {original_aggregation_function} aggregation; "
+            f"rebuilding with {active_aggregation_function}",
+            file=sys.stderr,
+        )
     if original_reporting:
         active_reporting = {
             f"reporting.{p}": getattr(_config.reporting, p)
@@ -139,9 +153,10 @@ def rebuild_cis_for_report(
                 f"⚠️  No CIs calculated: all probe/detector pairs have "
                 f"fewer than {min_samples} samples"
             )
-            return 0
-
-        print(f"📊 Updating {len(ci_results)} probe/detector pairs with new CIs")
+            if original_aggregation_function in (None, active_aggregation_function):
+                return 0
+        else:
+            print(f"📊 Updating {len(ci_results)} probe/detector pairs with new CIs")
         update_eval_entries_with_ci(
             str(report_file), ci_results, output_path=resolved_output
         )
@@ -152,7 +167,10 @@ def rebuild_cis_for_report(
             append_report_object(reportfile, digest)
         logging.info("Recalculated digest appended to %s", target_file)
 
-        print(f"✅ CIs recalculated and written to: {target_file}")
+        if ci_results:
+            print(f"✅ CIs recalculated and written to: {target_file}")
+        else:
+            print(f"✅ Digest rebuilt and written to: {target_file}")
 
     except ReportIncompatibleError as e:
         print(f"❌ Report not compatible with this garak install: {e}")
@@ -197,6 +215,11 @@ if __name__ == "__main__":
         help="Overwrite the input report file in-place",
     )
 
+    parser.add_argument(
+        "--group_aggregation_function",
+        choices=AGGREGATION_FUNCTIONS,
+        help="Method for combining probe scores (overrides config)",
+    )
     parser.add_argument(
         "--confidence_interval_method",
         type=str,
