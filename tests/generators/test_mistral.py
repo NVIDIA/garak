@@ -2,6 +2,7 @@ import httpx
 import importlib
 import os
 import pytest
+from types import SimpleNamespace
 from unittest.mock import patch
 from garak.attempt import Message, Turn, Conversation
 from garak.exception import BadGeneratorException, RateLimitHit
@@ -61,6 +62,80 @@ def test_mistral_chat():
     assert generator.name == DEFAULT_DEPLOYMENT_NAME
     output = generator.generate(Conversation([Turn("user", Message("Hello Mistral!"))]))
     assert len(output) == 1  # expect 1 generation by default
+
+
+@pytest.mark.skipif(
+    not all(
+        [importlib.util.find_spec(m) for m in MistralGenerator.extra_dependency_names]
+    ),
+    reason="missing optional dependency",
+)
+@pytest.mark.usefixtures("set_fake_env")
+def test_mistral_returns_all_text_blocks():
+    generator = MistralGenerator(name=DEFAULT_DEPLOYMENT_NAME)
+    response = SimpleNamespace(
+        choices=[
+            SimpleNamespace(
+                message=SimpleNamespace(
+                    content=[
+                        SimpleNamespace(text="FIRST PART "),
+                        SimpleNamespace(type="tool_calls", id="call_1"),
+                        SimpleNamespace(text="SECOND PART"),
+                    ]
+                )
+            )
+        ]
+    )
+    with patch.object(generator.client.chat, "complete", return_value=response):
+        conv = Conversation([Turn("user", Message("Hello Mistral!"))])
+        output = generator.generate(conv)
+    assert len(output) == 1
+    assert output[0].text == "FIRST PART SECOND PART"
+
+
+@pytest.mark.skipif(
+    not all(
+        [importlib.util.find_spec(m) for m in MistralGenerator.extra_dependency_names]
+    ),
+    reason="missing optional dependency",
+)
+@pytest.mark.usefixtures("set_fake_env")
+def test_mistral_returns_none_when_list_content_has_no_text():
+    generator = MistralGenerator(name=DEFAULT_DEPLOYMENT_NAME)
+    response = SimpleNamespace(
+        choices=[
+            SimpleNamespace(
+                message=SimpleNamespace(
+                    content=[
+                        SimpleNamespace(type="tool_calls", id="call_1"),
+                    ]
+                )
+            )
+        ]
+    )
+    with patch.object(generator.client.chat, "complete", return_value=response):
+        conv = Conversation([Turn("user", Message("Hello Mistral!"))])
+        output = generator.generate(conv)
+    assert output == [None]
+
+
+@pytest.mark.skipif(
+    not all(
+        [importlib.util.find_spec(m) for m in MistralGenerator.extra_dependency_names]
+    ),
+    reason="missing optional dependency",
+)
+@pytest.mark.usefixtures("set_fake_env")
+def test_mistral_passes_plain_string_content_through():
+    generator = MistralGenerator(name=DEFAULT_DEPLOYMENT_NAME)
+    response = SimpleNamespace(
+        choices=[SimpleNamespace(message=SimpleNamespace(content="plain reply"))]
+    )
+    with patch.object(generator.client.chat, "complete", return_value=response):
+        conv = Conversation([Turn("user", Message("Hello Mistral!"))])
+        output = generator.generate(conv)
+    assert len(output) == 1
+    assert output[0].text == "plain reply"
 
 
 @pytest.mark.skipif(
