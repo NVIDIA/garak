@@ -51,3 +51,33 @@ def test_is_permitted():
     assert (
         p.is_permitted("A000") == True
     ), "parent perms should override unset child ones"
+
+
+def test_settree():
+    p = garak.cas.Policy(autoload=False)
+    p.points["C"] = None
+    p.points["C001"] = None
+    p.points["C001one"] = None
+    p.points["C002"] = None
+    p.points["T"] = None
+    p.settree("C001", True)
+    assert p.points["C001"] is True, "the named point should be set"
+    assert p.points["C001one"] is True, "sub-points of C001 should be set too"
+    assert p.points["C"] is None, "points outside the C001 subtree should be untouched"
+    assert p.points["C002"] is None, "sibling points of C001 should be untouched"
+    assert p.points["T"] is None, "unrelated points should be untouched"
+
+
+def test_settree_keeps_sibling_leaves():
+    # T010id and T010idother are both leaves under T010, so plain string
+    # prefix matching on "T010id" would sweep up the sibling as well
+    p = garak.cas.Policy(autoload=False)
+    p.points["T010"] = None
+    p.points["T010id"] = None
+    p.points["T010idother"] = None
+    p.points["T010license"] = None
+    p.settree("T010id", True)
+    assert p.points["T010id"] is True, "the named leaf should be set"
+    assert p.points["T010idother"] is None, "the sibling leaf should be untouched"
+    assert p.points["T010license"] is None, "other children of T010 should be untouched"
+    assert p.points["T010"] is None, "the parent point should be untouched"
