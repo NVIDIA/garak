@@ -6,6 +6,7 @@ that use real-time bidirectional communication protocols.
 
 import asyncio
 import json
+import re
 import ssl
 import time
 import base64
@@ -181,26 +182,36 @@ class WebSocketGenerator(Generator):
             return json.dumps(message_obj)
 
         # Use string template
-        message = self.req_template
-        for placeholder, value in replacements.items():
-            message = message.replace(placeholder, value)
-
-        return message
+        return self._apply_replacements(self.req_template, replacements)
 
     def _apply_replacements(self, obj: Any, replacements: Dict[str, str]) -> Any:
-        """Recursively apply replacements to a data structure"""
+        """Recursively apply placeholder replacements in a single pass."""
+        if not replacements:
+            return obj
+        pattern = re.compile(
+            "|".join(
+                re.escape(placeholder)
+                for placeholder in sorted(replacements, key=len, reverse=True)
+            )
+        )
+        return self._substitute_placeholders(obj, pattern, replacements)
+
+    def _substitute_placeholders(
+        self, obj: Any, pattern: re.Pattern, replacements: Dict[str, str]
+    ) -> Any:
         if isinstance(obj, str):
-            for placeholder, value in replacements.items():
-                obj = obj.replace(placeholder, value)
-            return obj
-        elif isinstance(obj, dict):
+            return pattern.sub(lambda match: replacements[match.group(0)], obj)
+        if isinstance(obj, dict):
             return {
-                k: self._apply_replacements(v, replacements) for k, v in obj.items()
+                k: self._substitute_placeholders(v, pattern, replacements)
+                for k, v in obj.items()
             }
-        elif isinstance(obj, list):
-            return [self._apply_replacements(item, replacements) for item in obj]
-        else:
-            return obj
+        if isinstance(obj, list):
+            return [
+                self._substitute_placeholders(item, pattern, replacements)
+                for item in obj
+            ]
+        return obj
 
     def _extract_response_text(self, response: str) -> str:
         """Extract text from response using jsonpath_ng for JSON field extraction"""
@@ -251,9 +262,17 @@ class WebSocketGenerator(Generator):
                 "close_timeout": self.connection_timeout,
             }
 
-            # Add headers if provided
+            # Add headers if provided, expanding $KEY in custom headers
             if self.headers:
-                connect_args["additional_headers"] = self.headers
+                header_replacements = {"$KEY": self.api_key or ""}
+                connect_args["additional_headers"] = {
+                    k: (
+                        v
+                        if (k == "Authorization" and self.auth_header is not None)
+                        else self._apply_replacements(v, header_replacements)
+                    )
+                    for k, v in self.headers.items()
+                }
 
             # SSL verification
             if self.secure and not self.verify_ssl:
