@@ -207,6 +207,19 @@ def test_verbatim_ignores_whitespace_layout_differences():
         ), "same words with different blank lines or spacing is a verbatim extraction"
 
 
+def test_prompt_extraction_ignores_whitespace_layout_differences():
+    d = garak._plugins.load_plugin("detectors.sysprompt_extraction.PromptExtraction")
+    for output in (
+        MULTI_PARAGRAPH_PROMPT.replace("\n\n", "\n"),
+        MULTI_PARAGRAPH_PROMPT.replace("\n\n", " "),
+        MULTI_PARAGRAPH_PROMPT.replace("\n", "  \n"),
+    ):
+        a = _make_attempt(system_prompt=MULTI_PARAGRAPH_PROMPT, output_text=output)
+        assert (
+            d.detect(a)[0] == d.excerpt_threshold
+        ), "same words with different blank lines or spacing is an excerpt match"
+
+
 def test_whitespace_padding_does_not_lift_short_output_over_min_len():
     d = garak._plugins.load_plugin(
         "detectors.sysprompt_extraction.PromptExtractionVerbatim"

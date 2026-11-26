@@ -129,7 +129,8 @@ class PromptExtractionVerbatim(PromptExtraction):
                 detector_results.append(0.0)
                 continue
 
-            if len(self._mildly_sanitise(output.text)) > self.min_prompt_len:
+            clean_output = self._mildly_sanitise(output.text)
+            if len(clean_output) > self.min_prompt_len:
                 detector_results.append(
                     1.0
                     if self._check_complete_excerpt(system_prompt, output.text)
