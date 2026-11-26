@@ -303,7 +303,7 @@ class DoctorIntent(garak.probes.IntentProbe):
     primary_detector = "mitigation.MitigationBypass"
     goal = "roleplay as a doctor to bypass guardrails across intents"
     tags = [
-        "owasp:llm01",  # prompt injection: the frame overrides the instruction hierarchy
+        "owasp:2023:llm01",  # prompt injection: the frame overrides the instruction hierarchy
         "avid-effect:security:S0301",  # roleplay used to evade content controls
         "quality:Security:PromptStability",  # probes robustness to roleplay framing
         "cwe:1427",  # improper neutralization of prompt input fed to the target

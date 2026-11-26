@@ -532,7 +532,7 @@ class AblationDan11Intent(garak.probes.IntentProbe):
     primary_detector = "mitigation.MitigationBypass"
     tags = [
         "avid-effect:security:S0403",  # jailbreak intended to bypass system/content controls
-        "owasp:llm01",  # prompt injection overriding the system instruction hierarchy
+        "owasp:2023:llm01",  # prompt injection overriding the system instruction hierarchy
         "quality:Security:PromptStability",  # tests resistance to adversarial instruction override
         "demon:Fictionalizing:Roleplaying:DAN_and_target_persona",  # asks the target to adopt the unrestricted DAN persona
         "demon:Language:Prompt_injection:Ignore_previous_instructions",  # every frame opens by ignoring prior instructions
