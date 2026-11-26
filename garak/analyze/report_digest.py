@@ -24,6 +24,7 @@ import garak._plugins
 from garak.data import path as data_path
 import garak.analyze
 import garak.analyze.calibration
+import garak.analyze.hit_at_k
 import garak.resources.scoring
 from garak.evaluators.base import CI_DISPLAY_MIN_WIDTH
 from garak.exception import ReportIncompatibleError
@@ -516,15 +517,24 @@ def append_report_object(reportfile: IO, object: dict):
     reportfile.write(json.dumps(object, ensure_ascii=False))
 
 
-def _compute_technique_intent_matrix(evals: list, report_plugin_cache: dict) -> dict:
+def _compute_technique_intent_matrix(
+    evals: list, report_plugin_cache: dict, hit_at_k_ks: list | None = None
+) -> dict:
     """Pool eval intent counts into a demon:* technique -> intent matrix.
 
     Counts are pooled across contributing probes and detectors, so
-    ``total_evaluated`` is an evaluation count (attempt x detector).
+    ``total_evaluated`` is an evaluation count (attempt x detector), and
+    hit@k ``prompts`` likewise counts prompt x detector.
     """
     acc = defaultdict(
         lambda: defaultdict(
-            lambda: {"passed": 0, "total": 0, "nones": 0, "probe_detector_pairs": set()}
+            lambda: {
+                "passed": 0,
+                "total": 0,
+                "nones": 0,
+                "probe_detector_pairs": set(),
+                "hit_at_k": [],
+            }
         )
     )
 
@@ -559,6 +569,8 @@ def _compute_technique_intent_matrix(evals: list, report_plugin_cache: dict) -> 
                 cell["total"] += total
                 cell["nones"] += nones
                 cell["probe_detector_pairs"].add((probe, detector))
+                if "hit_at_k" in counts:
+                    cell["hit_at_k"].append(counts["hit_at_k"])
 
     matrix = {}
     for technique in sorted(acc):
@@ -578,6 +590,18 @@ def _compute_technique_intent_matrix(evals: list, report_plugin_cache: dict) -> 
                 "nones": cell["nones"],
                 "probe_detector_pairs": sorted(map(list, cell["probe_detector_pairs"])),
             }
+            if hit_at_k_ks is not None:
+                try:
+                    cell_hit_at_k = garak.analyze.hit_at_k.pool_hit_at_k(
+                        cell["hit_at_k"], hit_at_k_ks
+                    )
+                except (KeyError, TypeError, ValueError, ZeroDivisionError) as e:
+                    raise ReportIncompatibleError(
+                        f"Report hit@k scores for intent {intent} are malformed; "
+                        "the report was likely generated with a different garak version"
+                    ) from e
+                if cell_hit_at_k:
+                    cells[intent]["hit_at_k"] = cell_hit_at_k
         technique_name, technique_description = tag_descriptions.get(
             technique, (None, None)
         )
@@ -708,7 +732,7 @@ def build_digest(report_filename: str, config=_config):
 
     # technique -> intent breakdown, pooled from each eval's intents field
     report_digest["technique_intent_matrix"] = _compute_technique_intent_matrix(
-        evals, report_plugin_cache
+        evals, report_plugin_cache, setup.get("reporting.hit_at_k")
     )
 
     return report_digest

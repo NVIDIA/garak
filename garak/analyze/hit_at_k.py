@@ -85,3 +85,55 @@ def estimate_hit_at_k(
             total = sum(hit_at_k(n, c, n) for n, c in counts)
             result[auto_k] = {"score": total / len(counts), "prompts": len(counts)}
     return result
+
+
+def pool_hit_at_k(
+    hit_at_k_scores: Iterable[Dict[str, Dict[str, float]]], ks: Iterable[int]
+) -> Dict[str, Dict[str, float]]:
+    """Pool hit@k scores estimated over separate sets of prompts.
+
+    Each score is a mean over its prompts, so weighting it by its prompt count
+    gives the mean over all pooled prompts. Each input's generation count entry
+    (``AUTO_K``, or else its largest k) is pooled into one entry, keyed by the
+    shared count or by ``AUTO_K``, as ``estimate_hit_at_k`` would key it.
+
+    :param hit_at_k_scores: ``hit_at_k`` fields as written to the report
+    :param ks: further k values the scores were estimated for, needed to tell
+        them apart from a generation count entry sharing the same key
+    :returns: ``{k: {"score": mean_hit_at_k, "prompts": eligible_prompt_count}}``
+    """
+    totals = {
+        str(k): {"weighted_score": 0.0, "prompts": 0}
+        for k in sorted({int(x) for x in ks if int(x) >= 1})
+    }
+    auto_total = {"weighted_score": 0.0, "prompts": 0}
+    auto_keys = set()
+    for scores in hit_at_k_scores:
+        if not scores:
+            continue
+        auto_key = AUTO_K if AUTO_K in scores else max(scores, key=int)
+        auto_keys.add(auto_key)
+        for key, entry in scores.items():
+            weighted_score = entry["score"] * entry["prompts"]
+            if key in totals:
+                totals[key]["weighted_score"] += weighted_score
+                totals[key]["prompts"] += entry["prompts"]
+            if key == auto_key:
+                auto_total["weighted_score"] += weighted_score
+                auto_total["prompts"] += entry["prompts"]
+    result = {
+        key: {
+            "score": total["weighted_score"] / total["prompts"],
+            "prompts": total["prompts"],
+        }
+        for key, total in totals.items()
+        if total["prompts"]
+    }
+    if auto_keys:
+        auto_key = next(iter(auto_keys)) if len(auto_keys) == 1 else AUTO_K
+        if auto_key not in result:
+            result[auto_key] = {
+                "score": auto_total["weighted_score"] / auto_total["prompts"],
+                "prompts": auto_total["prompts"],
+            }
+    return result
