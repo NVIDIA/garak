@@ -57,7 +57,11 @@ def analyze_log(report_path: str) -> None:
                 for detector_name, detector_scores in record[
                     "detector_results"
                 ].items():
-                    normalised_scores = [1 if i >= 0.5 else 0 for i in detector_scores]
+                    # None is a detector's "cannot score this output", the same
+                    # condition the evaluator leaves out of total_evaluated.
+                    normalised_scores = [
+                        1 if i >= 0.5 else 0 for i in detector_scores if i is not None
+                    ]
                     # are there any hits?
                     if sum(normalised_scores):
                         # if so print prompt & hit rate
