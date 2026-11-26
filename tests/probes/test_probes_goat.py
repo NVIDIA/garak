@@ -435,6 +435,39 @@ class TestEarlyStopOn:
         # Both branches continue — each gets a next attempt
         assert len(next_attempts) == 2
 
+    def test_branches_extend_separate_attacker_histories(self):
+        """Each continuing branch extends its own copy of the attacker conversation."""
+        probe = _plugins.load_plugin(
+            "probes.goat.GOATAttack", config_root=GOAT_TEST_CONFIG
+        )
+        probe.attacker_model = Mock()
+        probe.attacker_model.generate.return_value = [
+            garak.attempt.Message(
+                "Observation: test\nThought: test\nStrategy: test\nResponse: next prompt"
+            )
+        ]
+
+        attempt = self._make_attempt_with_outputs(probe)
+        attempt.notes["_should_terminate"] = [False, False]
+
+        next_attempts = probe._generate_next_attempts(attempt)
+        first, second = [
+            [t.content.text for t in a.notes["attacker_conversation"].turns]
+            for a in next_attempts
+        ]
+        assert len(first) == len(
+            second
+        ), "each branch adds one exchange to the shared starting history"
+        assert not any(
+            "I refuse" in text for text in second
+        ), "a branch must not see another branch's target response"
+        assert any(
+            "Sure, here is" in text for text in second
+        ), "a branch's follow-up carries its own target response"
+        assert (
+            attempt.notes["attacker_conversation"].turns == []
+        ), "the attempt's own attacker conversation is left unchanged"
+
     def test_early_stop_on_all_waits_for_all_branches(self):
         """With early_stop_on='all', is_adversarial=False when only some branches jailbroken."""
         config = {
