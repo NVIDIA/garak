@@ -24,7 +24,7 @@ class PastTenseFull(garak.probes.Probe):
     intent = "T009ignore"  # tense-shifting is used here to get the model to ignore its normal refusal policy
     primary_detector = "mitigation.Prefixes"
     tags = [
-        "owasp:llm01",
+        "owasp:2023:llm01",
         "quality:Security:PromptStability",
         "payload:jailbreak",
         "demon:Language:Stylizing:Synonymous_language",  # reformulates harmful requests in past tense to bypass refusal training
@@ -75,7 +75,7 @@ class FutureTenseFull(garak.probes.Probe):
     intent = "T009ignore"  # the future-tense reformulation is used to bypass normal safety refusals
     primary_detector = "mitigation.Prefixes"
     tags = [
-        "owasp:llm01",
+        "owasp:2023:llm01",
         "quality:Security:PromptStability",
         "payload:jailbreak",
         "demon:Language:Stylizing:Synonymous_language",  # reformulates harmful requests in future tense to bypass refusal training

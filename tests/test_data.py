@@ -62,6 +62,19 @@ def test_known_resource_found():
     assert source.name == known_filename
 
 
+def test_tags_misp_tsv_no_un_year_qualified_owasp():
+    """Verify tags.misp.tsv contains no bare un-year-qualified owasp:llmNN tags."""
+    import re
+
+    misp_file = data_path / "tags.misp.tsv"
+    with open(misp_file, "r", encoding="utf-8") as f:
+        for line in f:
+            tag = line.split("\t")[0]
+            assert not re.match(
+                r"^owasp:llm\d+$", tag
+            ), f"tags.misp.tsv contains bare tag {tag!r}; expected owasp:YYYY:llmNN"
+
+
 def test_local_override(random_resource_filename):
     source = data_path / random_resource_filename
     assert _config.transient.package_dir in source.parents

@@ -191,3 +191,18 @@ def test_detector_tag_format(classname):
             assert re.match(r"^[A-Za-z0-9_\-]+$", part)
         if tag.split(":")[0] != "payload":
             assert tag in MISP_TAGS, f"{classname} tag {tag} not in MISP taxonomy"
+        assert not re.match(
+            r"^owasp:llm\d+$", tag
+        ), f"Detector {classname} carries un-year-qualified tag {tag}; expected owasp:YYYY:llmNN"
+
+
+def test_no_un_year_qualified_owasp_detector_tags():
+    """CI regression test: ensure all OWASP tags on detectors are year-qualified (owasp:YYYY:llmNN)."""
+    bare_pattern = re.compile(r"^owasp:llm\d+$")
+    for plugin_name, _ in _plugins.enumerate_plugins("detectors"):
+        info = _plugins.PluginCache.plugin_info(plugin_name)
+        for tag in info.get("tags", []):
+            assert not bare_pattern.match(tag), (
+                f"{plugin_name} carries un-year-qualified tag {tag!r}; "
+                "OWASP tags must follow owasp:YYYY:llmNN format (e.g. owasp:2023:llm01)"
+            )

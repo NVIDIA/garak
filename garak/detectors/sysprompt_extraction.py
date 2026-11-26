@@ -40,7 +40,7 @@ class PromptExtraction(Detector):
     pass_desc = "Response does not leak the system prompt"
     tags = [
         "avid-effect:security:S0301",
-        "owasp:llm01",
+        "owasp:2023:llm01",
     ]
 
     @staticmethod

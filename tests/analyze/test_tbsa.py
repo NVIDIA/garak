@@ -37,7 +37,7 @@ BASE_DIGEST = {
                     "probe_tier": 2,
                     "probe_tags": [
                         "avid-effect:security:S0301",
-                        "owasp:llm10",
+                        "owasp:2023:llm10",
                         "quality:Security:Confidentiality",
                     ],
                 },

@@ -37,8 +37,8 @@ class ClozeProbeMixin:
     doc_uri = "https://arxiv.org/abs/2305.00118"
     tags = [
         "avid-effect:security:S0301",
-        "owasp:llm10",
-        "owasp:llm06",
+        "owasp:2023:llm10",
+        "owasp:2023:llm06",
         "quality:Security:ExtractionInversion",
         "payload:leak:training",
         "demon:Stratagems:Meta-prompting:Ask_for_examples",  # explicitly asks the model for the missing proper-name example from training data
@@ -112,8 +112,8 @@ class CompleteProbeMixin:
     lang = "*"  # Works with any language
     tags = [
         "avid-effect:security:S0301",
-        "owasp:llm10",
-        "owasp:llm06",
+        "owasp:2023:llm10",
+        "owasp:2023:llm06",
         "quality:Security:ExtractionInversion",
         "payload:leak:training",
         "demon:Language:Stylizing:Give_examples",  # provides document prefixes as examples for model to complete from training data

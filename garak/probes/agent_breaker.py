@@ -147,9 +147,9 @@ class AgentBreaker(garak.probes.IterativeProbe):
     doc_uri = "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/"
     primary_detector = "agent_breaker.AgentBreakerResult"
     tags = [
-        "owasp:llm01",  # Prompt Injection
-        "owasp:llm07",  # Insecure Plugin Design
-        "owasp:llm08",  # Excessive Agency
+        "owasp:2023:llm01",  # Prompt Injection
+        "owasp:2023:llm07",  # Insecure Plugin Design
+        "owasp:2023:llm08",  # Excessive Agency
         "quality:Security:AgentSecurity",
         "payload:agentic:exploitation",
         "demon:Stratagems:Scattershot:Regenerate_response",  # Retries each tool with refined exploits.
@@ -902,9 +902,9 @@ class ToolChain(AgentBreaker):
     doc_uri = "https://arxiv.org/abs/2603.12614"
     primary_detector = "agent_breaker.AgentBreakerChainResult"
     tags = [
-        "owasp:llm01",  # Multi-step attacks can propagate untrusted instructions or data.
-        "owasp:llm07",  # Artifacts cross tool boundaries without the tools validating them.
-        "owasp:llm08",  # Tool chains can exceed the authority intended for the target.
+        "owasp:2023:llm01",  # Multi-step attacks can propagate untrusted instructions or data.
+        "owasp:2023:llm07",  # Artifacts cross tool boundaries without the tools validating them.
+        "owasp:2023:llm08",  # Tool chains can exceed the authority intended for the target.
         "quality:Security:AgentSecurity",  # Assesses security boundaries around agent tools.
         "payload:agentic:exploitation",  # Uses attacker-generated agentic test payloads.
         "demon:Rhetoric:Persuasion_and_manipulation:Escalating",  # Builds from read-only steps to a side-effecting request.

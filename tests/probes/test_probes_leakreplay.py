@@ -84,8 +84,8 @@ def test_leakreplay_probe_structure(klassname):
     # Test tag inheritance - check that all expected tags are inherited properly
     expected_tags = [
         "avid-effect:security:S0301",
-        "owasp:llm10",
-        "owasp:llm06",
+        "owasp:2023:llm10",
+        "owasp:2023:llm06",
         "quality:Security:ExtractionInversion",
         "payload:leak:training",
     ]

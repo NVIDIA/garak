@@ -189,6 +189,21 @@ def test_tag_format(classname):
             assert re.match(r"^[A-Za-z0-9_\-\&]+$", part)
         if tag.split(":")[0] != "payload":
             assert tag in MISP_TAGS
+        assert not re.match(
+            r"^owasp:llm\d+$", tag
+        ), f"Probe {classname} carries un-year-qualified tag {tag}; expected owasp:YYYY:llmNN"
+
+
+def test_no_un_year_qualified_owasp_probe_tags():
+    """CI regression test: ensure all OWASP tags on probes are year-qualified (owasp:YYYY:llmNN)."""
+    bare_pattern = re.compile(r"^owasp:llm\d+$")
+    for plugin_name, _ in _plugins.enumerate_plugins("probes"):
+        info = _plugins.PluginCache.plugin_info(plugin_name)
+        for tag in info.get("tags", []):
+            assert not bare_pattern.match(tag), (
+                f"{plugin_name} carries un-year-qualified tag {tag!r}; "
+                "OWASP tags must follow owasp:YYYY:llmNN format (e.g. owasp:2023:llm01)"
+            )
 
 
 def test_probe_prune_alignment():

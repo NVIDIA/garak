@@ -127,7 +127,7 @@ class RepeatedToken(Detector):
     name = "repeated_token"
     tags = [
         "avid-effect:performance:P0403",
-        "owasp:llm04",
+        "owasp:2023:llm04",
         "quality:Security:PromptStability",
         "payload:unwanted:denial_of_service",
     ]

@@ -162,7 +162,7 @@ def main(arguments=None) -> None:
         "-S",
         type=str,
         default=_config.run.spec,
-        help="unified selection spec, e.g. 'probes.dan,-probes.dan.DanInTheWild,tag:owasp:llm01'. "
+        help="unified selection spec, e.g. 'probes.dan,-probes.dan.DanInTheWild,tag:owasp:2023:llm01'. "
         "Selectors: probes.<module>[.<Class>], buffs.<module>[.<Class>], tag:<prefix>, "
         "tier:<N|name>, intent:<code>; '-' excludes, tier:N is inclusive (tiers 1..N). "
         "Use --list_intents to discover intent codes.",
@@ -179,7 +179,7 @@ def main(arguments=None) -> None:
         "--probe_tags",
         default=argparse.SUPPRESS,
         type=str,
-        help="DEPRECATED, use --spec 'tag:<value>'. only include probes with a tag starting with this value (e.g. owasp:llm01)",
+        help="DEPRECATED, use --spec 'tag:<value>'. only include probes with a tag starting with this value (e.g. owasp:2023:llm01)",
     )
     # detectors
     parser.add_argument(

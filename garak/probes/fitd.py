@@ -39,9 +39,9 @@ class FITD(garak.probes.IterativeProbe):
     intent = "T009ignore"  # the whole multi-turn strategy is designed to walk the model away from its normal refusal behavior
     primary_detector = "judge.RefusalOnlyAdversarial"
     tags = [
-        "owasp:llm01",
-        "owasp:llm02",
-        "owasp:llm05",
+        "owasp:2023:llm01",
+        "owasp:2023:llm02",
+        "owasp:2023:llm05",
         "demon:Rhetoric:Persuasion_and_manipulation:Escalating",  # progressively escalates from benign to adversarial queries across turns
         "euai:robustness:adversarial",
     ]

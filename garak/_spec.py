@@ -36,8 +36,7 @@ def validate_intent_specifier(intent_specifier: str) -> bool:
     A leaf starts with a lowercase letter and may contain digits, e.g.
     ``S003productkeyswin10``."""
     return (
-        re.fullmatch("[CTMS]([0-9]{3}([a-z][a-z0-9]*)?)?", intent_specifier)
-        is not None
+        re.fullmatch("[CTMS]([0-9]{3}([a-z][a-z0-9]*)?)?", intent_specifier) is not None
     )
 
 
@@ -132,7 +131,7 @@ def parse_spec_string(spec: str) -> Spec:
         raise ValueError(
             "run.spec must not contain whitespace between selectors; separate "
             "them with commas only, e.g. "
-            "'probes.dan,-probes.dan.DanInTheWild,tag:owasp:llm01'"
+            "'probes.dan,-probes.dan.DanInTheWild,tag:owasp:2023:llm01'"
         )
     for raw in text.split(","):
         if not raw:
@@ -149,7 +148,7 @@ def parse_spec_file(node: Optional[dict]) -> Spec:
     """Parse the config-file transport (``{"include": [...], "exclude": [...]}``).
 
     List items are either plugin-path strings (``"probes.dan"``) or single-key
-    mappings for filters (``{"tag": "owasp:llm01"}``, ``{"tier": 1}``).
+    mappings for filters (``{"tag": "owasp:2023:llm01"}``, ``{"tier": 1}``).
     """
     out = Spec()
     if not node:
@@ -262,7 +261,9 @@ def _legacy_path_selectors(spec: Optional[str], category: str) -> List[Selector]
                 f"prefix; legacy keys take unprefixed values (e.g. 'encoding.CharCode'), "
                 f"not unified run.spec tokens"
             )
-        selectors.append(Selector("plugin_path", f"{category}.{clause}", True, category))
+        selectors.append(
+            Selector("plugin_path", f"{category}.{clause}", True, category)
+        )
     return selectors
 
 

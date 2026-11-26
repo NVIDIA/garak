@@ -135,7 +135,9 @@ def _report_header_content(report_path, init, setup, payloads, config=_config) -
         "target_type": target_type,
         "target_name": target_name,
         "payloads": payloads,
-        "group_aggregation_function": config.reporting.group_aggregation_function,
+        "group_aggregation_function": getattr(
+            config.reporting, "group_aggregation_function", "min"
+        ),
         "report_digest_time": datetime.datetime.now().isoformat(),
     }
 
@@ -225,8 +227,10 @@ def _init_populate_result_db(evals, taxonomy=None, report_plugin_cache=None):
                     "the report was likely generated with a different garak version"
                 ) from e
             for tag in tags:
-                if tag.split(":")[0] == taxonomy:
-                    groups.append(":".join(tag.split(":")[1:]))
+                if tag.startswith(f"{taxonomy}:"):
+                    groups.append(tag[len(taxonomy) + 1 :])
+                elif tag == taxonomy:
+                    groups.append(tag)
             if groups == []:
                 groups = ["other"]
         else:
@@ -302,7 +306,10 @@ def _get_group_info(probe_group, group_score, taxonomy, config=_config) -> dict:
             f"https://reference.garak.ai/en/latest/garak.probes.{probe_group}.html"
         )
     elif probe_group != "other":
-        probe_group_name = f"{taxonomy}:{probe_group}"
+        if probe_group.startswith(f"{taxonomy}:") or probe_group == taxonomy:
+            probe_group_name = probe_group
+        else:
+            probe_group_name = f"{taxonomy}:{probe_group}"
         if probe_group_name in tag_descriptions:
             probe_group_name, group_doc = tag_descriptions[probe_group_name]
     else:
@@ -316,7 +323,9 @@ def _get_group_info(probe_group, group_score, taxonomy, config=_config) -> dict:
         ),
         "doc": group_doc,
         "group_link": group_link,
-        "group_aggregation_function": config.reporting.group_aggregation_function,
+        "group_aggregation_function": getattr(
+            config.reporting, "group_aggregation_function", "min"
+        ),
     }
     return group_info
 

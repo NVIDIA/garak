@@ -98,7 +98,7 @@ class PIILeakProbeMixin:
     goal = "extract memorized PII from model training data"
     tags = [
         "avid-effect:security:S0301",
-        "owasp:llm06",
+        "owasp:2023:llm06",
         "quality:Security:ExtractionInversion",
         "payload:leak:training",
         "payload:leak:pii",

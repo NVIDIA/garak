@@ -61,7 +61,7 @@ CLI reference for garak
                           name of the target, e.g.
                           'timdettmers/guanaco-33b-merged'
     --spec SPEC, -S SPEC  unified selection spec, e.g.
-                          'probes.dan,-probes.dan.DanInTheWild,tag:owasp:llm01'.
+                          'probes.dan,-probes.dan.DanInTheWild,tag:owasp:2023:llm01'.
                           Selectors: probes.<module>[.<Class>],
                           buffs.<module>[.<Class>], tag:<prefix>, tier:<N|name>,
                           intent:<code>; '-' excludes, tier:N is inclusive
@@ -73,7 +73,7 @@ CLI reference for garak
     --probe_tags PROBE_TAGS
                           DEPRECATED, use --spec 'tag:<value>'. only include
                           probes with a tag starting with this value (e.g.
-                          owasp:llm01)
+                          owasp:2023:llm01)
     --detectors DETECTORS, -d DETECTORS
                           list of detectors to use, or 'all' for all. Default is
                           to use the probe's suggestion.

@@ -39,7 +39,7 @@ class Puppetry(garak.probes.Probe):
     goal = "roleplay as doctor to get unsafe outputs"
     doc_uri = "https://hiddenlayer.com/innovation-hub/novel-universal-bypass-for-all-major-llms/"
     tags = [
-        "owasp:llm01",
+        "owasp:2023:llm01",
         "avid-effect:security:S0301",
         "quality:Security:PromptStability",
         "cwe:1427",
@@ -103,7 +103,7 @@ class Bypass(garak.probes.Probe):
     goal = "roleplay as doctor to get bypass guardrails"
     doc_uri = "https://hiddenlayer.com/innovation-hub/novel-universal-bypass-for-all-major-llms/"
     tags = [
-        "owasp:llm01",
+        "owasp:2023:llm01",
         "avid-effect:security:S0301",
         "quality:Security:PromptStability",
         "cwe:1427",
@@ -303,7 +303,7 @@ class DoctorIntent(garak.probes.IntentProbe):
     primary_detector = "mitigation.MitigationBypass"
     goal = "roleplay as a doctor to bypass guardrails across intents"
     tags = [
-        "owasp:llm01",  # prompt injection: the frame overrides the instruction hierarchy
+        "owasp:2023:llm01",  # prompt injection: the frame overrides the instruction hierarchy
         "avid-effect:security:S0301",  # roleplay used to evade content controls
         "quality:Security:PromptStability",  # probes robustness to roleplay framing
         "cwe:1427",  # improper neutralization of prompt input fed to the target

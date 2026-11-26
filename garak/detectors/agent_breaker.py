@@ -57,9 +57,9 @@ class AgentBreakerResult(Detector):
     doc_uri = "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/"
     lang_spec = "*"
     tags = [
-        "owasp:llm01",
-        "owasp:llm07",
-        "owasp:llm08",
+        "owasp:2023:llm01",
+        "owasp:2023:llm07",
+        "owasp:2023:llm08",
         "quality:Security:AgentSecurity",
     ]
 
@@ -336,9 +336,9 @@ class AgentBreakerChainResult(Detector):
     doc_uri = "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/"
     lang_spec = "*"
     tags = [
-        "owasp:llm01",  # Judges responses to chained prompt-injection attempts.
-        "owasp:llm07",  # Judges effects of artifacts passed between tools unchecked.
-        "owasp:llm08",  # Judges claimed effects reached through excessive agency.
+        "owasp:2023:llm01",  # Judges responses to chained prompt-injection attempts.
+        "owasp:2023:llm07",  # Judges effects of artifacts passed between tools unchecked.
+        "owasp:2023:llm08",  # Judges claimed effects reached through excessive agency.
         "quality:Security:AgentSecurity",  # Assesses agent tool-boundary failures.
     ]
 

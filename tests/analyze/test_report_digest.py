@@ -259,7 +259,7 @@ def test_tim_skips_probe_without_demon_tags():
             "intents": {"S003": {"passed": 1, "total_evaluated": 2, "nones": 0}},
         }
     ]
-    m = _tim(evals, _pc({"x.Y": ["owasp:llm01"]}))
+    m = _tim(evals, _pc({"x.Y": ["owasp:2023:llm01"]}))
     assert m == {}, f"probe without demon:* tags should contribute nothing, got {m}"
 
 
@@ -437,3 +437,63 @@ def test_runspec_falls_back_when_absent():
         )
         == "probes.dan"
     ), "reports predating run.spec fall back to the legacy probe_spec"
+
+
+def test_taxonomy_grouping_owasp_single_and_multi_year():
+    _config.load_base_config()
+    evals = [
+        {
+            "entry_type": "eval",
+            "probe": "grandma.Win10",
+            "detector": "d.D",
+            "passed": 1,
+            "total_evaluated": 2,
+        }
+    ]
+    pc = _pc({"grandma.Win10": ["owasp:2023:llm08", "owasp:2025:llm06"]})
+
+    # Test 1: taxonomy="owasp" preserves both year tags as distinct probe groups
+    conn, cursor = garak.analyze.report_digest._init_populate_result_db(
+        evals, "owasp", pc
+    )
+    groups = garak.analyze.report_digest._get_report_grouping(cursor)
+    assert sorted(groups) == ["2023:llm08", "2025:llm06"]
+    info_2023 = garak.analyze.report_digest._get_group_info("2023:llm08", 0.5, "owasp")
+    info_2025 = garak.analyze.report_digest._get_group_info("2025:llm06", 0.5, "owasp")
+    assert info_2023["group"] == "LLM08: Excessive Agency"
+    assert info_2025["group"] == "LLM06: Excessive Agency"
+    conn.close()
+
+    # Test 2: taxonomy="owasp:2023" selects only the 2023 tag without collision
+    conn, cursor = garak.analyze.report_digest._init_populate_result_db(
+        evals, "owasp:2023", pc
+    )
+    groups = garak.analyze.report_digest._get_report_grouping(cursor)
+    assert groups == ["llm08"]
+    info_2023_only = garak.analyze.report_digest._get_group_info(
+        "llm08", 0.5, "owasp:2023"
+    )
+    assert info_2023_only["group"] == "LLM08: Excessive Agency"
+    conn.close()
+
+    # Test 3: taxonomy="owasp:2025" selects only the 2025 tag without collision
+    conn, cursor = garak.analyze.report_digest._init_populate_result_db(
+        evals, "owasp:2025", pc
+    )
+    groups = garak.analyze.report_digest._get_report_grouping(cursor)
+    assert groups == ["llm06"]
+    info_2025_only = garak.analyze.report_digest._get_group_info(
+        "llm06", 0.5, "owasp:2025"
+    )
+    assert info_2025_only["group"] == "LLM06: Excessive Agency"
+    conn.close()
+
+    # Test 4: non-matching taxonomy year falls back to 'other'
+    conn, cursor = garak.analyze.report_digest._init_populate_result_db(
+        evals, "owasp:2024", pc
+    )
+    groups = garak.analyze.report_digest._get_report_grouping(cursor)
+    assert groups == ["other"]
+    info_other = garak.analyze.report_digest._get_group_info("other", 0.5, "owasp:2024")
+    assert info_other["group"] == "Uncategorized"
+    conn.close()

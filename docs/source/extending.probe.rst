@@ -129,7 +129,7 @@ Many of these are decent defaults, though there are a few that we absolutely wan
 
 * ``doc_uri``: What is a good reference for the probe you're implementing? An academic paper, blog post, or social media post (in descending order of preference) goes here.
 * ``active``: Should this probe be part of default scans?
-* ``tags``: MISP-formatted taxonomy categories __e.g.__ ``["avid-effect:security:S0403", "owasp:llm01", "quality:Security:PromptStability", "payload:jailbreak"]``
+* ``tags``: MISP-formatted taxonomy categories __e.g.__ ``["avid-effect:security:S0403", "owasp:2023:llm01", "quality:Security:PromptStability", "payload:jailbreak"]``
 * ``goal``: What is the probe trying to do? __e.g.__ ``"disregard the system prompt"``
 * ``intent``: Which target behaviour / failure mode does this probe elicit? Must be a code from ``garak/data/cas/trait_typology.json`` __e.g.__ ``"T009ignore"``. The value is automatically propagated to every ``Attempt`` the probe creates. If the probe loads a payload that also declares an ``intent``, the payload's intent takes priority.
 * ``primary_detector``: What ``Detector`` should your probe use?
@@ -142,7 +142,7 @@ Many of these are decent defaults, though there are a few that we absolutely wan
         primary_detector = "mitigation.MitigationBypass"
         tags = [
             "avid-effect:security:S0403",
-            "owasp:llm01",
+            "owasp:2023:llm01",
             "quality:Security:PromptStability",
             "payload:jailbreak",
         ]

@@ -33,7 +33,7 @@ class FalseAssertion(garak.probes.Probe):
     ]
     tags = [
         "avid-effect:performance:P0204",
-        "owasp:llm09",
+        "owasp:2023:llm09",
         "quality:Robustness:GenerativeMisinformation",
         "payload:hallucination",
         "demon:Rhetoric:Persuasion_and_manipulation:Distraction",  # presents false claims as fact to distract model from refuting them

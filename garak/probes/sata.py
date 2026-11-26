@@ -138,7 +138,7 @@ class MLM(garak.probes.Probe):
     tags = [
         "avid-effect:security:S0403",
         "avid-effect:performance:P0204",
-        "owasp:llm01",
+        "owasp:2023:llm01",
         "quality:Security:PromptStability",
         "payload:jailbreak",
         "demon:Language:Code_and_encode:Token",  # replaces harmful words with [MASK] tokens to exploit fill-in-the-blank behavior
@@ -204,7 +204,7 @@ class MLMIntent(garak.probes.IntentProbe):
     tags = [
         "avid-effect:security:S0403",  # jailbreak-style safeguard circumvention
         "avid-effect:performance:P0204",  # elicits disallowed task completion
-        "owasp:llm01",  # prompt injection family
+        "owasp:2023:llm01",  # prompt injection family
         "quality:Security:PromptStability",  # stability under masked/reframed input
         "payload:jailbreak",  # packages a harmful request as a benign infill task
         "demon:Language:Code_and_encode:Token",  # replaces words with [MASK] tokens to exploit fill-in-the-blank behavior
