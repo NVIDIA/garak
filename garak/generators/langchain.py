@@ -79,7 +79,32 @@ class LangChainLLMGenerator(Generator):
         """
         conv = self._conversation_to_list(prompt)
         resp = self.generator.invoke(conv)
-        return [Message(resp.content)] if hasattr(resp, "content") else [None]
+        if not hasattr(resp, "content"):
+            return [None]
+        content = resp.content
+        if isinstance(content, list):
+            # `content` is a list of blocks; join every text block. Tool calls
+            # split the reply, so taking only the first text block would drop
+            # the rest of the response. LangChain providers emit blocks as
+            # mappings (langchain-anthropic returns plain dicts) or as objects
+            # with a `text` attribute; blocks without reply text (tool calls,
+            # image or document references) are skipped.
+            text_parts = []
+            for block in content:
+                if isinstance(block, str):
+                    text_parts.append(block)
+                elif isinstance(block, dict):
+                    text = block.get("text")
+                    if isinstance(text, str) and block.get("type", "text") == "text":
+                        text_parts.append(text)
+                elif hasattr(block, "text") and isinstance(block.text, str):
+                    text_parts.append(block.text)
+            if not text_parts:
+                return [None]
+            return [Message("".join(text_parts))]
+        if content is None:
+            return [None]
+        return [Message(content)]
 
 
 DEFAULT_CLASS = "LangChainLLMGenerator"
