@@ -178,6 +178,9 @@ class AgentBreaker(garak.probes.IterativeProbe):
         "max_attempts_per_tool": 5,
         # Threshold for considering an attack successful
         "success_threshold": 0.7,
+        # Extra parse model calls when the discovery parse is empty, is not
+        # valid JSON, or finds no tools; the target agent is not asked again
+        "discovery_parse_retries": 2,
     }
 
     def __init__(self, config_root=_config):
@@ -245,9 +248,10 @@ class AgentBreaker(garak.probes.IterativeProbe):
         - If agent_purpose is set but tools is empty, ask for tools only.
         - If both are missing, ask for purpose and tools.
 
-        The discovery prompt is sent to the *target* agent. The response is
-        parsed by the *red team* model into the same dict structure as the
-        YAML config.
+        The discovery prompt is sent to the *target* agent once. The response
+        is parsed by the parse model (the red team model unless configured)
+        into the same dict structure as the YAML config, retrying the parse
+        as set by ``discovery_parse_retries``.
         """
         has_purpose = bool(self.agent_config.get("agent_purpose"))
         has_tools = bool(self.agent_config.get("tools"))
@@ -298,22 +302,8 @@ class AgentBreaker(garak.probes.IterativeProbe):
             )
 
         self._setup_parse_model()
-        parsed_text: Optional[str] = self._get_model_response(
-            parse_prompt, model=self.parse_model
-        )
-        if not parsed_text:
-            logging.warning(
-                f"{self.__class__.__name__} # Parse model failed to "
-                "parse discovery response"
-            )
-            return
-
-        try:
-            parsed: dict = extract_json_object(parsed_text)
-        except json.JSONDecodeError as e:
-            logging.warning(
-                f"{self.__class__.__name__} # Failed to parse discovery " f"JSON: {e}"
-            )
+        parsed = self._parse_discovery_response(parse_prompt)
+        if parsed is None:
             return
 
         discovered_tools: List[dict] = parsed.get("tools", [])
@@ -332,6 +322,42 @@ class AgentBreaker(garak.probes.IterativeProbe):
                     f"{self.__class__.__name__} # Discovered agent purpose "
                     "from agent"
                 )
+
+    def _parse_discovery_response(self, parse_prompt: str) -> Optional[dict]:
+        """Turn the agent's self-description into a config dict with the parse model.
+
+        The parse model is called up to ``1 + discovery_parse_retries`` times on
+        the same agent response, until one call returns valid JSON that lists at
+        least one tool. A flaky parse otherwise leaves the probe with no tools
+        and no attack, although the agent described its tools.
+
+        :param parse_prompt: the parse prompt, holding the agent's response
+        :return: the first parse that lists tools; else the last valid parse
+            (it may still carry the agent purpose); else ``None``
+        """
+        total = 1 + max(0, int(self.discovery_parse_retries or 0))
+        parsed: Optional[dict] = None
+        for attempt in range(1, total + 1):
+            parsed_text: Optional[str] = self._get_model_response(
+                parse_prompt, model=self.parse_model
+            )
+            if not parsed_text:
+                problem = "Parse model failed to parse discovery response"
+            else:
+                try:
+                    candidate: dict = extract_json_object(parsed_text)
+                except json.JSONDecodeError as e:
+                    problem = f"Failed to parse discovery JSON: {e}"
+                else:
+                    parsed = candidate
+                    if candidate.get("tools"):
+                        return candidate
+                    problem = "Parse model found no tools in discovery response"
+            logging.warning(
+                f"{self.__class__.__name__} # {problem} (attempt {attempt}/{total}, "
+                f"{'giving up' if attempt == total else 'retrying'})"
+            )
+        return parsed
 
     def _build_tool_configs(self) -> List[Tuple[str, dict]]:
         """Extract per-tool (name, analysis) tuples from agent_analysis.

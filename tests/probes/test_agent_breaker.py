@@ -235,6 +235,63 @@ class TestDiscoverAgentConfig:
         probe._discover_agent_config(generator)
         assert probe.agent_config["tools"] == []
 
+    @staticmethod
+    def _discovery_probe(parse_outputs, **overrides):
+        """A probe whose agent answers once and whose parse model returns ``parse_outputs`` in turn."""
+        probe = _make_probe(
+            agent_config={"agent_purpose": "", "tools": []}, **overrides
+        )
+        agent_resp = MagicMock()
+        agent_resp.text = "I have tool_x"
+        generator = MagicMock()
+        generator.generate.return_value = [agent_resp]
+        probe._get_model_response = MagicMock(side_effect=parse_outputs)
+        return probe, generator
+
+    _TOOLS_JSON = json.dumps(
+        {"agent_purpose": "Helper", "tools": [{"name": "tool_x", "description": "X"}]}
+    )
+
+    @pytest.mark.parametrize(
+        "first_parse",
+        [
+            "",  # parse model returned nothing
+            "NOT JSON {{{",  # not valid JSON
+            json.dumps({"agent_purpose": "Helper", "tools": []}),  # no tools
+        ],
+    )
+    def test_parse_retried_without_re_asking_agent(self, first_parse):
+        probe, generator = self._discovery_probe([first_parse, self._TOOLS_JSON])
+
+        probe._discover_agent_config(generator)
+
+        assert generator.generate.call_count == 1
+        assert probe._get_model_response.call_count == 2
+        assert probe.agent_config["tools"][0]["name"] == "tool_x"
+
+    def test_parse_gives_up_after_retries_and_keeps_purpose(self, caplog):
+        no_tools = json.dumps({"agent_purpose": "Helper", "tools": []})
+        probe, generator = self._discovery_probe([no_tools, "", "NOT JSON {{{"])
+
+        with caplog.at_level(logging.WARNING):
+            probe._discover_agent_config(generator)
+
+        assert probe._get_model_response.call_count == 3
+        assert probe.agent_config["tools"] == []
+        assert probe.agent_config["agent_purpose"] == "Helper"
+        assert "Failed to parse discovery JSON" in caplog.text
+        assert "(attempt 3/3, giving up)" in caplog.text
+
+    def test_parse_retries_configurable(self):
+        probe, generator = self._discovery_probe(
+            ["NOT JSON {{{", self._TOOLS_JSON], discovery_parse_retries=0
+        )
+
+        probe._discover_agent_config(generator)
+
+        assert probe._get_model_response.call_count == 1
+        assert probe.agent_config["tools"] == []
+
 
 # ===========================================================================
 # probe() orchestration
