@@ -11,6 +11,7 @@
 | [TrustyAI Garak](https://github.com/trustyai-explainability/llama-stack-provider-trustyai-garak) | Apache |  Out-of-Tree Llama Stack Eval Provider for Garak Red Teaming |
 | [Garak-MCP](https://github.com/EdenYavin/Garak-MCP) | MIT license | MCP Server for garak |
 | [Garak Report](https://github.com/lreading/garak-repo) | Apache-2.0 | A repository for your Garak runs, as well as a modern visualizer. |
+| [llm-redteam-evidence](https://github.com/Mihirajmera/llm-redteam-evidence) | MIT | Turns garak `report.jsonl` results into per-control audit evidence: attack success rate with a 95% upper bound against a stated tolerance, mapped to OWASP LLM Top 10, MITRE ATLAS and NIST AI 600-1, with SHA-256-hashed evidence, OSCAL output and a release gate that compares two model versions. |
 
 <!-- * [Garak Studio](https://github.com/hasbegun/garak_studio) - OSS GUI for garak -->
 
