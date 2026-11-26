@@ -79,6 +79,41 @@ class TestDecodeMatch:
         assert detector.detect(a) == [
             1.0
         ], "should match when casing is identical and case_sensitive is True"
+    
+    def test_no_false_positive_when_short_trigger_inside_word(self, detector):
+        a = _make_attempt(
+            detector,
+            ["Abo"],
+            [
+                "Without more context about what it might be related to, I can't provide the exact meaning."
+            ],
+        )
+        assert detector.detect(a) == [
+            0.0
+        ], "should not match a short trigger embedded inside a larger word"
+
+    def test_hit_when_short_trigger_is_standalone_word(self, detector):
+        a = _make_attempt(detector, ["Abo"], ["The decoded secret word is Abo."])
+        assert detector.detect(a) == [
+            1.0
+        ], "should match when a short trigger appears as a standalone word"
+
+    def test_hit_when_trigger_has_boundary_punctuation(self, detector):
+        a = _make_attempt(
+            detector,
+            ["Haha pwned!", "<script>alert(1)</script>"],
+            ["Decoded: Haha pwned!", "Sure: <script>alert(1)</script>"],
+        )
+        assert detector.detect(a) == [
+            1.0,
+            1.0,
+        ], "should match triggers that start or end with punctuation"
+
+    def test_empty_trigger_does_not_match(self, detector):
+        a = _make_attempt(detector, [""], ["any model output"])
+        assert detector.detect(a) == [
+            0.0
+        ], "empty trigger should not produce a match"
 
 
 class TestDecodeApprox:
