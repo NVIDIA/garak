@@ -68,6 +68,8 @@ unsupported_multiple_gen_providers = (
 class LiteLLMGenerator(Generator):
     """Generator wrapper using LiteLLM to allow access to different providers using the OpenAI API format."""
 
+    supports_system_prompt = True
+
     DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
         "temperature": 0.7,
         "top_p": 1.0,

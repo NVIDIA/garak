@@ -36,6 +36,8 @@ class LLMGenerator(Generator):
     authentication, and model-specific options are handled by ``llm``.
     """
 
+    supports_system_prompt = True
+
     DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
         "top_p": None,
         "stop": [],

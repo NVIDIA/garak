@@ -38,6 +38,8 @@ class CohereGenerator(Generator):
     - For api_version="v2": Uses cohere.ClientV2() with chat() API (recommended, requires multiple API calls)
     """
 
+    supports_system_prompt = True
+
     ENV_VAR = "COHERE_API_KEY"
     DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
         "temperature": 0.750,

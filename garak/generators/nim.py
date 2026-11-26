@@ -131,6 +131,8 @@ class NVOpenAICompletion(NVOpenAIChat):
        the name of the model on build.nvidia.com, such as ``--target_name 'mistralai/mixtral-8x7b-instruct-v0.1'``.
     """
 
+    supports_system_prompt = False
+
     def _load_unsafe(self):
         self.client = openai.OpenAI(base_url=self.uri, api_key=self.api_key)
         self.generator = self.client.completions

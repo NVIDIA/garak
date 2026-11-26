@@ -442,6 +442,23 @@ def warn_unconsumed_intents(probe_names) -> None:
     print(f"⚠️  {msg}")
 
 
+def warn_unsent_system_prompt(generator) -> None:
+    """Warn once when ``run.system_prompt`` is set but the generator does not send
+    the system turn to the target, so the prompt has no effect on this run."""
+    from garak import _config
+
+    if not getattr(_config.run, "system_prompt", None):
+        return
+    if generator.supports_system_prompt:
+        return
+    msg = (
+        f"run.system_prompt is set but {generator.fullname} does not send a system "
+        "prompt to the target; the target will not see it"
+    )
+    logging.warning(msg)
+    print(f"⚠️  {msg}")
+
+
 # do a run
 def probewise_run(generator, probe_names, evaluator, buffs):
     import garak.harnesses.probewise

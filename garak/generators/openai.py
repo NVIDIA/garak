@@ -135,6 +135,8 @@ audio_pattern = re.compile("|".join(audio_formats))
 class OpenAICompatible(Generator):
     """Generator base class for OpenAI compatible text2text restful API. Implements shared initialization and execution methods."""
 
+    supports_system_prompt = True
+
     ENV_VAR = "OpenAICompatible_API_KEY".upper()  # Placeholder override when extending
 
     active = True
@@ -446,12 +448,14 @@ class OpenAIGenerator(OpenAICompatible):
 
         if self.name in completion_models:
             self.generator = self.client.completions
+            self.supports_system_prompt = False
         elif self.name in chat_models:
             self.generator = self.client.chat.completions
         elif "-".join(self.name.split("-")[:-1]) in chat_models and re.match(
             r"^.+-[01][0-9][0-3][0-9]$", self.name
         ):  # handle model names -MMDDish suffix
             self.generator = self.client.completions
+            self.supports_system_prompt = False
         else:
             msg = f"❔ No {self.generator_family_name} API defined for '{self.name}' in generators/openai.py - please add one! Assuming chat model"
             print(msg)

@@ -57,6 +57,16 @@ class SystemPromptExtraction(Probe):
         self.attack_templates = self._load_garak_attacks()
         self._generate_attempts()
 
+    def probe(self, generator):
+        if not generator.supports_system_prompt:
+            logging.warning(
+                "%s skipped: %s does not send a system prompt to the target, so a leak cannot be detected",
+                self.probename,
+                generator.fullname,
+            )
+            return []
+        return super().probe(generator)
+
     @staticmethod
     def _load_dataset_prompts(dataset_name: str, min_prompt_len: int = 20) -> List[str]:
         """Load prompts from a HuggingFace dataset with 'systemprompt' or 'prompt' column."""

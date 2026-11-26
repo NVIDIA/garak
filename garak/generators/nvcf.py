@@ -20,6 +20,8 @@ from garak.generators.base import Generator
 class NvcfChat(Generator):
     """Wrapper for NVIDIA Cloud Functions Chat models via NGC. Expects NVCF_API_KEY environment variable."""
 
+    supports_system_prompt = True
+
     ENV_VAR = "NVCF_API_KEY"
     DEFAULT_PARAMS = Generator.DEFAULT_PARAMS | {
         "temperature": 0.2,
@@ -170,6 +172,8 @@ class NvcfChat(Generator):
 
 class NvcfCompletion(NvcfChat):
     """Wrapper for NVIDIA Cloud Functions Completion models via NGC. Expects NVCF_API_KEY environment variables."""
+
+    supports_system_prompt = False
 
     def _build_payload(self, prompt: Conversation) -> dict:
 

@@ -23,3 +23,28 @@ def test_system_prompt():
     assert (
         results[0].conversations[0].turns[0].role == "system"
     ), "First message of the conversation should be from 'system'"
+
+
+class _Target:
+    fullname = "test target"
+
+    def __init__(self, supports_system_prompt):
+        self.supports_system_prompt = supports_system_prompt
+
+
+def test_warn_unsent_system_prompt_fires_for_unsupported_generator(capsys):
+    import garak.command as command
+
+    _config.run.system_prompt = "Test system prompt"
+    command.warn_unsent_system_prompt(_Target(supports_system_prompt=False))
+    assert "does not send a system prompt" in capsys.readouterr().out
+
+
+def test_warn_unsent_system_prompt_silent_when_supported_or_unset(capsys):
+    import garak.command as command
+
+    _config.run.system_prompt = "Test system prompt"
+    command.warn_unsent_system_prompt(_Target(supports_system_prompt=True))
+    _config.run.system_prompt = None
+    command.warn_unsent_system_prompt(_Target(supports_system_prompt=False))
+    assert capsys.readouterr().out == ""

@@ -16,6 +16,8 @@ from garak.generators.openai import OpenAICompatible
 class NeMoGuardrails(Generator):
     """Generator wrapper for NeMo Guardrails."""
 
+    supports_system_prompt = True
+
     supports_multiple_generations = False
     generator_family_name = "Guardrails"
     extra_dependency_names = ["nemoguardrails"]

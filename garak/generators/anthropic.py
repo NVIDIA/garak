@@ -18,6 +18,8 @@ class AnthropicGenerator(Generator):
     are issued at https://console.anthropic.com/.
     """
 
+    supports_system_prompt = True
+
     generator_family_name = "anthropic"
     fullname = "Anthropic"
     supports_multiple_generations = False

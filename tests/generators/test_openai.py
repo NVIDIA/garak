@@ -190,3 +190,11 @@ def test_call_model_permission_denied_raises_garak_exception(mocker):
         generator.generate(prompt)
     error_text = str(exc_info.value)
     assert "403" in error_text or OpenAIGenerator.ENV_VAR in error_text
+
+
+@pytest.mark.usefixtures("set_fake_env")
+def test_openai_system_prompt_support_follows_api():
+    assert OpenAIGenerator(name="gpt-4o-mini").supports_system_prompt is True
+    assert (
+        OpenAIGenerator(name="gpt-3.5-turbo-instruct").supports_system_prompt is False
+    )
