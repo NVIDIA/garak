@@ -111,11 +111,16 @@ class CohereGenerator(Generator):
                         if hasattr(response, "message") and hasattr(
                             response.message, "content"
                         ):
-                            # Get the first text content item
-                            for content_item in response.message.content:
-                                if hasattr(content_item, "text"):
-                                    responses.append(content_item.text)
-                                    break
+                            # Join every text block. Tool calls split the
+                            # reply, so taking only the first text block
+                            # would drop the rest of the response.
+                            text_blocks = [
+                                content_item.text
+                                for content_item in response.message.content
+                                if hasattr(content_item, "text")
+                            ]
+                            if text_blocks:
+                                responses.append("".join(text_blocks))
                             else:
                                 # No text content found
                                 logging.warning(
