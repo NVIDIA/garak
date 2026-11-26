@@ -34,6 +34,7 @@ For detailed information on detector metrics and evaluation, see :doc:`../detect
    detectors/misleading
    detectors/mitigation
    detectors/packagehallucination
+   detectors/persona_injection
    detectors/perspective
    detectors/promptinject
    detectors/productkey
