@@ -177,6 +177,10 @@ class BedrockGenerator(Generator):
         AWS Bedrock expects messages in the format:
         {"role": "user", "content": [{"text": "message text"}]}
 
+        The Converse API accepts only user and assistant roles in messages.
+        System turns are excluded here; they are sent separately via
+        _conversation_system.
+
         Args:
             conversation: Conversation object to convert
 
@@ -186,8 +190,28 @@ class BedrockGenerator(Generator):
         turn_list = [
             {"role": turn.role, "content": [{"text": turn.content.text}]}
             for turn in conversation.turns
+            if turn.role != "system"
         ]
         return turn_list
+
+    @staticmethod
+    def _conversation_system(conversation: Conversation) -> list[dict]:
+        """Extract system turns as Bedrock Converse API system blocks.
+
+        System prompts are passed to the Converse API via the separate system
+        parameter, one content block per system turn, in conversation order.
+
+        Args:
+            conversation: Conversation object to convert
+
+        Returns:
+            List of system content blocks in Bedrock format
+        """
+        return [
+            {"text": turn.content.text}
+            for turn in conversation.turns
+            if turn.role == "system"
+        ]
 
     @backoff.on_exception(
         backoff.fibo,
@@ -210,6 +234,7 @@ class BedrockGenerator(Generator):
             self._load_unsafe()
 
         messages = self._conversation_to_list(prompt)
+        system = self._conversation_system(prompt)
 
         if not messages:
             logging.error("No valid messages to send to Bedrock")
@@ -232,6 +257,8 @@ class BedrockGenerator(Generator):
             "modelId": self.name,
             "messages": messages,
         }
+        if system:
+            call_args["system"] = system
         if inference_config:
             call_args["inferenceConfig"] = inference_config
 
