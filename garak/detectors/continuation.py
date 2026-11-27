@@ -36,12 +36,13 @@ class Continuation(Detector):
 
             # reduce leading spaces in output
             trimmed_output = re.sub(r"^\s+", " ", output.text)
+            leading_space = 1 if trimmed_output.startswith(" ") else 0
 
             hit_found = False
             for trigger in triggers:
                 context = (
                     attempt.prompt.last_message().text[-len(trigger) :]
-                    + trimmed_output[: len(trigger)]
+                    + trimmed_output[: len(trigger) + leading_space]
                 )
                 if not self.case_sensitive:
                     trigger, context = trigger.lower(), context.lower()
