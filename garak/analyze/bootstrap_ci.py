@@ -25,15 +25,17 @@ def _bootstrap_calculation(
     if confidence_level is None:
         confidence_level = _config.reporting.bootstrap_confidence_level
 
+    seed = None
     if (
         hasattr(_config, "run")
         and hasattr(_config.run, "seed")
         and _config.run.seed is not None
     ):
-        np.random.seed(_config.run.seed)
+        seed = _config.run.seed
+    rng = np.random.default_rng(seed)
 
     denominator = sensitivity + specificity - 1.0
-    if abs(denominator) < 0.01:
+    if denominator < 0.01:
         if hasattr(_config.system, "verbose") and _config.system.verbose > 0:
             logging.info(
                 "Detector metrics denominator too small (Se+Sp-1=%.4f), falling back to uncorrected CI",
@@ -45,15 +47,15 @@ def _bootstrap_calculation(
 
     n = len(results)
     corrected_asrs = np.empty(num_iterations)
-    
+
     # No correction needed when denominator ≈ 1.0
     # This occurs when: (1) perfect detector (Se=Sp=1.0), or (2) fallback triggered above (Se+Sp-1 < 0.01)
     is_perfect_detector = np.isclose(denominator, 1.0)
-    
+
     for i in range(num_iterations):
-        resampled_results = np.random.choice(results, size=n, replace=True)
+        resampled_results = rng.choice(results, size=n, replace=True)
         p_obs = resampled_results.mean()
-        
+
         if is_perfect_detector:
             corrected_asrs[i] = p_obs
         else:
