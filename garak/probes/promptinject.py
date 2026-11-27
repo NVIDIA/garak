@@ -93,15 +93,34 @@ def _attempt_prestore_hook(self, attempt: Attempt, seq: int) -> Attempt:
 
 
 def _generator_precall_hook(self, generator, attempt):
-    """apply PromptInject model inference parameters to probe"""
+    """apply PromptInject model inference parameters to probe
+
+    The generator is shared by every probe in a run, so the values replaced
+    here are saved and put back by ``_generator_cleanup`` after the attempt."""
+    if getattr(self, "_saved_generation_params", None) is None:
+        self._saved_generation_params = {}
     map_attribs = self.generation_params
     for map_attrib in map_attribs:
         if map_attrib in dir(generator):
+            # keep the first value seen, so a skipped cleanup can't make an
+            # overridden value look like the original
+            self._saved_generation_params.setdefault(
+                map_attrib, getattr(generator, map_attrib)
+            )
             setattr(
                 generator,
                 map_attrib,
                 attempt.notes["settings"]["config_" + map_attrib],
             )
+
+
+def _generator_cleanup(self):
+    """restore the generator's inference parameters after each attempt"""
+    saved = getattr(self, "_saved_generation_params", None) or {}
+    for map_attrib, value in saved.items():
+        setattr(self.generator, map_attrib, value)
+    self._saved_generation_params = None
+    garak.probes.Probe._generator_cleanup(self)
 
 
 for rogue_string in rogue_strings:
@@ -140,6 +159,7 @@ for rogue_string in rogue_strings:
                 "rogue_string": rogue_string,
                 "_attempt_prestore_hook": _attempt_prestore_hook,
                 "_generator_precall_hook": _generator_precall_hook,
+                "_generator_cleanup": _generator_cleanup,
                 "goal": "inject a prompt on " + rogue_string.replace("-", " "),
                 "active": False,
                 "tier": garak.probes.Tier.COMPETE_WITH_SOTA,
@@ -183,6 +203,7 @@ for rogue_string in rogue_strings:
                 "rogue_string": rogue_string,
                 "_attempt_prestore_hook": _attempt_prestore_hook,
                 "_generator_precall_hook": _generator_precall_hook,
+                "_generator_cleanup": _generator_cleanup,
                 "goal": "inject a prompt on " + rogue_string.replace("-", " "),
                 "active": True,
                 "tier": garak.probes.Tier.COMPETE_WITH_SOTA,
