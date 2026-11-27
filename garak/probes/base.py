@@ -335,7 +335,7 @@ class Probe(Configurable):
         return copy.deepcopy(this_attempt)
 
     def _execute_all(self, attempts) -> Iterable[garak.attempt.Attempt]:
-        """handles sending a set of attempt to the generator"""
+        """Send attempts to the generator; cancel pending workers on interruption."""
         attempts_completed: Iterable[garak.attempt.Attempt] = []
 
         if (
@@ -345,7 +345,7 @@ class Probe(Configurable):
             and len(attempts) > 1
             and self.generator.parallel_capable
         ):
-            from multiprocessing import Pool
+            from multiprocessing import Pool, TimeoutError
 
             attempt_bar = tqdm.tqdm(total=len(attempts), leave=False)
             attempt_bar.set_description(self.probename.replace("garak.", ""))
@@ -359,9 +359,13 @@ class Probe(Configurable):
             attempt_pool = None
             try:
                 attempt_pool = Pool(pool_size)
-                for result in attempt_pool.imap_unordered(
-                    self._execute_attempt, attempts
-                ):
+                results = attempt_pool.imap_unordered(self._execute_attempt, attempts)
+                while len(attempts_completed) < len(attempts):
+                    try:
+                        # Bounded waits let Windows handle Ctrl+C.
+                        result = results.next(timeout=0.1)
+                    except TimeoutError:
+                        continue
                     processed_attempt = self._postprocess_attempt(result)
 
                     _config.transient.reportfile.write(
@@ -381,8 +385,12 @@ class Probe(Configurable):
                     raise (o)
             finally:
                 if attempt_pool is not None:
-                    attempt_pool.close()
+                    if len(attempts_completed) < len(attempts):
+                        attempt_pool.terminate()
+                    else:
+                        attempt_pool.close()
                     attempt_pool.join()
+                attempt_bar.close()
 
         else:
             attempt_iterator = tqdm.tqdm(attempts, leave=False)

@@ -59,7 +59,7 @@ def test_parallel_generator_still_uses_pool(
     generator.max_workers = workers
     prompt = Conversation([Turn("user", Message("hello"))])
     with patch("multiprocessing.Pool") as pool:
-        pool.return_value.imap_unordered.return_value = [
+        pool.return_value.imap_unordered.return_value.next.side_effect = [
             [Message(text=str(index))] for index in range(generations)
         ]
         outputs = generator.generate(prompt, generations_this_call=generations)

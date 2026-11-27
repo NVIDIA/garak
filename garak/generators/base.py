@@ -141,7 +141,8 @@ class Generator(Configurable):
         """Manages the process of getting generations out from a prompt
 
         This will involve iterating through prompts, getting the generations
-        from the model via a _call_* function, and returning the output
+        from the model via a _call_* function, and returning the output.
+        Cancelling parallel generation terminates workers with pending requests.
 
         Avoid overriding this - try to override _call_model or _call_api
         """
@@ -180,7 +181,7 @@ class Generator(Configurable):
                 and isinstance(self.parallel_requests, int)
                 and self.parallel_requests > 1
             ):
-                from multiprocessing import Pool
+                from multiprocessing import Pool, TimeoutError
 
                 multi_generator_bar = tqdm.tqdm(
                     total=generations_this_call,
@@ -198,9 +199,15 @@ class Generator(Configurable):
                 pool = None
                 try:
                     pool = Pool(pool_size)
-                    for result in pool.imap_unordered(
+                    results = pool.imap_unordered(
                         self._call_model, [prompt] * generations_this_call
-                    ):
+                    )
+                    while len(outputs) < generations_this_call:
+                        try:
+                            # Bounded waits let Windows handle Ctrl+C.
+                            result = results.next(timeout=0.1)
+                        except TimeoutError:
+                            continue
                         self._verify_target_result(result)
                         outputs.append(result[0])
                         multi_generator_bar.update(1)
@@ -213,8 +220,12 @@ class Generator(Configurable):
                         raise (o)
                 finally:
                     if pool is not None:
-                        pool.close()
+                        if len(outputs) < generations_this_call:
+                            pool.terminate()
+                        else:
+                            pool.close()
                         pool.join()
+                    multi_generator_bar.close()
 
             else:
                 generation_iterator = tqdm.tqdm(
