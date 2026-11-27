@@ -8,7 +8,7 @@ import pytest
 from garak.probes import tap
 
 
-@pytest.fixture(params=[tap.TAP])
+@pytest.fixture(params=[tap.TAP, tap.PAIR])
 def parallel_probe(request):
     """Exercise attempt dispatch without running auxiliary attack targets."""
     probe = request.param()

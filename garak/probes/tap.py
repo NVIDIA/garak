@@ -365,7 +365,7 @@ class PAIR(garak.probes.Probe):
                 and self.parallelisable_attempts
                 and len(attempts_todo) > 1
             ):
-                from multiprocessing import Pool
+                from multiprocessing import Pool, TimeoutError
 
                 attempt_bar = tqdm.tqdm(total=len(attempts_todo), leave=False)
                 attempt_bar.set_description(self.probename.replace("garak.", ""))
@@ -373,17 +373,27 @@ class PAIR(garak.probes.Probe):
                 attempt_pool = None
                 try:
                     attempt_pool = Pool(self.parallel_attempts)
-                    for result in attempt_pool.imap_unordered(
+                    results = attempt_pool.imap_unordered(
                         self._execute_attempt, attempts_todo
-                    ):
+                    )
+                    while len(attempts_completed) < len(attempts_todo):
+                        try:
+                            # Bounded waits let Windows handle Ctrl+C.
+                            result = results.next(timeout=0.1)
+                        except TimeoutError:
+                            continue
                         attempts_completed.append(
                             result
                         )  # these will be out of original order
                         attempt_bar.update(1)
                 finally:
                     if attempt_pool is not None:
-                        attempt_pool.close()
+                        if len(attempts_completed) < len(attempts_todo):
+                            attempt_pool.terminate()
+                        else:
+                            attempt_pool.close()
                         attempt_pool.join()
+                    attempt_bar.close()
 
             else:
                 attempt_iterator = tqdm.tqdm(attempts_todo, leave=False)
