@@ -16,6 +16,7 @@ import garak.analyze.report_digest
 import garak.attempt
 import garak.buffs.base
 import garak.evaluators.base
+import garak.exception
 import garak.harnesses.base
 
 from garak.detectors.mitigation import MitigationBypass
@@ -64,6 +65,36 @@ def test_generator_consume_attempt_generator():
     assert (
         result_len == count
     ), "there should be the same number of attempts in the passed generator as results returned in _execute_all"
+
+
+def _unpicklable_stub():
+    """Module-level stub whose __module__ is corrupted per-test to force a
+    real pickle.PicklingError (import-of-module-failed), matching the
+    dynamically-loaded-plugin failure mode reported in #361."""
+
+
+def test_execute_all_unpicklable_probe_raises_garak_exception():
+    """A probe holding a non-picklable attribute must fail with a clear
+    GarakException rather than letting Pool._handle_tasks crash with a raw
+    _pickle.PicklingError (#361)."""
+    garak._config.system.parallel_attempts = 2
+    garak._config.system.max_workers = 2
+
+    p = garak._plugins.load_plugin("probes.test.Blank")
+    g = garak._plugins.load_plugin("generators.test.Blank")
+    p.generator = g
+    original_module = _unpicklable_stub.__module__
+    _unpicklable_stub.__module__ = "nonexistent_module_for_pickling_test"
+    p.unpicklable = _unpicklable_stub
+    attempts = [
+        garak.attempt.Attempt(prompt=garak.attempt.Message(text=str(i), lang="*"))
+        for i in range(2)
+    ]
+    try:
+        with pytest.raises(garak.exception.GarakException):
+            p._execute_all(attempts)
+    finally:
+        _unpicklable_stub.__module__ = original_module
 
 
 def test_attempt_outputs_can_consume_generator():
