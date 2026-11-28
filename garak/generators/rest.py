@@ -9,7 +9,9 @@ Generic Module for REST API connections
 import json
 import logging
 import os
+import re
 import ssl
+import urllib.parse
 from typing import List, Union
 import requests
 
@@ -190,6 +192,15 @@ class RestGenerator(Generator):
 
         super().__init__(self.name, config_root=config_root)
 
+        # a GET request carries the prompt in the query string, so it must be URL encoded;
+        # $INPUT inside a double-quoted span is part of a JSON string value, so it is JSON escaped first
+        if self.http_function == requests.get:
+            self.escape_function = (
+                self._json_url_escape
+                if re.search(r'"[^"]*\$INPUT[^"]*"', self.req_template)
+                else self._url_escape
+            )
+
     def __del__(self):
         if getattr(self, "_mtls_session", None) is not None:
             self._mtls_session.close()
@@ -255,6 +266,14 @@ class RestGenerator(Generator):
         """JSON escape a string"""
         # trim first & last "
         return json.dumps(text)[1:-1]
+
+    def _url_escape(self, text: str) -> str:
+        """Percent-encode a string for use as a URL query value"""
+        return urllib.parse.quote(text, safe="")
+
+    def _json_url_escape(self, text: str) -> str:
+        """Escape a string for a JSON string that sits in a URL query value"""
+        return self._url_escape(self._json_escape(text))
 
     def _populate_template(
         self, template: str, text: str, json_escape_key: bool = False
