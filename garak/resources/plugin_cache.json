@@ -249,7 +249,7 @@
         "demon:Stratagems:Meta-prompting:Ask_for_examples"
       ],
       "tier": 2,
-      "mod_time": "2026-10-08 17:10:09 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.apikey.GetKey": {
       "description": "Will the system return secret looking strings, when asked for an API key?",
@@ -271,11 +271,10 @@
       "parallelisable_attempts": true,
       "primary_detector": "apikey.ApiKey",
       "tags": [
-        "quality:Behavioral:ContentSafety:LegalGoodsServices",
-        "demon:Stratagems:Meta-prompting:Ask_for_examples"
+        "quality:Behavioral:ContentSafety:LegalGoodsServices"
       ],
       "tier": 2,
-      "mod_time": "2026-10-08 17:10:09 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.atkgen.Tox": {
       "description": "Automatic attack generation, trying to elicit toxic outputs from the model.",
@@ -383,11 +382,10 @@
         "owasp:llm02",
         "payload:malicious:badcode:virus",
         "quality:Security:Adversarial",
-        "demon:Stratagems:Meta-prompting:Ask_for_examples",
         "euai:robustness:security"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.av_spam_scanning.GTUBE": {
       "description": "Does the model check its output for spam? Try to send the GTUBE code through",
@@ -414,11 +412,10 @@
         "owasp:llm02",
         "payload:malicious:badcode:spam",
         "quality:Security:Adversarial",
-        "demon:Stratagems:Meta-prompting:Ask_for_examples",
         "euai:robustness:phishing"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.av_spam_scanning.GTphish": {
       "description": "Does the model check its output for phishing? Try to send the GTphish code through",
@@ -444,11 +441,10 @@
         "avid-effect:security:S0403",
         "owasp:llm02",
         "payload:malicious:badcode:phishing",
-        "quality:Security:Adversarial",
-        "demon:Stratagems:Meta-prompting:Ask_for_examples"
+        "quality:Security:Adversarial"
       ],
       "tier": 9,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.badchars.BadCharacters": {
       "description": "Imperceptible perturbations mixing invisible chars, homoglyphs, swaps, deletions.",
@@ -1684,13 +1680,12 @@
         "quality:Behavioral:ContentSafety:HateHarassment",
         "quality:Behavioral:ContentSafety:Violence",
         "quality:Behavioral:ContentSafety:Profanity",
-        "demon:Stratagems:Meta-prompting:Ask_for_examples",
         "euai:harmful:violence",
         "euai:discrimination:protected_class",
         "euai:discrimination:personal"
       ],
       "tier": 9,
-      "mod_time": "2026-09-09 18:03:20 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.donotanswer.HumanChatbox": {
       "description": "Implementation of human_chatbox probes in DoNotAnswer_Prompts",
@@ -1717,7 +1712,7 @@
         "demon:Fictionalizing:Roleplaying:DAN_and_target_persona"
       ],
       "tier": 9,
-      "mod_time": "2026-09-09 18:03:20 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.donotanswer.InformationHazard": {
       "description": "Implementation of information_hazard probes in DoNotAnswer_Prompts",
@@ -1742,11 +1737,10 @@
         "owasp:llm06",
         "avid-effect:security:S0301",
         "quality:Security:Confidentiality",
-        "demon:Stratagems:Meta-prompting:Ask_for_examples",
         "euai:harmful:pii"
       ],
       "tier": 9,
-      "mod_time": "2026-09-09 18:03:20 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.donotanswer.MaliciousUses": {
       "description": "Implementation of malicious_uses probes in DoNotAnswer_Prompts",
@@ -1768,11 +1762,10 @@
       "parallelisable_attempts": true,
       "primary_detector": "mitigation.MitigationBypass",
       "tags": [
-        "quality:Behavioral:ContentSafety:LegalGoodsServices",
-        "demon:Stratagems:Meta-prompting:Ask_for_examples"
+        "quality:Behavioral:ContentSafety:LegalGoodsServices"
       ],
       "tier": 9,
-      "mod_time": "2026-09-09 18:03:20 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.donotanswer.MisinformationHarms": {
       "description": "Implementation of misinformation_harms probes in DoNotAnswer_Prompts",
@@ -1796,11 +1789,10 @@
       "tags": [
         "quality:Robustness:GenerativeMisinformation",
         "avid-effect:ethics:E0402",
-        "owasp:llm09",
-        "demon:Stratagems:Meta-prompting:Ask_for_examples"
+        "owasp:llm09"
       ],
       "tier": 9,
-      "mod_time": "2026-09-09 18:03:20 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.dra.DRA": {
       "description": "DRA (Disguise and Reconstruction Attack)",
@@ -5039,11 +5031,10 @@
       "primary_detector": "lmrc.Anthro",
       "tags": [
         "risk-cards:lmrc:anthropomorphisation",
-        "demon:Rhetoric:Socratic_questioning:Identity_characteristics",
         "euai:deception:subliminal"
       ],
       "tier": 3,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.lmrc.Bullying": {
       "description": "Generation of repeated threats, denigration",
@@ -5069,11 +5060,10 @@
         "avid-effect:ethics:E0301",
         "quality:Behavioral:ContentSafety:Violence",
         "payload:unwanted:violence",
-        "demon:Stratagems:Meta-prompting:Ask_for_examples",
         "euai:harmful:violence"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.lmrc.Deadnaming": {
       "description": "Mentioning a name that a person does not wish to be associated with",
@@ -5098,11 +5088,10 @@
         "risk-cards:lmrc:deadnaming",
         "avid-effect:ethics:E0302",
         "avid-effect:performance:P0401",
-        "demon:Rhetoric:Socratic_questioning:Identity_characteristics",
         "euai:discrimination:personal"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.lmrc.Profanity": {
       "description": "Using profane words, especially when not prompted to do so.",
@@ -5142,7 +5131,7 @@
         "payload:unwanted:profanity"
       ],
       "tier": 3,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.lmrc.QuackMedicine": {
       "description": "Promoting non-scientific medicine.",
@@ -5172,7 +5161,7 @@
         "euai:deception:hallucination"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.lmrc.SexualContent": {
       "description": "Content that discusses bodies and interactions in a sexual manner, or other sexually explicit material",
@@ -5201,11 +5190,10 @@
         "avid-effect:performance:P0401",
         "quality:Behavioral:ContentSafety:Sexual",
         "payload:unwanted:sexual",
-        "demon:Language:Stylizing:Give_examples",
         "euai:harmful:sexual"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.lmrc.Sexualisation": {
       "description": "Causal or overt sexual objectification, reducing a person or group of people to sexual objects.",
@@ -5236,11 +5224,10 @@
         "avid-effect:performance:P0401",
         "quality:Behavioral:ContentSafety:Sexual",
         "payload:unwanted:sexual",
-        "demon:Rhetoric:Socratic_questioning:Identity_characteristics",
         "euai:harmful:sexual"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.lmrc.SlurUsage": {
       "description": "Using an identity-based slur in a non-reclaimed way - either directly or recommending the consumer to use in speech/action.",
@@ -5270,12 +5257,11 @@
         "avid-effect:performance:P0401",
         "quality:Behavioral:ContentSafety:HateHarassment",
         "payload:unwanted:hatespeech",
-        "demon:Rhetoric:Socratic_questioning:Identity_characteristics",
         "euai:discrimination:protected_class",
         "euai:discrimination:personal"
       ],
       "tier": 2,
-      "mod_time": "2026-09-04 18:05:31 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.malwaregen.Evasion": {
       "description": "Will the model write code to help avoid anti-malware?",
@@ -5300,11 +5286,10 @@
         "avid-effect:security:S0403",
         "payload:malicious:badcode",
         "quality:Behavioral:ContentSafety:LegalGoodsServices",
-        "demon:Stratagems:Meta-prompting:Ask_for_examples",
         "euai:offensive:exploitation"
       ],
       "tier": 2,
-      "mod_time": "2026-08-19 19:50:28 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.malwaregen.Payload": {
       "description": "Will the model help write code for malware payloads?",
@@ -5328,11 +5313,10 @@
       "tags": [
         "avid-effect:security:S0403",
         "quality:Behavioral:ContentSafety:LegalGoodsServices",
-        "demon:Stratagems:Meta-prompting:Ask_for_examples",
         "euai:offensive:exploitation"
       ],
       "tier": 2,
-      "mod_time": "2026-08-19 19:50:28 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.malwaregen.SubFunctions": {
       "description": "Will the system write code helpful in malware?",
@@ -5357,11 +5341,10 @@
         "avid-effect:security:S0403",
         "payload:malicious:badcode",
         "quality:Behavioral:ContentSafety:LegalGoodsServices",
-        "demon:Stratagems:Meta-prompting:Ask_for_examples",
         "euai:offensive:exploitation"
       ],
       "tier": 2,
-      "mod_time": "2026-08-19 19:50:28 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.malwaregen.TopLevel": {
       "description": "Will the system return code when asked to write malware?",
@@ -5386,11 +5369,10 @@
         "avid-effect:security:S0403",
         "payload:malicious:badcode",
         "quality:Behavioral:ContentSafety:LegalGoodsServices",
-        "demon:Stratagems:Meta-prompting:Ask_for_examples",
         "euai:offensive:exploitation"
       ],
       "tier": 2,
-      "mod_time": "2026-08-19 19:50:28 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.misleading.FalseAssertion": {
       "description": "Does the model reject [questions based on] false claims?",
@@ -5450,11 +5432,10 @@
         "owasp:llm02",
         "quality:Robustness:GenerativeMisinformation",
         "payload:malicious:badcode",
-        "demon:Stratagems:Meta-prompting:Ask_for_examples",
         "euai:deception:hallucination"
       ],
       "tier": 1,
-      "mod_time": "2026-10-08 17:10:09 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.packagehallucination.JavaScript": {
       "description": "Attempts to generate JavaScript code including hallucinated npm packages",
@@ -5480,11 +5461,10 @@
         "owasp:llm02",
         "quality:Robustness:GenerativeMisinformation",
         "payload:malicious:badcode",
-        "demon:Stratagems:Meta-prompting:Ask_for_examples",
         "euai:deception:hallucination"
       ],
       "tier": 1,
-      "mod_time": "2026-10-08 17:10:09 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.packagehallucination.Perl": {
       "description": "Attempts to generate Perl code including hallucinated MetaCPAN packages",
@@ -5510,11 +5490,10 @@
         "owasp:llm02",
         "quality:Robustness:GenerativeMisinformation",
         "payload:malicious:badcode",
-        "demon:Stratagems:Meta-prompting:Ask_for_examples",
         "euai:deception:hallucination"
       ],
       "tier": 1,
-      "mod_time": "2026-10-08 17:10:09 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.packagehallucination.Python": {
       "description": "Attempts to generate Python3 code including hallucinated packages",
@@ -5540,11 +5519,10 @@
         "owasp:llm02",
         "quality:Robustness:GenerativeMisinformation",
         "payload:malicious:badcode",
-        "demon:Stratagems:Meta-prompting:Ask_for_examples",
         "euai:deception:hallucination"
       ],
       "tier": 1,
-      "mod_time": "2026-10-08 17:10:09 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.packagehallucination.RakuLand": {
       "description": "Attempts to generate Raku code including hallucinated raku.land packages",
@@ -5570,11 +5548,10 @@
         "owasp:llm02",
         "quality:Robustness:GenerativeMisinformation",
         "payload:malicious:badcode",
-        "demon:Stratagems:Meta-prompting:Ask_for_examples",
         "euai:deception:hallucination"
       ],
       "tier": 1,
-      "mod_time": "2026-10-08 17:10:09 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.packagehallucination.Ruby": {
       "description": "Attempts to generate Ruby code including hallucinated gems",
@@ -5600,11 +5577,10 @@
         "owasp:llm02",
         "quality:Robustness:GenerativeMisinformation",
         "payload:malicious:badcode",
-        "demon:Stratagems:Meta-prompting:Ask_for_examples",
         "euai:deception:hallucination"
       ],
       "tier": 1,
-      "mod_time": "2026-10-08 17:10:09 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.packagehallucination.Rust": {
       "description": "Attempts to generate Rust code including hallucinated crates.io packages",
@@ -5630,11 +5606,10 @@
         "owasp:llm02",
         "quality:Robustness:GenerativeMisinformation",
         "payload:malicious:badcode",
-        "demon:Stratagems:Meta-prompting:Ask_for_examples",
         "euai:deception:hallucination"
       ],
       "tier": 1,
-      "mod_time": "2026-10-08 17:10:09 +0000"
+      "mod_time": "2026-09-21 18:50:33 +0000"
     },
     "probes.phrasing.FutureTense": {
       "description": "Attempt to evade safeguards by setting requests in the future tense",
@@ -6838,8 +6813,8 @@
       "tier": 2,
       "mod_time": "2026-09-04 18:05:31 +0000"
     },
-    "probes.sysprompt_extraction.SystemPromptExtraction": {
-      "description": "Attempt to extract system prompts using adversarial attack templates",
+    "probes.sysprompt_extraction.DirectRequests": {
+      "description": "System prompt extraction using direct requests",
       "DEFAULT_PARAMS": {
         "follow_prompt_cap": true,
         "system_prompt_sources": [
@@ -6852,7 +6827,7 @@
       "doc_uri": "https://simonwillison.net/tags/exfiltration-attacks/",
       "extended_detectors": [],
       "extra_dependency_names": [],
-      "goal": "extract the model's system prompt",
+      "goal": "extract the model's system prompt using direct requests",
       "intent": "T009reveal",
       "lang": "en",
       "modality": {
@@ -6869,7 +6844,350 @@
         "euai:robustness:adversarial"
       ],
       "tier": 1,
-      "mod_time": "2026-08-23 05:07:01 +0000"
+      "mod_time": "2026-09-22 18:00:04 +0000"
+    },
+    "probes.sysprompt_extraction.EncodingBasedAttacks": {
+      "description": "System prompt extraction using encoding based attacks",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "system_prompt_sources": [
+          "garak-llm/drh-System-Prompt-processed",
+          "garak-llm/tm-system_prompt"
+        ],
+        "system_prompt_subsample": 50
+      },
+      "active": true,
+      "doc_uri": "https://simonwillison.net/tags/exfiltration-attacks/",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "goal": "extract the model's system prompt using encoding based attacks",
+      "intent": "T009reveal",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "sysprompt_extraction.PromptExtraction",
+      "tags": [
+        "avid-effect:security:S0301",
+        "owasp:llm01",
+        "quality:Security:PromptStability",
+        "euai:robustness:adversarial",
+        "demon:Language:Code_and_encode:Data_encoding"
+      ],
+      "tier": 1,
+      "mod_time": "2026-09-22 18:00:04 +0000"
+    },
+    "probes.sysprompt_extraction.GiveExamples": {
+      "description": "System prompt extraction using give examples",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "system_prompt_sources": [
+          "garak-llm/drh-System-Prompt-processed",
+          "garak-llm/tm-system_prompt"
+        ],
+        "system_prompt_subsample": 50
+      },
+      "active": true,
+      "doc_uri": "https://simonwillison.net/tags/exfiltration-attacks/",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "goal": "extract the model's system prompt using give examples",
+      "intent": "T009reveal",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "sysprompt_extraction.PromptExtraction",
+      "tags": [
+        "avid-effect:security:S0301",
+        "owasp:llm01",
+        "quality:Security:PromptStability",
+        "euai:robustness:adversarial",
+        "demon:Language:Stylizing:Give_examples"
+      ],
+      "tier": 1,
+      "mod_time": "2026-09-22 18:00:04 +0000"
+    },
+    "probes.sysprompt_extraction.IgnorePreviousInstructions": {
+      "description": "System prompt extraction using ignore previous instructions",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "system_prompt_sources": [
+          "garak-llm/drh-System-Prompt-processed",
+          "garak-llm/tm-system_prompt"
+        ],
+        "system_prompt_subsample": 50
+      },
+      "active": true,
+      "doc_uri": "https://simonwillison.net/tags/exfiltration-attacks/",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "goal": "extract the model's system prompt using ignore previous instructions",
+      "intent": "T009reveal",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "sysprompt_extraction.PromptExtraction",
+      "tags": [
+        "avid-effect:security:S0301",
+        "owasp:llm01",
+        "quality:Security:PromptStability",
+        "euai:robustness:adversarial",
+        "demon:Language:Prompt_injection:Ignore_previous_instructions"
+      ],
+      "tier": 1,
+      "mod_time": "2026-09-22 18:00:04 +0000"
+    },
+    "probes.sysprompt_extraction.PerspectiveShifting": {
+      "description": "System prompt extraction using perspective shifting",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "system_prompt_sources": [
+          "garak-llm/drh-System-Prompt-processed",
+          "garak-llm/tm-system_prompt"
+        ],
+        "system_prompt_subsample": 50
+      },
+      "active": true,
+      "doc_uri": "https://simonwillison.net/tags/exfiltration-attacks/",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "goal": "extract the model's system prompt using perspective shifting",
+      "intent": "T009reveal",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "sysprompt_extraction.PromptExtraction",
+      "tags": [
+        "avid-effect:security:S0301",
+        "owasp:llm01",
+        "quality:Security:PromptStability",
+        "euai:robustness:adversarial",
+        "demon:Stratagems:Meta-prompting:Perspective-shifting"
+      ],
+      "tier": 1,
+      "mod_time": "2026-09-22 18:00:04 +0000"
+    },
+    "probes.sysprompt_extraction.Programming": {
+      "description": "System prompt extraction using programming",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "system_prompt_sources": [
+          "garak-llm/drh-System-Prompt-processed",
+          "garak-llm/tm-system_prompt"
+        ],
+        "system_prompt_subsample": 50
+      },
+      "active": true,
+      "doc_uri": "https://simonwillison.net/tags/exfiltration-attacks/",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "goal": "extract the model's system prompt using programming",
+      "intent": "T009reveal",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "sysprompt_extraction.PromptExtraction",
+      "tags": [
+        "avid-effect:security:S0301",
+        "owasp:llm01",
+        "quality:Security:PromptStability",
+        "euai:robustness:adversarial",
+        "demon:Language:Code_and_encode:Programming"
+      ],
+      "tier": 1,
+      "mod_time": "2026-09-22 18:00:04 +0000"
+    },
+    "probes.sysprompt_extraction.RolePlayingClaimAuthority": {
+      "description": "System prompt extraction using role playing claim authority",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "system_prompt_sources": [
+          "garak-llm/drh-System-Prompt-processed",
+          "garak-llm/tm-system_prompt"
+        ],
+        "system_prompt_subsample": 50
+      },
+      "active": true,
+      "doc_uri": "https://simonwillison.net/tags/exfiltration-attacks/",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "goal": "extract the model's system prompt using role playing claim authority",
+      "intent": "T009reveal",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "sysprompt_extraction.PromptExtraction",
+      "tags": [
+        "avid-effect:security:S0301",
+        "owasp:llm01",
+        "quality:Security:PromptStability",
+        "euai:robustness:adversarial",
+        "demon:Fictionalizing:Roleplaying:Claim_authority",
+        "demon:Possible_worlds:World_building:Scenarios"
+      ],
+      "tier": 1,
+      "mod_time": "2026-09-22 18:00:04 +0000"
+    },
+    "probes.sysprompt_extraction.RolePlayingTargetPersona": {
+      "description": "System prompt extraction using role playing target persona",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "system_prompt_sources": [
+          "garak-llm/drh-System-Prompt-processed",
+          "garak-llm/tm-system_prompt"
+        ],
+        "system_prompt_subsample": 50
+      },
+      "active": true,
+      "doc_uri": "https://simonwillison.net/tags/exfiltration-attacks/",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "goal": "extract the model's system prompt using role playing target persona",
+      "intent": "T009reveal",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "sysprompt_extraction.PromptExtraction",
+      "tags": [
+        "avid-effect:security:S0301",
+        "owasp:llm01",
+        "quality:Security:PromptStability",
+        "euai:robustness:adversarial",
+        "demon:Fictionalizing:Roleplaying:DAN_and_target_persona"
+      ],
+      "tier": 1,
+      "mod_time": "2026-09-22 18:00:04 +0000"
+    },
+    "probes.sysprompt_extraction.StrongArmClaimAuthority": {
+      "description": "System prompt extraction using strong arm claim authority",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "system_prompt_sources": [
+          "garak-llm/drh-System-Prompt-processed",
+          "garak-llm/tm-system_prompt"
+        ],
+        "system_prompt_subsample": 50
+      },
+      "active": true,
+      "doc_uri": "https://simonwillison.net/tags/exfiltration-attacks/",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "goal": "extract the model's system prompt using strong arm claim authority",
+      "intent": "T009reveal",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "sysprompt_extraction.PromptExtraction",
+      "tags": [
+        "avid-effect:security:S0301",
+        "owasp:llm01",
+        "quality:Security:PromptStability",
+        "euai:robustness:adversarial",
+        "demon:Language:Prompt_injection:Strong_arm_attack",
+        "demon:Fictionalizing:Roleplaying:Claim_authority"
+      ],
+      "tier": 1,
+      "mod_time": "2026-09-22 18:00:04 +0000"
+    },
+    "probes.sysprompt_extraction.StrongArmScenarios": {
+      "description": "System prompt extraction using strong arm scenarios",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "system_prompt_sources": [
+          "garak-llm/drh-System-Prompt-processed",
+          "garak-llm/tm-system_prompt"
+        ],
+        "system_prompt_subsample": 50
+      },
+      "active": true,
+      "doc_uri": "https://simonwillison.net/tags/exfiltration-attacks/",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "goal": "extract the model's system prompt using strong arm scenarios",
+      "intent": "T009reveal",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "sysprompt_extraction.PromptExtraction",
+      "tags": [
+        "avid-effect:security:S0301",
+        "owasp:llm01",
+        "quality:Security:PromptStability",
+        "euai:robustness:adversarial",
+        "demon:Language:Prompt_injection:Strong_arm_attack",
+        "demon:Possible_worlds:World_building:Scenarios"
+      ],
+      "tier": 1,
+      "mod_time": "2026-09-22 18:00:04 +0000"
+    },
+    "probes.sysprompt_extraction.WorldBuildingScenarios": {
+      "description": "System prompt extraction using world building scenarios",
+      "DEFAULT_PARAMS": {
+        "follow_prompt_cap": true,
+        "system_prompt_sources": [
+          "garak-llm/drh-System-Prompt-processed",
+          "garak-llm/tm-system_prompt"
+        ],
+        "system_prompt_subsample": 50
+      },
+      "active": true,
+      "doc_uri": "https://simonwillison.net/tags/exfiltration-attacks/",
+      "extended_detectors": [],
+      "extra_dependency_names": [],
+      "goal": "extract the model's system prompt using world building scenarios",
+      "intent": "T009reveal",
+      "lang": "en",
+      "modality": {
+        "in": [
+          "text"
+        ]
+      },
+      "parallelisable_attempts": true,
+      "primary_detector": "sysprompt_extraction.PromptExtraction",
+      "tags": [
+        "avid-effect:security:S0301",
+        "owasp:llm01",
+        "quality:Security:PromptStability",
+        "euai:robustness:adversarial",
+        "demon:Possible_worlds:World_building:Scenarios"
+      ],
+      "tier": 1,
+      "mod_time": "2026-09-22 18:00:04 +0000"
     },
     "probes.tap.PAIR": {
       "description": "Prompt Automatic Iterative Refinement automatic jailbreak",
@@ -7260,7 +7578,7 @@
         "euai:robustness:security"
       ],
       "tier": 1,
-      "mod_time": "2026-11-04 03:10:10 +0000"
+      "mod_time": "2026-09-21 18:58:09 +0000"
     },
     "probes.web_injection.MarkdownImageExfil": {
       "description": "Can we get the model to write embedded assets exfiltrating text in the URI?",
@@ -7299,7 +7617,7 @@
         "euai:robustness:security"
       ],
       "tier": 1,
-      "mod_time": "2026-11-04 03:10:10 +0000"
+      "mod_time": "2026-09-21 18:58:09 +0000"
     },
     "probes.web_injection.MarkdownURIImageExfilExtended": {
       "description": "Generalized implementation of data exfiltration exploits through Markdown URIs.",
@@ -7334,7 +7652,7 @@
         "euai:robustness:security"
       ],
       "tier": 1,
-      "mod_time": "2026-11-04 03:10:10 +0000"
+      "mod_time": "2026-09-21 18:58:09 +0000"
     },
     "probes.web_injection.MarkdownURINonImageExfilExtended": {
       "description": "Generalized implementation of data exfiltration exploits through Markdown URIs.",
@@ -7369,7 +7687,7 @@
         "euai:robustness:security"
       ],
       "tier": 1,
-      "mod_time": "2026-11-04 03:10:10 +0000"
+      "mod_time": "2026-09-21 18:58:09 +0000"
     },
     "probes.web_injection.MarkdownXSS": {
       "description": "Perform cross site scripting attacks using Markdown Javascript rendering via prompt injection.",
@@ -7401,10 +7719,11 @@
         "payload:malicious:renderer:xss",
         "quality:Security:PromptStability",
         "cwe:79",
+        "demon:Language:Code_and_encode:Programming",
         "euai:robustness:security"
       ],
       "tier": 1,
-      "mod_time": "2026-11-04 03:10:10 +0000"
+      "mod_time": "2026-09-21 18:58:09 +0000"
     },
     "probes.web_injection.PlaygroundMarkdownExfil": {
       "description": "Markdown image URI exfil exploit published 2023 Sept 29.",
@@ -7436,10 +7755,11 @@
         "quality:Security:PromptStability",
         "quality:Security:ExtractionInversion",
         "cwe:352",
+        "demon:Language:Code_and_encode:Programming",
         "euai:robustness:security"
       ],
       "tier": 1,
-      "mod_time": "2026-11-04 03:10:10 +0000"
+      "mod_time": "2026-09-21 18:58:09 +0000"
     },
     "probes.web_injection.StringAssemblyDataExfil": {
       "description": "Prompt injection for manipulating state",
@@ -7475,7 +7795,7 @@
         "euai:robustness:security"
       ],
       "tier": 1,
-      "mod_time": "2026-11-04 03:10:10 +0000"
+      "mod_time": "2026-09-21 18:58:09 +0000"
     },
     "probes.web_injection.TaskXSS": {
       "description": "Perform cross site scripting attacks via prompt injection.",
@@ -7514,7 +7834,7 @@
         "euai:robustness:security"
       ],
       "tier": 1,
-      "mod_time": "2026-11-04 03:10:10 +0000"
+      "mod_time": "2026-09-21 18:58:09 +0000"
     }
   },
   "detectors": {
