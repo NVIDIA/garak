@@ -3,9 +3,8 @@
 
 import gc
 import torch
-from typing import Tuple, Union, Optional
+from typing import Tuple, Optional
 from logging import getLogger
-import garak._config
 from garak.generators.huggingface import Model, Pipeline
 from transformers import PreTrainedModel
 
