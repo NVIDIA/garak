@@ -98,6 +98,26 @@ class Calibration:
             zscore = self._calc_z(distr["mu"], distr["sigma"], score)
         return zscore
 
+    def get_probe_asrs(self, probe_name: str) -> list[float]:
+        """Return the bag's mean attack success rates for a probe's detectors.
+
+        :param probe_name: probe plugin name, with or without the ``probes.`` prefix
+        :type probe_name: str
+        :return: mean attack success rates for matching probe/detector pairs
+        :rtype: list[float]
+        """
+
+        if not self.calibration_successfully_loaded:
+            return []
+
+        probe_name = probe_name.removeprefix("probes.")
+        probe_prefix = f"{probe_name}/"
+        return [
+            1.0 - float(distribution["mu"])
+            for key, distribution in self._data.items()
+            if key.startswith(probe_prefix)
+        ]
+
     def _build_path(self, filename):
         return data_path / "calibration" / filename
 
