@@ -182,6 +182,12 @@ Private Replicate endpoints:
 * `--target_name` - The name of the model to access via the Groq API
 * set the `GROQ_API_KEY` environment variable to your Groq API key, see https://console.groq.com/docs/quickstart for details on creating an API key
 
+### OpenRouter
+
+* `--target_type openrouter`
+* `--target_name` - the model to access via OpenRouter, using its `<provider>/<model>` naming, e.g. `anthropic/claude-sonnet-4`; browse available models at https://openrouter.ai/models
+* set the `OPENROUTER_API_KEY` environment variable to your OpenRouter API key, see https://openrouter.ai/keys for details on creating one
+
 ### ggml
 
 * `--target_type ggml`
