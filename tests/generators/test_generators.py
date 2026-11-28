@@ -42,7 +42,6 @@ def test_parallel_requests():
 
 @pytest.mark.parametrize("classname", GENERATORS)
 def test_generator_structure(classname):
-
     m = importlib.import_module("garak." + ".".join(classname.split(".")[:-1]))
     g = getattr(m, classname.split(".")[-1])
 
@@ -104,8 +103,12 @@ def test_instantiate_generators(classname):
     from garak._config import GarakSubConfig
 
     # Use WebSocket URI for WebSocket generators, HTTP URI for others
-    uri = "wss://echo.websocket.org" if "websocket" in classname.lower() else "https://example.com"
-    
+    uri = (
+        "wss://echo.websocket.org"
+        if "websocket" in classname.lower()
+        else "https://example.com"
+    )
+
     gen_config = {
         namespace: {
             klass: {
@@ -139,6 +142,7 @@ NON_CONVERSATION_GENERATORS = [
         or "groq" in classname
         or "azure" in classname
         or "NeMoGuardrailsServer" in classname
+        or "abliteration" in classname
     )
 ]
 
