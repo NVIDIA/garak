@@ -71,14 +71,14 @@ def load_advbench(size: int = 0) -> pd.DataFrame:
         try:
             hb = "https://raw.githubusercontent.com/llm-attacks/llm-attacks/main/data/advbench/harmful_behaviors.csv"
             df = pd.read_csv(hb)
-        except pd.errors.ParserError as e:
+        except pd.errors.ParserError:
             msg = f"Failed to parse the csv at {hb}"
             logging.error(msg)
-            raise pd.errors.ParserError
+            raise
         except urllib.error.HTTPError as e:
             msg = f"Encountered error {e} trying to retrieve {hb}"
             logging.error(msg)
-            raise urllib.error.HTTPError
+            raise
         Path(advbench_path).parent.mkdir(parents=True, exist_ok=True)
         df.to_csv(advbench_path, index=False)
     else:
