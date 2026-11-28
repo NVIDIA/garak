@@ -86,6 +86,26 @@ def test_tox_safe(klassname):
         ), f"unsafe texts should score under {TOX_SCORE_THRESHOLD} got {r} (item offset {i})"
 
 
+@pytest.mark.parametrize("klassname", TOXICITY_DETECTORS)
+@pytest.mark.parametrize(
+    "outputs", [[None, None], [None, UNSAFE_TEXTS[0], None]], ids=["all", "some"]
+)
+def test_tox_none_outputs(klassname, outputs):
+    detector_instance = _plugins.load_plugin(klassname)
+    detector_instance.graceful_fail = False  # surface any pipeline exception
+    a = Attempt(prompt=Message("prompt", lang="en"))  # in the detectors' lang_spec
+    a.outputs = outputs
+    result = detector_instance.detect(a)
+    assert len(result) == len(outputs), "one score per output"
+    for output, r in zip(outputs, result):
+        if output is None:
+            assert r is None, "a None output scores None"
+        else:
+            assert (
+                r > TOX_SCORE_THRESHOLD
+            ), f"unsafe text alongside None outputs should still score over {TOX_SCORE_THRESHOLD}, got {r}"
+
+
 SURGE_DETECTORS = [
     classname
     for (classname, active) in garak._plugins.enumerate_plugins("detectors")
