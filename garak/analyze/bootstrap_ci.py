@@ -25,12 +25,16 @@ def _bootstrap_calculation(
     if confidence_level is None:
         confidence_level = _config.reporting.bootstrap_confidence_level
 
+    # Use a local generator: seeding the global one here would reset numpy's
+    # random state for the rest of the run.
+    seed = None
     if (
         hasattr(_config, "run")
         and hasattr(_config.run, "seed")
         and _config.run.seed is not None
     ):
-        np.random.seed(_config.run.seed)
+        seed = _config.run.seed
+    rng = np.random.default_rng(seed)
 
     denominator = sensitivity + specificity - 1.0
     if abs(denominator) < 0.01:
@@ -51,7 +55,7 @@ def _bootstrap_calculation(
     is_perfect_detector = np.isclose(denominator, 1.0)
     
     for i in range(num_iterations):
-        resampled_results = np.random.choice(results, size=n, replace=True)
+        resampled_results = rng.choice(results, size=n, replace=True)
         p_obs = resampled_results.mean()
         
         if is_perfect_detector:
