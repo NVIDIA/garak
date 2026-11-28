@@ -51,6 +51,7 @@ For a guide to writing probes, see :doc:`extending.probe`.
    probes/sysprompt_extraction
    probes/tap
    probes/test
+   probes/tooluse
    probes/topic
    probes/visual_jailbreak
    probes/web_injection
